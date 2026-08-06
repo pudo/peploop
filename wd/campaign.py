@@ -609,6 +609,95 @@ def short_spells(records: Sequence[Record]) -> List[str]:
     return warnings
 
 
+#: P31 of a political party. Resolving the party column against this rather
+#: than trusting the link keeps "nestraník" — non-party, which cs.wikipedia
+#: writes in the same column for a third of Czech ministers — from becoming a
+#: claim of membership in a party of that name.
+PARTY_CLASS = "Q7278"
+
+#: Cell text meaning the person sat for a party without belonging to it.
+#: cs.wikipedia writes "nestraník za ANO" — non-party, nominated by ANO — and
+#: still *links* ANO, so the link alone would assert the opposite of what the
+#: cell says. Roman Prymula and Jan Blatný were both proposed as ANO members
+#: this way before the guard existed.
+NON_MEMBER = re.compile(
+    r"nestran|bezpartijn|беспартийн|беспарт|незалежн|independiente|independent"
+    r"|sin partido|nom\.|navržen",
+    re.I,
+)
+
+
+def party_records(
+    session: Session, campaign: "Campaign", office: Office,
+    per_person: Dict[Tuple[str, str], List[RosterRow]],
+    people: Dict[str, Person], lang: str, source: str,
+) -> List[Record]:
+    """P102 statements the roster already proves, and that nobody wrote down.
+
+    The party column is parsed for every row and then discarded. It prints an
+    abbreviation but *links* the full name, so the link resolves to the party
+    item without a per-country lexicon of initials.
+
+    Emitted bare, with no dates: party membership is not bounded by the
+    ministry, and the roster only says which party the person sat for at the
+    time. Anyone already carrying a P102 is left alone, because a
+    renamed-party duplicate is worse than a gap.
+    """
+    titles = {
+        title
+        for rows in per_person.values() for row in rows
+        for title in row.links.get("party", [])
+    }
+    if not titles:
+        return []
+    by_title = resolve_titles(session, lang, sorted(titles))
+    entities = fetch_entities(session, sorted(set(by_title.values())), props="claims")
+    parties = {
+        qid for qid, entity in entities.items()
+        if PARTY_CLASS in claim_qids(entity, "P31")
+    }
+
+    records: List[Record] = []
+    for (qid, _target), rows in per_person.items():
+        person = people[qid]
+        if person.p102:
+            continue
+        seen = []
+        for row in rows:
+            # The cell's *text* decides whether this is membership; the link
+            # only says which party. "nestraník za ANO" links ANO and means
+            # the person is not a member of it.
+            if NON_MEMBER.search(row.cells.get("party", "")):
+                continue
+            for title in row.links.get("party", []):
+                party = by_title.get(title)
+                if party in parties and party not in seen:
+                    seen.append(party)
+        for party in seen:
+            records.append(Record(
+                campaign=campaign.name,
+                office=office.key,
+                subject=Subject(kind="item", qid=qid, label=person.label),
+                statements=[Statement(
+                    "P102", Value.item(party),
+                    references=[Snak("S4656", Value.url(source))] if source else [],
+                )],
+                decision=Decision(
+                    action="apply", rule="party.roster_column", concern="p102",
+                    rationale="the roster's party column links this party, and "
+                              "the item carries no P102 to contradict it",
+                ),
+                identity={"method": "roster party column"},
+                flags=["party"],
+                signals=[Signal(
+                    "roster_party", "party",
+                    f"roster lists them for {', '.join(row.cells.get('party', '') for row in rows[:1])}",
+                    source or None,
+                )],
+            ))
+    return records
+
+
 def era_flag(start: Optional[str], modern_from: int) -> str:
     """Where a single term sits relative to the institutional cutoff.
 
@@ -985,6 +1074,10 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 )
             )
         audit.append("")
+
+        records += party_records(
+            session, campaign, office, per_person, people, lang, source
+        )
 
         path = verdict_dir / f"{campaign.name}_{office.key}.jsonl"
         path.write_text(dumps(records))

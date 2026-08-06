@@ -129,6 +129,7 @@ def main() -> None:
 
     md: list[str] = ["# P39 edit plan", ""]
     qs: list[str] = []
+    by_concern: dict[str, list[str]] = {}
     by_position: dict[str, list[dict]] = {}
     for record in records:
         target = record["statements"][0]["value"].get("id") if record["statements"] else None
@@ -162,6 +163,14 @@ def main() -> None:
                 if v.get("notes"):
                     md.append(f"  * notes: {v['notes']}")
                 if bucket == "add":
+                    # One file per concern: CLAUDE.md keeps batches
+                    # single-concern so a bad rule can be reverted as one
+                    # QuickStatements batch rather than unpicked statement by
+                    # statement.
+                    concern = v["decision"].get("concern") or "p39"
+                    by_concern.setdefault(concern, []).extend(
+                        qs_lines(v, args.retrieved)
+                    )
                     qs.extend(qs_lines(v, args.retrieved))
             md.append("")
 
@@ -176,6 +185,10 @@ def main() -> None:
     print(summary)
     print(f"Wrote {plan_md}")
     print(f"Wrote {plan_qs}")
+    for concern, lines in sorted(by_concern.items()):
+        path = campaign_dir / f"edit_plan_{concern}.qs"
+        path.write_text("\n".join(lines) + "\n")
+        print(f"Wrote {path} ({len(lines)} statements)")
 
 
 if __name__ == "__main__":

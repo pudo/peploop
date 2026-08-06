@@ -266,6 +266,11 @@ class RosterRow:
     flags: List[str] = field(default_factory=list)
     ref_urls: List[str] = field(default_factory=list)
     cells: Dict[str, str] = field(default_factory=dict)
+    #: Column role → the article titles that column links to. The party cell
+    #: prints an abbreviation ("ODS") but links the full name ("Občanská
+    #: demokratická strana"), so the link is what makes P102 resolvable
+    #: without a per-country lexicon of party initials.
+    links: Dict[str, List[str]] = field(default_factory=dict)
 
     @property
     def acting(self) -> bool:
@@ -529,6 +534,19 @@ def parse_rosters(page_html: str) -> List[Roster]:
             cells: Dict[str, str] = {
                 role: " – ".join(texts) for role, texts in values.items() if texts
             }
+            links: Dict[str, List[str]] = {}
+            for role, (cell, _) in zip(roles, row_cells):
+                if cell is None:
+                    continue
+                for anchor in cell.xpath(".//a[@href]"):
+                    title = anchor.get("title") or ""
+                    if (
+                        (anchor.get("href") or "").startswith("/wiki/")
+                        and ":" not in title
+                        and "mw-file" not in (anchor.get("class") or "")
+                        and title not in links.setdefault(role, [])
+                    ):
+                        links[role].append(title)
             name_index = roles.index("name") if "name" in roles else 0
             # The declared column first, then its neighbours: a "Nombre" header
             # can span portrait + name, and cs.wikipedia's education list fills
@@ -617,6 +635,7 @@ def parse_rosters(page_html: str) -> List[Roster]:
                        if acting_text else []),
                     ref_urls=ref_urls,
                     cells=cells,
+                    links=links,
                 )
             )
         if rows:
