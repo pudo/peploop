@@ -141,10 +141,10 @@ def main() -> None:
     ):
         md.append(f"## Position {position or 'none — no target item exists (creation list)'}")
         for bucket, title, action in [
-            ("add", "Add — goes into edit_plan.qs", "apply"),
-            ("add_held", "Add, held back pending a convention call", "hold"),
-            ("reject", "Rejected", "skip"),
-            ("unclear", "Unclear — needs a human look", "review"),
+            ("add", "Apply — goes into edit_plan.qs", "apply"),
+            ("add_held", "Held — believed, but no rule releases this tier yet", "hold"),
+            ("reject", "Skipped — decided against, with a reason", "skip"),
+            ("unclear", "Review — evidence still missing", "review"),
         ]:
             rows = [v for v in items if v["decision"]["action"] == action]
             rows.sort(key=lambda v: (v["decision"].get("rule") or "", v["subject"]["qid"]))
@@ -166,9 +166,9 @@ def main() -> None:
             md.append("")
 
     summary = (
-        f"{counts['add']} adds ({len(qs)} statements), "
-        f"{counts['add_held']} adds held back, "
-        f"{counts['reject']} rejected, {counts['unclear']} unclear"
+        f"{counts['add']} applied ({len(qs)} statements), "
+        f"{counts['add_held']} held, "
+        f"{counts['reject']} skipped, {counts['unclear']} to review"
     )
     md.insert(1, summary)
     plan_md.write_text("\n".join(md) + "\n")

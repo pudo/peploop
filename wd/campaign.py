@@ -149,6 +149,12 @@ class Campaign:
     #: Rule id → disposition, for the rare case where a country's own history
     #: contradicts the default policy. Declared once, never per person.
     dispositions: Dict[str, str] = field(default_factory=dict)
+    #: Era names naming the *same institution* under an earlier constitution —
+    #: the Czech Republic within the federation, not the Protectorate. Their
+    #: rows are judged on the target item's own record, like any other early
+    #: term; every other era named by `regime_sections` is a different state
+    #: and is skipped for want of its own item.
+    continuous_eras: Tuple[str, ...] = ()
     #: Categories whose members belong to another regime entirely: (lang, cat).
     regime_categories: Tuple[Tuple[str, str, str], ...] = ()
 
@@ -682,7 +688,14 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
         qid for o in offices for _, qid in o.section_targets
     ]
     precedents = census(session, all_targets, cache=out_dir / "precedent.json")
-    facts = Facts(precedent=precedents)
+    regimes = {era for o in campaign.offices for _, era in o.regime_sections}
+    regimes |= {era for _, _, era in campaign.regime_categories}
+    facts = Facts(
+        precedent=precedents,
+        modern_from=campaign.modern_from,
+        continuous_eras=frozenset(campaign.continuous_eras),
+        regimes=frozenset(regimes),
+    )
     #: (rule, disposition) for every record written, for the policy summary.
     decisions: List[Tuple[str, str]] = []
     audit: List[str] = [

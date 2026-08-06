@@ -151,6 +151,11 @@ CAMPAIGN = Campaign(
     label_langs=("cs", "en"),
     sibling_wikis=("cs", "sk", "en"),
     evidence_verb="lists them in the office",
+    # The Czech Republic of 1969–1992 is the same state as today's under an
+    # earlier constitution — the ministries were never abolished and refounded
+    # — so its rows are judged on each target item's own record. The
+    # Protectorate is not, and stays out.
+    continuous_eras=("federal_cr",),
     # Nearly every Czech minister sits in parliament or on a council at the same
     # time, so those overlaps say nothing about whether a short spell was cover.
     concurrency_ignore=(

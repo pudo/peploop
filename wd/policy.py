@@ -74,6 +74,15 @@ class Facts:
     precedent: Dict[str, object] = field(default_factory=dict)
     #: Candidate key → signals gathered by the second-channel resolver.
     signals: Dict[str, list] = field(default_factory=dict)
+    #: The country's institutional cutoff, for reading the census.
+    modern_from: int = 0
+    #: Earlier polities that are the *same institution* under another
+    #: constitution — the Czech Republic inside the federation, not the
+    #: Protectorate. Their rows are judged like any other early term, on the
+    #: target's own record, rather than refused for the name of the era.
+    continuous_eras: frozenset = frozenset()
+    #: Every era name the campaign routes on, continuous or not.
+    regimes: frozenset = frozenset()
 
 
 @dataclass(frozen=True)
@@ -109,6 +118,40 @@ def always(_candidate: Candidate, _facts: Facts) -> bool:
     return True
 
 
+def in_era(kind: str) -> Callable[[Candidate, Facts], bool]:
+    """Predicate: the candidate belongs to a continuous or a distinct polity."""
+
+    def check(candidate: Candidate, facts: Facts) -> bool:
+        flags = set(candidate.flags)
+        if kind == "continuous":
+            return bool(flags & facts.continuous_eras)
+        return bool(flags & (facts.regimes - facts.continuous_eras))
+
+    return check
+
+
+def precedent_allows(candidate: Candidate, facts: Facts) -> bool:
+    """Would the target item ordinarily carry a term this early?
+
+    Answered from the item's own record rather than from a per-country rule,
+    because the two disagree inside one country: Czech Agriculture already
+    holds ten terms from before 1993, while a 1969 term on Czech Defence would
+    predate the item's declared inception.
+    """
+    precedent = facts.precedent.get(candidate.target)
+    if precedent is None or not facts.modern_from:
+        return False
+    if not precedent.supports_before(facts.modern_from):
+        return False
+    return all(precedent.covers(start) for start, _ in candidate.terms)
+
+
+def _early(candidate: Candidate, facts: Facts) -> bool:
+    return bool(
+        set(candidate.flags) & {"historical", "historical_roster_only"}
+    ) or in_era("continuous")(candidate, facts)
+
+
 #: The default rule table, in order. First match wins.
 #:
 #: Every entry below `modern` is currently `hold` or `review`, which reproduces
@@ -121,13 +164,29 @@ DEFAULT_RULES: Tuple[Rule, ...] = (
         "a Wikipedia category and a dated roster row agree, inside the "
         "modern institutional era",
     ),
+    # An earlier polity that is a different *state* keeps its own offices; its
+    # rows need an item of their own, which no rule can invent.
+    Rule(
+        "era.distinct", in_era("distinct"), SKIP,
+        "a different polity's office — it needs its own item, which the "
+        "profile must name",
+    ),
+    # Everything else early — a pre-cutoff term, or the same institution under
+    # an earlier constitution — is judged on the target's own record.
+    Rule(
+        "early.precedent_ok", lambda c, f: _early(c, f) and precedent_allows(c, f),
+        APPLY,
+        "the target already carries terms this early, so this is how the "
+        "community uses the item",
+    ),
+    Rule(
+        "early.unsupported", _early, SKIP,
+        "the target's own record does not carry terms this early, or the "
+        "term predates the item's declared inception",
+    ),
     Rule(
         "roster_only", has("roster_only"), HOLD,
         "named by the roster but by no category — one channel",
-    ),
-    Rule(
-        "historical", has("historical", "historical_roster_only"), HOLD,
-        "term starts before the country's institutional cutoff",
     ),
     Rule(
         "no_dates", has("no_dates"), HOLD,
