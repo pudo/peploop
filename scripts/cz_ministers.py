@@ -130,6 +130,28 @@ OFFICES = [
            rosters=(RosterSource("cs", "Seznam soudců Ústavního soudu České republiky"),),
            categories=(("cs", "Soudci Ústavního soudu České republiky"),),
            regime_sections=REGIMES),
+    # Wikidata has no item for either supreme court's judges, so 45 category
+    # members have nowhere to put a statement. Both categories are the yml
+    # block's own, and both courts are real and current; the items are simply
+    # missing. `scripts/create_offices.py` mints them.
+    Office("supreme_court", "Supreme Court judge", "",
+           archetype="supreme_judge",
+           body="Q7645005",  # Supreme Court of the Czech Republic
+           create_labels=(
+               ("en", "judge of the Supreme Court of the Czech Republic"),
+               ("cs", "soudce Nejvyššího soudu České republiky"),
+           ),
+           rosters=(RosterSource("cs", "Nejvyšší soud České republiky"),),
+           categories=(("cs", "Soudci Nejvyššího soudu České republiky"),)),
+    Office("supreme_admin_court", "Supreme Administrative Court judge", "",
+           archetype="supreme_judge",
+           body="Q7644797",  # Supreme Administrative Court of the Czech Republic
+           create_labels=(
+               ("en", "judge of the Supreme Administrative Court of the Czech Republic"),
+               ("cs", "soudce Nejvyššího správního soudu České republiky"),
+           ),
+           rosters=(RosterSource("cs", "Nejvyšší správní soud České republiky"),),
+           categories=(("cs", "Soudci Nejvyššího správního soudu České republiky"),)),
     # The list is of *ministers for legislation*; the only item Wikidata has is
     # the chair of the Government Legislative Council, which the same people
     # held but which is not the same office. Nothing here is batched.

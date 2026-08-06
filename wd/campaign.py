@@ -125,6 +125,15 @@ class Office:
     #: it reaches `wd.policy` like any other flag, and giving it a disposition
     #: is what releases the office.
     hold: Optional[str] = None
+    #: Set instead of `target` when Wikidata has no item for this office. The
+    #: shape comes from `wd.create.ARCHETYPES`; `body` names the ministry,
+    #: court or chamber it belongs to. `scripts/create_offices.py` mints the
+    #: item, after which `target` can be filled in and the office runs like any
+    #: other.
+    archetype: Optional[str] = None
+    body: Optional[str] = None
+    #: Labels for the item to be created, by language.
+    create_labels: Tuple[Tuple[str, str], ...] = ()
 
 
 @dataclass
@@ -692,6 +701,15 @@ def overlaps(terms: Sequence[Tuple[str, Optional[str], Optional[str]]]) -> List[
 def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequence[str]] = None) -> None:
     """Run the campaign: verdict JSONL per office plus one audit document."""
     offices = [o for o in campaign.offices if keys is None or o.key in keys]
+    # An office with no target has no item yet; `scripts/create_offices.py`
+    # mints it, and until then there is nothing to propose statements against.
+    pending = [o for o in offices if not o.target]
+    offices = [o for o in offices if o.target]
+    if pending:
+        print(
+            "! offices awaiting item creation (run scripts/create_offices.py): "
+            + ", ".join(o.key for o in pending)
+        )
     if not offices:
         raise SystemExit(f"No office matched {keys}")
     verdict_dir = out_dir / "verdicts"
