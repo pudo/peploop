@@ -28,6 +28,10 @@ from typing import Callable, Dict, Optional, Sequence, Tuple
 #: What a rule can decide. `hold` is transitional — it marks a statement the
 #: engine believes but that no rule has yet been written to release — and its
 #: population shrinking to zero is the measure of this project.
+#: Identity rungs where somebody other than this engine made the claim: a
+#: roster wikilink, or an article sitting at exactly the printed name.
+STRONG_IDENTITY = ("wikilink", "article title")
+
 APPLY = "apply"
 HOLD = "hold"
 REVIEW = "review"
@@ -57,6 +61,9 @@ class Candidate:
     believed: bool = False
     #: True when a Wikipedia category also puts this person in this office.
     in_category: bool = False
+    #: True when the roster row carried its own citation to something outside
+    #: Wikimedia — a stronger second channel than any category.
+    cited: bool = False
     office: str = ""
 
 
@@ -184,9 +191,23 @@ DEFAULT_RULES: Tuple[Rule, ...] = (
         "the target's own record does not carry terms this early, or the "
         "term predates the item's declared inception",
     ),
+    # A dedicated list article naming a *wikilinked* person is Wikipedia
+    # asserting both the office and the identity, and where the row also cites
+    # something outside Wikimedia the second channel is better than the
+    # category whose absence held these rows. A bare token-subset name match is
+    # this engine guessing, and gets no such credit.
     Rule(
-        "roster_only", has("roster_only"), HOLD,
-        "named by the roster but by no category — one channel",
+        "roster_only.attested",
+        lambda c, f: has("roster_only")(c, f)
+        and (c.identity in STRONG_IDENTITY or c.cited),
+        APPLY,
+        "a dedicated roster names them, with the identity asserted by a "
+        "wikilink or corroborated by the row's own citation",
+    ),
+    Rule(
+        "roster_only.weak_identity", has("roster_only"), SKIP,
+        "only a roster names them, and the identification is a name match "
+        "rather than an assertion",
     ),
     Rule(
         "no_dates", has("no_dates"), HOLD,

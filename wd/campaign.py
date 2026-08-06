@@ -621,6 +621,9 @@ def position_record(
         identity=str(identity.get("method", "")),
         believed=verdict == "add",
         in_category=in_category,
+        # S854 is used only when the roster row footnoted a real source; a
+        # permalink to the roster itself goes in S4656 and is not a channel.
+        cited=source_prop == "S854",
         office=office,
     )
     ruling = decide(candidate, facts, overrides=overrides)
