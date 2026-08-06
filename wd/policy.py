@@ -161,61 +161,46 @@ def _early(candidate: Candidate, facts: Facts) -> bool:
 
 #: The default rule table, in order. First match wins.
 #:
-#: Every entry below `modern` is currently `hold` or `review`, which reproduces
-#: the behaviour of the era gate it replaces — the point of introducing the
-#: table separately from changing it is that the escalation ladder becomes data
-#: first, so each later loosening is a one-line diff with one candidate cause.
+#: The order is load-bearing, and in one direction that is easy to get wrong.
+#: Every row carries its era *alongside* its tier, so a candidate can be both
+#: `acting` and `historical`. Rules that answer "does this claim belong on this
+#: item at all" must therefore precede rules that answer "what kind of tenure
+#: was it", and the general `modern` rule must come last of the applying rules
+#: or it swallows the specific tiers and drops their qualifiers.
 DEFAULT_RULES: Tuple[Rule, ...] = (
+    # 1. Identity failures first: nothing else about the row matters.
     Rule(
-        "modern.two_channel", has("modern"), APPLY,
-        "a Wikipedia category and a dated roster row agree, inside the "
-        "modern institutional era",
+        "namesake", has("lifetime_mismatch", "lifespan_not_term"), REVIEW,
+        "the lifetime gate rejected this identification",
     ),
-    # An earlier polity that is a different *state* keeps its own offices; its
-    # rows need an item of their own, which no rule can invent.
+    # 2. Does the claim belong on this item at all?
+    #    An earlier polity that is a different *state* keeps its own offices;
+    #    its rows need an item of their own, which no rule can invent.
     Rule(
         "era.distinct", in_era("distinct"), SKIP,
         "a different polity's office — it needs its own item, which the "
         "profile must name",
     ),
-    # Everything else early — a pre-cutoff term, or the same institution under
-    # an earlier constitution — is judged on the target's own record.
+    #    An acting spell in 1836 is still an 1836 term, and has to answer the
+    #    same question about the target as any other. Ordered below `acting`,
+    #    this would apply 19th-century spells to an item whose own record
+    #    begins in 1979.
     Rule(
-        "early.precedent_ok", lambda c, f: _early(c, f) and precedent_allows(c, f),
-        APPLY,
-        "the target already carries terms this early, so this is how the "
-        "community uses the item",
-    ),
-    Rule(
-        "early.unsupported", _early, SKIP,
+        "early.unsupported",
+        lambda c, f: _early(c, f) and not precedent_allows(c, f), SKIP,
         "the target's own record does not carry terms this early, or the "
         "term predates the item's declared inception",
     ),
-    # A dedicated list article naming a *wikilinked* person is Wikipedia
-    # asserting both the office and the identity, and where the row also cites
-    # something outside Wikimedia the second channel is better than the
-    # category whose absence held these rows. A bare token-subset name match is
-    # this engine guessing, and gets no such credit.
     Rule(
-        "roster_only.attested",
-        lambda c, f: has("roster_only")(c, f)
-        and (c.identity in STRONG_IDENTITY or c.cited),
-        APPLY,
-        "a dedicated roster names them, with the identity asserted by a "
-        "wikilink or corroborated by the row's own citation",
+        "early.weak_identity",
+        lambda c, f: _early(c, f)
+        and not (c.in_category or c.identity in STRONG_IDENTITY or c.cited),
+        SKIP,
+        "the target supports terms this early, but the identification is a "
+        "name match rather than an assertion",
     ),
-    Rule(
-        "roster_only.weak_identity", has("roster_only"), SKIP,
-        "only a roster names them, and the identification is a name match "
-        "rather than an assertion",
-    ),
-    Rule(
-        "no_dates", has("no_dates"), HOLD,
-        "two channels agree on the office, but nothing dates the term",
-    ),
-    # The convention for an acting spell is the office plus P2868, not a
-    # separate item, and it is written down twice already. These were held for
-    # a ruling that had in fact been made.
+    # 3. What kind of tenure was it? The convention for a spell someone was
+    #    covering is the office plus P2868, not a separate item.
     Rule(
         "acting", has("acting"), APPLY,
         "the roster marks this spell acting; the convention is the office "
@@ -236,13 +221,40 @@ DEFAULT_RULES: Tuple[Rule, ...] = (
         "category_only", has("category_only"), REVIEW,
         "in the category, named by no roster row, and undated",
     ),
+    # 4. How many channels, and how strong? A dedicated list article naming a
+    #    *wikilinked* person is Wikipedia asserting both office and identity,
+    #    and a row citing something outside Wikimedia is a better second
+    #    channel than the category whose absence held it. A bare token-subset
+    #    name match is this engine guessing, and earns no such credit.
     Rule(
-        "namesake", has("lifetime_mismatch", "lifespan_not_term"), REVIEW,
-        "the lifetime gate rejected this identification",
+        "roster_only.attested",
+        lambda c, f: has("roster_only")(c, f)
+        and (c.identity in STRONG_IDENTITY or c.cited),
+        APPLY,
+        "a dedicated roster names them, with the identity asserted by a "
+        "wikilink or corroborated by the row's own citation",
     ),
-    # Regime and per-office holds carry campaign-specific names, so they cannot
-    # be matched by flag here; they fall through to the two catch-alls, which
-    # reproduce exactly what the era gate did with them.
+    Rule(
+        "roster_only.weak_identity", has("roster_only"), SKIP,
+        "only a roster names them, and the identification is a name match "
+        "rather than an assertion",
+    ),
+    Rule(
+        "early.precedent_ok", _early, APPLY,
+        "the target already carries terms this early, so this is how the "
+        "community uses the item",
+    ),
+    Rule(
+        "modern.two_channel", has("modern"), APPLY,
+        "a Wikipedia category and a dated roster row agree, inside the "
+        "modern institutional era",
+    ),
+    Rule(
+        "no_dates", has("no_dates"), HOLD,
+        "two channels agree on the office, but nothing dates the term",
+    ),
+    # 5. Catch-alls. `believed.held` shrinking to nothing is the measure of
+    #    this project; a row reaching it is a tier no rule has been written for.
     Rule(
         "believed.held", lambda c, f: c.believed, HOLD,
         "the engine believes the claim, but no rule releases this tier yet",

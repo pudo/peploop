@@ -600,12 +600,25 @@ def short_spells(records: Sequence[Record]) -> List[str]:
     return warnings
 
 
+def era_flag(start: Optional[str], modern_from: int) -> str:
+    """Where a single term sits relative to the institutional cutoff.
+
+    Every row carries this *alongside* its tier, not instead of it. An acting
+    spell is still a term, and a spell in 1836 has to answer the same question
+    about the target item as any other 1836 term — which it cannot do if
+    "acting" is the only thing recorded about it.
+    """
+    if not start:
+        return "no_dates"
+    return "historical" if int(start[:4]) < modern_from else "modern"
+
+
 def position_record(
     *, campaign: str, office: str, qid: str, label: str, target: str,
     verdict: str, era: str, terms: Sequence[dict], evidence: str, notes: str,
     source_url: str, source_prop: str, identity: Dict[str, object],
     facts: Facts, overrides: Optional[Dict[str, str]] = None,
-    in_category: bool = False,
+    in_category: bool = False, extra_flags: Sequence[str] = (),
 ) -> Record:
     """One officeholding claim, decided and rendered as an edit record.
 
@@ -613,10 +626,11 @@ def position_record(
     separate spells in an office yields two statements on one record — the
     record is the decision, the statements are what it authorises.
     """
+    flags = (era,) + tuple(extra_flags)
     candidate = Candidate(
         qid=qid,
         target=target,
-        flags=(era,),
+        flags=flags,
         terms=tuple((t.get("start"), t.get("end")) for t in terms),
         identity=str(identity.get("method", "")),
         believed=verdict == "add",
@@ -658,7 +672,7 @@ def position_record(
             rationale=ruling.rationale,
         ),
         identity=dict(identity),
-        flags=[era],
+        flags=list(flags),
         signals=[Signal("roster_row", "office", evidence, source_url or None)],
         notes=notes,
     )
@@ -782,8 +796,6 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                     statuses[id(row)] = "review: pre-ministerial section"
                 elif row in interim:
                     statuses[id(row)] = f"review: interim (covering {covers[id(row)]})"
-                elif office.hold:
-                    statuses[id(row)] = f"review: {office.hold}"
                 elif not row.start:
                     statuses[id(row)] = "review: no dates"
                 elif int(row.start[:4]) < campaign.modern_from:
@@ -793,7 +805,10 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 else:
                     statuses[id(row)] = "add (roster only)"
 
-            def emit(verdict: str, era: str, terms: List[dict], evidence: str, notes: str) -> None:
+            def emit(
+                verdict: str, era: str, terms: List[dict], evidence: str,
+                notes: str, extra: Sequence[str] = (),
+            ) -> None:
                 records.append(
                     position_record(
                         campaign=campaign.name,
@@ -812,6 +827,7 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                         facts=facts,
                         overrides=campaign.dispositions,
                         in_category=in_category,
+                        extra_flags=tuple(extra) + ((office.hold,) if office.hold else ()),
                     )
                 )
 
@@ -833,9 +849,7 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 spans.extend((qid, start, end) for start, end in terms)
                 first = next((start for start, _ in terms if start), None)
                 historical = bool(first) and int(first[:4]) < campaign.modern_from
-                if office.hold:
-                    era = office.hold
-                elif first is None:
+                if first is None:
                     # No date anywhere in the roster row: the office claim may
                     # be sound, but an undated P39 is not what this batch ships.
                     era = "no_dates"
@@ -860,7 +874,8 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                     [{"start": row.start, "end": row.end}],
                     f"roster marks this spell acting: {row.period_raw} "
                     f"({'; '.join(row.flags)})",
-                    "acting — needs the P2868 convention call",
+                    "acting — recorded as the office plus P2868",
+                    extra=(era_flag(row.start, campaign.modern_from),),
                 )
             for row in regime:
                 emit(
@@ -868,6 +883,7 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                     [{"start": row.start, "end": row.end}],
                     f"roster section '{row.section}': {row.period_raw}",
                     "a different polity's office — needs its own item",
+                    extra=(era_flag(row.start, campaign.modern_from),),
                 )
             for row in flagged:
                 emit(
@@ -875,6 +891,7 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                     [{"start": row.start, "end": row.end}],
                     f"roster section '{row.section}': {row.period_raw}",
                     "filed under a pre-ministerial body — same office?",
+                    extra=(era_flag(row.start, campaign.modern_from),),
                 )
             for row in interim:
                 emit(
@@ -882,8 +899,9 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                     [{"start": row.start, "end": row.end}],
                     f"roster lists them {row.period_raw}, but that whole spell "
                     f"falls inside their existing term as {covers[id(row)]}",
-                    "covering a second portfolio — the convention is P39 plus "
-                    "P2868 = Q4676846 (acting), so this needs the user's ruling",
+                    "covering a second portfolio — recorded as the office "
+                    "plus P2868",
+                    extra=(era_flag(row.start, campaign.modern_from),),
                 )
 
         audit.append(f"## {office.label} → {', '.join(dict.fromkeys(targets))}")
