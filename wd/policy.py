@@ -133,14 +133,19 @@ DEFAULT_RULES: Tuple[Rule, ...] = (
         "no_dates", has("no_dates"), HOLD,
         "two channels agree on the office, but nothing dates the term",
     ),
+    # The convention for an acting spell is the office plus P2868, not a
+    # separate item, and it is written down twice already. These were held for
+    # a ruling that had in fact been made.
     Rule(
-        "acting", has("acting"), REVIEW,
-        "the roster marks this spell acting",
+        "acting", has("acting"), APPLY,
+        "the roster marks this spell acting; the convention is the office "
+        "plus P2868 = Q4676846",
         qualifiers={"P2868": "Q4676846"},
     ),
     Rule(
-        "interim_concurrent_office", has("interim_concurrent_office"), REVIEW,
-        "a short spell falling inside a term the person holds elsewhere",
+        "interim_concurrent_office", has("interim_concurrent_office"), APPLY,
+        "a short spell falling entirely inside a term the person holds in "
+        "another office — cover, and recorded as acting",
         qualifiers={"P2868": "Q4676846"},
     ),
     Rule(
