@@ -44,6 +44,11 @@ MONTHS = {
     "ledna": 1, "února": 2, "března": 3, "dubna": 4, "května": 5, "června": 6,
     "července": 7, "srpna": 8, "září": 9, "října": 10, "listopadu": 11,
     "prosince": 12,
+    # Russian nominative. A date cell always uses the genitive ("16 июля"),
+    # but a *month range* with no day does not: "октябрь — декабрь 1995".
+    "январь": 1, "февраль": 2, "март": 3, "апрель": 4, "май": 5, "июнь": 6,
+    "июль": 7, "август": 8, "сентябрь": 9, "октябрь": 10, "ноябрь": 11,
+    "декабрь": 12,
 }
 
 #: Header text → column role. Matched on a normalised, accent-free prefix, so
@@ -115,6 +120,16 @@ BACKGROUND = re.compile(r"background(?:-color)?\s*:\s*(#[0-9A-Fa-f]{3,8})")
 ACTING_TEXT = re.compile(
     r"\(\s*(?:в\.?\s*а\.?|в\.?\s*і\.?\s*а\.?|и\.?\s*о\.?|в\.?\s*и\.?\s*о\.?"
     r"|acting|interim|encargad\w*)\s*\)|выконва\w*\s+абавязк|исполняющ\w*\s+обязанност",
+    re.I,
+)
+#: An acting marker leading the *period* rather than the name: ru.wikipedia
+#: writes "(и. о., октябрь — декабрь 1995)". `ACTING_TEXT` cannot see it — that
+#: pattern wants the marker alone in its brackets — so the spell reads as an
+#: ordinary term whose dates then fail to parse, and the row lands in a
+#: convention queue as `no_dates` when it is really an acting spell.
+ACTING_PREFIX = re.compile(
+    r"^\s*(?:в\.?\s*а\.?|и\.?\s*о\.?|в\.?\s*и\.?\s*о\.?|acting|interim"
+    r"|encargad\w*)\s*[,;]\s*",
     re.I,
 )
 FOOTNOTE_ID = re.compile(r"#(cite_note[-_][\w.%-]+)")
@@ -196,6 +211,15 @@ def parse_date(text: str) -> Optional[str]:
     return year.group(1) if year else None
 
 
+def _month_in(text: str) -> Optional[int]:
+    """The month a bare month-name fragment names, if it names one."""
+    for word in re.findall(r"[^\W\d_]+", text.casefold()):
+        month = MONTHS.get(_deaccent(word), MONTHS.get(word))
+        if month:
+            return month
+    return None
+
+
 def parse_period(text: str) -> Tuple[Optional[str], Optional[str], bool]:
     """Split a "start – end" cell. Returns (start, end, still_in_office)."""
     cleaned = " ".join(text.split())
@@ -207,6 +231,12 @@ def parse_period(text: str) -> Tuple[Optional[str], Optional[str], bool]:
         parts = re.split(rf"(?<=\d)\s*[{DASHES}]\s*(?=\d)", cleaned, maxsplit=1)
     start = parse_date(parts[0]) if parts else None
     end = parse_date(parts[1]) if len(parts) > 1 else None
+    # "октябрь — декабрь 1995" states the year once, at the end, and means it
+    # of both months. Without this the range loses its start entirely.
+    if start is None and end and len(parts) > 1:
+        month = _month_in(parts[0])
+        if month:
+            start = f"{end[:4]}-{month:02d}"
     if incumbent:
         end = None
     return start, end, incumbent
@@ -722,6 +752,9 @@ def parse_bullet_rosters(page_html: str) -> List[Roster]:
             # A note can share the parentheses with the dates ("1963—1984;
             # министр автомобильного транспорта"); the term comes first.
             period_text = period_text.split(";")[0]
+            acting_period = bool(ACTING_PREFIX.match(period_text))
+            if acting_period:
+                period_text = ACTING_PREFIX.sub("", period_text)
             anchors = [
                 a for a in item.xpath(".//a[@href]")
                 if (a.get("href") or "").startswith("/wiki/")
@@ -770,7 +803,7 @@ def parse_bullet_rosters(page_html: str) -> List[Roster]:
                     period_raw=period_text,
                     flags=[f"acting, per the row text: {acting_text.group(0).strip()}"]
                     if acting_text
-                    else [],
+                    else (["acting, per the period cell"] if acting_period else []),
                     ref_urls=ref_urls,
                     cells={"bullet": text},
                 )
