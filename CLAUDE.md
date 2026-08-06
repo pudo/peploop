@@ -28,15 +28,32 @@ relevant one before starting rather than re-deriving the method:
 
 ## Editing rules
 
-- **Nothing is applied without the user's review.** Scripts produce a
-  human-readable `.md` plan (sorted by impact, e.g. holder counts) plus a
-  machine `.qs` file. The user runs QS batches in the QuickStatements web
-  UI themselves; surgical edits (ranks, merges, removals) go through
-  wikibase-cli on request.
-- Keep batches **additive-only** and single-concern (one `.qs` per concern);
-  QS de-duplicates, and additive batches are mass-revertable.
-- Anything ambiguous, low-confidence, or convention-unsettled goes into the
-  `.md` review sections, never silently into the `.qs`.
+- **Decide, then let the user write.** The toolkit decides every case and
+  records the rule that decided it; nothing reaches Wikidata until the user
+  runs the batch. Those are different gates, and conflating them is what
+  produced a backlog of 438 unanswered rulings and zero applied edits.
+- **Every case gets a disposition.** `wd/policy.py` holds an ordered list of
+  `predicate → disposition` rules; a case with no evidence is `skip` with a
+  recorded reason, and a class of case needing data entry becomes a byproduct
+  list. Neither is ever a question about a row. If you find yourself wanting
+  to add a tier so a human can rule on it later, write the rule instead.
+- **Escalate policies, not cases.** A country whose history contradicts the
+  default says so once, in `dispositions` or `continuous_eras` — never per
+  person.
+- **Measure the convention, don't declare it.** Whether a term belongs on an
+  office item is answered by `wd/precedent.py` from that item's own record,
+  because the answer differs per item inside one country: Czech Agriculture
+  carries ten pre-1993 terms, Czech Defence's item only exists from 1993.
+- Keep batches **additive-only** and single-concern (one `.qs` per concern —
+  the renderer splits by `decision.concern`); QS de-duplicates, and additive
+  batches are mass-revertable.
+- **Statements go out as QuickStatements; position items are created through
+  the API** (`wd/write.py` → `wb create-entity`). QS `LAST` is only valid as a
+  statement's subject, so an item created in a batch cannot be the value of
+  the holders' P39 in that same batch. Creation is guarded by a ledger, a
+  duplicate search, a holder floor, a body-label check, and `--dry` by default.
+- **Destructive edits still stop and ask** — merges, deletions, statement
+  removal, rank changes. They are the one human gate left.
 - Statements derived from an article/source get references (`S854` + `S813`);
   structural inferences (e.g. P1001 from the item's own label) follow
   community practice and go unreferenced.
@@ -50,6 +67,18 @@ relevant one before starting rather than re-deriving the method:
   city-item P17 vs classifier). Disagreement → review. A predictable
   systematic bias in one channel can be modeled and overridden explicitly
   (see the chose-sender override in `render_diplomatic_plan.py`).
+- **Two axes, not one.** A tier answers "did this claim hold?"; it says
+  nothing about "is this the right person?". Every policy rule is a
+  conjunction over both — `roster_only` applies on a wikilink or a real
+  citation and skips on a bare name match. Not all channels are equal
+  either: a roster row with a non-Wikimedia citation is a *better* second
+  channel than the category whose absence used to hold it.
+- **Rule order is load-bearing.** Flags are a set, so a row can be acting
+  *and* pre-cutoff *and* roster-only. Rules answering "does this belong on
+  this item at all" must precede rules answering "what kind of tenure was
+  it", and the general rule must come last of the applying ones or it
+  swallows the specific tiers and drops their qualifiers. Both mistakes were
+  made in one afternoon; the table is grouped and commented accordingly.
 - **Research conventions empirically.** Wikidata's documented guidance is
   often ambiguous (P1001!). Measure de-facto practice with SPARQL tallies
   over well-curated item clusters and read exemplar items in full before

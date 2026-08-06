@@ -170,12 +170,33 @@ dropped — never substring. Rejected identities stay visible in the audit as
 
 ## 6. Tier the output; batch only the safe tier
 
-Every candidate becomes a verdict record (the `render_edit_plan.py` schema:
-`qid, label, position, verdict, era, terms[{start,end}], evidence,
-source_url, source_prop, notes, qualifiers`). Only `verdict: add` with
-`era: modern` reaches the `.qs`; every other era is grouped in the review
-document under its name, waiting for a ruling. Tiers that earned their own
-name in Ecuador:
+Every candidate becomes an edit record (`wd/record.py`) carrying its
+statements, the **flags** describing it, and a **decision** naming the rule
+that made it. Flags are a set, not one label: a row can be acting *and*
+pre-cutoff *and* roster-only, and the old single `era` string kept only
+whichever an if/elif chain reached first.
+
+`wd/policy.py` assigns the disposition — `apply`, `apply` with qualifiers,
+`skip` with a reason, `hold`, `review`. **Nothing is escalated per case.** A
+row with no evidence is skipped and says why; a class of rows needing a QID
+becomes a byproduct list. If you want to add a tier so a human can rule on it
+later, write the rule instead.
+
+Two things decide most of it:
+
+* **The census, not a country default** (§2). `early.precedent_ok` asks the
+  target item whether it already carries terms this early. This matters more
+  than it sounds: nineteen of Ecuador's twenty ministry items carry *zero*
+  pre-1979 terms, so importing 19th-century holders would invent a convention
+  rather than follow one — while its foreign-affairs item carries 21 of 43 and
+  takes them happily.
+* **Identity rung, alongside tier.** `identify` returns five strengths; a rule
+  that applies on Wikipedia's own wikilink must not apply on this engine's
+  token-subset guess. In the three campaigns 30 of 32 roster-only rows were
+  wikilinked, so the gate costs almost nothing and excludes precisely the
+  guesses.
+
+The flags a row can carry:
 
 | era | meaning |
 |---|---|
@@ -192,9 +213,20 @@ name in Ecuador:
 | `no_dates` | two channels agree on the office, but nothing dates it |
 | a regime name (`byelorussian_ssr`, `bnr`) | an earlier polity's version of the office |
 
+**Rule order is load-bearing, and easy to get wrong in both directions.**
+Rules answering "does this claim belong on this item at all" (`era.distinct`,
+`early.unsupported`) must precede rules answering "what kind of tenure was it"
+(`acting`, `interim`) — ordered the other way, a 19th-century acting spell is
+applied to an item whose own record starts in 1979. And the general
+`modern.two_channel` rule must come *last* of the applying rules, or it
+swallows the specific tiers and silently drops their `P2868`. Both mistakes
+were made within an hour of each other; the table is grouped and commented by
+the question each group answers.
+
 Pick the **modern cutoff** from the country's institutional history (Ecuador:
 1979, the return to democracy; Belarus: 1991, independence) and say so in the
-brief. Where several polities shared an office name, add explicit **regime
+brief. It selects which rows the census is asked about; it does not decide
+them. Where several polities shared an office name, add explicit **regime
 routing** on top of the date: roster section headings name the polity
 ("Министры иностранных дел БССР"), and the wikis keep dedicated БНР/БССР
 categories. Route by the *row's* section, never by the person — someone who
@@ -277,8 +309,16 @@ statements sourced to a real citation versus to a wiki permalink.
 
     /Users/pudo/.python/wrangle/bin/python scripts/render_edit_plan.py --retrieved <today> --campaign <country>
 
-* `edit_plan.qs` — additive QuickStatements, one concern per batch, run by the
-  user in the web UI.
+* `edit_plan_<concern>.qs` — additive QuickStatements, one file per concern
+  (`p39`, `p102`, …), run by the user in the web UI. `edit_plan.qs` is the
+  combined file.
+* **Offices with no item**: declare `archetype` and `body` instead of
+  `target`, then `python scripts/create_offices.py --country xx` (dry by
+  default, `--apply` to write). It mints the item through `wb create-entity`,
+  records it in `created.json`, and prints the `target=` line to paste back —
+  after which the office runs like any other. QuickStatements cannot do this:
+  `LAST` is subject-only, so a freshly created office cannot be the value of
+  its holders' P39 in the same batch.
 * `edit_plan.md` — the review document: every verdict with its evidence
   sentence, source and notes, held-back tiers grouped by era.
 * Sourcing: prefer the roster row's own citation as `S854` + `S813`. When the

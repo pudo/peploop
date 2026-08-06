@@ -12,10 +12,19 @@ targeted, reviewed edits. Not an app; a workbench.
 * **Non-goal:** depending on `nomenklatura`/`zavod`. Those are studied as prior
   art only (see below). No FtM entities here — we work directly on the Wikidata
   data model.
-* **Non-goal:** bulk/automated editing. Every edit is reviewed by a human
-  before it lands.
+* **Non-goal:** unreviewed editing. The *decisions* are automated — the
+  toolkit decides every case under declared rules and records which rule
+  decided it — but statements reach Wikidata only when the user runs the
+  batch, and destructive edits (merges, deletions, statement removal, rank
+  changes) still stop and ask. Position items are the one thing written
+  directly, because QuickStatements cannot express them (see the write path).
 
 ## Task briefs
+
+Where a kind of campaign recurs, the method is written up once in
+`recipes/*.md` and the brief keeps only what is country-specific:
+`recipes/category_check.md` covers taking a `wd_categories` country block to a
+reviewed P39 batch.
 
 * `tasks/genders.md` — resolve conflicting P21 values on ~170 PEP items.
 * `tasks/positions.md` — PETScan category members → verified missing P39s.
@@ -23,6 +32,10 @@ targeted, reviewed edits. Not an app; a workbench.
   items (currently invisible to OS crawlers).
 * `tasks/diplomatic.md` — P1001/P17 conventions for diplomatic posts.
 * `tasks/birthdates.md` — backfill P569 from Wikipedia infoboxes, per country.
+* `tasks/category_positions.md` — the synthetic `wd_categories` positions,
+  resolved to real position items.
+* `tasks/ecuador.md`, `tasks/belarus.md` — country runs of
+  `recipes/category_check.md`.
 
 ## Motivating tasks
 
@@ -187,6 +200,21 @@ jurisdiction, P17 country, P571 inception, P576 abolished, P1308 officeholder
   the wd_categories.yml normalization (tasks/category_positions.md); reuse
   it for per-person office narrowing and item-creation checks.
 
+* `wd/roster.py` (built 2026-08-05): `parse_rosters(html)` and
+  `parse_bullet_rosters(html)` — an officeholder list, tabulated or bulleted,
+  → dated rows with the appointing president, per-row citation URLs, and the
+  flag marking acting officials (a colour legend, or "(в. а.)" in the text).
+  Rendered HTML rather than wikitext, because `rowspan` decides which rows a
+  shared reference belongs to. Knows Spanish, Russian, Belarusian and
+  Ukrainian dates and column headers. Reach for it whenever an office's
+  holders are listed somewhere: one fetch replaces N biography reads and
+  carries better dates than any of them.
+* `wd/campaign.py` (built 2026-08-05): the country-independent engine behind
+  `recipes/category_check.md` — category harvest (including interwiki sibling
+  categories), roster-row identity resolution with namesake gates, tiering
+  into batch/held verdicts, and the audit document. A country script is only
+  parameters; see `scripts/ec_ministers.py` and `scripts/by_ministers.py`.
+
 ## Write path (to decide)
 
 Candidates, given "mark a value deprecated" is a requirement:
@@ -218,6 +246,24 @@ tools split by edit shape:
   with --dry), `wb update-claim-rank`, `wb merge-entity`, all with
   `--summary` and `--maxlag`. An `apply_edits.py` wrapper only if/when the
   browser step gets annoying.
+
+Amended (2026-08-06): **item creation joins the surgical side**, in
+`wd/write.py`. QuickStatements V1 `LAST` is valid only as a statement's
+*subject* and there is no way to name a created item, so an office minted in a
+batch cannot be the value of its holders' P39 in that same batch — the 45
+Czech supreme-court judges would need a second batch after a human read back
+the QID. `wb create-entity` also takes one atomic JSON payload, where a
+`CREATE` plus a dozen `LAST` lines can half-fail into a malformed item, and it
+returns the QID immediately.
+
+Creation is the least reversible thing here — undoing it needs a deletion or a
+merge, both on the human-only list — so `wd/create.py:guard` requires all of:
+a duplicate search through `positions.lookup_position`, a floor on attested
+holders, a body whose label shares a word with the office's own name (the
+first two body QIDs written by hand were a Spanish construction brand and a
+character from the Nibelungenlied), and `--dry` unless `--apply` is passed.
+Every write is appended to `data/<campaign>/applied.jsonl` and the created QID
+recorded in `created.json`, because nothing de-duplicates a `CREATE`.
 
 Etiquette for whichever path: descriptive UA, `maxlag=5` on writes, edit
 summaries that link back to a rationale, test against **test.wikidata.org**
