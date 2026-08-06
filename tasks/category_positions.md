@@ -179,8 +179,22 @@ PRs can start with the cheap ones (small categories, item already good).
   bucket rows should take a generic QID at all; Ecuador's
   create-vs-stretch-Q6085548 call; the Australian local-councillor rows
   (Wikidata models per council, ~200 items).
-- [ ] merge candidates found, holders split across both:
-  Q133268398→Q115242140 (Dagestan 180/181), Q133268337→Q96324124 (Moscow
-  City 34/75), Q133268358→Q124755389 (KhMAO 6/140), Q133268347→Q101483020
-  (Volgograd 50/55) — all from the bulk-created Q1332683xx series.
+- [x] **4 duplicate position items merged (2026-08-06, wikibase-cli)**, all
+  from the bulk-created Q1332683xx series: Q133268398→Q115242140 (Dagestan),
+  Q133268337→Q96324124 (Moscow City), Q133268358→Q124755389 (KhMAO),
+  Q133268347→Q101483020 (Volgograd). Gate before merging: identical P361
+  body + P1001 jurisdiction, no sitelinks on either side, and **every stub
+  holder already held the keeper** (overlap = full stub count, 0 unique) —
+  the duplicated P39 statements were the evidence, not a consequence.
+  Verified after: redirects live, P31/P279 unioned (nothing dropped).
+  Note `wb merge-entity <from> <to>` merges the *first* into the second; a
+  `--dry` run caught that zsh doesn't word-split, so a `$pair` variable
+  arrived as one argument.
+- [ ] follow-up to those merges: **270 people still carry a P39 pointing at
+  a redirect** plus an identical one on the keeper, so the seat shows twice
+  and WDQS counts don't include the redirect side. Checked safe to strip:
+  comparing actual qualifier property/value sets (not just counts — equal
+  counts can hide different convocation terms), all 270 redirect-side
+  statements are fully covered by an identical keeper-side statement, 0
+  would lose a distinct tenure. Needs wikibase-cli (QS cannot remove).
 - [ ] eventually: drop `position:` blocks flagged retirable
