@@ -27,6 +27,7 @@ from requests import Session
 from wd.api import best_description, best_label, claim_qids, fetch_entities, sparql
 from wd.http import get_text
 from wd.petscan import category_members
+from wd.policy import Candidate, Facts, decide, tally
 from wd.record import (
     Decision,
     Record,
@@ -118,8 +119,10 @@ class Office:
     #: Section/heading patterns that mark a *different regime's* office
     #: (Byelorussian SSR, the 1918 republic): held with this era name.
     regime_sections: Tuple[Tuple[str, str], ...] = ()
-    #: When set, nothing from this office is batched; every add is held under
-    #: this era name pending a convention call.
+    #: A flag every candidate from this office carries, naming why the office
+    #: as a whole is unsettled ("rename_history"). No longer a gate of its own:
+    #: it reaches `wd.policy` like any other flag, and giving it a disposition
+    #: is what releases the office.
     hold: Optional[str] = None
 
 
@@ -142,6 +145,9 @@ class Campaign:
     #: `interim_of` ignores them: a minister keeps their parliamentary seat
     #: throughout, and a council seat overlaps everything.
     concurrency_ignore: Tuple[str, ...] = ()
+    #: Rule id → disposition, for the rare case where a country's own history
+    #: contradicts the default policy. Declared once, never per person.
+    dispositions: Dict[str, str] = field(default_factory=dict)
     #: Categories whose members belong to another regime entirely: (lang, cat).
     regime_categories: Tuple[Tuple[str, str, str], ...] = ()
 
@@ -587,27 +593,31 @@ def short_spells(records: Sequence[Record]) -> List[str]:
     return warnings
 
 
-#: How today's `verdict`/`era` pair maps onto an explicit decision. `hold` is
-#: the transitional value: the engine believes the statement but the era gate
-#: keeps it out of the batch. The policy layer replaces this function by
-#: deciding those cases outright.
-def _action(verdict: str, era: str) -> str:
-    if verdict == "add":
-        return "apply" if era == "modern" else "hold"
-    return "review"
-
-
 def position_record(
     *, campaign: str, office: str, qid: str, label: str, target: str,
     verdict: str, era: str, terms: Sequence[dict], evidence: str, notes: str,
     source_url: str, source_prop: str, identity: Dict[str, object],
+    facts: Facts, overrides: Optional[Dict[str, str]] = None,
+    in_category: bool = False,
 ) -> Record:
-    """One officeholding claim as an edit record.
+    """One officeholding claim, decided and rendered as an edit record.
 
     Wikidata models each term as its own P39 statement, so a person with two
     separate spells in an office yields two statements on one record — the
     record is the decision, the statements are what it authorises.
     """
+    candidate = Candidate(
+        qid=qid,
+        target=target,
+        flags=(era,),
+        terms=tuple((t.get("start"), t.get("end")) for t in terms),
+        identity=str(identity.get("method", "")),
+        believed=verdict == "add",
+        in_category=in_category,
+        office=office,
+    )
+    ruling = decide(candidate, facts, overrides=overrides)
+
     reference = [Snak(source_prop, Value.url(source_url))] if source_url else []
     statements = []
     for term in terms or [{}]:
@@ -615,6 +625,12 @@ def position_record(
             Snak(prop, Value.time(term[key]))
             for prop, key in (("P580", "start"), ("P582", "end"))
             if term.get(key)
+        ]
+        # A disposition can carry qualifiers of its own — P2868 for the spells
+        # a rule judges to be cover rather than tenure.
+        qualifiers += [
+            Snak(prop, Value.item(value))
+            for prop, value in sorted(ruling.qualifiers.items())
         ]
         statements.append(
             Statement("P39", Value.item(target), qualifiers, list(reference))
@@ -624,7 +640,13 @@ def position_record(
         office=office,
         subject=Subject(kind="item", qid=qid, label=label),
         statements=statements,
-        decision=Decision(action=_action(verdict, era), rule=era, concern="p39"),
+        decision=Decision(
+            action=ruling.disposition,
+            rule=ruling.rule,
+            source=ruling.source,
+            concern="p39",
+            rationale=ruling.rationale,
+        ),
         identity=dict(identity),
         flags=[era],
         signals=[Signal("roster_row", "office", evidence, source_url or None)],
@@ -650,6 +672,12 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
         raise SystemExit(f"No office matched {keys}")
     verdict_dir = out_dir / "verdicts"
     verdict_dir.mkdir(parents=True, exist_ok=True)
+    # Everything measured before any decision is taken, so `policy.decide` is a
+    # pure function of (candidate, facts). Empty until the precedent census
+    # and the second-channel resolver fill it.
+    facts = Facts()
+    #: (rule, disposition) for every record written, for the policy summary.
+    decisions: List[Tuple[str, str]] = []
     audit: List[str] = [
         f"# {campaign.name.title()} — roster match audit",
         "",
@@ -758,6 +786,9 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                         source_url=ref or source,
                         source_prop="S854" if ref else "S4656",
                         identity=identity_of.get(qid, {}),
+                        facts=facts,
+                        overrides=campaign.dispositions,
+                        in_category=in_category,
                     )
                 )
 
@@ -890,12 +921,15 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                     ),
                     source_url=source, source_prop="S4656",
                     identity={"method": "category"},
+                    facts=facts, overrides=campaign.dispositions,
+                    in_category=True,
                 )
             )
         audit.append("")
 
         path = verdict_dir / f"{campaign.name}_{office.key}.jsonl"
         path.write_text(dumps(records))
+        decisions += [(r.decision.rule, r.decision.action) for r in records]
         adds = Counter(
             r.decision.rule for r in records
             if r.decision.action in ("apply", "hold")
@@ -923,6 +957,14 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
         print(f"\n! verdict files not owned by this campaign: {', '.join(orphans)}")
         print("  (a renamed office key? they will still be read by the renderer)")
 
+    # What the policy did, as policy — the summary a reviewer reads instead of
+    # three hundred rows.
+    summary = tally(decisions)
+    audit.insert(4, "")
+    audit.insert(4, "\n".join(f"* `{rule}` — {n}" for rule, n in summary.items()))
+    audit.insert(4, "## Decisions by rule")
+
     (out_dir / "roster_audit.md").write_text("\n".join(audit) + "\n")
+    print(f"\nby rule: {summary}")
     print(f"\n{dict(totals)}")
     print(f"Wrote {out_dir / 'roster_audit.md'}")

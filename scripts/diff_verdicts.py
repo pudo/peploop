@@ -65,14 +65,19 @@ def normalise(record: dict) -> dict:
             }
             terms.append((bounds.get("P580"), bounds.get("P582")))
         decision = record.get("decision", {})
+        flags = sorted(record.get("flags") or [])
         return {
             "qid": (record.get("subject") or {}).get("qid", "?"),
             "label": (record.get("subject") or {}).get("label", ""),
             "position": (statements[0].get("value") or {}).get("id", "-"),
             "outcome": decision.get("action", "?"),
-            "reason": decision.get("rule", ""),
+            # The *case*, not the rule that judged it. Comparing rule ids would
+            # make every policy change read as a wholesale rewrite; comparing
+            # flags asks the question that matters — did the same case get the
+            # same outcome?
+            "reason": ",".join(flags) or decision.get("rule", ""),
             "terms": _dated(terms),
-            "flags": sorted(record.get("flags") or []),
+            "flags": flags,
         }
     # v1 has no explicit decision. `add` + `modern` is what reached the .qs;
     # `add` on any other era is a statement the engine believed but the era
