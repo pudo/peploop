@@ -21,7 +21,7 @@ import json
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -36,6 +36,16 @@ DATA_DIR = REPO_ROOT / "data"
 Key = Tuple[str, str]
 
 
+def _dated(terms: List[Tuple[Optional[str], Optional[str]]]) -> list:
+    """Drop wholly undated spans.
+
+    v1 recorded "no term information" as an empty list; v2 records it as one
+    statement carrying no date qualifiers, which is the more truthful shape —
+    an undated P39 is still a statement. They mean the same thing.
+    """
+    return [t for t in terms if t[0] or t[1]]
+
+
 def normalise(record: dict) -> dict:
     """One record in the shape this differ compares, whatever schema it is in.
 
@@ -46,32 +56,39 @@ def normalise(record: dict) -> dict:
     every record having changed.
     """
     if record.get("schema", 1) >= 2:
-        statement = (record.get("statements") or [{}])[0]
-        qualifiers = {
-            q["property"]: q["value"].get("iso") or q["value"].get("id")
-            for q in statement.get("qualifiers", [])
-        }
+        statements = record.get("statements") or [{}]
+        terms = []
+        for statement in statements:
+            bounds = {
+                q["property"]: q["value"].get("iso")
+                for q in statement.get("qualifiers", [])
+            }
+            terms.append((bounds.get("P580"), bounds.get("P582")))
         decision = record.get("decision", {})
         return {
             "qid": (record.get("subject") or {}).get("qid", "?"),
             "label": (record.get("subject") or {}).get("label", ""),
-            "position": (statement.get("value") or {}).get("id", "?"),
+            "position": (statements[0].get("value") or {}).get("id", "-"),
             "outcome": decision.get("action", "?"),
             "reason": decision.get("rule", ""),
-            "terms": [(qualifiers.get("P580"), qualifiers.get("P582"))],
+            "terms": _dated(terms),
             "flags": sorted(record.get("flags") or []),
         }
+    # v1 has no explicit decision. `add` + `modern` is what reached the .qs;
+    # `add` on any other era is a statement the engine believed but the era
+    # gate held, which is what `hold` means in v2.
+    verdict, era = record.get("verdict", "?"), record.get("era", "")
+    outcome = {"add": "hold", "unclear": "review"}.get(verdict, verdict)
+    if verdict == "add" and era == "modern":
+        outcome = "apply"
     return {
         "qid": record.get("qid", "?"),
         "label": record.get("label", ""),
         "position": record.get("position") or "-",
-        # v1 has no explicit decision: `add` + `modern` is what reached the .qs.
-        "outcome": "apply"
-        if record.get("verdict") == "add" and record.get("era") == "modern"
-        else record.get("verdict", "?"),
-        "reason": record.get("era", ""),
-        "terms": [(t.get("start"), t.get("end")) for t in record.get("terms") or []],
-        "flags": [record.get("era")] if record.get("era") else [],
+        "outcome": outcome,
+        "reason": era,
+        "terms": _dated([(t.get("start"), t.get("end")) for t in record.get("terms") or []]),
+        "flags": [era] if era else [],
     }
 
 

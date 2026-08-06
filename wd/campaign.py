@@ -27,6 +27,16 @@ from requests import Session
 from wd.api import best_description, best_label, claim_qids, fetch_entities, sparql
 from wd.http import get_text
 from wd.petscan import category_members
+from wd.record import (
+    Decision,
+    Record,
+    Signal,
+    Snak,
+    Statement,
+    Subject,
+    Value,
+    dumps,
+)
 from wd.roster import (
     RosterRow,
     fold,
@@ -550,7 +560,7 @@ def regime_of(row: RosterRow, office: Office) -> Optional[str]:
 SHORT_SPELL_DAYS = 90
 
 
-def short_spells(verdicts: Sequence[dict]) -> List[str]:
+def short_spells(records: Sequence[Record]) -> List[str]:
     """Warn about batched terms brief enough to be an interim appointment.
 
     Reach for this where a wiki marks acting officials nowhere: cs.wikipedia
@@ -559,20 +569,67 @@ def short_spells(verdicts: Sequence[dict]) -> List[str]:
     the only channel left that can raise the question for a human.
     """
     warnings: List[str] = []
-    for verdict in verdicts:
-        if verdict["verdict"] != "add":
+    for record in records:
+        if record.decision.action not in ("apply", "hold"):
             continue
-        for term in verdict["terms"]:
-            start, end = term.get("start"), term.get("end")
+        for statement in record.statements:
+            bounds = {q.property: q.value.iso for q in statement.qualifiers}
+            start, end = bounds.get("P580"), bounds.get("P582")
             if not start or not end or len(start) != 10 or len(end) != 10:
                 continue
             days = (date.fromisoformat(end) - date.fromisoformat(start)).days
             if 0 <= days < SHORT_SPELL_DAYS:
                 warnings.append(
-                    f"{verdict['qid']} {verdict['label']} held {verdict['position']} "
-                    f"for {days} days ({start} – {end}) — interim spell?"
+                    f"{record.subject.qid} {record.subject.label} held "
+                    f"{statement.value.id} for {days} days ({start} – {end}) "
+                    "— interim spell?"
                 )
     return warnings
+
+
+#: How today's `verdict`/`era` pair maps onto an explicit decision. `hold` is
+#: the transitional value: the engine believes the statement but the era gate
+#: keeps it out of the batch. The policy layer replaces this function by
+#: deciding those cases outright.
+def _action(verdict: str, era: str) -> str:
+    if verdict == "add":
+        return "apply" if era == "modern" else "hold"
+    return "review"
+
+
+def position_record(
+    *, campaign: str, office: str, qid: str, label: str, target: str,
+    verdict: str, era: str, terms: Sequence[dict], evidence: str, notes: str,
+    source_url: str, source_prop: str, identity: Dict[str, object],
+) -> Record:
+    """One officeholding claim as an edit record.
+
+    Wikidata models each term as its own P39 statement, so a person with two
+    separate spells in an office yields two statements on one record — the
+    record is the decision, the statements are what it authorises.
+    """
+    reference = [Snak(source_prop, Value.url(source_url))] if source_url else []
+    statements = []
+    for term in terms or [{}]:
+        qualifiers = [
+            Snak(prop, Value.time(term[key]))
+            for prop, key in (("P580", "start"), ("P582", "end"))
+            if term.get(key)
+        ]
+        statements.append(
+            Statement("P39", Value.item(target), qualifiers, list(reference))
+        )
+    return Record(
+        campaign=campaign,
+        office=office,
+        subject=Subject(kind="item", qid=qid, label=label),
+        statements=statements,
+        decision=Decision(action=_action(verdict, era), rule=era, concern="p39"),
+        identity=dict(identity),
+        flags=[era],
+        signals=[Signal("roster_row", "office", evidence, source_url or None)],
+        notes=notes,
+    )
 
 
 def overlaps(terms: Sequence[Tuple[str, Optional[str], Optional[str]]]) -> List[str]:
@@ -612,13 +669,18 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
 
         per_person: Dict[Tuple[str, str], List[RosterRow]] = {}
         row_status: List[Tuple[RosterRow, Optional[str], str]] = []
+        # How each person's identity was established. A wikilink is Wikipedia
+        # asserting it; a truncated article title is this engine guessing, and
+        # a rule that applies on one rung should not apply on the other.
+        identity_of: Dict[str, Dict[str, object]] = {}
         for row in rows:
             qid, how = identify(row, people, by_title, lang, campaign.country_qid)
             row_status.append((row, qid, how))
             if qid:
                 per_person.setdefault((qid, target_for(row, office)), []).append(row)
+                identity_of.setdefault(qid, {"method": how.split(" '")[0]})
 
-        verdicts: List[dict] = []
+        records: List[Record] = []
         spans: List[Tuple[str, Optional[str], Optional[str]]] = []
         statuses: Dict[int, str] = {}
 
@@ -681,18 +743,23 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                     statuses[id(row)] = "add (roster only)"
 
             def emit(verdict: str, era: str, terms: List[dict], evidence: str, notes: str) -> None:
-                verdicts.append({
-                    "qid": qid,
-                    "label": person.label,
-                    "position": target,
-                    "verdict": verdict,
-                    "era": era,
-                    "terms": terms,
-                    "evidence": evidence,
-                    "source_url": ref or source,
-                    "source_prop": "S854" if ref else "S4656",
-                    "notes": notes,
-                })
+                records.append(
+                    position_record(
+                        campaign=campaign.name,
+                        office=office.key,
+                        qid=qid,
+                        label=person.label,
+                        target=target,
+                        verdict=verdict,
+                        era=era,
+                        terms=terms,
+                        evidence=evidence,
+                        notes=notes,
+                        source_url=ref or source,
+                        source_prop="S854" if ref else "S4656",
+                        identity=identity_of.get(qid, {}),
+                    )
+                )
 
             if conflict:
                 emit(
@@ -774,7 +841,7 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
         )
         for warning in overlaps(spans):
             audit.append(f"* ⚠ date overlap: {warning}")
-        for warning in short_spells(verdicts):
+        for warning in short_spells(records):
             audit.append(f"* ⚠ short spell: {warning}")
         if skipped:
             audit.append(
@@ -810,31 +877,34 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 f"{person.description or 'no description'} [{', '.join(person.cats)}] "
                 f"| category | review: {era} |"
             )
-            verdicts.append({
-                "qid": qid,
-                "label": person.label,
-                "position": office.target,
-                "verdict": "unclear",
-                "era": era,
-                "terms": [],
-                "evidence": f"in {', '.join(person.cats)} but named by no roster row",
-                "source_url": source,
-                "source_prop": "S4656",
-                "notes": (
-                    f"existing P39s: {', '.join(person.p39) or 'none'} — rosters often "
-                    "start at a constitutional break, so earlier holders land here"
-                ),
-            })
+            records.append(
+                position_record(
+                    campaign=campaign.name, office=office.key, qid=qid,
+                    label=person.label, target=office.target,
+                    verdict="unclear", era=era, terms=[],
+                    evidence=f"in {', '.join(person.cats)} but named by no roster row",
+                    notes=(
+                        f"existing P39s: {', '.join(person.p39) or 'none'} — rosters "
+                        "often start at a constitutional break, so earlier holders "
+                        "land here"
+                    ),
+                    source_url=source, source_prop="S4656",
+                    identity={"method": "category"},
+                )
+            )
         audit.append("")
 
         path = verdict_dir / f"{campaign.name}_{office.key}.jsonl"
-        path.write_text("".join(json.dumps(v, ensure_ascii=False) + "\n" for v in verdicts))
-        adds = Counter(v["era"] for v in verdicts if v["verdict"] == "add")
+        path.write_text(dumps(records))
+        adds = Counter(
+            r.decision.rule for r in records
+            if r.decision.action in ("apply", "hold")
+        )
         print(
             f"{office.label:<28} {len(rows):>3} rows → {adds['modern']:>3} batch, "
             f"{adds['roster_only']:>3} roster-only, "
             f"{adds['historical'] + adds['historical_roster_only']:>3} pre-{campaign.modern_from}, "
-            f"{sum(1 for v in verdicts if v['verdict'] == 'unclear'):>3} review"
+            f"{sum(1 for r in records if r.decision.action == 'review'):>3} review"
         )
 
     # Which files this campaign owns — every office, not just the ones this

@@ -49,40 +49,52 @@ def qs_value(value: str) -> str:
     return f'"{value}"'
 
 
-def qs_lines(verdict: dict, retrieved: str) -> list[str]:
-    """One P39 statement per term (or one bare statement without terms)."""
+def snak_value(value: dict) -> str:
+    """A record's snak value as a QuickStatements literal."""
+    if value.get("type") == "time":
+        return qs_time(value["iso"])
+    if value.get("type") == "item":
+        return value["id"]
+    return qs_value(value.get("text") or "")
+
+
+def qs_lines(record: dict, retrieved: str) -> list[str]:
+    """One QuickStatements line per statement on the record."""
     lines = []
-    terms = verdict.get("terms") or [{}]
-    for term in terms:
-        columns = [verdict["qid"], "P39", verdict["position"]]
-        start = qs_time(term.get("start") or "")
-        end = qs_time(term.get("end") or "")
-        if start:
-            columns += ["P580", start]
-        if end:
-            columns += ["P582", end]
-        # Qualifiers beyond the dates: P2868 acting, P768 electoral district,
-        # P2937 parliamentary term, ... Per-term values win over per-verdict.
-        qualifiers = {**(verdict.get("qualifiers") or {}), **(term.get("qualifiers") or {})}
-        for prop, value in qualifiers.items():
-            if value:
-                columns += [prop, qs_value(str(value))]
-        url = verdict.get("source_url")
-        if url:
+    subject = record["subject"]
+    for statement in record["statements"]:
+        columns = [subject["qid"], statement["property"], snak_value(statement["value"])]
+        for qualifier in statement.get("qualifiers", []):
+            columns += [qualifier["property"], snak_value(qualifier["value"])]
+        for reference in statement.get("references", []):
             # A Wikipedia permalink is an import, not a source: S4656 keeps it
             # out of S854, where linters (rightly) reject wiki URLs.
-            prop = verdict.get("source_prop") or "S854"
-            columns += [prop, f'"{url}"', "S813", qs_time(retrieved)]
+            columns += [reference["property"], f'"{reference["value"]["text"]}"',
+                        "S813", qs_time(retrieved)]
         lines.append("\t".join(columns))
     return lines
 
 
-def term_str(verdict: dict) -> str:
-    terms = verdict.get("terms") or []
+def term_str(record: dict) -> str:
     spans = []
-    for term in terms:
-        spans.append(f"{term.get('start') or '?'}–{term.get('end') or ''}")
+    for statement in record["statements"]:
+        bounds = {q["property"]: q["value"].get("iso") for q in statement.get("qualifiers", [])}
+        if bounds.get("P580") or bounds.get("P582"):
+            spans.append(f"{bounds.get('P580') or '?'}–{bounds.get('P582') or ''}")
     return ", ".join(spans) or "no dates"
+
+
+def source_of(record: dict) -> str | None:
+    """The first reference URL on the record, unescaped.
+
+    URLs quoted out of wikitext `<ref>`s arrive HTML-escaped (`&amp;`).
+    """
+    for statement in record["statements"]:
+        for reference in statement.get("references", []):
+            text = reference["value"].get("text")
+            if text:
+                return html.unescape(text)
+    return None
 
 
 def main() -> None:
@@ -109,53 +121,44 @@ def main() -> None:
             print(f"! ignoring verdict files not in the manifest: {', '.join(orphans)}")
         paths = [p for p in paths if p.name in owned]
 
-    verdicts: list[dict] = []
+    records: list[dict] = []
     for path in paths:
         for line in path.read_text().splitlines():
             if line.strip():
-                verdict = json.loads(line)
-                if verdict.get("source_url"):
-                    # URLs quoted out of wikitext refs arrive HTML-escaped:
-                    verdict["source_url"] = html.unescape(verdict["source_url"])
-                verdicts.append(verdict)
+                records.append(json.loads(line))
 
     md: list[str] = ["# P39 edit plan", ""]
     qs: list[str] = []
     by_position: dict[str, list[dict]] = {}
-    for v in verdicts:
-        by_position.setdefault(v["position"], []).append(v)
+    for record in records:
+        target = record["statements"][0]["value"].get("id") if record["statements"] else None
+        by_position.setdefault(target, []).append(record)
 
     counts = {"add": 0, "add_held": 0, "reject": 0, "unclear": 0}
-    # position=None rows come from bucket narrowing where no target item
-    # exists yet (the item-creation list); sort them last.
+    # A create subject has no target item yet; sort those last.
     for position, items in sorted(
         by_position.items(), key=lambda kv: (kv[0] is None, kv[0] or "")
     ):
         md.append(f"## Position {position or 'none — no target item exists (creation list)'}")
-        for bucket, title in [
-            ("add", "Add — goes into edit_plan.qs"),
-            ("add_held", "Add, held back pending a convention call"),
-            ("reject", "Rejected"),
-            ("unclear", "Unclear — needs a human look"),
+        for bucket, title, action in [
+            ("add", "Add — goes into edit_plan.qs", "apply"),
+            ("add_held", "Add, held back pending a convention call", "hold"),
+            ("reject", "Rejected", "skip"),
+            ("unclear", "Unclear — needs a human look", "review"),
         ]:
-            if bucket == "add":
-                rows = [v for v in items if v["verdict"] == "add" and v.get("era") == "modern"]
-            elif bucket == "add_held":
-                rows = [v for v in items if v["verdict"] == "add" and v.get("era") != "modern"]
-            else:
-                rows = [v for v in items if v["verdict"] == bucket]
-            rows.sort(key=lambda v: (v.get("era") or "", v["qid"]))
+            rows = [v for v in items if v["decision"]["action"] == action]
+            rows.sort(key=lambda v: (v["decision"].get("rule") or "", v["subject"]["qid"]))
             if not rows:
                 continue
             md.append(f"### {title}")
             for v in rows:
                 counts[bucket] += 1
-                era = v.get("era")
-                tag = f" `{era}`" if bucket != "add" and era else ""
-                md.append(f"* **{v['qid']} {v.get('label')}**{tag} — {term_str(v)}")
-                md.append(f"  * evidence: {v.get('evidence')}")
-                if v.get("source_url"):
-                    md.append(f"  * source: {v['source_url']}")
+                rule = v["decision"].get("rule")
+                tag = f" `{rule}`" if bucket != "add" and rule else ""
+                md.append(f"* **{v['subject']['qid']} {v['subject'].get('label')}**{tag} — {term_str(v)}")
+                md.append(f"  * evidence: {'; '.join(s['detail'] for s in v.get('signals', []))}")
+                if source_of(v):
+                    md.append(f"  * source: {source_of(v)}")
                 if v.get("notes"):
                     md.append(f"  * notes: {v['notes']}")
                 if bucket == "add":
