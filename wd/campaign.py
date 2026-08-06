@@ -1,0 +1,858 @@
+"""Roster-driven P39 campaigns: the country-independent engine.
+
+Reach for this when a country's officeholders are tabulated or listed on a
+wiki page per office (`recipes/category_check.md`). The country script supplies
+only parameters — which offices, which roster pages, which position items —
+and this module does the rest: harvest category members, identify each roster
+row's person, gate the risky identifications, tier the results, and write both
+the machine verdicts and the audit document a human reads before anything is
+applied.
+
+The tiering is the point. Only rows where two independent channels agree — a
+Wikipedia category *and* a roster row — and that fall inside the modern
+institutional era reach the batch; everything else keeps its reason in an
+`era` label and waits for a ruling.
+"""
+
+import json
+import re
+from collections import Counter
+from dataclasses import dataclass, field
+from datetime import date
+from pathlib import Path
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+
+from requests import Session
+
+from wd.api import best_description, best_label, claim_qids, fetch_entities, sparql
+from wd.http import get_text
+from wd.petscan import category_members
+from wd.roster import (
+    RosterRow,
+    fold,
+    merge_terms,
+    names_match,
+    parse_bullet_rosters,
+    parse_rosters,
+)
+from wd.wikipedia import WIKI_API, fetch_html, permalink
+
+#: Occupations that make a public-office claim plausible. A name that matches
+#: only an item with none of these — es.wikipedia's "Ernesto Albán" is a
+#: comedian, its "Carlos Pérez García" a Spanish footballer — is a namesake,
+#: not the minister the roster names.
+POLITICAL_OCCUPATIONS = {
+    "Q82955",    # politician
+    "Q185351",   # jurist
+    "Q40348",    # lawyer
+    "Q193391",   # diplomat
+    "Q188094",   # economist
+    "Q212238",   # civil servant
+    "Q2285706",  # head of government
+    "Q1097498",  # military officer
+}
+POLITICAL_WORDS = re.compile(
+    r"pol[íi]tic|ministr|minister|diplomat|presiden|alcald|mayor|senador|"
+    r"asamble[íi]sta|abogad|jurist|econom|gobernador|prefect|"
+    r"полит|палiт|мiнiстр|минист|дыпламат|дипломат|дзярж|госуд|урад|прав",
+    re.I,
+)
+
+#: Table headings that mark the office's own holders, matched against the
+#: FOLDED heading (`wd.roster.fold`), which is why "минист" also catches
+#: "Міністры". Defaults suit ministry and office pages in several languages;
+#: override per office when a page uses something unusual.
+DEFAULT_HEADINGS = (
+    r"^(?:titulares|ministr|минист|прэм|премьер|спис|список|глав|руковод|кираун"
+    # Czech list articles head each era's table rather than the office:
+    # "V rámci československé federace", "V rámci samostatné republiky".
+    r"|seznam|v ramci|chronolog|soudc|predsed|prezident|premier)"
+)
+
+#: Section names inside an accepted table that describe a *different*,
+#: pre-ministerial body, whose rows go to review rather than the batch.
+DEFAULT_REVIEW_SECTIONS = (
+    "direccion", "dirección", "corporacion", "corporación", "instituto",
+    "consejo", "subsecretar", "secretaría nacional", "secretaria nacional",
+)
+
+
+@dataclass
+class RosterSource:
+    """A page carrying an office's holders."""
+
+    lang: str
+    page: str
+    #: "table" for wikitables, "bullets" for `* [[Name]] (dates)` lists.
+    kind: str = "table"
+    #: Regex the table's own heading must match; None uses DEFAULT_HEADINGS.
+    headings: Optional[str] = None
+
+
+@dataclass
+class Office:
+    key: str
+    label: str
+    #: The position item roster rows are proposed against.
+    target: str
+    rosters: Tuple[RosterSource, ...] = ()
+    #: Explicit (lang, category) generators.
+    categories: Tuple[Tuple[str, str], ...] = ()
+    #: An en.wikipedia category whose interwiki siblings become generators too —
+    #: how a country whose people are documented on another wiki gets covered.
+    sibling_category: Optional[str] = None
+    #: Section header pattern → position item, for a roster that spans two
+    #: named ministries. First match wins; a row matching none uses `target`.
+    section_targets: Tuple[Tuple[str, str], ...] = ()
+    review_sections: Tuple[str, ...] = DEFAULT_REVIEW_SECTIONS
+    #: Section/heading patterns that mark a *different regime's* office
+    #: (Byelorussian SSR, the 1918 republic): held with this era name.
+    regime_sections: Tuple[Tuple[str, str], ...] = ()
+    #: When set, nothing from this office is batched; every add is held under
+    #: this era name pending a convention call.
+    hold: Optional[str] = None
+
+
+@dataclass
+class Campaign:
+    #: Subdirectory of data/ to write into, and the verdict file prefix.
+    name: str
+    country_qid: str
+    #: Institutional era the position items were created for. Terms starting
+    #: earlier are a continuity judgment, not a mechanical add.
+    modern_from: int
+    offices: Sequence[Office]
+    #: Label languages to prefer when naming people in review output.
+    label_langs: Tuple[str, ...] = ("en",)
+    #: Wikis whose sibling categories to follow, in order of usefulness.
+    sibling_wikis: Tuple[str, ...] = ("es", "ru", "be", "be_x_old", "uk")
+    #: Verb phrase for the evidence sentence.
+    evidence_verb: str = "lists them as minister"
+    #: Positions whose concurrency with another office carries no meaning, so
+    #: `interim_of` ignores them: a minister keeps their parliamentary seat
+    #: throughout, and a council seat overlaps everything.
+    concurrency_ignore: Tuple[str, ...] = ()
+    #: Categories whose members belong to another regime entirely: (lang, cat).
+    regime_categories: Tuple[Tuple[str, str, str], ...] = ()
+
+
+@dataclass
+class Person:
+    qid: str
+    label: str
+    description: Optional[str] = None
+    names: List[str] = field(default_factory=list)
+    p39: List[str] = field(default_factory=list)
+    #: The same statements with their dates: (position, start, end).
+    p39_terms: List[Tuple[str, Optional[str], Optional[str]]] = field(default_factory=list)
+    p27: List[str] = field(default_factory=list)
+    p106: List[str] = field(default_factory=list)
+    p102: List[str] = field(default_factory=list)
+    birth: Optional[int] = None
+    death: Optional[int] = None
+    #: Categories that put this person forward, empty for roster-only people.
+    cats: List[str] = field(default_factory=list)
+    #: Era name when a category places them in an earlier polity's version of
+    #: the office. Informational for people the roster names — they may have
+    #: served under both — and decisive only for category-only candidates.
+    regime: Optional[str] = None
+
+
+def resolve_titles(session: Session, lang: str, titles: Iterable[str]) -> Dict[str, str]:
+    """Wikipedia titles → QIDs, 50 per request, redirects followed.
+
+    Used for both a roster's own wikilinks and, for unlinked rows, the bare
+    name as a title — an article at exactly that name is the same evidence a
+    wikilink would have been.
+    """
+    out: Dict[str, str] = {}
+    todo = [t for t in dict.fromkeys(titles) if t]
+    for i in range(0, len(todo), 50):
+        chunk = todo[i : i + 50]
+        data = json.loads(
+            get_text(
+                session,
+                WIKI_API.format(lang=lang),
+                params={
+                    "action": "query",
+                    "prop": "pageprops",
+                    "ppprop": "wikibase_item",
+                    "titles": "|".join(chunk),
+                    "redirects": "1",
+                    "formatversion": "2",
+                    "format": "json",
+                },
+            )
+        )
+        query = data.get("query", {})
+        alias: Dict[str, str] = {}
+        for key in ("normalized", "redirects"):
+            for entry in query.get(key, []):
+                alias[entry["from"]] = entry["to"]
+        resolved: Dict[str, str] = {}
+        for page in query.get("pages", []):
+            qid = (page.get("pageprops") or {}).get("wikibase_item")
+            if qid:
+                resolved[page["title"]] = qid
+        for title in chunk:
+            target = title
+            seen = {target}
+            while target in alias and alias[target] not in seen:
+                target = alias[target]
+                seen.add(target)
+            if target in resolved:
+                out[title] = resolved[target]
+    return out
+
+
+def sibling_categories(
+    session: Session, lang: str, category: str, wikis: Sequence[str]
+) -> List[Tuple[str, str]]:
+    """The same category on other wikis, via the category item's sitelinks.
+
+    Where a country's people are written up on a wiki other than the one the
+    config names, this is what finds them: the enwiki category for Belarusian
+    ministers has 35 members, its Belarusian sibling 243.
+    """
+    data = json.loads(
+        get_text(
+            session,
+            WIKI_API.format(lang=lang),
+            params={
+                "action": "query",
+                "prop": "pageprops",
+                "ppprop": "wikibase_item",
+                "titles": f"Category:{category.replace('_', ' ')}",
+                "redirects": "1",
+                "formatversion": "2",
+                "format": "json",
+            },
+        )
+    )
+    qid = None
+    for page in data.get("query", {}).get("pages", []):
+        qid = (page.get("pageprops") or {}).get("wikibase_item")
+    if not qid:
+        return []
+    entity = fetch_entities(session, [qid], props="sitelinks").get(qid, {})
+    out: List[Tuple[str, str]] = []
+    for wiki in wikis:
+        link = entity.get("sitelinks", {}).get(f"{wiki}wiki")
+        if link:
+            title = link["title"].split(":", 1)[-1].replace(" ", "_")
+            out.append((wiki.replace("_", "-"), title))
+    return out
+
+
+def year_of(entity: dict, prop: str) -> Optional[int]:
+    for claim in entity.get("claims", {}).get(prop, []):
+        value = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
+        if isinstance(value, dict) and "time" in value:
+            if value.get("precision", 11) < 9:
+                continue  # a century renders as a misleading year
+            return int(value["time"].lstrip("+")[:4])
+    return None
+
+
+def dated_positions(entity: dict) -> List[Tuple[str, Optional[str], Optional[str]]]:
+    """Every P39 the item already carries, with its start and end date.
+
+    `claim_qids` reads the values alone, but the dates are what let an existing
+    statement act as a second channel: a two-month ministry sitting inside the
+    person's own four-year premiership is cover, not a term of its own. Only
+    day-precision qualifiers are kept, since coarser ones cannot bracket a
+    spell of a few weeks.
+    """
+    spans: List[Tuple[str, Optional[str], Optional[str]]] = []
+    for claim in entity.get("claims", {}).get("P39", []):
+        value = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
+        if not isinstance(value, dict) or "id" not in value:
+            continue
+        bounds: Dict[str, str] = {}
+        for prop, key in (("P580", "start"), ("P582", "end")):
+            for qualifier in claim.get("qualifiers", {}).get(prop, []):
+                time_value = qualifier.get("datavalue", {}).get("value")
+                if isinstance(time_value, dict) and time_value.get("precision", 0) >= 11:
+                    bounds[key] = time_value["time"].lstrip("+")[:10]
+        spans.append((value["id"], bounds.get("start"), bounds.get("end")))
+    return spans
+
+
+def interim_of(
+    row: RosterRow, person: Person, target: str, ignore: Sequence[str]
+) -> Optional[str]:
+    """The office this spell was covering for, if it looks like cover at all.
+
+    Two channels have to agree before a roster row is read as an interim
+    appointment: the spell is too short to be a term of its own, *and* it falls
+    inside a dated term the person already holds for a different office. Both
+    are needed — Petr Krčál really was labour minister for 21 days, while
+    Vladimír Špidla's 41 days at Justice sit inside his premiership. Positions
+    in `ignore` are skipped, because a minister holds their parliamentary seat
+    the whole time and that overlap means nothing.
+    """
+    if not row.start or not row.end or len(row.start) != 10 or len(row.end) != 10:
+        return None
+    length = date.fromisoformat(row.end) - date.fromisoformat(row.start)
+    if length.days >= SHORT_SPELL_DAYS:
+        return None
+    for qid, start, end in person.p39_terms:
+        if qid == target or qid in ignore or start is None:
+            continue
+        if start <= row.start and (end is None or row.end <= end):
+            return qid
+    return None
+
+
+def lifetime_conflict(person: Person, start: Optional[str]) -> Optional[str]:
+    """Why this person cannot have held office from `start`, if they cannot.
+
+    Namesakes across centuries are the failure mode a name match cannot see:
+    es.wikipedia has one Ángel Polibio Chaves (1855–1930) and a roster names
+    another as labour minister in 1998.
+    """
+    if not start:
+        return None
+    year = int(start[:4])
+    if person.birth is not None and year - person.birth < 18:
+        return f"born {person.birth}, term starts {year}"
+    if person.death is not None and person.death < year:
+        return f"died {person.death}, term starts {year}"
+    return None
+
+
+def political_marker(person: Person) -> bool:
+    """Does anything on this item suggest a person who holds public office?"""
+    if person.p39 or person.p102:
+        return True
+    if POLITICAL_OCCUPATIONS.intersection(person.p106):
+        return True
+    return bool(person.description and POLITICAL_WORDS.search(person.description))
+
+
+def title_variants(name: str) -> List[str]:
+    """A roster name and the shorter titles its article may actually sit at.
+
+    Rosters print every name part ("Carlos Marx Carrasco Vicuña") while the
+    article often sits at fewer, so the full name alone finds nothing.
+    Truncations are namesake-prone, hence the gates in `identify`.
+    """
+    parts = name.split()
+    return [" ".join(parts[:n]) for n in range(len(parts), 1, -1)]
+
+
+def holders(session: Session, qid: str) -> set:
+    """Everyone Wikidata already records in this position, any rank."""
+    rows = sparql(
+        session, f"SELECT DISTINCT ?p WHERE {{ ?p p:P39 ?st . ?st ps:P39 wd:{qid} . }}"
+    )
+    return {row["p"] for row in rows}
+
+
+def office_rows(
+    session: Session, office: Office
+) -> Tuple[List[RosterRow], List[str], List[str]]:
+    """The office's roster rows, the tables skipped, and the source URLs."""
+    rows: List[RosterRow] = []
+    skipped: List[str] = []
+    sources: List[str] = []
+    for source in office.rosters:
+        page = fetch_html(session, source.lang, source.page)
+        if page is None:
+            skipped.append(f"{source.lang}:{source.page} MISSING")
+            continue
+        sources.append(permalink(source.lang, page["revid"]))
+        pattern = source.headings or DEFAULT_HEADINGS
+        if source.kind == "bullets":
+            rosters = parse_bullet_rosters(page["html"])
+        else:
+            rosters = parse_rosters(page["html"])
+        for roster in rosters:
+            heading = (roster.heading or "").strip()
+            if roster.columns == ["bullet"] or re.search(pattern, fold(heading), re.I):
+                for row in roster.rows:
+                    # A bullet list has no in-table sections; carry the
+                    # heading so regime routing still has something to read.
+                    if row.section is None and heading:
+                        row.section = heading
+                    rows.append(row)
+            else:
+                skipped.append(f"{heading or '(no heading)'} [{len(roster.rows)} rows]")
+    return rows, skipped, sources
+
+
+def build_people(
+    session: Session,
+    campaign: Campaign,
+    office: Office,
+    rows: Sequence[RosterRow],
+) -> Tuple[Dict[str, Person], Dict[Tuple[str, str], str]]:
+    """The person universe: category members plus roster-identified people."""
+    generators: List[Tuple[str, str]] = list(office.categories)
+    if office.sibling_category:
+        generators.append(("en", office.sibling_category))
+        generators += sibling_categories(
+            session, "en", office.sibling_category, campaign.sibling_wikis
+        )
+
+    cats: Dict[str, List[str]] = {}
+    titles: Dict[str, List[str]] = {}
+    for lang, category in dict.fromkeys(generators):
+        try:
+            members = category_members(session, category, lang, depth=0)
+        except Exception as exc:  # noqa: BLE001 — a missing category is data, not a crash
+            print(f"    ! {lang}:{category}: {exc}")
+            continue
+        for qid, title in members:
+            titles.setdefault(qid, []).append(title)
+            cats.setdefault(qid, []).append(f"{lang}:{category}")
+
+    regimes: Dict[str, str] = {}
+    for lang, category, era in campaign.regime_categories:
+        try:
+            for qid, _ in category_members(session, category, lang, depth=1):
+                regimes.setdefault(qid, era)
+        except Exception as exc:  # noqa: BLE001
+            print(f"    ! regime {lang}:{category}: {exc}")
+
+    # Roster identities are resolved per roster language.
+    by_title: Dict[Tuple[str, str], str] = {}
+    for source in office.rosters:
+        wanted: List[str] = []
+        for row in rows:
+            if row.link:
+                wanted.append(row.link)
+            else:
+                wanted.extend(title_variants(row.name))
+        for title, qid in resolve_titles(session, source.lang, wanted).items():
+            by_title.setdefault((source.lang, title), qid)
+
+    entities = fetch_entities(
+        session,
+        sorted(set(titles) | set(by_title.values())),
+        props="labels|descriptions|aliases|claims|sitelinks",
+    )
+    people: Dict[str, Person] = {}
+    for qid, entity in entities.items():
+        if "Q5" not in claim_qids(entity, "P31"):
+            continue  # PETScan's Q5 filter also passes Category: items
+        names = list(titles.get(qid, []))
+        for lang in campaign.label_langs + ("en", "mul"):
+            term = entity.get("labels", {}).get(lang)
+            if term:
+                names.append(term["value"])
+            for alias in entity.get("aliases", {}).get(lang, []):
+                names.append(alias["value"])
+        for wiki in campaign.sibling_wikis + ("en",):
+            link = entity.get("sitelinks", {}).get(f"{wiki}wiki")
+            if link:
+                names.append(link["title"])
+        label = next(
+            (
+                entity["labels"][lang]["value"]
+                for lang in campaign.label_langs
+                if entity.get("labels", {}).get(lang)
+            ),
+            None,
+        )
+        people[qid] = Person(
+            qid=qid,
+            label=label or best_label(entity) or (names[0] if names else qid),
+            description=best_description(entity),
+            names=list(dict.fromkeys(names)),
+            p39=claim_qids(entity, "P39"),
+            p39_terms=dated_positions(entity),
+            p27=claim_qids(entity, "P27"),
+            p106=claim_qids(entity, "P106"),
+            p102=claim_qids(entity, "P102"),
+            birth=year_of(entity, "P569"),
+            death=year_of(entity, "P570"),
+            cats=cats.get(qid, []),
+            regime=regimes.get(qid),
+        )
+    return people, by_title
+
+
+def identify(
+    row: RosterRow,
+    people: Dict[str, Person],
+    by_title: Dict[Tuple[str, str], str],
+    lang: str,
+    country_qid: str,
+) -> Tuple[Optional[str], str]:
+    """Roster row → QID, with how it was established (or why it wasn't)."""
+    if row.link:
+        qid = by_title.get((lang, row.link))
+        if qid in people:
+            return qid, "wikilink"
+        if qid:
+            return None, f"linked to {qid}, not a human item"
+        return None, f"link '{row.link}' has no Wikidata item"
+    for index, title in enumerate(title_variants(row.name)):
+        qid = by_title.get((lang, title))
+        person = people.get(qid) if qid else None
+        if person is None:
+            continue
+        # An article title is not a wikilink from the roster: the roster never
+        # asserted this identity, so it has to survive three checks — no
+        # contradicting citizenship, a lifetime covering the term, and some
+        # sign that this person holds public office at all.
+        if person.p27 and country_qid not in person.p27:
+            continue
+        if lifetime_conflict(person, row.start):
+            continue
+        if not political_marker(person):
+            continue
+        if index == 0:
+            return qid, "article title"
+        if not any(names_match(row.name, n) for n in person.names):
+            continue
+        return qid, f"article title '{title}'"
+    hits = [
+        candidate
+        for candidate, person in people.items()
+        if person.cats
+        and any(names_match(row.name, name) for name in person.names)
+        and not lifetime_conflict(person, row.start)
+    ]
+    if len(hits) == 1:
+        return hits[0], "name match"
+    if len(hits) > 1:
+        return None, f"ambiguous: {', '.join(hits)}"
+    return None, "no item found under this name"
+
+
+def target_for(row: RosterRow, office: Office) -> str:
+    section = (row.section or "").casefold()
+    for pattern, qid in office.section_targets:
+        if re.search(pattern, section):
+            return qid
+    return office.target
+
+
+def review_section(row: RosterRow, office: Office) -> Optional[str]:
+    section = (row.section or "").casefold()
+    return row.section if any(w in section for w in office.review_sections) else None
+
+
+def regime_of(row: RosterRow, office: Office) -> Optional[str]:
+    section = row.section or ""
+    for pattern, era in office.regime_sections:
+        if re.search(pattern, section, re.I):
+            return era
+    return None
+
+
+#: A ministerial spell shorter than this is nearly always an interim
+#: appointment — a sitting minister or the premier formally charged with a
+#: second portfolio — for which the convention is `P39` plus `P2868 = Q4676846`
+#: rather than a plain statement.
+SHORT_SPELL_DAYS = 90
+
+
+def short_spells(verdicts: Sequence[dict]) -> List[str]:
+    """Warn about batched terms brief enough to be an interim appointment.
+
+    Reach for this where a wiki marks acting officials nowhere: cs.wikipedia
+    numbers Vladimír Špidla's 41-day spell at Justice as the office's eighth
+    holder, with no legend, note or colour to distinguish it, so its duration is
+    the only channel left that can raise the question for a human.
+    """
+    warnings: List[str] = []
+    for verdict in verdicts:
+        if verdict["verdict"] != "add":
+            continue
+        for term in verdict["terms"]:
+            start, end = term.get("start"), term.get("end")
+            if not start or not end or len(start) != 10 or len(end) != 10:
+                continue
+            days = (date.fromisoformat(end) - date.fromisoformat(start)).days
+            if 0 <= days < SHORT_SPELL_DAYS:
+                warnings.append(
+                    f"{verdict['qid']} {verdict['label']} held {verdict['position']} "
+                    f"for {days} days ({start} – {end}) — interim spell?"
+                )
+    return warnings
+
+
+def overlaps(terms: Sequence[Tuple[str, Optional[str], Optional[str]]]) -> List[str]:
+    """Warn when two people's terms overlap — a roster is sequential, so an
+    overlap means a misparsed cell rather than a genuine co-appointment."""
+    warnings: List[str] = []
+    ordered = sorted((t for t in terms if t[1]), key=lambda t: t[1] or "")
+    for (qid_a, start_a, end_a), (qid_b, start_b, _) in zip(ordered, ordered[1:]):
+        if end_a and start_b and end_a > start_b and qid_a != qid_b:
+            warnings.append(f"{qid_a} ({start_a}–{end_a}) overlaps {qid_b} (from {start_b})")
+    return warnings
+
+
+def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequence[str]] = None) -> None:
+    """Run the campaign: verdict JSONL per office plus one audit document."""
+    offices = [o for o in campaign.offices if keys is None or o.key in keys]
+    if not offices:
+        raise SystemExit(f"No office matched {keys}")
+    verdict_dir = out_dir / "verdicts"
+    verdict_dir.mkdir(parents=True, exist_ok=True)
+    audit: List[str] = [
+        f"# {campaign.name.title()} — roster match audit",
+        "",
+        "Every roster row, how its person was identified, and what became of "
+        "it. `add` rows are in the .qs; everything else is review.",
+        "",
+    ]
+    totals: Counter = Counter()
+
+    for office in offices:
+        rows, skipped, sources = office_rows(session, office)
+        source = sources[0] if sources else ""
+        people, by_title = build_people(session, campaign, office, rows)
+        targets = [office.target] + [qid for _, qid in office.section_targets]
+        held_by_target = {t: holders(session, t) for t in dict.fromkeys(targets)}
+        lang = office.rosters[0].lang if office.rosters else "en"
+
+        per_person: Dict[Tuple[str, str], List[RosterRow]] = {}
+        row_status: List[Tuple[RosterRow, Optional[str], str]] = []
+        for row in rows:
+            qid, how = identify(row, people, by_title, lang, campaign.country_qid)
+            row_status.append((row, qid, how))
+            if qid:
+                per_person.setdefault((qid, target_for(row, office)), []).append(row)
+
+        verdicts: List[dict] = []
+        spans: List[Tuple[str, Optional[str], Optional[str]]] = []
+        statuses: Dict[int, str] = {}
+
+        for (qid, target), group in per_person.items():
+            person = people[qid]
+            held = held_by_target.get(target, set())
+            in_category = bool(person.cats)
+            conflict = next(
+                (c for c in (lifetime_conflict(person, r.start) for r in group) if c), None
+            )
+            # A parenthesised year range after a name is sometimes the person's
+            # lifespan rather than a term; the giveaway is a "term" starting in
+            # their birth year.
+            lifespan = conflict and any(
+                r.start and person.birth is not None and int(r.start[:4]) == person.birth
+                for r in group
+            )
+            ref = next((url for r in group for url in r.ref_urls), None)
+            acting = [r for r in group if r.acting]
+            regime = [r for r in group if regime_of(r, office) and r not in acting]
+            flagged = [
+                r for r in group
+                if review_section(r, office) and r not in acting and r not in regime
+            ]
+            covers: Dict[int, str] = {}
+            for row in group:
+                if row in acting or row in regime or row in flagged:
+                    continue
+                other = interim_of(row, person, target, campaign.concurrency_ignore)
+                if other:
+                    covers[id(row)] = other
+            interim = [r for r in group if id(r) in covers]
+            plain = [
+                r for r in group
+                if r not in acting and r not in regime and r not in flagged
+                and r not in interim
+            ]
+            for row in group:
+                if conflict:
+                    statuses[id(row)] = f"review: lifetime ({conflict})"
+                elif qid in held:
+                    statuses[id(row)] = "already holds P39"
+                elif row in acting:
+                    statuses[id(row)] = "review: acting"
+                elif row in regime:
+                    statuses[id(row)] = f"review: {regime_of(row, office)}"
+                elif row in flagged:
+                    statuses[id(row)] = "review: pre-ministerial section"
+                elif row in interim:
+                    statuses[id(row)] = f"review: interim (covering {covers[id(row)]})"
+                elif office.hold:
+                    statuses[id(row)] = f"review: {office.hold}"
+                elif not row.start:
+                    statuses[id(row)] = "review: no dates"
+                elif int(row.start[:4]) < campaign.modern_from:
+                    statuses[id(row)] = f"review: pre-{campaign.modern_from}"
+                elif in_category:
+                    statuses[id(row)] = "add"
+                else:
+                    statuses[id(row)] = "add (roster only)"
+
+            def emit(verdict: str, era: str, terms: List[dict], evidence: str, notes: str) -> None:
+                verdicts.append({
+                    "qid": qid,
+                    "label": person.label,
+                    "position": target,
+                    "verdict": verdict,
+                    "era": era,
+                    "terms": terms,
+                    "evidence": evidence,
+                    "source_url": ref or source,
+                    "source_prop": "S854" if ref else "S4656",
+                    "notes": notes,
+                })
+
+            if conflict:
+                emit(
+                    "unclear", "lifespan_not_term" if lifespan else "lifetime_mismatch",
+                    [{"start": r.start, "end": r.end} for r in group],
+                    f"roster row '{group[0].name}' ({group[0].period_raw}) resolved to "
+                    f"this item, but {conflict}",
+                    "the bracketed years look like a lifespan, not a term"
+                    if lifespan
+                    else "probable namesake — the roster's person may have no item",
+                )
+                continue
+            if qid in held:
+                continue
+            if plain:
+                terms = merge_terms(plain)
+                spans.extend((qid, start, end) for start, end in terms)
+                first = next((start for start, _ in terms if start), None)
+                historical = bool(first) and int(first[:4]) < campaign.modern_from
+                if office.hold:
+                    era = office.hold
+                elif first is None:
+                    # No date anywhere in the roster row: the office claim may
+                    # be sound, but an undated P39 is not what this batch ships.
+                    era = "no_dates"
+                elif historical:
+                    era = "historical" if in_category else "historical_roster_only"
+                else:
+                    era = "modern" if in_category else "roster_only"
+                emit(
+                    "add", era,
+                    [{"start": start, "end": end} for start, end in terms],
+                    f"'{office.rosters[0].page if office.rosters else '?'}' "
+                    f"{campaign.evidence_verb} "
+                    f"{'; '.join(r.period_raw for r in plain)}"
+                    + (f", appointed by {plain[0].appointer}" if plain[0].appointer else "")
+                    + (f"; category: {', '.join(person.cats)}" if in_category
+                       else "; NOT in any category — roster wikilink only"),
+                    f"existing P39s: {', '.join(person.p39) or 'none'}",
+                )
+            for row in acting:
+                emit(
+                    "unclear", "acting",
+                    [{"start": row.start, "end": row.end}],
+                    f"roster marks this spell acting: {row.period_raw} "
+                    f"({'; '.join(row.flags)})",
+                    "acting — needs the P2868 convention call",
+                )
+            for row in regime:
+                emit(
+                    "unclear", regime_of(row, office) or "other_regime",
+                    [{"start": row.start, "end": row.end}],
+                    f"roster section '{row.section}': {row.period_raw}",
+                    "a different polity's office — needs its own item",
+                )
+            for row in flagged:
+                emit(
+                    "unclear", "predecessor_body",
+                    [{"start": row.start, "end": row.end}],
+                    f"roster section '{row.section}': {row.period_raw}",
+                    "filed under a pre-ministerial body — same office?",
+                )
+            for row in interim:
+                emit(
+                    "unclear", "interim_concurrent_office",
+                    [{"start": row.start, "end": row.end}],
+                    f"roster lists them {row.period_raw}, but that whole spell "
+                    f"falls inside their existing term as {covers[id(row)]}",
+                    "covering a second portfolio — the convention is P39 plus "
+                    "P2868 = Q4676846 (acting), so this needs the user's ruling",
+                )
+
+        audit.append(f"## {office.label} → {', '.join(dict.fromkeys(targets))}")
+        audit.append(
+            f"{sum(1 for p in people.values() if p.cats)} category members · "
+            f"{len(rows)} roster rows · "
+            f"{sum(len(h) for h in held_by_target.values())} existing holders · "
+            f"roster {source or 'NONE'}"
+        )
+        for warning in overlaps(spans):
+            audit.append(f"* ⚠ date overlap: {warning}")
+        for warning in short_spells(verdicts):
+            audit.append(f"* ⚠ short spell: {warning}")
+        if skipped:
+            audit.append(
+                "* tables/pages not counted as this office (sibling offices, "
+                f"predecessor agencies, each its own item): {'; '.join(skipped)}"
+            )
+        audit.append("")
+        audit.append("| roster row | dates | identified as | how | status |")
+        audit.append("|---|---|---|---|---|")
+        for row, qid, how in row_status:
+            if qid:
+                person = people[qid]
+                if len(held_by_target) > 1:
+                    how = f"{how} → {target_for(row, office)}"
+                who = (
+                    f"{qid} {person.label} — {person.description or 'no description'}"
+                    f" [{', '.join(person.cats) or 'not in category'}]"
+                )
+                status = statuses.get(id(row), "?")
+            else:
+                who, status = "—", "no identity"
+            totals[status] += 1
+            audit.append(f"| {row.name} | {row.period_raw} | {who} | {how} | {status} |")
+
+        matched = {qid for qid, _ in per_person}
+        for qid, person in sorted(people.items()):
+            if qid in matched or qid in held_by_target[office.target] or not person.cats:
+                continue
+            era = person.regime or "category_only"
+            totals[f"review: {era}"] += 1
+            audit.append(
+                f"| — (absent from roster) | — | {qid} {person.label} — "
+                f"{person.description or 'no description'} [{', '.join(person.cats)}] "
+                f"| category | review: {era} |"
+            )
+            verdicts.append({
+                "qid": qid,
+                "label": person.label,
+                "position": office.target,
+                "verdict": "unclear",
+                "era": era,
+                "terms": [],
+                "evidence": f"in {', '.join(person.cats)} but named by no roster row",
+                "source_url": source,
+                "source_prop": "S4656",
+                "notes": (
+                    f"existing P39s: {', '.join(person.p39) or 'none'} — rosters often "
+                    "start at a constitutional break, so earlier holders land here"
+                ),
+            })
+        audit.append("")
+
+        path = verdict_dir / f"{campaign.name}_{office.key}.jsonl"
+        path.write_text("".join(json.dumps(v, ensure_ascii=False) + "\n" for v in verdicts))
+        adds = Counter(v["era"] for v in verdicts if v["verdict"] == "add")
+        print(
+            f"{office.label:<28} {len(rows):>3} rows → {adds['modern']:>3} batch, "
+            f"{adds['roster_only']:>3} roster-only, "
+            f"{adds['historical'] + adds['historical_roster_only']:>3} pre-{campaign.modern_from}, "
+            f"{sum(1 for v in verdicts if v['verdict'] == 'unclear'):>3} review"
+        )
+
+    # Which files this campaign owns — every office, not just the ones this
+    # invocation ran. Renaming an office key otherwise strands its old verdict
+    # file in a directory the renderer reads by glob, and it goes on being
+    # rendered forever: Ecuador carried 96 records from a superseded
+    # `minister_gobierno.jsonl` for a day before anyone noticed.
+    expected = sorted(f"{campaign.name}_{o.key}.jsonl" for o in campaign.offices)
+    (verdict_dir / "manifest.json").write_text(
+        json.dumps({"campaign": campaign.name, "files": expected}, indent=2) + "\n"
+    )
+    orphans = sorted(
+        p.name for p in verdict_dir.glob("*.jsonl") if p.name not in expected
+    )
+    if orphans:
+        print(f"\n! verdict files not owned by this campaign: {', '.join(orphans)}")
+        print("  (a renamed office key? they will still be read by the renderer)")
+
+    (out_dir / "roster_audit.md").write_text("\n".join(audit) + "\n")
+    print(f"\n{dict(totals)}")
+    print(f"Wrote {out_dir / 'roster_audit.md'}")

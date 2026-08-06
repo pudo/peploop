@@ -5,6 +5,15 @@ hold). Design notes and write-path decisions live in `WORKBENCH.md`; one
 brief per campaign in `tasks/*.md` (each ends with a status checklist —
 update it as work progresses). Outputs land in `data/` (gitignored).
 
+Recipes for recurring kinds of work live in `recipes/*.md` — read the
+relevant one before starting rather than re-deriving the method:
+
+- `recipes/category_check.md` — working down a `wd_categories` country block
+  into verified P39 statements (categories → target census → rosters →
+  identity gates → tiered batch → audit), with the failure modes each step
+  exists to prevent. Worked examples: `tasks/ecuador.md` (empty country),
+  `tasks/czechia.md` (already-covered country).
+
 ## Running things
 
 - Python: `/Users/pudo/.python/wrangle/bin/python scripts/<script>.py` —
@@ -76,6 +85,11 @@ update it as work progresses). Outputs land in `data/` (gitignored).
   don't bypass it.
 - Time values: precision < 9 (e.g. 7 = century) renders as a misleading
   year ("+2000/7" is the 20th century). Check `precision` before reading.
+- **`wdt:P39` only returns preferred-rank values.** One preferred statement
+  hides every other position a person holds, so coverage measured with `wdt:`
+  is silently short — Czechia read as 7,554 holder statements against a real
+  14,124, and a statement that already existed was offered as an add. Use
+  `p:P39/ps:P39` for any "who already holds this?" question.
 - WDQS: statement-node scans (`p:`/`pq:`) time out easily; prefer `wdt:`
   and subquery-first shapes, retry patiently, and never cache non-JSON
   bodies (a 200 "upstream request timeout" poisons the cache —
