@@ -178,6 +178,11 @@ CAMPAIGN = Campaign(
     # — so its rows are judged on each target item's own record. The
     # Protectorate is not, and stays out.
     continuous_eras=("federal_cr",),
+    # "Ministr bez portfeje" is the formal appointment; the roster's Gesce
+    # column names the remit, and Wikidata records the remit as the office.
+    # Proposing this item on top of a specific one restates the same
+    # appointment — eight ministers were headed that way.
+    generic_targets=("Q59773497",),
     # Nearly every Czech minister sits in parliament or on a council at the same
     # time, so those overlaps say nothing about whether a short spell was cover.
     concurrency_ignore=(

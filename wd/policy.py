@@ -213,6 +213,15 @@ DEFAULT_RULES: Tuple[Rule, ...] = (
         "another office — cover, and recorded as acting",
         qualifiers={"P2868": "Q4676846"},
     ),
+    # Below the interim rules on purpose: a spell the roster shows was *cover*
+    # is a real second office and keeps its P2868. What is left here is one
+    # appointment written down twice under two names — Czech ministers without
+    # portfolio already recorded under the remit the Gesce column names.
+    Rule(
+        "duplicate_appointment", has("duplicate_appointment"), SKIP,
+        "an existing statement already covers exactly these dates under "
+        "another office — the same appointment, named twice",
+    ),
     Rule(
         "predecessor_body", has("predecessor_body"), REVIEW,
         "filed under a pre-ministerial body — a different institution",

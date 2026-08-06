@@ -158,6 +158,12 @@ class Campaign:
     #: Rule id → disposition, for the rare case where a country's own history
     #: contradicts the default policy. Declared once, never per person.
     dispositions: Dict[str, str] = field(default_factory=dict)
+    #: Items that name an office only vaguely — "minister without portfolio",
+    #: the bare "minister" some campaigns still point at. A statement proposed
+    #: against one of these is redundant when the person already records the
+    #: same span under a specific office; the reverse is not true, so this
+    #: cannot be inferred from coinciding dates alone.
+    generic_targets: Tuple[str, ...] = ()
     #: Era names naming the *same institution* under an earlier constitution —
     #: the Czech Republic within the federation, not the Protectorate. Their
     #: rows are judged on the target item's own record, like any other early
@@ -333,6 +339,43 @@ def interim_of(
             continue
         if start <= row.start and (end is None or row.end <= end):
             return qid
+    return None
+
+
+def coincides_with(
+    terms: Sequence[Tuple[Optional[str], Optional[str]]],
+    person: Person,
+    target: str,
+    generic_targets: Sequence[str],
+) -> Optional[str]:
+    """The specific office this generic term is already recorded under.
+
+    The mirror of `interim_of`: that asks whether a spell sits *inside* a term
+    the person holds elsewhere, this asks whether it *coincides* with one.
+
+    Czechia is the case that made it necessary. "Ministr bez portfeje" is the
+    formal appointment and the roster's `Gesce` column names the remit, which
+    Wikidata already records as the office — so eight ministers were about to
+    be given the generic item *on top of* the specific one, same dates.
+
+    **Direction is the whole rule**, which is why `generic_targets` is required
+    rather than inferred. Coinciding dates alone mean nothing: Alexandr Vondra
+    was Deputy Prime Minister and Minister for European Affairs across exactly
+    the same span and genuinely held both, and María Alejandra Vicuña's
+    housing term coincides with a generic `Q83307` "minister" statement that
+    the specific one ought to *replace*. Only a proposed statement that is
+    vaguer than what the item already says is redundant.
+    """
+    if target not in set(generic_targets):
+        return None
+    for start, end in terms:
+        if not start or not end:
+            continue
+        for qid, other_start, other_end in person.p39_terms:
+            if qid == target or not other_start or not other_end:
+                continue
+            if other_start == start and other_end == end:
+                return qid
     return None
 
 
@@ -964,6 +1007,9 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                     era = "historical" if in_category else "historical_roster_only"
                 else:
                     era = "modern" if in_category else "roster_only"
+                already = coincides_with(
+                    terms, person, target, campaign.generic_targets
+                )
                 emit(
                     "add", era,
                     [{"start": start, "end": end} for start, end in terms],
@@ -972,8 +1018,11 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                     f"{'; '.join(r.period_raw for r in plain)}"
                     + (f", appointed by {plain[0].appointer}" if plain[0].appointer else "")
                     + (f"; category: {', '.join(person.cats)}" if in_category
-                       else "; NOT in any category — roster wikilink only"),
+                       else "; NOT in any category — roster wikilink only")
+                    + (f"; but {already} already covers exactly these dates"
+                       if already else ""),
                     f"existing P39s: {', '.join(person.p39) or 'none'}",
+                    extra=("duplicate_appointment",) if already else (),
                 )
             for row in acting:
                 emit(
