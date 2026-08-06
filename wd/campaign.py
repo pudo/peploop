@@ -28,6 +28,7 @@ from wd.api import best_description, best_label, claim_qids, fetch_entities, spa
 from wd.http import get_text
 from wd.petscan import category_members
 from wd.policy import Candidate, Facts, decide, tally
+from wd.precedent import census, report
 from wd.record import (
     Decision,
     Record,
@@ -675,7 +676,13 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
     # Everything measured before any decision is taken, so `policy.decide` is a
     # pure function of (candidate, facts). Empty until the precedent census
     # and the second-channel resolver fill it.
-    facts = Facts()
+    # Everything measurable is measured before any decision is taken, so
+    # `policy.decide` stays a pure function of (candidate, facts).
+    all_targets = [o.target for o in offices] + [
+        qid for o in offices for _, qid in o.section_targets
+    ]
+    precedents = census(session, all_targets, cache=out_dir / "precedent.json")
+    facts = Facts(precedent=precedents)
     #: (rule, disposition) for every record written, for the policy summary.
     decisions: List[Tuple[str, str]] = []
     audit: List[str] = [
@@ -956,6 +963,15 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
     if orphans:
         print(f"\n! verdict files not owned by this campaign: {', '.join(orphans)}")
         print("  (a renamed office key? they will still be read by the renderer)")
+
+    # The census, and what it says about each target's own convention. Printed
+    # whether or not a rule reads it yet: a rule that flips a decision on a
+    # measurement has to show its working.
+    census_lines = report(precedents, {t: campaign.modern_from for t in all_targets})
+    if census_lines:
+        audit.insert(4, "")
+        audit.insert(4, "\n".join(f"* {line}" for line in census_lines))
+        audit.insert(4, f"## Precedent census (cutoff {campaign.modern_from})")
 
     # What the policy did, as policy — the summary a reviewer reads instead of
     # three hundred rows.
