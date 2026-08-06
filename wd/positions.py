@@ -120,8 +120,10 @@ def lookup_position(
     name: str,
     country: Optional[str] = None,
     extra_names: Tuple[str, ...] = (),
-    limit: int = 8,
-    max_candidates: int = 10,
+    # Generic office labels ("Minister of Health") exist for dozens of
+    # countries; the right country's item often sits deep in the ranking:
+    limit: int = 30,
+    max_candidates: int = 40,
 ) -> Lookup:
     """Find the Wikidata item for an office named in text.
 

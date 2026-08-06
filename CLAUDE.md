@@ -114,11 +114,18 @@ relevant one before starting rather than re-deriving the method:
   don't bypass it.
 - Time values: precision < 9 (e.g. 7 = century) renders as a misleading
   year ("+2000/7" is the 20th century). Check `precision` before reading.
-- **`wdt:P39` only returns preferred-rank values.** One preferred statement
-  hides every other position a person holds, so coverage measured with `wdt:`
-  is silently short — Czechia read as 7,554 holder statements against a real
-  14,124, and a statement that already existed was offered as an add. Use
-  `p:P39/ps:P39` for any "who already holds this?" question.
+- **`wdt:` returns only best-rank values — for every property, not just
+  P39.** One preferred statement hides all the normal-rank ones and a
+  deprecated statement vanishes entirely. On P39 that undercounts coverage
+  (Czechia read as 7,554 holder statements against a real 14,124, and a
+  statement that already existed was offered as an add). On **P31 it
+  misclassifies items**: `wdt:P31` says Q12251224 "Crown Prince of Saudi
+  Arabia" is only a crown prince (its `Q4164871` sits behind a preferred
+  value) and says Q68081922 has no type at all (deprecated), so a
+  "is this a position?" closure built on `wdt:P31` rejects real positions.
+  Use `p:P39/ps:P39`, `p:P31/ps:P31` etc. whenever the question is "does
+  this hold *anywhere* among the values", and keep `wdt:` for "what is the
+  one current/best value".
 - WDQS: statement-node scans (`p:`/`pq:`) time out easily; prefer `wdt:`
   and subquery-first shapes, retry patiently, and never cache non-JSON
   bodies (a 200 "upstream request timeout" poisons the cache —

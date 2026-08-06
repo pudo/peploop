@@ -98,14 +98,89 @@ PRs can start with the cheap ones (small categories, item already good).
 - [ ] LLM tail for the 22 ambiguous + 60 unmatched (unmatched splits into
   naming variants the search missed vs. genuinely item-less offices —
   the latter feed a position-item creation list, cf. tasks/positions.md)
-- [ ] pick pilot categories → PETScan members → `position_gap.py` →
-  verification agents → .qs
+- [x] resolution verification (2026-08-05, 4 Opus agents over the 169
+  resolved rows): **162 confirm / 6 replace / 1 reject / 0 unclear**,
+  merged back into positions.json → **168 verified QIDs**, 66 scope notes
+  (chamber granularity, predecessor boundaries, term qualifiers). Replaces
+  were label-only Belarus ministries resolved to generic concepts; reject
+  was ru Security Council members (item means *permanent* member; no
+  correct item exists). Side finds: Q133268347/Q101483020 Volgograd
+  duplicate (merge candidate), 7 label-only duma items lacking P1001 and
+  not covered by citizenship_plan.qs, OAS SG item mislabeled.
+- [x] pilot on 4 categories (2026-08-05): Crown_princes_of_Saudi_Arabia,
+  ru:Мэры Москвы, Presidents_of_Interpol, ru:Депутаты Курской областной
+  думы → 25 category members, 14 P39-gap candidates → **12 adds (21 dated
+  statements, official-source refs), 2 rejects** →
+  `data/positions/edit_plan.{md,qs}` ready for review. Both planted traps
+  caught: Nebe = predecessor ICPC office (negcat candidate for the Interpol
+  category), Resin = acting mayor only (ru Мэры Москвы sweeps in
+  acting/deputies). Kursk agent cross-checked official convocation rosters
+  (web.archive.org) and found ru.wiki errors (Chetverikov's convocations)
+  and the declined-list-mandate trap. Review note: Ivanov's early-term
+  rows cite the 5th-convocation roster URL as source — check before apply.
 - [ ] bucket-category narrowing design (22 specs: "Minister of the Russian
   Federation", "Governor of a Russian Region", Australian local
   councillors...) — per-person office identification from articles
+- [x] Middle East run (2026-08-05): Presidents_of_Yemen (2 rejects — Houthi
+  SPC chairmen, disputed claim lives on the SPC item; Wikidata's Q878256
+  holder line is the recognized succession), Sultans_of_Oman (1 historical
+  add, 890 CE — item practice covers pre-Busaidi rulers),
+  Members_of_the_Palestinian_Legislative_Council depth=1 (38 candidates →
+  **36 adds / 2 unclear**, every one checked against CEC primary rosters;
+  headline: **Abbas's PLC-1996 seat may be an encyclopedia myth** — absent
+  from the CEC's 88-name roster, parked unclear), and the first **bucket
+  narrowing** pass, Government_ministers_of_Bahrain depth=1 (49 people →
+  **22 adds across 16 resolved Bahraini offices, 14 offices need item
+  creation** — all the "Minister of State for X" junior posts are missing
+  from Wikidata; 3 true rejects/negcats; 2 wrong existing P39s flagged for
+  surgical fix: Q6983237→Q108884463, Q16730783→Q115344290; dup P39s on
+  Q16190522/Q16115995/Q20418017). GPC Yemen closed mechanically:
+  **no-p39-target** — the GPC (Q1460677) is a party, membership is P102;
+  the yml position block models party membership as a position.
+  Combined plan now: **84 modern statements** in edit_plan.qs, lint-clean.
+  Tooling: lookup_position default search depth raised (generic labels
+  like "Minister of Health" bury the right country's item deep in the
+  ranking); yml depth=0 on PLC/Bahrain specs means the direct specs catch
+  almost nobody — members arrive via the depth-7 sweeps.
 - [ ] retirement report: per-spec P39 coverage (members_total / p39_have /
   p39_planned / p39_gap) → ranked list of yml sections whose
   pseudo-positions can be dropped
-- [ ] eventually: propose `wikidata_id`s back into wd_categories.yml so the
-  crawler emits real positions instead of wd-cat hashes; drop `position:`
-  blocks flagged retirable
+- [x] **tail resolved + `wikidata_id`s written back (2026-08-06).** Two
+  wording-independent signals closed most of what name search couldn't
+  (`scripts/category_tail.py`): the Wikipedia **category item's P301**
+  main topic, and a **P39 tally over the category's members**. Then 8 Opus
+  agents adjudicated all 104 tail+bucket rows (`verdicts/tail_*.jsonl`):
+  47 replace / 22 no-p39-target / 19 create / 16 confirm.
+  **284 specs → 238 resolved, 23 create, 23 no-p39-target**, rendered by
+  `render_category_qids.py` into `resolved.json` + `qid_plan.md` +
+  `create_positions.qs` (22 CREATEs) and written into the yml by
+  `patch_categories_yml.py` (215 insertions, additive, idempotent).
+  What it took:
+  * `normalize=1` on wbgetentities — every wiki localizes the category
+    namespace ("Категория:", "Kategorie:"), so `Category:` misses without it.
+  * Tightening the score: `country_match` + tally lead are **not**
+    independent for a big country, because regional deputies later hold the
+    national seat — that pair alone matched "member of the State Duma" to
+    four regional dumas. Now the name or the P301 must be one of the two.
+  * Reading the spec list from the yml, not the cached positions.json: 11
+    Lithuanian specs had been added upstream since the snapshot and were
+    never resolved at all (4 of them need new items).
+  * Deduping creates by label — the en and es Ecuador specs name one office.
+- [x] byproduct: `scripts/category_langcheck.py` — **38 of 594 specs match
+  no category page at all** (`langcheck.md`). The crawler hands `language`
+  to PETScan, which defaults to `en`, and titles are case-sensitive after
+  the first letter: 8 Czech specs query enwiki for cswiki titles, 10 Russian
+  oblast specs die on `Думы` vs `думы`, plus `White_House_Counsels`,
+  `OSCE_Secretaries_General`, `Under-Secretaries-General…`. Silent: no
+  members, no error. Separate PR.
+- [ ] user decisions pending (see `qid_plan.md`): the 22 CREATEs; the
+  Security Council row (yml declares Q38715670 "**permanent** member",
+  a strict subset — create a generic member item, or drop the id?); whether
+  bucket rows should take a generic QID at all; Ecuador's
+  create-vs-stretch-Q6085548 call; the Australian local-councillor rows
+  (Wikidata models per council, ~200 items).
+- [ ] merge candidates found, holders split across both:
+  Q133268398→Q115242140 (Dagestan 180/181), Q133268337→Q96324124 (Moscow
+  City 34/75), Q133268358→Q124755389 (KhMAO 6/140), Q133268347→Q101483020
+  (Volgograd 50/55) — all from the bulk-created Q1332683xx series.
+- [ ] eventually: drop `position:` blocks flagged retirable

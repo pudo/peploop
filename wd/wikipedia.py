@@ -150,6 +150,39 @@ def fetch_lead_html(
     return data.get("parse", {}).get("text")
 
 
+def fetch_html(
+    session: Session, lang: str, title: str, max_age: Optional[int] = None
+) -> Optional[Dict[str, Any]]:
+    """Rendered HTML of a whole article, with its revision id.
+
+    Wanted whenever the information sits in a *table*: wikitext tables hide
+    their real shape behind `rowspan`/`colspan` and template-generated cells,
+    while the rendered grid can be read positionally. `wd.roster` parses
+    officeholder list articles ("Anexo:Ministros de …") out of this.
+    """
+    params = {
+        "action": "parse",
+        "page": title,
+        "prop": "text|revid",
+        "redirects": "1",
+        "formatversion": "2",
+        "format": "json",
+    }
+    kwargs = {} if max_age is None else {"max_age": max_age}
+    raw = get_text(session, WIKI_API.format(lang=lang), params=params, **kwargs)
+    data = json.loads(raw)
+    if "error" in data:
+        return None
+    parse = data.get("parse", {})
+    if "text" not in parse:
+        return None
+    return {
+        "title": parse.get("title", title),
+        "html": parse["text"],
+        "revid": parse.get("revid"),
+    }
+
+
 def permalink(lang: str, revid: int) -> str:
     """Stable revision URL, for citing exactly what a value was read from."""
     return f"https://{lang}.wikipedia.org/w/index.php?oldid={revid}"
