@@ -185,6 +185,15 @@ DEFAULT_RULES: Tuple[Rule, ...] = (
     #    same question about the target as any other. Ordered below `acting`,
     #    this would apply 19th-century spells to an item whose own record
     #    begins in 1979.
+    #    One office with two items — Spain's normal state — means a term can be
+    #    on record already under the item this office does not happen to name.
+    #    Above the tenure rules on purpose: an acting spell already recorded
+    #    elsewhere is still recorded, and adding a P2868 copy on a sibling item
+    #    is the worst of the available outcomes.
+    Rule(
+        "duplicate_office_item", has("duplicate_office_item"), SKIP,
+        "another item for this same office already records this spell",
+    ),
     Rule(
         "early.unsupported",
         lambda c, f: _early(c, f) and not precedent_allows(c, f), SKIP,

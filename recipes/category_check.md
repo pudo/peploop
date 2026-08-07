@@ -2,12 +2,19 @@
 
 How to work down the synthetic PETScan positions one country at a time —
 verifying who actually held what, and retiring the pseudo-positions behind
-them. Derived from three runs: Ecuador (`tasks/ecuador.md`, 17 specs → 101
-statements, a country whose position items were nearly empty), Belarus
-(`tasks/belarus.md`, 15 specs → 10 statements, a country already well covered)
-and Czechia (`tasks/czechia.md`, 13 specs → 6 statements, a country essentially
-finished — where the yield was the review tiers, the item-creation lists and
-three parser bugs).
+them. Derived from four runs, counted as the lines their `.qs` files actually
+carry:
+
+* Ecuador (`tasks/ecuador.md`, 17 specs → 177 statements) — a country whose
+  position items existed but were nearly empty;
+* Belarus (`tasks/belarus.md`, 15 specs → 16) — already well covered, and
+  documented mainly on a wiki the config did not name;
+* Czechia (`tasks/czechia.md`, 13 specs → 18) — essentially finished, where the
+  yield was the review tiers, the item-creation lists and three parser bugs;
+* Spain (`tasks/spain.md`, 7 offices → 111) — the largest block measured, and the
+  one that shows what to do when a country models an office as a *succession of
+  items*.
+
 The Lithuanian (`tasks/positions.md`) and Bahraini
 (`tasks/category_positions.md`) runs are earlier, more manual versions.
 
@@ -86,6 +93,36 @@ Q3273722 "health minister", and one item literally meaning "incumbent"), and
 which offices are missing entirely. Missing items are a creation subtask, not
 a blocker to the rest.
 
+### 2a. Then ask whether the office is one item or several
+
+**Do this before writing a single `target=`.** In Spain it is normal for one
+office to be several items, and a target chosen without checking is wrong for
+most of the roster:
+
+* ministries are renamed with almost every cabinet and Wikidata models each name
+  (Ministro de Estado → Asuntos Exteriores → …y de Cooperación → …, Unión Europea
+  y Cooperación), so the target is a function of the *date*: `Office.date_targets`;
+* the same office can have era items nobody labelled as such — Q45213921
+  "President of the Congress of Deputies" *is* described as 1876–1923, but
+  Q43118787 (Cortes republicanas) and Q43138757 (Cortes franquistas) are not
+  described at all, and were found only by looking;
+* two items can compete for the *same* era, which is a merge decision and not a
+  campaign: Spanish labour has both a long-running "Minister of Labour" and a
+  2018–2020 ministry name carrying holders from 1919. Declare no office at all
+  and say so in the brief.
+
+The measurement that answers it: for each portfolio category, tally its members'
+P39 values split at the modern cutoff, then take the era profile of every
+candidate item (`wd.precedent.census`, `starts` bucketed by era). An item whose
+terms *stop* where another's *start* is a succession; two items covering the same
+years are a conflict.
+
+**Where the same office really has two items in parallel use, expect the roster
+rows to be on record under the other one.** `already_under_sibling` flags that as
+`duplicate_office_item` and skips it — 44 Spanish rows, 21 of which the engine
+was otherwise about to add a second time *and* qualify as acting, because a spell
+sitting inside the sibling item's span also trips `interim_of`.
+
 ## 3. Lane the categories
 
 | lane | shape | how to run it |
@@ -130,7 +167,10 @@ Rosters hide in three places, in descending order of quality:
 
 Probe candidates by parsing them and counting rows that carry a *date*: a page
 that yields rows without dates is usually a navbox or a link farm, not a
-roster. Watch for redirects — `Анexo:Ministros del Interior` and
+roster. `office_rows` now drops a table with no date *column* for the same
+reason — es.wikipedia heads each era with a party-colour key table, and four of
+its ministry lists are portrait grids with no dates at all, which is the
+difference between "this office has no roster" and "this roster has 5 rows". Watch for redirects — `Анexo:Ministros del Interior` and
 `Список министров иностранных дел` both redirect elsewhere, and two offices
 pointing at one page will double-propose it.
 
@@ -251,6 +291,47 @@ Krčál genuinely was labour minister for 21 days. Set
 minister trips the rule via their parliamentary seat. Brief spells that the
 concurrency test clears still get a `short_spells()` warning in the audit.
 
+## 6a. Read the backtest before reading anything else
+
+Most of a roster is people whose spell is already recorded — 789 of Spain's 1,052
+rows already hold the target, and 900 have something on record to compare against
+— and those rows are a **labelled test set**: the roster says
+what the engine believes, the item says what the community recorded. `wd/backtest.py`
+compares them for every such row at no network cost and writes a `## Backtest`
+section at the head of the audit, plus `data/<campaign>/backtest.jsonl`.
+
+Three numbers per office, and each answers a question that used to be answered
+by a human noticing something:
+
+* **target agreement** — did `target_for` pick the item the community uses? Below
+  ~90% the office is a family of items and the routing is guessing. Spain's
+  Congress presidency scores 58% without its era routing and 90% with it; that
+  drop is the whole of §2a, measured.
+* **date agreement** — the share of comparable rows that do not *contradict* the
+  record. Read the bolded `conflict` column, not the percentage: a recorded
+  year-precision date, or an item recording one tenure where the roster counts
+  legislatures, are agreement written differently. A parse defect shows up as
+  conflicts confined to one page — this is how the `"5 de julio del 2022"` bug
+  was found in Ecuador, months after that campaign shipped.
+* **acting agreement** — where the roster says acting, does the record carry
+  `P2868`? Across all four campaigns the answer is essentially no: **2
+  acting-qualified statements on 88 target items**, both of them Spanish, against
+  20 the batches propose. That is an open question about the rule that adds the
+  qualifier rather than a fact about any one country.
+
+`unrecorded spells` counts roster terms the item does not record at all though it
+records another spell in the same office. Those are dropped today by the
+person-level `already holds` check; the number is what promoting them to
+proposals would cost, and it is large (140 in Spain).
+
+The same comparisons derive the office's **item family** — any item two people
+use for a spell this roster describes, agreeing on a boundary, and passing
+`verify_family` (this country's office by P17/P1001, and a label naming the same
+office rather than the same *kind* of office). That is what let the Spanish
+Congress presidency find Q45213921 with no human input in the acceptance test.
+Candidates that fail the gates are printed as "declare them in the profile if any
+is the same office" — take that as a to-do list for `date_targets`.
+
 ## 7. Audit the matcher before shipping
 
 Non-negotiable: dump **every** roster row with its resolved identity, how it
@@ -300,10 +381,44 @@ these was wrong on the first pass and would have shipped silently:
 * consecutive rows for one person (new appointer, ministry rename) are **one**
   term: merge on `previous.end == row.start`, and never merge across a change
   in acting status.
+* **a duration column parsed as the term.** "Duración" / "Tiempo en el cargo" /
+  "Dny v úřadu" sit beside the dates and hold "1 año y 143 días"; under the
+  `period` role they shadow the start and end cells, and every date on the page
+  is silently lost. Four Spanish pages, three Czech ones.
+* **hidden sort keys.** `{{dts}}` renders a date cell as `<span
+  style="display:none">01812-06-12 </span>12 de junio de 1812`, and the key's own
+  hyphens split the cell before the real dash does. Strip such spans — but keep
+  their **tail** text, because lxml's `remove()` takes the visible date with it.
+* **`<hr>` divides a cell like `<br>`.** The Spanish Senate list stacks a
+  president's four sessions in one pair of cells that way; read as single lines
+  the four dates concatenate into "18 de nov. de 18375 de nov. de 1838", which
+  parses as a year if it parses at all. Pair equal-length start and end stacks
+  into one row per term.
+* **abbreviated months, and the dot on either side of them.** Czech abbreviates
+  the day ("2. července"), Spanish the month ("17 de jul. de 1834"); a pattern
+  that allows only the first reads the second as a bare year. English puts the
+  month first ("September 24, 1810") and needs its own pattern.
+* **"died in office" is not "in office".** "(fallecido en el cargo)" contains
+  the incumbency phrase, and four Spanish chief justices lost their end date to
+  it.
+* **a full-width `td` can be a heading or a note.** es.wikipedia announces each
+  reign in a plain `td` (take it as the section, or it becomes a person);
+  cs.wikipedia explains a two-year gap in thirty words in the same shape (take
+  *that* as the section and the era heading the regime routing reads is gone).
+  Word count separates them.
+* **a header row marked up as `td`.** es.wikipedia's defence list styles its
+  header with column classes and no `th` anywhere, so no roles were assigned and
+  all 84 rows were dropped for want of a name column. Treat the first row as a
+  header when it names two known columns.
 
-Also verify mechanically before you eyeball: no duplicate (person, position)
-pairs, no `start > end`, dates at the precision you expect, and the count of
-statements sourced to a real citation versus to a wiki permalink.
+The mechanical half of this is no longer yours to type: `wd/validate.py` runs at
+render time and **refuses to render** a batch with a duplicate line, a
+`start > end`, a value that is not an item or a date that is not a date. It
+warns, without vetoing, about the citation-versus-permalink split, a P39 with no
+start date, one claim restated on two lines with different references (so 111
+lines can be 110 statements), and a year-precision date sitting beside
+day-precision ones on the same item — which means a cell failed to parse, not
+that the source was coarse.
 
 ## 8. Emit and route
 
@@ -350,7 +465,13 @@ live in `scripts/ec_ministers.py` (`PORTFOLIOS`) — copy the shape:
 * per office: key, label, target QID, its roster page(s) (`RosterSource`, with
   `kind="bullets"` where the list is not a table), and either explicit
   `categories` or a `sibling_category` to expand through interwiki links
-* `section_targets` when one roster spans two named ministries
+* `section_targets` when one roster spans two named ministries — matched against
+  the row's section heading *and* its office cell, which is how one national
+  table of nineteen autonomous communities becomes nineteen targets
+* `date_targets` when the office's *item* changes on a date rather than by
+  section (§2a). An empty QID means "no item exists for this era": the row is
+  recorded as an item-creation byproduct instead of being filed under the
+  nearest item that happens to exist
 * `regime_sections` / `regime_categories` where several polities shared the
   office name
 * `hold=` for any office whose item history is unsettled, or that has no

@@ -40,10 +40,28 @@ relevant one before starting rather than re-deriving the method:
 - **Escalate policies, not cases.** A country whose history contradicts the
   default says so once, in `dispositions` or `continuous_eras` — never per
   person.
+- **The rows you skip are the test set.** Most of a roster is people whose spell
+  is already recorded, and `wd/backtest.py` scores the engine against them
+  before anything is proposed — did the routing pick the item the community
+  uses, do the parsed dates contradict the recorded ones, does the record use
+  the qualifier a rule is about to add. Read the `## Backtest` section of the
+  audit first. It also derives the office's item family, which is how a country
+  nobody has hand-analysed gets the `duplicate_office_item` protection.
+- **A batch is checked before it renders.** `wd/validate.py` refuses to write a
+  `.qs` containing a duplicate line, a `start > end`, or a malformed value, and
+  warns about coarse dates beside day-precision ones on the same item. Don't
+  re-type those checks per campaign; that is what it is for.
 - **Measure the convention, don't declare it.** Whether a term belongs on an
   office item is answered by `wd/precedent.py` from that item's own record,
   because the answer differs per item inside one country: Czech Agriculture
   carries ten pre-1993 terms, Czech Defence's item only exists from 1993.
+- **One office is often several items.** Before choosing a `target`, check
+  whether the office is a *succession* — Spanish ministries are renamed each
+  cabinet and Wikidata models each name, so foreign affairs is four items and the
+  Congress presidency four more (only one of which says so in its label). Route
+  by date (`Office.date_targets`), and expect the roster's rows to be on record
+  under a sibling item (`already_under_sibling` → `duplicate_office_item`). Two
+  items competing for the *same* era is a merge decision, not a campaign.
 - Keep batches **additive-only** and single-concern (one `.qs` per concern —
   the renderer splits by `decision.concern`); QS de-duplicates, and additive
   batches are mass-revertable.
@@ -134,6 +152,14 @@ relevant one before starting rather than re-deriving the method:
   body that is *truncated* JSON means the query timed out mid-serialization
   — that failure is deterministic, so retrying whole is useless: bisect the
   chunk (`citizenship_candidates.py:group_fetch`).
+- Roster tables lie in small ways, and each one silently costs every date on a
+  page: a "Duración" column read as the term, a hidden `{{dts}}` sort key whose
+  hyphens split the cell first (and whose *tail* holds the visible date, which
+  lxml's `remove()` discards), `<hr>` instead of `<br>` between a person's
+  several terms, an abbreviated month with the dot on the far side ("17 de jul.
+  de 1834"), "(fallecido en el cargo)" reading as still-in-office, and a header
+  row marked up as `td`. The full list, with what each one broke, is in
+  `recipes/category_check.md` §7.
 - Matching entity names into position labels: substring is too loose (alias
   "Loire" fires inside "Indre-et-Loire"; "the North" hits the North Riding
   → Northern Ireland). Require the label's after-preposition *tail* to

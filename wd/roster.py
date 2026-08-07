@@ -28,6 +28,14 @@ MONTHS = {
     "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6,
     "julio": 7, "agosto": 8, "septiembre": 9, "setiembre": 9, "octubre": 10,
     "noviembre": 11, "diciembre": 12,
+    # Spanish abbreviated, which is how es.wikipedia's date templates render a
+    # sortable cell: "17 de jul. de 1834".
+    "ene": 1, "feb": 2, "mar": 3, "abr": 4, "may": 5, "jun": 6, "jul": 7,
+    "ago": 8, "sep": 9, "sept": 9, "oct": 10, "nov": 11, "dic": 12,
+    # English, for the en.wikipedia list articles a country's own wiki lacks.
+    "january": 1, "february": 2, "march": 3, "april": 4, "june": 6,
+    "july": 7, "august": 8, "september": 9, "october": 10, "november": 11,
+    "december": 12, "jan": 1, "apr": 4, "aug": 8, "dec": 12,
     # Russian
     "января": 1, "февраля": 2, "марта": 3, "апреля": 4, "мая": 5, "июня": 6,
     "июля": 7, "августа": 8, "сентября": 9, "октября": 10, "ноября": 11,
@@ -59,12 +67,30 @@ COLUMN_ROLES = [
     ("nombre", "name"), ("ministro", "name"), ("titular", "name"),
     ("presidente", "name"), ("funcionario", "name"),
     ("inicio", "start"), ("desde", "start"), ("asuncion", "start"),
+    ("nombramiento", "start"),
     ("finalizacion", "end"), ("fin", "end"), ("hasta", "end"), ("cese", "end"),
-    ("periodo", "period"), ("mandato", "period"), ("duracion", "period"),
+    ("periodo", "period"), ("mandato", "period"),
+    # "Duración" is a *tenure length* ("1 año y 143 días"), not a term. Under
+    # the `period` role it shadowed the start and end cells beside it and every
+    # date on the table was lost; as `days` it cannot.
+    ("duracion", "days"), ("tiempo en el cargo", "days"),
     ("designante", "appointer"), ("designado", "appointer"),
     ("nombrado", "appointer"), ("gobierno", "appointer"),
     ("partido", "party"), ("ref", "ref"), ("observacion", "notes"),
     ("cartera", "office"), ("cargo", "office"), ("institucion", "office"),
+    # Which polity's office a row belongs to, where one table serves several:
+    # es.wikipedia tabulates all nineteen autonomous communities' presidents in
+    # one list, naming the community in a rowspanned first column.
+    ("autonomia", "office"), ("comunidad", "office"),
+    # English, for list articles the country's own wiki does not keep.
+    ("name", "name"), ("portrait", "portrait"), ("image", "portrait"),
+    ("imagen", "portrait"), ("foto", "portrait"),
+    ("took office", "start"), ("assumed office", "start"),
+    ("left office", "end"), ("term of service", "period"),
+    ("term of office", "period"), ("tenure", "period"), ("term", "period"),
+    ("time in office", "days"), ("party", "party"), ("notes", "notes"),
+    ("monarch", "appointer"), ("government", "appointer"),
+    ("constituency", "notes"), ("no", "ordinal"), ("#", "ordinal"),
     # Russian / Belarusian / Ukrainian
     ("имя", "name"), ("імя", "name"), ("ім'я", "name"), ("ф.и.о", "name"),
     ("фио", "name"), ("фамилия", "name"), ("прозвішча", "name"),
@@ -108,11 +134,18 @@ COLUMN_ROLES = [
 # "still in office".
 DASHES = "-–—‒―"
 INCUMBENT = re.compile(
-    r"actualidad|presente|en\s+(?:el\s+)?(?:cargo|funciones)|actual|titular$"
+    r"actualidad|presente|present\b|incumbent|en\s+(?:el\s+)?(?:cargo|funciones)|actual|titular$"
     r"|настоящее\s+врем|по\s+сей\s+день|н\.\s*в\.|дагэтуль|цяпер|зараз"
     r"|дзеючы|теперішній|нині"
     r"|úřadující|současnost|dosud",
     re.I,
+)
+#: "…–23 de julio de 1834 (fallecido en el cargo)" ends a term; it does not
+#: continue one. Without this the "en el cargo" inside it reads as "still in
+#: office" and the end date is thrown away — four Spanish chief justices died
+#: at their desks and every one of them was recorded as incumbent.
+DIED_IN_OFFICE = re.compile(
+    r"fallecid|falleci[oó]|muri[oó]|muerto|asesinad|died|deceased", re.I
 )
 BACKGROUND = re.compile(r"background(?:-color)?\s*:\s*(#[0-9A-Fa-f]{3,8})")
 #: Some wikis mark an acting officeholder in the cell text instead of by
@@ -140,7 +173,11 @@ FOOTNOTE_ID = re.compile(r"#(cite_note[-_][\w.%-]+)")
 #: the FOLDED name, so the pattern itself is accent-free.
 VACANT = re.compile(
     r"^(?:funkce\s+(?:neobsazena|nevyuzivana)|neobsazeno|urad\s+neobsazen"
-    r"|vacante|vacant|vakansiya|вакансия|вакантна)\b",
+    r"|vacante|vacant|vakansiya|вакансия|вакантна"
+    # es.wikipedia numbers the gaps among the holders too: "Cargo suprimido
+    # entre 1814 y 1820", "Supresión del Senado como órgano constitucional".
+    r"|cargo\s+(?:suprimido|vacante|sin)|supresion|puesto\s+suprimido"
+    r"|sin\s+titular|interregno|abolished|office\s+(?:abolished|vacant))\b",
     re.I,
 )
 
@@ -179,6 +216,11 @@ def _role_keys() -> List[Tuple[str, str]]:
     return [(_norm(key), role) for key, role in COLUMN_ROLES]
 
 
+def _incumbent(text: str) -> bool:
+    """Does this cell say the term is still running?"""
+    return bool(INCUMBENT.search(text)) and not DIED_IN_OFFICE.search(text)
+
+
 def parse_date(text: str) -> Optional[str]:
     """A Spanish date as a partial ISO string: `1979-08-10`, `1979-08`, `1979`.
 
@@ -189,14 +231,26 @@ def parse_date(text: str) -> Optional[str]:
     # "10 de agosto de 1979" (es), "16 июля 1990" (ru/be/uk) and "2. července
     # 1992" (cs) all reduce to day, month word, year — the Czech day is an
     # ordinal, so the dot after it has to be allowed for or the day is lost.
+    # The dot can follow either part: Czech abbreviates the day ordinal ("2.
+    # července 1992"), Spanish the month name ("17 de jul. de 1834"). Missing the
+    # second is the difference between a day-precision term and a bare year.
     day_month = re.search(
-        r"\b(\d{1,2})\s*\.?\s*(?:de\s*)?([^\W\d_]+)\s*(?:de\s*)?(\d{4})", low
+        r"\b(\d{1,2})\s*\.?\s*(?:del?\s*)?([^\W\d_]+)\s*\.?\s*(?:del?\s*)?(\d{4})", low
     )
     if day_month:
         month = MONTHS.get(_deaccent(day_month.group(2)), MONTHS.get(day_month.group(2)))
         if month:
             return f"{day_month.group(3)}-{month:02d}-{int(day_month.group(1)):02d}"
-    month_year = re.search(r"\b([^\W\d_]+)\s*(?:de\s*)?(\d{4})", low)
+    # "September 24, 1810" — English writes the month first, and the
+    # day-month-year pattern above cannot see the day at all.
+    month_day = re.search(
+        r"\b([^\W\d_]+)\s*\.?\s*(\d{1,2})(?:st|nd|rd|th)?\s*,?\s*(\d{4})", low
+    )
+    if month_day:
+        month = MONTHS.get(_deaccent(month_day.group(1)), MONTHS.get(month_day.group(1)))
+        if month:
+            return f"{month_day.group(3)}-{month:02d}-{int(month_day.group(2)):02d}"
+    month_year = re.search(r"\b([^\W\d_]+)\s*(?:del?\s*)?(\d{4})", low)
     if month_year:
         month = MONTHS.get(_deaccent(month_year.group(1)), MONTHS.get(month_year.group(1)))
         if month:
@@ -223,10 +277,14 @@ def _month_in(text: str) -> Optional[int]:
 def parse_period(text: str) -> Tuple[Optional[str], Optional[str], bool]:
     """Split a "start – end" cell. Returns (start, end, still_in_office)."""
     cleaned = " ".join(text.split())
-    incumbent = bool(INCUMBENT.search(cleaned))
+    incumbent = _incumbent(cleaned)
     # Split on a dash that separates two dates, not the one inside "1979-08-10"
-    # or a hyphenated name.
-    parts = re.split(rf"\s+[{DASHES}]+\s+|\s*[{DASHES}]{{2,}}\s*", cleaned)
+    # or a hyphenated name. A space on *either* side is enough: en.wikipedia
+    # renders "September 24, 1810 –October 23, 1810" with none on the right, and
+    # requiring both dropped every end date on the page.
+    parts = re.split(
+        rf"\s+[{DASHES}]+\s*|\s*[{DASHES}]+\s+|\s*[{DASHES}]{{2,}}\s*", cleaned
+    )
     if len(parts) == 1 and re.search(rf"\d\s*[{DASHES}]\s*\d", cleaned):
         parts = re.split(rf"(?<=\d)\s*[{DASHES}]\s*(?=\d)", cleaned, maxsplit=1)
     start = parse_date(parts[0]) if parts else None
@@ -381,6 +439,18 @@ def _roles(header: List[Tuple[object, bool]], width: int) -> List[str]:
     return roles + [f"col{i}" for i in range(len(roles), width)]
 
 
+def _reads_as_header(row_cells: List[Tuple[object, bool]], width: int) -> bool:
+    """Does this row name its columns rather than fill them?
+
+    Some tables mark their header row up as plain `td` — es.wikipedia's
+    defence-minister list does, and with no `th` anywhere the parser assigned no
+    roles at all and dropped all 84 rows for want of a name column. Requiring
+    two recognised column names keeps a genuine first data row from being eaten.
+    """
+    roles = _roles(row_cells, width)
+    return sum(1 for role in roles if not role.startswith("col")) >= 2
+
+
 def _subroles(
     roles: List[str], header: List[Tuple[object, bool]]
 ) -> List[str]:
@@ -404,14 +474,44 @@ def _subroles(
     return out
 
 
+def _drop(element) -> None:
+    """Remove an element but keep the text that follows it.
+
+    lxml's `remove()` takes the element's tail with it, and the tail is where
+    the visible value lives once a hidden sort key is dropped: `<span
+    style="display:none">01812-06-12 </span>12 de junio de 1812` is one span
+    whose *tail* is the date a reader sees.
+    """
+    parent = element.getparent()
+    tail = element.tail or ""
+    if tail:
+        previous = element.getprevious()
+        if previous is not None:
+            previous.tail = (previous.tail or "") + tail
+        else:
+            parent.text = (parent.text or "") + tail
+    parent.remove(element)
+
+
 def _cell_text(cell, keep_breaks: bool = False) -> str:
     if cell is None:
         return ""
     clone = lxml_html.fromstring(lxml_html.tostring(cell))
-    for junk in clone.xpath(".//sup[contains(@class, 'reference')]|.//style|.//span[@typeof]"):
-        junk.getparent().remove(junk)
+    # Hidden sort keys are the trap here: `{{dts}}` renders a date cell as
+    # `<span style="display:none">01812-06-12 </span>12 de junio de 1812`, and
+    # the key's own hyphens then split the cell before its real dash does — the
+    # term reads as starting in the year "01812" and ending on its own start.
+    for junk in clone.xpath(
+        ".//sup[contains(@class, 'reference')]|.//style|.//span[@typeof]"
+        "|.//*[contains(translate(@style, ' ', ''), 'display:none')]"
+    ):
+        _drop(junk)
     if keep_breaks:
-        for br in clone.xpath(".//br"):
+        # `<hr>` divides a cell as often as `<br>` does: the Spanish Senate's
+        # list stacks a president's four sessions in one cell that way, and read
+        # as a single line the four dates concatenate into "18 de nov. de
+        # 18375 de nov. de 1838" — a term with year precision at best.
+        for br in clone.xpath(".//br|.//hr"):
             br.tail = "\n" + (br.tail or "")
         lines = (" ".join(part.split()) for part in clone.text_content().split("\n"))
         return "\n".join(line for line in lines if line)
@@ -486,6 +586,59 @@ def _flags(row_cells: List[Tuple[object, bool]], tr, legend: Dict[str, str]) -> 
     return flags
 
 
+def _lines(roles: List[str], row_cells: List[Tuple[object, bool]], role: str):
+    """The first cell of this role and its text, split on line breaks."""
+    for candidate, (cell, _) in zip(roles, row_cells):
+        if candidate != role or cell is None:
+            continue
+        text = _cell_text(cell, keep_breaks=True)
+        if text:
+            return cell, [line for line in text.split("\n") if line]
+    return None, []
+
+
+def _spans(
+    roles: List[str], row_cells: List[Tuple[object, bool]]
+) -> List[Tuple[Optional[str], Optional[str], bool, str]]:
+    """Every term a row's separate start and end cells describe.
+
+    Usually one. But a roster listing a president's several non-consecutive
+    terms writes them as stacked dates in the same two cells — the Spanish
+    Senate's 19th-century presidents were elected afresh each session, so one
+    row carries four start dates and four end dates. Read as single cells they
+    concatenate into a number that is not a date at all; paired up they are four
+    terms, which is what Wikidata records.
+    """
+    start_cell, starts = _lines(roles, row_cells, "start")
+    end_cell, ends = _lines(roles, row_cells, "end")
+    # One cell colspanning both columns holds a *range*, not a start repeated as
+    # its own end — es.wikipedia writes Adolfo Suárez's royal designation that
+    # way, and read as two cells it becomes a term that begins and ends on the
+    # same day.
+    if start_cell is not None and start_cell is end_cell:
+        start, end, incumbent = parse_period(" ".join(starts))
+        return [(start, end, incumbent, " ".join(starts))]
+    if len(starts) > 1 and len(starts) == len(ends):
+        return [
+            (
+                parse_date(start),
+                None if _incumbent(end) else parse_date(end),
+                _incumbent(end),
+                f"{start} – {end}",
+            )
+            for start, end in zip(starts, ends)
+        ]
+    start_text = " ".join(starts)
+    end_text = " ".join(ends)
+    incumbent = _incumbent(end_text)
+    return [(
+        parse_date(start_text) if start_text else None,
+        None if incumbent or not end_text else parse_date(end_text),
+        incumbent,
+        f"{start_text} – {end_text}".strip(" –"),
+    )]
+
+
 def parse_rosters(page_html: str) -> List[Roster]:
     """Every wikitable in a rendered list article, as roster rows."""
     doc = lxml_html.fromstring(page_html)
@@ -500,7 +653,13 @@ def parse_rosters(page_html: str) -> List[Roster]:
             text = " ".join(element.text_content().split())
             current = re.sub(r"\[\s*editar[^]]*\]", "", text).strip() or current
     rosters: List[Roster] = []
-    for table in doc.xpath("//table[contains(@class, 'wikitable')]"):
+    # `sortable` alone occurs too: es.wikipedia's defence-minister list styles
+    # its table with column classes and never names it a wikitable. Infoboxes
+    # and navboxes carry neither class, and a table with no date column is
+    # dropped by the caller anyway.
+    for table in doc.xpath(
+        "//table[contains(@class, 'wikitable') or contains(@class, 'sortable')]"
+    ):
         grid = _grid(table)
         if not grid:
             continue
@@ -513,9 +672,20 @@ def parse_rosters(page_html: str) -> List[Roster]:
             origins = [(cell, new) for cell, new in row_cells if cell is not None and new]
             if not origins:
                 continue
-            is_header = all(cell.tag == "th" for cell, _ in origins)
+            is_header = all(cell.tag == "th" for cell, _ in origins) or (
+                not roles and _reads_as_header(row_cells, width)
+            )
             spans_row = len(origins) == 1 and int(origins[0][0].get("colspan", 1)) >= width
-            if is_header and spans_row:
+            # A single cell spanning the whole table is a heading whether or not
+            # it is marked up as one: es.wikipedia announces each reign and each
+            # suppression of an office in a plain `td` ("Reinado de Juan Carlos
+            # I", "Supresión del Senado como órgano constitucional"), and those
+            # were being offered up as people. An unmarked full-width row can
+            # also be an explanatory *note*, though — cs.wikipedia's labour list
+            # explains a two-year gap in thirty words — and taking that for the
+            # section overwrote the era heading the regime routing reads. A
+            # heading is a label, so the word count is what separates them.
+            if spans_row and (is_header or len(_cell_text(origins[0][0]).split()) <= 15):
                 section = _cell_text(origins[0][0]) or section
                 continue
             if is_header:
@@ -548,15 +718,18 @@ def parse_rosters(page_html: str) -> List[Roster]:
                     ):
                         links[role].append(title)
             name_index = roles.index("name") if "name" in roles else 0
-            # The declared column first, then its neighbours: a "Nombre" header
-            # can span portrait + name, and cs.wikipedia's education list fills
-            # the *portrait* cell with the name and leaves the name cell empty.
-            # A date or a bare ordinal is never a name, so such a candidate is
-            # skipped rather than taken — otherwise the row is filed under
-            # "3. července 1992".
+            # Every column the name header covers, then its neighbours: a
+            # "Nombre" header can colspan a colour swatch, a portrait *and* the
+            # name — searching only the first of them loses the linked cell, and
+            # with it Wikipedia's own assertion of who this is. cs.wikipedia's
+            # education list fills the *portrait* cell instead and leaves the
+            # name cell empty, hence the neighbours. A date or a bare ordinal is
+            # never a name, so such a candidate is skipped rather than taken —
+            # otherwise the row is filed under "3. července 1992".
             name_cell = None
             name_is_new = False
-            for offset in (name_index, name_index + 1, name_index - 1):
+            spanned = [i for i, role in enumerate(roles) if role == "name"]
+            for offset in spanned + [name_index + 1, name_index - 1]:
                 if not 0 <= offset < width:
                     continue
                 cell, is_origin = row_cells[offset]
@@ -603,41 +776,37 @@ def parse_rosters(page_html: str) -> List[Roster]:
             if len(periods) > 1:
                 # Two cells under one "Período" header: start, then end.
                 start, end = parse_date(periods[0]), parse_date(periods[1])
-                incumbent = bool(INCUMBENT.search(periods[1]))
+                incumbent = _incumbent(periods[1])
                 if incumbent:
                     end = None
-                period_raw = " – ".join(periods[:2])
+                spans = [(start, end, incumbent, " – ".join(periods[:2]))]
             elif periods:
                 start, end, incumbent = parse_period(periods[0])
-                period_raw = periods[0]
+                spans = [(start, end, incumbent, periods[0])]
             else:
-                start = parse_date(cells.get("start", "")) if cells.get("start") else None
-                end = parse_date(cells.get("end", "")) if cells.get("end") else None
-                incumbent = bool(INCUMBENT.search(cells.get("end", "")))
-                if incumbent:
-                    end = None
-                period_raw = f"{cells.get('start', '')} – {cells.get('end', '')}".strip(" –")
+                spans = _spans(roles, row_cells)
             tr = trs[index] if index < len(trs) else None
-            rows.append(
-                RosterRow(
-                    ordinal=len(rows) + 1,
-                    section=section,
-                    name=name,
-                    link=_person_link(name_cell),
-                    covering=covering,
-                    start=start,
-                    end=end,
-                    incumbent=incumbent,
-                    period_raw=period_raw,
-                    appointer=cells.get("appointer"),
-                    flags=_flags(row_cells, tr, legend)
-                    + ([f"acting, per the row text: {acting_text.group(0).strip()}"]
-                       if acting_text else []),
-                    ref_urls=ref_urls,
-                    cells=cells,
-                    links=links,
+            for start, end, incumbent, period_raw in spans:
+                rows.append(
+                    RosterRow(
+                        ordinal=len(rows) + 1,
+                        section=section,
+                        name=name,
+                        link=_person_link(name_cell),
+                        covering=covering,
+                        start=start,
+                        end=end,
+                        incumbent=incumbent,
+                        period_raw=period_raw,
+                        appointer=cells.get("appointer"),
+                        flags=_flags(row_cells, tr, legend)
+                        + ([f"acting, per the row text: {acting_text.group(0).strip()}"]
+                           if acting_text else []),
+                        ref_urls=ref_urls,
+                        cells=cells,
+                        links=links,
+                    )
                 )
-            )
         if rows:
             rosters.append(
                 Roster(
@@ -706,6 +875,10 @@ def _is_date_phrase(text: str) -> bool:
         return False
     for token in tokens:
         if token.isdigit() or token in stop:
+            continue
+        # An abbreviated month is a month: es.wikipedia writes "17 de jul. de
+        # 1834", and the stem rule below needs four characters to fire.
+        if _deaccent(token) in MONTHS:
             continue
         stem = token[:5]
         if len(stem) >= 4 and any(_deaccent(m).startswith(stem) for m in MONTHS):

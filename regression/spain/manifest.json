@@ -1,0 +1,12 @@
+{
+  "campaign": "spain",
+  "files": [
+    "spain_autonomy_pres.jsonl",
+    "spain_congress_pres.jsonl",
+    "spain_exteriores.jsonl",
+    "spain_justicia.jsonl",
+    "spain_pm.jsonl",
+    "spain_senate_pres.jsonl",
+    "spain_supreme_court_pres.jsonl"
+  ]
+}

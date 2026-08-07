@@ -24,6 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from wd.http import REPO_ROOT
+from wd.validate import check
 
 DATA_DIR = REPO_ROOT / "data"
 
@@ -174,6 +175,21 @@ def main() -> None:
                     qs.extend(qs_lines(v, args.retrieved))
             md.append("")
 
+    # One person can be reached through two offices — a party membership the
+    # roster proves in both — and the same line then appears twice. QuickStatements
+    # would collapse them, but a reviewer counting statements should not have to.
+    qs = list(dict.fromkeys(qs))
+    by_concern = {
+        concern: list(dict.fromkeys(lines)) for concern, lines in by_concern.items()
+    }
+
+    # The checks `recipes/category_check.md` has prescribed since Ecuador, run
+    # here rather than typed out again per campaign. A defect stops the render:
+    # the point of a mechanical check is that it cannot be skipped on a late
+    # night.
+    validation = check(qs)
+    md[2:2] = validation.lines()
+
     summary = (
         f"{counts['add']} applied ({len(qs)} statements), "
         f"{counts['add_held']} held, "
@@ -189,6 +205,15 @@ def main() -> None:
         path = campaign_dir / f"edit_plan_{concern}.qs"
         path.write_text("\n".join(lines) + "\n")
         print(f"Wrote {path} ({len(lines)} statements)")
+
+    for warning in validation.warnings:
+        print(f"⚠ {warning}")
+    if not validation.ok:
+        for defect in validation.defects:
+            print(f"✗ {defect}")
+        raise SystemExit(
+            f"{len(validation.defects)} defect(s) in {plan_qs} — not fit to run"
+        )
 
 
 if __name__ == "__main__":

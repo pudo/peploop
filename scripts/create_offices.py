@@ -32,7 +32,12 @@ from wd.positions import lookup_position
 from wd.write import Ledger, create_entity, log
 
 #: Country code → the module holding its `CAMPAIGN`.
-SCRIPTS = {"cz": "cz_ministers", "by": "by_ministers", "ec": "ec_ministers"}
+SCRIPTS = {
+    "cz": "cz_ministers",
+    "by": "by_ministers",
+    "ec": "ec_ministers",
+    "es": "es_offices",
+}
 
 
 def main() -> None:

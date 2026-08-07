@@ -8,7 +8,12 @@ targeted, reviewed edits. Not an app; a workbench.
 
 * **Goal:** small Python scripts to fetch item + Wikipedia data in an
   LLM-friendly form; a standardized, etiquette-compliant HTTP layer; a write
-  path for targeted edits (probably an existing CLI or the Wikibase REST API).
+  path for targeted edits (settled below: QuickStatements for statements,
+  `wikibase-cli` for item creation).
+* **Goal:** a toolchain that can score itself. `wd/backtest.py` measures each
+  campaign against the statements Wikidata already has — the two thirds of a
+  roster the engine skips are a labelled test set — and `wd/validate.py` refuses
+  to render a batch that fails the mechanical checks.
 * **Non-goal:** depending on `nomenklatura`/`zavod`. Those are studied as prior
   art only (see below). No FtM entities here — we work directly on the Wikidata
   data model.
@@ -34,8 +39,8 @@ reviewed P39 batch.
 * `tasks/birthdates.md` — backfill P569 from Wikipedia infoboxes, per country.
 * `tasks/category_positions.md` — the synthetic `wd_categories` positions,
   resolved to real position items.
-* `tasks/ecuador.md`, `tasks/belarus.md` — country runs of
-  `recipes/category_check.md`.
+* `tasks/ecuador.md`, `tasks/belarus.md`, `tasks/czechia.md`, `tasks/spain.md` —
+  country runs of `recipes/category_check.md`.
 
 ## Motivating tasks
 
@@ -123,8 +128,10 @@ Installed globally via npm; config at `~/.config/wikibase-cli/config.json`
 * `wb search` matches labels/aliases fairly literally — "Minister of Finance
   of Germany" found nothing, "Federal Minister of Finance" hit. Position
   resolution needs alias-tolerant search (or SPARQL) rather than one query.
-* Writes not yet tested. Next: try a claim edit on test.wikidata.org
-  (`wb config instance https://test.wikidata.org` or `--instance`).
+* Writes are in use for **item creation only** — `wb create-entity` behind
+  `wd/write.py`, dry by default, guarded by `wd/create.py` and a ledger. Rank
+  edits and statement removal have still never been run from here; they are the
+  surgical lists in the task briefs, done by hand.
 
 ## Wikidata data model cheat sheet (humans & positions)
 
@@ -169,7 +176,17 @@ jurisdiction, P17 country, P571 inception, P576 abolished, P1308 officeholder
   stated in. `P143 imported from Wikimedia project` is what bot-imports carry —
   a weak reference we'll often be upgrading.
 
-## Read path (to build)
+## Read path (built 2026-08-04/05)
+
+What it became, and the two choices that mattered: the module is `wd/api.py`
+rather than the `wd/items.py` sketched below, and **rendered HTML won over
+plaintext extracts** — infoboxes, succession boxes and roster tables carry most
+of the position signal, and `prop=extracts` drops exactly those. The cache is
+SHA-1-keyed JSON files under `data/cache/`, one per (url, params), with a
+seven-day expiry.
+
+The original sketch, kept because the reasoning still applies to a new endpoint:
+
 
 * One small module, e.g. `wd/http.py`: a `requests.Session` per
   `make_session()` above, with a UA like
@@ -205,19 +222,57 @@ jurisdiction, P17 country, P571 inception, P576 abolished, P1308 officeholder
   → dated rows with the appointing president, per-row citation URLs, and the
   flag marking acting officials (a colour legend, or "(в. а.)" in the text).
   Rendered HTML rather than wikitext, because `rowspan` decides which rows a
-  shared reference belongs to. Knows Spanish, Russian, Belarusian and
-  Ukrainian dates and column headers. Reach for it whenever an office's
-  holders are listed somewhere: one fetch replaces N biography reads and
-  carries better dates than any of them.
+  shared reference belongs to. Knows Spanish (including abbreviated months and
+  `del`), English, Czech, Russian, Belarusian and Ukrainian dates and column
+  headers. Reach for it whenever an office's holders are listed somewhere: one
+  fetch replaces N biography reads and carries better dates than any of them.
+  Its accumulated failure modes are catalogued in `recipes/category_check.md` §7
+  — read that before touching a pattern.
 * `wd/campaign.py` (built 2026-08-05): the country-independent engine behind
   `recipes/category_check.md` — category harvest (including interwiki sibling
   categories), roster-row identity resolution with namesake gates, tiering
   into batch/held verdicts, and the audit document. A country script is only
   parameters; see `scripts/ec_ministers.py` and `scripts/by_ministers.py`.
+  `Office.date_targets` routes one roster across a succession of renamed items
+  (added for Spain, where a portfolio is never one item).
+* `wd/record.py` (built 2026-08-05): the one edit-record schema every producer
+  writes and every renderer reads — statements carrying their own qualifiers and
+  references, plus an explicit `Decision` naming the rule that decided them.
+* `wd/policy.py` (built 2026-08-05): `decide(candidate, facts)` — an ordered
+  `predicate → disposition` table over a candidate's flags, first match wins,
+  every decision traceable to one line. Where judgement lives; adding a tier for
+  a human to rule on later is the thing it exists to prevent.
+* `wd/precedent.py` (built 2026-08-05): what the community already does with a
+  position item — holder count, the start years of every dated statement, its
+  P571/P576, and how many statements carry `P2868`. Answers "does a term this
+  early belong here" from the item's own record rather than a country default.
+* `wd/backtest.py` (built 2026-08-07): scores the engine against the statements
+  Wikidata already has. Two thirds of a roster is people who already hold the
+  office; those rows are a labelled test set, and comparing them costs no extra
+  requests. Reports target / date / acting agreement per office into the audit,
+  and derives the office's item family from the cohort — which is what makes the
+  duplicate-item protection work in a country nobody has analysed by hand.
+* `wd/validate.py` (built 2026-08-07): the checks `recipes/category_check.md` has
+  prescribed since Ecuador, run at render time instead of being retyped per
+  campaign. A duplicate line, a `start > end` or a malformed value **refuses to
+  render**; coarse dates beside day-precision ones, and the citation-versus-
+  permalink split, are warnings.
+* `wd/create.py` + `wd/write.py` (built 2026-08-06): position-item creation —
+  archetypes supplying the shape, `guard()` refusing a payload that has not
+  survived a duplicate search and a holder floor, a ledger so a re-run cannot
+  mint twice, and dry-run by default.
 
-## Write path (to decide)
+## Write path (decided 2026-08-06)
 
-Candidates, given "mark a value deprecated" is a requirement:
+**Statements go out as QuickStatements; position items are created through
+`wikibase-cli`** (`wd/write.py` → `wb create-entity`, guarded by `wd/create.py`
+and a ledger, dry by default). QS cannot express item creation — `LAST` is only
+valid as a statement's subject, so an item created in a batch cannot be the value
+of its holders' P39 in that same batch — and it cannot change ranks, so the
+surgical edits below still wait on a human with `wikibase-cli`.
+
+The options as they were weighed, kept because the reasoning still governs which
+path a new kind of edit takes:
 
 1. **Wikibase REST API** (`/w/rest.php/wikibase/v1/`) — modern, per-statement
    endpoints: `PATCH /entities/items/{qid}/statements/{guid}` (JSON Patch — can
@@ -269,37 +324,50 @@ Etiquette for whichever path: descriptive UA, `maxlag=5` on writes, edit
 summaries that link back to a rationale, test against **test.wikidata.org**
 first, no mass edits without a bot flag.
 
-## Proposed toolchain shape
+## Toolchain shape (as built)
 
 ```
-wd/                  # tiny shared lib: session, cache, item fetch+render, wikipedia fetch
-scripts/
-  fetch_item.py      # QID -> condensed item dump (for LLM context)
-  fetch_wiki.py      # QID or title -> article text (lead / full / infobox)
-  find_position.py   # name/country -> candidate position QIDs (search + SPARQL)
-  propose_edits.py   # (task-specific) emit edit plan for review
-  apply_edits.py     # reviewed plan -> wikibase-cli / REST calls
-plans/               # design docs if anything grows beyond a script
-WORKBENCH.md         # this file
+wd/          http.py api.py wikipedia.py petscan.py   # fetch: session, cache, entities, pages, categories
+             roster.py infobox.py                      # parse: officeholder lists, infoboxes
+             campaign.py policy.py precedent.py        # decide: engine, rule table, measured convention
+             record.py backtest.py validate.py         # account for it: schema, self-scoring, batch checks
+             positions.py create.py write.py           # resolve and create position items
+scripts/     <cc>_ministers.py / es_offices.py         # per-country campaign parameters
+             render_*_plan.py                          # verdicts -> reviewable plan + QuickStatements
+             diff_verdicts.py                          # regression net over regression/
+             create_offices.py                         # mint missing position items (dry by default)
+             petscan.py fetch_article.py position_gap.py …   # ad-hoc probes
+recipes/     category_check.md                         # the method, written once
+tasks/       <campaign>.md                             # one brief per campaign, ending in a checklist
+regression/  <campaign>/                               # committed verdicts + .qs from a known-good run
+data/        (gitignored) cache/ and per-campaign output
 ```
 
 Working loop: fetch → LLM reads item + article → LLM drafts edit plan →
 human reviews → apply → verify by re-fetching.
 
+## Answered since
+
+* **Write auth**: the main account (`Pudox`) via `wikibase-cli`'s own config,
+  with edit summaries naming the evidence. Volume is small and reviewed.
+* **Article rendering**: rendered HTML, parsed with lxml. Plaintext extracts drop
+  the tables the whole method depends on (`wd/roster.py`).
+* **Position matching**: `wd/positions.py:lookup_position` — a name-variant match
+  **and** the item's P17/P1001 resolving to the country, with list-articles
+  refused and ambiguity reported rather than resolved.
+* **Sourcing**: the row's own citation as `S854` + `S813` where the roster
+  footnotes one; otherwise the roster permalink as `S4656`, never a Wikipedia URL
+  in S854. `wd/validate.py` reports the split, because it is a quality number
+  worth watching — 7 of 111 in Spain against 81 of 97 in Ecuador.
+
 ## Open questions
 
-* Write auth: bot password on the main account vs. dedicated account? Edit
-  volume is small and reviewed, so main account with good edit summaries is
-  probably fine to start.
-* Article rendering for the LLM: plaintext extract vs. HTML→markdown (keeps
-  infoboxes/succession boxes). Test on a few politicians.
-* Position matching: when the article names a position ("Minister of Finance
-  of Ruritania"), resolve to QID via `wbsearchentities` + type-closure check
-  (is it a Q4164871 descendant?) — reuse the closure-walk idea from
-  `model.py:Item.types`.
-* Sourcing edits: P39 from a Wikipedia article — cite the specific reference
-  the article uses (better) or the article itself (P143, weak)? Probably:
-  have the LLM pull the underlying citation URL out of the article when one
-  exists.
+* **`P2868` for acting spells.** The rules add it as the de-facto convention, but
+  the measured items barely use it: 2 acting-qualified statements across the 88
+  target items of four campaigns, against 20 the batches propose. Ruling needed.
+* **Promoting the backtest's `disjoint` rows.** 131 Spanish roster spells are
+  recorded nowhere though the person holds the item for another spell. The
+  person-level `already holds` check drops them; making them proposals is a
+  recall change nobody has sized yet.
 
 [Wikimedia User-Agent policy]: https://meta.wikimedia.org/wiki/User-Agent_policy

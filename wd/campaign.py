@@ -25,6 +25,17 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 from requests import Session
 
 from wd.api import best_description, best_label, claim_qids, fetch_entities, sparql
+from wd.backtest import (
+    Comparison,
+    ExistingTerm,
+    compare,
+    existing_terms,
+    observed_family,
+    shares_office_word,
+)
+from wd.backtest import dump as dump_comparisons
+from wd.backtest import report as backtest_report
+from wd.backtest import score as backtest_score
 from wd.http import get_text
 from wd.petscan import category_members
 from wd.policy import Candidate, Facts, decide, tally
@@ -114,8 +125,21 @@ class Office:
     #: how a country whose people are documented on another wiki gets covered.
     sibling_category: Optional[str] = None
     #: Section header pattern → position item, for a roster that spans two
-    #: named ministries. First match wins; a row matching none uses `target`.
+    #: named ministries. Matched against the row's section heading *and* its
+    #: office cell, since a list serving several polities usually names them in
+    #: a rowspanned column rather than in headings. First match wins; a row
+    #: matching none uses `target`.
     section_targets: Tuple[Tuple[str, str], ...] = ()
+    #: (from_year, to_year, position item) — the item that owned this office
+    #: during that window, `to_year` exclusive and either bound optional.
+    #:
+    #: Reach for this where a portfolio's item changes on a *date* rather than
+    #: by section. Spain is the case: one continuous roster of foreign ministers
+    #: runs across "Ministro de Estado" (to 1938), "Ministro de Asuntos
+    #: Exteriores" (to 2004) and two later renamings, each of which is its own
+    #: item carrying its own era's holders. Without it every row lands on
+    #: whichever item the office names, and most of them would be wrong.
+    date_targets: Tuple[Tuple[Optional[int], Optional[int], str], ...] = ()
     review_sections: Tuple[str, ...] = DEFAULT_REVIEW_SECTIONS
     #: Section/heading patterns that mark a *different regime's* office
     #: (Byelorussian SSR, the 1918 republic): held with this era name.
@@ -183,6 +207,12 @@ class Person:
     p39: List[str] = field(default_factory=list)
     #: The same statements with their dates: (position, start, end).
     p39_terms: List[Tuple[str, Optional[str], Optional[str]]] = field(default_factory=list)
+    #: And once more with what a *comparison* needs rather than what a
+    #: containment test needs — coarse bounds kept, P2868 read. The two cannot
+    #: be merged: `interim_of` and friends require day precision to mean
+    #: anything, while a backtest asking "is this the same term" must be able to
+    #: tell a year-precision start from a missing one.
+    p39_claims: List[ExistingTerm] = field(default_factory=list)
     p27: List[str] = field(default_factory=list)
     p106: List[str] = field(default_factory=list)
     p102: List[str] = field(default_factory=list)
@@ -342,6 +372,38 @@ def interim_of(
     return None
 
 
+def already_under_sibling(
+    row: RosterRow, person: Person, target: str, siblings: Sequence[str]
+) -> Optional[str]:
+    """Another item of *this same office* already carrying this term, if one is.
+
+    One office, several items is the normal state of affairs in Spain: the
+    President of the Congress of Deputies is both Q17014422 and Q45213921, and
+    the community files 1876–1923 on the second and everything modern on the
+    first, with the 19th century scattered across both. A roster row whose spell
+    the person already records under a sibling item is that same appointment —
+    proposing it again on the item this office happens to name would duplicate
+    it, and (because the spell sits inside the sibling's span) `interim_of` would
+    read it as an acting appointment and add a P2868 to boot.
+
+    Distinct from `coincides_with`, which asks whether a *vaguer* office
+    duplicates a specific one and needs the dates to match exactly. Here the two
+    items are the same office, so containment is enough.
+    """
+    if not row.start:
+        return None
+    for qid, start, end in person.p39_terms:
+        if qid == target or qid not in set(siblings) or start is None:
+            continue
+        # Overlap, not containment: an office has one holder at a time, so two
+        # overlapping spells of the same office are one appointment written down
+        # twice with different end dates. Moscoso's 1821 presidency is on record
+        # as ending on the 21st where the roster says the 30th.
+        if start <= (row.end or row.start) and (end is None or row.start <= end):
+            return qid
+    return None
+
+
 def coincides_with(
     terms: Sequence[Tuple[Optional[str], Optional[str]]],
     person: Person,
@@ -444,6 +506,18 @@ def office_rows(
             rosters = parse_rosters(page["html"])
         for roster in rosters:
             heading = (roster.heading or "").strip()
+            # A table with no date column is a legend or a navbox, not a roster:
+            # es.wikipedia heads each era's table with an "Espectro político"
+            # colour key that otherwise contributes one unidentifiable row per
+            # era to the audit's item-creation column.
+            if roster.columns != ["bullet"] and not (
+                {"period", "start", "end"} & set(roster.columns)
+            ):
+                skipped.append(
+                    f"{heading or '(no heading)'} [{len(roster.rows)} rows, "
+                    "no date column — legend or navbox]"
+                )
+                continue
             if roster.columns == ["bullet"] or re.search(pattern, fold(heading), re.I):
                 for row in roster.rows:
                     # A bullet list has no in-table sections; carry the
@@ -537,6 +611,7 @@ def build_people(
             names=list(dict.fromkeys(names)),
             p39=claim_qids(entity, "P39"),
             p39_terms=dated_positions(entity),
+            p39_claims=existing_terms(entity),
             p27=claim_qids(entity, "P27"),
             p106=claim_qids(entity, "P106"),
             p102=claim_qids(entity, "P102"),
@@ -597,11 +672,78 @@ def identify(
     return None, "no item found under this name"
 
 
+def verify_family(
+    session: Session,
+    candidates: Sequence[Tuple[str, int]],
+    targets: Sequence[str],
+    country_qid: str,
+) -> Tuple[List[Tuple[str, int]], List[str]]:
+    """Split cohort-derived items into ones that are this office, and the rest.
+
+    Two channels have to agree before an item nobody declared is treated as the
+    same office, because the cost of getting it wrong is a *silent suppression*
+    of a real statement:
+
+    * it must be **this country's** office (P17 or P1001). Without this the
+      generic classes editors reach for — Q83307 "minister", Q2632935 "minister
+      of state" — join the family, and the specific statement that ought to
+      replace a generic one gets skipped as a duplicate instead.
+    * its label must **name the same office**, not merely the same kind of
+      office (`shares_office_word`). Nineteenth-century Spanish premiers took the
+      Estado portfolio on the day they formed a government, so the premiership
+      agrees with the roster on a boundary and would otherwise be read as an
+      item for the foreign ministry.
+
+    What fails goes back to the audit rather than into a rule: declaring it in
+    `date_targets` or `section_targets` is a human's call, and the profile is
+    where such a call belongs.
+    """
+    if not candidates:
+        return [], []
+    entities = fetch_entities(
+        session, [qid for qid, _ in candidates] + list(targets), props="labels|claims"
+    )
+    target_labels = [
+        best_label(entities[qid]) or "" for qid in targets if qid in entities
+    ]
+    verified: List[Tuple[str, int]] = []
+    rejected: List[str] = []
+    for qid, count in candidates:
+        entity = entities.get(qid)
+        if entity is None:
+            rejected.append(f"{qid} ×{count} (no such item)")
+            continue
+        label = best_label(entity) or qid
+        scope = set(claim_qids(entity, "P17")) | set(claim_qids(entity, "P1001"))
+        if country_qid not in scope:
+            rejected.append(f"{qid} ×{count} {label!r} (not scoped to the country)")
+        elif not any(shares_office_word(label, other) for other in target_labels):
+            rejected.append(f"{qid} ×{count} {label!r} (names a different office)")
+        else:
+            verified.append((qid, count))
+    return verified, rejected
+
+
 def target_for(row: RosterRow, office: Office) -> str:
-    section = (row.section or "").casefold()
+    """The position item this row's term belongs to.
+
+    Explicit section routing first — a heading or an office cell naming the
+    polity is a statement about *this* row — then the date windows, which are a
+    statement about the office's history.
+    """
+    # Both spellings of what the row says, because both kinds of pattern are in
+    # use: the Czech profile matches accented section headings verbatim, while a
+    # pattern for "Cataluña" is easier to write accent-free.
+    said = [part for part in (row.section, row.cells.get("office")) if part]
+    haystack = " · ".join([p.casefold() for p in said] + [fold(p) for p in said])
     for pattern, qid in office.section_targets:
-        if re.search(pattern, section):
+        if re.search(pattern, haystack):
             return qid
+    if row.start:
+        year = int(row.start[:4])
+        for start, end, qid in office.date_targets:
+            if (start is None or year >= start) and (end is None or year < end):
+                return qid
     return office.target
 
 
@@ -851,8 +993,12 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
     # and the second-channel resolver fill it.
     # Everything measurable is measured before any decision is taken, so
     # `policy.decide` stays a pure function of (candidate, facts).
-    all_targets = [o.target for o in offices] + [
-        qid for o in offices for _, qid in o.section_targets
+    all_targets = [
+        qid for qid in (
+            [o.target for o in offices]
+            + [qid for o in offices for _, qid in o.section_targets]
+            + [qid for o in offices for _, _, qid in o.date_targets]
+        ) if qid
     ]
     precedents = census(session, all_targets, cache=out_dir / "precedent.json")
     regimes = {era for o in campaign.offices for _, era in o.regime_sections}
@@ -865,6 +1011,9 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
     )
     #: (rule, disposition) for every record written, for the policy summary.
     decisions: List[Tuple[str, str]] = []
+    #: Every row the record already answers, across all offices — the backtest.
+    all_comparisons: List[Comparison] = []
+    scores = []
     audit: List[str] = [
         f"# {campaign.name.title()} — roster match audit",
         "",
@@ -878,7 +1027,13 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
         rows, skipped, sources = office_rows(session, office)
         source = sources[0] if sources else ""
         people, by_title = build_people(session, campaign, office, rows)
-        targets = [office.target] + [qid for _, qid in office.section_targets]
+        targets = [
+            qid for qid in (
+                [office.target]
+                + [qid for _, qid in office.section_targets]
+                + [qid for _, _, qid in office.date_targets]
+            ) if qid
+        ]
         held_by_target = {t: holders(session, t) for t in dict.fromkeys(targets)}
         lang = office.rosters[0].lang if office.rosters else "en"
 
@@ -888,16 +1043,77 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
         # asserting it; a truncated article title is this engine guessing, and
         # a rule that applies on one rung should not apply on the other.
         identity_of: Dict[str, Dict[str, object]] = {}
+        #: Rows whose era has no position item at all — a `date_targets` window
+        #: declared empty. Spain's 1927–1931 Asamblea Nacional Consultiva is the
+        #: case: its president is on the Congress roster, the chamber is not the
+        #: Congress, and Wikidata has no item for the office. There is nothing to
+        #: propose, so the row is recorded here and read as an item-creation
+        #: byproduct rather than filed under the nearest item that exists.
+        no_item: Dict[int, bool] = {}
         for row in rows:
             qid, how = identify(row, people, by_title, lang, campaign.country_qid)
             row_status.append((row, qid, how))
             if qid:
-                per_person.setdefault((qid, target_for(row, office)), []).append(row)
+                target = target_for(row, office)
+                if not target:
+                    no_item[id(row)] = True
+                    continue
+                per_person.setdefault((qid, target), []).append(row)
                 identity_of.setdefault(qid, {"method": how.split(" '")[0]})
 
         records: List[Record] = []
-        spans: List[Tuple[str, Optional[str], Optional[str]]] = []
-        statuses: Dict[int, str] = {}
+        # Per target, not per office: two autonomous communities' presidents
+        # overlap all the time, and it means nothing.
+        spans: Dict[str, List[Tuple[str, Optional[str], Optional[str]]]] = {}
+        statuses: Dict[int, str] = {
+            rid: "skip: no item exists for this era" for rid in no_item
+        }
+
+        # The rows the record already answers, measured before anything is
+        # decided. Two thirds of a roster is typically people whose spell is
+        # already written down somewhere, and the engine's only use for them has
+        # been to skip them — but each one says what the community actually does
+        # with this office, and that is the only evidence available for whether
+        # the routing, the parsing and the tenure rules are right *here*.
+        comparisons: List[Comparison] = []
+        for (qid, target), group in per_person.items():
+            person = people[qid]
+            for row in group:
+                recorded = [t for t in person.p39_claims if t.covers(row.start, row.end)]
+                if not recorded and qid not in held_by_target.get(target, set()):
+                    continue  # nothing on record to compare against
+                comparisons.append(
+                    compare(
+                        campaign=campaign.name, office=office.key, qid=qid,
+                        label=person.label, target=target,
+                        row_start=row.start, row_end=row.end,
+                        period_raw=row.period_raw,
+                        terms=person.p39_claims,
+                        acting_predicted=row.acting,
+                    )
+                )
+        all_comparisons += comparisons
+        # An office's other items, as the cohort reveals them rather than as
+        # anyone declared them. Excluded: the seats whose overlap means nothing,
+        # and the items another office in this campaign owns.
+        owned_elsewhere = {
+            qid
+            for other in campaign.offices if other.key != office.key
+            for qid in [other.target]
+            + [q for _, q in other.section_targets]
+            + [q for _, _, q in other.date_targets]
+            if qid
+        }
+        candidates = observed_family(
+            comparisons,
+            exclude=list(campaign.concurrency_ignore)
+            + sorted(owned_elsewhere - set(targets))
+            + list(targets),
+        )
+        derived, not_this_office = verify_family(
+            session, candidates, targets, campaign.country_qid
+        )
+        siblings = list(dict.fromkeys(list(targets) + [qid for qid, _ in derived]))
 
         for (qid, target), group in per_person.items():
             person = people[qid]
@@ -914,15 +1130,29 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 for r in group
             )
             ref = next((url for r in group for url in r.ref_urls), None)
-            acting = [r for r in group if r.acting]
-            regime = [r for r in group if regime_of(r, office) and r not in acting]
+            # Asked first, because it decides whether the row belongs on this
+            # item at all: another item of the same office already recording
+            # this spell means the appointment is written down, and every
+            # question below it ("was this acting? was it cover?") is moot.
+            elsewhere: Dict[int, str] = {}
+            for row in group:
+                other = already_under_sibling(row, person, target, siblings)
+                if other:
+                    elsewhere[id(row)] = other
+            duplicated = [r for r in group if id(r) in elsewhere]
+            acting = [r for r in group if r.acting and r not in duplicated]
+            regime = [
+                r for r in group
+                if regime_of(r, office) and r not in acting and r not in duplicated
+            ]
             flagged = [
                 r for r in group
                 if review_section(r, office) and r not in acting and r not in regime
+                and r not in duplicated
             ]
             covers: Dict[int, str] = {}
             for row in group:
-                if row in acting or row in regime or row in flagged:
+                if row in acting or row in regime or row in flagged or row in duplicated:
                     continue
                 other = interim_of(row, person, target, campaign.concurrency_ignore)
                 if other:
@@ -931,13 +1161,17 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
             plain = [
                 r for r in group
                 if r not in acting and r not in regime and r not in flagged
-                and r not in interim
+                and r not in interim and r not in duplicated
             ]
             for row in group:
                 if conflict:
                     statuses[id(row)] = f"review: lifetime ({conflict})"
                 elif qid in held:
                     statuses[id(row)] = "already holds P39"
+                elif row in duplicated:
+                    statuses[id(row)] = (
+                        f"skip: already recorded as {elsewhere[id(row)]}"
+                    )
                 elif row in acting:
                     statuses[id(row)] = "review: acting"
                 elif row in regime:
@@ -996,7 +1230,9 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 continue
             if plain:
                 terms = merge_terms(plain)
-                spans.extend((qid, start, end) for start, end in terms)
+                spans.setdefault(target, []).extend(
+                    (qid, start, end) for start, end in terms
+                )
                 first = next((start for start, _ in terms if start), None)
                 historical = bool(first) and int(first[:4]) < campaign.modern_from
                 if first is None:
@@ -1023,6 +1259,16 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                        if already else ""),
                     f"existing P39s: {', '.join(person.p39) or 'none'}",
                     extra=("duplicate_appointment",) if already else (),
+                )
+            for row in duplicated:
+                emit(
+                    "unclear", "duplicate_office_item",
+                    [{"start": row.start, "end": row.end}],
+                    f"roster lists them {row.period_raw}, and {elsewhere[id(row)]} "
+                    "— another item for this same office — already records that "
+                    "spell",
+                    "one office with two items; the statement exists already",
+                    extra=(era_flag(row.start, campaign.modern_from),),
                 )
             for row in acting:
                 emit(
@@ -1060,15 +1306,33 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                     extra=(era_flag(row.start, campaign.modern_from),),
                 )
 
+        scores.append(backtest_score(office.label, comparisons, family=siblings))
         audit.append(f"## {office.label} → {', '.join(dict.fromkeys(targets))}")
         audit.append(
             f"{sum(1 for p in people.values() if p.cats)} category members · "
             f"{len(rows)} roster rows · "
             f"{sum(len(h) for h in held_by_target.values())} existing holders · "
+            f"{len(comparisons)} already on record · "
             f"roster {source or 'NONE'}"
         )
-        for warning in overlaps(spans):
-            audit.append(f"* ⚠ date overlap: {warning}")
+        if derived:
+            # Printed because a wrong derivation suppresses real statements, and
+            # the only way that becomes visible is if the audit says which items
+            # the cohort was read as using for this office.
+            audit.append(
+                "* undeclared items the cohort also uses for this office, now "
+                "treated as siblings: "
+                + ", ".join(f"{qid} ×{n}" for qid, n in derived)
+            )
+        if not_this_office:
+            audit.append(
+                "* items the cohort uses alongside this office but **not** "
+                "treated as siblings — declare them in the profile if any is "
+                "the same office: " + "; ".join(not_this_office)
+            )
+        for target_qid, target_spans in sorted(spans.items()):
+            for warning in overlaps(target_spans):
+                audit.append(f"* ⚠ date overlap on {target_qid}: {warning}")
         for warning in short_spells(records):
             audit.append(f"* ⚠ short spell: {warning}")
         if skipped:
@@ -1158,6 +1422,17 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
         print(f"\n! verdict files not owned by this campaign: {', '.join(orphans)}")
         print("  (a renamed office key? they will still be read by the renderer)")
 
+    # How the engine scores against the statements that already exist. Inserted
+    # above the census for the same reason the census is printed at all, and
+    # first because it is the only section that says whether the run can be
+    # believed: a target agreement below ~90% means the office is a family of
+    # items and the routing is guessing.
+    dump_comparisons(all_comparisons, out_dir / "backtest.jsonl")
+    backtest_lines = backtest_report(scores, all_comparisons)
+    if backtest_lines:
+        audit.insert(4, "")
+        audit.insert(4, "\n".join(backtest_lines))
+
     # The census, and what it says about each target's own convention. Printed
     # whether or not a rule reads it yet: a rule that flips a decision on a
     # measurement has to show its working.
@@ -1177,4 +1452,16 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
     (out_dir / "roster_audit.md").write_text("\n".join(audit) + "\n")
     print(f"\nby rule: {summary}")
     print(f"\n{dict(totals)}")
+    for item in scores:
+        if not item.rows:
+            continue
+        print(
+            f"backtest {item.office:<28} {item.rows:>4} on record · "
+            f"target {_rate(item.target_rate)} · date {_rate(item.date_rate)} · "
+            f"acting {_rate(item.acting_rate)} · {item.disjoint} unrecorded spells"
+        )
     print(f"Wrote {out_dir / 'roster_audit.md'}")
+
+
+def _rate(value: Optional[float]) -> str:
+    return " n/a" if value is None else f"{value * 100:3.0f}%"

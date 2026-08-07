@@ -58,12 +58,22 @@ def normalise(record: dict) -> dict:
     if record.get("schema", 1) >= 2:
         statements = record.get("statements") or [{}]
         terms = []
+        extras: List[str] = []
         for statement in statements:
             bounds = {
                 q["property"]: q["value"].get("iso")
                 for q in statement.get("qualifiers", [])
             }
             terms.append((bounds.get("P580"), bounds.get("P582")))
+            # Every qualifier that is not a date, because those are decisions
+            # too: whether a spell carries `P2868 = Q4676846` is exactly the kind
+            # of change this differ exists to catch, and comparing only P580/P582
+            # let it through silently.
+            extras += [
+                f"{q['property']}={(q['value'] or {}).get('id') or (q['value'] or {}).get('iso')}"
+                for q in statement.get("qualifiers", [])
+                if q["property"] not in ("P580", "P582")
+            ]
         decision = record.get("decision", {})
         flags = sorted(record.get("flags") or [])
         return {
@@ -78,6 +88,7 @@ def normalise(record: dict) -> dict:
             "reason": ",".join(flags) or decision.get("rule", ""),
             "terms": _dated(terms),
             "flags": flags,
+            "qualifiers": sorted(set(extras)),
         }
     # v1 has no explicit decision. `add` + `modern` is what reached the .qs;
     # `add` on any other era is a statement the engine believed but the era
@@ -125,7 +136,11 @@ def describe(record: dict) -> str:
     terms = ", ".join(
         f"{start or '?'}–{end or ''}" for start, end in record["terms"]
     ) or "no dates"
-    return f"{record['outcome']}/{record['reason']} [{terms}]"
+    extras = record.get("qualifiers") or []
+    return (
+        f"{record['outcome']}/{record['reason']} [{terms}]"
+        + (f" {{{', '.join(extras)}}}" if extras else "")
+    )
 
 
 def compare(
@@ -186,6 +201,10 @@ def main() -> None:
         "--update", action="store_true",
         help="Overwrite the baseline with the current run once the diff is understood",
     )
+    parser.add_argument(
+        "--force", action="store_true",
+        help="Allow --update to overwrite a baseline whose diff is not empty",
+    )
     args = parser.parse_args()
 
     baseline_dir = args.baseline or BASELINE_DIR / args.campaign
@@ -228,10 +247,27 @@ def main() -> None:
         print(f"\n{changes} pair(s) differ.")
 
     if args.update:
+        # A baseline is only worth having if refreshing it is a decision. It used
+        # to overwrite whatever the diff said, which turns "the regression net"
+        # into "a copy of the last run".
+        if (changes or orphans or missing) and not args.force:
+            raise SystemExit(
+                "Refusing to update a baseline over a non-empty diff — read the "
+                "differences above, then pass --force if they are intended."
+            )
         for path in baseline_dir.glob("*.jsonl"):
             path.unlink()
         for path in current_dir.glob("*.jsonl"):
             (baseline_dir / path.name).write_text(path.read_text())
+        # The committed `.qs` and the manifest are part of the baseline too;
+        # leaving them behind let them drift a whole campaign out of date.
+        for name in ("manifest.json",):
+            source = current_dir / name
+            if source.exists():
+                (baseline_dir / name).write_text(source.read_text())
+        rendered = current_dir.parent / "edit_plan.qs"
+        if rendered.exists():
+            (baseline_dir / "edit_plan.qs").write_text(rendered.read_text())
         print(f"Baseline updated from {current_dir}")
 
 
