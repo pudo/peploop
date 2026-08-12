@@ -1,7 +1,7 @@
 """Roster-driven P39 campaigns: the country-independent engine.
 
 Reach for this when a country's officeholders are tabulated or listed on a
-wiki page per office (`recipes/category_check.md`). The country script supplies
+wiki page per office (`recipes/country_sweep.md`). The country script supplies
 only parameters — which offices, which roster pages, which position items —
 and this module does the rest: harvest category members, identify each roster
 row's person, gate the risky identifications, tier the results, and write both
@@ -54,6 +54,7 @@ from wd.roster import (
     RosterRow,
     fold,
     merge_terms,
+    name_tokens,
     names_match,
     parse_bullet_rosters,
     parse_rosters,
@@ -158,6 +159,20 @@ class Office:
     body: Optional[str] = None
     #: Labels for the item to be created, by language.
     create_labels: Tuple[Tuple[str, str], ...] = ()
+    #: The dynasty that holds this office, for a `P53` backfill, plus the
+    #: surname spellings that name it.
+    #:
+    #: Only reach for this where the office *is* the family's — a hereditary
+    #: rulership — because that is what makes the second channel independent:
+    #: holding the throne of Ajman and being called "Al Nuaimi" are two separate
+    #: assertions, and neither alone is emitted. Three of the six Emirati ruling
+    #: houses have no member recorded at all, including two sitting rulers.
+    #:
+    #: Spellings are needed because transliteration varies and `fold()` does not
+    #: touch it (Qasimi/Qassimi); they are matched against the person's own name
+    #: tokens, never as a substring.
+    family: Optional[str] = None
+    family_names: Tuple[str, ...] = ()
 
 
 @dataclass
@@ -216,6 +231,12 @@ class Person:
     p27: List[str] = field(default_factory=list)
     p106: List[str] = field(default_factory=list)
     p102: List[str] = field(default_factory=list)
+    #: Families already recorded, so a backfill can ask "does this item point at
+    #: *this* family" rather than "does it have a family at all". P53 is
+    #: multi-valued and branch families are real: Mohammed bin Rashid carries
+    #: both Al Maktoum and House of Al-Falasi, and the coarser test would skip
+    #: everyone in a branch.
+    p53: List[str] = field(default_factory=list)
     birth: Optional[int] = None
     death: Optional[int] = None
     #: Categories that put this person forward, empty for roster-only people.
@@ -615,6 +636,7 @@ def build_people(
             p27=claim_qids(entity, "P27"),
             p106=claim_qids(entity, "P106"),
             p102=claim_qids(entity, "P102"),
+            p53=claim_qids(entity, "P53"),
             birth=year_of(entity, "P569"),
             death=year_of(entity, "P570"),
             cats=cats.get(qid, []),
@@ -810,6 +832,70 @@ NON_MEMBER = re.compile(
     r"|sin partido|nom\.|navržen",
     re.I,
 )
+
+
+def family_records(
+    campaign: "Campaign", office: Office,
+    per_person: Dict[Tuple[str, str], List[RosterRow]],
+    people: Dict[str, Person], source: str,
+) -> List[Record]:
+    """P53 statements a hereditary office proves, and that nobody wrote down.
+
+    The Emirates make this mechanical where elsewhere it would be a judgment
+    call. Every Ruler of Umm Al Quwain is an Al Mualla and every Ruler of Ajman
+    an Al Nuaimi, so *holding the office* and *carrying the name* are two
+    independent assertions about the same fact — which is the two-channel bar
+    this workbench applies to everything else. Neither channel is emitted alone:
+    a name without the throne is a namesake, and the throne without the name is
+    the case where a dynasty changed hands.
+
+    It is worth doing because the gap is total rather than marginal: the Al
+    Nuaimi, Al Sharqi and Al Mualla items have **no** members at all, and two of
+    the missing people are the sitting rulers of Ajman and Fujairah.
+    """
+    if not office.family or not office.family_names:
+        return []
+    wanted = {fold(name) for name in office.family_names}
+    records: List[Record] = []
+    for qid in dict.fromkeys(qid for qid, _target in per_person):
+        person = people[qid]
+        # Not "has no family": P53 is multi-valued and a branch house is a real
+        # second value, so the question is whether *this* family is recorded.
+        if office.family in person.p53:
+            continue
+        spellings = [person.label, *person.names]
+        matched = next(
+            (
+                name for name in wanted
+                if any(name in name_tokens(spelling) for spelling in spellings)
+            ),
+            None,
+        )
+        if matched is None:
+            continue
+        records.append(Record(
+            campaign=campaign.name,
+            office=office.key,
+            subject=Subject(kind="item", qid=qid, label=person.label),
+            statements=[Statement(
+                "P53", Value.item(office.family),
+                references=[Snak("S4656", Value.url(source))] if source else [],
+            )],
+            decision=Decision(
+                action="apply", rule="family.office_and_name", concern="p53",
+                rationale="they hold this dynasty's own office and carry its "
+                          "name, and the item records no P53 for it",
+            ),
+            identity={"method": "office holder"},
+            flags=["family"],
+            signals=[Signal(
+                "office_holder", "family",
+                f"holds {office.label}, whose dynasty is {office.family}, and "
+                f"their name carries {matched!r}",
+                source or None,
+            )],
+        ))
+    return records
 
 
 def party_records(
@@ -1230,6 +1316,19 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 continue
             if plain:
                 terms = merge_terms(plain)
+                # A span with neither bound carries nothing, and the era below is
+                # decided by the first term that *has* a start — so on a person
+                # with one dated row and one undated row it rode along on the
+                # dated record's verdict and shipped a bare P39 beside the real
+                # one. Twenty-four of the UAE cabinet's statements were bare this
+                # way, thirteen of them duplicating a dated statement for the
+                # same person and office. Dropping them here keeps the promise
+                # the `no_dates` branch below already makes.
+                # When *every* span is undated the record still has to exist, so
+                # it reaches the `no_dates` branch below and is skipped with a
+                # reason rather than disappearing from the audit.
+                dated = [(start, end) for start, end in terms if start or end]
+                terms = dated or [(None, None)]
                 spans.setdefault(target, []).extend(
                     (qid, start, end) for start, end in terms
                 )
@@ -1391,6 +1490,7 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
         records += party_records(
             session, campaign, office, per_person, people, lang, source
         )
+        records += family_records(campaign, office, per_person, people, source)
 
         path = verdict_dir / f"{campaign.name}_{office.key}.jsonl"
         path.write_text(dumps(records))

@@ -37,6 +37,7 @@ SCRIPTS = {
     "by": "by_ministers",
     "ec": "ec_ministers",
     "es": "es_offices",
+    "ae": "ae_offices",
 }
 
 

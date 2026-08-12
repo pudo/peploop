@@ -1,0 +1,18 @@
+{
+  "campaign": "uae",
+  "files": [
+    "uae_abu_dhabi.jsonl",
+    "uae_ajman.jsonl",
+    "uae_cabinet.jsonl",
+    "uae_deputy_pm.jsonl",
+    "uae_dubai.jsonl",
+    "uae_fnc_speaker.jsonl",
+    "uae_fujairah.jsonl",
+    "uae_president.jsonl",
+    "uae_prime_minister.jsonl",
+    "uae_ras_al_khaimah.jsonl",
+    "uae_sharjah.jsonl",
+    "uae_umm_al_quwain.jsonl",
+    "uae_vice_president.jsonl"
+  ]
+}

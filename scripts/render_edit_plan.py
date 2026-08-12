@@ -4,12 +4,19 @@
     python scripts/render_edit_plan.py --retrieved 2026-08-04
     python scripts/render_edit_plan.py --retrieved 2026-08-05 --campaign ecuador
 
-Reads <campaign>/verdicts/*.jsonl and writes edit_plan.md (human review
-document, every verdict) plus edit_plan.qs (QuickStatements V1).
+Reads <campaign>/verdicts/*.jsonl and writes edit_plan.md (the record of every
+verdict) plus edit_plan.qs (QuickStatements V1).
 
-Only `add` verdicts with `era: modern` reach the .qs. Any other era — interwar
-continuity, acting spells, single-channel candidates — is an open convention
-call, so it is grouped by era in the .md and waits for a human ruling.
+**One batch per campaign, not one per concern.** This used to shard the `.qs` by
+`decision.concern` so a bad rule could be reverted alone. It no longer does: the
+review that matters happens in the QuickStatements importer, which is fed one
+file, and a per-concern split meant the thing the reviewer approved was never
+the thing they had read end to end. `concern` survives on the record as metadata
+and still groups the `.md`; it just no longer decides how many files exist.
+
+Only `apply` verdicts reach the `.qs`. Everything else is grouped by rule in the
+`.md` as an account of what was decided against and why — not as a queue, which
+is what `dispositions` in a campaign is for.
 
 Nothing here talks to Wikidata; applying the plan is a separate, human step.
 """
@@ -101,8 +108,8 @@ def source_of(record: dict) -> str | None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--retrieved", required=True, help="S813 retrieved date, YYYY-MM-DD")
-    parser.add_argument("--campaign", default="positions",
-                        help="Subdirectory of data/ to read and write (default: positions)")
+    parser.add_argument("--campaign", required=True,
+                        help="Subdirectory of data/ to read and write")
     args = parser.parse_args()
 
     campaign_dir = DATA_DIR / args.campaign
@@ -130,7 +137,6 @@ def main() -> None:
 
     md: list[str] = ["# P39 edit plan", ""]
     qs: list[str] = []
-    by_concern: dict[str, list[str]] = {}
     by_position: dict[str, list[dict]] = {}
     for record in records:
         target = record["statements"][0]["value"].get("id") if record["statements"] else None
@@ -164,14 +170,6 @@ def main() -> None:
                 if v.get("notes"):
                     md.append(f"  * notes: {v['notes']}")
                 if bucket == "add":
-                    # One file per concern: CLAUDE.md keeps batches
-                    # single-concern so a bad rule can be reverted as one
-                    # QuickStatements batch rather than unpicked statement by
-                    # statement.
-                    concern = v["decision"].get("concern") or "p39"
-                    by_concern.setdefault(concern, []).extend(
-                        qs_lines(v, args.retrieved)
-                    )
                     qs.extend(qs_lines(v, args.retrieved))
             md.append("")
 
@@ -179,11 +177,8 @@ def main() -> None:
     # roster proves in both — and the same line then appears twice. QuickStatements
     # would collapse them, but a reviewer counting statements should not have to.
     qs = list(dict.fromkeys(qs))
-    by_concern = {
-        concern: list(dict.fromkeys(lines)) for concern, lines in by_concern.items()
-    }
 
-    # The checks `recipes/category_check.md` has prescribed since Ecuador, run
+    # The checks `recipes/country_sweep.md` has prescribed since Ecuador, run
     # here rather than typed out again per campaign. A defect stops the render:
     # the point of a mechanical check is that it cannot be skipped on a late
     # night.
@@ -200,11 +195,7 @@ def main() -> None:
     plan_qs.write_text("\n".join(qs) + "\n")
     print(summary)
     print(f"Wrote {plan_md}")
-    print(f"Wrote {plan_qs}")
-    for concern, lines in sorted(by_concern.items()):
-        path = campaign_dir / f"edit_plan_{concern}.qs"
-        path.write_text("\n".join(lines) + "\n")
-        print(f"Wrote {path} ({len(lines)} statements)")
+    print(f"Wrote {plan_qs} ({len(qs)} statements)")
 
     for warning in validation.warnings:
         print(f"⚠ {warning}")

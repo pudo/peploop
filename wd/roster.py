@@ -57,7 +57,26 @@ MONTHS = {
     "январь": 1, "февраль": 2, "март": 3, "апрель": 4, "май": 5, "июнь": 6,
     "июль": 7, "август": 8, "сентябрь": 9, "октябрь": 10, "ноябрь": 11,
     "декабрь": 12,
+    # Arabic, in the Gulf/Egyptian naming system, which is what ar.wikipedia
+    # uses for the Emirates: "2 ديسمبر 1971". Keys are already hamza-folded
+    # (أبريل → ابريل) because `parse_date` looks the deaccented word up first.
+    # The Levantine names are deliberately absent: the four that matter most
+    # ("كانون الثاني", "تشرين الأول") are *two words*, which the single-token
+    # month group cannot capture, and the single-word ones include "آب" — which
+    # folds to "اب", also the word for "father", and would fire on prose.
+    "يناير": 1, "فبراير": 2, "مارس": 3, "ابريل": 4, "مايو": 5, "يونيو": 6,
+    "يوليو": 7, "اغسطس": 8, "سبتمبر": 9, "اكتوبر": 10, "نوفمبر": 11,
+    "ديسمبر": 12,
+    # …and the -ه spellings of the two that take one, which fold to the same
+    # form only if the page writes them with ة.
+    "يونيه": 6, "يوليه": 7,
 }
+
+#: "1761م" — the ميلادي (AD) era marker glued to a year. It defeats the
+#: year-of-last-resort pattern outright, because a `\b` cannot fire between "1"
+#: and "م": both are word characters. Six of the seven emirate ruler tables on
+#: ar.wikipedia write every date this way.
+ARABIC_ERA = re.compile(r"(?<=\d)\s*م(?!\w)")
 
 #: Header text → column role. Matched on a normalised, accent-free prefix, so
 #: one entry covers a family of spellings. Ordered: the first match wins, which
@@ -91,6 +110,21 @@ COLUMN_ROLES = [
     ("time in office", "days"), ("party", "party"), ("notes", "notes"),
     ("monarch", "appointer"), ("government", "appointer"),
     ("constituency", "notes"), ("no", "ordinal"), ("#", "ordinal"),
+    # "Office holder" must precede "Office": matching is header-startswith-key,
+    # so a bare "office" key would claim the holder column and the table would
+    # lose its names. The UAE cabinet list heads exactly these two side by side.
+    ("office holder", "name"), ("officeholder", "name"), ("incumbent", "name"),
+    ("governor", "name"), ("office", "office"),
+    # Monarchical rosters date the *reign*, not the "term". Without "Ruled" the
+    # seven-emirate ruler list parses with no date column at all and is dropped
+    # whole. "Reign start"/"Reign end" precede the bare "Reign" for the same
+    # prefix reason as above.
+    ("ruled", "period"), ("reign start", "start"), ("reign end", "end"),
+    ("years of reign", "period"), ("reign", "period"),
+    # A lifespan is not a tenure. These columns sit beside the dates on the
+    # dynastic lists and naming them keeps `parse_date` away from a death year.
+    ("lifespan", "notes"), ("birth", "notes"), ("death", "notes"),
+    ("family", "notes"), ("house", "notes"), ("emirate", "notes"),
     # Russian / Belarusian / Ukrainian
     ("имя", "name"), ("імя", "name"), ("ім'я", "name"), ("ф.и.о", "name"),
     ("фио", "name"), ("фамилия", "name"), ("прозвішча", "name"),
@@ -128,6 +162,28 @@ COLUMN_ROLES = [
     ("strana", "party"), ("subjekt", "party"),
     ("gesce", "office"),
     ("poznámky", "notes"), ("podrobnosti", "notes"),
+    # Arabic. Keys are written in natural spelling because `_role_keys` folds
+    # them exactly as it folds a header, so "الإسم" and "الاسم" — which head the
+    # same column on different Emirates pages — reduce to one entry.
+    #
+    # Ordered longest-first within each role, since matching is
+    # header-startswith-key: "المدة" (a tenure *length*) must not be reachable
+    # through "مدة", and vice versa, or a day count shadows the date cells
+    # exactly as "Duración" did on the Spanish lists.
+    ("الاسم", "name"), ("اسم الحاكم", "name"), ("اسم", "name"),
+    ("شاغل المنصب", "name"), ("الحاكم", "name"), ("الوزير", "name"),
+    ("الصورة", "portrait"), ("صورة", "portrait"),
+    ("تولى", "start"), ("بداية", "start"), ("من", "start"),
+    ("ترك", "end"), ("نهاية", "end"), ("الى", "end"),
+    # "فترة الحكم", "فترة تولي المنصب" and a bare "الفترة" are all one span in
+    # two cells or one; the period role handles either.
+    ("فترة", "period"), ("الفترة", "period"),
+    ("المدة الزمنية", "days"), ("المدة", "days"), ("مدة", "days"),
+    ("المنصب", "office"), ("الوزارة", "office"),
+    ("الملاحظات", "notes"), ("ملاحظات", "notes"), ("الامارة", "notes"),
+    ("العائلة", "notes"), ("العمر", "notes"),
+    ("الحزب", "party"), ("المرجع", "ref"), ("مصدر", "ref"),
+    ("التسلسل", "ordinal"), ("الرقم", "ordinal"),
 ]
 
 # Wikipedia writes date ranges with every dash there is, plus a few words for
@@ -137,7 +193,11 @@ INCUMBENT = re.compile(
     r"actualidad|presente|present\b|incumbent|en\s+(?:el\s+)?(?:cargo|funciones)|actual|titular$"
     r"|настоящее\s+врем|по\s+сей\s+день|н\.\s*в\.|дагэтуль|цяпер|зараз"
     r"|дзеючы|теперішній|нині"
-    r"|úřadující|současnost|dosud",
+    r"|úřadující|současnost|dosud"
+    # Arabic. All four forms occur on the Emirates pages, and the alef of
+    # "الآن" is spelled آ, أ and ا across them, hence the character class —
+    # this pattern is matched against raw cell text, not the folded form.
+    r"|حت[يى]\s*ال[آأا]ن|لحد\s*ال[آأا]ن|الوقت\s*الحاضر|الحالي|اليوم",
     re.I,
 )
 #: "…–23 de julio de 1834 (fallecido en el cargo)" ends a term; it does not
@@ -145,14 +205,34 @@ INCUMBENT = re.compile(
 #: office" and the end date is thrown away — four Spanish chief justices died
 #: at their desks and every one of them was recorded as incumbent.
 DIED_IN_OFFICE = re.compile(
-    r"fallecid|falleci[oó]|muri[oó]|muerto|asesinad|died|deceased", re.I
+    r"fallecid|falleci[oó]|muri[oó]|muerto|asesinad|died|deceased"
+    # Arabic: ar:حاكم دبي ends terms with "(الوفاة لأسباب طبيعية)" and
+    # "(الموت بنوبة قلبية)". Both contain "اليوم"-free death words, but the cell
+    # also often says "الحالي" nearby, so this has to out-rank INCUMBENT — which
+    # it does, because `is_incumbent` requires this pattern *not* to match.
+    r"|الوفا[هة]|الموت|تو[في]ي|اغتيل|قتل\b",
+    re.I,
+)
+#: A table that holds data rather than page furniture, by class.
+TABLE_CLASSES = re.compile(r"wikitable|sortable", re.I)
+#: Classes that mark page chrome. Needed because the selector now accepts a
+#: class-less table: without this, dropping the `wikitable` requirement would
+#: start reading infoboxes and navboxes as rosters.
+CHROME_CLASSES = re.compile(
+    r"infobox|navbox|metadata|ambox|sidebar|mbox|navigation-only|noprint", re.I
 )
 BACKGROUND = re.compile(r"background(?:-color)?\s*:\s*(#[0-9A-Fa-f]{3,8})")
 #: Some wikis mark an acting officeholder in the cell text instead of by
 #: colour: "(в. а.)" on be.wikipedia, "и. о." on ru.wikipedia.
 ACTING_TEXT = re.compile(
     r"\(\s*(?:в\.?\s*а\.?|в\.?\s*і\.?\s*а\.?|и\.?\s*о\.?|в\.?\s*и\.?\s*о\.?"
-    r"|acting|interim|encargad\w*)\s*\)|выконва\w*\s+абавязк|исполняющ\w*\s+обязанност",
+    r"|acting|interim|encargad\w*"
+    # Arabic: "بالإنابة" / "بالوكالة" are the standard formulas. No Emirates page
+    # uses them today — the ar president table simply omits its one-day acting
+    # holder — but the en cabinet list writes "(Acting)", which the English
+    # branch above already catches.
+    r"|بال[إأا]ناب[هة]|بالوكال[هة])\s*\)"
+    r"|выконва\w*\s+абавязк|исполняющ\w*\s+обязанност",
     re.I,
 )
 #: An acting marker leading the *period* rather than the name: ru.wikipedia
@@ -163,6 +243,15 @@ ACTING_TEXT = re.compile(
 ACTING_PREFIX = re.compile(
     r"^\s*(?:в\.?\s*а\.?|и\.?\s*о\.?|в\.?\s*и\.?\s*о\.?|acting|interim"
     r"|encargad\w*)\s*[,;]\s*",
+    re.I,
+)
+#: A page that declares its own italic convention. en:President of the United
+#: Arab Emirates says "Acting presidents are in italics" and marks the one-day
+#: 2004 incumbent that way — with no background colour at all, so `_flags` saw
+#: nothing. Only a page carrying such a sentence has its italics read as a flag:
+#: elsewhere italics are emphasis, foreign words and ship names.
+ITALIC_ACTING = re.compile(
+    r"(?:acting|interim)[^.]{0,60}\bitalic|\bitalic[^.]{0,60}(?:acting|interim)",
     re.I,
 )
 FOOTNOTE_ID = re.compile(r"#(cite_note[-_][\w.%-]+)")
@@ -182,16 +271,32 @@ VACANT = re.compile(
 )
 
 
+#: Arabic letters that spell the same word two ways. ar.wikipedia mixes them
+#: freely *within one page* — "الاسم"/"الإسم" head the same column, "حتى الآن"
+#: and "حتى الأن" both mean "to date", and "أبوظبي"/"أبو ظبي" are the same
+#: emirate — so a header or month name only matches once the hamza and ya
+#: variants are folded to their bare forms.
+_ARABIC_FOLD = {"أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا",
+                "ى": "ي", "ئ": "ي", "ؤ": "و", "ة": "ه"}
+#: Vowel marks and the kashida stretch character carry no meaning for matching
+#: and appear only decoratively.
+_ARABIC_STRIP = "ـٰ" + "".join(chr(c) for c in range(0x064B, 0x0653))
+
+
 def _deaccent(text: str) -> str:
     """Fold the diacritics that vary between spellings of the same header.
 
     Cyrillic і/ў/ё are folded too: be-tarask and be spell the same column
     header differently ("Тэрмін" / "Тэрмiн"), and ru "ё" is routinely typed
-    as "е".
+    as "е". Arabic hamza and ya variants fold the same way, and its vowel marks
+    are dropped outright.
     """
     trans = str.maketrans(
-        "áéíóúüñÁÉÍÓÚÜÑіїўёІЇЎЁ" "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ",
-        "aeiouunAEIOUUNиiуеИIУЕ" "acdeeinorstuuyzACDEEINORSTUUYZ",
+        "áéíóúüñÁÉÍÓÚÜÑіїўёІЇЎЁ" "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ"
+        + "".join(_ARABIC_FOLD),
+        "aeiouunAEIOUUNиiуеИIУЕ" "acdeeinorstuuyzACDEEINORSTUUYZ"
+        + "".join(_ARABIC_FOLD.values()),
+        _ARABIC_STRIP,
     )
     return text.translate(trans)
 
@@ -227,15 +332,20 @@ def parse_date(text: str) -> Optional[str]:
     Returns None when the cell holds no year at all, so callers can tell
     "no date given" from "date given but coarse".
     """
-    low = " ".join(text.split()).casefold()
+    low = ARABIC_ERA.sub("", " ".join(text.split()).casefold())
     # "10 de agosto de 1979" (es), "16 июля 1990" (ru/be/uk) and "2. července
     # 1992" (cs) all reduce to day, month word, year — the Czech day is an
     # ordinal, so the dot after it has to be allowed for or the day is lost.
     # The dot can follow either part: Czech abbreviates the day ordinal ("2.
     # července 1992"), Spanish the month name ("17 de jul. de 1834"). Missing the
     # second is the difference between a day-precision term and a bare year.
+    # The particle must be a *word*, hence `\s+` and not `\s*`: written `\s*` it
+    # also matches the "De" of "December", leaving "cember" as the month name.
+    # The match still succeeds, so the regex never backtracks and only the MONTHS
+    # lookup fails — silently downgrading every English December to month
+    # precision. "2 December 1971" is the UAE's founding date.
     day_month = re.search(
-        r"\b(\d{1,2})\s*\.?\s*(?:del?\s*)?([^\W\d_]+)\s*\.?\s*(?:del?\s*)?(\d{4})", low
+        r"\b(\d{1,2})\s*\.?\s*(?:del?\s+)?([^\W\d_]+)\s*\.?\s*(?:del?\s+)?(\d{4})", low
     )
     if day_month:
         month = MONTHS.get(_deaccent(day_month.group(2)), MONTHS.get(day_month.group(2)))
@@ -398,11 +508,8 @@ def _grid(table) -> List[List[Tuple[object, bool]]]:
             row = grid[r]
             while col < len(row) and row[col] is not None:
                 col += 1
-            try:
-                rowspan = max(1, int(cell.get("rowspan", 1)))
-                colspan = max(1, int(cell.get("colspan", 1)))
-            except ValueError:
-                rowspan = colspan = 1
+            rowspan = _span(cell, "rowspan")
+            colspan = _span(cell, "colspan")
             for dr in range(rowspan):
                 while len(grid) <= r + dr:
                     grid.append([])
@@ -586,6 +693,37 @@ def _flags(row_cells: List[Tuple[object, bool]], tr, legend: Dict[str, str]) -> 
     return flags
 
 
+def _span(cell, attribute: str) -> int:
+    """A cell's `rowspan`/`colspan` as a usable count.
+
+    Hand-written wikitext puts things in these attributes that HTML does not
+    allow: `ar:حاكم دبي` writes `colspan="100%"`, which read naively raises and
+    took the whole page's parse down with it. Anything unreadable means one.
+    """
+    try:
+        return max(1, int(cell.get(attribute, 1)))
+    except (TypeError, ValueError):
+        return 1
+
+
+def _mostly_italic(cell) -> bool:
+    """Is this cell's text italicised, rather than merely containing italics?
+
+    A name followed by an italic parenthetical is not an italic name, so this
+    asks what share of the cell the italic runs cover.
+    """
+    if cell is None:
+        return False
+    whole = " ".join((cell.text_content() or "").split())
+    if not whole:
+        return False
+    italic = "".join(
+        " ".join((element.text_content() or "").split())
+        for element in cell.xpath(".//i|.//em")
+    )
+    return len(italic) >= 0.6 * len(whole)
+
+
 def _lines(roles: List[str], row_cells: List[Tuple[object, bool]], role: str):
     """The first cell of this role and its text, split on line breaks."""
     for candidate, (cell, _) in zip(roles, row_cells):
@@ -644,6 +782,10 @@ def parse_rosters(page_html: str) -> List[Roster]:
     doc = lxml_html.fromstring(page_html)
     legend = _legend(doc)
     notes = _footnotes(doc)
+    # Read once for the whole page, not per row: the declaration is prose above
+    # the table, and it licenses reading italics as an acting marker below it.
+    declaration = ITALIC_ACTING.search(" ".join(doc.text_content().split()))
+    italic_convention = declaration.group(0).strip() if declaration else None
     headings: Dict[object, Optional[str]] = {}
     current: Optional[str] = None
     for element in doc.iter("h1", "h2", "h3", "h4", "table"):
@@ -654,12 +796,18 @@ def parse_rosters(page_html: str) -> List[Roster]:
             current = re.sub(r"\[\s*editar[^]]*\]", "", text).strip() or current
     rosters: List[Roster] = []
     # `sortable` alone occurs too: es.wikipedia's defence-minister list styles
-    # its table with column classes and never names it a wikitable. Infoboxes
-    # and navboxes carry neither class, and a table with no date column is
-    # dropped by the caller anyway.
-    for table in doc.xpath(
-        "//table[contains(@class, 'wikitable') or contains(@class, 'sortable')]"
-    ):
+    # its table with column classes and never names it a wikitable. And a real
+    # roster may carry *no* class at all — ar:حاكم دبي tabulates five rulers of
+    # Dubai in a bare `<table>` — so requiring `wikitable` skipped it silently.
+    # The furniture is therefore refused by name rather than data being required
+    # to announce itself; a table with no date column is dropped downstream, and
+    # `office_rows` matches the section heading besides.
+    for table in doc.xpath("//table"):
+        classes = table.get("class") or ""
+        if CHROME_CLASSES.search(classes):
+            continue
+        if classes.strip() and not TABLE_CLASSES.search(classes):
+            continue
         grid = _grid(table)
         if not grid:
             continue
@@ -675,7 +823,7 @@ def parse_rosters(page_html: str) -> List[Roster]:
             is_header = all(cell.tag == "th" for cell, _ in origins) or (
                 not roles and _reads_as_header(row_cells, width)
             )
-            spans_row = len(origins) == 1 and int(origins[0][0].get("colspan", 1)) >= width
+            spans_row = len(origins) == 1 and _span(origins[0][0], "colspan") >= width
             # A single cell spanning the whole table is a heading whether or not
             # it is marked up as one: es.wikipedia announces each reign and each
             # suppression of an office in a plain `td` ("Reinado de Juan Carlos
@@ -801,7 +949,12 @@ def parse_rosters(page_html: str) -> List[Roster]:
                         appointer=cells.get("appointer"),
                         flags=_flags(row_cells, tr, legend)
                         + ([f"acting, per the row text: {acting_text.group(0).strip()}"]
-                           if acting_text else []),
+                           if acting_text else [])
+                        + ([
+                            "acting, per the page's italic convention: "
+                            + str(italic_convention)
+                        ] if italic_convention and _mostly_italic(name_cell)
+                           else []),
                         ref_urls=ref_urls,
                         cells=cells,
                         links=links,
@@ -1037,8 +1190,24 @@ def name_tokens(name: str) -> List[str]:
     """Comparable name tokens: accent-free, lowercased, no parenthetical."""
     cleaned = re.sub(r"\(.*?\)", " ", name)
     cleaned = re.sub(r"[^\w\s]", " ", _deaccent(cleaned))
-    stop = {"de", "del", "la", "las", "los", "y", "e", "da", "dos", "san"}
+    #: Honorifics and nobiliary particles carry no identity. The Gulf ones are
+    #: load-bearing rather than cosmetic: every one of the 93 name cells on the
+    #: emirate ruler list is prefixed "Sheikh", so left in they are a token every
+    #: ruler shares, and the two-token floor that stops "every Juan matching
+    #: every other" would be met by the honorific plus one given name.
+    stop = {"de", "del", "la", "las", "los", "y", "e", "da", "dos", "san",
+            "sheikh", "shaikh", "sheik", "sheikha", "shaikha", "hh", "hrh",
+            "الشيخ", "الشيخه", "شيخ", "بن", "بنت", "ال", "آل", "بين"}
     return [t for t in cleaned.casefold().split() if t and t not in stop]
+
+
+#: Arabic patronymic connectors. Their presence flips name matching from
+#: order-blind to order-sensitive, because in a patronymic the order *is* the
+#: identity — see `names_match`.
+PATRONYMIC = re.compile(r"\b(?:bin|ibn|bint|binti)\b|بن\b|بنت\b", re.I)
+#: A regnal ordinal, which is the only thing distinguishing three Rulers of
+#: Ajman who otherwise share every token.
+REGNAL = re.compile(r"^(?:i{1,3}|iv|vi{0,3}|ix|xi{0,2})$", re.I)
 
 
 def names_match(left: str, right: str) -> bool:
@@ -1050,8 +1219,25 @@ def names_match(left: str, right: str) -> bool:
     and add a patronymic ("Киселёв, Кузьма Венедиктович" vs "Кузьма Киселёв").
     Token subset covers all of them; the floor of two shared tokens is what
     stops every "Juan" matching every other.
+
+    **A patronymic name is compared in order, and its regnal number must
+    agree.** An Arabic patronymic reverses under inheritance, so as token
+    *sets* a man and his father are indistinguishable: "Rashid bin Humaid Al
+    Nuaimi" and "Humaid bin Rashid Al Nuaimi" are two different Rulers of
+    Ajman, and Ajman also had a Rashid bin Humaid I, II and III. Both extra
+    conditions are gated on the connector being present, so a Spanish or
+    Slavic roster — which needs the order-blind comparison to work at all —
+    reaches exactly the same verdict as before.
     """
-    a, b = set(name_tokens(left)), set(name_tokens(right))
+    left_tokens, right_tokens = name_tokens(left), name_tokens(right)
+    a, b = set(left_tokens), set(right_tokens)
     if len(a) < 2 or len(b) < 2:
         return False
+    if PATRONYMIC.search(left) or PATRONYMIC.search(right):
+        if {t for t in left_tokens if REGNAL.match(t)} != {
+            t for t in right_tokens if REGNAL.match(t)
+        }:
+            return False
+        shorter, longer = sorted((left_tokens, right_tokens), key=len)
+        return longer[: len(shorter)] == shorter
     return a <= b or b <= a

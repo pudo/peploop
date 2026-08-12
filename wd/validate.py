@@ -1,6 +1,6 @@
 """Check a rendered batch before anyone runs it.
 
-`recipes/category_check.md` has prescribed these checks since the Ecuador run —
+`recipes/country_sweep.md` has prescribed these checks since the Ecuador run —
 "verify mechanically before you eyeball: no duplicate (person, position) pairs,
 no `start > end`, dates at the precision you expect, and the count of statements
 sourced to a real citation versus to a wiki permalink" — and every campaign since
@@ -47,6 +47,31 @@ def well_formed_time(token: str) -> bool:
     except ValueError:
         return False
     return True
+
+
+#: How many characters of "YYYY-MM-DD" each precision actually asserts.
+_SIGNIFICANT = {9: 4, 10: 7, 11: 10}
+
+
+def _at_common_precision(start: str, end: str) -> Tuple[str, str]:
+    """Both bounds cut down to what the coarser of the two actually claims.
+
+    A day against a year cannot be compared as text. "25 January 1972 – 1972" is
+    an ordinary roster cell — a precise start and an end known only to the year —
+    and QuickStatements pads the year to `+1972-01-01`, which as a string sorts
+    *before* the start. Compared naively that reads as a term ending before it
+    begins, and the defect stops the render on a batch that is perfectly sound.
+    Truncating both to the coarser precision asks the only question the data
+    supports: do the parts they *both* assert contradict each other?
+    """
+    precision = min(
+        int(start.rsplit("/", 1)[1]), int(end.rsplit("/", 1)[1])
+    )
+    keep = _SIGNIFICANT[precision]
+    return (
+        start.lstrip("+-").split("T")[0][:keep],
+        end.lstrip("+-").split("T")[0][:keep],
+    )
 
 
 @dataclass
@@ -140,7 +165,8 @@ def check(lines: Sequence[str]) -> Result:
             else:
                 result.precision[int(bound.rsplit("/", 1)[1])] += 1
         if start and end and well_formed_time(start) and well_formed_time(end):
-            if start.split("T")[0] > end.split("T")[0]:
+            low, high = _at_common_precision(start, end)
+            if low > high:
                 result.defects.append(
                     f"{subject} {prop} {value}: starts {start.split('T')[0]} but "
                     f"ends {end.split('T')[0]}"

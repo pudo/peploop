@@ -70,6 +70,31 @@ ARCHETYPES: Dict[str, Archetype] = {
         parent="Q1162163",
         description="head of {body}",
     ),
+    # Measured off the fourteen emirate-office items that already exist rather
+    # than chosen: all seven Rulers carry `P279 = Q166382` (Amir), and six of
+    # the seven relate to the Federal Supreme Council — the body whose members
+    # they are — through P361.
+    "ruler": Archetype(
+        parent="Q166382",
+        description="hereditary ruler of {jurisdiction}",
+    ),
+    # Q125497756, Q30635458 and Q22935234 all use `P279 = Q207293`, and none
+    # names a body: an heir apparent belongs to the emirate, not to an organ of
+    # it, so `body` is left unset for this shape.
+    "heir_apparent": Archetype(
+        parent="Q207293",
+        description="heir apparent in {jurisdiction}",
+    ),
+    # A deputy ruler is emphatically *not* an Amir, so this cannot reuse
+    # `ruler`. The two existing items disagree with each other — Q123117007
+    # (Sharjah) says Q3250324 "deputy", Q106181563 (Dubai) says Q42178 "vice
+    # president" — and neither is the counterpart of Amir. Q3250324 is the less
+    # wrong of the two and is the convention here; four of the seven emirates
+    # have no deputy-ruler item at all and take this shape when created.
+    "deputy_ruler": Archetype(
+        parent="Q3250324",
+        description="deputy ruler of {jurisdiction}",
+    ),
 }
 
 
@@ -83,6 +108,17 @@ class CreateSpec:
     labels: Dict[str, str]
     country_qid: str
     country_label: str = ""
+    #: The polity the office actually governs, when that is narrower than the
+    #: country: `P17` stays the sovereign state while `P1001` names the
+    #: subdivision. A Ruler of Ajman is an office of the UAE (Q878) whose
+    #: jurisdiction is the emirate (Q159477), and OpenSanctions reads exactly
+    #: this pair — country from `P17`, `subnationalArea` from a `P1001` whose
+    #: territory is not itself a country. Defaults to the country.
+    jurisdiction: Optional[str] = None
+    #: The prose form for the description, so pass the short name ("Sharjah",
+    #: not "Emirate of Sharjah") — the templates read "…of {jurisdiction}" and
+    #: the long form makes "heir apparent in Emirate of Sharjah".
+    jurisdiction_label: str = ""
     #: The ministry, court or chamber the office belongs to.
     body: Optional[str] = None
     body_label: str = ""
@@ -110,8 +146,9 @@ def payload(spec: CreateSpec) -> dict:
         "P279": archetype.parent,
         "P17": spec.country_qid,
         # Applies-to-jurisdiction is what makes the item findable as *this*
-        # country's office rather than a generic one.
-        "P1001": spec.country_qid,
+        # country's office rather than a generic one — or as *this subdivision's*
+        # where the office is not national.
+        "P1001": spec.jurisdiction or spec.country_qid,
     }
     if spec.body:
         claims[archetype.body_property] = spec.body
@@ -122,12 +159,14 @@ def payload(spec: CreateSpec) -> dict:
     if spec.inception:
         claims["P571"] = _time(spec.inception)
 
+    country = spec.country_label or spec.country_qid
     descriptions = dict(spec.descriptions)
     descriptions.setdefault(
         "en",
         archetype.description.format(
-            country=spec.country_label or spec.country_qid,
-            body=spec.body_label or (spec.country_label or spec.country_qid),
+            country=country,
+            body=spec.body_label or country,
+            jurisdiction=spec.jurisdiction_label or country,
         ),
     )
     return {
