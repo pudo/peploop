@@ -4,7 +4,7 @@
     python scripts/cz_ministers.py --office foreign interior justice
 
 The country parameters for `wd/campaign.py`; the method is
-`recipes/category_check.md`. Despite the name this also carries the three
+`recipes/country_sweep.md`. Despite the name this also carries the three
 non-ministerial offices the Czech yml block names (president, prime minister,
 Constitutional Court), because they are parameterised identically.
 

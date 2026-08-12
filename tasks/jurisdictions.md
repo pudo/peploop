@@ -22,7 +22,7 @@ P1001/P1376/P361/P749/P159/P2389, refusing historical countries. An item
 where all of that comes up empty → position skipped, occupancies dropped.
 
 Live proof: the Prosecutor General of Lithuania item (Q132068652) had *no*
-P17/P1001 until we added them (tasks/positions.md side edits) — the office
+P17/P1001 until the Lithuania campaign's side edits added them — the office
 was structurally invisible to wd_peps no matter how many P39s pointed at it.
 
 ## Scale (WDQS, 2026-08-04)
@@ -90,8 +90,10 @@ was structurally invisible to wd_peps no matter how many P39s pointed at it.
     legislative, 31 military, 24 judicial, 6 central-bank. Ready for review.
   * **386 diplomatic posts (1,866 holders) held back**: classifiers were
     inconsistent on sender vs receiver for sender-named posts ("Consul
-    General of France in X") — convention now researched and decided, see
-    `tasks/diplomatic.md` (P17 = receiver, P137 = sender, no P1001).
+    General of France in X") — convention since researched and decided
+    (P17 = receiver, P137 = sender, no P1001; measured convention and
+    rationale in `scripts/render_diplomatic_plan.py`'s docstring, method in
+    `recipes/country_sweep.md` §10).
   * Medium/low-confidence fix-current (~50), fix-historical (92), unclear
     (13) listed in `fix_plan.md` only.
   * Classifiers also caught label-matcher false positives (Jersey/New

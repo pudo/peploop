@@ -26,21 +26,23 @@ targeted, reviewed edits. Not an app; a workbench.
 
 ## Task briefs
 
-Where a kind of campaign recurs, the method is written up once in
-`recipes/*.md` and the brief keeps only what is country-specific:
-`recipes/category_check.md` covers taking a `wd_categories` country block to a
-reviewed P39 batch.
+The recurring kind of campaign — one country's PEP landscape into one
+reviewed batch — is written up once in `recipes/country_sweep.md`, and a
+country run no longer keeps a brief at all: its parameters are the campaign
+script (`scripts/<xx>_offices.py` / `<xx>_ministers.py`), its record is
+`regression/<country>/`, and anything left for a human lands in
+`tasks/followups.md`. (Five briefs' worth of per-country state used to live
+here; it was consolidated away 2026-08-12 because it confused more than it
+recorded.) Briefs remain for campaigns that are a different kind of work:
 
 * `tasks/genders.md` — resolve conflicting P21 values on ~170 PEP items.
-* `tasks/positions.md` — PETScan category members → verified missing P39s.
 * `tasks/jurisdictions.md` — backfill P1001/P17 on country-less position
   items (currently invisible to OS crawlers).
-* `tasks/diplomatic.md` — P1001/P17 conventions for diplomatic posts.
 * `tasks/birthdates.md` — backfill P569 from Wikipedia infoboxes, per country.
 * `tasks/category_positions.md` — the synthetic `wd_categories` positions,
   resolved to real position items.
-* `tasks/ecuador.md`, `tasks/belarus.md`, `tasks/czechia.md`, `tasks/spain.md` —
-  country runs of `recipes/category_check.md`.
+* `tasks/followups.md` — the cross-campaign list of unapplied batches,
+  item-creation lists and surgical edits.
 
 ## Motivating tasks
 
@@ -131,7 +133,7 @@ Installed globally via npm; config at `~/.config/wikibase-cli/config.json`
 * Writes are in use for **item creation only** — `wb create-entity` behind
   `wd/write.py`, dry by default, guarded by `wd/create.py` and a ledger. Rank
   edits and statement removal have still never been run from here; they are the
-  surgical lists in the task briefs, done by hand.
+  surgical list in `tasks/followups.md`, done by hand.
 
 ## Wikidata data model cheat sheet (humans & positions)
 
@@ -226,10 +228,10 @@ The original sketch, kept because the reasoning still applies to a new endpoint:
   `del`), English, Czech, Russian, Belarusian and Ukrainian dates and column
   headers. Reach for it whenever an office's holders are listed somewhere: one
   fetch replaces N biography reads and carries better dates than any of them.
-  Its accumulated failure modes are catalogued in `recipes/category_check.md` §7
+  Its accumulated failure modes are catalogued in `recipes/country_sweep.md` §7
   — read that before touching a pattern.
 * `wd/campaign.py` (built 2026-08-05): the country-independent engine behind
-  `recipes/category_check.md` — category harvest (including interwiki sibling
+  `recipes/country_sweep.md` — category harvest (including interwiki sibling
   categories), roster-row identity resolution with namesake gates, tiering
   into batch/held verdicts, and the audit document. A country script is only
   parameters; see `scripts/ec_ministers.py` and `scripts/by_ministers.py`.
@@ -252,7 +254,7 @@ The original sketch, kept because the reasoning still applies to a new endpoint:
   requests. Reports target / date / acting agreement per office into the audit,
   and derives the office's item family from the cohort — which is what makes the
   duplicate-item protection work in a country nobody has analysed by hand.
-* `wd/validate.py` (built 2026-08-07): the checks `recipes/category_check.md` has
+* `wd/validate.py` (built 2026-08-07): the checks `recipes/country_sweep.md` has
   prescribed since Ecuador, run at render time instead of being retyped per
   campaign. A duplicate line, a `start > end` or a malformed value **refuses to
   render**; coarse dates beside day-precision ones, and the citation-versus-
@@ -336,9 +338,9 @@ scripts/     <cc>_ministers.py / es_offices.py         # per-country campaign pa
              render_*_plan.py                          # verdicts -> reviewable plan + QuickStatements
              diff_verdicts.py                          # regression net over regression/
              create_offices.py                         # mint missing position items (dry by default)
-             petscan.py fetch_article.py position_gap.py …   # ad-hoc probes
-recipes/     category_check.md                         # the method, written once
-tasks/       <campaign>.md                             # one brief per campaign, ending in a checklist
+             petscan.py fetch_article.py …             # ad-hoc probes
+recipes/     country_sweep.md                          # the method, written once
+tasks/       followups.md + <topic>.md                 # human-gate backlog; briefs only for non-sweep campaigns
 regression/  <campaign>/                               # committed verdicts + .qs from a known-good run
 data/        (gitignored) cache/ and per-campaign output
 ```
@@ -362,12 +364,10 @@ human reviews → apply → verify by re-fetching.
 
 ## Open questions
 
-* **`P2868` for acting spells.** The rules add it as the de-facto convention, but
-  the measured items barely use it: 2 acting-qualified statements across the 88
-  target items of four campaigns, against 20 the batches propose. Ruling needed.
-* **Promoting the backtest's `disjoint` rows.** 131 Spanish roster spells are
-  recorded nowhere though the person holds the item for another spell. The
-  person-level `already holds` check drops them; making them proposals is a
-  recall change nobody has sized yet.
+None held here — the operating rule is that a question becomes either a
+policy default (recorded with its measurement in `recipes/country_sweep.md`
+§6, as the acting-`P2868` convention now is) or a sized candidate extension
+(the backtest's `unrecorded spells` promotion, noted in §6a). A question that
+is really a decision about one country's data goes to `tasks/followups.md`.
 
 [Wikimedia User-Agent policy]: https://meta.wikimedia.org/wiki/User-Agent_policy

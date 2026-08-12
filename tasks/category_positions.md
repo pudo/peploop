@@ -28,8 +28,8 @@ actually held; linking must target the *specific* office:
 
 * **office** — the name denotes one seat ("Mayor of Bogotá", "Minister of
   Finance" + spec country by): resolve name→QID once, then run the
-  positions-campaign pipeline (PETScan members → article verification →
-  P39 batch, `tasks/positions.md`).
+  country-sweep pipeline (PETScan members → roster/article verification →
+  P39 batch, `recipes/country_sweep.md`).
 * **membership** — one named body ("Deputy of the Kursk Oblast Duma",
   "Member of the Supreme People's Assembly"): same as office. (The Russian
   oblast dumas are the Q133268xxx items just backfilled in
@@ -58,8 +58,8 @@ plus `data/categories/positions.md` for review. `matched` requires the two
 usual signals: near-exact label match AND the candidate's own P17/P1001
 resolving to the spec's country. Everything else stays for review/LLM.
 
-Downstream (separate steps): PETScan member fetch per resolved category →
-P39 gap via `position_gap.py` → per-person verification agents → QS batch;
+Downstream (separate steps): the country-sweep pipeline
+(`recipes/country_sweep.md`: rosters, identity gates, policy, one batch);
 bucket categories get their own narrowing pass.
 
 ## End state: retiring pseudo-positions from the yml
@@ -97,7 +97,7 @@ PRs can start with the cheap ones (small categories, item already good).
   corresponds to the category's scope)
 - [ ] LLM tail for the 22 ambiguous + 60 unmatched (unmatched splits into
   naming variants the search missed vs. genuinely item-less offices —
-  the latter feed a position-item creation list, cf. tasks/positions.md)
+  the latter feed a position-item creation list, cf. `tasks/followups.md`)
 - [x] resolution verification (2026-08-05, 4 Opus agents over the 169
   resolved rows): **162 confirm / 6 replace / 1 reject / 0 unclear**,
   merged back into positions.json → **168 verified QIDs**, 66 scope notes

@@ -4,7 +4,7 @@
     python scripts/es_offices.py --office pm senate_pres
 
 The country parameters for `wd/campaign.py`; the method is
-`recipes/category_check.md`. Spain is the largest block this workbench has run
+`recipes/country_sweep.md`. Spain is the largest block this workbench has run
 against — 13,284 position items carrying 50,523 holder statements — and the
 shape of the problem is not coverage but **which item a term belongs on**.
 
@@ -14,10 +14,14 @@ succession of them, and the join is by *date*: foreign affairs runs Ministro de
 Estado (to 1938) → Asuntos Exteriores (to 2004) → Asuntos Exteriores y
 Cooperación (to 2018) → Asuntos Exteriores, Unión Europea y Cooperación, each
 with its own item and its own era's holders. `Office.date_targets` exists for
-that. Where two items compete for the *same* era — labour and education both
-have a plausible long-running item and a specific one carrying holders it has
-no business carrying — no office is declared here at all; `tasks/spain.md`
-records them.
+that. Where two items compete for the *same* era, no office is declared here
+at all. Labour and education are that case: Q44487637 "Minister of Labour"
+(inception 1920, dated terms across every era) competes with Q87001438
+"minister of Labor, Migration and Social Security" (a 2018–2020 ministry name
+nonetheless carrying terms from 1919 onward), and different editors use each
+as the generic item; education has the same two-item shape. Picking one means
+a merge or a rank decision — a human gate, not a campaign — so both
+portfolios are deliberately absent from `OFFICES`.
 
 The offices that made it in are the ones where the succession is measurable:
 one item per era, each item's own record agreeing with the era it is given.
@@ -96,7 +100,10 @@ OFFICES = [
     # The office is "Presidente del Gobierno" from 1938; the 19th-century
     # premiership is Q16020745 (Presidente del Consejo de Ministros), whose own
     # list article tabulates one row per *cabinet* with an events column and is
-    # not readable as a roster — see tasks/spain.md.
+    # not readable as a roster. Q16020745 itself is well populated (79 holders,
+    # 142 dated terms), so its ~100 undated category members are a per-person
+    # gap, not a structural one; the wd_categories.yml spec wants a second
+    # entry for Q16020745 alongside this office.
     Office(
         "pm", "Prime Minister", "Q844587",
         rosters=(RosterSource("es", "Anexo:Presidentes del Gobierno de España",

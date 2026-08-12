@@ -4,7 +4,7 @@
     python scripts/by_ministers.py --office foreign defence justice
 
 The country parameters for `wd/campaign.py`; the method is
-`recipes/category_check.md`. Belarus differs from the Ecuador run in three
+`recipes/country_sweep.md`. Belarus differs from the Ecuador run in three
 ways, all encoded below:
 
 * **The English categories are nearly empty** (2–35 members) while their

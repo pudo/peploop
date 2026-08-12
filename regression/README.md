@@ -3,7 +3,7 @@
 Verdict files and QuickStatements output from a known-good run of each campaign,
 kept **outside `data/`** because `data/` is gitignored — these are the only
 record of how the engine behaved before a change, and
-`recipes/category_check.md` requires diffing against them whenever the engine is
+`recipes/country_sweep.md` requires diffing against them whenever the engine is
 touched.
 
 Compare with:
@@ -28,6 +28,9 @@ Captured 2026-08-06; Spain refreshed 2026-08-07 after `wd/backtest.py`,
 `wd/validate.py` and the `del`-date fix in `wd/roster.py`. All four campaigns'
 verdicts came out semantically identical across that change and every `.qs` line
 was unchanged **except its `S813` retrieved date**, which is what let it land.
+The UAE baseline was added 2026-08-12 from that campaign's first (and so far
+only) run — the run that removed the per-concern `.qs` split, so its
+`edit_plan.qs` also carries `P53` lines.
 
 That exception is worth knowing before diffing a `.qs` by hand: the retrieved date
 comes from `--retrieved` and changes on every re-render, so compare with
@@ -39,6 +42,7 @@ comes from `--retrieved` and changes on every re-render, so compare with
 | belarus | 95 | 16 | 16 |
 | czechia | 72 | 18 | 18 |
 | spain | 297 | 93 | 111 |
+| uae | 136 | 86 | 94 |
 
 The middle column counts every record the policy decided to apply, not just the
 ones the `modern` rule released — an earlier version of this table said 97 for
@@ -47,10 +51,10 @@ those `.qs` files actually contain. A `.qs` line is a statement, except where on
 claim is restated with a second reference (`wd/validate.py` reports that: Spain's
 111 lines write 110 statements).
 
-Spain's snapshot is from the run described in `tasks/spain.md`, taken after the
-ten parser fixes and the `date_targets` / `already_under_sibling` additions that
-run required — all three earlier campaigns were re-run against it and diffed
-clean, which is the only reason those additions are in.
+Spain's snapshot was taken after the ten `wd/roster.py` parser fixes and the
+`Office.date_targets` / `already_under_sibling` additions that run required —
+all three earlier campaigns were re-run against it and diffed clean, which is
+the only reason those additions are in.
 
 `data/positions/` (the earlier Lithuania/Bahrain run, 133 records) is not
 baselined: it predates `wd/campaign.py` and is not reproducible by any current

@@ -4,7 +4,7 @@
     python scripts/diff_verdicts.py --campaign czechia
     python scripts/diff_verdicts.py --campaign ecuador --rename minister_=ecuador_
 
-The engine is changed often, and `recipes/category_check.md` requires re-running
+The engine is changed often, and `recipes/country_sweep.md` requires re-running
 the earlier countries and diffing before anything ships. A byte diff cannot do
 that job: the record schema itself changes, files get renamed when an office key
 changes, and JSON key order is not guaranteed. This compares what the records

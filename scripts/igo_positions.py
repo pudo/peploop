@@ -4,7 +4,11 @@ enrichment plan derived from it.
 
     python scripts/igo_positions.py
 
-Two channels (see tasks/international_positions.md):
+OpenSanctions loses IGO positions (UN SG, Interpol SG) because they carry no
+country; the fix deliberately adds **no new Wikidata class** — OS coverage
+must not depend on our own tags surviving — and instead keeps a registry in
+zavod's `shed/wikidata/igo.py` (OS PRs #5313, #5318). This script feeds that
+registry from two channels:
 
 * **org-link channel** — WDQS: every P39-used position whose P2389/P361
   points at an org in the international-body class closures. This includes

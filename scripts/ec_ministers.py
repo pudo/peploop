@@ -4,7 +4,7 @@
     python scripts/ec_ministers.py --office trabajo turismo exteriores
 
 The country parameters for `wd/campaign.py`; the method is
-`recipes/category_check.md`. Ecuador is the country the engine was first built
+`recipes/country_sweep.md`. Ecuador is the country the engine was first built
 for, and the case where the win is largest: its ministry items existed but sat
 at one to four holders each, while es.wikipedia keeps a dated, footnoted
 `Anexo:Ministros de …` table per portfolio going back to 1830.

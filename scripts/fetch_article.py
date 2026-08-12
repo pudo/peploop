@@ -26,7 +26,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("qids", nargs="*", help="Wikidata QIDs")
     parser.add_argument("--from-report", type=Path, default=None,
-                        help="Read candidate QIDs from a position_gap report")
+                        help="Read candidate QIDs from a markdown gap report")
     parser.add_argument("--lang", required=True, help="Wikipedia language code")
     parser.add_argument("--stdout", action="store_true",
                         help="Print wikitext to stdout (single QID only)")

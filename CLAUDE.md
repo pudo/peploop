@@ -1,18 +1,26 @@
 # Wikidata workbench
 
-Scripts for LLM-assisted Wikidata cleanup (humans and the positions they
-hold). Design notes and write-path decisions live in `WORKBENCH.md`; one
-brief per campaign in `tasks/*.md` (each ends with a status checklist —
-update it as work progresses). Outputs land in `data/` (gitignored).
+Scripts for LLM-assisted Wikidata cleanup: filling in each country's
+**national PEP landscape** — everyone politically exposed under FATF guidance
+(heads of state and government, ministers, legislators, apex-court judges,
+central bankers, military leaders, royal and ruling families, ambassadors,
+SOE executives, party officials), not just the cabinet. Outputs land in
+`data/` (gitignored).
 
-Recipes for recurring kinds of work live in `recipes/*.md` — read the
-relevant one before starting rather than re-deriving the method:
+Where things live:
 
-- `recipes/category_check.md` — working down a `wd_categories` country block
-  into verified P39 statements (categories → target census → rosters →
-  identity gates → tiered batch → audit), with the failure modes each step
-  exists to prevent. Worked examples: `tasks/ecuador.md` (empty country),
-  `tasks/czechia.md` (already-covered country).
+- `recipes/country_sweep.md` — **the method.** One country at a time, run
+  99% autonomously: survey → target census → rosters → identity gates →
+  policy → backtest → one validated `.qs` the human reviews in the
+  QuickStatements importer. Read it before starting a run rather than
+  re-deriving the method; its calibration table says what countries of each
+  coverage profile yield, and §7 catalogues the roster failure modes.
+- `tasks/followups.md` — actionable leftovers from closed campaigns
+  (unapplied batches, item-creation lists, the surgical wikibase-cli list).
+- `tasks/*.md` (the rest) — briefs only for campaigns that are a genuinely
+  different kind of work (genders, birthdates, jurisdictions, categories).
+- `regression/<country>/` — the committed record of every accepted run.
+- `WORKBENCH.md` — design notes and write-path decisions.
 
 ## Running things
 
@@ -62,9 +70,17 @@ relevant one before starting rather than re-deriving the method:
   by date (`Office.date_targets`), and expect the roster's rows to be on record
   under a sibling item (`already_under_sibling` → `duplicate_office_item`). Two
   items competing for the *same* era is a merge decision, not a campaign.
-- Keep batches **additive-only** and single-concern (one `.qs` per concern —
-  the renderer splits by `decision.concern`); QS de-duplicates, and additive
-  batches are mass-revertable.
+- Keep batches **additive-only**, and **one `.qs` per campaign**. QS
+  de-duplicates and additive batches are mass-revertable, so the batch is safe
+  as one unit. The renderer used to shard by `decision.concern`; it no longer
+  does, because the review that decides anything happens in the QuickStatements
+  importer and a split meant the file approved was never the file read end to
+  end. `concern` stays on the record as metadata and groups `edit_plan.md`.
+- **There is no review queue.** A campaign's `dispositions` maps every
+  non-applying rule to `skip`, so each case is applied or skipped with a reason
+  and `edit_plan.md` is an account rather than a backlog. The corollary is that
+  conservatism lives in the rules: nothing is relaxed to raise the count, and a
+  lane with one weak channel is reported small rather than padded.
 - **Statements go out as QuickStatements; position items are created through
   the API** (`wd/write.py` → `wb create-entity`). QS `LAST` is only valid as a
   statement's subject, so an item created in a batch cannot be the value of
@@ -100,7 +116,7 @@ relevant one before starting rather than re-deriving the method:
 - **Research conventions empirically.** Wikidata's documented guidance is
   often ambiguous (P1001!). Measure de-facto practice with SPARQL tallies
   over well-curated item clusters and read exemplar items in full before
-  choosing properties (`tasks/diplomatic.md` is the template).
+  choosing properties (`recipes/country_sweep.md` §10 is the template).
 - **Verification agents:** fan out in parallel, one input file each; they
   write JSONL verdicts to `data/.../verdicts/` and return only counts +
   notable calls. Use `model: "opus"` for judgment-heavy passes. Always
@@ -159,7 +175,7 @@ relevant one before starting rather than re-deriving the method:
   several terms, an abbreviated month with the dot on the far side ("17 de jul.
   de 1834"), "(fallecido en el cargo)" reading as still-in-office, and a header
   row marked up as `td`. The full list, with what each one broke, is in
-  `recipes/category_check.md` §7.
+  `recipes/country_sweep.md` §7.
 - Matching entity names into position labels: substring is too loose (alias
   "Loire" fires inside "Indre-et-Loire"; "the North" hits the North Riding
   → Northern Ireland). Require the label's after-preposition *tail* to

@@ -3,10 +3,14 @@
 
     python scripts/render_diplomatic_plan.py
 
-Implements the convention researched in tasks/diplomatic.md:
-  P17  = receiving state   (the 99% convention on bilateral posts)
+Implements the diplomatic-post convention, measured empirically on the
+curated bilateral-post cluster (the method is `recipes/country_sweep.md` §10):
+  P17  = receiving state   (262/264 on subclasses of Q29645886)
   P137 = sending state     (operator, as on the curated exemplars)
-  P1001 is not asserted.
+  P1001 is not asserted    (doubled-P1001 is minority practice, 35/264, and a
+                            single value would take a side the community
+                            hasn't — its "applies to jurisdiction" reading is
+                            legitimately sender *or* receiver).
 
 Sender and receiver are re-derived *mechanically* from the label; the
 classifier verdicts serve only as a cross-check. Rows where the mechanical
