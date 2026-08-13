@@ -36,8 +36,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional
 
-#: Be polite on writes: pause when the replication lag climbs.
+#: Be polite on writes: pause when the lag climbs. Wikidata asks bots for 5, and
+#: on a write this covers the **query-service updaters**, not just database
+#: replication — so `action=query&siprop=dbrepllag` reporting 0.9s says nothing
+#: about whether a write will be accepted. A lagged updater rejects the edit and
+#: `wikibase-edit` retries with backoff; the answer is to wait, not to raise this
+#: number, which would mean adding load while the site is already behind.
 MAXLAG = 5
+#: Writes need far longer than reads, because a maxlag rejection is answered by
+#: retrying rather than failing: one Kuwait edit sat through "Waiting for
+#: wdqs1013: 27.3 seconds lagged" for over four minutes. The old 120s default
+#: read as a hang.
+WRITE_TIMEOUT = 420
 
 
 class WriteError(RuntimeError):
@@ -69,10 +79,33 @@ class Ledger:
         )
 
 
-def _run(args: list, timeout: int = 120) -> str:
-    result = subprocess.run(
-        args, capture_output=True, text=True, timeout=timeout, check=False
-    )
+def _run(args: list, timeout: int = WRITE_TIMEOUT) -> str:
+    """Run one `wb` command, and never swallow why it failed.
+
+    The stderr relay is not decoration. `wikibase-edit` reports a maxlag
+    rejection there — "Waiting for wdqs1013: 27.3 seconds lagged, retrying in
+    5s" — and captured-then-discarded that message turned a perfectly clear
+    diagnosis into three rounds of guessing at credentials and the network. A
+    timeout is the case that most needs the explanation, so it is the case that
+    reports it.
+    """
+    try:
+        result = subprocess.run(
+            args, capture_output=True, text=True, timeout=timeout,
+            check=False, stdin=subprocess.DEVNULL,
+        )
+    except subprocess.TimeoutExpired as exc:
+        detail = (exc.stderr or exc.stdout or b"")
+        if isinstance(detail, bytes):
+            detail = detail.decode("utf-8", "replace")
+        raise WriteError(
+            f"{' '.join(args[:2])} timed out after {timeout}s. Last output: "
+            f"{detail.strip()[-400:] or '(nothing — the process wrote nothing at all)'}"
+        ) from exc
+    if result.stderr and result.stderr.strip():
+        # Warnings on a *successful* write matter too: a retried maxlag edit
+        # succeeds while telling you the site is struggling.
+        print(result.stderr.strip()[-600:])
     if result.returncode != 0:
         raise WriteError(
             f"{' '.join(args[:2])} failed ({result.returncode}): "
