@@ -63,6 +63,15 @@ Where things live:
   office item is answered by `wd/precedent.py` from that item's own record,
   because the answer differs per item inside one country: Czech Agriculture
   carries ten pre-1993 terms, Czech Defence's item only exists from 1993.
+- **Where power is dynastic, the family is a lane of its own.** `wd/kinship.py`
+  reads a genealogy article (`en:Descendants of Ibn Saud`) for P25/P22/P53,
+  because the office lane reaches only the fifth of a royal house that held
+  office. The heading is the assertion — a wife's name means "these are her
+  children", "Patrilineal grandsons" closes the candidate set for a patronymic
+  — and the chain must come from the *item's* full name, not the article's
+  printed short form. `recipes/country_sweep.md` §4a has the four ways that
+  went wrong. Such a lane joins the campaign's own batch through
+  `Campaign.extra_verdicts`.
 - **One office is often several items.** Before choosing a `target`, check
   whether the office is a *succession* — Spanish ministries are renamed each
   cabinet and Wikidata models each name, so foreign affairs is four items and the
@@ -86,6 +95,21 @@ Where things live:
   statement's subject, so an item created in a batch cannot be the value of
   the holders' P39 in that same batch. Creation is guarded by a ledger, a
   duplicate search, a holder floor, a body-label check, and `--dry` by default.
+- **A person's several tenures in one office cannot go through QuickStatements
+  at all.** QS matches an incoming line on subject, property and *value* alone
+  and merges the line's qualifiers into the statement it finds, so two spells
+  become one P39 carrying both starts and both ends with nothing pairing them
+  up — Q1368615 holds an Ecuadorian ministry statement whose starts are
+  fourteen years apart, which anything reading P39 with dates takes for
+  nineteen unbroken years. `wd/validate.py:collapsing_groups` finds these,
+  `render_edit_plan.py` partitions them into `edit_plan_claims.json` (one
+  wikibase-edit payload per person, so their tenures land atomically) and
+  `scripts/apply_claims.py` writes them, `--dry` by default. The `.qs` and the
+  claims file are **two halves of one campaign's batch** — review them
+  together; the split is a property of the write path, not of the evidence.
+  The trade is that the API de-duplicates *nothing*, so re-running without
+  `claims_written.json` would double every tenure: the ledger is load-bearing
+  here in a way it is not for QS.
 - **Destructive edits still stop and ask** — merges, deletions, statement
   removal, rank changes. They are the one human gate left.
 - Statements derived from an article/source get references (`S854` + `S813`);
@@ -148,6 +172,17 @@ Where things live:
   don't bypass it.
 - Time values: precision < 9 (e.g. 7 = century) renders as a misleading
   year ("+2000/7" is the 20th century). Check `precision` before reading.
+- **Hijri dates are handled by *not* converting them.** An AH year falls
+  outside the Gregorian range `parse_date` accepts, so `1370 هـ` yields
+  nothing and a dual-dated `1331هـ/1913م.` keeps `1913`. Most Saudi rosters
+  date in AH, so whole lanes legitimately yield no term — report that rather
+  than converting. `scripts/check_dates.py` pins this and every other §7 date
+  case; run it before and after touching `parse_date`/`parse_period`.
+- **Comparing two dates means comparing at the precision they share.** Both
+  `wd/validate.py` and `wd/backtest.py` do; the latter did not for months, and
+  reported four correctly-parsed offices as parse defects because the roster
+  was coarser than the record. A whole office at 0% date agreement is a
+  comparison bug before it is a parser bug.
 - **`wdt:` returns only best-rank values — for every property, not just
   P39.** One preferred statement hides all the normal-rank ones and a
   deprecated statement vanishes entirely. On P39 that undercounts coverage

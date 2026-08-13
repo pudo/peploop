@@ -12,6 +12,7 @@ from five runs, counted as the lines their `.qs` files actually carry:
 | Czechia | 13 specs, 21 offices | 486 → 18 | essentially finished; yield was parser bugs and creation lists |
 | Spain | 7 offices | 1,044 → 111 | one office is many items; routing is by *date* |
 | UAE | 13 offices, incl. 7 rulerships | 573 → 94 | hereditary power; ar.wiki as the primary channel; P53 as a concern |
+| Saudi Arabia | 13 offices + a kinship lane | 623 → 40 | the dynasty *is* the lane, and it is not an office; Hijri dating caps what a roster can yield |
 
 The engine is `wd/campaign.py`; a country script is only parameters
 (`scripts/ec_ministers.py` is the simplest shape, `scripts/es_offices.py` the
@@ -195,6 +196,7 @@ acting, because a spell sitting inside the sibling item's span also trips
 | body membership | "Member of the X Assembly" | same, plus era routing when a predecessor chamber exists |
 | **bucket** | "Minister of X" = any portfolio | check whether the wikis subdivide by portfolio — if so it is mechanical, not per-person |
 | hereditary | rulers, crown princes, royal houses | the roster *is* the succession; add `family` for the P53 backfill — office and surname are two independent assertions and both must agree |
+| **dynasty** | a royal house of hundreds, most of whom hold nothing | not an office at all: `wd/kinship.py` over a genealogy article, §4a |
 | creation-first | offices/bodies with no item (SWFs, new courts) | `archetype` + `body`, `create_offices.py`, then run like any other |
 | catch-all | "Politicians of X", "Political office-holders" | defer; municipal/provincial grab-bags |
 
@@ -250,6 +252,60 @@ appointer, ref_urls, covering)`, plus `merge_terms()` and `names_match()`.
 signals agree — category + roster row, or a roster row whose identity is
 asserted by a wikilink / corroborated by its own citation (§6). Single-weak-
 channel candidates are skipped with a reason.
+
+## 4a. When the family is the lane, not the office
+
+Where power is dynastic, the office lane reaches only the fraction of the house
+that held office — 81 of the 411 people carrying `P53 = Q31711`. The rest are
+documented, densely, in one place: a **genealogy article**. `wd/kinship.py`
+reads one (`en:Descendants of Ibn Saud`) and `scripts/sa_family.py` supplies the
+parameters; the records go into the campaign's own batch through
+`Campaign.extra_verdicts`, because one campaign still means one `.qs`.
+
+What makes it mechanical is that **the heading is the assertion**. A section
+headed with a wife's name says "these are her children"; one headed
+"Patrilineal grandsons" says "each of these has a father who is a son of the
+ancestor", which closes the candidate set for a patronymic to a few dozen people
+instead of to Wikidata. Three properties, three shapes of second channel:
+
+* **P25** — the section names the mother, and her *item* is confirmed from
+  somewhere else: a `{{main}}` hatnote, or two or more of the section's own
+  children already recording her. Gated further on the child already recording
+  the father, so the statement joins a parentage instead of asserting one.
+* **P22** — the patronymic resolves to exactly one member of the generation the
+  heading names, who could have fathered them (`FATHER_MIN_AGE`, death year).
+* **P53** — the article lists them as a descendant *and* their own name or
+  recorded parentage says the same.
+
+Four things this cost, all of which would have shipped silently:
+
+* **Take the chain from the item, not from the printed name.** The article prints
+  "Abdul Aziz bin Fahd"; the item is "Abdulaziz bin Fahd bin **Turki II** bin
+  Abdulaziz Al Saud". On the short form that resolves to King Fahd; on the long
+  one to a different man a generation down. `child_chain` unions every spelling
+  and takes the longest, and refuses where two spellings disagree.
+* **A shorter spelling of the *father's* name must not satisfy a grandfather
+  check.** The alias "Khalid Al Faisal" chains to one element, the length test
+  short-circuited, and "Sattam bin Khalid bin Nasser" was filed under Khalid bin
+  Faisal — the right generation, the wrong man.
+* **A lifespan inside the name part poisons the chain.** "(born 1973)" precedes
+  the description separator, so the father's name parsed as "fahd born 1973" and
+  matched nobody.
+* **One link in two generations is a wiki error, not a fact.** Detect it
+  (`contradictory_links`) and skip both entries: the heading is what closes the
+  candidate set, so a person under the wrong one is resolved against the wrong
+  generation entirely.
+
+And one ceiling worth measuring before promising anything: **10 of Ibn Saud's
+~22 wives have no Wikidata item**, and they hold 20 of the missing mothers. A
+parent with no item cannot be the value of anyone's `P25`, so that half of the
+lane is *creation-first*, exactly like the UAE's sovereign wealth funds. Report
+it as a byproduct list with the children named, not as a lane that underperformed.
+
+Deliberately not emitted, and worth deciding once rather than per country:
+**P40** (the bot-maintained reciprocal of P22), **P3373** (combinatorial, and
+redundant once both parents are recorded — the Sudairi Seven alone would be 42
+statements), and **P26** where the evidence is prose about cousin marriages.
 
 ## 5. Resolve identity, then gate it
 
@@ -360,6 +416,17 @@ plus `data/<campaign>/backtest.jsonl`. Three numbers per office:
   `"5 de julio del 2022"` bug was found in Ecuador, months after shipping.
   A healthy run's conflicts are source disagreements, not parse defects (the
   UAE run had exactly two, both genuine).
+
+  **Either side can be the coarser one, and for a long time only one was
+  handled.** `_same_span` and `_shares_boundary` took their precision from the
+  *record*, so a roster dating by year against an item dating by day could only
+  ever score `conflict`: the Saudi province articles date governors "1952 - 1955"
+  where the items carry "1952-12-20" – "1955-04-18", and all five comparable
+  Riyadh rows read as contradictions on a page with nothing wrong with it. The
+  fix — compare at the precision both sides claim, as `wd/validate.py` has since
+  Spain — also retroactively cleared three Belarusian offices that had been
+  reported at 0% and 33% for months. If a whole office scores 0%, suspect the
+  comparison before the parser.
 * **acting agreement** — where the roster says acting, does the record carry
   `P2868`?
 
@@ -457,6 +524,51 @@ the first pass. Each of these was wrong once and would have shipped silently:
   carry a date, and that is the source".
 * **an empty-string headings pattern is falsy** — `source.headings or
   DEFAULT_HEADINGS` swapped in the default and an office lost all its rows.
+* **a `td` header row plus an unknown vocabulary is a silent total loss.** The
+  two conditions compound: `_reads_as_header` needs *two* recognised column
+  names to treat a `td` row as a header, so a page whose headers are all
+  unfamiliar gets no roles at all and every row is dropped for want of a name
+  column. The Saudi ministerial lists head their dates "من الفترة" / "حتى
+  الفترة" — a bare "من" key cannot cover the first (two-letter keys match whole)
+  and there was no key for "حتى" — so one column of seven was recognised, and
+  eleven interior ministers and twenty-one health ministers parsed with **zero
+  dates and no error**. When a page returns rows but no dates, dump the header
+  row folded before suspecting anything else.
+* **a table dated twice over, once per calendar.** The Saudi province articles
+  tabulate governors under "التاريخ الهجري" (Hijri) beside "التاريخ الميلادي"
+  (Gregorian). Name the one you cannot use as a decoy — the same treatment a
+  "Duración" day count gets — and make sure neither is reachable through a bare
+  "التاريخ" prefix key.
+* **Hijri dates need no conversion, and that is worth a test rather than
+  code.** An AH year falls outside the Gregorian range the year rule accepts
+  (AH 1500 is AD 2076, so nothing in use collides), so `1370 هـ` yields nothing
+  and `1331هـ/1913م.` correctly keeps `1913`. `scripts/check_dates.py` pins it,
+  because the behaviour is invisible, load-bearing, and one "fix" to the year
+  range away from stamping a whole country's dates a year or two wrong. What it
+  costs is honest and uneven: two of eleven interior ministers and none of
+  twenty-one health ministers carry a datable term, because those pages print
+  the Gregorian date beside the Hijri one and the others do not. **Report the
+  lane at what it yields.**
+* **a parenthetical stacked under a date becomes a phantom row.**
+  `en:King of Saudi Arabia` writes "23 September 1932" over "(aged 57)" and
+  "9 November 1953" over "(death by natural causes)", and the equal-length
+  stack pairing read them as a second, dateless term per king — 6 of the page's
+  13 rows. Harmless per person (the dated span wins) but it doubles the audit
+  and the backtest denominator. Drop a paired term with no date on either side.
+* **a pattern that matches but fails its lookup never backtracks.**
+  `parse_date` searched for the *first* day-month-year shape and gave up when
+  the word turned out not to be a month, so "1 رجب 1441 هـ 25 فبراير 2020 م"
+  fell through to the bare-year rule and returned "2020" beside its
+  day-precision neighbours. Scan to the first match whose month actually
+  resolves (`_first_month`), not to the first match.
+* **a membership roll dates no row on purpose.** A legislature publishes one
+  page per term with the term in the *title* — the Saudi Consultative Assembly's
+  three rolls are 150 members each with no date column at all. `RosterSource.term`
+  supplies it, and it has to bypass the "no date column ⇒ navbox" guard or the
+  table is thrown away before the term is applied. Give each term an **end** as
+  well: the end of term N is the start of term N+1, as attested as the start,
+  and it lets `merge_terms` fold a re-appointed member's three open-ended
+  statements into the one continuous membership they describe.
 
 The mechanical half of this is no longer yours to type: `wd/validate.py` runs
 at render time and **refuses to render** a batch with a duplicate line, a
@@ -474,6 +586,17 @@ item — which means a cell failed to parse, not that the source was coarse.
 * `edit_plan.qs` — **the deliverable**: one additive QuickStatements batch
   per campaign, all concerns, validated. Additive-only means the whole batch
   is mass-revertable; single-file means what was approved is what was read.
+* `edit_plan_claims.json` — **the other half of the same deliverable**, and
+  only ever this one thing: people with **several tenures in one office**.
+  QuickStatements matches a line on subject, property and value alone and
+  merges its qualifiers into whatever statement it finds, so two spells arrive
+  as one P39 carrying both starts and both ends. Kuwait had 50 such people of
+  358, Spain 13, the UAE 14, Ecuador 14 — every campaign has them, and until
+  this split they were shipped silently. `scripts/apply_claims.py` writes them
+  through `wb edit-entity`, one atomic payload per person, `--dry` by default
+  and guarded by `claims_written.json` — the API creates every claim it is
+  given, so a second run without the ledger doubles all of them. Review the
+  two files together.
 * `edit_plan.md` — the account: every verdict with its evidence, source and
   the rule that decided it, applied and skipped alike, grouped by concern.
 * **Offices with no item**: declare `archetype` + `body` instead of `target`,
@@ -547,15 +670,22 @@ Arabic sources):
 
 * per office: key, label, `target` QID, roster page(s) (`RosterSource`, with
   `kind="bullets"` where the list is not a table, `headings=` where one page
-  serves several offices), and either explicit `categories` or a
-  `sibling_category` to expand through interwiki links
+  serves several offices, `term=(start, end)` where the page *is* one term and
+  dates no row), and either explicit `categories` or a `sibling_category` to
+  expand through interwiki links
 * `section_targets` when one roster spans several named offices — matched
   against the row's section heading *and* its office cell
 * `date_targets` when the office's *item* changes on a date (§2a); an empty
   QID means "no item exists for this era" and files the row as a creation
   byproduct instead of under the nearest item that happens to exist
 * `family` on a hereditary office, for the P53 backfill
-* `archetype` / `body` / `create_labels` for offices that need minting first
+* `archetype` / `body` / `create_labels` for offices that need minting first,
+  plus `jurisdiction` where the country scopes the office narrower than itself —
+  the eight Saudi provincial governorships that exist all carry
+  `P1001 = <province>`, so minting the missing five nationally would make them a
+  different shape from their siblings
+* `extra_verdicts` where a lane is not an office at all (§4a), so the manifest
+  owns its file and the campaign still renders one batch
 * `regime_sections` / `regime_categories` where several polities shared the
   office name; `continuous_eras` for the ones that are the same institution
 * `modern_from`, the institutional cutoff year

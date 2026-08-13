@@ -172,18 +172,81 @@ COLUMN_ROLES = [
     # exactly as "Duración" did on the Spanish lists.
     ("الاسم", "name"), ("اسم الحاكم", "name"), ("اسم", "name"),
     ("شاغل المنصب", "name"), ("الحاكم", "name"), ("الوزير", "name"),
+    # Kuwait's chief-of-staff list heads its holder column with the office, and
+    # names the appointing *defence minister* in a column of its own. So
+    # "وزير الدفاع" has to be claimed as the appointer before the generic
+    # "وزير" below can read it as a name: it was the only column reading as a
+    # name on that page, and the thirteen chiefs of staff parsed as thirteen
+    # ministers.
+    ("رئيس الأركان", "name"), ("وزير الدفاع", "appointer"),
+    # The Saudi ministerial lists head the holder column with the office itself
+    # — "وزير الداخلية", "وزير الصحة" — and the Shura membership lists with
+    # "العضو". Both precede nothing they could shadow: "وزارة" (the ministry,
+    # an `office` column) differs from "وزير" at its third letter.
+    ("وزير", "name"), ("العضو", "name"),
     ("الصورة", "portrait"), ("صورة", "portrait"),
-    ("تولى", "start"), ("بداية", "start"), ("من", "start"),
-    ("ترك", "end"), ("نهاية", "end"), ("الى", "end"),
+    # "من الفترة" / "حتى الفترة" are the Saudi lists' start and end. A bare
+    # "من" cannot cover the first: two-letter keys match whole (see `_roles`),
+    # and there was no key for "حتى" at all — so the header row, marked up as
+    # `td` on these pages, recognised one column of seven, failed
+    # `_reads_as_header`'s two-column test, and every date on the page was lost:
+    # eleven interior ministers and twenty-one health ministers, all undated.
+    ("من الفترة", "start"), ("تولى", "start"), ("بداية", "start"),
+    # Kuwait dates its holders three further ways. "تاريخ التعيين" (date of
+    # appointment) and "تاريخ انتهاء الخدمة" (date service ended) head the
+    # information ministry's pair, and neither begins with "التاريخ" — the
+    # article is absent — so the bare key below cannot reach them. "بدأ فترته"
+    # / "انتهت فترته" are the *sub*-headers under the chief-of-staff list's
+    # three-wide "مدة الرئاسة"; `_subroles` reads them, and without them the
+    # duration cell beside them was the only one that parsed.
+    ("تاريخ التعيين", "start"), ("تاريخ انتهاء", "end"),
+    ("بدأ", "start"), ("انتهت", "end"),
+    ("من", "start"),
+    ("حتى", "end"), ("ترك", "end"), ("نهاية", "end"), ("الى", "end"),
+    # "الفترة الزمنية" is a tenure *length* ("3 سنوات و7 أشهر و28 يومًا") and
+    # must be claimed before the bare "الفترة": through that key it took the
+    # `period` role, shadowed the start and end cells either side of it, and
+    # every date on the chief-of-staff list was lost. The Czech "Dny v úřadu"
+    # bug in Arabic.
+    # …and "فترة بقائه بالمنصب" (how long he stayed in the post) is the same
+    # decoy one word further in, sub-heading a third column beside the two that
+    # hold the real dates. Every value of a repeated role is joined with " – "
+    # before parsing, so leaving it as a `period` appended a tenure length to
+    # the range and the crown princes' end dates all parsed as nothing.
+    ("الفترة الزمنية", "days"), ("فترة بقائه", "days"),
     # "فترة الحكم", "فترة تولي المنصب" and a bare "الفترة" are all one span in
     # two cells or one; the period role handles either.
     ("فترة", "period"), ("الفترة", "period"),
+    # A table dated twice over, once per calendar: the Saudi province articles
+    # tabulate their governors under "التاريخ الهجري" (AH) beside "التاريخ
+    # الميلادي" (AD). Only the second is a term this workbench can record — no
+    # conversion happens anywhere (`scripts/check_dates.py`) — so the AH column
+    # is named a decoy, exactly as a "Duración" day count is, and *neither* may
+    # be reachable through a bare "التاريخ" prefix key. A bare key added *after*
+    # both of them is safe and is what the Kuwaiti finance ministry's single
+    # undivided "التاريخ" column needs: first match wins, so the two specific
+    # keys still claim their own columns.
+    ("التاريخ الميلادي", "period"), ("التاريخ الهجري", "notes"),
+    ("التاريخ", "period"),
     ("المدة الزمنية", "days"), ("المدة", "days"), ("مدة", "days"),
-    ("المنصب", "office"), ("الوزارة", "office"),
+    ("المنصب", "office"), ("الوزارة", "office"), ("المسمى", "office"),
+    # "في عهد" — "in the reign of" — names the king who appointed the holder,
+    # which is the same channel a Spanish list's "Designante" column carries.
+    ("في عهد", "appointer"),
     ("الملاحظات", "notes"), ("ملاحظات", "notes"), ("الامارة", "notes"),
     ("العائلة", "notes"), ("العمر", "notes"),
-    ("الحزب", "party"), ("المرجع", "ref"), ("مصدر", "ref"),
+    # A lifespan beside the tenure, and the neighbours a succession list prints
+    # either side of the holder ("سبقه" preceded by, "تبعه" followed by). Named
+    # so they cannot be read as the term, and so the `td` header row above them
+    # is recognised as a header at all.
+    ("الميلاد", "notes"), ("الوفاة", "notes"),
+    ("سبقه", "notes"), ("تبعه", "notes"), ("أبرز المناصب", "notes"),
+    ("الحزب", "party"), ("المرجع", "ref"), ("مصدر", "ref"), ("مراجع", "ref"),
     ("التسلسل", "ordinal"), ("الرقم", "ordinal"),
+    ("مسلسل", "ordinal"), ("الترتيب", "ordinal"), ("ترتيب", "ordinal"),
+    # The Shura lists number their rows under a bare "م". One letter, so it can
+    # only ever match a header that is exactly that.
+    ("م", "ordinal"),
 ]
 
 # Wikipedia writes date ranges with every dash there is, plus a few words for
@@ -326,6 +389,20 @@ def _incumbent(text: str) -> bool:
     return bool(INCUMBENT.search(text)) and not DIED_IN_OFFICE.search(text)
 
 
+def _first_month(pattern: str, text: str, group: int):
+    """The first match of `pattern` whose `group` names a month, and the month.
+
+    A month-name group is the one part of a date pattern that can match and
+    still be wrong, so every caller wants "keep looking" rather than "give up".
+    """
+    for hit in re.finditer(pattern, text):
+        word = hit.group(group)
+        month = MONTHS.get(_deaccent(word), MONTHS.get(word))
+        if month:
+            return month, hit
+    return None
+
+
 def parse_date(text: str) -> Optional[str]:
     """A Spanish date as a partial ISO string: `1979-08-10`, `1979-08`, `1979`.
 
@@ -344,27 +421,32 @@ def parse_date(text: str) -> Optional[str]:
     # The match still succeeds, so the regex never backtracks and only the MONTHS
     # lookup fails — silently downgrading every English December to month
     # precision. "2 December 1971" is the UAE's founding date.
-    day_month = re.search(
-        r"\b(\d{1,2})\s*\.?\s*(?:del?\s+)?([^\W\d_]+)\s*\.?\s*(?:del?\s+)?(\d{4})", low
+    # Every pattern below is scanned to its *first match whose word is actually
+    # a month*, not to its first match. A cell can lead with something
+    # date-shaped that is not a date, and giving up on it throws away the real
+    # date behind it: ar.wikipedia's Saudi lists stack a Hijri date over the
+    # Gregorian one, so "1 رجب 1441 هـ 25 فبراير 2020 م" matched at "1 رجب
+    # 1441", failed the month lookup, fell through to the bare-year rule and
+    # returned "2020" — day precision lost beside its day-precision neighbours.
+    day_month = _first_month(
+        r"\b(\d{1,2})\s*\.?\s*(?:del?\s+)?([^\W\d_]+)\s*\.?\s*(?:del?\s+)?(\d{4})",
+        low, 2,
     )
     if day_month:
-        month = MONTHS.get(_deaccent(day_month.group(2)), MONTHS.get(day_month.group(2)))
-        if month:
-            return f"{day_month.group(3)}-{month:02d}-{int(day_month.group(1)):02d}"
+        month, hit = day_month
+        return f"{hit.group(3)}-{month:02d}-{int(hit.group(1)):02d}"
     # "September 24, 1810" — English writes the month first, and the
     # day-month-year pattern above cannot see the day at all.
-    month_day = re.search(
-        r"\b([^\W\d_]+)\s*\.?\s*(\d{1,2})(?:st|nd|rd|th)?\s*,?\s*(\d{4})", low
+    month_day = _first_month(
+        r"\b([^\W\d_]+)\s*\.?\s*(\d{1,2})(?:st|nd|rd|th)?\s*,?\s*(\d{4})", low, 1
     )
     if month_day:
-        month = MONTHS.get(_deaccent(month_day.group(1)), MONTHS.get(month_day.group(1)))
-        if month:
-            return f"{month_day.group(3)}-{month:02d}-{int(month_day.group(2)):02d}"
-    month_year = re.search(r"\b([^\W\d_]+)\s*(?:del?\s*)?(\d{4})", low)
+        month, hit = month_day
+        return f"{hit.group(3)}-{month:02d}-{int(hit.group(2)):02d}"
+    month_year = _first_month(r"\b([^\W\d_]+)\s*(?:del?\s*)?(\d{4})", low, 1)
     if month_year:
-        month = MONTHS.get(_deaccent(month_year.group(1)), MONTHS.get(month_year.group(1)))
-        if month:
-            return f"{month_year.group(2)}-{month:02d}"
+        month, hit = month_year
+        return f"{hit.group(2)}-{month:02d}"
     iso = re.search(r"\b(\d{4})-(\d{2})-(\d{2})\b", low)
     if iso:
         return iso.group(0)
@@ -568,10 +650,17 @@ def _subroles(
     "Opuštění úřadu", "Dny v úřadu". Reading only the top row leaves the day
     count indistinguishable from the dates, and a plausible tenure of 1939 days
     then parses as the year 1939.
+
+    A sub-label can itself span several columns, and it names every one of them
+    — `ar:قائمة ولاة عهد الكويت` sub-heads its start *and* end cells with one
+    "فترة تولي المنصب" beside a duration column. Refining only the spanning
+    cell's own position left the end column unnamed and every crown prince
+    open-ended, so continuation positions are refined too, exactly as `_roles`
+    reads them. Re-applying a role a rowspanned cell already set is harmless.
     """
     out = list(roles)
-    for index, (cell, is_origin) in enumerate(header):
-        if cell is None or not is_origin or index >= len(out):
+    for index, (cell, _) in enumerate(header):
+        if cell is None or index >= len(out):
             continue
         text = _norm(cell.text_content())
         for prefix, role in _role_keys():
@@ -757,7 +846,7 @@ def _spans(
         start, end, incumbent = parse_period(" ".join(starts))
         return [(start, end, incumbent, " ".join(starts))]
     if len(starts) > 1 and len(starts) == len(ends):
-        return [
+        stacked = [
             (
                 parse_date(start),
                 None if _incumbent(end) else parse_date(end),
@@ -766,6 +855,17 @@ def _spans(
             )
             for start, end in zip(starts, ends)
         ]
+        # A pair that carries no date on either side is not a term. The stacking
+        # here is meant for a holder with several separate spells, but the same
+        # two cells also stack a *parenthetical* under the date:
+        # `en:King of Saudi Arabia` writes "23 September 1932" over "(aged 57)"
+        # and "9 November 1953" over "(death by natural causes)", so the second
+        # lines pair up into a dateless phantom term — six of that page's
+        # thirteen rows, one per king. They were harmless (the dated span wins
+        # per person) but they doubled the audit and the backtest's denominator.
+        dated = [term for term in stacked if term[0] or term[1] or term[2]]
+        if dated:
+            return dated
     start_text = " ".join(starts)
     end_text = " ".join(ends)
     incumbent = _incumbent(end_text)
