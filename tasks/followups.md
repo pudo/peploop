@@ -4,28 +4,57 @@ Actionable leftovers from closed campaigns — the human gates and byproducts,
 one line each. Method lives in `recipes/country_sweep.md`; campaign records in
 `regression/`. Strike lines as they are done.
 
-## The QuickStatements merge — fixed for new batches, repair outstanding
+## The QuickStatements merge — fixed, and repaired 2026-08-13
+
+**19 of 21 merged statements split back into one statement per tenure**
+(`scripts/repair_merged.py`): ecuador 4, czechia 1, courts 2, positions 10 —
+including `Q4196259` and `Q109487160`, which each carried *four* starts and four
+ends on one statement — plus 2 of the UAE's 4. Verified afterwards: no statement
+in any repaired batch still carries more than one date, and qualifiers like
+`P2868` and the references survived the split.
+
+The API halves of **kuwait (117 statements / 50 people)**, **ecuador (28 / 14)**
+and **spain (32 / 13)** are applied and verified: 177 tenures, all as separate
+statements, none date-merged.
+
+- [ ] **The UAE batch is now refused by `wd/validate.py` — 12 defects — and
+      should not be uploaded.** The same mechanism cuts both ways, which is the
+      thing worth remembering. For a person with two genuine spells, the QS merge
+      *destroys* the pairing. But 10 of the UAE's 12 groups are one tenure the
+      run emitted as **fragments** — one line carrying only `P582`, another only
+      `P580`, describing the same spell — and there the merge silently
+      *repaired* it: `Q215477`, `Q107596718` and `Q12178848` all hold one
+      correct, complete statement on Wikidata today. So QS's merge was masking a
+      parser defect, `conflicting_tenures` now catches it, and routing those to
+      the API would have written two half-dated statements where one good one
+      exists. Find out why the UAE rosters fragment a spell across two records
+      before re-rendering; the other 2 (`Q1573260`, `Q22687591`) are genuinely
+      two sources disagreeing about an end date and need reading.
+- [ ] the 2 UAE statements the repair refused, for the same reason — its
+      verification would not touch a statement whose live dates are not what the
+      batch sent, which is what stopped it breaking the 10 correct ones
+
+### How it was fixed
 
 QS matches a line on subject + property + **value** alone and folds the line's
 qualifiers into the statement it finds, so a person with two spells in one
-office got a single P39 carrying two `P580`s and two `P582`s, unpairable. Fixed
-2026-08-13: `wd/validate.py:collapsing_groups` detects them (and `check` now
+office got a single P39 carrying two `P580`s and two `P582`s, unpairable. `wd/validate.py:collapsing_groups` detects them (and `check` now
 *refuses* to render one into a `.qs`), `render_edit_plan.py` partitions them into
 `edit_plan_claims.json`, and `scripts/apply_claims.py` writes them through
 `wb edit-entity`, `--dry` by default and guarded by `claims_written.json`.
 Every campaign has been re-rendered through the split.
 
-- [ ] **[#1](https://github.com/opensanctions/wd-vibes-workbench/issues/1)** —
-      repair the ~20 statements already merged by the applied Ecuador (19
-      groups) and Czechia (1) batches. Destructive (qualifier removal), so it
-      stops and asks. **Do not run `apply_claims.py` on Ecuador or Czechia
-      before this**: it would add the tenures beside the merged statement rather
-      than in place of it.
-- [ ] `data/courts/edit_plan.qs` (2 groups) and `data/positions/edit_plan.qs`
-      (10) have the same shape but come from other renderers, and their verdicts
-      use an older schema (`statements: null`) that `render_edit_plan.py` has
-      never read — so they are outside the fix. Whether they were applied is
-      unknown.
+- [x] **[#1](https://github.com/opensanctions/wd-vibes-workbench/issues/1)** —
+      done for 19 of 21. `scripts/repair_merged.py` adds the split-off tenures
+      *before* stripping the surplus qualifiers, so an interruption leaves a
+      visible duplicate rather than a lost date — which is exactly what saved it
+      when the first run failed on a bad `P813` reference value: every add was
+      rejected, no removal ran, and nothing on Wikidata changed.
+- [x] `data/courts/edit_plan.qs` (2) and `data/positions/edit_plan.qs` (10)
+      **had been applied** after all, and are repaired. They still cannot be
+      re-rendered — their verdicts use an older schema (`statements: null`) that
+      `render_edit_plan.py` cannot read — so the repair took its pairings
+      straight from the `.qs`, which is the only record of them.
 
 ## Batches awaiting QuickStatements review/upload
 
@@ -50,8 +79,10 @@ QuickStatements importer, and `edit_plan_claims.json` via
       appointment where Wikidata dates the swearing-in. The API half is unusually
       large (50 of 358 people) because the four Assembly rolls give one member up
       to four consecutive terms in the same seat
-- [ ] **spain — 79 + 32**
-- [ ] **uae — 64 + 30** — one row the backtest contradicts:
+- [ ] **spain — 79 to upload**; its API half (32 / 13 people) is applied
+- [ ] **uae — blocked, do not upload.** `wd/validate.py` refuses it: 12 groups
+      are one tenure emitted as fragments or dated twice (see the top of this
+      file). Also still open: one row the backtest contradicts —
       Q1380993 Saqr bin Mohammad al-Qassimi → Q110964697 Ruler of Sharjah
       (1972), a spell the community records on Q110964704 Ras Al Khaimah;
       the two thrones are one dynasty and holders are filed under either
@@ -59,10 +90,12 @@ QuickStatements importer, and `edit_plan_claims.json` via
       read first, being the only statements in the batch derived from a name
       rather than from a table
 - [ ] **belarus — 6 + 0** — check the industry-ministers date overlap first
-- [ ] ~~ecuador~~ and ~~czechia~~ were **applied** some time before 2026-08-13;
-      re-rendering now yields 50 + 28 and 0 + 0 respectively, the remainder of
-      what the community has since recorded independently. Their API halves are
-      blocked on issue #1 — see above
+- [ ] **ecuador — 50 to upload**; its API half (28 / 14 people) is applied, and
+      its 4 merged statements are repaired. Ecuador's own batch was applied some
+      time before 2026-08-13, so 50 is what the community has *not* since
+      recorded independently
+- [x] **czechia** — applied earlier, its one merged statement repaired, and a
+      re-render now yields nothing at all
 - [ ] `data/jurisdictions/diplomatic_plan.qs` + `diplomatic_tail.qs` (572 + 96)
 - [ ] IGO link batches `data/igo/igo_links2_p2389.qs` / `igo_links2_p361.qs`
 

@@ -40,7 +40,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from wd.http import REPO_ROOT
-from wd.validate import check, collapsing_groups
+from wd.validate import check, collapsing_groups, conflicting_tenures
 
 DATA_DIR = REPO_ROOT / "data"
 
@@ -251,7 +251,13 @@ def main() -> None:
     # edits to one item. One payload per person makes each person's tenures land
     # atomically, which is the guarantee worth having when the API — unlike
     # QuickStatements — has no batch to revert.
-    contested = set(collapsing_groups(qs))
+    # A group that shares a bound between its lines is one tenure two sources
+    # date differently, not two tenures (`conflicting_tenures`). It must not be
+    # routed to the API either: QuickStatements at least collapses the
+    # contradiction, whereas the API would write it out as two overlapping
+    # statements. It stays in the `.qs` where `check` raises it as a defect, so
+    # the render stops and a human reads the sources.
+    contested = set(collapsing_groups(qs)) - set(conflicting_tenures(qs))
     by_subject: dict[str, dict] = {}
     for record in applied:
         keys = {

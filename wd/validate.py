@@ -171,6 +171,37 @@ def collapsing_groups(
     return {key: seen for key, seen in signatures.items() if len(seen) > 1}
 
 
+def conflicting_tenures(
+    lines: Sequence[str],
+) -> Dict[Tuple[str, str, str], List[Tuple[Tuple[str, str], ...]]]:
+    """Groups that are one tenure dated twice, not two tenures.
+
+    `collapsing_groups` asks whether QuickStatements would fold several lines
+    together; this asks whether it *should*. Two lines sharing a start, or
+    sharing an end, or one carrying only a start beside one carrying only an end,
+    are not a person's two spells — they are one spell that two sources date
+    differently, and routing them to the API would faithfully write the
+    contradiction as two overlapping statements instead of merging it.
+
+    The UAE batch has both shapes. Hamdan bin Mohammed Al Nahyan got
+    `1977-12-20 – 1979-07-01` from one roster and `1977-12-20 – 1989-10-11` from
+    another; Hamdan bin Zayed got three lines, one with only an end, one with
+    only a start, and one with both. QuickStatements de-duplicated the identical
+    starts and left the ends piled on one statement, which is how they were
+    found. Neither can be repaired mechanically — the sources have to be read —
+    so they are a defect to resolve rather than work to route.
+    """
+    out = {}
+    for key, signatures in collapsing_groups(lines).items():
+        bounds = [dict(signature) for signature in signatures]
+        starts = [b["P580"] for b in bounds if "P580" in b]
+        ends = [b["P582"] for b in bounds if "P582" in b]
+        incomplete = any("P580" not in b or "P582" not in b for b in bounds)
+        if len(set(starts)) != len(starts) or len(set(ends)) != len(ends) or incomplete:
+            out[key] = signatures
+    return out
+
+
 def check(lines: Sequence[str]) -> Result:
     """Run every check over a rendered QuickStatements batch."""
     result = Result(statements=len(lines))
@@ -226,11 +257,27 @@ def check(lines: Sequence[str]) -> Result:
         if count > 1:
             result.defects.append(f"{count}× this exact line: {line[:90]!r}")
 
+    conflicts = conflicting_tenures(lines)
+    for (subject, prop, value), signatures in sorted(conflicts.items()):
+        spans = "; ".join(
+            ", ".join(f"{key}={token.split('T')[0]}" for key, token in signature)
+            or "no dates"
+            for signature in signatures
+        )
+        result.defects.append(
+            f"{subject} {prop} {value}: {len(signatures)} lines that share a bound or "
+            f"leave one open are one tenure dated by two sources, not two tenures — "
+            f"{spans}. Read the sources and emit one statement; neither write path "
+            "can resolve this"
+        )
+
     # The one defect here that is not about a malformed line: these lines are
     # each well formed and mean the right thing, and QuickStatements still
     # cannot write them. They belong on the API path, so the renderer partitions
     # them out — reaching this check means one slipped through.
     for (subject, prop, value), signatures in sorted(collapsing_groups(lines).items()):
+        if (subject, prop, value) in conflicts:
+            continue  # already reported, and more precisely
         spans = "; ".join(
             ", ".join(f"{key}={token.split('T')[0]}" for key, token in signature)
             or "no qualifiers"
