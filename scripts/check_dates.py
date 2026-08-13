@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Assert `wd.roster.parse_date` / `parse_period` against the cells that broke it.
+"""Assert `wd.roster` date parsing and term merging against what broke them.
 
     python scripts/check_dates.py
 
@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wd.roster import parse_date, parse_period
+from wd.roster import RosterRow, merge_terms, parse_date, parse_period
 
 #: (cell text, expected ISO prefix or None, what it is / what it broke)
 DATES = [
@@ -73,8 +73,50 @@ PERIODS = [
 ]
 
 
+#: (rows as (start, end), expected terms, what it is). `merge_terms` decides how
+#: many P39 statements a person gets out of one office's rows, so a mistake here
+#: is a spurious statement rather than a wrong date — which makes it exactly as
+#: worth pinning, and nothing tested it until nine UAE ministers shipped with half
+#: a date each.
+MERGES = [
+    ((("1971-12-09", None), (None, "1990-11-20")), [("1971-12-09", "1990-11-20")],
+     "one section per cabinet, dated only where it changes: a start with no end "
+     "and an end with no start are one spell, not two half-dated ones"),
+    ((("1997-03-25", None), (None, None), (None, "2009-05-12")),
+     [("1997-03-25", "2009-05-12")],
+     "…and a middle cabinet that dates nothing at all does not break the pair"),
+    ((("1979-04-30", None), ("1979-04-30", "1990-10-07"), (None, "1990-10-07")),
+     [("1979-04-30", "1990-10-07")],
+     "fragments beside the complete term they belong to are absorbed, not "
+     "emitted alongside it"),
+    ((("1977-12-20", "1979-07-01"), ("1977-12-20", "1989-10-11")),
+     [("1977-12-20", "1979-07-01"), ("1977-12-20", "1989-10-11")],
+     "two *complete* terms sharing a start are a source conflict, not a "
+     "fragment: both survive so `validate` can refuse the batch and a human "
+     "reads the sources"),
+    ((("1962-01-17", "1963-01-26"), ("1963-01-26", "1965-11-30")),
+     [("1962-01-17", "1965-11-30")],
+     "the original case: consecutive rows split by a cabinet change are one term"),
+    ((("2016-11-26", "2020-12-05"), ("2023-06-06", "2024-04-04")),
+     [("2016-11-26", "2020-12-05"), ("2023-06-06", "2024-04-04")],
+     "two genuinely separate spells with a gap stay separate — the Kuwaiti "
+     "legislator re-elected after sitting out a term"),
+    ((("2014-07-05", None),), [("2014-07-05", None)],
+     "a lone open term is an incumbent, and must not be dropped as a fragment"),
+]
+
+
 def main() -> None:
     bad = 0
+    for rows, want, why in MERGES:
+        got = merge_terms([
+            RosterRow(ordinal=i, section=None, name="x", link=None, start=s, end=e)
+            for i, (s, e) in enumerate(rows)
+        ])
+        if got != want:
+            bad += 1
+            print(f"FAIL merge_terms({list(rows)!r})\n  want {want!r}, "
+                  f"got {got!r}\n  ({why})")
     for text, want, why in DATES:
         got = parse_date(text)
         if got != want:
@@ -86,10 +128,10 @@ def main() -> None:
             bad += 1
             print(f"FAIL parse_period({text!r})\n  want {want!r}, "
                   f"got {(start, end)!r}\n  ({why})")
-    total = len(DATES) + len(PERIODS)
+    total = len(DATES) + len(PERIODS) + len(MERGES)
     if bad:
-        raise SystemExit(f"\n{bad} of {total} date cases failed")
-    print(f"{total} date cases pass")
+        raise SystemExit(f"\n{bad} of {total} cases failed")
+    print(f"{total} date and term-merge cases pass")
 
 
 if __name__ == "__main__":

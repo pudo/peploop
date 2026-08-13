@@ -1258,32 +1258,94 @@ def parse_bullet_rosters(page_html: str) -> List[Roster]:
     return rosters
 
 
+def _absorb_fragments(
+    terms: List[Tuple[Optional[str], Optional[str]]]
+) -> List[Tuple[Optional[str], Optional[str]]]:
+    """Drop half-dated terms that a fully dated one already describes.
+
+    A page that dates only its changes leaves a spell stated twice over: once as
+    a start with no end, once as an end with no start. Where a complete term
+    shares either bound, the fragment is that same term seen through a different
+    section and adds nothing; emitted, it becomes a second P39 with half a date
+    on it.
+    """
+    complete = [(s, e) for s, e in terms if s and e]
+    dated = [(s, e) for s, e in terms if s or e]
+    out = []
+    for start, end in terms:
+        if not start and not end:
+            # A row that dates nothing is the middle cabinet of a spell whose
+            # ends the sections either side of it carry. It is dropped only when
+            # something dated survives, so an office whose every row is undated
+            # still reaches the `no_dates` disposition instead of vanishing.
+            if dated:
+                continue
+            out.append((start, end))
+            continue
+        if start and end:
+            out.append((start, end))
+            continue
+        if start and any(s == start for s, _e in complete):
+            continue
+        if end and any(e == end for _s, e in complete):
+            continue
+        # A term with an end and no start of its own cannot begin a spell, so
+        # beside any complete term for the same office it is a fragment of one.
+        if end and not start and complete:
+            continue
+        out.append((start, end))
+    return out
+
+
 def merge_terms(rows: List[RosterRow]) -> List[Tuple[Optional[str], Optional[str]]]:
     """Collapse a person's consecutive roster rows into continuous terms.
 
     Rosters split a single uninterrupted spell into several rows whenever
     something *else* changes — a new appointing president, a ministry rename —
     and each split would otherwise become a spurious extra P39 statement.
+
+    The hard case is a page that prints **one section per cabinet and dates only
+    the changes**, which `en:List of cabinets of the United Arab Emirates` does.
+    A minister serving three cabinets appears three times: with a start, with
+    nothing, and with an end. Read as three rows that is one spell arriving in
+    *fragments* — and a fragment is worse than a duplicate, because a lone `P580`
+    and a lone `P582` are two statements neither of which is true. Nine UAE
+    ministers shipped that way; QuickStatements' habit of merging by
+    subject/property/value quietly reassembled them, which is the only reason it
+    went unnoticed for a month (`wd/validate.py:conflicting_tenures`).
+
+    So a row with no start of its own does not begin a term here: it continues
+    the one the earlier section opened, and its end closes it.
     """
     terms: List[Tuple[Optional[str], Optional[str]]] = []
     previous: Optional[RosterRow] = None
     seen: set = set()
-    for row in sorted(rows, key=lambda r: (r.start or "", r.ordinal)):
+    # Ordered by whichever bound the row actually has. Keyed on `start` alone, a
+    # row carrying only an end sorted to the very front — before the row whose
+    # start it closes — and the two could never be paired up.
+    for row in sorted(rows, key=lambda r: (r.start or r.end or "", r.ordinal)):
         if (row.start, row.end, row.acting) in seen:
             continue  # two rows describing one term, e.g. a rowspan restatement
         seen.add((row.start, row.end, row.acting))
+        open_term = bool(terms) and terms[-1][0] is not None and terms[-1][1] is None
         continuous = (
             previous is not None
             and previous.acting == row.acting
             and previous.end is not None
             and previous.end == row.start
         )
-        if continuous and terms:
-            terms[-1] = (terms[-1][0], row.end)
+        continues_open = (
+            open_term
+            and row.start is None
+            and previous is not None
+            and previous.acting == row.acting
+        )
+        if (continuous or continues_open) and terms:
+            terms[-1] = (terms[-1][0], row.end or terms[-1][1])
         else:
             terms.append((row.start, row.end))
         previous = row
-    return terms
+    return _absorb_fragments(terms)
 
 
 def name_tokens(name: str) -> List[str]:

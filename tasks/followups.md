@@ -30,17 +30,16 @@ statements, none date-merged.
   the cabinet page applies that date to every member of the cabinet, so it is
   structural rather than an attestation about him.
 
-- [ ] **`wd/validate.py` still refuses to re-render the UAE batch (12 defects),
-      and that is correct — but the cause is a UAE parser defect, not the merge.**
-      10 of the 12 groups are one tenure the run emitted as **fragments**: a line
-      carrying only `P582` and another only `P580`, describing the same spell,
-      because the deputy premiership is fed by *two* pages — the dedicated
-      succession list and `List of cabinets of the UAE`, which prints one section
-      per cabinet and dates only the changes. QuickStatements merged each pair
-      back into one complete statement, so `Q215477`, `Q107596718` and
-      `Q12178848` are *correct* on Wikidata today: the merge was quietly covering
-      for the defect. Fix the per-cabinet fragmentation (merge a person's
-      consecutive cabinet rows into one spell) before re-rendering.
+- [x] **The 12 UAE defects are fixed** (`merge_terms`), and were a parser defect
+      rather than the merge. 10 of the 12 were one tenure emitted as
+      **fragments** — a line carrying only `P582` and another only `P580` for the
+      same spell — because the deputy premiership is fed by *two* pages: the
+      dedicated succession list and `List of cabinets of the UAE`, which prints
+      one section per cabinet and dates only the changes. QuickStatements
+      reassembled each pair, so `Q215477`, `Q107596718` and `Q12178848` are
+      *correct* on Wikidata: the merge had been quietly covering for it. A row
+      with no start of its own now continues the term the earlier section opened,
+      and `scripts/check_dates.py` pins all seven shapes.
 
 ### How it was fixed
 
@@ -68,8 +67,31 @@ Every campaign has been re-rendered through the split.
 
 Each campaign is now **two files reviewed together** — `edit_plan.qs` in the
 QuickStatements importer, and `edit_plan_claims.json` via
-`scripts/apply_claims.py --campaign <name>` (dry first). The counts below are
-`.qs statements + API statements`.
+`scripts/apply_claims.py --campaign <name>` (dry first).
+
+**Checked against live Wikidata on 2026-08-13, line by line — because four of
+these checkboxes were wrong.** Two questions, and they are not the same one:
+whether the batch that was *rendered* went in, and what a re-render proposes
+*now* — the latter can be non-zero on a fully applied campaign, because the
+rosters have moved on and because the engine has since learned to read rows it
+used to drop.
+
+| batch | its own lines, on Wikidata | a re-render today proposes |
+|---|---|---|
+| kuwait | 370 of 370 | 0 |
+| uae | 94 of 94 | 0 |
+| czechia | 18 of 18 | 0 |
+| courts | 106 of 106 | (schema too old to re-render) |
+| positions | 84 of 84 | (ditto) |
+| saudi | 43 of 43 | **14** |
+| ecuador | 177 of 177, + 28 API | **50** |
+| spain | 32 — the API half only | **79** |
+| belarus | 10 of 16 | **6** |
+
+Now that the state reads are fresh (`campaign.STATE_MAX_AGE`), the right-hand
+column is simply what `render_edit_plan.py` prints. **Trust that, not this
+list** — every count here was wrong at some point today, and it is the one thing
+in this file that cannot go stale.
 
 - [x] **kuwait, API half — 117 statements for 50 people, applied 2026-08-13.**
       Verified on Wikidata afterwards: all 117 tenures exist as *separate* P39
@@ -90,17 +112,18 @@ QuickStatements importer, and `edit_plan_claims.json` via
       Verified twice over: every line is present with its own dates (58 dated,
       36 undated P53), and the revision history shows
       `Pudox … #quickstatements` on each subject at that minute. This entry said
-      "awaiting upload" for a day; **three batches turned out to be applied
-      already** (courts, positions, uae), so before trusting a checkbox here,
-      diff the `.qs` against live Wikidata — it is a cheap check.
+      "awaiting upload" for a day; **four batches turned out to be applied
+      already** (courts, positions, uae, saudi), so trust a re-render or a diff
+      against live Wikidata, never a checkbox here.
       Still open: one row the backtest contradicts — Q1380993 Saqr bin Mohammad
       al-Qassimi → Q110964697 Ruler of Sharjah (1972), a spell the community
       records on Q110964704 Ras Al Khaimah; the two thrones are one dynasty and
       holders are filed under either
-- [ ] **saudi — 43 + 0** (29 P39, 9 P53, 3 P25, 2 P22) — the P22s are the two to
-      read first, being the only statements in the batch derived from a name
-      rather than from a table
-- [ ] **belarus — 6 + 0** — check the industry-ministers date overlap first
+- [x] **saudi — applied**, all 43 lines (29 P39, 9 P53, 3 P25, 2 P22), including
+      the two P22s that were flagged for reading first as the only statements
+      derived from a name rather than a table. Worth a look after the fact
+- [ ] **belarus — 6 left of 16**; the other 10 are on Wikidata. Check the
+      industry-ministers date overlap first
 - [ ] **ecuador — 50 to upload**; its API half (28 / 14 people) is applied, and
       its 4 merged statements are repaired. Ecuador's own batch was applied some
       time before 2026-08-13, so 50 is what the community has *not* since

@@ -530,10 +530,25 @@ def title_variants(name: str) -> List[str]:
     return [" ".join(parts[:n]) for n in range(len(parts), 1, -1)]
 
 
+#: Cache lifetime for the reads that establish *what Wikidata already records*,
+#: as opposed to what a wiki page says. Zero, deliberately.
+#:
+#: `wd/http.py` caches for seven days, which is right for roster HTML and
+#: category membership — a Wikipedia table does not move much, and re-fetching it
+#: on every iteration is rude. It is wrong for the state this engine checks
+#: itself against, because that state is exactly what the engine's own writes
+#: change. A UAE re-run read a `holders()` list cached before its batch went in:
+#: 5 holders against 10 live, so the `already holds P39` gate let twenty
+#: already-existing statements back into the batch. Half of the whole point of
+#: this engine is not proposing what is already there.
+STATE_MAX_AGE = 0
+
+
 def holders(session: Session, qid: str) -> set:
     """Everyone Wikidata already records in this position, any rank."""
     rows = sparql(
-        session, f"SELECT DISTINCT ?p WHERE {{ ?p p:P39 ?st . ?st ps:P39 wd:{qid} . }}"
+        session, f"SELECT DISTINCT ?p WHERE {{ ?p p:P39 ?st . ?st ps:P39 wd:{qid} . }}",
+        max_age=STATE_MAX_AGE,
     )
     return {row["p"] for row in rows}
 
@@ -647,6 +662,9 @@ def build_people(
         session,
         sorted(set(titles) | set(by_title.values())),
         props="labels|descriptions|aliases|claims|sitelinks",
+        # Their existing P39s are what `duplicated`, `already_under_sibling` and
+        # the backtest are all measured against — state, not page content.
+        max_age=STATE_MAX_AGE,
     )
     people: Dict[str, Person] = {}
     for qid, entity in entities.items():

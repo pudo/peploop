@@ -196,6 +196,15 @@ Where things live:
   Use `p:P39/ps:P39`, `p:P31/ps:P31` etc. whenever the question is "does
   this hold *anywhere* among the values", and keep `wdt:` for "what is the
   one current/best value".
+- **Never read Wikidata's *state* through the seven-day cache.** `wd/http.py`
+  caches for a week, which is right for roster HTML and category membership and
+  wrong for anything answering "what does Wikidata already record" — because
+  that is precisely what this engine's own writes change. A UAE re-run read a
+  `holders()` list cached before its batch went in (5 holders against 10 live),
+  so the `already holds P39` gate let twenty already-existing statements back
+  into the batch. `campaign.STATE_MAX_AGE = 0` covers `holders()` and the people
+  fetch; any new state read must use it, and a pre-flight before writing should
+  pass `max_age=0` of its own.
 - **A write's `maxlag` covers the query-service updaters, not just database
   replication.** `action=query&siprop=dbrepllag` can report 0.9s while
   `wbeditentity` is refused because `wdqs1013` is 27s behind, and

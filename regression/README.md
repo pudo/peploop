@@ -54,12 +54,24 @@ exactly those lines to recover which start belonged to which end. Do not
 regenerate them to match today's renderer — the pairing would be lost, and it is
 the only copy.
 
-Their diffs are also expected to be noisy for a reason that is not the engine:
-**Ecuador, Czechia, the UAE, courts and positions have since been applied**, so
-re-running those campaigns drops every record whose statement now exists
-(`already holds P39`). Ecuador went 327 → 232 that way. Read a shrinking
-`apply` count as "the community has this now", and confirm it by checking one
-vanished record against Wikidata before suspecting a regression.
+## This net no longer catches much, and that needs solving
+
+**Every baseline here now diffs large, and not because the engine changed.** All
+nine batches have been applied in whole or in part, so a re-run correctly drops
+every record whose statement exists (`already holds P39`) — Kuwait went 1,299 →
+996 differing pairs, Ecuador 327 → 232 records, Saudi Arabia from 43 statements
+to 14. A baseline captured before its batch was applied cannot be reproduced
+after, so "diffs clean" has stopped being available as a signal.
+
+That was survivable while one campaign at a time was live. It is not now, and it
+means the *next* engine change has no net under it. The fix is to stop letting
+the net depend on live state: freeze each campaign's inputs beside its verdicts —
+the cached roster HTML it parsed, and a snapshot of the holder sets and person
+claims as they were — and diff against a run pinned to those. Until that exists,
+verify an engine change the slow way: read `scripts/check_dates.py` (which pins
+the parsing and merging directly), and check by hand that every vanished record's
+statement is genuinely on Wikidata, as was done on 2026-08-13 for Ecuador,
+Belarus and Czechia.
 
 The middle column counts every record the policy decided to apply, not just the
 ones the `modern` rule released — an earlier version of this table said 97 for
