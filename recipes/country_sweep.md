@@ -2,8 +2,8 @@
 
 How to take a country and turn what its wikis record about the people who run
 it into P39 (and P53, P102, …) statements Wikidata can carry — autonomously,
-end to end, with a single QuickStatements file as the deliverable. Derived
-from five runs, counted as the lines their `.qs` files actually carry:
+end to end, with **two** files as the deliverable (§8). Derived from seven runs,
+counted as the statements they actually write:
 
 | run | scope | rows → statements | what it proved |
 |---|---|---|---|
@@ -13,6 +13,7 @@ from five runs, counted as the lines their `.qs` files actually carry:
 | Spain | 7 offices | 1,044 → 111 | one office is many items; routing is by *date* |
 | UAE | 13 offices, incl. 7 rulerships | 573 → 94 | hereditary power; ar.wiki as the primary channel; P53 as a concern |
 | Saudi Arabia | 13 offices + a kinship lane | 623 → 40 | the dynasty *is* the lane, and it is not an office; Hijri dating caps what a roster can yield |
+| Kuwait | 25 offices, incl. 4 legislative term rolls | 620 → 370 | the largest yield so far, and the run that found QuickStatements cannot write a person's *second* tenure at all (§8) |
 
 The engine is `wd/campaign.py`; a country script is only parameters
 (`scripts/ec_ministers.py` is the simplest shape, `scripts/es_offices.py` the
@@ -32,11 +33,14 @@ render without a human checkpoint, and the human sees exactly one thing: the
 finished batch, reviewed whole in the QuickStatements importer before upload.
 Concretely:
 
-* **One `.qs` per campaign.** `data/<country>/edit_plan.qs`, validated by
-  `wd/validate.py` at render time, is the deliverable. The renderer no longer
-  shards by concern — the file the reviewer approves must be the file they
-  read end to end. `decision.concern` stays on the record and groups
-  `edit_plan.md`.
+* **One `.qs` per campaign, plus one claims file.**
+  `data/<country>/edit_plan.qs`, validated by `wd/validate.py` at render time, is
+  the deliverable; `edit_plan_claims.json` carries the statements
+  QuickStatements *cannot* write (§8) and is reviewed with it as one batch. The
+  renderer no longer shards by concern — the file the reviewer approves must be
+  the file they read end to end — and the second file is not a shard: it is a
+  property of the write path, not of the evidence. `decision.concern` stays on
+  the record and groups `edit_plan.md`.
 * **Every case gets a disposition.** `wd/policy.py` decides each candidate by
   an ordered rule table; the campaign's `dispositions` maps any rule that
   would default to `hold`/`review` onto `skip`, so `edit_plan.md` is an
@@ -48,9 +52,16 @@ Concretely:
   human is expected to work through. A human *may* spot-check them; the run
   must be correct without that.
 * The human gates that remain: running the `.qs`, running
-  `create_offices.py --apply`, and anything destructive (merges, deletions,
-  statement removal, rank changes) — those are wikibase-cli lists in
-  `tasks/followups.md`, never lines in the batch.
+  `apply_claims.py --apply` and `create_offices.py --apply`, and anything
+  destructive (merges, deletions, statement removal, rank changes) — those are
+  wikibase-cli lists in `tasks/followups.md`, never lines in the batch.
+* **Never trust a checkbox about whether a batch was applied.** Three of them
+  were wrong at once — the UAE, courts and positions were all live while
+  `followups` called them pending, and the UAE's whole batch had gone in a month
+  earlier. Diffing a `.qs` against Wikidata is cheap: for each line ask whether a
+  statement with that subject, property, value *and dates* exists. The revision
+  history settles it beyond doubt (`#quickstatements` in the comment, the
+  timestamp identical across every subject in the batch).
 
 ## Scope: the FATF landscape, not the ministry list
 
@@ -260,7 +271,7 @@ that held office — 81 of the 411 people carrying `P53 = Q31711`. The rest are
 documented, densely, in one place: a **genealogy article**. `wd/kinship.py`
 reads one (`en:Descendants of Ibn Saud`) and `scripts/sa_family.py` supplies the
 parameters; the records go into the campaign's own batch through
-`Campaign.extra_verdicts`, because one campaign still means one `.qs`.
+`Campaign.extra_verdicts`, because one campaign still means one batch.
 
 What makes it mechanical is that **the heading is the assertion**. A section
 headed with a wife's name says "these are her children"; one headed
@@ -561,6 +572,26 @@ the first pass. Each of these was wrong once and would have shipped silently:
   fell through to the bare-year rule and returned "2020" beside its
   day-precision neighbours. Scan to the first match whose month actually
   resolves (`_first_month`), not to the first match.
+* **a sub-header that spans two columns names both of them.** `_subroles` used
+  to refine only the spanning cell's own position, so `ar:قائمة ولاة عهد الكويت`
+  — which sub-heads its start *and* end cells with one "فترة تولي المنصب" beside
+  a duration column — left the end column unnamed and every crown prince
+  open-ended. Continuation positions are refined too now, exactly as `_roles`
+  reads them.
+* **one page per cabinet, dated only where it changes.** `en:List of cabinets of
+  the UAE` gives a section per cabinet, so a minister serving three of them
+  appears three times: with a start, with nothing, and with an end. Read as three
+  rows that is one spell arriving as *fragments* — a lone `P580` and a lone
+  `P582` — and QuickStatements' merge had been silently reassembling them, so
+  nobody saw it for a month. `wd/validate.py:conflicting_tenures` now refuses
+  it. Where an office is fed by both a dedicated succession list and a
+  per-cabinet page, merge the person's consecutive rows before proposing.
+* **a table whose date ranges run backwards.** `ar:وزارة المالية (الكويت)`
+  writes eight of its 29 ranges "1965-1959", "1981-1967" — an RTL authoring
+  artifact, and the rows chain correctly read the other way round. Left as a
+  deferred lane rather than fixed with a global "swap if reversed" in
+  `parse_period`, which would touch every campaign and could mask a real parse
+  defect. `wd/validate.py` refuses a `start > end` batch, so this fails loudly.
 * **a membership roll dates no row on purpose.** A legislature publishes one
   page per term with the term in the *title* — the Saudi Consultative Assembly's
   three rolls are 150 members each with no date column at all. `RosterSource.term`

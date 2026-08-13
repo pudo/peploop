@@ -79,12 +79,13 @@ Where things live:
   by date (`Office.date_targets`), and expect the roster's rows to be on record
   under a sibling item (`already_under_sibling` → `duplicate_office_item`). Two
   items competing for the *same* era is a merge decision, not a campaign.
-- Keep batches **additive-only**, and **one `.qs` per campaign**. QS
-  de-duplicates and additive batches are mass-revertable, so the batch is safe
-  as one unit. The renderer used to shard by `decision.concern`; it no longer
-  does, because the review that decides anything happens in the QuickStatements
-  importer and a split meant the file approved was never the file read end to
-  end. `concern` stays on the record as metadata and groups `edit_plan.md`.
+- Keep batches **additive-only**, and **one batch per campaign** — one `.qs`
+  plus the claims file below, reviewed together. QS de-duplicates and additive
+  batches are mass-revertable, so the batch is safe as one unit. The renderer
+  used to shard by `decision.concern`; it no longer does, because the review that
+  decides anything happens in the QuickStatements importer and a split meant the
+  file approved was never the file read end to end. `concern` stays on the record
+  as metadata and groups `edit_plan.md`.
 - **There is no review queue.** A campaign's `dispositions` maps every
   non-applying rule to `skip`, so each case is applied or skipped with a reason
   and `edit_plan.md` is an account rather than a backlog. The corollary is that
@@ -195,6 +196,19 @@ Where things live:
   Use `p:P39/ps:P39`, `p:P31/ps:P31` etc. whenever the question is "does
   this hold *anywhere* among the values", and keep `wdt:` for "what is the
   one current/best value".
+- **A write's `maxlag` covers the query-service updaters, not just database
+  replication.** `action=query&siprop=dbrepllag` can report 0.9s while
+  `wbeditentity` is refused because `wdqs1013` is 27s behind, and
+  `wikibase-edit` answers a refusal by *retrying with backoff* rather than
+  failing — so a write legitimately takes minutes and a 120s timeout reads as a
+  hang. `wd/write.py` allows `WRITE_TIMEOUT` and keeps `MAXLAG = 5`, because the
+  fix for a lagged site is to wait, not to declare a willingness to add load.
+- **Never capture a subprocess's stderr without relaying it.** `wikibase-edit`
+  printed "maxlag: Waiting for wdqs1013 … retrying" on every attempt, and
+  `wd/write.py` captured and discarded it — turning a diagnosis that was sitting
+  right there into three rounds of guessing at credentials, DNS and POST
+  reachability. `_run` now relays stderr and reports the last output on timeout,
+  which is the case that most needs it.
 - WDQS: statement-node scans (`p:`/`pq:`) time out easily; prefer `wdt:`
   and subquery-first shapes, retry patiently, and never cache non-JSON
   bodies (a 200 "upstream request timeout" poisons the cache —

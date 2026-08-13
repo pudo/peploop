@@ -76,10 +76,8 @@ QuickStatements importer, and `edit_plan_claims.json` via
       statements and none carries more than one `P580`/`P582` — the behaviour QS
       could not produce. Ledger: `data/kuwait/claims_written.json`; edit log:
       `data/kuwait/applied.jsonl`. A re-run is a no-op.
-- [ ] **kuwait, QuickStatements half — 253 statements**, still to upload. This
-      one has to go through the importer rather than the API, so that the batch
-      stays a single mass-revertable EditGroups entry.
-- [ ] ~~kuwait — 253 + 117~~ (370 statements: 368 P39, 2 P53). Backtest is clean:
+- [x] **kuwait, QuickStatements half — 253 statements, applied 2026-08-13.**
+- [x] ~~kuwait — 253 + 117~~ (370 statements: 368 P39, 2 P53). Backtest was clean:
       target agreement 100% on all 21 offices with comparable rows, and all 19
       date conflicts were read and are source disagreements rather than parse
       defects — the ar ministry tables close each term at the successor's amiri

@@ -36,14 +36,30 @@ That exception is worth knowing before diffing a `.qs` by hand: the retrieved da
 comes from `--retrieved` and changes on every re-render, so compare with
 `sed 's/+20..-..-..T00:00:00Z\\/11$//'` or the whole file reads as changed.
 
-| campaign | records | `apply` records | `.qs` lines |
-|---|---|---|---|
-| ecuador | 327 | 163 | 177 |
-| belarus | 95 | 16 | 16 |
-| czechia | 72 | 18 | 18 |
-| spain | 297 | 93 | 111 |
-| uae | 136 | 86 | 94 |
-| saudi | 283 | 44 | 43 |
+| campaign | records | `apply` records | `.qs` lines | API claims |
+|---|---|---|---|---|
+| ecuador | 327 | 163 | 177 | — |
+| belarus | 95 | 16 | 16 | — |
+| czechia | 72 | 18 | 18 | — |
+| spain | 297 | 93 | 111 | — |
+| uae | 136 | 86 | 94 | — |
+| saudi | 283 | 44 | 43 | — |
+| kuwait | 1,299 | 358 | 253 | 117 |
+
+**The baselines above the Kuwait row predate the two-file split** (§8 of the
+recipe), so their `.qs` still holds the multi-tenure lines that
+`render_edit_plan.py` now routes to `edit_plan_claims.json`. That is deliberate:
+they are the record of what *was applied*, and `scripts/repair_merged.py` reads
+exactly those lines to recover which start belonged to which end. Do not
+regenerate them to match today's renderer — the pairing would be lost, and it is
+the only copy.
+
+Their diffs are also expected to be noisy for a reason that is not the engine:
+**Ecuador, Czechia, the UAE, courts and positions have since been applied**, so
+re-running those campaigns drops every record whose statement now exists
+(`already holds P39`). Ecuador went 327 → 232 that way. Read a shrinking
+`apply` count as "the community has this now", and confirm it by checking one
+vanished record against Wikidata before suspecting a regression.
 
 The middle column counts every record the policy decided to apply, not just the
 ones the `modern` rule released — an earlier version of this table said 97 for
@@ -56,6 +72,15 @@ Spain's snapshot was taken after the ten `wd/roster.py` parser fixes and the
 `Office.date_targets` / `already_under_sibling` additions that run required —
 all three earlier campaigns were re-run against it and diffed clean, which is
 the only reason those additions are in.
+
+Kuwait was added 2026-08-13, after its batch was applied, and its baseline is the
+first to carry an `edit_plan_claims.json` beside the `.qs` — the two together are
+the batch, so a snapshot with only the `.qs` would understate it by 117
+statements. It went in alongside four `wd/roster.py` additions (the Arabic Kuwaiti
+column vocabulary, the duration decoys, and the `_subroles` fix that refines
+continuation positions); all six earlier campaigns were re-run and diffed, and
+the three that showed changes were traced statement-by-statement to their batches
+having been applied upstream, not to the engine.
 
 Saudi Arabia was added 2026-08-12, and its baseline is the first that spans two
 scripts: `sa_offices.py` writes a verdict file per office and `sa_family.py`

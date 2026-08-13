@@ -1,0 +1,2976 @@
+[
+  {
+    "id": "Q100257797",
+    "label": "خالد مؤنس العتيبي",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q100257805",
+    "label": "خليل الصالح",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q105979907",
+    "label": "مهلهل المضف",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q105980479",
+    "label": "عبد الله المضف",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q106098659",
+    "label": "عبد العزيز الصقعبي",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q109255993",
+    "label": "Muhannad Al-Sayer",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q109298769",
+    "label": "ناصر الدوسري",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q109298772",
+    "label": "فارس العتيبي",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q119946913",
+    "label": "Saud Al-Asfoor",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q121546558",
+    "label": "فلاح ضاحي الهاجري",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q121546562",
+    "label": "شعيب شعبان",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q121546567",
+    "label": "مبارك الطشه",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12215117",
+    "label": "Salem Sabah Al-Salem Al-Sabah",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110526533",
+          "qualifiers": {
+            "P580": {
+              "time": "1991-04-20",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1992-10-17",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73689690",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110526533",
+          "qualifiers": {
+            "P580": {
+              "time": "1996-10-15",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2001-02-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73689690",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12222962",
+    "label": "عبد العزيز الدخيل",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q109244175",
+          "qualifiers": {
+            "P580": {
+              "time": "1993-01-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1998-03-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72050102",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q109244175",
+          "qualifiers": {
+            "P580": {
+              "time": "1998-11-02",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1999-07-07",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72050102",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12223057",
+    "label": "ʻAbd al-ʻAzīz Ḥusayn",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q109244175",
+          "qualifiers": {
+            "P580": {
+              "time": "1963-01-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1965-01-03",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72050102",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q109244175",
+          "qualifiers": {
+            "P580": {
+              "time": "1971-02-02",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1985-03-03",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72050102",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12247703",
+    "label": "ناصر الروضان",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110526533",
+          "qualifiers": {
+            "P580": {
+              "time": "1993-07-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1996-10-15",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73689690",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110526533",
+          "qualifiers": {
+            "P580": {
+              "time": "1998-03-22",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1998-11-02",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73689690",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010137",
+    "label": "حمد العبيد",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010138",
+    "label": "خالد الطمار",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010143",
+    "label": "أسامة الزيد",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010152",
+    "label": "عبد الله الأنبعي",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010452",
+    "label": "فهد بن جامع",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010453",
+    "label": "فهد المسعود",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010454",
+    "label": "عبد الهادي العجمي",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010456",
+    "label": "جراح الفوزان",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010457",
+    "label": "بدر سيار الشمري",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010459",
+    "label": "بدر نشمي العنزي",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123010489",
+    "label": "محمد الرقيب",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q16934197",
+    "label": "Mohammad Al Khalid Al Sabah",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110526533",
+          "qualifiers": {
+            "P580": {
+              "time": "2001-02-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-07-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73689690",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110526533",
+          "qualifiers": {
+            "P580": {
+              "time": "2013-08-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2017-12-11",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73689690",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q20383333",
+    "label": "حمد الهرشاني",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q27950262",
+    "label": "Shuaib Al-Muwaizri",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q28715629",
+    "label": "Hamad Almatar",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q28715637",
+    "label": "عادل الدمخي",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q28716032",
+    "label": "Thamer Al-Suwait",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q47499715",
+    "label": "Jenan Boushehri",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q54875312",
+    "label": "Essa Al-Kandari",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q57555",
+    "label": "Sabah Al-Ahmad Al-Jaber Al-Sabah",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110526654",
+          "qualifiers": {
+            "P580": {
+              "time": "1962",
+              "precision": 9
+            },
+            "P582": {
+              "time": "1964",
+              "precision": 9
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74148627",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110526654",
+          "qualifiers": {
+            "P580": {
+              "time": "1981",
+              "precision": 9
+            },
+            "P582": {
+              "time": "1985",
+              "precision": 9
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74148627",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q60564595",
+    "label": "فهد الشعلة",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110529873",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-12-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2019-12-17",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P854": "https://web.archive.org/web/20230630184532/https://www.kuna.net.kw/ArticleDetails.aspx?id=3087085",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110529873",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-04-09",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-01-17",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P854": "https://web.archive.org/web/20230630184532/https://www.kuna.net.kw/ArticleDetails.aspx?id=3087085",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q6943270",
+    "label": "Mustafa Jassem Al-Shamali",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110526533",
+          "qualifiers": {
+            "P580": {
+              "time": "2012-02-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2012-05-28",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73689690",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110526533",
+          "qualifiers": {
+            "P580": {
+              "time": "2012-12-11",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2014-01-06",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73689690",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q84579920",
+    "label": "Mariam Al-Aqeel",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q112161634",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-12-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2019-12-17",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=67705295",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q112161634",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-02-16",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=67705295",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q863577",
+    "label": "Ahmad Al-Fahad Al-Ahmad Al-Sabah",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110526533",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-05-29",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2012-06-13",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73689690",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110526533",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-18",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-01-17",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73689690",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q86698729",
+    "label": "احمد نبيل الفضل",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q86734414",
+    "label": "Hamdan Al-Azmi",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q86734427",
+    "label": "ماجد مساعد المطيري",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q86922455",
+    "label": "عبد الله فهاد العنزي",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q86927082",
+    "label": "يوسف الفضالة",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q87004146",
+    "label": "Bader al Mulla",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-11-26",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-12-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=65120884",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2020-12-05",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2022-09-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73640323",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q87145450",
+    "label": "هاني شمس",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q87345958",
+    "label": "حمود الرقبة",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110526402",
+          "qualifiers": {
+            "P580": {
+              "time": "1988",
+              "precision": 9
+            },
+            "P582": {
+              "time": "1991",
+              "precision": 9
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=75942155",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110526402",
+          "qualifiers": {
+            "P580": {
+              "time": "1998",
+              "precision": 9
+            },
+            "P582": {
+              "time": "1999",
+              "precision": 9
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=75942155",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q93247659",
+    "label": "فهد العفاسي",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110525626",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-12-11",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-12-24",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72049985",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110525626",
+          "qualifiers": {
+            "P580": {
+              "time": "2019-12-19",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2021-03-02",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72049985",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q96271426",
+    "label": "Abdulwahab Al-Issa",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2023-06-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-04-04",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=66583492",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q21295986",
+          "qualifiers": {
+            "P580": {
+              "time": "2024-04-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2024-05-10",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=74182667",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

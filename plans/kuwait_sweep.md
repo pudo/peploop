@@ -193,14 +193,18 @@ The three lanes the parser fixes unlocked yielded what the survey predicted:
 electricity and water 39 rows, health 31, information 29, oil 25, and the
 chief-of-staff list its first 13 dates ever.
 
-**It cannot be uploaded as it stands.** QuickStatements folds two lines with the
-same subject, property and *value* into one statement and merges their
-qualifiers, so a person with two spells in one office gets a single P39 carrying
-two `P580`s and two `P582`s. Kuwait has **50** such groups — the most of any
-batch — because its rosters are long enough to catch re-appointments. This was
-measured on Wikidata against batches already applied, and the damage is live:
-`Q1368615` carries one Ecuadorian ministry statement whose two starts are
-fourteen years apart. `tasks/followups.md` holds the finding and the options.
+**Applied 2026-08-13, through two write paths.** This run is what found that
+QuickStatements folds two lines sharing a subject, property and *value* into one
+statement and merges their qualifiers — so a person with two spells in one office
+would have got a single P39 carrying both starts and both ends. Kuwait has **50**
+such people, the most of any batch, because four Assembly rolls give one member
+up to four consecutive terms in the same seat. They went through
+`scripts/apply_claims.py` (117 statements, verified afterwards as 117 separate
+statements, none date-merged); the other 253 went through the importer.
+
+The same finding repaired 21 statements already live from earlier batches and
+exposed a UAE parser defect that QuickStatements had been quietly covering for —
+see `tasks/followups.md`.
 
 ## Byproducts expected
 

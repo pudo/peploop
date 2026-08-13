@@ -1,0 +1,30 @@
+{
+  "campaign": "kuwait",
+  "files": [
+    "kuwait_assembly_2016.jsonl",
+    "kuwait_assembly_2020.jsonl",
+    "kuwait_assembly_2023.jsonl",
+    "kuwait_assembly_2024.jsonl",
+    "kuwait_awqaf.jsonl",
+    "kuwait_chief_of_staff.jsonl",
+    "kuwait_crown_prince.jsonl",
+    "kuwait_defence.jsonl",
+    "kuwait_deputy_pm.jsonl",
+    "kuwait_electricity_water.jsonl",
+    "kuwait_emir.jsonl",
+    "kuwait_foreign_affairs.jsonl",
+    "kuwait_health.jsonl",
+    "kuwait_information.jsonl",
+    "kuwait_interior.jsonl",
+    "kuwait_justice.jsonl",
+    "kuwait_mos_assembly_affairs.jsonl",
+    "kuwait_mos_cabinet_affairs.jsonl",
+    "kuwait_mos_economic.jsonl",
+    "kuwait_mos_housing.jsonl",
+    "kuwait_mos_municipal.jsonl",
+    "kuwait_national_guard.jsonl",
+    "kuwait_oil.jsonl",
+    "kuwait_prime_minister.jsonl",
+    "kuwait_speaker.jsonl"
+  ]
+}
