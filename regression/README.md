@@ -45,7 +45,7 @@ comes from `--retrieved` and changes on every re-render, so compare with
 | uae | 136 | 86 | 94 | — |
 | saudi | 283 | 44 | 43 | — |
 | kuwait | 1,299 | 358 | 253 | 117 |
-| jordan | 562 | 275 | 210 | 159 |
+| jordan | 495 | 221 | 220 | 161 (applied) |
 
 **The baselines above the Kuwait row predate the two-file split** (§8 of the
 recipe), so their `.qs` still holds the multi-tenure lines that
@@ -107,13 +107,28 @@ them, which is the only reason they are in. The backtest fix changed no record
 anywhere — it only stopped three Belarusian offices and one Saudi one being
 reported as parse defects they never were.
 
-Jordan was added 2026-08-13, before any of its batch was applied, so it is the
-one baseline here that a re-run currently reproduces — the others all diff large
-because their statements are now live (see below). It is also the first whose
-`.qs` is smaller than its API half is large: 59 of 275 applying records are
-people with several tenures in one office, because a minister who served four
-consecutive governments is four rows on four cabinet articles and one continuous
-tenure once `merge_terms` is done with them.
+Jordan was added 2026-08-13 and **refreshed the same day**, after its API half
+(161 statements for 60 people) had been applied and after the `already_under_sibling`
+fix below. The snapshot in the table is the post-application one, so it is the
+number the `.qs` in this directory actually carries.
+
+Its API half was unusually large for the size of the campaign — 60 of 275
+applying records were people with several tenures in one office — because a
+minister who served four consecutive governments is four rows on four cabinet
+articles and one continuous tenure once `merge_terms` is done with them.
+
+The refresh was not cosmetic. `already_under_sibling` took its sibling set from
+*all* of an office's targets, which is right for an office spread across era
+items (Spain files one presidency of the Congress across four) and wrong for a
+bucket lane: Jordan's cabinet is one `Office` routing forty ministries, so every
+portfolio read as a sibling of every other and a minister holding two at once —
+Ahmad al-Tarawneh was Justice and Education across the same span — had one
+skipped as a duplicate of the other. Thirteen true statements were being
+suppressed, and the cabinet lane's backtest read 88% on targets and 75% on dates
+because of it; with era siblings kept and portfolio siblings dropped it reads
+99% and 89%. Spain, the UAE, Saudi Arabia and Kuwait were all re-run against the
+change and none gained a record; Saudi Arabia's single cross-portfolio false
+duplicate correctly stopped being one.
 
 It went in alongside five `wd/roster.py` column keys (the Jordanian Arabic
 vocabulary: `غادر`, `الرئيس`, `عضو`, `تاريخ اليمين`, `المهام`), the

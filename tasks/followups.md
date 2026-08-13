@@ -87,7 +87,7 @@ used to drop.
 | ecuador | 177 of 177, + 28 API | **50** |
 | spain | 32 — the API half only | **79** |
 | belarus | 10 of 16 | **6** |
-| **jordan** | **nothing applied yet** | **210 `.qs` + 159 API for 59 people** |
+| **jordan** | **161 API statements for 60 people, applied 2026-08-13** | **220 `.qs`, not yet uploaded** |
 
 Now that the state reads are fresh (`campaign.STATE_MAX_AGE`), the right-hand
 column is simply what `render_edit_plan.py` prints. **Trust that, not this
@@ -276,6 +276,24 @@ in this file that cannot go stale.
 - 100 undated Presidentes del Consejo de Ministros (per-person gap on Q16020745)
 
 ## Jordan (added 2026-08-13)
+
+**Two duplicate P39 statements to remove — surgical, stop and ask.**
+`Q100258645` Nayef Al-Fayez carries `P39 = Q110066643` twice over for each of two
+spells. Cause: the first `apply_claims` run for this person reported `1 failed`
+after `wikibase-edit` retried thirteen times against query-service lag — but the
+edit had already succeeded server-side, so the ledger recorded nothing and the
+retry wrote it again. The API de-duplicates nothing; the ledger is the only guard
+and it cannot see a write that succeeded after the client gave up. Remove one of
+each pair:
+
+    wb remove-claim Q100258645$4C14170D-86BF-4688-BB99-95C707F1839B
+    wb remove-claim Q100258645$FA71F397-61F4-487B-A9BA-98A1B216F3FF
+
+Keep `$20832BE6…` (2012-10-11–2013-03-30) and `$D7ED51B7…` (2018-06-04–2020-10-12).
+All 58 other people written through the API were checked and are clean. Worth a
+guard in `wd/write.py`: on a timeout or maxlag failure, re-read the item before
+reporting failure, because "failed" and "succeeded slowly" are indistinguishable
+from the client side.
 
 **Item-layer defects — surgical, stop and ask.**
 * Q54900644 "Crown Prince of Jordan" (1 holder, en label) and Q60061190

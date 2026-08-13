@@ -1287,7 +1287,21 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
         derived, not_this_office = verify_family(
             session, candidates, targets, campaign.country_qid
         )
-        siblings = list(dict.fromkeys(list(targets) + [qid for qid, _ in derived]))
+        # An office's *era* items are siblings — Spain files one presidency of
+        # the Congress across four of them, so a spell recorded on any of them
+        # is this appointment already written down. Its *portfolio* items are
+        # not: a bucket lane routed by `section_targets` is forty offices
+        # wearing one `Office`, and treating them as one family makes every
+        # portfolio a duplicate of every other. Jordan's ministers hold two at
+        # once routinely — Ahmad al-Tarawneh was Justice and Education across
+        # the same span — and thirteen true statements were skipped as
+        # duplicates of each other before this distinction existed.
+        era_siblings = [qid for _, _, qid in office.date_targets if qid]
+        siblings = list(dict.fromkeys(
+            ([office.target] if office.target else [])
+            + era_siblings
+            + [qid for qid, _ in derived]
+        ))
 
         for (qid, target), group in per_person.items():
             person = people[qid]
