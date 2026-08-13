@@ -26,6 +26,11 @@ from typing import Dict, List, Sequence, Tuple
 #: that case, which happens whenever a person appears in two offices.
 REFERENCE_PROPERTIES = re.compile(r"^S\d+$")
 
+#: Qualifiers that distinguish one tenure from another rather than describing
+#: it. Two lines differing in any of these are two statements the writer means
+#: to be separate — which is what `collapsing_groups` exists to protect.
+DISTINGUISHING_QUALIFIERS = ("P580", "P582", "P2868", "P768", "P2937")
+
 ITEM_VALUE = re.compile(r"^Q\d+$")
 TIME_VALUE = re.compile(r"^[+-]\d{4}-\d{2}-\d{2}T00:00:00Z/(9|10|11)$")
 
@@ -128,6 +133,44 @@ def _parse(line: str) -> Tuple[str, str, str, Dict[str, str], Dict[str, str]]:
     return subject, prop, value, qualifiers, references
 
 
+def collapsing_groups(
+    lines: Sequence[str],
+) -> Dict[Tuple[str, str, str], List[Tuple[Tuple[str, str], ...]]]:
+    """Claims QuickStatements would fold into one statement, losing the pairing.
+
+    Reach for this before writing a `.qs`, and route what it returns to the API
+    instead. QuickStatements matches an incoming line against existing
+    statements on **subject, property and value alone**; when it finds one it
+    adds the line's qualifiers to that statement rather than creating a second.
+    So a person with two spells in one office does not get two P39 statements —
+    they get one carrying two `P580`s and two `P582`s, and nothing says which
+    start belongs to which end.
+
+    Measured on Wikidata after the Ecuador batch was applied: Q1368615 holds a
+    single P39 whose starts are 1991-06-26 *and* 2005-12-29 and whose ends are
+    1992-08-09 *and* 2010-04-05 — two ministries fourteen years apart, which
+    anything reading P39 with dates takes for nineteen years of continuous
+    office.
+
+    Returns only the offending groups: (subject, property, value) → the distinct
+    qualifier signatures competing for one statement. Lines that differ solely
+    in their references are one statement with two sources and are excluded,
+    which is the case `check` warns about separately.
+    """
+    signatures: Dict[Tuple[str, str, str], List[Tuple[Tuple[str, str], ...]]] = {}
+    for line in lines:
+        subject, prop, value, qualifiers, _ = _parse(line)
+        signature = tuple(
+            (key, qualifiers[key])
+            for key in DISTINGUISHING_QUALIFIERS
+            if key in qualifiers
+        )
+        seen = signatures.setdefault((subject, prop, value), [])
+        if signature not in seen:
+            seen.append(signature)
+    return {key: seen for key, seen in signatures.items() if len(seen) > 1}
+
+
 def check(lines: Sequence[str]) -> Result:
     """Run every check over a rendered QuickStatements batch."""
     result = Result(statements=len(lines))
@@ -182,6 +225,23 @@ def check(lines: Sequence[str]) -> Result:
     for line, count in identical.items():
         if count > 1:
             result.defects.append(f"{count}× this exact line: {line[:90]!r}")
+
+    # The one defect here that is not about a malformed line: these lines are
+    # each well formed and mean the right thing, and QuickStatements still
+    # cannot write them. They belong on the API path, so the renderer partitions
+    # them out — reaching this check means one slipped through.
+    for (subject, prop, value), signatures in sorted(collapsing_groups(lines).items()):
+        spans = "; ".join(
+            ", ".join(f"{key}={token.split('T')[0]}" for key, token in signature)
+            or "no qualifiers"
+            for signature in signatures
+        )
+        result.defects.append(
+            f"{subject} {prop} {value}: {len(signatures)} tenures would collapse "
+            f"into one statement carrying all their dates at once — {spans}. "
+            "QuickStatements matches on subject/property/value alone; write "
+            "these through the API instead (scripts/apply_claims.py)"
+        )
     restated = {key: n for key, n in claims.items() if n > 1}
     if restated:
         result.warnings.append(

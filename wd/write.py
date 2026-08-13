@@ -1,19 +1,29 @@
 """The only place this workbench writes to Wikidata.
 
-Statements go out as QuickStatements files the user runs, which are
-mass-revertable and show up in EditGroups. Position *items* cannot: a
-QuickStatements `CREATE` gives no way to reference the new item as a statement
-value in the same batch, so every holder waiting on a new office would need a
-second batch after a human read back the QID. That round trip is the stall this
-project exists to remove, so items are created here, one atomic
-`wb create-entity` call each.
+Most statements go out as QuickStatements files the user runs, which are
+mass-revertable and show up in EditGroups. Two kinds cannot, and both are
+written here instead, one atomic `wb` call each:
 
-Three properties are non-negotiable, because creation is the least reversible
-thing here — undoing it takes a deletion or a merge, both reserved for a human:
+* **Position items.** A QuickStatements `CREATE` gives no way to reference the
+  new item as a statement value in the same batch, so every holder waiting on a
+  new office would need a second batch after a human read back the QID. That
+  round trip is the stall this project exists to remove.
+* **A person's several tenures in one office.** QuickStatements matches an
+  incoming line on subject, property and value alone, so two lines for two
+  spells become *one* statement carrying both starts and both ends, with nothing
+  to say which start goes with which end (`wd.validate.collapsing_groups`
+  finds them; the damage is live on Wikidata from the Ecuador batch). The API
+  has no such behaviour: each claim listed is created.
+
+Three properties are non-negotiable, because both of these are the least
+reversible things here — undoing a creation takes a deletion or a merge, and
+undoing a duplicated claim takes a statement removal, all reserved for a human:
 
 * **A ledger.** QuickStatements de-duplicates statements but nothing
-  de-duplicates a creation, so a second run must recognise what the first one
-  made. `data/<campaign>/created.json` maps a stable ref to the QID.
+  de-duplicates a creation, and — the reason the claims path needs one just as
+  much — nothing de-duplicates an API claim either, so re-running would write a
+  second copy of every tenure. `data/<campaign>/created.json` and
+  `claims_written.json` map a stable ref to what was written.
 * **Dry by default.** Nothing is written unless the caller asks twice, once by
   passing `apply=True` and once by having a spec that cleared `create.guard`.
 * **An edit log.** Every write appends to `data/<campaign>/applied.jsonl` with
@@ -98,6 +108,37 @@ def create_entity(
         raise WriteError(f"no QID in wb output: {output.strip()[:200]}")
     ledger.record(ref, qid, payload)
     return qid
+
+
+def edit_entity(
+    payload: dict, summary: str, ledger: Ledger, ref: str, apply: bool = False
+) -> bool:
+    """Add claims to an existing item, or report what would be added.
+
+    Reach for this for the statements QuickStatements cannot express — today
+    that means a person's several tenures in one office, which QS folds into a
+    single statement with every date on it. `payload` is a wikibase-edit entity
+    blob (`{"id": …, "claims": {…}}`), so all of one person's tenures go in one
+    atomic edit and either all land or none do.
+
+    Returns whether anything was written. The ledger is what makes a re-run
+    safe: unlike QuickStatements, the API creates every claim it is given, so
+    without it a second run silently doubles each tenure.
+    """
+    if ledger.qid(ref):
+        return False
+
+    args = [
+        "wb", "edit-entity", json.dumps(payload, ensure_ascii=False),
+        "--summary", summary, "--maxlag", str(MAXLAG),
+    ]
+    if not apply:
+        _run(args + ["--dry"])
+        return False
+
+    output = _run(args)
+    ledger.record(ref, payload["id"], {"payload": payload, "response": output[:400]})
+    return True
 
 
 def _first_qid(output: str) -> Optional[str]:

@@ -5,7 +5,16 @@
     python scripts/render_edit_plan.py --retrieved 2026-08-05 --campaign ecuador
 
 Reads <campaign>/verdicts/*.jsonl and writes edit_plan.md (the record of every
-verdict) plus edit_plan.qs (QuickStatements V1).
+verdict), edit_plan.qs (QuickStatements V1) and — for the statements
+QuickStatements cannot express — edit_plan_claims.json.
+
+**Two write paths, because QuickStatements can only say some of this.** QS
+matches an incoming line on subject, property and value alone and merges the
+line's qualifiers into whatever statement it finds, so a person's two spells in
+one office become a single P39 carrying both starts and both ends. Those groups
+(`wd.validate.collapsing_groups`) are partitioned out into a wikibase-edit
+payload per person, applied by `scripts/apply_claims.py`; everything else stays
+in the one reviewable `.qs`. Neither file is written to Wikidata here.
 
 **One batch per campaign, not one per concern.** This used to shard the `.qs` by
 `decision.concern` so a bad rule could be reverted alone. It no longer does: the
@@ -31,9 +40,61 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from wd.http import REPO_ROOT
-from wd.validate import check
+from wd.validate import check, collapsing_groups
 
 DATA_DIR = REPO_ROOT / "data"
+
+#: QuickStatements writes a reference property as "S" + number; the API wants
+#: the property itself.
+QS_REFERENCE = re.compile(r"^S(\d+)$")
+
+
+def api_time(iso: str) -> dict:
+    """A partial ISO date as a wikibase-edit time value.
+
+    The precision has to be explicit. Left to infer, wikibase-edit reads a bare
+    "1991" as a year and "1991-06-26" as a day, which happens to be right — but
+    the roster's own precision is the thing being asserted here, so it is stated
+    rather than re-derived.
+    """
+    return {"time": iso, "precision": {1: 9, 2: 10, 3: 11}[min(len(iso.split("-")), 3)]}
+
+
+def api_value(value: dict):
+    """A record's snak value in wikibase-edit form."""
+    if value.get("type") == "time":
+        return api_time(value["iso"])
+    if value.get("type") == "item":
+        return value["id"]
+    return value.get("text") or ""
+
+
+def api_claims(record: dict, retrieved: str) -> dict:
+    """One person's statements as a wikibase-edit claims blob.
+
+    Every tenure is listed separately and the API creates each one, which is the
+    whole point of routing here: it is the behaviour QuickStatements does not
+    have.
+    """
+    claims: dict[str, list[dict]] = {}
+    for statement in record["statements"]:
+        claim: dict = {"value": api_value(statement["value"])}
+        qualifiers = {
+            q["property"]: api_value(q["value"])
+            for q in statement.get("qualifiers", [])
+        }
+        if qualifiers:
+            claim["qualifiers"] = qualifiers
+        references = {}
+        for reference in statement.get("references", []):
+            match = QS_REFERENCE.match(reference["property"])
+            prop = f"P{match.group(1)}" if match else reference["property"]
+            references[prop] = html.unescape(reference["value"]["text"])
+        if references:
+            references["P813"] = api_time(retrieved)
+            claim["references"] = [references]
+        claims.setdefault(statement["property"], []).append(claim)
+    return claims
 
 
 def qs_time(date: str) -> str | None:
@@ -116,6 +177,7 @@ def main() -> None:
     verdict_dir = campaign_dir / "verdicts"
     plan_md = campaign_dir / "edit_plan.md"
     plan_qs = campaign_dir / "edit_plan.qs"
+    plan_claims = campaign_dir / "edit_plan_claims.json"
 
     # The campaign records which files it owns. Without that check a verdict
     # file left behind by a renamed office key keeps being rendered — Ecuador's
@@ -143,6 +205,7 @@ def main() -> None:
         by_position.setdefault(target, []).append(record)
 
     counts = {"add": 0, "add_held": 0, "reject": 0, "unclear": 0}
+    applied: list[dict] = []
     # A create subject has no target item yet; sort those last.
     for position, items in sorted(
         by_position.items(), key=lambda kv: (kv[0] is None, kv[0] or "")
@@ -170,6 +233,7 @@ def main() -> None:
                 if v.get("notes"):
                     md.append(f"  * notes: {v['notes']}")
                 if bucket == "add":
+                    applied.append(v)
                     qs.extend(qs_lines(v, args.retrieved))
             md.append("")
 
@@ -178,6 +242,35 @@ def main() -> None:
     # would collapse them, but a reviewer counting statements should not have to.
     qs = list(dict.fromkeys(qs))
 
+    # Split off what QuickStatements cannot say. The key is the claim QS would
+    # match on — subject, property, value — so every line touching a contested
+    # claim has to leave the `.qs` together with the rest of its group, or the
+    # part left behind merges into the statement the API is about to create.
+    # Merged per person, not per record: a member of four Assembly terms is four
+    # offices and so four records, and left unmerged they would be four separate
+    # edits to one item. One payload per person makes each person's tenures land
+    # atomically, which is the guarantee worth having when the API — unlike
+    # QuickStatements — has no batch to revert.
+    contested = set(collapsing_groups(qs))
+    by_subject: dict[str, dict] = {}
+    for record in applied:
+        keys = {
+            (record["subject"]["qid"], s["property"], snak_value(s["value"]))
+            for s in record["statements"]
+        }
+        if not keys & contested:
+            continue
+        qid = record["subject"]["qid"]
+        payload = by_subject.setdefault(
+            qid, {"id": qid, "label": record["subject"].get("label"), "claims": {}}
+        )
+        for prop, claims in api_claims(record, args.retrieved).items():
+            for claim in claims:
+                if claim not in payload["claims"].setdefault(prop, []):
+                    payload["claims"][prop].append(claim)
+    claims_payloads = [by_subject[qid] for qid in sorted(by_subject)]
+    qs = [line for line in qs if tuple(line.split("\t")[:3]) not in contested]
+
     # The checks `recipes/country_sweep.md` has prescribed since Ecuador, run
     # here rather than typed out again per campaign. A defect stops the render:
     # the point of a mechanical check is that it cannot be skipped on a late
@@ -185,9 +278,11 @@ def main() -> None:
     validation = check(qs)
     md[2:2] = validation.lines()
 
+    tenures = sum(len(c) for p in claims_payloads for c in p["claims"].values())
     summary = (
-        f"{counts['add']} applied ({len(qs)} statements), "
-        f"{counts['add_held']} held, "
+        f"{counts['add']} applied ({len(qs)} statements via QuickStatements, "
+        f"{tenures} via the API for {len(claims_payloads)} people with several "
+        f"tenures in one office), {counts['add_held']} held, "
         f"{counts['reject']} skipped, {counts['unclear']} to review"
     )
     md.insert(1, summary)
@@ -196,6 +291,14 @@ def main() -> None:
     print(summary)
     print(f"Wrote {plan_md}")
     print(f"Wrote {plan_qs} ({len(qs)} statements)")
+    if claims_payloads:
+        plan_claims.write_text(
+            json.dumps(claims_payloads, ensure_ascii=False, indent=2) + "\n"
+        )
+        print(f"Wrote {plan_claims} ({tenures} statements for "
+              f"{len(claims_payloads)} people — run scripts/apply_claims.py)")
+    elif plan_claims.exists():
+        plan_claims.unlink()
 
     for warning in validation.warnings:
         print(f"⚠ {warning}")
