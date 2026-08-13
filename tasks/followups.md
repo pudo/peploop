@@ -17,22 +17,30 @@ The API halves of **kuwait (117 statements / 50 people)**, **ecuador (28 / 14)**
 and **spain (32 / 13)** are applied and verified: 177 tenures, all as separate
 statements, none date-merged.
 
-- [ ] **The UAE batch is now refused by `wd/validate.py` — 12 defects — and
-      should not be uploaded.** The same mechanism cuts both ways, which is the
-      thing worth remembering. For a person with two genuine spells, the QS merge
-      *destroys* the pairing. But 10 of the UAE's 12 groups are one tenure the
-      run emitted as **fragments** — one line carrying only `P582`, another only
-      `P580`, describing the same spell — and there the merge silently
-      *repaired* it: `Q215477`, `Q107596718` and `Q12178848` all hold one
-      correct, complete statement on Wikidata today. So QS's merge was masking a
-      parser defect, `conflicting_tenures` now catches it, and routing those to
-      the API would have written two half-dated statements where one good one
-      exists. Find out why the UAE rosters fragment a spell across two records
-      before re-rendering; the other 2 (`Q1573260`, `Q22687591`) are genuinely
-      two sources disagreeing about an end date and need reading.
-- [ ] the 2 UAE statements the repair refused, for the same reason — its
-      verification would not touch a statement whose live dates are not what the
-      batch sent, which is what stopped it breaking the 10 correct ones
+**All 21 are now clean**, the last two by source judgement rather than mechanically:
+
+- `Q22687591` Hamdan bin Mohammed Al Nahyan held the deputy premiership
+  `1977-12-20 – 1989-10-11`; he **died in office** on that date, and his article
+  records serving *alongside* Maktoum bin Rashid "(1979–1989)". The competing
+  `1979-07-01` was only the end of the *third cabinet*.
+- `Q1573260` Hamdan bin Zayed: three sources gave three ends — `2009-05-10`
+  (the deputy-PM list), `2009-05-12` (the cabinet list) and `2009-03-04` (his own
+  infobox). Kept **2009-05-12**, the day the ninth cabinet took office, which is
+  when an eighth-cabinet deputy premiership necessarily ends. Worth knowing that
+  the cabinet page applies that date to every member of the cabinet, so it is
+  structural rather than an attestation about him.
+
+- [ ] **`wd/validate.py` still refuses to re-render the UAE batch (12 defects),
+      and that is correct — but the cause is a UAE parser defect, not the merge.**
+      10 of the 12 groups are one tenure the run emitted as **fragments**: a line
+      carrying only `P582` and another only `P580`, describing the same spell,
+      because the deputy premiership is fed by *two* pages — the dedicated
+      succession list and `List of cabinets of the UAE`, which prints one section
+      per cabinet and dates only the changes. QuickStatements merged each pair
+      back into one complete statement, so `Q215477`, `Q107596718` and
+      `Q12178848` are *correct* on Wikidata today: the merge was quietly covering
+      for the defect. Fix the per-cabinet fragmentation (merge a person's
+      consecutive cabinet rows into one spell) before re-rendering.
 
 ### How it was fixed
 
@@ -80,12 +88,17 @@ QuickStatements importer, and `edit_plan_claims.json` via
       large (50 of 358 people) because the four Assembly rolls give one member up
       to four consecutive terms in the same seat
 - [ ] **spain — 79 to upload**; its API half (32 / 13 people) is applied
-- [ ] **uae — blocked, do not upload.** `wd/validate.py` refuses it: 12 groups
-      are one tenure emitted as fragments or dated twice (see the top of this
-      file). Also still open: one row the backtest contradicts —
-      Q1380993 Saqr bin Mohammad al-Qassimi → Q110964697 Ruler of Sharjah
-      (1972), a spell the community records on Q110964704 Ras Al Khaimah;
-      the two thrones are one dynasty and holders are filed under either
+- [x] **uae — applied 2026-08-12 07:33** via QuickStatements, all 94 lines.
+      Verified twice over: every line is present with its own dates (58 dated,
+      36 undated P53), and the revision history shows
+      `Pudox … #quickstatements` on each subject at that minute. This entry said
+      "awaiting upload" for a day; **three batches turned out to be applied
+      already** (courts, positions, uae), so before trusting a checkbox here,
+      diff the `.qs` against live Wikidata — it is a cheap check.
+      Still open: one row the backtest contradicts — Q1380993 Saqr bin Mohammad
+      al-Qassimi → Q110964697 Ruler of Sharjah (1972), a spell the community
+      records on Q110964704 Ras Al Khaimah; the two thrones are one dynasty and
+      holders are filed under either
 - [ ] **saudi — 43 + 0** (29 P39, 9 P53, 3 P25, 2 P22) — the P22s are the two to
       read first, being the only statements in the batch derived from a name
       rather than from a table
