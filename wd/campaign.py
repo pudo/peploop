@@ -111,6 +111,19 @@ class RosterSource:
     kind: str = "table"
     #: Regex the table's own heading must match; None uses DEFAULT_HEADINGS.
     headings: Optional[str] = None
+    #: (start, end) ISO dates every row on this page shares, for a page that
+    #: *is* one term.
+    #:
+    #: Reach for this where a legislature publishes a membership roll per term
+    #: and dates the term in the page title rather than in the rows. Saudi
+    #: Arabia is the case: `قائمة أعضاء مجلس الشورى السعودي (1442-1446هـ)`
+    #: tabulates 150 members with no date column at all, and the Hijri years in
+    #: its title are the only statement of when they served. Without this the
+    #: whole lane is `no_dates` and skipped.
+    #:
+    #: Applied only to rows that parsed no date of their own, so a page that
+    #: dates *some* rows keeps what it says. A row's own dates always win.
+    term: Tuple[Optional[str], Optional[str]] = (None, None)
 
 
 @dataclass
@@ -157,6 +170,14 @@ class Office:
     #: other.
     archetype: Optional[str] = None
     body: Optional[str] = None
+    #: The subdivision a created item applies to, where the office is not
+    #: national — `P1001` on the new item, which defaults to the country.
+    #:
+    #: Needed wherever a country's own convention scopes the office narrower
+    #: than itself: the eight Saudi provincial governorships that already have
+    #: items all carry `P1001 = <province>`, so minting the missing five with
+    #: `P1001 = Q851` would make them a different shape from their siblings.
+    jurisdiction: Optional[str] = None
     #: Labels for the item to be created, by language.
     create_labels: Tuple[Tuple[str, str], ...] = ()
     #: The dynasty that holds this office, for a `P53` backfill, plus the
@@ -211,6 +232,16 @@ class Campaign:
     continuous_eras: Tuple[str, ...] = ()
     #: Categories whose members belong to another regime entirely: (lang, cat).
     regime_categories: Tuple[Tuple[str, str, str], ...] = ()
+    #: Verdict files this campaign owns that no office produces — a second
+    #: script writing into the same directory.
+    #:
+    #: The manifest exists so a renamed office key cannot strand a stale file
+    #: that the renderer goes on reading forever, which means anything *not*
+    #: named by an office is an orphan by default. A campaign whose lanes are not
+    #: all offices has to say so: Saudi Arabia's kinship lane (`sa_family.py`)
+    #: proposes P25/P22/P53 from a genealogy article rather than from a roster,
+    #: and belongs in the same one batch as its offices.
+    extra_verdicts: Tuple[str, ...] = ()
 
 
 @dataclass
@@ -531,7 +562,11 @@ def office_rows(
             # es.wikipedia heads each era's table with an "Espectro político"
             # colour key that otherwise contributes one unidentifiable row per
             # era to the audit's item-creation column.
-            if roster.columns != ["bullet"] and not (
+            # …unless the source declares the dates itself. A membership roll
+            # for one term has no date column *by design* — the term is in the
+            # page title — so `term=` has to license the table the guard would
+            # otherwise throw away.
+            if roster.columns != ["bullet"] and source.term == (None, None) and not (
                 {"period", "start", "end"} & set(roster.columns)
             ):
                 skipped.append(
@@ -545,6 +580,17 @@ def office_rows(
                     # heading so regime routing still has something to read.
                     if row.section is None and heading:
                         row.section = heading
+                    # A page that is one term dates the rows that date
+                    # themselves nowhere. The row's own dates win where it has
+                    # them, so a roll that footnotes a mid-term replacement
+                    # keeps the footnote.
+                    if source.term != (None, None) and not row.start:
+                        row.start, row.end = source.term
+                        row.period_raw = (
+                            row.period_raw
+                            or f"{source.term[0] or '?'} – {source.term[1] or '?'} "
+                               "(the page's own term)"
+                        )
                     rows.append(row)
             else:
                 skipped.append(f"{heading or '(no heading)'} [{len(roster.rows)} rows]")
@@ -1511,7 +1557,10 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
     # file in a directory the renderer reads by glob, and it goes on being
     # rendered forever: Ecuador carried 96 records from a superseded
     # `minister_gobierno.jsonl` for a day before anyone noticed.
-    expected = sorted(f"{campaign.name}_{o.key}.jsonl" for o in campaign.offices)
+    expected = sorted(
+        [f"{campaign.name}_{o.key}.jsonl" for o in campaign.offices]
+        + list(campaign.extra_verdicts)
+    )
     (verdict_dir / "manifest.json").write_text(
         json.dumps({"campaign": campaign.name, "files": expected}, indent=2) + "\n"
     )

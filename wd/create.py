@@ -95,6 +95,16 @@ ARCHETYPES: Dict[str, Archetype] = {
         parent="Q3250324",
         description="deputy ruler of {jurisdiction}",
     ),
+    # Measured off the eight Saudi provincial governorships that already exist
+    # rather than chosen: every one of them carries `P279 = Q98786082` ("emir of
+    # province", itself an Amir and a military-officer subclass) and scopes
+    # itself to its province through P1001. The `agency_head` shape would have
+    # given the five missing ones `P279 = Q1162163` ("director") and made them a
+    # different kind of thing from their own siblings.
+    "provincial_governor": Archetype(
+        parent="Q98786082",
+        description="governor of {jurisdiction}",
+    ),
 }
 
 

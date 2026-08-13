@@ -175,6 +175,43 @@ def _same_span(
     return bool(row_end) and row_end[:width] == term.end[:width]
 
 
+def _row_width(value: Optional[str]) -> int:
+    """How many characters of "YYYY-MM-DD" a parsed roster bound asserts."""
+    return len(value) if value else 10
+
+
+def _common_width(row_value: Optional[str], precision: int) -> int:
+    """The precision the roster and the record *both* claim, as a slice width."""
+    return min(_row_width(row_value), {9: 4, 10: 7}.get(precision, 10))
+
+
+def _agrees_at_common_precision(
+    row_start: Optional[str], row_end: Optional[str], term: ExistingTerm
+) -> bool:
+    """Do the parts the roster and the record both assert say the same thing?
+
+    The mirror of `_same_span`, which cuts the comparison down to the *record's*
+    precision and so answers only "is the record the coarser one". A roster can
+    be the coarser just as easily, and then the same arithmetic reports a
+    correctly parsed row as contradicting the record: the Saudi province
+    articles date their governors by year ("1952 - 1955") where the items carry
+    the day ("1952-12-20" – "1955-04-18"), and all five comparable Riyadh rows
+    scored `conflict` — a 0% date agreement on a page with nothing wrong with it.
+
+    An open end on one side is not a contradiction of a recorded one; whether
+    the spell is recorded at all is what `disjoint` counts, separately.
+    """
+    if not row_start or not term.start:
+        return False
+    width = _common_width(row_start, term.precision)
+    if row_start[:width] != term.start[:width]:
+        return False
+    if row_end and term.end:
+        end_width = _common_width(row_end, term.precision)
+        return row_end[:end_width] == term.end[:end_width]
+    return True
+
+
 def _pad(value: Optional[str], high: bool) -> Optional[str]:
     """A partial ISO date as its earliest or latest day, for span arithmetic."""
     if not value:
@@ -225,6 +262,10 @@ def _verdict(
         ):
             return NEAR
     if any(not t.start or t.precision < 11 for t in on_target):
+        return COARSER
+    # …and the same allowance when the *roster* is the coarser side, which the
+    # branch above cannot see because it reads only the record's precision.
+    if any(_agrees_at_common_precision(row_start, row_end, t) for t in on_target):
         return COARSER
     if any(t.covers(row_start, row_end) for t in on_target):
         return CONFLICT
@@ -282,10 +323,14 @@ def _shares_boundary(
     A parliamentary seat that merely spans the same years agrees on neither, and
     that is what keeps it out of the office's item family.
     """
-    width = {9: 4, 10: 7}.get(term.precision, 10)
-    if row_start and term.start and row_start[:width] == term.start[:width]:
-        return True
-    return bool(row_end and term.end and row_end[:width] == term.end[:width])
+    if row_start and term.start:
+        width = _common_width(row_start, term.precision)
+        if row_start[:width] == term.start[:width]:
+            return True
+    if not (row_end and term.end):
+        return False
+    width = _common_width(row_end, term.precision)
+    return row_end[:width] == term.end[:width]
 
 
 @dataclass

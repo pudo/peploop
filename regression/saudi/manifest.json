@@ -1,0 +1,26 @@
+{
+  "campaign": "saudi",
+  "files": [
+    "saudi_cabinet.jsonl",
+    "saudi_crown_prince.jsonl",
+    "saudi_defence.jsonl",
+    "saudi_deputy_crown_prince.jsonl",
+    "saudi_earlier_states.jsonl",
+    "saudi_family.jsonl",
+    "saudi_foreign_affairs.jsonl",
+    "saudi_governor_bahah.jsonl",
+    "saudi_governor_jazan.jsonl",
+    "saudi_governor_jouf.jsonl",
+    "saudi_governor_najran.jsonl",
+    "saudi_governor_northern.jsonl",
+    "saudi_governor_riyadh.jsonl",
+    "saudi_health.jsonl",
+    "saudi_information.jsonl",
+    "saudi_interior.jsonl",
+    "saudi_king.jsonl",
+    "saudi_prime_minister.jsonl",
+    "saudi_second_deputy_pm.jsonl",
+    "saudi_shura_chairman.jsonl",
+    "saudi_shura_member.jsonl"
+  ]
+}

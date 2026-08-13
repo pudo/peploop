@@ -38,6 +38,7 @@ SCRIPTS = {
     "ec": "ec_ministers",
     "es": "es_offices",
     "ae": "ae_offices",
+    "sa": "sa_offices",
 }
 
 
@@ -88,6 +89,7 @@ def main() -> None:
             archetype=office.archetype,
             labels=dict(office.create_labels),
             country_qid=campaign.country_qid,
+            jurisdiction=office.jurisdiction,
             body=office.body,
             inception=starts[0] if starts else None,
             attested_by=attested,

@@ -43,6 +43,7 @@ comes from `--retrieved` and changes on every re-render, so compare with
 | czechia | 72 | 18 | 18 |
 | spain | 297 | 93 | 111 |
 | uae | 136 | 86 | 94 |
+| saudi | 283 | 44 | 43 |
 
 The middle column counts every record the policy decided to apply, not just the
 ones the `modern` rule released — an earlier version of this table said 97 for
@@ -55,6 +56,18 @@ Spain's snapshot was taken after the ten `wd/roster.py` parser fixes and the
 `Office.date_targets` / `already_under_sibling` additions that run required —
 all three earlier campaigns were re-run against it and diffed clean, which is
 the only reason those additions are in.
+
+Saudi Arabia was added 2026-08-12, and its baseline is the first that spans two
+scripts: `sa_offices.py` writes a verdict file per office and `sa_family.py`
+writes `saudi_family.jsonl`, which the campaign owns through
+`Campaign.extra_verdicts`. Re-running the campaign means running **both** before
+diffing, or the kinship file reads as a wholesale delete. It went in alongside
+seven `wd/roster.py` additions (the Arabic Saudi column vocabulary, the
+`_first_month` scan, the dateless-stack drop) and the `wd/backtest.py` precision
+fix; all five earlier campaigns were re-run and diffed clean across every one of
+them, which is the only reason they are in. The backtest fix changed no record
+anywhere — it only stopped three Belarusian offices and one Saudi one being
+reported as parse defects they never were.
 
 `data/positions/` (the earlier Lithuania/Bahrain run, 133 records) is not
 baselined: it predates `wd/campaign.py` and is not reproducible by any current
