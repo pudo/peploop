@@ -87,6 +87,7 @@ used to drop.
 | ecuador | 177 of 177, + 28 API | **50** |
 | spain | 32 — the API half only | **79** |
 | belarus | 10 of 16 | **6** |
+| **jordan** | **nothing applied yet** | **210 `.qs` + 159 API for 59 people** |
 
 Now that the state reads are fresh (`campaign.STATE_MAX_AGE`), the right-hand
 column is simply what `render_edit_plan.py` prints. **Trust that, not this
@@ -273,6 +274,82 @@ in this file that cannot go stale.
 - 132 UAE roster rows with no item (`data/uae/roster_audit.md`)
 - 82 Cortes de Cádiz presidents, 1810–1814 (`data/spain/roster_audit.md`, Congress `no identity` column)
 - 100 undated Presidentes del Consejo de Ministros (per-person gap on Q16020745)
+
+## Jordan (added 2026-08-13)
+
+**Item-layer defects — surgical, stop and ask.**
+* Q54900644 "Crown Prince of Jordan" (1 holder, en label) and Q60061190
+  "ولي العهد (الأردن)" (0 holders) are **two items for one throne**. No office was
+  declared for the crown princedom because of it; merge, then the lane is a
+  five-row roster away.
+* Q98231908 "وزير الأوقاف والشؤون والمقدسات" (2 holders, **no P17**) duplicates
+  Q110066975 (1 holder, P17=Q810). The campaign routes to the P17-scoped one and
+  the backtest reports the five rows the community filed on the other.
+* Q110066504 "Minister of Labour" / Q133851928 "Minister of Labor", and
+  Q110065394 "Minister of Water and Irrigation" / Q137704254 "وزير المياه والري"
+  — one pair each, competing for the same era rather than succeeding it.
+* Q6597909 "list of speakers of the House of Representatives of Jordan" is a
+  **list article carrying 2 P39 holders** — the Q20388005 shape again.
+* Q136650633 "عضو في مجلس النواب الأردني" (1 holder) duplicates Q17524418 (82).
+* Q14625123 "King of Jordan" carries **no P17**, which is why the P17 census
+  misses it entirely; add `P17 = Q810`.
+
+**Byproducts (people with no item — OS PEP coverage).**
+* **958 cabinet roster rows resolve to no Wikidata item**, out of 1,824. This is
+  the largest single item-creation list this workbench has measured for a country
+  whose ministries already have items.
+* **232 `category_only`** — in `ar:وزراء أردنيون` or a Senate category but named
+  by no roster row this campaign read.
+* 40 of the 87 people listed in the Hashemite descendant sections have no
+  article, listed per parent in `data/jordan/kinship_audit.md`.
+
+**Portfolios with no item (creation-first, ~319 rows).** Planning
+(`وزيرا للتخطيط`, 21 rows), Communications/`مواصلات` (21), Supply/`تموين` (10),
+Municipal & Rural Affairs (8), Posts & Telecommunications (6), National Economy
+(7), Political Development (6), and the historical `المعارف` education ministry
+(11). Defence has no item and usually no minister — the prime minister held it
+himself 22 times. None is mapped: an unproven rename is a byproduct, not a guess.
+
+**Source defects on ar.wikipedia (fix the wiki, not the parser).** Four pairs of
+consecutive cabinets carry infobox spans that overlap by 1–20 days, so a minister
+who served both gets two tenures that overlap by the same amount:
+`توفيق أبو الهدى التاسعة` ends 1952-09-27 but `العاشرة` starts 1952-09-07;
+`حسن خالد أبو الهدى الأولى` ends 1924-05-07 against `علي رضا الركابي الثانية`
+starting 1924-05-03; `بهجت التلهوني الثالثة` / `وصفي التل الثالثة` by a day; and
+`هاني الملقي الثانية` / `عمر الرزاز` by ten. Not patched here, for the reason the
+Kuwaiti reversed ranges were not: a global "swap or clamp if overlapping" would
+touch every campaign and could mask a real defect. (The three 1920 *local*
+governments — Ramtha, Salt, Karak, Kura — also overlap and are meant to: they ran
+in parallel in different towns.)
+
+**Deferred.**
+* **The sitting cabinet** (`ar:حكومة جعفر حسان`) — its article dates ministers
+  from their original appointment rather than from this government, which
+  collides with the predecessor's dating of the same tenure. Kuwait's sitting
+  cabinet is deferred for a sibling reason.
+* **39 of 108 cabinet articles yield no rows at all** — they carry only
+  `خرج من الفريق الحكومي` / `إنضم إلى الفريق الحكومي` reshuffle tables, which name
+  who joined and left without dating either, or no minister table at all.
+* **10 cabinets state no formation date** in their infobox and are left out of
+  `CABINETS`: with no term and no dated rows there is nothing to record.
+* **House of Representatives seats.** `ar:أعضاء مجلس النواب الأردني` has 114
+  members and Q17524418 carries 82 statements with 13 dated, but the per-term
+  articles are **election-result tables** (candidate votes, list votes,
+  `الدائرة الإنتخابية`, governorate), not member rosters, and only 3 of 20 terms
+  have one. No member office was declared. A source dating the other seventeen
+  terms is what this needs, not a relaxed rule.
+* **Senate seats before the 27th term.** `ar:أعضاء مجلس الأعيان الأردني` has 156
+  members; only the 27th roll tabulates them, and that one carries a party column
+  (`حزب`) which would be `P102` if the lane is ever extended.
+* **Security and central bank.** Chairman of the Joint Chiefs (Q25463341, 2
+  holders), Director of General Intelligence (Q130265327, 2) and Governor of the
+  Central Bank (Q110068356, 2) have items and no roster in either language.
+
+**`wd_categories.yml`.** Jordan needs `language: ar` throughout: the Senate has
+**no English category at all** against 156 members in Arabic, and ministers are
+190 pages + 41 portfolio subcategories in Arabic against 1 page in English. The
+royal lane inverts it — Arabic has no royal-family category and the genealogy
+article is `en:Hashemites`.
 
 ## Deferred lanes
 

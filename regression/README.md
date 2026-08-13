@@ -45,6 +45,7 @@ comes from `--retrieved` and changes on every re-render, so compare with
 | uae | 136 | 86 | 94 | — |
 | saudi | 283 | 44 | 43 | — |
 | kuwait | 1,299 | 358 | 253 | 117 |
+| jordan | 562 | 275 | 210 | 159 |
 
 **The baselines above the Kuwait row predate the two-file split** (§8 of the
 recipe), so their `.qs` still holds the multi-tenure lines that
@@ -105,6 +106,20 @@ fix; all five earlier campaigns were re-run and diffed clean across every one of
 them, which is the only reason they are in. The backtest fix changed no record
 anywhere — it only stopped three Belarusian offices and one Saudi one being
 reported as parse defects they never were.
+
+Jordan was added 2026-08-13, before any of its batch was applied, so it is the
+one baseline here that a re-run currently reproduces — the others all diff large
+because their statements are now live (see below). It is also the first whose
+`.qs` is smaller than its API half is large: 59 of 275 applying records are
+people with several tenures in one office, because a minister who served four
+consecutive governments is four rows on four cabinet articles and one continuous
+tenure once `merge_terms` is done with them.
+
+It went in alongside five `wd/roster.py` column keys (the Jordanian Arabic
+vocabulary: `غادر`, `الرئيس`, `عضو`, `تاريخ اليمين`, `المهام`), the
+`wd/kinship.py` nesting and couple-line work, and `wd.campaign._title_chunks`.
+Kuwait — the only other campaign whose baseline post-dates its batch — was
+re-run against all of it and showed no new records and no changed decisions.
 
 `data/positions/` (the earlier Lithuania/Bahrain run, 133 records) is not
 baselined: it predates `wd/campaign.py` and is not reproducible by any current

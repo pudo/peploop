@@ -307,6 +307,39 @@ Four things this cost, all of which would have shipped silently:
   candidate set, so a person under the wrong one is resolved against the wrong
   generation entirely.
 
+A second article shape, from `en:Hashemites`, where descent is stated by
+**indentation** rather than by heading — a wife's bullet, her children nested
+under it, theirs under that. Three things it added:
+
+* **The enclosing bullet is the assertion, exactly as a heading is.** Nested
+  lists render *inside* their parent's `<li>`, so a flat `./li` walk returns the
+  four wives and loses the seventy people the article exists to place. Carry the
+  nesting down (`Listed.depth`, `parent`, `parent_link`) and `mother_records`
+  takes a bullet-rooted group with no change at all.
+
+* **The gloss beside a name describes a different relation from the nesting.**
+  Hamzah is nested under Queen Noor — she is his mother — and annotated "(The
+  King's half-brother)", which is his relation to the *reigning* king. A parser
+  reading the parenthetical emits sibling edges where the article asserts parent
+  edges. Read structure; cut the gloss off the name (`glosses=True`), including
+  the ones the description separator has already truncated mid-bracket, and keep
+  a regnal marker, which is the one parenthetical that *is* part of a name.
+
+* **One bullet can name a couple, and the second half married in.** Split
+  "[[Hamzah]] and [[Princess Basmah]]" into two entries pointing at each other,
+  and mark the second `married_in`: they are *listed* under the bullet above
+  without descending from it. Left unmarked they cost one wrong statement and
+  eleven wasted skips — a wife's married name ("Princess Ghazi of Jordan") read
+  as evidence of her own descent, and every in-law resolved against the wrong
+  parent. Detect the couple from the links joined by nothing but "and", never
+  from the word alone: "two links in one bullet" also matches
+  "[[Muhammad bin Fahd]] … governor of the [[Eastern Province]]", which entered
+  a province as a person and married it to a prince.
+
+`P26` is emitted from such a pairing only where the article also nests children
+under it — the pairing alone is one channel — and in one direction, because it
+is bot-reciprocated like P40.
+
 And one ceiling worth measuring before promising anything: **10 of Ibn Saud's
 ~22 wives have no Wikidata item**, and they hold 20 of the missing mothers. A
 parent with no item cannot be the value of anyone's `P25`, so that half of the
@@ -600,6 +633,50 @@ the first pass. Each of these was wrong once and would have shipped silently:
   well: the end of term N is the start of term N+1, as attested as the start,
   and it lets `merge_terms` fold a re-appointed member's three open-ended
   statements into the one continuous membership they describe.
+
+* **a whole *institution* dates no row, and the article per government is the
+  term.** Jordan keeps one article per cabinet — 108 of them — and only the two
+  most recent date their rows; the other 106 print a bare
+  `الاسم ¦ المهام الوزارية` and nothing else. What dates them is each article's
+  own infobox (`التكوين`/`النهاية`), so the lane is 98 `RosterSource`s each
+  carrying its government's span. Two consequences worth knowing before
+  reaching for this shape. The dates it writes are *cabinet*-precision, not
+  tenure-precision — a minister replaced mid-government is overstated, and the
+  backtest says so (Jordan's cabinet lane scores 75% on dates against 100% on
+  every office with a real date column). And a minister who served four
+  consecutive governments arrives as four rows, so `merge_terms` does the real
+  work and the API half of the batch gets large: 59 of Jordan's 275 applying
+  records are people with several tenures in one office.
+
+* **the sitting cabinet dates from the *original* appointment, not from this
+  government.** Jordan's current cabinet article gives a minister
+  2023-09-26 – 2025-08-06 where the predecessor's gives her
+  2023-09-26 – 2024-09-15: one continuous tenure told twice, sharing a start,
+  which `validate.collapsing_groups` refuses and no rule can settle without
+  picking a source. Defer the sitting cabinet, as Kuwait's was.
+
+* **two rosters for one office is two sources dating one tenure.** Running
+  `ar:رئيس وزراء الأردن` and `en:List of prime ministers of Jordan` together
+  looked like the two-channel gate working and was not: they agree on every
+  premiership and disagree by a day or two on seven end dates, which arrives as
+  one P39 with two ends. One source per office; the *category* is the second
+  channel, and it dates nothing.
+
+* **a catch-all written `.` does not match an empty cell.** `section_targets`
+  builds its haystack from the row's section and office cell, so a row with
+  neither has an empty string to match against — `re.search(".", "")` is false,
+  the catch-all never fires, and the row falls through to `Office.target`. In
+  Jordan that filed 57 blank cells as ministers of state, 39 of them prime
+  ministers and 18 of them the King, and it showed up only as a backtest target
+  agreement of 68%. Write the catch-all `r""`.
+
+* **a definite article fused to a preposition defeats a pattern carrying it.**
+  Arabic cabinet lists write the portfolio in the accusative — "وزيرا للعدل",
+  where `للعدل` is لِ + العدل — so a pattern written `العدل` matches none of
+  them. Jordan uses 630 distinct spellings of about fifty portfolios across a
+  century, and patterns written from the *titles* left 433 rows unrouted. Match
+  the bare stem, and dump the whole distinct-value tally with what each routes
+  to before running anything.
 
 The mechanical half of this is no longer yours to type: `wd/validate.py` runs
 at render time and **refuses to render** a batch with a duplicate line, a

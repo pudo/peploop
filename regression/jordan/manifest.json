@@ -1,0 +1,12 @@
+{
+  "campaign": "jordan",
+  "files": [
+    "jordan_cabinet.jsonl",
+    "jordan_family.jsonl",
+    "jordan_king.jsonl",
+    "jordan_prime_minister.jsonl",
+    "jordan_senate_president.jsonl",
+    "jordan_senator.jsonl",
+    "jordan_speaker.jsonl"
+  ]
+}

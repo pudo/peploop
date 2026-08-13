@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-"""Assert `wd.roster` date parsing and term merging against what broke them.
+"""Assert `wd.roster` column naming, date parsing and term merging, and
+`wd.kinship` descent parsing, against what broke them.
 
     python scripts/check_dates.py
 
@@ -22,7 +23,56 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wd.roster import RosterRow, merge_terms, parse_date, parse_period
+from lxml import html as lxml_html
+
+from wd.kinship import _cut_gloss, parse_genealogy
+from wd.roster import RosterRow, _roles, merge_terms, parse_date, parse_period
+
+#: (header cells, {column index: required role}, what it is / what it broke)
+#:
+#: A header this module does not recognise costs every row on the page and says
+#: nothing while doing it (§7 #24), so the roles are worth asserting directly.
+#: Only the columns that matter are named; the rest may fall through to `colN`,
+#: which is the point of the decoy cases — an unnamed column is inert, a
+#: *wrongly* named one shadows the cells beside it.
+HEADERS = [
+    (["المنصب", "شاغل المنصب", "تولى المنصب", "غادر المنصب"],
+     {0: "office", 1: "name", 2: "start", 3: "end"},
+     "the ~109 `ar:حكومة <رئيس الوزراء>` cabinet articles, Jordan's only dated "
+     "source for ministers. 'تولى' was already a start key and 'غادر' was not, "
+     "so every row parsed with a start and no end — a lost cell that reads as a "
+     "sitting minister"),
+    (["رقم المجلس", "الرئيس", "فترة الاستلام: من", "فترة الاستلام: إلى",
+      "عدد الأعضاء", "ملاحظة"],
+     {1: "name", 2: "period", 3: "period"},
+     "ar:مجلس الأعيان الأردني. Without 'الرئيس' the table had no name column "
+     "and all 28 rows were dropped for want of one. The two date cells are one "
+     "header row, not a colspan with sub-headers, so they take `period` twice "
+     "and are joined into a range — no `_subroles` refinement needed"),
+    (["عضو", "حزب، حفلة", "تاريخ اليمين الدستورية"],
+     {0: "name", 2: "start"},
+     "the 27th Senate roll. 'العضو' cannot reach 'عضو' — the key differs at its "
+     "first letter, not its third — and the oath date does not begin with "
+     "'التاريخ', so neither the names nor the dates were read"),
+    (["المجلس", "الاسم", "تولى المنصب", "ترك المنصب", "الدورات"],
+     {1: "name", 2: "start", 3: "end"},
+     "ar:قائمة رؤساء مجلس النواب الأردني, which already parsed: pinned so the "
+     "keys it leans on are not repurposed"),
+    (["الصورة", "الاسم (مواليد–وفاة)", "فترة شغل المنصب", "الحزب", "الحكومة"],
+     {1: "name", 2: "period", 3: "party"},
+     "the Arabic ministry articles. 'الحكومة' naming which cabinet a row "
+     "belongs to must stay inert rather than read as an appointer"),
+    # --- decoys the Jordanian keys must not have reopened -----------------
+    (["الاسم", "المدة", "التاريخ الهجري", "التاريخ الميلادي"],
+     {0: "name", 1: "days", 2: "notes", 3: "period"},
+     "a tenure length and a table dated twice over, once per calendar: the AH "
+     "column is a decoy and neither may be reachable through a bare 'التاريخ'"),
+    (["No.", "Portrait", "Name(Birth–Death)", "Election", "Term of office",
+      "Political party", "King(Reign)"],
+     {2: "name", 4: "period"},
+     "en:List of prime ministers of Jordan. 'Election' and 'King(Reign)' both "
+     "carry years and both must stay inert, or they shadow the term"),
+]
 
 #: (cell text, expected ISO prefix or None, what it is / what it broke)
 DATES = [
@@ -106,8 +156,80 @@ MERGES = [
 ]
 
 
+#: (list HTML, [(name, depth, parent, partner, married_in)], what it broke)
+#:
+#: `wd.kinship.parse_genealogy` reads descent off indentation, and every one of
+#: these was wrong once in a way the gates downstream then had to absorb.
+GENEALOGY = [
+    ("<div class='mw-parser-output'>"
+     "<ul><li><a href='/wiki/Queen_Noor'>Queen Noor</a> (fourth wife)"
+     "<ul><li><a href='/wiki/Hamzah'>Hamzah</a> and "
+     "<a href='/wiki/Basmah'>Princess Basmah</a> (half-brother)"
+     "<ul><li>Princess Haya (half-niece)</li></ul></li></ul></li></ul></div>",
+     [("Queen Noor", 1, None, None, False),
+      ("Hamzah", 2, "Queen Noor", "Princess Basmah", False),
+      ("Princess Basmah", 2, None, "Hamzah", True),
+      ("Princess Haya", 3, "Hamzah", None, False)],
+     "the whole shape at once: a wife's bullet is her children's parent, a "
+     "couple splits, the in-law is *not* a child of the bullet above, and the "
+     "grandchild hangs off the blood descendant rather than the spouse"),
+    ("<div class='mw-parser-output'>"
+     "<ul><li><a href='/wiki/Muhammad_bin_Fahd'>Muhammad bin Fahd</a> "
+     "(1950–2025) Former governor of the "
+     "<a href='/wiki/Eastern_Province'>Eastern Province</a></li></ul></div>",
+     [("Muhammad bin Fahd (1950–2025) Former governor of the Eastern Province",
+       1, None, None, False)],
+     "two links in one bullet are not a couple. Taking 'more than one link' as "
+     "the test entered a province as a person and married it to a prince; the "
+     "links must be joined by nothing but the word 'and'"),
+]
+
+#: (printed name, expected after the gloss cut, what it is)
+GLOSSES = [
+    ("Princess Iman (The King's half-sister)", "Princess Iman",
+     "the gloss describes the relation to the reigning king, not to the bullet "
+     "above, and is never part of the name"),
+    ("Princess Muna (King Hussein's second wife", "Princess Muna",
+     "the description separator cuts the gloss off mid-way, so an unclosed "
+     "bracket has to be cut too or half a sentence reads as ancestry"),
+    ("Sa'ad (I)", "Sa'ad (I)",
+     "a regnal marker is the opposite of noise — it is what tells two "
+     "same-named relatives apart"),
+]
+
+
+def header_roles(cells):
+    """The roles `_roles` assigns to a header row written as plain text."""
+    row = "".join(f"<th>{cell}</th>" for cell in cells)
+    table = lxml_html.fromstring(f"<table><tr>{row}</tr></table>")
+    return _roles([(cell, False) for cell in table.xpath("//th")], len(cells))
+
+
 def main() -> None:
     bad = 0
+    for cells, want, why in HEADERS:
+        got = header_roles(cells)
+        wrong = {i: (role, got[i]) for i, role in want.items() if got[i] != role}
+        if wrong:
+            bad += 1
+            detail = ", ".join(
+                f"{cells[i]!r} want {role!r}, got {actual!r}"
+                for i, (role, actual) in sorted(wrong.items())
+            )
+            print(f"FAIL _roles({cells!r})\n  {detail}\n  ({why})")
+    for html, want, why in GENEALOGY:
+        got = [(e.name, e.depth, e.parent, e.partner, e.married_in)
+               for e in parse_genealogy(html, glosses=True)]
+        if got != want:
+            bad += 1
+            print(f"FAIL parse_genealogy(...)\n  want {want!r}\n  got  {got!r}"
+                  f"\n  ({why})")
+    for printed, want, why in GLOSSES:
+        got = _cut_gloss(printed)
+        if got != want:
+            bad += 1
+            print(f"FAIL _cut_gloss({printed!r})\n  want {want!r}, got {got!r}"
+                  f"\n  ({why})")
     for rows, want, why in MERGES:
         got = merge_terms([
             RosterRow(ordinal=i, section=None, name="x", link=None, start=s, end=e)
@@ -128,10 +250,11 @@ def main() -> None:
             bad += 1
             print(f"FAIL parse_period({text!r})\n  want {want!r}, "
                   f"got {(start, end)!r}\n  ({why})")
-    total = len(DATES) + len(PERIODS) + len(MERGES)
+    total = (len(DATES) + len(PERIODS) + len(MERGES) + len(HEADERS)
+             + len(GENEALOGY) + len(GLOSSES))
     if bad:
         raise SystemExit(f"\n{bad} of {total} cases failed")
-    print(f"{total} date and term-merge cases pass")
+    print(f"{total} header, date, term-merge and genealogy cases pass")
 
 
 if __name__ == "__main__":

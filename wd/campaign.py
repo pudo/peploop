@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from urllib.parse import quote
 
 from requests import Session
 
@@ -278,6 +279,30 @@ class Person:
     regime: Optional[str] = None
 
 
+#: Bytes of percent-encoded titles to put in one `titles=` parameter. The API
+#: allows 50 titles per request, but a *count* is the wrong unit: a title is
+#: percent-encoded into the query string, and a non-Latin script spends three
+#: bytes per character before encoding triples it again, so fifty Arabic titles
+#: make an 18 KB URI and the server answers 414 rather than truncating. Latin
+#: campaigns never came close and so never found this.
+TITLES_BUDGET = 3500
+
+
+def _title_chunks(titles: Sequence[str], limit: int = 50) -> Iterable[List[str]]:
+    """Batches of titles that fit both the API's count cap and a sane URI."""
+    chunk: List[str] = []
+    size = 0
+    for title in titles:
+        cost = len(quote(title)) + 3  # the "|" separator, encoded
+        if chunk and (len(chunk) >= limit or size + cost > TITLES_BUDGET):
+            yield chunk
+            chunk, size = [], 0
+        chunk.append(title)
+        size += cost
+    if chunk:
+        yield chunk
+
+
 def resolve_titles(session: Session, lang: str, titles: Iterable[str]) -> Dict[str, str]:
     """Wikipedia titles → QIDs, 50 per request, redirects followed.
 
@@ -287,8 +312,7 @@ def resolve_titles(session: Session, lang: str, titles: Iterable[str]) -> Dict[s
     """
     out: Dict[str, str] = {}
     todo = [t for t in dict.fromkeys(titles) if t]
-    for i in range(0, len(todo), 50):
-        chunk = todo[i : i + 50]
+    for chunk in _title_chunks(todo):
         data = json.loads(
             get_text(
                 session,

@@ -1,0 +1,3972 @@
+[
+  {
+    "id": "Q100258645",
+    "label": "Nayef Al-Fayez",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "2007-11-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2009-12-09",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q100598164",
+    "label": "Akef Al-Fayez",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q105531070",
+          "qualifiers": {
+            "P580": {
+              "time": "1963",
+              "precision": 9
+            },
+            "P582": {
+              "time": "1966",
+              "precision": 9
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73586672",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q105531070",
+          "qualifiers": {
+            "P580": {
+              "time": "1984",
+              "precision": 9
+            },
+            "P582": {
+              "time": "1988",
+              "precision": 9
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73586672",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "1957-04-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1959-05-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "1959-05-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1960-08-28",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q100787819",
+    "label": "Hala Zawati",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066267",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-06-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-10-12",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066267",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-06-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2021-10-11",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q108057779",
+    "label": "خليل السالم",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066504",
+          "qualifiers": {
+            "P580": {
+              "time": "2005-11-27",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2007-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066504",
+          "qualifiers": {
+            "P580": {
+              "time": "2007-11-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2009-12-09",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q109298395",
+    "label": "عمر مطر",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110065338",
+          "qualifiers": {
+            "P580": {
+              "time": "1955-12-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1956-01-07",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065338",
+          "qualifiers": {
+            "P580": {
+              "time": "1956-07-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1956-10-27",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q110065359",
+    "label": "Wajih Azaizeh",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2011-02-09",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-10-17",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2012-10-11",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-05-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q110065420",
+    "label": "Khaled Musa Al Henefat",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q113330996",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q113330996",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12179136",
+    "label": "Ahmad Halil",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066975",
+          "qualifiers": {
+            "P580": {
+              "time": "2002-01-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-07-20",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066975",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-07-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-10-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066975",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-10-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2005-04-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12181632",
+    "label": "إبراهيم العموش",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110067963",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067963",
+          "qualifiers": {
+            "P580": {
+              "time": "2010-11-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-02-01",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12209959",
+    "label": "Khaled Karaki",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "2010-11-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-02-01",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12210114",
+    "label": "Khaled Toukan",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110065430",
+          "qualifiers": {
+            "P580": {
+              "time": "2000-06-19",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2002-01-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065430",
+          "qualifiers": {
+            "P580": {
+              "time": "2005-04-07",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2007-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12213143",
+    "label": "Rajai Muasher",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-06-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-10-12",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12215978",
+    "label": "Saad Hayel Srour",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q105531070",
+          "qualifiers": {
+            "P580": {
+              "time": "1995",
+              "precision": 9
+            },
+            "P582": {
+              "time": "1998",
+              "precision": 9
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73586672",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q105531070",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-07-16",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2007",
+              "precision": 9
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73586672",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q105531070",
+          "qualifiers": {
+            "P580": {
+              "time": "2013-02-10",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2013-11-03",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73586672",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "2010-11-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-02-01",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "2011-02-09",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-10-17",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12222183",
+    "label": "عادل الطويسي",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q58488702",
+          "qualifiers": {
+            "P580": {
+              "time": "2005-11-27",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2007-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q58488702",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q58488702",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q122231921",
+    "label": "Trad Al-Fayez",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "2002-01-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-07-20",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-07-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-10-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q12251065",
+    "label": "وصفي ميرزا",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "1954-05-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1954-10-21",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "1954-10-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1955-05-28",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "1960-08-29",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1961-06-28",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q123688339",
+    "label": "Hikmat Al Masri",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q105531070",
+          "qualifiers": {
+            "P580": {
+              "time": "1952",
+              "precision": 9
+            },
+            "P582": {
+              "time": "1953",
+              "precision": 9
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73586672",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q105531070",
+          "qualifiers": {
+            "P580": {
+              "time": "1956",
+              "precision": 9
+            },
+            "P582": {
+              "time": "1957",
+              "precision": 9
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=73586672",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q144288",
+    "label": "Zeid bin Shaker",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q7243300",
+          "qualifiers": {
+            "P580": {
+              "time": "1989-04-27",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1989-12-06",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=69986036",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q7243300",
+          "qualifiers": {
+            "P580": {
+              "time": "1991-11-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1993-05-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=69986036",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q7243300",
+          "qualifiers": {
+            "P580": {
+              "time": "1995-01-08",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1996-02-03",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=69986036",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q14754965",
+    "label": "Samir Murad",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066504",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066504",
+          "qualifiers": {
+            "P580": {
+              "time": "2010-11-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-02-01",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066504",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-06-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-10-12",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q16106522",
+    "label": "Ghaleb Zubi",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110065338",
+          "qualifiers": {
+            "P580": {
+              "time": "2012-10-11",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2013-03-30",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065338",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q16127522",
+    "label": "وليد المعاني",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110065430",
+          "qualifiers": {
+            "P580": {
+              "time": "2007-11-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2009-12-09",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065430",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065430",
+          "qualifiers": {
+            "P580": {
+              "time": "2010-11-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-02-01",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065430",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-06-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-10-12",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q1655980",
+    "label": "Ibrahim Hashem Pasha",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q6594880",
+          "qualifiers": {
+            "P580": {
+              "time": "1951-09-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1951-10-31",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=75326080",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q6594880",
+          "qualifiers": {
+            "P580": {
+              "time": "1951-11-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1955-10-31",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=75326080",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q6594880",
+          "qualifiers": {
+            "P580": {
+              "time": "1955-11-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1959-10-31",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=75326080",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q20985282",
+    "label": "Aqel Biltaji",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066878",
+          "qualifiers": {
+            "P580": {
+              "time": "1999-03-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2000-06-18",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066878",
+          "qualifiers": {
+            "P580": {
+              "time": "2000-06-19",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2002-01-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q24565246",
+    "label": "Rida Khawaldeh",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q24565849",
+    "label": "Jawad Anani",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q25451806",
+    "label": "Mohammad al-Momani",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q55498292",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q55498292",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q28089396",
+    "label": "Nayef Saoud Faris Al Kadi",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110065338",
+          "qualifiers": {
+            "P580": {
+              "time": "1999-03-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2000-06-18",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065338",
+          "qualifiers": {
+            "P580": {
+              "time": "2007-11-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2009-12-09",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q28150073",
+    "label": "Jamil Tutunji",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "1956-07-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1956-10-27",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "1959-05-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1960-08-28",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "1961-06-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1962-01-27",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q28151835",
+    "label": "Hassan Ibrahim",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066267",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066267",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q28715893",
+    "label": "فلاح محمد المدادحه",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110065338",
+          "qualifiers": {
+            "P580": {
+              "time": "1957-04-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1959-05-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065338",
+          "qualifiers": {
+            "P580": {
+              "time": "1960-08-29",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1961-06-28",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1947-12-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1949-05-03",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1949-05-07",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1950-04-12",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1951-07-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1951-09-07",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1955-12-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1956-01-07",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1956-01-09",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1956-05-20",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q307318",
+    "label": "Abdelmunim al-Rifai",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q7243300",
+          "qualifiers": {
+            "P580": {
+              "time": "1969-03-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1969-08-12",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=69986036",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q7243300",
+          "qualifiers": {
+            "P580": {
+              "time": "1970-06-27",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1970-09-15",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=69986036",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q362289",
+    "label": "Nader al-Dahabi",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110065361",
+          "qualifiers": {
+            "P580": {
+              "time": "2002-01-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-07-20",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065361",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-07-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-10-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q4072991",
+    "label": "Ahmad Lawzi",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q6594880",
+          "qualifiers": {
+            "P580": {
+              "time": "1984-01-12",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1993-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=75326080",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q6594880",
+          "qualifiers": {
+            "P580": {
+              "time": "1993-11-23",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1997-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=75326080",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q42877481",
+    "label": "Lina Annab",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066878",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066878",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066878",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-06-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-10-12",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q43659837",
+    "label": "Yasera Ghosheh",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110257014",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110257014",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110257014",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-06-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-10-12",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q43991757",
+    "label": "Khawla Armouti",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q4502514",
+    "label": "Hussein ibn Nasser",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q7243300",
+          "qualifiers": {
+            "P580": {
+              "time": "1963-04-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1964-07-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=69986036",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q7243300",
+          "qualifiers": {
+            "P580": {
+              "time": "1967-03-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1967-04-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=69986036",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q45108963",
+    "label": "رويدا المعايطة",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2002-01-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-07-20",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-07-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-10-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q454863",
+    "label": "Samir al-Rifai",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "1955-12-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1956-01-07",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "1957-04-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1958-05-18",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q4705122",
+    "label": "Alaa Batayneh",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110065361",
+          "qualifiers": {
+            "P580": {
+              "time": "2007-11-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2009-12-09",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065361",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065361",
+          "qualifiers": {
+            "P580": {
+              "time": "2010-11-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-02-01",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q4751822",
+    "label": "Anastas Hanania",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110067022",
+          "qualifiers": {
+            "P580": {
+              "time": "1954-10-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1955-05-28",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067022",
+          "qualifiers": {
+            "P580": {
+              "time": "1957-04-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1959-05-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1951-09-08",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1952-09-27",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1959-05-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1960-08-28",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q5348767",
+    "label": "Eid Al-Fayez",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066504",
+          "qualifiers": {
+            "P580": {
+              "time": "1999-03-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2000-06-18",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066504",
+          "qualifiers": {
+            "P580": {
+              "time": "2000-06-19",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2002-01-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q54861836",
+    "label": "مها الخطيب",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066878",
+          "qualifiers": {
+            "P580": {
+              "time": "2007-11-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2009-12-09",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066878",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q55978614",
+    "label": "هالة بسيسو لطوف",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2007-11-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2009-12-09",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2010-11-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-02-01",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q58335451",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-06-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-10-12",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q55979657",
+    "label": "محمود الشياب",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "2010-11-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-02-01",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "2018-06-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2020-10-12",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q5639025",
+    "label": "Haider Mahmoud",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q58488702",
+          "qualifiers": {
+            "P580": {
+              "time": "2002-01-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-07-20",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q58488702",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-07-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-10-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q63106406",
+    "label": "Hashem Jayyusi",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110067022",
+          "qualifiers": {
+            "P580": {
+              "time": "1956-01-09",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1956-05-20",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067022",
+          "qualifiers": {
+            "P580": {
+              "time": "1959-05-06",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1960-08-28",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067022",
+          "qualifiers": {
+            "P580": {
+              "time": "1960-08-29",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1962-01-27",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q6754063",
+    "label": "Tawfiq Kreishan",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q119150174",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-07-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-10-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q119150174",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q6778558",
+    "label": "Marwan al-Muasher",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q20716373",
+          "qualifiers": {
+            "P580": {
+              "time": "2002-01-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-07-20",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q20716373",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-07-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2003-10-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q20716373",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-10-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2005-04-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q6932374",
+    "label": "Muhammad Ali Ja'abari",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1955-12-15",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1955-12-20",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1958-05-18",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1959-05-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1960-08-29",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1961-06-28",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q7409432",
+    "label": "SEAZ",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "2003-10-25",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2005-04-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067245",
+          "qualifiers": {
+            "P580": {
+              "time": "2005-11-27",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2007-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q78375528",
+    "label": "وائل عربيات",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066975",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066975",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q89028293",
+    "label": "Yahya Musa Kisbi",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110065361",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110065361",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q91421446",
+    "label": "عمر زهير ملحس",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110067022",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067022",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q97273923",
+    "label": "هشام التل",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "2009-12-14",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2010-11-22",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "2010-11-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2011-02-01",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q979812",
+    "label": "Sa`id al-Mufti",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "1952-09-07",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1953-05-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "1957-04-15",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1957-04-24",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q113330973",
+          "qualifiers": {
+            "P580": {
+              "time": "1963-03-27",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1963-04-21",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q6594880",
+          "qualifiers": {
+            "P580": {
+              "time": "1963-11-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1967-10-31",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=75326080",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q6594880",
+          "qualifiers": {
+            "P580": {
+              "time": "1967-11-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1973-08-20",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=75326080",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q6594880",
+          "qualifiers": {
+            "P580": {
+              "time": "1973-08-21",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1974-11-23",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=75326080",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q98228847",
+    "label": "Abdus Salam al-Abadi",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066975",
+          "qualifiers": {
+            "P580": {
+              "time": "1999-03-04",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2000-06-18",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066975",
+          "qualifiers": {
+            "P580": {
+              "time": "2000-06-19",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2002-01-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066975",
+          "qualifiers": {
+            "P580": {
+              "time": "2005-04-07",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2005-11-27",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066975",
+          "qualifiers": {
+            "P580": {
+              "time": "2012-10-11",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-05-29",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q98381985",
+    "label": "أحمد الطراونة",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "1951-09-08",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1952-09-27",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q106785048",
+          "qualifiers": {
+            "P580": {
+              "time": "1952-09-07",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1953-05-05",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1957-04-24",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1958-05-18",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110067612",
+          "qualifiers": {
+            "P580": {
+              "time": "1961-06-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "1962-01-27",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "Q98382651",
+    "label": "ياسين الخياط",
+    "claims": {
+      "P39": [
+        {
+          "value": "Q110066643",
+          "qualifiers": {
+            "P580": {
+              "time": "2012-10-11",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2013-03-30",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066643",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-06-01",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2016-09-25",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        },
+        {
+          "value": "Q110066643",
+          "qualifiers": {
+            "P580": {
+              "time": "2016-09-28",
+              "precision": 11
+            },
+            "P582": {
+              "time": "2018-06-14",
+              "precision": 11
+            }
+          },
+          "references": [
+            {
+              "P4656": "https://ar.wikipedia.org/w/index.php?oldid=72627142",
+              "P813": {
+                "time": "2026-08-13",
+                "precision": 11
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -184,6 +184,13 @@ COLUMN_ROLES = [
     # "العضو". Both precede nothing they could shadow: "وزارة" (the ministry,
     # an `office` column) differs from "وزير" at its third letter.
     ("وزير", "name"), ("العضو", "name"),
+    # Jordan heads its holder column with the office in the definite article
+    # where Saudi Arabia and Kuwait use the bare noun. "الرئيس" is the Senate
+    # list's *president* — the person, not a body — and without it that table
+    # had no name column at all and all 28 rows were dropped for want of one;
+    # "عضو" (undefined) heads the 27th Senate roll, which "العضو" cannot reach
+    # because the key differs at its first letter, not its third.
+    ("الرئيس", "name"), ("عضو", "name"),
     ("الصورة", "portrait"), ("صورة", "portrait"),
     # "من الفترة" / "حتى الفترة" are the Saudi lists' start and end. A bare
     # "من" cannot cover the first: two-letter keys match whole (see `_roles`),
@@ -200,8 +207,18 @@ COLUMN_ROLES = [
     # three-wide "مدة الرئاسة"; `_subroles` reads them, and without them the
     # duration cell beside them was the only one that parsed.
     ("تاريخ التعيين", "start"), ("تاريخ انتهاء", "end"),
+    # "تاريخ اليمين الدستورية" — the date a member swore the constitutional
+    # oath — is how a Jordanian membership roll dates its rows, and like the
+    # two above it does not begin with "التاريخ".
+    ("تاريخ اليمين", "start"),
     ("بدأ", "start"), ("انتهت", "end"),
     ("من", "start"),
+    # "غادر المنصب" (left the post) closes what "تولى المنصب" opens on every
+    # one of the ~109 `ar:حكومة <رئيس الوزراء>` cabinet articles, which are the
+    # only dated source for Jordan's ministers. "تولى" was already a start key,
+    # so the pair looked half-recognised: every cabinet row parsed with a start
+    # and no end, which reads as a sitting minister rather than as a lost cell.
+    ("غادر", "end"),
     ("حتى", "end"), ("ترك", "end"), ("نهاية", "end"), ("الى", "end"),
     # "الفترة الزمنية" is a tenure *length* ("3 سنوات و7 أشهر و28 يومًا") and
     # must be claimed before the bare "الفترة": through that key it took the
@@ -230,6 +247,11 @@ COLUMN_ROLES = [
     ("التاريخ", "period"),
     ("المدة الزمنية", "days"), ("المدة", "days"), ("مدة", "days"),
     ("المنصب", "office"), ("الوزارة", "office"), ("المسمى", "office"),
+    # "المهام الوزارية" — the ministerial duties — is how 76 of Jordan's 108
+    # cabinet articles head the portfolio column, against two that use
+    # "المنصب". Unnamed, the office cell was invisible and every one of those
+    # pages parsed as a list of names attached to nothing.
+    ("المهام", "office"),
     # "في عهد" — "in the reign of" — names the king who appointed the holder,
     # which is the same channel a Spanish list's "Designante" column carries.
     ("في عهد", "appointer"),

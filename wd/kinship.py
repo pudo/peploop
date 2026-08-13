@@ -50,8 +50,19 @@ from wd.roster import fold
 DESCRIPTION_CUT = re.compile(r";|[\s ]+[–—-][\s ]+")
 
 #: Tags whose text is not part of the name: reference superscripts, the
-#: TemplateStyles blobs MediaWiki inlines, and edit links.
-DROP_TAGS = {"sup", "style", "script", "link", "meta"}
+#: TemplateStyles blobs MediaWiki inlines, and edit links. A nested list is in
+#: here because a bullet's children render *inside* its own `<li>`: without
+#: this, every descendant's name would be read as part of their parent's.
+DROP_TAGS = {"sup", "style", "script", "link", "meta", "ul", "ol"}
+
+#: A parenthetical that annotates rather than names. `en:Hashemites` glosses
+#: every entry with its relation to the reigning king — "(The King's
+#: half-niece)" — which is not part of the name and, read as one, leaves
+#: `name_chain` a chain of English words. Cut only where an article is declared
+#: to use them (`parse_genealogy(glosses=True)`), and never over a regnal
+#: marker: "Sa'ad (I)" and "Bazza (II)" are how two same-named relatives are
+#: told apart, which is the opposite of noise.
+GLOSS = re.compile(r"\s*\(([^)]*)\)\s*$")
 
 #: A regnal marker after a given name — "Turki I", "Bazza (II)", "Fahd (I)".
 #: Load-bearing rather than noise: it is what tells two same-named sons apart,
@@ -87,6 +98,32 @@ class Listed:
     #: Article titles linked in the section's hatnote ({{main|…}}), which is how
     #: a wife's own item is named where it is named at all.
     section_links: Tuple[str, ...] = ()
+    #: Nesting depth in the list that carries them, 1 for a top-level bullet.
+    #: `en:Hashemites` asserts descent by indentation where
+    #: `en:Descendants of Ibn Saud` asserts it by heading, so for that article
+    #: the enclosing bullet is what a section heading is here — see `parent`.
+    depth: int = 0
+    #: The person whose bullet encloses this one, where the list is nested. This
+    #: is an assertion of parentage exactly as a wife's section heading is: the
+    #: indentation is what the article states, and it is *not* the same thing as
+    #: the parenthetical gloss beside the name, which on `en:Hashemites` is
+    #: written relative to the reigning king ("The King's half-brother") and
+    #: describes a different relation entirely.
+    parent: Optional[str] = None
+    parent_link: Optional[str] = None
+    #: Where one bullet names a couple — "[[Hamzah]] and [[Princess Basmah]]" —
+    #: the other half of it. Both are emitted as their own `Listed`, so the
+    #: children nested beneath take one parent from each.
+    partner: Optional[str] = None
+    partner_link: Optional[str] = None
+    #: True for the half of a couple who married into the family rather than
+    #: descending from it — the second name in the bullet, which these articles
+    #: write in that order ("half-brother and half-sister-in-law"). They are
+    #: *listed* under the bullet above without being a child of it, so every
+    #: lane about descent has to drop them: left in, Hamzah's wife reads as
+    #: Queen Noor's daughter, and a wife's married name ("Princess Ghazi of
+    #: Jordan") reads as evidence that she descends from the house she married.
+    married_in: bool = False
 
 
 def _tokens(element, top: bool = True) -> Iterable[Tuple[str, str]]:
@@ -133,16 +170,56 @@ def _article_title(anchor) -> Optional[str]:
 
 def _lead(element) -> Tuple[Optional[str], str]:
     """The linked article and printed name in an item's *name* part."""
-    link: Optional[str] = None
+    links, name = _leads(element)
+    return (links[0][0] if links else None), name
+
+
+def _leads(element) -> Tuple[List[Tuple[str, str]], str]:
+    """The couple an item names, if it names one, plus its printed name part.
+
+    A bullet naming two people joins them with nothing but "and":
+    "[[Hamzah]] and [[Princess Basmah]]". Requiring *exactly* that is what keeps
+    the test structural and tight — "two links in the item" is far too loose,
+    and matched "[[Muhammad bin Fahd]] (1950–2025) Former governor of the
+    [[Eastern Province]]", which would have entered a province as a person and
+    married it to a prince. The gloss that follows a real couple says
+    "half-brother and half-sister-in-law", carrying the same word one level out,
+    so the word alone proves nothing either; only its position does.
+    """
+    links: List[Tuple[str, str]] = []
     shown: List[str] = []
+    between: List[str] = []
+    joined = True
     for kind, text in _tokens(element):
-        if kind.startswith("link:") and link is None:
-            link = kind[len("link:"):]
+        if kind.startswith("link:"):
+            if links and "".join(between).strip().casefold() not in ("and", "&"):
+                joined = False
+            links.append((kind[len("link:"):], " ".join(text.split())))
+            between = []
+        else:
+            between.append(text)
         cut = DESCRIPTION_CUT.search(text)
         shown.append(text[: cut.start()] if cut else text)
         if cut:
             break
-    return link, " ".join("".join(shown).split())
+    name = " ".join("".join(shown).split())
+    return (links[:2] if len(links) > 1 and joined else links[:1]), name
+
+
+def _cut_gloss(name: str) -> str:
+    """Drop an annotating parenthetical, keeping a regnal marker.
+
+    The gloss is often cut off mid-way by the description separator before this
+    sees it — "Princess Muna (King Hussein's second wife" — so an unclosed
+    bracket has to be cut as well as a closed one, or the name keeps half a
+    sentence and `name_chain` reads it as ancestry.
+    """
+    match = GLOSS.search(name)
+    if match and not REGNAL.match(match.group(1).strip()):
+        name = name[: match.start()].strip()
+    if name.count("(") > name.count(")"):
+        name = name[: name.rindex("(")].strip()
+    return name
 
 
 def _heading_of(node) -> Optional[Tuple[str, str]]:
@@ -163,7 +240,59 @@ def _heading_of(node) -> Optional[Tuple[str, str]]:
     return heading.tag, text
 
 
-def parse_genealogy(page_html: str) -> List[Listed]:
+def _walk_list(
+    node, *, chapter: str, section: str, hatnote: Tuple[str, ...],
+    glosses: bool, depth: int = 1,
+    parent: Optional[str] = None, parent_link: Optional[str] = None,
+) -> List[Listed]:
+    """A list and every list nested inside it, carrying the nesting down.
+
+    `en:Hashemites` states descent by indentation: a wife at one level, her
+    children at the next, hers at the next again. Reading only the outermost
+    items — which is all a flat `./li` gets, because a nested list renders
+    *inside* its parent's `<li>` — would return the four wives and lose the
+    seventy people the article exists to place.
+    """
+    out: List[Listed] = []
+    for item in node.xpath("./li"):
+        links, name = _leads(item)
+        if glosses:
+            name = _cut_gloss(name)
+        name = name.strip(" ,;·-–—")
+        # One bullet, two links: a couple. Each is emitted under their own name
+        # so the chain a patronymic gives is theirs, and each points at the
+        # other so the children below can take one parent from each.
+        pairs = links[:2] if len(links) > 1 else [(links[0] if links else (None, name))]
+        entries: List[Listed] = []
+        for index, (link, shown) in enumerate(pairs):
+            other = pairs[1 - index] if len(pairs) > 1 else (None, None)
+            married_in = index > 0
+            entries.append(Listed(
+                name=(shown or name) if len(pairs) > 1 else name,
+                link=link, chapter=chapter, section=section,
+                section_links=hatnote, depth=depth,
+                # The in-law is listed here but descends from somewhere else,
+                # so the bullet above is not their parent.
+                parent=None if married_in else parent,
+                parent_link=None if married_in else parent_link,
+                partner=other[1], partner_link=other[0],
+                married_in=married_in,
+            ))
+        out.extend(entry for entry in entries if entry.name)
+        # The children hang off whoever this bullet named first — the blood
+        # descendant, whom the article lists before the in-law they married.
+        head = entries[0] if entries else None
+        for nested in item.xpath("./ul|./ol"):
+            out.extend(_walk_list(
+                nested, chapter=chapter, section=section, hatnote=hatnote,
+                glosses=glosses, depth=depth + 1,
+                parent=head.name if head else parent,
+                parent_link=head.link if head else parent_link,
+            ))
+    return out
+
+
+def parse_genealogy(page_html: str, glosses: bool = False) -> List[Listed]:
     """Every person a genealogy article lists, with the heading that lists them.
 
     Handles both shapes one article uses at once: `en:Descendants of Ibn Saud`
@@ -171,6 +300,9 @@ def parse_genealogy(page_html: str) -> List[Listed]:
     wikitables and lists the other twelve as numbered items, purely by which
     editor wrote the section. A parser that read only one shape would silently
     lose half the first generation.
+
+    Set `glosses` for an article that annotates each entry with a parenthetical
+    describing it rather than naming it (`en:Hashemites`); see `GLOSS`.
     """
     doc = lxml_html.fromstring(page_html)
     roots = doc.xpath("//div[contains(@class,'mw-parser-output')]")
@@ -200,30 +332,27 @@ def parse_genealogy(page_html: str) -> List[Listed]:
             )
             continue
         if node.tag in ("ol", "ul"):
-            items = node.xpath("./li")
-        elif node.tag == "table" and "wikitable" in classes:
-            rows = node.xpath(".//tr")
-            # A `Name | Lifespan | Notes` table: the name is the first cell and
-            # the lifespan the second, so read cells rather than the whole row.
-            items = rows[1:]
-        else:
+            out.extend(_walk_list(
+                node, chapter=chapter, section=section, hatnote=hatnote,
+                glosses=glosses,
+            ))
             continue
-        for item in items:
-            if item.tag == "tr":
-                cells = item.xpath("./td|./th")
-                if not cells:
-                    continue
-                link, name = _lead(cells[0])
-                lifespan = (cells[1].text_content() or "").strip() if len(cells) > 1 else ""
-            else:
-                link, name = _lead(item)
-                lifespan = ""
+        if node.tag != "table" or "wikitable" not in classes:
+            continue
+        # A `Name | Lifespan | Notes` table: the name is the first cell and the
+        # lifespan the second, so read cells rather than the whole row.
+        for item in node.xpath(".//tr")[1:]:
+            cells = item.xpath("./td|./th")
+            if not cells:
+                continue
+            link, name = _lead(cells[0])
+            lifespan = (cells[1].text_content() or "").strip() if len(cells) > 1 else ""
             name = name.strip(" ,;·-–—")
             if not name:
                 continue
             out.append(Listed(
                 name=name, link=link, chapter=chapter, section=section,
-                lifespan=lifespan, section_links=hatnote,
+                lifespan=lifespan, section_links=hatnote, depth=1,
             ))
     return out
 
@@ -289,6 +418,12 @@ class Kin:
     p22: List[str] = field(default_factory=list)
     p25: List[str] = field(default_factory=list)
     p53: List[str] = field(default_factory=list)
+    #: Recorded spouses, so a `P26` already on the item is never restated.
+    p26: List[str] = field(default_factory=list)
+    #: Sex or gender, which is what decides whether a parent bullet is the
+    #: father or the mother. Read from the item, never from the printed title:
+    #: "Prince"/"Princess" is a good guess and this lane does not guess.
+    gender: Optional[str] = None
     birth: Optional[int] = None
     death: Optional[int] = None
 
@@ -411,6 +546,55 @@ def _record(
         flags=list(flags) or [concern],
         signals=[Signal("genealogy", concern, detail, source or None)],
     )
+
+
+def spouse_records(
+    *, campaign: str, lane: str, couples: Sequence[Tuple[Listed, int]],
+    people: Dict[str, Kin], source: str, dispositions: Dict[str, str],
+) -> List[Record]:
+    """`P26` where one bullet names a couple *and* the article gives them issue.
+
+    The pairing itself is one channel, and one channel is not enough — a bullet
+    reading "X and Y" is the article's word alone. The second is the children
+    nested underneath it: the article is asserting not just that these two are a
+    couple but that this is the marriage its next generation descends from.
+    A childless pair is reported rather than emitted.
+
+    `couples` is (the entry, how many children the article nests under the pair),
+    which the caller counts because only it knows how the list was grouped.
+    """
+    records: List[Record] = []
+    for entry, issue in couples:
+        person = people.get(entry.link or "")
+        partner = people.get(entry.partner_link or "")
+        if person is None or partner is None:
+            continue
+        if partner.qid in person.p26:
+            continue
+        if not issue:
+            records.append(_record(
+                campaign=campaign, lane=lane, person=person,
+                prop="P26", value=partner.qid,
+                rule="spouse.no_issue", concern="p26",
+                rationale="the article pairs them in one bullet and nothing "
+                          "else does; a pairing on its own is a single channel",
+                detail=f"listed as a couple with {partner.label}, no children "
+                       f"nested under them",
+                source=source,
+                action=dispositions.get("spouse.no_issue", "skip"),
+            ))
+            continue
+        records.append(_record(
+            campaign=campaign, lane=lane, person=person,
+            prop="P26", value=partner.qid,
+            rule="spouse.paired_with_issue", concern="p26",
+            rationale="the article names them as a couple and lists the "
+                      "children descending from the pair",
+            detail=f"listed as a couple with {partner.label}; {issue} "
+                   f"child(ren) nested under them",
+            source=source,
+        ))
+    return records
 
 
 def mother_records(
@@ -585,7 +769,10 @@ def house_records(
     `P53` is multi-valued and a branch house is a real second value, so the
     question is whether *this* house is recorded, never whether any is.
     """
-    wanted = {fold(marker) for marker in markers}
+    # A list, not a set: the marker reported is the first that matches, and set
+    # iteration order varies between processes, so the same run wrote a
+    # different rationale each time and no baseline could be reproduced.
+    wanted = list(dict.fromkeys(fold(marker) for marker in markers))
     records: List[Record] = []
     for entry in listed:
         person = people.get(entry.link or "")
