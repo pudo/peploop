@@ -239,6 +239,34 @@ DEFAULT_RULES: Tuple[Rule, ...] = (
         "category_only", has("category_only"), REVIEW,
         "in the category, named by no roster row, and undated",
     ),
+    # 3b. The infobox channel, which answers the channel question differently
+    #     from everything below and so has to be settled before it. A roster is
+    #     an article about the *office* listing its holders, maintained as a
+    #     unit and reviewed by whoever watches that office. An infobox is a
+    #     claim on the holder's own page, written by whoever wrote that page. It
+    #     is enough to date a tenure and never enough to assert one alone, so
+    #     the office's own category has to say the same thing. Where a country
+    #     publishes no rosters this is the only channel there is — Qatar dates
+    #     two of thirty-two ministries — which is exactly when the temptation to
+    #     relax it arrives.
+    #     Both are held back from an undated row, which `no_dates` decides
+    #     further down: placed this early they would otherwise claim it first
+    #     and apply a P39 with no start at all. Rule order is load-bearing in
+    #     both directions, and this is the direction that is easy to miss.
+    Rule(
+        "officebox.two_channel",
+        lambda c, f: (
+            "officebox" in c.flags and "no_dates" not in c.flags and c.in_category
+        ), APPLY,
+        "their own article's infobox states this office with dates, and the "
+        "office's category names them independently",
+    ),
+    Rule(
+        "officebox.one_channel",
+        lambda c, f: "officebox" in c.flags and "no_dates" not in c.flags, SKIP,
+        "the infobox on their own article is the only thing asserting this "
+        "office, and one channel is not enough",
+    ),
     # 4. How many channels, and how strong? A dedicated list article naming a
     #    *wikilinked* person is Wikipedia asserting both office and identity,
     #    and a row citing something outside Wikimedia is a better second

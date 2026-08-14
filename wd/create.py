@@ -19,7 +19,7 @@ payload that has not survived a duplicate search.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 #: P31 for every position item; the archetype narrows it with P279.
 POSITION = "Q4164871"
@@ -65,6 +65,16 @@ ARCHETYPES: Dict[str, Archetype] = {
     "ambassador": Archetype(
         parent="Q121998",
         description="diplomatic post of {country}",
+    ),
+    # A *bilateral* posting names both ends, and the two are not
+    # interchangeable: measured over ten "ambassador of Qatar to X" items, `P17`
+    # is the receiving state and the sending country appears only through
+    # `P279`. The shape is reached with `claims_override`; this archetype exists
+    # for the description, because "diplomatic post of Qatar" repeated across
+    # twenty-one items says nothing about which posting each one is.
+    "bilateral_ambassador": Archetype(
+        parent="Q121998",
+        description="diplomatic post of {country} in {jurisdiction}",
     ),
     "agency_head": Archetype(
         parent="Q1162163",
@@ -140,6 +150,19 @@ class CreateSpec:
     #: Why this office is believed to exist, for the edit summary.
     attested_by: str = ""
     holders: int = 0
+    #: Base claims to override, as `(property, value)`. A value of `None`
+    #: removes the property the defaults would have written; a list writes
+    #: several values.
+    #:
+    #: Needed because the defaults below encode one shape — a *national* office
+    #: whose country and jurisdiction are the campaign's own — and not every
+    #: office is one. An outbound ambassadorship inverts it: measured over ten
+    #: exemplars, `P17` is the **receiving** state and never the sending one,
+    #: `P279` carries two parents (the sending country's ambassador class and
+    #: the receiving state's), and `P1001` is used by two of the ten and so is
+    #: not asserted at all. Writing those through the defaults would put Qatar
+    #: in the receiving state's slot on every item minted.
+    claims_override: Tuple[Tuple[str, object], ...] = ()
 
 
 def payload(spec: CreateSpec) -> dict:
@@ -168,6 +191,11 @@ def payload(spec: CreateSpec) -> dict:
         claims["P2354"] = spec.list_item
     if spec.inception:
         claims["P571"] = _time(spec.inception)
+    for prop, value in spec.claims_override:
+        if value is None:
+            claims.pop(prop, None)
+        else:
+            claims[prop] = value
 
     country = spec.country_label or spec.country_qid
     descriptions = dict(spec.descriptions)

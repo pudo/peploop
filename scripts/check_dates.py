@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lxml import html as lxml_html
 
 from wd.kinship import _cut_gloss, parse_genealogy
+from wd.officebox import parse_officebox
 from wd.roster import RosterRow, _roles, merge_terms, parse_date, parse_period
 
 #: (header cells, {column index: required role}, what it is / what it broke)
@@ -72,6 +73,29 @@ HEADERS = [
      {2: "name", 4: "period"},
      "en:List of prime ministers of Jordan. 'Election' and 'King(Reign)' both "
      "carry years and both must stay inert, or they shadow the term"),
+    # --- Qatar -----------------------------------------------------------
+    (["التسلسل", "الأمير", "صورة", "العلاقة مع سلفه", "بداية الفترة",
+      "نهاية الفترة", "طول الفترة", "مُلاحظات"],
+     {4: "start", 5: "end", 6: "days"},
+     "ar:قائمة أمراء قطر. 'طول الفترة' is the duration decoy a third time, in "
+     "a third spelling; the bare 'فترة' key cannot reach it because it differs "
+     "at the first letter. The page dated correctly without it only because "
+     "both real columns happened to be recognised"),
+    (["No.", "Portrait", "Name(Birth–Death)", "Took office", "Left office",
+      "Time in office", "Cabinet", "Ref."],
+     {2: "name", 3: "start", 4: "end", 5: "days"},
+     "en:Prime Minister of Qatar — the same decoy in English, and the wide "
+     "'Term of office' header subdivided by a second header row"),
+    (["Constituency", "Elected member"],
+     {0: "notes", 1: "name"},
+     "en:2021 Qatari general election. 'Constituency' already had `notes`, so "
+     "unnamed the members landed there too: the table parsed with no name "
+     "column and its wikilinks were never collected"),
+    (["الأعضاء"],
+     {0: "name"},
+     "both Shura Council rolls on ar:قائمة أعضاء مجلس الشوري القطري (2021). "
+     "The plural inserts an alif-hamza after the article, so neither 'العضو' "
+     "nor 'عضو' reaches it"),
 ]
 
 #: (cell text, expected ISO prefix or None, what it is / what it broke)
@@ -102,6 +126,17 @@ DATES = [
     ("Funkce neobsazena", None, "a gap in the succession"),
     ("1939", "1939", "a day count that is also a plausible year — the reason "
                      "decoy columns get the `days` role rather than a guard here"),
+    # --- the source declining to state a date ----------------------------
+    ("? - 1983", None,
+     "en:Qatar Central Bank dates its first governor '? - 1983' in the *took "
+     "office* column and 'January 1990' in *left office*. The 1983 belongs to "
+     "the other bound; read as a start it invents a fact the article refuses "
+     "to state"),
+    ("1983 ?", None, "the same doubt written after the year"),
+    ("1983", "1983", "…and the bare year beside it still parses"),
+    ("¿1983?", "1983",
+     "an inverted question mark is Spanish punctuation, not a doubt marker: "
+     "only a free-standing '?' suppresses the date"),
 ]
 
 #: (cell text, (start, end), what it is)
@@ -182,6 +217,28 @@ GENEALOGY = [
      "two links in one bullet are not a couple. Taking 'more than one link' as "
      "the test entered a province as a person and married it to a prince; the "
      "links must be joined by nothing but the word 'and'"),
+    ("<div class='mw-parser-output'><div class='treelist'>"
+     "<ul><li><a href='/wiki/Jassim'>Jassim bin Mohammed</a>"
+     "<ul><li><a href='/wiki/Mohammed_bin_Jassim'>Mohammed bin Jassim</a>"
+     "<ul><li>Sheikh ??? bin Mohammed Al Thani</li>"
+     "<li><a href='/wiki/Fahad'>Fahad bin Jassim</a></li></ul>"
+     "</li></ul></li></ul></div></div>",
+     [("Jassim bin Mohammed", 1, None, None, False),
+      ("Mohammed bin Jassim", 2, "Jassim bin Mohammed", None, False),
+      ("Fahad bin Jassim", 3, "Mohammed bin Jassim", None, False)],
+     "`{{Tree list}}` wraps its list in a `div.treelist` to draw the connecting "
+     "rules, so the whole genealogy sat one level below where the walker looked "
+     "— `en:House of Thani` read as 15 depth-1 entries from an unrelated list. "
+     "The '???' bullet is dropped: it asserts a son exists without naming him, "
+     "and left in it reads as a redlink to mint an item for"),
+    ("<div class='mw-parser-output'>"
+     "<div class='navbox'><div class='treelist'><ul>"
+     "<li><a href='/wiki/Jordan'>Jordan (1921–present)</a></li></ul></div></div>"
+     "</div>",
+     [],
+     "…and only at the top level. `en:Hashemites` renders a treelist inside a "
+     "navbox whose items are *territories*; a `.//div` search would emit "
+     "'Jordan (1921–present)' as a Hashemite"),
 ]
 
 #: (printed name, expected after the gloss cut, what it is)
@@ -195,6 +252,58 @@ GLOSSES = [
     ("Sa'ad (I)", "Sa'ad (I)",
      "a regnal marker is the opposite of noise — it is what tells two "
      "same-named relatives apart"),
+]
+
+#: (wikitext, lang, [(office, start, end)], what it is / what it broke)
+#:
+#: `wd.officebox` reads the person's own infobox, which is the only channel a
+#: country publishing no rosters has. Its failure mode is quiet: a mispaired
+#: group dates the wrong office, and nothing downstream can tell.
+OFFICEBOXES = [
+    ("{{Infobox officeholder\n"
+     "| office = [[Ministry of Commerce and Industry (Qatar)|"
+     "Minister of Commerce and Industry]]\n"
+     "| term_start = 12 November 2024\n"
+     "| monarch = [[Tamim bin Hamad Al Thani]]\n}}",
+     "en", [("Minister of Commerce and Industry", "2024-11-12", None)],
+     "the piped link prints the office and targets the *ministry*; splitting "
+     "on every pipe would name the office 'Ministry of Commerce and Industry "
+     "(Qatar)' — the organisation, not the position"),
+    ("{{Infobox officeholder\n"
+     "| office = [[List of ambassadors of Qatar to the United States|"
+     "Ambassador of Qatar to the United States]]\n"
+     "| term_start = December 2016\n"
+     "| term_end = | birth_date = \n}}",
+     "en", [("Ambassador of Qatar to the United States", "2016-12", None)],
+     "real markup on Q107379868: an empty `term_end` runs straight into the "
+     "next parameter, and a line-based reader took 'birth_date' as the end"),
+    ("{{Infobox officeholder\n"
+     "| office = [[Attorney General]]\n| term_start = 17 June 2021\n"
+     "| office1 = [[Ministry of Justice (Qatar)|Minister of Justice]]\n"
+     "| term_start1 = 2018\n| term_end1 = 17 June 2021\n}}",
+     "en", [("Attorney General", "2021-06-17", None),
+            ("Minister of Justice", "2018", "2021-06-17")],
+     "numbered groups: `office1` pairs with `term_start1`, never with the "
+     "unsuffixed `term_start` above it"),
+    ("{{معلومات صاحب منصب\n"
+     "|المنصب = سفير قطر لدى بلجيكا\n|بداية الفترة = 13 يناير 2017\n"
+     "|نهاية الفترة = \n"
+     "|المنصب1= سفير قطر لدى ألمانيا\n|بداية الفترة1= 2009\n"
+     "|نهاية الفترة1= 2016\n}}",
+     "ar", [("سفير قطر لدى بلجيكا", "2017-01-13", None),
+            ("سفير قطر لدى ألمانيا", "2009", "2016")],
+     "the Arabic vocabulary, which is where this channel actually lives: 141 "
+     "of Qatar's 227 dated tenures are ar.wikipedia's. The bare stems 'منصب' "
+     "and 'بداية' look like these fields and match a sixth as many articles"),
+    ("{{Infobox officeholder\n| office = {{#property:P39}}\n"
+     "| term_start = 2019\n}}",
+     "en", [],
+     "an infobox filled from Wikidata restates what Wikidata already holds; "
+     "read back it would manufacture agreement between a claim and itself"),
+    ("{{Infobox person\n| title = Poet laureate\n| term_start = 1990\n}}",
+     "en", [],
+     "a person box has no office grammar — reading its `title` as an office "
+     "turns a job description into a position claim"),
 ]
 
 
@@ -250,11 +359,17 @@ def main() -> None:
             bad += 1
             print(f"FAIL parse_period({text!r})\n  want {want!r}, "
                   f"got {(start, end)!r}\n  ({why})")
+    for wikitext, lang, want, why in OFFICEBOXES:
+        got = [(t.office, t.start, t.end) for t in parse_officebox(wikitext, lang)]
+        if got != want:
+            bad += 1
+            print(f"FAIL parse_officebox(..., {lang!r})\n  want {want!r}\n  "
+                  f"got  {got!r}\n  ({why})")
     total = (len(DATES) + len(PERIODS) + len(MERGES) + len(HEADERS)
-             + len(GENEALOGY) + len(GLOSSES))
+             + len(GENEALOGY) + len(GLOSSES) + len(OFFICEBOXES))
     if bad:
         raise SystemExit(f"\n{bad} of {total} cases failed")
-    print(f"{total} header, date, term-merge and genealogy cases pass")
+    print(f"{total} header, date, term-merge, genealogy and infobox cases pass")
 
 
 if __name__ == "__main__":

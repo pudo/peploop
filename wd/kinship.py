@@ -77,6 +77,17 @@ HOUSE_LEAD = {"al", "as", "el", "ash", "aal"}
 #: Words that begin a lifespan rather than a name part.
 LIFESPAN_WORDS = {"born", "died", "b", "d", "c", "ca", "circa", "of"}
 
+#: Articles that are a *style*, not a person. Genealogies sometimes link the
+#: honorific ahead of the name, and since it leads the bullet it was read as
+#: the person. Matched whole and folded, never as a prefix: "Sheikh Jassim bin
+#: Mohammed" is somebody, "Sheikh" is a concept, and no person's article is
+#: titled with one of these alone.
+HONORIFIC_ARTICLES = {
+    "sheikh", "sheikha", "shaikh", "shaikha", "shaykh", "shaykha",
+    "emir", "amir", "emira", "sultan", "sultana", "sharif", "sharifa",
+    "prince", "princess", "king", "queen", "imam", "sayyid", "sayyida",
+}
+
 
 @dataclass
 class Listed:
@@ -192,9 +203,21 @@ def _leads(element) -> Tuple[List[Tuple[str, str]], str]:
     joined = True
     for kind, text in _tokens(element):
         if kind.startswith("link:"):
+            target = kind[len("link:"):]
+            # The honorific is sometimes linked too — `en:House of Thani` writes
+            # "[[Sheikha]] [[Najla bint Khalifa Al Thani]]" and "[[Sheikh]]a
+            # [[Noor bint Jassim Al Thani]]" — and it leads, so it was taken as
+            # the person. That cost twice over: 22 entries resolved to the
+            # article about the *title* rather than to anyone, and every child
+            # nested under them inherited "Sheikh" as their father's link and
+            # lost their own patronymic gate. A style is not a person, and no
+            # person's article is titled with one of these alone.
+            if fold(target.casefold()) in HONORIFIC_ARTICLES:
+                between.append(text)
+                continue
             if links and "".join(between).strip().casefold() not in ("and", "&"):
                 joined = False
-            links.append((kind[len("link:"):], " ".join(text.split())))
+            links.append((target, " ".join(text.split())))
             between = []
         else:
             between.append(text)
@@ -240,6 +263,19 @@ def _heading_of(node) -> Optional[Tuple[str, str]]:
     return heading.tag, text
 
 
+#: A bullet that holds the place of a person the article cannot name.
+#: `en:House of Thani` lists twenty-five sons as "Sheikh ??? bin Nasir Al
+#: Thani" — real bullets asserting that someone exists, naming nobody. They
+#: resolve to no item, so nothing downstream would act on them; the cost is
+#: that each one reads as a redlink and lands in the creation byproduct list,
+#: where it is an instruction to mint an item for "???".
+UNNAMED = re.compile(r"\?{2,}|\bunknown\b|\bunnamed\b", re.IGNORECASE)
+
+
+def _unnamed(name: str) -> bool:
+    return bool(UNNAMED.search(name))
+
+
 def _walk_list(
     node, *, chapter: str, section: str, hatnote: Tuple[str, ...],
     glosses: bool, depth: int = 1,
@@ -278,7 +314,9 @@ def _walk_list(
                 partner=other[1], partner_link=other[0],
                 married_in=married_in,
             ))
-        out.extend(entry for entry in entries if entry.name)
+        out.extend(
+            entry for entry in entries if entry.name and not _unnamed(entry.name)
+        )
         # The children hang off whoever this bullet named first — the blood
         # descendant, whom the article lists before the in-law they married.
         head = entries[0] if entries else None
@@ -330,6 +368,25 @@ def parse_genealogy(page_html: str, glosses: bool = False) -> List[Listed]:
                 (_article_title(a) for a in node.xpath(".//a"))
                 if title
             )
+            continue
+        # `{{Tree list}}` is a third shape for the same nesting: it wraps its
+        # `<ul>` in a `div.treelist` purely to draw the connecting rules, so the
+        # list is a *grandchild* here and was skipped whole. `en:House of Thani`
+        # publishes its three branch genealogies this way — 197 bullets seven
+        # generations deep — while the `{{Tree chart}}` above them holds only
+        # the ten-ruler succession line.
+        #
+        # Deliberately only at this level, and not `.//div[treelist]`: a navbox
+        # renders one too, and `en:Hashemites` has exactly that — two list items
+        # naming *territories* ("Jordan (1921–present)") that a deeper search
+        # would emit as people. An article's own lists are direct children of
+        # the parser output; a treelist buried inside chrome is chrome.
+        if node.tag == "div" and "treelist" in classes:
+            for nested in node.xpath("./ul|./ol"):
+                out.extend(_walk_list(
+                    nested, chapter=chapter, section=section, hatnote=hatnote,
+                    glosses=glosses,
+                ))
             continue
         if node.tag in ("ol", "ul"):
             out.extend(_walk_list(
@@ -774,10 +831,19 @@ def house_records(
     # different rationale each time and no baseline could be reproduced.
     wanted = list(dict.fromkeys(fold(marker) for marker in markers))
     records: List[Record] = []
+    # One record per person, not per bullet. A genealogy may list the same
+    # person more than once and legitimately: `en:House of Thani` names Ahmed
+    # bin Muhammed both as a son in the Jassim branch and as the head of his
+    # own, and the founder twice over with the gloss capitalised differently.
+    # `P53` says nothing about *where* they were listed, so the second bullet
+    # restates the first — and `wd/validate.py` refuses a batch holding a line
+    # twice, so left in it fails the render rather than the lane.
+    seen: Set[str] = set()
     for entry in listed:
         person = people.get(entry.link or "")
-        if person is None or house in person.p53:
+        if person is None or house in person.p53 or person.qid in seen:
             continue
+        seen.add(person.qid)
         spellings = [person.label, *person.names, entry.name]
         matched = next(
             (marker for marker in wanted

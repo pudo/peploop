@@ -39,6 +39,7 @@ SCRIPTS = {
     "es": "es_offices",
     "ae": "ae_offices",
     "sa": "sa_offices",
+    "qa": "qa_offices",
 }
 
 
@@ -84,16 +85,32 @@ def main() -> None:
         attested = office.rosters[0].page if rows and office.rosters else (
             ", ".join(f"{lang}:{cat}" for lang, cat in office.categories)
         )
+        # Resolved, not left blank. Every archetype's description template
+        # interpolates one of these three, and `payload` falls back to the raw
+        # QID when the label is missing: the first Qatari ambassador payload
+        # rendered "diplomatic post of Q846", and a `judge` or `agency_head`
+        # office would have said "judge of Q…" the same way. `guard` already
+        # resolves the body's label to check it shares a word with the office
+        # name, so this costs nothing new.
         spec = CreateSpec(
             ref=ref,
             archetype=office.archetype,
             labels=dict(office.create_labels),
             country_qid=campaign.country_qid,
+            country_label=_label(session, campaign.country_qid) or "",
             jurisdiction=office.jurisdiction,
+            jurisdiction_label=(
+                _label(session, office.jurisdiction) or ""
+                if office.jurisdiction else ""
+            ),
+            body_label=(
+                _label(session, office.body) or "" if office.body else ""
+            ),
             body=office.body,
             inception=starts[0] if starts else None,
             attested_by=attested,
             holders=max(len(rows), len(members)),
+            claims_override=office.create_claims,
         )
         problems = guard(
             spec,

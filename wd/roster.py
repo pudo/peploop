@@ -114,7 +114,11 @@ COLUMN_ROLES = [
     # so a bare "office" key would claim the holder column and the table would
     # lose its names. The UAE cabinet list heads exactly these two side by side.
     ("office holder", "name"), ("officeholder", "name"), ("incumbent", "name"),
-    ("governor", "name"), ("office", "office"),
+    # "Elected member" heads the winners' column of every constituency table on
+    # an election article. "Constituency" beside it already has the `notes`
+    # role, so unnamed the members landed in `notes` too: the table parsed with
+    # no name column and its wikilinks were never collected.
+    ("elected member", "name"), ("governor", "name"), ("office", "office"),
     # Monarchical rosters date the *reign*, not the "term". Without "Ruled" the
     # seven-emirate ruler list parses with no date column at all and is dropped
     # whole. "Reign start"/"Reign end" precede the bare "Reign" for the same
@@ -183,7 +187,12 @@ COLUMN_ROLES = [
     # — "وزير الداخلية", "وزير الصحة" — and the Shura membership lists with
     # "العضو". Both precede nothing they could shadow: "وزارة" (the ministry,
     # an `office` column) differs from "وزير" at its third letter.
-    ("وزير", "name"), ("العضو", "name"),
+    #
+    # "الأعضاء" (the members, plural) is the sole column of both Shura Council
+    # rolls on `ar:قائمة أعضاء مجلس الشوري القطري (2021)`. Neither "العضو" nor
+    # "عضو" reaches it — the plural inserts an alif-hamza after the article —
+    # so without its own key those tables have no name column at all.
+    ("وزير", "name"), ("العضو", "name"), ("الأعضاء", "name"),
     # Jordan heads its holder column with the office in the definite article
     # where Saudi Arabia and Kuwait use the bare noun. "الرئيس" is the Senate
     # list's *president* — the person, not a body — and without it that table
@@ -230,7 +239,14 @@ COLUMN_ROLES = [
     # hold the real dates. Every value of a repeated role is joined with " – "
     # before parsing, so leaving it as a `period` appended a tenure length to
     # the range and the crown princes' end dates all parsed as nothing.
-    ("الفترة الزمنية", "days"), ("فترة بقائه", "days"),
+    # …and "طول الفترة" (the length of the period) is the same decoy a third
+    # time, heading the seventh column of `ar:قائمة أمراء قطر` beside the two
+    # that hold the real dates. It cost nothing there only because "بداية
+    # الفترة" and "نهاية الفترة" were both recognised — which is exactly how
+    # the Czech and Kuwaiti spellings stayed invisible until a page turned up
+    # without that luck. It cannot be reached through the bare "فترة" key
+    # (it differs at its first letter), so it needs naming of its own.
+    ("الفترة الزمنية", "days"), ("فترة بقائه", "days"), ("طول الفترة", "days"),
     # "فترة الحكم", "فترة تولي المنصب" and a bare "الفترة" are all one span in
     # two cells or one; the period role handles either.
     ("فترة", "period"), ("الفترة", "period"),
@@ -432,6 +448,14 @@ def parse_date(text: str) -> Optional[str]:
     "no date given" from "date given but coarse".
     """
     low = ARABIC_ERA.sub("", " ".join(text.split()).casefold())
+    # A question mark standing on its own is the source saying it does not know
+    # this date, and the number beside it belongs to the *other* bound: the
+    # Qatar Central Bank's first governor is dated "? - 1983" in a "Took office"
+    # column and "January 1990" in "Left office", so reading 1983 as his start
+    # invents a fact the article declines to state. Only a free-standing "?"
+    # counts — one inside a word or attached to a number is something else.
+    if re.search(r"(?:^|\s)\?(?:\s|$)", low):
+        return None
     # "10 de agosto de 1979" (es), "16 июля 1990" (ru/be/uk) and "2. července
     # 1992" (cs) all reduce to day, month word, year — the Czech day is an
     # ordinal, so the dot after it has to be allowed for or the day is lost.

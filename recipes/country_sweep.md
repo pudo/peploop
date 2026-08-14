@@ -14,6 +14,8 @@ counted as the statements they actually write:
 | UAE | 13 offices, incl. 7 rulerships | 573 → 94 | hereditary power; ar.wiki as the primary channel; P53 as a concern |
 | Saudi Arabia | 13 offices + a kinship lane | 623 → 40 | the dynasty *is* the lane, and it is not an office; Hijri dating caps what a roster can yield |
 | Kuwait | 25 offices, incl. 4 legislative term rolls | 620 → 370 | the largest yield so far, and the run that found QuickStatements cannot write a person's *second* tenure at all (§8) |
+| Jordan | 7 offices + a kinship lane, 98 per-cabinet sources | → 220 + 161 | a whole institution dated by its cabinet articles rather than by a roster |
+| Qatar | 44 offices + a kinship lane, 21 items minted | 222 → 69 | **a country that publishes no rosters.** Two of its 32 ministry articles date a minister; the channel that reached the rest was the *holders'* own infoboxes (`wd/officebox.py`), and the diplomatic lane had to mint its items before it could write anything |
 
 The engine is `wd/campaign.py`; a country script is only parameters
 (`scripts/ec_ministers.py` is the simplest shape, `scripts/es_offices.py` the
@@ -263,6 +265,46 @@ appointer, ref_urls, covering)`, plus `merge_terms()` and `names_match()`.
 signals agree — category + roster row, or a roster row whose identity is
 asserted by a wikilink / corroborated by its own citation (§6). Single-weak-
 channel candidates are skipped with a reason.
+
+### 4b. When there is no roster at all
+
+Some countries do not publish one. Qatar dates a minister on **two of its
+thirty-two ministry articles**, across both wikis — the roster channel reaches
+the throne and the central bank and stops. Before concluding that such a country
+is simply undocumented, look at it from the other side: instead of an office
+naming its holders, a holder names their offices, and
+`{{Infobox officeholder}}` has an `office`/`term_start`/`term_end` grammar that
+says the same thing one person at a time. Qatar's holders' own infoboxes carry
+**227 dated tenures**, 141 of them on ar.wikipedia.
+
+`wd/officebox.py` reads them and returns `RosterRow`s, so identity resolution,
+`target_for` routing, the backtest and the policy table apply unchanged; an
+office opts in with `Office.officebox = ("ar", "en")`. Four things decide
+whether it is safe:
+
+1. **It is one channel and never two.** An infobox is written by whoever wrote
+   the article and corrected by nobody in particular. `officebox.two_channel`
+   applies only where the office's *own* category names the person too, and
+   `officebox.one_channel` skips the rest — which is why this is one `Office`
+   per portfolio and not one cabinet bucket: in a bucket, "in some ministerial
+   category" would satisfy the gate for a portfolio the category never
+   mentioned.
+2. **Route the office string, never default it.** One person's box lists every
+   office they held, so each portfolio's `section_targets` claims its own and
+   ends with the catch-all `r""` → `""`, meaning *no item*. Left out, every
+   other office in the box lands on this one.
+3. **Read the field names the template actually uses.** Arabic officeholder
+   boxes use `المنصب` / `بداية الفترة` / `نهاية الفترة`; the bare stems `منصب`
+   and `بداية` look like the same fields and match a sixth as many articles.
+   Measure both before believing a low count — this one was under-read
+   six-fold at survey time and the whole lane was nearly scoped out on it.
+4. **Cite the article, not the office.** Each row's source is the revision of
+   the *person's* page, so unlike a roster lane there is no single permalink;
+   without threading it through, these statements render unreferenced.
+
+Deliberately not read: `{{Infobox person}}`, whose `title` is a job description
+rather than an office, and any box populated from Wikidata — reading that back
+manufactures agreement between a claim and itself.
 
 ## 4a. When the family is the lane, not the office
 
@@ -661,6 +703,34 @@ the first pass. Each of these was wrong once and would have shipped silently:
   premiership and disagree by a day or two on seven end dates, which arrives as
   one P39 with two ends. One source per office; the *category* is the second
   channel, and it dates nothing.
+
+  …and **the same is true of one person's infobox in two languages**, which is
+  how the rule arrives when the source is the holder rather than the office.
+  Qatar's ICT ministership ends 2016-01-27 on one wiki and 2016-01-26 on the
+  other; `wd/campaign.py:officebox_rows` therefore reads the second wiki only
+  for people the first does not cover — the reach of both, nothing dated twice.
+
+* **a genealogy may list one person twice, legitimately.** `en:House of Thani`
+  names Ahmed bin Muhammed as a son in one branch and as the head of another,
+  and the founder twice with the gloss capitalised differently. `P53` says
+  nothing about *where* someone was listed, so the second bullet restates the
+  first and `validate` refuses the batch for a duplicate line;
+  `kinship.house_records` emits one record per person. For `P22` the same shape
+  means the opposite — two bullets under two different fathers is the article
+  contradicting itself, and both skip.
+
+* **an honorific is sometimes linked, and it leads.** `[[Sheikha]] [[Najla bint
+  Khalifa Al Thani]]` — the style is the first link in the bullet, so it was
+  read as the person: 22 entries resolved to the article about the title, and
+  every child nested under them inherited "Sheikh" as their father's link and
+  lost the patronymic gate. `kinship.HONORIFIC_ARTICLES` drops them, matched
+  whole; no person's article is titled with one of these alone.
+
+* **a bullet can name nobody.** Twenty-five of `en:House of Thani`'s entries are
+  "Sheikh ??? bin Nasir Al Thani" — a real assertion that a son existed, naming
+  him nowhere. They resolve to no item, so nothing acts on them, but left in
+  they read as redlinks and enter the item-creation list as an instruction to
+  mint an item for "???".
 
 * **a catch-all written `.` does not match an empty cell.** `section_targets`
   builds its haystack from the row's section and office cell, so a row with

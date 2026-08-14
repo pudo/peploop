@@ -46,6 +46,7 @@ comes from `--retrieved` and changes on every re-render, so compare with
 | saudi | 283 | 44 | 43 | — |
 | kuwait | 1,299 | 358 | 253 | 117 |
 | jordan | 495 | 221 | 220 | 161 (applied) |
+| qatar | 158 | 71 | 71 | — |
 
 **The baselines above the Kuwait row predate the two-file split** (§8 of the
 recipe), so their `.qs` still holds the multi-tenure lines that
@@ -54,6 +55,26 @@ they are the record of what *was applied*, and `scripts/repair_merged.py` reads
 exactly those lines to recover which start belonged to which end. Do not
 regenerate them to match today's renderer — the pairing would be lost, and it is
 the only copy.
+
+Qatar was added 2026-08-13 and its batch applied 2026-08-14, so it has now
+joined every row above it in no longer reproducing — a re-run correctly drops
+each of the 69 statements as `already holds P39`. The snapshot is the record of
+what was proposed, not something a later run can reproduce. It went in alongside four
+`wd/roster.py` additions (`طول الفترة` as a third spelling of the duration
+decoy, `الأعضاء` and `Elected member` as name columns, and a free-standing `?`
+in a date cell yielding no date), two `wd/kinship.py` ones (`{{Tree list}}`
+genealogies, which render as a `div.treelist` the walker never descended into,
+and linked honorifics — `[[Sheikha]] [[Najla bint Khalifa Al Thani]]` read the
+*style* as the person), and `wd/officebox.py`, a new evidence channel.
+
+The way it was verified is the point. `regression/` could not be the net — see
+below — so every campaign was first re-run on unmodified code and snapshotted to
+`data/_prechange/<campaign>/verdicts`, and each change diffed against *that*.
+All eight came back "no semantic change" except one Saudi pair, traced to a
+`house_records` fix that stops a person listed twice in one genealogy producing
+two identical `P53` records; the `.qs` never carried the duplicate, so no batch
+changed. Anyone touching the engine next should take the same snapshot first —
+it costs one run of each campaign and is the only working net there is.
 
 ## This net no longer catches much, and that needs solving
 

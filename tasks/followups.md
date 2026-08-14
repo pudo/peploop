@@ -369,6 +369,133 @@ in parallel in different towns.)
 royal lane inverts it — Arabic has no royal-family category and the genealogy
 article is `en:Hashemites`.
 
+## Qatar (added 2026-08-13)
+
+All five lanes ran. **71 `.qs` lines writing 69 statements** (55 `P39`, 9
+`P53`, 7 `P22`), no API half — QuickStatements merged the two `P53` claims that
+appear twice with different references, exactly as `wd/validate.py` predicted.
+**Applied 2026-08-14 and verified: all 69 claims read back live from Wikidata,
+none missing.** Baselined in `regression/qatar/`; the brief is
+`plans/qatar_sweep.md`.
+
+**Lane E — the ambassadors — is applied.** 21 bilateral ambassadorship items
+were created 2026-08-14 (`data/qatar/created.json`, `applied.jsonl`), all 21
+clearing `wd.create.guard`, and the sweep then wrote 14 `P39` statements onto
+them. `Q141060919`–`Q141060992`; the office keys and targets are in
+`scripts/qa_offices.py`.
+
+The item shape is measured off ten existing "ambassador of Qatar to X" items and
+inverts what `payload()` writes by default, which is why `CreateSpec` gained
+`claims_override`: `P17` is the **receiving** state (8 of 8 that carry it),
+`P279` names both `Q38717123` "ambassador of Qatar" and the receiving state's
+own "ambassador to X" class, and `P1001` — used by two of the ten — is not
+asserted. What was created, per item:
+
+    {"labels": {"en": "ambassador of Qatar to France",
+                "ar": "سفير قطر لدى فرنسا"},
+     "descriptions": {"en": "diplomatic post of Qatar in France"},
+     "claims": {"P31": "Q4164871",
+                "P279": ["Q38717123", "Q19359050"],
+                "P17": "Q142"}}
+
+**Still open in this lane**, and deliberately: the 24 single-envoy categories are
+below `guard`'s floor of two attested holders and were not minted; the permanent
+representations (UN, UNESCO, OAS — the UN mission alone has six documented
+holders) are a different archetype and need their own decision.
+
+**A bug this lane found in the creation path — fixed, and it never shipped.**
+`scripts/create_offices.py` passed none of `country_label`, `jurisdiction_label`
+or `body_label`, and `payload()` falls back to the raw QID when a label is
+missing. Every archetype's description template interpolates one of the three,
+so the first Qatari payload read "diplomatic post of Q846" and a `judge` or
+`agency_head` office would have said "judge of Q213". All three are now
+resolved through the `_label` helper already in that script — `guard` was
+fetching the body's label anyway to check it shares a word with the office name.
+
+**Nothing was ever written with a leaked QID**, checked three ways:
+
+* `data/qatar/created.json` is the **only** creation ledger in the repo; every
+  other campaign's `applied.jsonl` holds claim-edits and not one creation, so
+  `--apply` had never been run on this path before 2026-08-14.
+* All 21 Qatari items were minted *after* the fix and read back clean —
+  "diplomatic post of Qatar in France", not a QID.
+* A SPARQL sweep of `P31 = Q4164871` items whose English description matches
+  `\bQ[0-9]{2,}\b` returns four hits, all of them deliberate cross-references
+  ("for property consultant use Q124728671"). None is a template leak.
+
+The Czech judge items the campaign's creation lane would have minted
+(`Q140913203`, `Q140913206`) already exist and were made by hand — their
+descriptions read "position at the Supreme Court…", which is not the archetype
+template, and `Q140913206` carries a `P279` the archetype does not use.
+
+Floor is two attested holders, which `wd.create.guard` already imposes; the 24
+single-envoy categories are below it and are not to be minted.
+
+| holders | label (en) | label (ar) | `P17` receiving | `P279` receiving class |
+|---|---|---|---|---|
+| 8 | ambassador of Qatar to France | سفير قطر لدى فرنسا | `Q142` | `Q19359050` |
+| 6 | ambassador of Qatar to Egypt | سفير قطر لدى مصر | `Q79` | `Q30056302` |
+| 5 | ambassador of Qatar to Mexico | سفير قطر لدى المكسيك | `Q96` | `Q29511856` |
+| 4 | ambassador of Qatar to Turkey | سفير قطر لدى تركيا | `Q43` | `Q28038722` |
+| 4 | ambassador of Qatar to the Russian Federation | سفير قطر لدى روسيا | `Q159` | `Q29511967` |
+| 4 | ambassador of Qatar to the United Kingdom | سفير قطر لدى المملكة المتحدة | `Q145` | `Q456692` |
+| 4 | ambassador of Qatar to India | سفير قطر لدى الهند | `Q668` | `Q30056023` |
+| 3 | ambassador of Qatar to Belgium | سفير قطر لدى بلجيكا | `Q31` | `Q29511906` |
+| 3 | ambassador of Qatar to Tunisia | سفير قطر لدى تونس | `Q948` | `Q29970486` |
+| 3 | ambassador of Qatar to Saudi Arabia | سفير قطر لدى السعودية | `Q851` | `Q30057165` |
+| 3 | ambassador of Qatar to Kuwait | سفير قطر لدى الكويت | `Q817` | `Q30057130` |
+| 3 | ambassador of Qatar to Lebanon | سفير قطر لدى لبنان | `Q822` | `Q30057181` |
+| 2 | ambassador of Qatar to the United Arab Emirates | سفير قطر لدى الإمارات العربية المتحدة | `Q878` | `Q30057151` |
+| 2 | ambassador of Qatar to Pakistan | سفير قطر لدى باكستان | `Q843` | `Q30056349` |
+| 2 | ambassador of Qatar to Italy | سفير قطر لدى إيطاليا | `Q38` | `Q21814442` |
+| 2 | ambassador of Qatar to São Tomé and Príncipe | سفير قطر لدى ساو تومي وبرينسيبي | `Q1039` | `Q106457780` |
+| 2 | ambassador of Qatar to Venezuela | سفير قطر لدى فنزويلا | `Q717` | `Q30057166` |
+| 2 | ambassador of Qatar to Nigeria | سفير قطر لدى نيجيريا | `Q1033` | `Q30249268` |
+| 2 | ambassador of Qatar to Libya | سفير قطر لدى ليبيا | `Q1016` | `Q30056069` |
+| 2 | ambassador of Qatar to Morocco | سفير قطر لدى المغرب | `Q1028` | `Q29898040` |
+| 2 | ambassador of Qatar to Greece | سفير قطر لدى اليونان | `Q41` | `Q29898588` |
+
+Also deferred with it: the permanent representations (UN, UNESCO, OAS — the UN
+mission alone has six documented holders) are a different archetype from a
+bilateral post and need their own decision, and 42 of the dated tenures are
+sub-ministerial or non-PEP (department directors, a football federation
+presidency, a Red Crescent secretary-generalship) and route to no item at all.
+
+**Item-creation rosters (people, not offices).**
+* 87 of the 179 anchors in `en:House of Thani`'s three branch lists are
+  redlinks — half the house has no article and so no item. They are named in
+  `data/qatar/kinship_audit.md` under "Listed with no article".
+* 44 of the 45 members of the 2021 Shura Council have no item. `Q21328600` has
+  one holder against a 45-seat chamber. `en:2021 Qatari general election`
+  names the 30 elected; `ar:قائمة أعضاء مجلس الشوري القطري (2021)` names all 45
+  as unlinked plain text.
+
+**Item-layer defects — surgical, stop and ask.**
+* `Q54965863` Crown Prince, `Q21328600` Shura member, `Q108861084` Deputy PM
+  and `Q110183427` Chief of Armed Forces carry no `P571`, so
+  `Precedent.covers()` has nothing to enforce.
+* The four economic-portfolio items — `Q106762274` Commerce and Industry,
+  `Q108861091` Industry and Energy, `Q110182815` Energy, `Q110182502` Business
+  and Trade — are a renaming succession that no statement declares: none has
+  `P571`, `P576`, `P1365` or `P1366`.
+* `Q108718564` "ambassador of Qatar to Hungary" puts both parents on `P31`
+  where every sibling uses `P279`.
+* `Q23020336` Mohammed bin Abdulrahman Al Thani: `en:Deputy Prime Minister of
+  Qatar` dates him from November 2017, the item records 2016-01-27. The
+  backtest's only date conflict; needs the sources read, not a parser change.
+* Nine roster spells are not recorded although the person already holds the
+  target for a *different* spell (Khalifa bin Hamad as crown prince and prime
+  minister, Hamad bin Khalifa likewise, three more on the deputy premiership).
+  The person-level `already holds P39` gate drops them before they reach the
+  batch, which is coarser than the statement it protects.
+
+**Engine followup, not Qatar's.** `scripts/sa_family.py` and
+`scripts/jo_family.py` read item state through the seven-day cache rather than
+`STATE_MAX_AGE`, which is the one thing `CLAUDE.md` says never to do: a Saudi
+re-run still offers a `P53` that has been live on `Q99162142` for days.
+`scripts/qa_family.py` uses `STATE_MAX_AGE`; the other two want the same change
+and a re-baseline with it.
+
 ## Deferred lanes
 
 - UAE lane E (sovereign wealth funds) — creation-first; see the recipe's SOE note

@@ -41,6 +41,7 @@ from wd.http import get_text
 from wd.petscan import category_members
 from wd.policy import Candidate, Facts, decide, tally
 from wd.precedent import census, report
+from wd.officebox import officebox_rows as box_rows
 from wd.record import (
     Decision,
     Record,
@@ -60,7 +61,7 @@ from wd.roster import (
     parse_bullet_rosters,
     parse_rosters,
 )
-from wd.wikipedia import WIKI_API, fetch_html, permalink
+from wd.wikipedia import WIKI_API, fetch_html, fetch_pages, permalink
 
 #: Occupations that make a public-office claim plausible. A name that matches
 #: only an item with none of these — es.wikipedia's "Ernesto Albán" is a
@@ -181,6 +182,11 @@ class Office:
     jurisdiction: Optional[str] = None
     #: Labels for the item to be created, by language.
     create_labels: Tuple[Tuple[str, str], ...] = ()
+    #: Base claims to override on the item to be created, `(property, value)`,
+    #: with `None` removing one. See `wd.create.CreateSpec.claims_override`:
+    #: the defaults describe a national office, and an outbound ambassadorship
+    #: is not one.
+    create_claims: Tuple[Tuple[str, object], ...] = ()
     #: The dynasty that holds this office, for a `P53` backfill, plus the
     #: surname spellings that name it.
     #:
@@ -195,6 +201,13 @@ class Office:
     #: tokens, never as a substring.
     family: Optional[str] = None
     family_names: Tuple[str, ...] = ()
+    #: Wikis whose articles' *own infoboxes* should be read for this office's
+    #: tenures, for an office no roster article lists. Empty for every office
+    #: that has a roster — this is a fallback channel, not a supplement, and
+    #: running both against one office would date one tenure from two sources.
+    #: The rows it produces apply only where the category agrees; see
+    #: `officebox.two_channel` in `wd/policy.py`.
+    officebox: Tuple[str, ...] = ()
 
 
 @dataclass
@@ -273,6 +286,12 @@ class Person:
     death: Optional[int] = None
     #: Categories that put this person forward, empty for roster-only people.
     cats: List[str] = field(default_factory=list)
+    #: Wiki language → article title. `names` already carries the titles, but
+    #: flattened, and the officebox channel has to ask a different question:
+    #: *which* wiki holds this person's article, so it can read the infobox on
+    #: it. Kept as a map rather than re-deriving it from `names`, which cannot
+    #: say which of several strings was a sitelink.
+    sitelinks: Dict[str, str] = field(default_factory=dict)
     #: Era name when a category places them in an earlier polity's version of
     #: the office. Informational for people the roster names — they may have
     #: served under both — and decisive only for category-only candidates.
@@ -701,10 +720,12 @@ def build_people(
                 names.append(term["value"])
             for alias in entity.get("aliases", {}).get(lang, []):
                 names.append(alias["value"])
+        sitelinks: Dict[str, str] = {}
         for wiki in campaign.sibling_wikis + ("en",):
             link = entity.get("sitelinks", {}).get(f"{wiki}wiki")
             if link:
                 names.append(link["title"])
+                sitelinks.setdefault(wiki, link["title"])
         label = next(
             (
                 entity["labels"][lang]["value"]
@@ -729,8 +750,59 @@ def build_people(
             death=year_of(entity, "P570"),
             cats=cats.get(qid, []),
             regime=regimes.get(qid),
+            sitelinks=sitelinks,
         )
     return people, by_title
+
+
+def officebox_rows(
+    session: Session,
+    office: Office,
+    people: Dict[str, Person],
+    by_title: Dict[Tuple[str, str], str],
+    lang: str,
+) -> List[RosterRow]:
+    """Rows read from each candidate's own infobox, for offices no roster lists.
+
+    The office lane's usual evidence is a roster: one article dating every
+    holder at once. Where a country publishes none — Qatar dates two of its
+    thirty-two ministries — the same facts are still written down, one person at
+    a time, in the infobox of each holder's own article.
+
+    Only the office's *category members* are read, never the whole country: the
+    category is the second channel `wd.policy` requires before an infobox row
+    may apply, so a person outside it could not produce an applying row anyway.
+    """
+    rows: List[RosterRow] = []
+    # One source per person, in the order the office names its wikis. A person
+    # with an article on both wikis has their tenure stated twice, and the two
+    # disagree in small ways: Q5746141's ICT ministership ends 2016-01-27 on one
+    # and 2016-01-26 on the other, which is two sources dating one tenure and
+    # exactly what §7 forbids for rosters. `wd/validate.py` refuses to render it
+    # and is right to. Reading the second wiki only for people the first does
+    # not cover keeps the reach of both without dating anything twice.
+    covered: set = set()
+    for box_lang in office.officebox:
+        titles: Dict[str, str] = {}
+        for qid, person in people.items():
+            title = person.sitelinks.get(box_lang)
+            # Category members only — see the docstring.
+            if title and person.cats and qid not in covered:
+                titles.setdefault(title, qid)
+        if not titles:
+            continue
+        pages = fetch_pages(session, box_lang, sorted(titles))
+        found = box_rows(pages, box_lang, sorted(titles))
+        # `identify` resolves a row's link through `by_title[(lang, title)]`,
+        # and these titles were resolved the other way round — from the item to
+        # its sitelink — so the mapping is already known and authoritative.
+        # Registered under the office's own identify language because that is
+        # the key `identify` will look under, whichever wiki the article is on.
+        for title, qid in titles.items():
+            by_title.setdefault((lang, title), qid)
+        covered.update(titles[row.link] for row in found if row.link in titles)
+        rows.extend(found)
+    return rows
 
 
 def identify(
@@ -1210,6 +1282,11 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
         ]
         held_by_target = {t: holders(session, t) for t in dict.fromkeys(targets)}
         lang = office.rosters[0].lang if office.rosters else "en"
+        if office.officebox:
+            extra = officebox_rows(session, office, people, by_title, lang)
+            print(f"    officebox: {len(extra)} tenure(s) from "
+                  f"{'/'.join(office.officebox)} infoboxes")
+            rows = list(rows) + extra
 
         per_person: Dict[Tuple[str, str], List[RosterRow]] = {}
         row_status: List[Tuple[RosterRow, Optional[str], str]] = []
@@ -1307,6 +1384,13 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
             person = people[qid]
             held = held_by_target.get(target, set())
             in_category = bool(person.cats)
+            # Every row in the group, or the claim is not an infobox claim: a
+            # person a roster names *and* their own box confirms has the two
+            # channels already, and holding them to the stricter rule would
+            # skip a row the roster alone would have applied.
+            from_officebox = bool(group) and all(
+                "officebox" in r.flags for r in group
+            )
             conflict = next(
                 (c for c in (lifetime_conflict(person, r.start) for r in group) if c), None
             )
@@ -1318,6 +1402,13 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 for r in group
             )
             ref = next((url for r in group for url in r.ref_urls), None)
+            # An officebox group's source is the person's own article revision,
+            # one per row rather than one per office, so it cannot come from the
+            # office's roster permalink — there is no roster.
+            box_source = next(
+                (r.cells.get("officebox_source") for r in group
+                 if r.cells.get("officebox_source")), ""
+            )
             # Asked first, because it decides whether the row belongs on this
             # item at all: another item of the same office already recording
             # this spell means the appointment is written down, and every
@@ -1393,13 +1484,21 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                         terms=terms,
                         evidence=evidence,
                         notes=notes,
-                        source_url=ref or source,
+                        source_url=ref or box_source or source,
                         source_prop="S854" if ref else "S4656",
                         identity=identity_of.get(qid, {}),
                         facts=facts,
                         overrides=campaign.dispositions,
                         in_category=in_category,
-                        extra_flags=tuple(extra) + ((office.hold,) if office.hold else ()),
+                        # Where the evidence came from is a fact about the
+                        # claim, not about the row, so it has to travel with
+                        # the candidate: `officebox.two_channel` is the rule
+                        # that decides these, and without the flag they fall
+                        # through to `modern.two_channel` and apply on the
+                        # infobox alone.
+                        extra_flags=tuple(extra)
+                        + (("officebox",) if from_officebox else ())
+                        + ((office.hold,) if office.hold else ()),
                     )
                 )
 
@@ -1450,9 +1549,15 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 emit(
                     "add", era,
                     [{"start": start, "end": end} for start, end in terms],
-                    f"'{office.rosters[0].page if office.rosters else '?'}' "
-                    f"{campaign.evidence_verb} "
-                    f"{'; '.join(r.period_raw for r in plain)}"
+                    # An officebox claim comes from the person's own article, so
+                    # naming a roster page — or "?" where there is none — says
+                    # nothing about where the evidence was read.
+                    (f"their own {'/'.join(office.officebox)}.wikipedia "
+                     f"infobox states this office, "
+                     if from_officebox else
+                     f"'{office.rosters[0].page if office.rosters else '?'}' "
+                     f"{campaign.evidence_verb} ")
+                    + f"{'; '.join(r.period_raw for r in plain)}"
                     + (f", appointed by {plain[0].appointer}" if plain[0].appointer else "")
                     + (f"; category: {', '.join(person.cats)}" if in_category
                        else "; NOT in any category — roster wikilink only")
