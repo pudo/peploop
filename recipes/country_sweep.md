@@ -30,6 +30,26 @@ what the output is for, and what went wrong the first time.
 
 ## The contract
 
+**A campaign is finished when every institution has a disposition, not when a
+batch is validated.** Scope against `recipes/institutions.md`, record the answers
+in `coverage/<country>.md`, and close only when no row reads `deferred` and every
+`blocked:` points at a named issue. The `.qs` is an output, not the finish line.
+
+This is the same discipline `wd/policy.py` already applies to rows, moved up one
+level. Until it was, eleven campaigns each produced a validated batch and closed
+while whole FATF categories went untouched — judiciary in 0 of 11, SOE and
+sovereign wealth in 0 of 11, party officials in 0 of 11, mayors nowhere at all.
+`coverage/README.md` has the matrix; the point of it is that none of that was
+visible from inside a campaign that was, on its own terms, complete.
+
+Two corollaries worth stating, because both were violated in practice:
+
+* **A byproduct list does not close an institution.** Roughly 150 office items
+  have been listed for creation across nine campaigns and 23 minted. A row
+  reading `⊘ creation-first` is unfinished work, not a disposition.
+* **An institution nobody looked at cannot be reported as absent.** `no-source`
+  requires a measurement. "Not attempted" is not an available answer.
+
 A sweep is **99% autonomous**. It runs survey → rosters → policy → backtest →
 render without a human checkpoint, and the human sees exactly one thing: the
 finished batch, reviewed whole in the QuickStatements importer before upload.
@@ -94,9 +114,16 @@ statements.
 
 ## 1. Survey the landscape
 
-Start from the FATF checklist above and ask, per branch of power: which
-offices exist, which have Wikidata items, which have categories, which have
-rosters. Then measure the categories at **depth 0, 1 and 4**:
+Start from **`recipes/institutions.md`** — the checklist of institution classes —
+and walk every one of them, asking: which offices exist, which have Wikidata
+items, which have categories, which have rosters. Write the answers into
+`coverage/<country>.md` as you go, **including the classes the country does not
+have and the ones with no obvious source**; those rows are the deliverable for
+those institutions.
+
+Do not scope from the campaign's own name outward. The three narrowest campaigns
+in the repo are the three called `*_ministers.py`, and Ecuador's nineteen offices
+are nineteen cabinet portfolios with no president, no legislature and no courts. Then measure the categories at **depth 0, 1 and 4**:
 
     /Users/pudo/.python/wrangle/bin/python scripts/petscan.py --lang es "Ministros_de_Ecuador" --depth 1
 
@@ -202,6 +229,16 @@ acting, because a spell sitting inside the sibling item's span also trips
 
 ## 3. Lane the offices
 
+**The census in `recipes/institutions.md` is the spine; this table is not.** What
+follows is how you *run* an institution once the ledger says it exists — a
+mechanic, not a taxonomy of a country. Laning by shape is what let an institution
+with an awkward shape stop being mentioned: it never appeared in a lane table, so
+it never appeared as uncovered either.
+
+Every lane below is an attribute of a `coverage/<country>.md` row, and every row
+needs one — including the rows whose shape is "no channel found", which is a
+measurement to record rather than a lane to skip.
+
 | lane | shape | how to run it |
 |---|---|---|
 | single office | "President of X", one item | roster + category, §4 |
@@ -211,13 +248,71 @@ acting, because a spell sitting inside the sibling item's span also trips
 | hereditary | rulers, crown princes, royal houses | the roster *is* the succession; add `family` for the P53 backfill — office and surname are two independent assertions and both must agree |
 | **dynasty** | a royal house of hundreds, most of whom hold nothing | not an office at all: `wd/kinship.py` over a genealogy article, §4a |
 | creation-first | offices/bodies with no item (SWFs, new courts) | `archetype` + `body`, `create_offices.py`, then run like any other |
-| catch-all | "Politicians of X", "Political office-holders" | defer; municipal/provincial grab-bags |
+| catch-all | "Politicians of X", "Political office-holders" | a generator, never a lane: resolve its members onto real offices, and record what is left as the item-creation byproduct it is |
 
 The bucket lane is where ministerial volume is, and the trick is that both
 wikis usually subdivide the minister category by portfolio
 (`Ministros_de_Salud_Pública_de_Ecuador`). List subcategories with
 `list=categorymembers&cmtype=subcat`. Portfolio subcategory + portfolio item
 = a target per person, with no per-person office guessing.
+
+## 3a. Triage the blockers before you run a single lane
+
+**Half of everything ever deferred was blocked on one thing in `wd/` or
+`scripts/` that a single change would have unblocked** — 21 deferrals on item
+creation and 14 on a shared parser gap, against 11 that were genuine scope
+decisions. A blocker is not a property of the lane that happened to hit it; it is
+a toolkit gap whose cost is paid by every lane it gates, and it should be fixed
+before any of them run.
+
+**The promotion rule: a workaround appearing in a second campaign is a toolkit
+gap.** Not a clever fix to copy — evidence that something is missing. Three of
+these are on record:
+
+* `wd/create.py` has no non-ruler *deputy* archetype and no *governor* archetype.
+  Kuwait dropped three offices over the first; Iran's 27 governorships and Iraq's
+  workaround (`iq_offices.py` reusing `provincial_governor` "for its description
+  template only") are the second, and neither campaign promoted it.
+* The `{{Tree chart}}` genealogy shape defeated `wd/kinship.py` in **Kuwait and
+  Jordan**, and Jordan's plan cites Kuwait's deferral as precedent rather than
+  resolving it: *"if the tree-chart reader is ever built it unlocks both at
+  once."* It was not built.
+* RTL-reversed date ranges were deferred by Kuwait, then by Jordan citing Kuwait.
+
+The sizing case is Iran. `parse_bullet_rosters` was blind to Persian in three
+independent ways and gated **~3,300 statements across three institutions**. It was
+documented in the plan *before* execution, recorded as "a bounded change this run
+does not make", and the first batch shipped at 224 statements. Making the change
+took the same run to 688. **The gap was known, sized and skipped**, which is
+exactly what this section exists to stop.
+
+Iraq is the counter-example that shows the ordering works: its Levantine month
+names and column vocabulary were scheduled as a serial parser phase *before* the
+lanes, and its ministry pages went from "38 rows, 0 dated" to "38 named, 38
+dated" before anyone tried to harvest them.
+
+Run it as one serial change with one owner, graded by `scripts/check_dates.py`.
+`wd/roster.py` is shared state; parallel agents must not touch it.
+
+## 3b. Mint the items first, not last
+
+**A creation-first institution has zero coverage by definition**, and creation is
+the only step that cannot be hurried because it needs a human. Scheduling it last
+is why it is always the thing left undone:
+
+* ~150 office items listed for creation across nine campaigns; **23 minted.**
+* `create_offices.py`'s `SCRIPTS` dict is missing `jo`, `kw` and `ir` — **the
+  three campaigns with the largest creation lists.** Each plan instructed the
+  wiring; none of them did it.
+* Iran's governor lane has **778 of 903 rows** behind the gate.
+* Qatar was the first campaign ever to run `--apply`, and doing so immediately
+  exposed a description-template bug that would have written "diplomatic post of
+  Q846" into every item — meaning every earlier campaign's creation list was
+  written against a path that produced garbage and nobody knew.
+
+Mint, verify the shape against existing siblings with `wd/precedent.py`, then
+harvest. An institution whose items were minted but never populated is still
+unfinished.
 
 ## 4. Find the rosters (this is the leverage)
 
@@ -794,6 +889,25 @@ item — which means a cell failed to parse, not that the source was coarse.
   it stops and asks.
 
 ## 9. Close the loop
+
+**Reconcile before you close.** Fill in the `shipped` column of
+`coverage/<country>.md` against the `expected` column written at survey time, and
+give any institution shipping under half its estimate a written reason. This is
+the check the method has never had: Iran sized its Majlis lane at 2,349
+statements and shipped 388, sized its ambassador lane at ~640 and shipped 29, and
+neither ratio was computed anywhere. Qatar is the only campaign in eleven that
+ever produced a planned-versus-built table, and it is worth copying — it caught
+two estimates wrong in opposite directions and explained both.
+
+A campaign may not close while a ledger row reads `deferred`, and a `blocked:`
+row must name an issue with an owner. **Update the country's column in
+`coverage/README.md`** from the ledger.
+
+Note what the reconciliation cannot see today: the `already holds P39` gate
+`continue`s before `emit()`, so those rows never become verdicts at all. Iran
+tallied 1,932 of 3,060 rows that way — 63% of the run, invisible in
+`edit_plan.md`. That contradicts "every case gets a disposition" and is a toolkit
+issue, not a per-campaign one.
 
 * Byproducts land in `tasks/followups.md` if actionable (items to create,
   merges, `wd_categories.yml` write-backs) and stay measured in the audit

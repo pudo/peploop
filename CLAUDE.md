@@ -9,12 +9,25 @@ SOE executives, party officials), not just the cabinet. Outputs land in
 
 Where things live:
 
+- `recipes/institutions.md` — **what a country is made of.** The checklist of
+  ~35 institution classes a sweep is scoped against and measured complete
+  against, each with where its roster usually lives, what item shape it needs,
+  and the failure mode that usually kills it. Start here, not at the campaign
+  script: the three narrowest campaigns in this repo are the three named
+  `*_ministers.py`, because a sweep scoped from its own filename outward never
+  asks about courts.
 - `recipes/country_sweep.md` — **the method.** One country at a time, run
-  99% autonomously: survey → target census → rosters → identity gates →
-  policy → backtest → one validated `.qs` the human reviews in the
-  QuickStatements importer. Read it before starting a run rather than
+  99% autonomously: census → blocker triage → item creation → rosters →
+  identity gates → policy → backtest → one validated `.qs` the human reviews
+  in the QuickStatements importer. Read it before starting a run rather than
   re-deriving the method; its calibration table says what countries of each
   coverage profile yield, and §7 catalogues the roster failure modes.
+- `coverage/<country>.md` — **the ledger, and the definition of done.** One row
+  per institution class with a disposition. A campaign closes when no row reads
+  `deferred` and every `blocked:` names an issue — *not* when a batch validates.
+  `coverage/README.md` is the cross-country matrix, and it is the artifact that
+  made visible what eleven campaigns could not see from inside: judiciary
+  covered in 0 of 11, SOE and sovereign wealth 0 of 11, mayors nowhere at all.
 - `tasks/followups.md` — actionable leftovers from closed campaigns
   (unapplied batches, item-creation lists, the surgical wikibase-cli list).
 - `tasks/*.md` (the rest) — briefs only for campaigns that are a genuinely
@@ -36,6 +49,16 @@ Where things live:
 
 ## Editing rules
 
+- **A campaign is done when every institution has a disposition**, not when a
+  `.qs` validates. This is `wd/policy.py`'s rule — every case gets a disposition,
+  and "review later" is not one — applied one level up, to institutions. A
+  byproduct list does not close an institution: ~150 office items have been
+  listed for creation across nine campaigns and 23 minted.
+- **Fix a shared blocker before the lanes, not after.** Half of everything ever
+  deferred was blocked on one thing in `wd/` that a single change would unblock.
+  A workaround appearing in a *second* campaign is not a pattern to copy, it is
+  the signal that something is missing from the toolkit — Kuwait and Jordan both
+  dropped a kinship lane to `{{Tree chart}}`, the second citing the first.
 - **Decide, then let the user write.** The toolkit decides every case and
   records the rule that decided it; nothing reaches Wikidata until the user
   runs the batch. Those are different gates, and conflating them is what

@@ -609,6 +609,43 @@ against a 151-case fixture) is what made any of it reachable.
   `P137` (74/77) and `zavod` does not read it. Wide blast radius: every country's
   ambassadors.
 
+## Toolkit gaps that block lanes in more than one campaign
+
+Promoted here because a workaround appearing in a *second* campaign is the signal
+that something is missing, not a pattern to copy (`recipes/country_sweep.md` §3a).
+Each one blocks work that is otherwise ready.
+
+* **`wd/kinship.py` cannot read `{{Tree chart}}`.** Blocks the House of Sabah
+  (Kuwait) and the medieval Sharifian lineage (Jordan). Jordan's plan cites
+  Kuwait's deferral as precedent — *"if the tree-chart reader is ever built it
+  unlocks both at once"* — and it was not built. **Two lanes, one reader.**
+* **`wd/create.py` archetypes.** No non-ruler *deputy* archetype (Kuwait dropped
+  three offices); no *governor* archetype (Iran's 27 governorships; Iraq worked
+  around it by reusing `provincial_governor` "for its description template
+  only"). Two campaigns overriding the same field.
+* **`create_offices._existing` treats only `status=="matched"` as a duplicate.**
+  An `ambiguous` result passes, so `guard` would mint a third item beside two
+  existing ones. Note the naive fix is wrong: `ambiguous` is the default for any
+  search returning candidates, so it must judge the *candidates* — label-match ∧
+  not-pure-list ∧ (country-match ∨ no country property).
+* **`SCRIPTS` in `create_offices.py` is missing `jo`, `kw`, `ir`** — the three
+  campaigns with the largest creation lists. Every plan instructed the wiring.
+* **RTL-reversed date ranges.** Deferred by Kuwait, then by Jordan citing Kuwait,
+  then by Iran (the Oman ambassador roster). Three campaigns, one unmade
+  decision. The standing rule is to defer the page rather than add a global swap
+  — but three deferrals is a request for a per-source `reversed=True` flag.
+* **The `already holds P39` gate is per (person, target), not per term** — and
+  worse, it `continue`s before `emit()`, so the rows never become verdicts.
+  Iran tallied **1,932 of 3,060 rows** (63%) invisible in `edit_plan.md`, which
+  contradicts the contract's "every case gets a disposition". It drops 423 Iran
+  Majlis members, 9 Qatari Al Thani second spells, 3 Iraqi reigns and ~100
+  undated Spanish premierships. The data needed for a per-term gate is already
+  on `person.p39_claims`.
+* **The duration-column collision** (`المدة` / `مدت تصدی` / `Duración` /
+  `Dny v úřadu` / `طول الفترة`) has now appeared in five campaigns. Iran settled
+  the principle — *`days` is inert, `period` shadows* — but there is still no
+  shared fixture, so each campaign rediscovers it.
+
 ## Deferred lanes
 
 - UAE lane E (sovereign wealth funds) — creation-first; see the recipe's SOE note
