@@ -30,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from wd.api import best_label, fetch_entities
 from wd.http import REPO_ROOT, make_session
+from wd.labels import admin_index, current_p17, entity_names, match_admin
 
 BASE = REPO_ROOT / "data" / "jurisdictions"
 EXCLUDED_KINDS = {"diplomatic", "generic-occupation", "academy-or-award",
@@ -42,31 +43,6 @@ REVIEW_KINDS = {"religious"}
 # Party-internal offices: most chunks skipped them per precedent, one chunk
 # asserted devolved-party leaderships. Same unsettled-convention treatment.
 PARTY_RE = re.compile(r"\b(part(?:y|ido|it|ija|ei)|labour|democrats)\b", re.I)
-
-
-def current_p17(entity: dict) -> str | None:
-    claims = [
-        c for c in entity.get("claims", {}).get("P17", [])
-        if c.get("rank") != "deprecated"
-        and "id" in c.get("mainsnak", {}).get("datavalue", {}).get("value", {})
-    ]
-    preferred = [c for c in claims if c.get("rank") == "preferred"]
-    current = [c for c in claims if "P582" not in c.get("qualifiers", {})]
-    for pool in (preferred, current, claims):
-        values = {c["mainsnak"]["datavalue"]["value"]["id"] for c in pool}
-        if len(values) == 1:
-            return values.pop()
-    return None
-
-
-def entity_names(entity: dict) -> set[str]:
-    names = set()
-    for obj in entity.get("labels", {}).values():
-        names.add(obj["value"].casefold())
-    for alias_list in entity.get("aliases", {}).values():
-        for obj in alias_list:
-            names.add(obj["value"].casefold())
-    return names
 
 
 def verify_jurisdictions(session, rows: list[dict]) -> dict[str, bool]:
@@ -89,61 +65,6 @@ def verify_jurisdictions(session, rows: list[dict]) -> dict[str, bool]:
         )
         ok[v["qid"]] = named and current_p17(entity) == v["country_qid"]
     return ok
-
-
-def admin_index(session, country_qid: str) -> list[tuple[set[str], str]]:
-    """Names of a country's first-level subdivisions (its own P150 targets),
-    for matching region names inside position labels."""
-    country = fetch_entities(session, [country_qid], props="claims").get(country_qid)
-    if country is None:
-        return []
-    targets = [
-        c["mainsnak"]["datavalue"]["value"]["id"]
-        for c in country.get("claims", {}).get("P150", [])
-        if c.get("rank") != "deprecated"
-        and "id" in c.get("mainsnak", {}).get("datavalue", {}).get("value", {})
-    ]
-    index = []
-    for qid, entity in fetch_entities(session, targets, props="labels|aliases").items():
-        names = {n for n in entity_names(entity) if len(n) >= 4}
-        if names:
-            index.append((names, (best_label(entity) or "").casefold(), qid))
-    return index
-
-
-TAIL_RE = re.compile(
-    r".*(?:\bof\b|\bde\b|\bdu\b|\bdes\b|\bdel\b|\bin\b|\bd')\s*", re.I)
-ARTICLE_RE = re.compile(r"^(?:the|la|le|les|l'|el|los)\s+", re.I)
-
-
-def label_tail(label: str) -> str | None:
-    """The entity name after the label's last preposition ("member of the
-    X Oblast Duma" won't parse; "Duma of the Astrakhan Region" → "astrakhan
-    region"). Substring matching proved too loose (alias "Loire" fired
-    inside "Indre-et-Loire", "the North" hit the North Riding), so only this
-    tail is compared — and only for exact name equality."""
-    m = TAIL_RE.match(label)
-    if m is None:
-        return None
-    tail = label[m.end():].strip().strip(".,;:()")
-    tail = ARTICLE_RE.sub("", tail)
-    return tail.casefold() or None
-
-
-def match_admin(index: list[tuple[set[str], str, str]], label: str) -> str | None:
-    """The subdivision one of whose names IS the label's tail — unambiguous
-    matches only. A bare-eponym alias of a suffixed subdivision ("Gombe" for
-    "Gombe State", "Mandalay" for "Mandalay Region") is rejected: those
-    labels name the city/traditional polity, not the subdivision."""
-    tail = label_tail(label)
-    if tail is None:
-        return None
-    found = {
-        qid
-        for names, primary, qid in index
-        if tail in names and not primary.startswith(tail + " ")
-    }
-    return found.pop() if len(found) == 1 else None
 
 
 def main() -> None:
