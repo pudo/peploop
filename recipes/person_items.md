@@ -171,10 +171,11 @@ the crawler's own query would hide exactly the people that query misses.
 
 `--calibrate` checks each verdict against a live `yente-cli fetch`, and
 `--check-spec` asserts this file still enumerates every gate class and threshold
-`wd/human.py` applies.
+`wd/human.py` applies. The full measurement record, including the Lesotho funnel
+and the source lines behind every gate, is in `research/person_items.md`.
 
-Measured on Lesotho, 40 holders: **38 agree, 0 pass-but-absent, 2
-fail-but-present** — and both of the two are the review layer. The Speaker of
+Measured on a 40-person subset of Lesotho's 138 holders: **38 agree,
+0 pass-but-absent, 2 fail-but-present** — and both of the two are the review layer. The Speaker of
 the National Assembly and the Commander of the Defence Force both hang off a
 `P279` that leaves the PEP default off, so the type layer refuses them and a
 reviewer rescued them upstream in a database this repo cannot read. Read a

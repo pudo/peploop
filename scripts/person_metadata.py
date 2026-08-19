@@ -29,7 +29,9 @@ from typing import Dict, List, Optional, Set
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from wd.api import best_label, fetch_entities, sparql  # noqa: E402
+from rigour.territories import get_territory  # noqa: E402
+
+from wd.api import sparql  # noqa: E402
 from wd.shape import verify_all as verify_positions  # noqa: E402
 from wd.http import make_session  # noqa: E402
 from wd.human import Verdict, verify_all  # noqa: E402
@@ -211,9 +213,10 @@ def report(verdicts: List[Verdict], out_dir: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--country", help="country item, e.g. Q794")
+    parser.add_argument("--country",
+                        help="country code, e.g. lt — same as position_metadata.py")
     parser.add_argument("--qids", help="comma-separated person QIDs instead")
-    parser.add_argument("--name", help="output slug; defaults to the country label")
+    parser.add_argument("--name", help="output slug; defaults to the country name")
     parser.add_argument("--limit", type=int, help="cap the candidate people")
     parser.add_argument("--strict", action="store_true",
                         help="model the categories crawler's gates, not wd_peps'")
@@ -228,6 +231,15 @@ def main() -> None:
     if not args.country and not args.qids:
         parser.error("one of --country or --qids is required")
 
+    # A country code, not a QID, so this flag means the same thing it means in
+    # `position_metadata.py`. `rigour.territories` resolves it, which also means
+    # any country works here rather than only the ones with a curated entry.
+    territory = None
+    if args.country:
+        territory = get_territory(args.country.lower())
+        if territory is None or territory.qid is None:
+            parser.error(f"unknown country code {args.country!r} — expected e.g. lt")
+
     session = make_session()
     topics: Dict[str, Set[str]] = {}
     accepted: Optional[Set[str]] = None
@@ -237,10 +249,10 @@ def main() -> None:
         people = [q.strip() for q in args.qids.split(",") if q.strip()]
         slug = slug or "adhoc"
     else:
-        country = fetch_entities(session, [args.country]).get(args.country, {})
-        label = best_label(country) or args.country
+        assert territory is not None and territory.qid is not None
+        label = territory.name or territory.qid
         slug = slug or label.lower().replace(" ", "-")
-        positions = country_positions(session, args.country)
+        positions = country_positions(session, territory.qid)
         accepted = set()
         print(f"## {label}: {len(positions)} position items")
 
