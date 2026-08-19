@@ -38,8 +38,15 @@ Where things live:
   nothing downstream reads `P21` at all, so a gender lane is a Wikidata lane; and
   a **birth date is what rescues an undated tenure** — with no date on either the
   person or the P39 statement no occupancy is produced, and the person and the
-  position both vanish. Measured on Lesotho: 10 of 120 holders are one `P569`
-  short of being PEPs.
+  position both vanish. Measured on Lesotho: of 138 holders, **zero** carry a modelling defect
+  while 57 want a birth date — 9 are emitted only because they have one and 10
+  more would be. `research/person_items.md` has the funnel.
+- `research/<topic>.md` — **the measurements a recipe rests on.** Property
+  tallies, cluster sizes, exemplars read in full, and the queries that failed.
+  `research/position_items.md` is the first: 145,212 position items, eleven curated
+  clusters, and the reason a percentage over the whole corpus is a statement about
+  French communes. A recipe cites; this is what it cites. Re-check here before
+  re-measuring, and add a report when a run measures something worth inheriting.
 - `recipes/country_sweep.md` — **the method.** One country at a time, run
   99% autonomously: census → blocker triage → item creation → rosters →
   identity gates → policy → backtest → one validated `.qs` the human reviews

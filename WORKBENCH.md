@@ -259,6 +259,16 @@ The original sketch, kept because the reasoning still applies to a new endpoint:
   campaign. A duplicate line, a `start > end` or a malformed value **refuses to
   render**; coarse dates beside day-precision ones, and the citation-versus-
   permalink split, are warnings.
+* `wd/shape.py` (built 2026-08-19, renamed from `discover.py`): how well a
+  *position item* is modelled — `not_a_position`, `untyped`, `also_a_list_article`,
+  `no_polity` — with what a consumer makes of it kept separate as notes.
+  `recipes/position_items.md` is the method, `research/position_items.md` the
+  measurements.
+* `wd/human.py` (built 2026-08-19): the same three-way split for the *person* a
+  P39 is written onto — defects, gaps, notes. **Not to be confused with zavod's
+  `shed/wikidata/human.py` described above**, which is the prior art it ports;
+  it reuses `wd/shape.py:type_closure` rather than re-deriving one, and needs the
+  office's `topics` from there to judge an after-office window at all.
 * `wd/create.py` + `wd/write.py` (built 2026-08-06): position-item creation —
   archetypes supplying the shape, `guard()` refusing a payload that has not
   survived a duplicate search and a holder floor, a ledger so a re-run cannot
@@ -340,6 +350,7 @@ scripts/     <cc>_ministers.py / es_offices.py         # per-country campaign pa
              create_offices.py                         # mint missing position items (dry by default)
              petscan.py fetch_article.py …             # ad-hoc probes
 recipes/     country_sweep.md                          # the method, written once
+research/    <topic>.md                                # measured conventions a recipe cites
 tasks/       followups.md + <topic>.md                 # human-gate backlog; briefs only for non-sweep campaigns
 regression/  <campaign>/                               # committed verdicts + .qs from a known-good run
 data/        (gitignored) cache/ and per-campaign output
