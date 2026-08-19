@@ -13,12 +13,12 @@ import json
 import re
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from requests import Session
 from rigour.territories import get_territories
 
-from wd.api import best_description, best_label, claim_qids, fetch_entities
+from wd.api import best_description, best_label, claim_qids, fetch_entities, sparql
 from wd.http import get_text
 
 WD_API = "https://www.wikidata.org/w/api.php"
@@ -197,3 +197,22 @@ def lookup_position(
     elif result.candidates:
         result.status = "ambiguous"
     return result
+
+
+def holder_counts(session: Session, qids: Sequence[str]) -> Dict[str, int]:
+    """Holders per item, any rank — the gate that is not in `position.py`.
+
+    `wd_peps` reaches a position through people's P39, so an item nobody holds
+    is never emitted however well-formed it is. Counted with `p:P39/ps:P39`
+    because `wdt:` would report only best-rank holders.
+    """
+    counts: Dict[str, int] = {q: 0 for q in qids}
+    for start in range(0, len(qids), 120):
+        chunk = list(qids)[start:start + 120]
+        values = " ".join(f"wd:{q}" for q in chunk)
+        rows = sparql(session, f"""SELECT ?pos (COUNT(DISTINCT ?h) AS ?n) WHERE {{
+          VALUES ?pos {{ {values} }} OPTIONAL {{ ?h p:P39/ps:P39 ?pos }}
+        }} GROUP BY ?pos""", max_age=0)
+        for row in rows:
+            counts[row["pos"]] = int(row["n"])
+    return counts
