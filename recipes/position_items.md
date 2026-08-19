@@ -26,7 +26,9 @@ percentage taken over "all position items" is a statement about French communes.
 
 Every figure below is measured over the **archetype cluster** for the shape in
 question — the items with `P279 = <the class>` — which is what §10 means by a
-well-curated cluster. Sample sizes are given so you can weigh them.
+well-curated cluster. Sample sizes are given so you can weigh them, and the full
+measurement record, including the two queries that were too expensive to run, is
+in `research/position_items.md`. Re-check there rather than re-measuring.
 
 ## The shape
 
@@ -117,6 +119,81 @@ Across both, 212 of 221 and 257 of 323 items are otherwise soundly modelled — 
 defect is concentrated, not endemic.
 
 The fix is a `P279` from the table below. It is additive and it is cheap.
+
+## The three tiers, and what each one licenses
+
+`wd/shape.py` returns three lists, and which one a finding lands in decides what
+may be done about it without a human. The split is `wd/human.py`'s, for the same
+reason.
+
+| tier | what it means | what it licenses |
+|---|---|---|
+| `defects` | the model is wrong, or missing something the item cannot do without | a **retype** — destructive-adjacent, so the surgical list and a human |
+| `gaps` | a measured convention is unasserted | an **additive claim**, automatable where a second channel exists |
+| `os_notes` | a consumer's current view | nothing |
+
+The gap tier exists because the defect tier is not the bar. Qatar and the UAE
+passed every defect test on every item their campaigns wrote to, while eleven held
+Qatari offices carried no `P17` at all — `no_polity` is satisfied by any country
+path and `P1001` provided one — and all 21 minted ambassadorships carried no
+`P137`. `well_modelled` means no defects; `complete` means no gaps either.
+
+The gaps, with the share of the reference cluster that carries the property:
+
+| gap | property | ordinary office | bilateral post |
+|---|---|---:|---:|
+| `no_P279` | `P279` | 100% | – |
+| `no_P1001` | `P1001` | 94.4% | *not asked* — 29.6%, and copies the receiver |
+| `no_P361` | `P361` | 92.6% | *not asked* — 1.2% |
+| `no_P17` | `P17` | 81.6% | 93.0%, the **receiver** |
+| `no_sender` | `P137` | – | 78.3%, the **sender** 95.8% of the time |
+| `no_embassy` | `P2389` | – | 74.9% |
+
+`P2389` at 32.9% and `P571` at 8.5% on an ordinary office are properties, not
+gaps: a third of a cluster does not license asserting anything unreviewed.
+
+Four suppressions, each one a bug that was written first and caught by
+`scripts/check_shape.py`:
+
+- **An item flagged `not_a_position` gets no gaps.** A rank needs retyping;
+  giving it `P279`/`P1001`/`P361` meanwhile entrenches the mis-type, exactly as
+  adding metadata to a duplicate's empty twin entrenches the duplicate.
+- **A bilateral post is never asked for `P1001` or `P361`.** Listing them would
+  push a campaign into the 2.5% minority idiom this recipe tells it to avoid.
+- **An office scoped only to a historical polity is never asked for `P17` or
+  `P1001`.** The test is "named a polity and *none of them resolved*", not
+  "named a polity" — the latter is what `_scoped_to_history` answers on its own,
+  and using it let one `P17` suppress both jurisdiction gaps.
+- **`no_P279` is "carries no `P279`", never "carries none this repo
+  recognises."** The recognised-kind version tested against `SUB_TYPES`, a list
+  ported from a *consumer*, which omits `Q166382` Amir — reporting all seven UAE
+  emirate rulers as naming no kind of office when each names its kind precisely.
+
+### A gap's target comes off a sibling, never off a QID someone typed
+
+`P361` and `P2389` cannot be derived from the office item, so
+`scripts/position_metadata.py:GAP_TARGETS_BY_COUNTRY` names them — as
+`"like:Q110182815"`, meaning *the `P361` that item carries*. Written with literal
+QIDs first, and three of four were wrong: `Q1129582` is the Cook Islands Cup,
+`Q1136236` is Umkhonto We Sizwe, `Q100135` is an Italian comune. All three
+validated and rendered, and would have reached Wikidata as the Cabinet of Qatar
+and the UAE Federal Supreme Council. A sibling reference has a second channel by
+construction and is the same evidence the comment beside it claims.
+
+Two guards behind it, and the difference between them is worth holding onto:
+
+- A target resolving to **another** country is refused. That is what each of the
+  three bad QIDs was — Cook Islands, South Africa, Italy.
+- A target resolving to **no** country is accepted and logged. `Q5440456` Federal
+  Supreme Council is the UAE's — enwiki sitelink, `uaecabinet.ae`, a description
+  naming the country — and carries no country claim at all. Refusing it would
+  block a correct statement to complain about a different item's gap.
+- Neither catches a wrong **claim**. Cabinet of Qatar resolves to Qatar and is
+  still the wrong `P361` for a Chief of Armed Forces; a service chief belongs to
+  the armed forces, not the council of ministers. That one a reader catches.
+
+`P17` and `P137` need no table: the item's own `P279` classes answer for both ends
+of a posting, per *Diplomatic posts* above.
 
 ## Choosing the `P279`
 

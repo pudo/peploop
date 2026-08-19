@@ -6,6 +6,23 @@ office scoped to no jurisdiction, an office that says "position" and never says
 what *kind* of office — and each is worth fixing whether or not a consumer
 notices. `recipes/position_items.md` is the method; this module is its checker.
 
+Three answers, kept apart on purpose and never mixed — the same split as
+`wd/human.py`, for the same reason:
+
+- **`defects`** — Wikidata modelling errors. An occupation typed as an office, an
+  office scoped to no polity, an office that says "position" and never says what
+  kind. Wrong statements, or missing ones the item cannot do without.
+- **`gaps`** — properties the measured convention puts on an office and this item
+  does not carry. Not errors, and never a reason to call an item defective: they
+  are the additive data entry a campaign can do, each one sized off a real cluster
+  in `research/position_items.md` so a lane can be scoped before it is run.
+- **`os_notes`** — what the OpenSanctions PEP build makes of the item.
+
+The gap tier is why it exists: a hand review of Qatar and the UAE found eleven
+Qatari offices carrying no `P17` at all and twenty-one minted ambassadorships with
+no `P137`, and every one of them passed the defect tests. `well_modelled` means
+"no defects"; `complete` means the convention is fully expressed.
+
 The secondary question, kept separate and clearly labelled, is whether the
 OpenSanctions PEP build can currently read the item. That half is a port of
 `zavod/zavod/shed/wikidata/`, cited per constant, because asking the live API
@@ -22,6 +39,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 import json
+import re
 
 from rigour.territories import get_territory_by_qid
 
@@ -199,6 +217,31 @@ NOT_AN_OFFICE: Set[str] = {
     "Q4226220",  # naval officer rank
     "Q43229",  # organization
     "Q495430",  # general staff — a body, not a seat in one
+    # The sibling of the above, and its absence cost a real statement: `Q5942489`
+    # "General Staff of Armed Forces of the Islamic Republic of Iran" declares
+    # `P31 = Q6813432` and nothing else, so it read as a sound position and the gap
+    # tier offered it `P1001 = Iran`. Its own description gives it away — "Highest
+    # ranked officer of the Iranian Armed Forces" — the label names the body and
+    # the description names the seat, which is the `Q12663357` Defence Staff
+    # (Lithuania) case exactly.
+    "Q6813432",  # military staff — also a body
+    # Honours, distinctions and non-military ranks. Added 2026-08-19 off Belarus,
+    # where 723 position items include a whole stratum of state honorifics —
+    # "Honored Architect of the Republic of Belarus", "People's Poet of Belarus",
+    # "Candidate for Master of Sports" — that declare one of these classes and no
+    # position metaclass at all. Fourteen of fifty proposed Belarusian statements
+    # were jurisdiction claims on an honour.
+    #
+    # Safe against the closure trap the recipe warns about, because `not_a_position`
+    # tests *declared* types and stands down for anything that also declares an
+    # office: `Q618779` award sits in the closure of `Q117826617` supreme court
+    # judge, and a judgeship declaring that parent is untouched.
+    "Q3320743",  # title of honor
+    "Q13424289",  # honorary title
+    "Q618779",  # award
+    "Q4192699",  # badge of distinction
+    "Q486983",  # academic rank
+    "Q4121104",  # sports title
 }
 
 #: `Q4164871`'s own `P1963` "properties for this type": the community's answer to
@@ -209,13 +252,46 @@ TYPE_PROPERTIES: Tuple[str, ...] = ("P1308", "P2098", "P2389", "P571", "P17")
 #: two things at once, and every consumer has to guess which.
 LIST_ARTICLE = "Q13406463"
 
+#: The two class layers that make an item a bilateral diplomatic post. Which one
+#: an item reaches decides what `P17` *means* on it — sender among `Q29645880`'s
+#: subclasses, receiver among `Q29645886`'s — and it inverts the whole gap set:
+#: a post wants a sender and an embassy, and specifically wants **no** `P1001`.
+BILATERAL_CLASSES: Set[str] = {"Q29645880", "Q29645886"}
+
+#: Gaps for an ordinary office -> the share of the reference cluster carrying it.
+#:
+#: Measured over the 5,211-item minister cluster (`P279 = Q83307`);
+#: `research/position_items.md` holds the tallies. Only conventions strong enough
+#: to act on unreviewed are here — `P2389` at 32.9% and `P571` at 8.5% are real
+#: properties and not gaps, because asserting either on the strength of a third of
+#: a cluster is the mass-assertion the recipe forbids.
+OFFICE_GAPS: Dict[str, Tuple[str, float]] = {
+    "no_P17": ("P17", 81.6),
+    "no_P1001": ("P1001", 94.4),
+    "no_P361": ("P361", 92.6),
+}
+
+#: Gaps for a bilateral post -> share of the 5,206-item bilateral cluster.
+#:
+#: `P1001` and `P361` are deliberately absent rather than forgotten: 29.6% and
+#: 1.2%, and `P1001` copies the receiver when it is there at all, so asserting it
+#: would be writing the 2.5% minority idiom. `P17` is here at 93.0% and means the
+#: *receiving* state.
+BILATERAL_GAPS: Dict[str, Tuple[str, float]] = {
+    "no_P17": ("P17", 93.0),
+    "no_sender": ("P137", 78.3),
+    "no_embassy": ("P2389", 74.9),
+}
+
 
 @dataclass
 class Verdict:
     """How well one position item is modelled, and what a reader makes of it.
 
-    `defects` are Wikidata modelling errors. `os_notes` are observations about a
-    downstream consumer and are never defects — see the module docstring.
+    `defects` are Wikidata modelling errors, `gaps` are properties the measured
+    convention puts on an office and this item does not carry, and `os_notes` are
+    observations about a downstream consumer that are never either — see the
+    module docstring.
     """
 
     qid: str
@@ -236,10 +312,25 @@ class Verdict:
     #: Wikidata modelling errors: `not_a_position`, `untyped`,
     #: `also_a_list_article`, `no_polity`.
     defects: List[str] = field(default_factory=list)
+    #: Unasserted conventions: `no_P17`, `no_P1001`, `no_P361`, `no_P279`, and on
+    #: a bilateral post `no_sender` / `no_embassy` in place of the jurisdiction
+    #: pair. Additive every one of them. `no_office_polity` is the exception and
+    #: names a gap the gap tier deliberately declines to close: the item has the
+    #: `no_polity` defect, and which polity it belongs to is a decision, not a
+    #: convention.
+    gaps: List[str] = field(default_factory=list)
+    #: Closure reaches `Q29645880`/`Q29645886`, so `P17` means a state at one end
+    #: of a posting rather than the polity governed.
+    bilateral: bool = False
 
     @property
     def well_modelled(self) -> bool:
         return not self.defects
+
+    @property
+    def complete(self) -> bool:
+        """Every convention `recipes/position_items.md` measures is on the item."""
+        return not self.defects and not self.gaps
 
     @property
     def os_notes(self) -> List[str]:
@@ -268,11 +359,13 @@ class Verdict:
         return {
             "qid": self.qid, "label": self.label,
             "declared": self.declared, "basics": self.basics,
+            "bilateral": self.bilateral,
             "countries": self.countries, "country_via": self.country_via,
             "topics": sorted(self.topics - {PEP_SENTINEL}),
             "matched": self.matched, "excluded_by": self.excluded_by,
             "abolished": self.abolished,
-            "defects": self.defects, "well_modelled": self.well_modelled,
+            "defects": self.defects, "gaps": self.gaps,
+            "well_modelled": self.well_modelled, "complete": self.complete,
             "os_notes": self.os_notes,
         }
 
@@ -504,7 +597,104 @@ def verify(
     verdict.matched.sort()
     verdict.abolished = _time_value(entity, "P576")
 
+    _add_gaps(verdict, entity, types, declared, looks_like_office)
     return verdict
+
+
+#: "ambassador of X to Y" / "Ambassador of X to the Y" and the `Permanent
+#: Representative` form. Matched on the label because the class layer is not
+#: reliable: `Q112662216` "Ambassador of the Netherlands to Saudi Arabia" declares
+#: `Q303618` diplomatic rank and reaches neither bilateral class, so it took the
+#: ordinary-office gap set and was offered the `P1001` this recipe forbids on a
+#: post. A label is weaker evidence than a class, which is why it only ever *adds*
+#: to the bilateral set and never removes an item from it.
+BILATERAL_LABEL = re.compile(
+    r"\b(ambassador|permanent representative|nuncio|high commissioner)\b.*\bto\b",
+    re.IGNORECASE,
+)
+
+
+def _reads_bilateral(label: Optional[str]) -> bool:
+    return bool(label and BILATERAL_LABEL.search(label))
+
+
+def _add_gaps(
+    verdict: Verdict, entity: Dict[str, Any], types: Set[str],
+    declared: Set[str], looks_like_office: bool,
+) -> None:
+    """The conventions this office does not express. Additive, never errors.
+
+    Computed for every item, held or not: whether an unheld office is worth the
+    data entry is a *policy* question, and `scripts/position_metadata.py` answers
+    it. A checker that pre-filtered would hide the sizing a lane is scoped from.
+
+    Every suppression below is a bug that was written first; `scripts/check_shape.py`
+    pins each one.
+    """
+    verdict.bilateral = bool(types & BILATERAL_CLASSES) or _reads_bilateral(
+        verdict.label)
+    # An item that is not an office gets no office conventions proposed on it.
+    # A rank or an occupation needs a *retype*, which is destructive-adjacent and
+    # goes on the surgical list; adding `P279`/`P1001`/`P361` to it in the
+    # meantime entrenches the mis-type, the same way adding metadata to the empty
+    # twin of a duplicate entrenches the duplicate.
+    if "not_a_position" in verdict.defects:
+        return
+    wanted = BILATERAL_GAPS if verdict.bilateral else OFFICE_GAPS
+    # Named a polity, and none of them resolved: the office belongs to a
+    # historical state, which is complete as it stands. **Not**
+    # `_scoped_to_history` on its own — that returns true for *any* polity claim,
+    # so one `P17` suppressed both jurisdiction gaps and `Q955006` President of the
+    # UAE reported as complete while carrying no `P1001` at all. This is the
+    # predicate `verify` pairs it with, and the only one that means "historical".
+    # An ordinary office that resolves to no polity at all is a *defect*, and the
+    # defect path is gated on a decided list for exactly this reason: `Q1837782`
+    # Supreme Burgrave of the Kingdom of Bohemia and `Q3254084` King of Iraq name no
+    # polity and were handed `P1001` to the modern republic by the label rule,
+    # because "Bohemia" is an alias of Czechia and the tail of "King of Iraq" is
+    # "Iraq". Which polity such an office belongs to is a decision, not a
+    # convention, and the gap tier must not route around the defect tier's guard.
+    #
+    # Narrowed to the ordinary office on purpose. A **bilateral post** with the same
+    # defect keeps its gaps, because both ends come off the item's own `P279` class
+    # layer rather than off its label — `Q65262135` ambassador of Qatar to Estonia
+    # carries no polity and its receiver class answers `Estonia` outright. Killing
+    # that would have thrown away the strongest channel in the tier to fix a bug in
+    # the weakest.
+    stateless = "no_polity" in verdict.defects and not verdict.bilateral
+    if stateless:
+        verdict.gaps.append("no_office_polity")
+    historical = not verdict.countries and _scoped_to_history(entity)
+    for gap, (prop, _share) in wanted.items():
+        if (historical or stateless) and prop in ("P17", "P1001"):
+            continue
+        if not claim_qids(entity, prop):
+            verdict.gaps.append(gap)
+
+    # The gap `untyped` cannot see. `untyped` fires when an item declares a
+    # metaclass and *nothing else*, so it misses the item that declares something
+    # else which still never names a kind of office: `Q726872` King of Bahrain
+    # declares `P31 = Q355567` noble title, no `P279` at all, and is a head of
+    # state that passes every defect test.
+    #
+    # Tested as "carries no `P279`", not as "carries no `P279` this repo
+    # recognises". The recognised-kind version was written first and was wrong:
+    # `Q166382` Amir is absent from `SUB_TYPES` — a list ported from a *consumer* —
+    # so it reported all seven UAE emirate rulers as naming no kind of office when
+    # each one names its kind precisely. Judging Wikidata's model by what a reader
+    # happens to enumerate is the inversion the recipe exists to prevent. `P279` is
+    # 100% of the reference cluster and needs no such list.
+    #
+    # A gap and not a defect, on measurement: `Q355567` and `Q138024519` "Roman
+    # Catholic episcopal title" — the documented Lithuanian false positive — both
+    # hit `NOT_AN_OFFICE` in closure *and* reach a position metaclass, so nothing
+    # in the closure separates a mis-typed monarchy from a correctly-modelled
+    # bishopric. Proposing an additive `P279` is safe where a retype is not.
+    reads_as_office = looks_like_office or verdict.basics
+    untyped = "untyped" in verdict.defects
+    if reads_as_office and not untyped and not claim_qids(entity, "P279"):
+        verdict.gaps.append("no_P279")
+    verdict.gaps.sort()
 
 
 def verify_all(
@@ -512,7 +702,12 @@ def verify_all(
 ) -> List[Verdict]:
     """Verify a whole country's position items in one pass."""
     closure = type_closure(session, qids)
-    entities = fetch_entities(session, list(qids))
+    # `max_age=0` for the same reason `type_closure` refetches its seeds: these
+    # are the audited items' own claims, which are precisely the state this
+    # engine's batches change. It read fresh before only because `type_closure`
+    # happened to run first and warm the cache — and the gap tier reads four more
+    # properties off this payload, so the accident is no longer good enough.
+    entities = fetch_entities(session, list(qids), max_age=0)
     labels = labels or {}
     return [
         verify(session, entity, closure, label=labels.get(qid))
