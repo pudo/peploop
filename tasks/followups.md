@@ -611,10 +611,20 @@ against a 151-case fixture) is what made any of it reachable.
 
 ## Iran run 2 (added 2026-08-19)
 
-Scoped from `coverage/iran.md` rather than from the campaign script. Batch
-rendered and **not yet applied**: `data/iran/edit_plan.qs` (1,125 statements)
-plus `data/iran/edit_plan_claims.json` (413 statements for 186 people) — the two
-halves of one batch, reviewed together.
+Scoped from `coverage/iran.md` rather than from the campaign script. The batch's
+two halves, reviewed together:
+
+* `data/iran/edit_plan_claims.json` — **applied 2026-08-19**, 413 statements for
+  186 people. Verified against the API rather than the query service: all 186
+  (person, office) pairs live at exactly the expected count, 0 short, 0 doubled.
+  WDQS showed only 89 pairs at the time, which is replication lag and not a
+  failed write — check `wbgetentities`, not SPARQL, straight after an API run.
+  Ledger `data/iran/claims_written.json` now holds 331 entries.
+* `data/iran/edit_plan.qs` — 1,125 statements, applied by hand in the
+  QuickStatements importer.
+
+The two halves are disjoint by construction: zero `(subject, P39, target)`
+overlap, checked before writing, so they cannot collide.
 
 ### Done this run
 

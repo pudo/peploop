@@ -6,7 +6,8 @@ Campaign `scripts/ir_offices.py`; plan `plans/iran_sweep.md` (first run) and
 * **Run 1**, 2026-08-18/19 — 66 offices, 1,054 statements applied.
 * **Run 2**, 2026-08-19 — 100 offices, **1,538 statements** rendered (1,125
   QuickStatements + 413 via the API for 186 people), 0 to review, 476 skipped
-  with a reason. 27 position items minted. *Batch not yet applied.*
+  with a reason. 27 position items minted. **Applied 2026-08-19** — the API half
+  verified live at exactly the expected count (0 short, 0 doubled).
 
 Run 2 was scoped from this ledger rather than from the campaign script, which is
 the whole point of the file: run 1 reported itself finished with eleven
