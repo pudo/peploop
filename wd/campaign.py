@@ -126,6 +126,43 @@ class RosterSource:
     #: Applied only to rows that parsed no date of their own, so a page that
     #: dates *some* rows keeps what it says. A row's own dates always win.
     term: Tuple[Optional[str], Optional[str]] = (None, None)
+    #: For a bullet list, read the office named ahead of a colon into the row's
+    #: `office` cell, and let a row that has one carry no date.
+    #:
+    #: Reach for this where a bucket lane's channel is bullets rather than a
+    #: table. 74 of Iraq's 82 cabinet articles list ministers as
+    #: `وزير المالية: [[رستم حيدر]]` and date nothing but the government, in the
+    #: article's own infobox — so without the office cell every row on a page
+    #: shares one routing haystack and `section_targets` cannot tell a foreign
+    #: minister from a finance minister. Off by default because it is measurably
+    #: unsafe on rosters that do not need it: see `wd.roster.BULLET_OFFICE`.
+    bullet_offices: bool = False
+    #: (header, role) pairs this page reads differently from every other, taking
+    #: precedence over `wd.roster.COLUMN_ROLES`.
+    #:
+    #: Reach for this only where one header string genuinely means two things and
+    #: no ordering of the shared table can separate them. "المدة" is the case:
+    #: a tenure *length* on the Kuwaiti and Saudi lists, where reading it as the
+    #: term cost every date on the page, and on `ar:رؤساء أركان الجيش العراقي`
+    #: the only date column there is. Declaring it here keeps the fix on the one
+    #: page that needs it instead of trading one country's dates for another's.
+    column_roles: Tuple[Tuple[str, str], ...] = ()
+    #: Keep a bullet that carries no date of its own, for a page whose term is
+    #: stated once in its title or lead rather than per row. Off by default and
+    #: for the same reason `bullet_offices` is: a dateless bullet is usually a
+    #: navbox entry or a see-also, and `term` is what makes one meaningful.
+    #:
+    #: Reach for it where a membership roll is published per term — the twelve
+    #: Majlis rolls, the six Assembly of Experts rolls — which is the bullet
+    #: twin of `term`'s table case (§7 #32). Without it those rows are dropped
+    #: inside `parse_bullet_rosters` before `term` is ever applied to them.
+    dateless_bullets: bool = False
+    #: Take the *first* link in a bullet as the officeholder rather than the
+    #: last. The default suits "генерал-майор [[Name]]", where a rank or office
+    #: is linked ahead of the person; Persian rolls invert it and link the
+    #: member's province or electoral district *after* them, so the default
+    #: resolves every row on those pages to a place.
+    person_first: bool = False
 
 
 @dataclass
@@ -611,9 +648,12 @@ def office_rows(
         sources.append(permalink(source.lang, page["revid"]))
         pattern = source.headings or DEFAULT_HEADINGS
         if source.kind == "bullets":
-            rosters = parse_bullet_rosters(page["html"])
+            rosters = parse_bullet_rosters(
+                page["html"], source.bullet_offices,
+                dateless=source.dateless_bullets, person_first=source.person_first,
+            )
         else:
-            rosters = parse_rosters(page["html"])
+            rosters = parse_rosters(page["html"], source.column_roles)
         for roster in rosters:
             heading = (roster.heading or "").strip()
             # A table with no date column is a legend or a navbox, not a roster:
@@ -642,7 +682,22 @@ def office_rows(
                     # themselves nowhere. The row's own dates win where it has
                     # them, so a roll that footnotes a mid-term replacement
                     # keeps the footnote.
-                    if source.term != (None, None) and not row.start:
+                    # A bullet cabinet's rows carry no term of their own — the
+                    # article dates the government — so any date *inside* the
+                    # bullet is prose about a change, not a tenure. Iraq's fourth
+                    # Said cabinet says Rustam Haidar's finance ministry ended
+                    # when he was shot on 18 January 1940, and read as a start
+                    # that date pre-empted `term` and shipped an open statement
+                    # beginning at his assassination. Where the source declares
+                    # both a term and this shape, the term is the better evidence.
+                    if source.term != (None, None) and source.bullet_offices:
+                        row.start, row.end = source.term
+                        row.period_raw = (
+                            f"{source.term[0] or '?'} – {source.term[1] or '?'} "
+                            "(the government's own span; the bullet's own date is "
+                            "prose about a change within it)"
+                        )
+                    elif source.term != (None, None) and not row.start:
                         row.start, row.end = source.term
                         row.period_raw = (
                             row.period_raw

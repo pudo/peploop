@@ -60,10 +60,12 @@ MONTHS = {
     # Arabic, in the Gulf/Egyptian naming system, which is what ar.wikipedia
     # uses for the Emirates: "2 ديسمبر 1971". Keys are already hamza-folded
     # (أبريل → ابريل) because `parse_date` looks the deaccented word up first.
-    # The Levantine names are deliberately absent: the four that matter most
-    # ("كانون الثاني", "تشرين الأول") are *two words*, which the single-token
-    # month group cannot capture, and the single-word ones include "آب" — which
-    # folds to "اب", also the word for "father", and would fire on prose.
+    # The Levantine names are absent *here* for two reasons that still hold:
+    # the four that matter most ("كانون الثاني", "تشرين الأول") are *two words*,
+    # which the single-token month group cannot capture, and the single-word ones
+    # include "آب" — which folds to "اب", also the word for "father", and would
+    # fire on prose. They are handled instead by `LEVANTINE_MONTHS`, which
+    # rewrites them to the Gulf name before the month group ever runs.
     "يناير": 1, "فبراير": 2, "مارس": 3, "ابريل": 4, "مايو": 5, "يونيو": 6,
     "يوليو": 7, "اغسطس": 8, "سبتمبر": 9, "اكتوبر": 10, "نوفمبر": 11,
     "ديسمبر": 12,
@@ -78,10 +80,142 @@ MONTHS = {
 #: ar.wikipedia write every date this way.
 ARABIC_ERA = re.compile(r"(?<=\d)\s*م(?!\w)")
 
+#: The Levantine (Syriac-derived) month names, rewritten to the Gulf name in
+#: `MONTHS` before the month group runs. Iraqi pages date almost everything this
+#: way — "12 حزيران 1948" for the central bank's first governor, "11 تشرين
+#: الثاني 1920" for its first prime minister — and without this every one of
+#: them fell through to the bare-year rule and landed on the item as a year
+#: beside its day-precision neighbours.
+#:
+#: Two of the twelve are *two words*, which is why this is a rewrite and not
+#: twelve more `MONTHS` keys: the day-month-year group captures a single token.
+#: The alef is spelled أ, آ and ا across pages, hence the character classes —
+#: except for August, which is matched only in its madda spelling "آب", because
+#: the bare-alef form "اب" is also the word for "father" and would fire on
+#: prose. Ordered longest-first, and every pattern is word-bounded.
+#: The Gulf name each one becomes, written the way `MONTHS` keys it — already
+#: hamza-folded, so the lookup finds it — beside the spellings a page may use
+#: for the same month, which is what the repeat collapse below has to match.
+_GULF_MONTHS = (
+    ("يناير", r"يناير"),
+    ("فبراير", r"فبراير"),
+    ("مارس", r"مارس"),
+    ("ابريل", r"[أاآإ]بريل"),
+    ("مايو", r"مايو"),
+    ("يونيو", r"يونيو|يونيه"),
+    ("يوليو", r"يوليو|يوليه"),
+    ("اغسطس", r"[أاآإ]غسطس"),
+    ("سبتمبر", r"سبتمبر"),
+    ("اكتوبر", r"[أاآإ]كتوبر"),
+    ("نوفمبر", r"نوفمبر"),
+    ("ديسمبر", r"ديسمبر"),
+)
+LEVANTINE_MONTHS = tuple(
+    (re.compile(rf"(?<!\w){pattern}(?!\w)"), gulf)
+    for pattern, gulf in (
+        (r"كانون\s+ال[أاآإ]ول", "ديسمبر"),
+        (r"كانون\s+الثاني", "يناير"),
+        (r"تشرين\s+ال[أاآإ]ول", "اكتوبر"),
+        (r"تشرين\s+الثاني", "نوفمبر"),
+        (r"حزيران", "يونيو"),
+        (r"[أاآإ]يلول", "سبتمبر"),
+        (r"شباط", "فبراير"),
+        (r"[أاآإ]ذار", "مارس"),
+        (r"نيسان", "ابريل"),
+        (r"[أاآإ]يار", "مايو"),
+        (r"تموز", "يوليو"),
+        (r"آب", "اغسطس"),
+    )
+)
+#: A cell dated in both naming systems at once — "14 تموز يوليو 1958", "6 كانون
+#: الثاني/يناير 1921" — names one month twice over once the rewrite above has
+#: run, and the year is then no longer adjacent to the month, which costs the
+#: day. Collapsing the repeat binds them back together. Each month is collapsed
+#: on its own rather than with a backreference, because the two halves need not
+#: be spelled alike: the page's own "أبريل" meets the rewrite's "ابريل".
+_REPEATED_MONTHS = tuple(
+    (re.compile(rf"(?<!\w)(?:{spellings})\s*[/،\-–]?\s*(?:{spellings})(?!\w)"), gulf)
+    for gulf, spellings in _GULF_MONTHS
+)
+
+
+def _levantine(text: str) -> str:
+    """Rewrite Levantine month names to the Gulf names `MONTHS` knows."""
+    for pattern, gulf in LEVANTINE_MONTHS:
+        text = pattern.sub(gulf, text)
+    for pattern, gulf in _REPEATED_MONTHS:
+        text = pattern.sub(gulf, text)
+    return text
+
+
 #: Header text → column role. Matched on a normalised, accent-free prefix, so
 #: one entry covers a family of spellings. Ordered: the first match wins, which
 #: matters where one language's word for "start" prefixes another's for "term".
 COLUMN_ROLES = [
+    # Persian (fa.wikipedia). First in the list because these are the most
+    # specific keys here and the table is scanned in order — a bare stem below
+    # would otherwise claim a two-word Persian header first.
+    #
+    # None of the existing Arabic vocabulary reached fa.wikipedia before the
+    # Perso-Arabic fold landed: `وزیر` and `وزير` differ in one code point, so
+    # every one of these pages parsed with no column named at all. That is not
+    # a silent nothing — with no `name` role the parser reads the *start-date*
+    # cell as the person, so 31 province pages returned rows of date strings
+    # and the Majlis rolls returned the electoral district as the officeholder.
+    #
+    # Ordering constraints measured on real pages: `مدت تصدی` before `مدت`,
+    # `تاریخ آغاز`/`تاریخ پایان` before `آغاز`/`پایان`, `نام سرپرست` before
+    # `نام`, `نامزدکننده` before `نام`, `دوره زمانی` before `دوره`,
+    # `رئیس دولت` before any bare `رئیس`.
+    ("نام سرپرست", "name"), ("نامزدکننده", "appointer"),
+    ("نام و نام خانوادگی", "name"), ("نام شهردار", "name"),
+    ("نام", "name"), ("متصدی", "name"), ("وزیر", "name"),
+    ("استاندار", "name"), ("شهردار", "name"), ("رئیس دولت", "appointer"),
+    # `رئیس‌جمهور` is the appointing president on every ministry roster and the
+    # *holder* on `فهرست رئیس‌جمهورهای ایران`; that page declares
+    # `column_roles=(("رئیس‌جمهور", "name"),)` rather than flipping this.
+    ("رئیس‌جمهور", "appointer"), ("رئیس جمهور", "appointer"),
+    ("نگاره", "portrait"), ("تصویر", "portrait"),
+    ("تاریخ آغاز", "start"), ("تاریخ شروع", "start"),
+    ("تاریخ انتصاب", "start"), ("تاریخ تعیین", "start"),
+    ("دریافت سمت", "start"), ("آغاز به کار", "start"), ("آغاز", "start"),
+    ("شروع", "start"), ("پذیرش پست", "start"), ("از تاریخ", "start"),
+    ("از سال", "start"),
+    ("تاریخ پایان", "end"), ("پایان", "end"), ("ترک پست", "end"),
+    ("تا تاریخ", "end"), ("تا سال", "end"),
+    # `دوران تصدی` and `دوره زمانی` are ranges; `مدت تصدی`, `مدت`,
+    # `طول دوران` and `طول تصدی` are tenure *lengths*. The asymmetry decides
+    # the global mapping: a duration wrongly typed `days` is inert, while one
+    # wrongly typed `period` shadows the start/end pair beside it and costs
+    # every date on the page. The two pages where `مدت تصدی` really is the only
+    # date column say so with `RosterSource.column_roles`.
+    ("دوران تصدی", "period"), ("دوران نخست‌وزیری", "period"),
+    ("دوره زمانی", "period"), ("زمان خدمت", "period"),
+    ("مدت تصدی", "days"), ("طول دوران", "days"), ("طول تصدی", "days"),
+    ("دورهٔ تصدی", "days"), ("مدت", "days"),
+    # `دوره` is never a period: it holds a President or PM name on all 18
+    # province pages that use it, and an ordinal elsewhere. Typed `period` it
+    # would cost every date on every one of them.
+    ("دوره نخست‌وزیری یا ریاست‌جمهوری", "appointer"),
+    ("دوره ریاست جمهوری یا نخست‌وزیری", "appointer"),
+    ("دوره", "appointer"), ("گمارنده", "appointer"), ("دولت", "appointer"),
+    ("هیئت دولت", "appointer"), ("صدراعظم وقت", "appointer"),
+    ("نخست‌وزیر", "appointer"), ("رهبر", "appointer"), ("شاه", "appointer"),
+    ("مقام", "office"), ("سمت", "office"),
+    ("وزارت‌خانه", "office"), ("وزارتخانه", "office"),
+    ("حزب", "party"), ("جناح", "party"),
+    ("ردیف", "ordinal"), ("شماره", "ordinal"), ("ر.", "ordinal"),
+    ("م.", "ref"), ("منبع", "ref"), ("مراجع", "ref"),
+    # Lifespans, ages and birthplaces are not terms (§7 #10): named so the
+    # date parser cannot reach a birth year and read it as a start.
+    ("وضعیت", "notes"), ("تولد–مرگ", "notes"), ("تاریخ تولد", "notes"),
+    ("سال تولد", "notes"), ("محل تولد", "notes"), ("زاده", "notes"),
+    ("سن", "notes"), ("امضا", "notes"), ("مجلس", "notes"),
+    ("توضیحات", "notes"), ("توضیح", "notes"), ("ائتلاف", "notes"),
+    ("مدرک تحصیلی", "notes"), ("جایگاه", "notes"),
+    # English keys the Iranian en.wikipedia pages need. `Duration` beside
+    # `Term` both landed on `period` and shadowed the real cells.
+    ("duration", "days"),
     # Spanish
     ("nombre", "name"), ("ministro", "name"), ("titular", "name"),
     ("presidente", "name"), ("funcionario", "name"),
@@ -110,6 +244,20 @@ COLUMN_ROLES = [
     ("time in office", "days"), ("party", "party"), ("notes", "notes"),
     ("monarch", "appointer"), ("government", "appointer"),
     ("constituency", "notes"), ("no", "ordinal"), ("#", "ordinal"),
+    # `en:Regent of Iraq` dates the regency for Faisal II's whole minority under
+    # its own pair of headers, which no other key reaches; unrecognised, its
+    # three rows carried no dates and the fourteen years the King and prime
+    # minister lists do not cover were unrecordable.
+    ("regency start", "start"), ("regency end", "end"),
+    # `en:List of governors of Erbil` and `…of Duhok` head their holder column
+    # "Person" and Duhok's term "Time as governor" — which must be `period` and
+    # cannot be reached from "time in office", the day-count decoy. Both keys are
+    # needed together: without the first the pages have no name column, without
+    # the second Duhok has no date column and is dropped as a navbox. 56 rows.
+    # `en:Maysan Governorate` heads its term "Assumed role", also a `period`
+    # rather than a start — its first row reads "1992-1994".
+    ("person", "name"), ("time as governor", "period"),
+    ("assumed role", "period"),
     # "Office holder" must precede "Office": matching is header-startswith-key,
     # so a bare "office" key would claim the holder column and the table would
     # lose its names. The UAE cabinet list heads exactly these two side by side.
@@ -200,6 +348,32 @@ COLUMN_ROLES = [
     # "عضو" (undefined) heads the 27th Senate roll, which "العضو" cannot reach
     # because the key differs at its first letter, not its third.
     ("الرئيس", "name"), ("عضو", "name"),
+    # "المحافظة" is deliberately *not* a key of its own, and the reason is worth
+    # recording because the natural guess is wrong. It folds to "المحافظه", which
+    # the "المحافظ" key below reaches by prefix — and on the page that has the
+    # column (`ar:محافظة صلاح الدين`) that is the right answer: the header reads
+    # "the governorate" and the cells hold the *holder*, so `name` is what its 21
+    # rows need. Naming it `notes` to be safe cost them their name column.
+    #
+    # A list serving several governorates would head the *place* column the same
+    # way, where the role is `office` — the "office holder" before "office" trap
+    # with no lexical difference to lean on. No page in use has that shape; when
+    # one turns up it declares itself through `RosterSource.column_roles` rather
+    # than flipping this for everyone.
+    #
+    # `ar:قائمة محافظي نينوى` heads its holder column "المحافظ أو المتصرف" —
+    # governor *or* mutasarrif — and the central bank article heads its 25
+    # governors with a bare "المحافظ". Neither was recognised, so both tables
+    # parsed with no name column at all: the bank's governors had dates and no
+    # people, and Nineveh's 88 had neither.
+    #
+    # "المتصرف" is not an Ottoman title, which is the natural guess and is wrong:
+    # measured over that page, mutasarrif rows run 1921-02-20 to 1969-09-17 and
+    # muhafiz rows 1970-09-03 onwards. It is the *same* Iraqi office under the
+    # name the 1969 governorates law replaced when liwa became muhafazah. The
+    # Ottoman governors are a different article (`ar:قائمة ولاة الموصل`), in
+    # prose, and pre-1918.
+    ("المحافظ أو المتصرف", "name"), ("المحافظ", "name"),
     ("الصورة", "portrait"), ("صورة", "portrait"),
     # "من الفترة" / "حتى الفترة" are the Saudi lists' start and end. A bare
     # "من" cannot cover the first: two-letter keys match whole (see `_roles`),
@@ -220,6 +394,23 @@ COLUMN_ROLES = [
     # oath — is how a Jordanian membership roll dates its rows, and like the
     # two above it does not begin with "التاريخ".
     ("تاريخ اليمين", "start"),
+    # Iraq dates a governor by "تاريخ المباشرة" (the date he took up the post)
+    # and a president by "استلام الرئاسة" against "ترك الرئاسة" — the latter
+    # already reachable through the "ترك" key, the former two not through any.
+    ("تاريخ المباشرة", "start"), ("استلام", "start"),
+    # `ar:محافظة صلاح الدين` dates its 21 governors "تاريخ تعيينهم" (the date of
+    # their appointment) against "انتهاؤه", and `ar:رؤساء مجلس النواب العراقي`
+    # closes a speakership with "مغادرة المنصب". None is reachable by prefix from
+    # the keys above — "تاريخ التعيين", "انتهت" and "غادر" each differ inside the
+    # word — so all three tables parsed starts with no ends, which reads as 43
+    # sitting officials rather than as a lost column. The Jordan "غادر" bug in
+    # three new spellings.
+    ("تاريخ تعيينهم", "start"), ("انتهاؤه", "end"), ("مغادرة", "end"),
+    # The modern speakership list opens with "تسلم منصبه" against a "ترك منصبه"
+    # the "ترك" key already reaches — so the page read 14 ends and no starts at
+    # all. Iraq spells the same act four ways across two articles about one
+    # office: "تولى", "استلام", "تسلم", and "تاريخ تعيينهم" one lane over.
+    ("تسلم", "start"),
     ("بدأ", "start"), ("انتهت", "end"),
     ("من", "start"),
     # "غادر المنصب" (left the post) closes what "تولى المنصب" opens on every
@@ -261,6 +452,15 @@ COLUMN_ROLES = [
     # keys still claim their own columns.
     ("التاريخ الميلادي", "period"), ("التاريخ الهجري", "notes"),
     ("التاريخ", "period"),
+    # Iraq. "مدة العضوية" (the membership period) heads a *pair* of cells on
+    # every `ar:وزارة <portfolio> (العراق)` article — start on one, end on the
+    # other — and it reaches the bare "مدة" decoy key below by prefix, so both
+    # date columns were being read as a tenure length and thrown away. The
+    # defence ministry's four era tables parsed 38 ministers with zero dates and
+    # no error; interior, awqaf, environment and electricity the same. It has to
+    # be claimed as a `period` *before* "مدة", and in both spellings, because
+    # the first table of the pair drops the article ("مدة عضوية").
+    ("مدة العضوية", "period"), ("مدة عضوية", "period"),
     ("المدة الزمنية", "days"), ("المدة", "days"), ("مدة", "days"),
     ("المنصب", "office"), ("الوزارة", "office"), ("المسمى", "office"),
     # "المهام الوزارية" — the ministerial duties — is how 76 of Jordan's 108
@@ -271,6 +471,20 @@ COLUMN_ROLES = [
     # "في عهد" — "in the reign of" — names the king who appointed the holder,
     # which is the same channel a Spanish list's "Designante" column carries.
     ("في عهد", "appointer"),
+    # Iraq's ministry tables close with the prime minister or the president who
+    # appointed the holder — the same channel again. Note "رئيس الوزراء" heads
+    # the *holder* column on `ar:قائمة رؤساء وزراء العراق`, where it means the
+    # name and not the appointer: one string, two roles, exactly as "المدة"
+    # means duration in Kuwait and a period in Iraq. No key can tell them
+    # apart, so the default is the commoner reading and a page that disagrees
+    # says so through `RosterSource.column_roles`.
+    ("رئيس الوزراء", "appointer"), ("رئيس الدولة", "appointer"),
+    # The KRG cabinet page heads its portfolio column "الوزارات والدوائر" (the
+    # ministries and departments) in a header row marked up as `td`. Only
+    # "وزير" beside it was recognised, one column of two, so the row failed
+    # `_reads_as_header`'s two-column test and all 32 rows were dropped.
+    ("الوزارات والدوائر", "office"),
+    ("حزب سياسي", "party"),
     ("الملاحظات", "notes"), ("ملاحظات", "notes"), ("الامارة", "notes"),
     ("العائلة", "notes"), ("العمر", "notes"),
     # A lifespan beside the tenure, and the neighbours a succession list prints
@@ -278,6 +492,14 @@ COLUMN_ROLES = [
     # so they cannot be read as the term, and so the `td` header row above them
     # is recognised as a header at all.
     ("الميلاد", "notes"), ("الوفاة", "notes"),
+    # The same lifespan under two more headings: `ar:قائمة رؤساء العراق` prints
+    # it as "الحياة" and `ar:قائمة رؤساء وزراء العراق` as "ولادة-وفاة". Named so
+    # a birth and death year cannot be read as the term — the bracketed-lifespan
+    # trap with a column heading of its own. "الرتبة" is the military rank on
+    # the chief-of-staff list, "وصف" the note column on Nineveh's governors.
+    ("الحياة", "notes"), ("ولادة-وفاة", "notes"),
+    ("الولادة والوفاة", "notes"), ("مولده", "notes"), ("الملك", "notes"),
+    ("الرتبة", "notes"), ("وصف", "notes"),
     ("سبقه", "notes"), ("تبعه", "notes"), ("أبرز المناصب", "notes"),
     ("الحزب", "party"), ("المرجع", "ref"), ("مصدر", "ref"), ("مراجع", "ref"),
     ("التسلسل", "ordinal"), ("الرقم", "ordinal"),
@@ -290,15 +512,47 @@ COLUMN_ROLES = [
 # Wikipedia writes date ranges with every dash there is, plus a few words for
 # "still in office".
 DASHES = "-–—‒―"
+#: …and an Arabic table often writes the range in words instead: "إلى" / "حتى"
+#: ("to", "until"), optionally with a colon. Rewritten to a dash so the split in
+#: `parse_period` can see it. The lookahead is what keeps "حتى الآن" — "until
+#: now", the incumbency marker itself — from being cut into a missing end date.
+#: The optional dash is for the cell that writes *both* — "9 أيلول 2014-الى 14
+#: أيلول 2020", where the dash is glued to the year and the word follows it. Left
+#: in place, the substitution puts a second dash beside the first and the split
+#: takes the pair for one separator, losing the end: that cell is the Iraqi
+#: central bank's sitting governor and his first term ran to 2020-09-14.
+ARABIC_RANGE = re.compile(
+    # `تا` must be a whole word. It is the first two letters of `تاريخ`
+    # ("date"), which an Arabic cell writes as `من تاريخ … لغاية تاريخ …`, so an
+    # unguarded alternative splits the range inside the word and loses the
+    # first bound entirely. It is also the first two letters of `تاكنون`
+    # ("until now") — the incumbency marker, exactly the `حتى الآن` trap — and
+    # the same guard covers both.
+    r"\s*[-–—]?\s*(?:[إا]ل[يى]|حت[يى]|لغاي[ةه]|تا(?!\w))\s*:?\s*"
+    r"(?!ال[آأا]ن|الان|اليوم|الوقت|الحالي)"
+)
 INCUMBENT = re.compile(
     r"actualidad|presente|present\b|incumbent|en\s+(?:el\s+)?(?:cargo|funciones)|actual|titular$"
     r"|настоящее\s+врем|по\s+сей\s+день|н\.\s*в\.|дагэтуль|цяпер|зараз"
     r"|дзеючы|теперішній|нині"
     r"|úřadující|současnost|dosud"
+    # Persian. `متصدی` ("incumbent") ends the sitting holder's row on the
+    # ministry rosters, and `تاکنون` ("until now") is the ambassador bullets'
+    # form — the latter also *begins* with the range word `تا`, which is why
+    # `ARABIC_RANGE` guards it with a lookahead rather than splitting on it.
+    # Both yeh spellings, because `_incumbent` runs on the raw cell rather than
+    # on `fold()` output: fa.wikipedia writes Persian yeh (U+06CC) and the
+    # Arabic pages Arabic yeh (U+064A), and only the folded path unifies them.
+    r"|متصد[يی]|تاكنون|تاکنون|در\s*حال\s*تصد[يی]"
     # Arabic. All four forms occur on the Emirates pages, and the alef of
     # "الآن" is spelled آ, أ and ا across them, hence the character class —
     # this pattern is matched against raw cell text, not the folded form.
-    r"|حت[يى]\s*ال[آأا]ن|لحد\s*ال[آأا]ن|الوقت\s*الحاضر|الحالي|اليوم",
+    r"|حت[يى]\s*ال[آأا]ن|لحد\s*ال[آأا]ن|الوقت\s*الحاضر|الحالي|اليوم"
+    # …and "الآن" standing alone after the range dash, with no "حتى" in front of
+    # it, which is how Iraq's sitting cabinet writes every one of its rows:
+    # "14 مايو/آيار 2026 – الآن". Without it 24 ministers of the government in
+    # office ship as open-ended statements rather than as incumbents.
+    r"|[-–—]\s*ال[آأا]ن",
     re.I,
 )
 #: "…–23 de julio de 1834 (fallecido en el cargo)" ends a term; it does not
@@ -332,7 +586,9 @@ ACTING_TEXT = re.compile(
     # uses them today — the ar president table simply omits its one-day acting
     # holder — but the en cabinet list writes "(Acting)", which the English
     # branch above already catches.
-    r"|بال[إأا]ناب[هة]|بالوكال[هة])\s*\)"
+    # …and Iraq drops the preposition and marks the *office* cell instead:
+    # "وزارة الصحة (وكالة)", "وزير المالية (وكالة)".
+    r"|بال[إأا]ناب[هة]|بالوكال[هة]|وكال[هة])\s*\)"
     r"|выконва\w*\s+абавязк|исполняющ\w*\s+обязанност",
     re.I,
 )
@@ -378,10 +634,26 @@ VACANT = re.compile(
 #: emirate — so a header or month name only matches once the hamza and ya
 #: variants are folded to their bare forms.
 _ARABIC_FOLD = {"أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا",
-                "ى": "ي", "ئ": "ي", "ؤ": "و", "ة": "ه"}
+                "ى": "ي", "ئ": "ي", "ؤ": "و", "ة": "ه",
+                # Persian writes kaf and yeh at different code points from
+                # Arabic, so `وزیر` never reaches the `وزير` key already in
+                # COLUMN_ROLES and `کارگزاران` never matches `كارگزاران`.
+                # Folding them is what makes the existing Arabic vocabulary
+                # work on fa.wikipedia at all.
+                "ک": "ك", "ی": "ي",
+                # The zero-width non-joiner is Persian's intra-word space
+                # (`نیم‌فاصله`). It is not whitespace, so `" ".join(split())`
+                # leaves it in place and `امام‌جمعه` never matches `امام جمعه`.
+                # A space is the right target: the same compound is written
+                # both ways, and personal names divide on it (`علی‌اکبر`).
+                "\u200c": " "}
 #: Vowel marks and the kashida stretch character carry no meaning for matching
-#: and appear only decoratively.
-_ARABIC_STRIP = "ـٰ" + "".join(chr(c) for c in range(0x064B, 0x0653))
+#: and appear only decoratively. The range runs to U+0655 so it also covers the
+#: ezafe hamza that Persian writes above a final he (`حوزهٔ` vs `حوزه`) — outside
+#: the U+064B–U+0652 harakat block, and on 3 of 16 Majlis headers. The
+#: zero-width *joiner* is dropped outright: it carries no meaning and Persian
+#: builds its calendar-era markers with it (`ه‍.ق`).
+_ARABIC_STRIP = "ـٰ\u200d" + "".join(chr(c) for c in range(0x064B, 0x0656))
 
 
 def _deaccent(text: str) -> str:
@@ -422,9 +694,162 @@ def _role_keys() -> List[Tuple[str, str]]:
     return [(_norm(key), role) for key, role in COLUMN_ROLES]
 
 
+def _role_keys_with(overrides: Tuple[Tuple[str, str], ...]) -> List[Tuple[str, str]]:
+    """`_role_keys` with a page's own readings taking precedence.
+
+    Reach for this when one header string means two different things on two
+    pages and no key can tell them apart, which is the one case the ordered
+    table cannot express. "المدة" is a tenure *length* on the Kuwaiti and Saudi
+    lists — it is in the table as a `days` decoy for exactly that reason — and
+    on `ar:رؤساء أركان الجيش العراقي` it is the only date column there is,
+    holding "من: 6 كانون الثاني/يناير 1921 حتى: …" for all 36 chiefs of staff.
+    A page says which it means; a global rule would have to guess, and guessing
+    the other way is what silently cost every date on the Czech and Kuwaiti
+    pages the decoy keys were added for.
+    """
+    return [(_norm(key), role) for key, role in overrides] + _role_keys()
+
+
 def _incumbent(text: str) -> bool:
     """Does this cell say the term is still running?"""
     return bool(INCUMBENT.search(text)) and not DIED_IN_OFFICE.search(text)
+
+
+#: Persian-Indic (U+06F0–06F9) and Arabic-Indic (U+0660–0669) digits, folded to
+#: ASCII in one pass. Both ranges occur in Perso-Arabic wikitext and they occur
+#: *mixed inside a single number* — `١۵ مرداد ١۴٠٢` sits on the same page as
+#: `۱۵ مرداد ۱۴۰۲` — so a two-step conversion has an order to get wrong and this
+#: does not.
+_ASCII_DIGITS = str.maketrans(
+    {**{0x06F0 + n: str(n) for n in range(10)},
+     **{0x0660 + n: str(n) for n in range(10)}}
+)
+
+#: The twelve Solar Hijri months. Keys are stored both raw and `_deaccent`ed,
+#: the way `parse_date` looks a month word up.
+_JALALI_RAW = {
+    "فروردین": 1, "اردیبهشت": 2, "خرداد": 3, "تیر": 4, "مرداد": 5,
+    # `امرداد` is the archaic spelling of Mordad and is still in use on
+    # fa.wikipedia's older roster tables.
+    "امرداد": 5,
+    "شهریور": 6, "مهر": 7, "آبان": 8, "آذر": 9, "دی": 10, "بهمن": 11,
+    "اسفند": 12,
+}
+
+#: A cell that names the *lunar* calendar. Solar Hijri and lunar Hijri years
+#: overlap — Astan Quds carries lunar 1302/1335/1344, squarely inside the solar
+#: range in use — so the calendar can only be read from this marker, never
+#: inferred from the year. Written against `_deaccent` output, where the
+#: zero-width joiner in `ه‍.ق` is already gone.
+_LUNAR_MARKER = re.compile(r"ه\s*\.?\s*ق(?!\w)")
+
+#: What the Gregorian branches of `parse_date` will accept as a year. The bare
+#: year rule has always carried this range; the ISO and `d/m/Y` branches never
+#: did, which is why `parse_date('1392-05-13')` returned a 4th-century date.
+_GREGORIAN_YEAR = re.compile(r"^(?:1[5-9]\d\d|20[0-4]\d)$")
+
+
+def _jalali_months() -> Dict[str, int]:
+    """`_JALALI_RAW` with a `_deaccent`ed key beside every raw one."""
+    out: Dict[str, int] = {}
+    for word, number in _JALALI_RAW.items():
+        out[word] = number
+        out[_deaccent(word)] = number
+    return out
+
+
+JALALI_MONTHS = _jalali_months()
+
+
+def _jalali_iso(year: int, month: int, day: int) -> Optional[str]:
+    """One Solar Hijri date as a Gregorian ISO day, or None if it is not one."""
+    try:
+        import jdatetime
+        return jdatetime.date(year, month, day).togregorian().isoformat()
+    except (ValueError, ImportError):
+        return None
+
+
+def _jalali_date(text: str) -> Optional[str]:
+    """A Solar Hijri cell as a partial ISO Gregorian string, or None.
+
+    Reach for this before the Gregorian patterns, because fa.wikipedia dates
+    everything this way and the Gregorian rules would either miss the cell or —
+    on an ISO-shaped or slash-shaped one — read the Solar Hijri year as an AD
+    year and be wrong by six centuries.
+
+    Three precisions, and only one of them survives intact:
+
+    * **day** → the exact Gregorian day. Solar Hijri is a solar calendar, so
+      this conversion is exact, unlike the lunar Hijri one `parse_date`
+      deliberately declines to make.
+    * **month** → a Gregorian *year*. A Solar Hijri month spans two Gregorian
+      months, so month precision cannot survive; but measured over SH
+      1360–1404 the year offset is constant for eleven of the twelve —
+      +621 for months 1–9, +622 for 11–12 — so the year is safe to keep.
+      **Dey (month 10) crosses and yields nothing.**
+    * **bare year** → nothing. A Solar Hijri year straddles two Gregorian years
+      (SH 1392 is 286 days of 2013 and 79 of 2014), so no year-precision
+      rendering of it is correct.
+    """
+    if _LUNAR_MARKER.search(text):
+        return None
+    month_word = _first_month_in(text, JALALI_MONTHS)
+    if month_word is None:
+        return _jalali_numeric(text)
+    month, hit = month_word
+    day = hit.group(1)
+    year = int(hit.group(3))
+    if not 1200 <= year <= 1499:
+        return None
+    if day:
+        return _jalali_iso(year, month, int(day))
+    # Month precision. Dey is the one month that starts in one Gregorian year
+    # and ends in the next, so it cannot be reduced to a year at all.
+    if month == 10:
+        return None
+    return str(year + (621 if month <= 9 else 622))
+
+
+def _first_month_in(text: str, table: Dict[str, int]):
+    """The first `[day] month year` match whose word is really a month.
+
+    Same discipline as `_first_month`: a pattern that matches but fails its
+    lookup must not stop the scan, or a cell that leads with something
+    date-shaped throws away the real date behind it.
+    """
+    for hit in re.finditer(
+        r"(?:(?<!\d)(\d{1,2})(?!\d)\s*)?([^\W\d_]+)\s*(?:سال\s*)?(\d{3,4})", text
+    ):
+        word = hit.group(2)
+        month = table.get(_deaccent(word), table.get(word))
+        if month:
+            return month, hit
+    return None
+
+
+def _jalali_numeric(text: str) -> Optional[str]:
+    """`۱۴۰۰/۸/۱۲` — a Solar Hijri date written year-first with slashes.
+
+    A two-digit year is read as 13xx (`۵۷/۱۲/۱۵` is SH 1357), which is the
+    whole Markazi governors page. The abbreviation belongs to a century that
+    ended at SH 1399, so 1400+ is deliberately unreachable this way — and a
+    bare abbreviated year outside this slash shape (`۱۳۵۹–۶۰`) is still
+    refused, because nothing there says which century it means.
+
+    Note the order is year-first, which is the Persian convention and the
+    reason this cannot collide with `parse_date`'s existing `d/m/YYYY` branch:
+    that one requires its four-digit year *last*.
+    """
+    hit = re.search(r"(?<!\d)(\d{2}|\d{4})\s*/\s*(\d{1,2})\s*/\s*(\d{1,2})(?!\d)", text)
+    if not hit:
+        return None
+    year, month, day = (int(part) for part in hit.groups())
+    if year < 100:
+        year += 1300
+    if not 1200 <= year <= 1499 or not 1 <= month <= 12:
+        return None
+    return _jalali_iso(year, month, day)
 
 
 def _first_month(pattern: str, text: str, group: int):
@@ -447,7 +872,19 @@ def parse_date(text: str) -> Optional[str]:
     Returns None when the cell holds no year at all, so callers can tell
     "no date given" from "date given but coarse".
     """
-    low = ARABIC_ERA.sub("", " ".join(text.split()).casefold())
+    low = _levantine(ARABIC_ERA.sub("", " ".join(text.split()).casefold()))
+    # Both Indic digit ranges reduce to ASCII before anything reads a number.
+    # Until this ran, every date on fa.wikipedia was invisible: not misparsed,
+    # simply never matched.
+    low = low.translate(_ASCII_DIGITS)
+    # Solar Hijri first, because the Gregorian branches below would read its
+    # year as an AD year. This is the opposite of the lunar Hijri ruling — that
+    # calendar is left unconverted because an AH year falls outside the
+    # Gregorian range and the day conversion is ambiguous; a Solar Hijri year
+    # does *not* fall outside it, and its conversion is exact.
+    jalali = _jalali_date(_deaccent(low))
+    if jalali:
+        return jalali
     # A question mark standing on its own is the source saying it does not know
     # this date, and the number beside it belongs to the *other* bound: the
     # Qatar Central Bank's first governor is dated "? - 1983" in a "Took office"
@@ -493,11 +930,14 @@ def parse_date(text: str) -> Optional[str]:
     if month_year:
         month, hit = month_year
         return f"{hit.group(2)}-{month:02d}"
+    # Both branches below take a year from a *shape* rather than from a range,
+    # which is how a Solar Hijri cell used to leave here as a 4th-century AD
+    # date. `1392-05-13` is a real cell on fa.wikipedia and it is 2013.
     iso = re.search(r"\b(\d{4})-(\d{2})-(\d{2})\b", low)
-    if iso:
+    if iso and _GREGORIAN_YEAR.match(iso.group(1)):
         return iso.group(0)
     numeric = re.search(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b", low)
-    if numeric:
+    if numeric and _GREGORIAN_YEAR.match(numeric.group(3)):
         return f"{numeric.group(3)}-{int(numeric.group(2)):02d}-{int(numeric.group(1)):02d}"
     year = re.search(r"\b(1[5-9]\d\d|20[0-4]\d)\b", low)
     return year.group(1) if year else None
@@ -516,6 +956,19 @@ def parse_period(text: str) -> Tuple[Optional[str], Optional[str], bool]:
     """Split a "start – end" cell. Returns (start, end, still_in_office)."""
     cleaned = " ".join(text.split())
     incumbent = _incumbent(cleaned)
+    # An Arabic table often writes the range in words rather than with a dash —
+    # "12 حزيران 1948 إلى 14 شباط 1949" on the Iraqi central bank's governors,
+    # "من: 6 كانون الثاني/يناير 1921 حتى: 3 تشرين الثاني/نوفمبر 1923" on the
+    # chief-of-staff list — and the dash split below cannot see a word. Every
+    # such cell parsed with a start and no end, which reads as a sitting holder
+    # rather than as a lost bound: 25 central bank governors and 36 chiefs of
+    # staff, all open-ended.
+    # This runs *after* `_incumbent`, and skips the phrase it depends on,
+    # because "حتى الآن" ("until now") is itself the incumbency marker — cutting
+    # it first turns a sitting minister into an unbounded one. Kuwait's health
+    # ministry has exactly that cell, and it was the only row in 48 prior roster
+    # sources this change touched until the order was fixed.
+    cleaned = ARABIC_RANGE.sub(" – ", cleaned)
     # Split on a dash that separates two dates, not the one inside "1979-08-10"
     # or a hyphenated name. A space on *either* side is enough: en.wikipedia
     # renders "September 24, 1810 –October 23, 1810" with none on the right, and
@@ -571,7 +1024,17 @@ class RosterRow:
     @property
     def acting(self) -> bool:
         return any(
-            re.search(r"encargad|interin|subrogante|acting|в\.\s*а|и\.\s*о", f, re.I)
+            re.search(
+                # `سرپرست` ("caretaker") and `کفیل` ("acting") are Iran's
+                # markers and are the commonest tier in the country: 67 rows on
+                # the province lists, 96 on the ministry rosters, and the ones
+                # that decide whether Alireza Kazemi's 2021 spell as Minister of
+                # Education is the same tenure as his 2024 one. Written folded,
+                # because that is what a flag carries.
+                r"encargad|interin|subrogante|acting|в\.\s*а|и\.\s*о"
+                r"|سرپرست|كفيل|کفیل|موقت",
+                f, re.I,
+            )
             for f in self.flags
         )
 
@@ -656,12 +1119,17 @@ def _grid(table) -> List[List[Tuple[object, bool]]]:
     return out
 
 
-def _roles(header: List[Tuple[object, bool]], width: int) -> List[str]:
+def _roles(
+    header: List[Tuple[object, bool]],
+    width: int,
+    overrides: Tuple[Tuple[str, str], ...] = (),
+) -> List[str]:
     roles: List[str] = []
+    keys = _role_keys_with(overrides) if overrides else _role_keys()
     for index, (cell, _) in enumerate(header):
         text = _norm(cell.text_content()) if cell is not None else ""
         role = f"col{index}"
-        for prefix, candidate in _role_keys():
+        for prefix, candidate in keys:
             # Prefix matching is what lets one entry cover "Начало" and "Начало
             # полномочий", but a two-letter key ("па" = until) would swallow any
             # header starting with it ("Партрэт"), so those must match whole.
@@ -674,7 +1142,11 @@ def _roles(header: List[Tuple[object, bool]], width: int) -> List[str]:
     return roles + [f"col{i}" for i in range(len(roles), width)]
 
 
-def _reads_as_header(row_cells: List[Tuple[object, bool]], width: int) -> bool:
+def _reads_as_header(
+    row_cells: List[Tuple[object, bool]],
+    width: int,
+    overrides: Tuple[Tuple[str, str], ...] = (),
+) -> bool:
     """Does this row name its columns rather than fill them?
 
     Some tables mark their header row up as plain `td` — es.wikipedia's
@@ -682,12 +1154,14 @@ def _reads_as_header(row_cells: List[Tuple[object, bool]], width: int) -> bool:
     roles at all and dropped all 84 rows for want of a name column. Requiring
     two recognised column names keeps a genuine first data row from being eaten.
     """
-    roles = _roles(row_cells, width)
+    roles = _roles(row_cells, width, overrides)
     return sum(1 for role in roles if not role.startswith("col")) >= 2
 
 
 def _subroles(
-    roles: List[str], header: List[Tuple[object, bool]]
+    roles: List[str],
+    header: List[Tuple[object, bool]],
+    overrides: Tuple[Tuple[str, str], ...] = (),
 ) -> List[str]:
     """Refine column roles from a second header row that subdivides the first.
 
@@ -705,11 +1179,12 @@ def _subroles(
     reads them. Re-applying a role a rowspanned cell already set is harmless.
     """
     out = list(roles)
+    keys = _role_keys_with(overrides) if overrides else _role_keys()
     for index, (cell, _) in enumerate(header):
         if cell is None or index >= len(out):
             continue
         text = _norm(cell.text_content())
-        for prefix, role in _role_keys():
+        for prefix, role in keys:
             if text == prefix or (len(prefix) >= 3 and text.startswith(prefix)):
                 out[index] = role
                 break
@@ -923,8 +1398,15 @@ def _spans(
     )]
 
 
-def parse_rosters(page_html: str) -> List[Roster]:
-    """Every wikitable in a rendered list article, as roster rows."""
+def parse_rosters(
+    page_html: str, column_roles: Tuple[Tuple[str, str], ...] = ()
+) -> List[Roster]:
+    """Every wikitable in a rendered list article, as roster rows.
+
+    `column_roles` lets one page override the shared header vocabulary, for the
+    case where a header string means two different things on two pages and no
+    ordering of `COLUMN_ROLES` can separate them — see `_role_keys_with`.
+    """
     doc = lxml_html.fromstring(page_html)
     legend = _legend(doc)
     notes = _footnotes(doc)
@@ -967,7 +1449,7 @@ def parse_rosters(page_html: str) -> List[Roster]:
             if not origins:
                 continue
             is_header = all(cell.tag == "th" for cell, _ in origins) or (
-                not roles and _reads_as_header(row_cells, width)
+                not roles and _reads_as_header(row_cells, width, column_roles)
             )
             spans_row = len(origins) == 1 and _span(origins[0][0], "colspan") >= width
             # A single cell spanning the whole table is a heading whether or not
@@ -983,7 +1465,11 @@ def parse_rosters(page_html: str) -> List[Roster]:
                 section = _cell_text(origins[0][0]) or section
                 continue
             if is_header:
-                roles = _subroles(roles, row_cells) if roles else _roles(row_cells, width)
+                roles = (
+                    _subroles(roles, row_cells, column_roles)
+                    if roles
+                    else _roles(row_cells, width, column_roles)
+                )
                 continue
             if not roles:
                 roles = [f"col{i}" for i in range(width)]
@@ -1051,8 +1537,13 @@ def parse_rosters(page_html: str) -> List[Roster]:
             name, covering = _split_covering(name)
             if VACANT.match(fold(name)):
                 continue
-            acting_text = ACTING_TEXT.search(name) or ACTING_TEXT.search(
-                cells.get("notes", "")
+            # The marker sits wherever the page puts it: beside the name, in the
+            # notes, or — on the Iraqi cabinet tables — in the office cell, as
+            # "وزارة الصحة (وكالة)". It says the same thing in all three.
+            acting_text = (
+                ACTING_TEXT.search(name)
+                or ACTING_TEXT.search(cells.get("notes", ""))
+                or ACTING_TEXT.search(cells.get("office", ""))
             )
             if acting_text:
                 name = " ".join(ACTING_TEXT.sub(" ", name).split())
@@ -1136,14 +1627,54 @@ BIRTH_ONLY = re.compile(r"^\s*(?:р|нар|род|нар\.|b|born)\b\.?\s*\d{4}\
 #: "министр".
 BULLET_HEADINGS = re.compile(
     r"минист|мініст|ministr|руковод|кіраўн|кираун|глав|очільник|спіс|список|"
-    r"holders|list of",
+    r"holders|list of"
+    # Arabic. 74 of Iraq's 82 cabinet articles list their ministers as bullets
+    # rather than tabulating them, under "التشكيلة الوزارية" (68), "تشكيلة
+    # الوزارة" (21) or "التعديلات الوزارية" (4). With no Arabic here the
+    # allowlist missed every one of them and the whole bullet half of the lane —
+    # 1028 of 1372 rows — was skipped before anything else could go wrong.
+    r"|تشكيل|وزراء|تعديلات"
+    # Persian. Three lanes reported the same wall independently: with no Persian
+    # here the heading gate skipped every fa bullet list before anything else
+    # could go wrong — the twelve Majlis rolls, the 47 ambassador pages and five
+    # of the six Assembly of Experts rolls. Written folded (`ی`→`ي`, `ک`→`ك`),
+    # because the caller folds the heading before matching.
+    r"|نمايندگان|سفيران|فهرست|اعضا|وزيران|فرماندهان|رييسان|روساي"
+    r"|استانداران|مديران|نمايندگي"
+    # The ambassador pages head their sections by *era* rather than by role.
+    r"|جمهوري اسلامي|پهلوي|قاجاريه|مشروطه",
     re.I,
 )
 BULLET_NOT_HEADINGS = re.compile(
     r"заместител|намесн|заступник|ссылк|литератур|источник|примечан|"
-    r"сноск|калегі|коллеги|deputy|see also|referen",
+    r"сноск|калегі|коллеги|deputy|see also|referen"
+    # …and the Arabic sections that are apparatus rather than a roster, since a
+    # cabinet article ends with several of them.
+    r"|انظر\s+أيضا|مراجع|مصادر|وصلات\s+خارجية|بوابة",
     re.I,
 )
+#: "وزير المالية: [[رستم حيدر]]" — the office named before a colon, the holder
+#: after it. 68 of the 74 Iraqi bullet cabinets write every row this way, and it
+#: is what makes a *dateless* bullet identifiable as a roster row: the article
+#: dates the whole government in its infobox (`RosterSource.term`), never the
+#: row. Requiring a date, as every other bullet wiki's rows carry one, dropped
+#: 920 rows that state an office and a person perfectly clearly.
+#:
+#: Capturing the office is the load-bearing half. `target_for` builds its
+#: haystack from the row's section and its `office` cell, and a bullet has no
+#: cells — so without this every row on a page shares one haystack (the page
+#: heading) and a bucket lane cannot tell a foreign minister from a finance
+#: minister.
+#:
+#: Opt-in per source (`RosterSource.bullet_offices`), because measured against
+#: every prior bullet roster it is not safe by default. It admitted nine rows
+#: from three Belarusian ministry articles whose "current leadership" bullets are
+#: `Первый заместитель министра: [[Name]]` and `должность вакантна` — the deputy
+#: marker sits in the *office* half, so stripping it off the name is exactly what
+#: stops `DEPUTY_ROW` from seeing it — and on `en:Ministry of Foreign Affairs
+#: (Qatar)`, whose bullets read `1989–1990: Ahmed bin Saif Al Thani`, it captured
+#: the *date range* as the office and fed it to the routing haystack.
+BULLET_OFFICE = re.compile(r"^\s*([^:：\[\]]{3,60}?)\s*[:：]\s*(?=\S)")
 #: Military and courtesy ranks printed ahead of the name, and the
 #: interlanguage-link markers ("[бел.]") that render inside it.
 DEPUTY_ROW = re.compile(
@@ -1201,7 +1732,10 @@ def _is_date_link(title: str) -> bool:
     )
 
 
-def parse_bullet_rosters(page_html: str) -> List[Roster]:
+def parse_bullet_rosters(
+    page_html: str, bullet_offices: bool = False, dateless: bool = False,
+    person_first: bool = False,
+) -> List[Roster]:
     """Officeholders listed as bullets rather than tabulated.
 
     Wikis outside the table-making habit write the same information as a list —
@@ -1209,25 +1743,50 @@ def parse_bullet_rosters(page_html: str) -> List[Roster]:
     25 января 1994)<ref>` — and the ministry article is then the only roster
     an office has. Rows carry the same fields as table rows, so callers can
     treat both alike; `columns` is `["bullet"]` to mark the provenance.
+
+    `bullet_offices` reads an office named ahead of a colon into the row's
+    `office` cell, and lets a row with one carry no date. Both are what a bucket
+    lane over bullets needs and neither is safe by default — see `BULLET_OFFICE`.
     """
     doc = lxml_html.fromstring(page_html)
     notes = _footnotes(doc)
     heading: Optional[str] = None
     rosters: List[Roster] = []
-    for element in doc.iter("h1", "h2", "h3", "h4", "ul"):
-        if element.tag != "ul":
+    # `ol` because `ar:وزارة ناجي شوكت` numbers its seven ministers with `#`
+    # instead of bulleting them, which is the same list to a reader.
+    for element in doc.iter("h1", "h2", "h3", "h4", "ul", "ol"):
+        if element.tag not in ("ul", "ol"):
             text = " ".join(element.text_content().split())
             heading = re.sub(r"\[\s*(?:editar|edit|править|правіць)[^]]*\]", "", text).strip() or heading
             continue
         if element.getparent() is not None and element.getparent().tag in ("li", "table", "td"):
             continue  # nested list, or a navbox
+        # Folded, per §7 #11: a pattern typed in the source spelling matches
+        # nothing once Persian yeh and kaf fold to their Arabic code points.
+        folded_heading = fold(heading) if heading else ""
         if heading and (
-            not BULLET_HEADINGS.search(heading) or BULLET_NOT_HEADINGS.search(heading)
+            not BULLET_HEADINGS.search(folded_heading)
+            or BULLET_NOT_HEADINGS.search(folded_heading)
         ):
             continue
         rows: List[RosterRow] = []
         for item in element.xpath("./li"):
             text = _cell_text(item)
+            # The office named ahead of a colon, which is both this row's routing
+            # key and its licence to carry no date of its own. A *date* ahead of
+            # the colon is not an office — Qatar's foreign ministry bullets read
+            # "1989–1990: Ahmed bin Saif Al Thani" — and a deputy's title there
+            # must still disqualify the row, which is why `DEPUTY_ROW` is asked
+            # about the office half as well as the name: stripping the marker off
+            # the name is what would otherwise hide it.
+            office_cell = None
+            titled = BULLET_OFFICE.match(text) if bullet_offices else None
+            if titled is not None and not _is_date_phrase(titled.group(1)):
+                office_cell = " ".join(titled.group(1).split())
+                if DEPUTY_ROW.match(office_cell):
+                    continue
+            else:
+                titled = None
             # Leading dates win over trailing parentheses: a line that has both
             # ("1921 — Боркусевич (1892—1930)") states the term first and the
             # person's *lifespan* in the brackets.
@@ -1237,8 +1796,14 @@ def parse_bullet_rosters(page_html: str) -> List[Roster]:
             else:
                 period = BULLET_PERIOD.search(text)
                 if period is None:
-                    continue
-                period_text, name_text = period.group(1), text[: period.start()]
+                    if office_cell is None and not dateless:
+                        continue
+                    period_text = ""
+                    name_text = text[titled.end():] if titled is not None else text
+                else:
+                    period_text, name_text = period.group(1), text[: period.start()]
+                    if office_cell is not None:
+                        name_text = name_text[titled.end():]
             name_text = re.sub(r"\([^()]*\)\s*[;.,]*\s*$", " ", name_text)
             # A note can share the parentheses with the dates ("1963—1984;
             # министр автомобильного транспорта"); the term comes first.
@@ -1254,7 +1819,14 @@ def parse_bullet_rosters(page_html: str) -> List[Roster]:
             ]
             # Ranks and offices are linked ahead of the person ("генерал-майор
             # [[Name]]"), so the last link before the dates is the officeholder.
-            link = anchors[-1].get("title") if anchors else None
+            # Persian rolls invert it: the Assembly of Experts rolls link the
+            # *province* after the member and the Majlis rolls link the
+            # electoral district, so `anchors[-1]` resolved every row on those
+            # pages to a place. A page says which shape it is; guessing per row
+            # is what put `استان تهران` in the officeholder column.
+            link = None
+            if anchors:
+                link = (anchors[0] if person_first else anchors[-1]).get("title")
             name = " ".join(name_text.split())
             if DEPUTY_ROW.match(name):
                 continue
@@ -1296,7 +1868,11 @@ def parse_bullet_rosters(page_html: str) -> List[Roster]:
                     if acting_text
                     else (["acting, per the period cell"] if acting_period else []),
                     ref_urls=ref_urls,
-                    cells={"bullet": text},
+                    cells=(
+                        {"bullet": text, "office": office_cell}
+                        if office_cell
+                        else {"bullet": text}
+                    ),
                 )
             )
         if len(rows) >= 2:

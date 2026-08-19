@@ -27,7 +27,15 @@ from lxml import html as lxml_html
 
 from wd.kinship import _cut_gloss, parse_genealogy
 from wd.officebox import parse_officebox
-from wd.roster import RosterRow, _roles, merge_terms, parse_date, parse_period
+from wd.validate import conflicting_tenures
+from wd.roster import (
+    RosterRow,
+    _roles,
+    merge_terms,
+    parse_bullet_rosters,
+    parse_date,
+    parse_period,
+)
 
 #: (header cells, {column index: required role}, what it is / what it broke)
 #:
@@ -96,10 +104,108 @@ HEADERS = [
      "both Shura Council rolls on ar:قائمة أعضاء مجلس الشوري القطري (2021). "
      "The plural inserts an alif-hamza after the article, so neither 'العضو' "
      "nor 'عضو' reaches it"),
+    (["الاسم", "صورة", "مدة عضوية", "حزب سياسي", "رئيس الوزراء"],
+     {2: "period", 4: "appointer"},
+     "every ar:وزارة <portfolio> (العراق) article. 'مدة عضوية' colspans the "
+     "start and end cells, and it reaches the bare 'مدة' days-decoy by prefix "
+     "— so as a decoy it threw both dates away: 38 defence ministers parsed "
+     "with no dates and no error"),
+    (["الاسم", "صورة", "مدة العضوية", "حزب سياسي", "رئيس الوزراء"],
+     {2: "period"},
+     "the same header with the definite article, which three of the defence "
+     "ministry's four era tables use"),
+    (["#", "المحافظ أو المتصرف", "تاريخ المباشرة", "وصف", "صورة"],
+     {1: "name", 2: "start", 3: "notes"},
+     "ar:قائمة محافظي نينوى. Unrecognised, its 88 governors had neither a name "
+     "column nor a date"),
+    (["المحافظة", "مولده", "تاريخ تعيينهم", "انتهاؤه"],
+     {0: "name", 1: "notes", 2: "start", 3: "end"},
+     "ar:محافظة صلاح الدين. 'المحافظة' reads as 'the governorate' and holds the "
+     "*holder*, so it must resolve to `name` — which it does by prefix from the "
+     "'المحافظ' key, and naming it `notes` to be safe cost all 21 rows their "
+     "name column. None of the other three is reachable from an existing key: "
+     "'تاريخ التعيين', 'انتهت' and the lifespan keys each differ inside the word"),
+    (["المنصب", "الاسم", "استلام المنصب", "مغادرة المنصب"],
+     {2: "start", 3: "end"},
+     "ar:رؤساء مجلس النواب العراقي. 'غادر' does not reach 'مغادرة' — the Jordan "
+     "end-key bug in a new spelling — so 43 speakers and Senate presidents "
+     "parsed a start with no end, which reads as still in office"),
+    (["الوزارات والدوائر", "وزير"],
+     {0: "office", 1: "name"},
+     "ar:حكومة إقليم كردستان heads its two columns in a `td` row. Only 'وزير' "
+     "was recognised, one of the two `_reads_as_header` needs, so all 32 rows "
+     "were dropped"),
+]
+
+#: (header cells, per-source overrides, {index: role}, what it is)
+#:
+#: The one case the ordered table cannot express: a header string that means two
+#: different things on two pages. A page declares its own reading through
+#: `RosterSource.column_roles`, and the override has to win.
+HEADER_OVERRIDES = [
+    (["ترتيب", "الاسم", "الصورة", "الرتبة", "المدة", "ملاحظات"],
+     (("المدة", "period"),),
+     {1: "name", 4: "period"},
+     "ar:رؤساء أركان الجيش العراقي, where 'المدة' is the only date column there "
+     "is. Globally it is a `days` decoy, because on the Kuwaiti and Saudi lists "
+     "it is a tenure length and reading it as the term cost every date on the "
+     "page — so the fix belongs on the page, not in the table"),
+    (["ترتيب", "الاسم", "الصورة", "الرتبة", "المدة", "ملاحظات"],
+     (),
+     {4: "days"},
+     "…and with no override the global decoy reading still stands, which is "
+     "what protects Kuwait and Saudi Arabia"),
 ]
 
 #: (cell text, expected ISO prefix or None, what it is / what it broke)
 DATES = [
+    # --- Solar Hijri (Jalali), fa.wikipedia ------------------------------
+    # The opposite ruling from the lunar Hijri block below, and the difference
+    # is load-bearing. A lunar AH year falls outside the Gregorian range the
+    # bare-year rule accepts, and a lunar day conversion is ambiguous, so that
+    # calendar is left unconverted. Solar Hijri is a *solar* calendar: the
+    # conversion is exact, its years land squarely inside the Gregorian range,
+    # and fa.wikipedia dates every roster this way — so declining to convert
+    # would mean no Iranian lane yields a single date.
+    ("۱۳ مرداد ۱۳۹۲", "2013-08-04", "day precision — Rouhani's first inauguration"),
+    ("13 مرداد 1392", "2013-08-04", "the same cell in ASCII digits"),
+    ("١۵ مرداد ١۴٠٢", "2023-08-06",
+     "Arabic-Indic and Persian-Indic digits MIXED inside one number, live on "
+     "fa:دادستان کل کشور beside the all-Persian spelling of the same date. A "
+     "two-step digit conversion has an order to get wrong; one table does not"),
+    ("۲۲ بهمن ۱۳۵۷", "1979-02-11", "the revolution's victory day"),
+    ("۸ مهر۱۳۵۸", "1979-09-30",
+     "the commonest fa shape: no space between month and year"),
+    ("۴ آذر ۱۳۰۴ه‍. ش", "1925-11-25", "an explicit solar marker, built with ZWJ"),
+    ("۱۴۰۰/۸/۱۲", "2021-11-03", "slash form, year first"),
+    # Dey is the one month that begins in one Gregorian year and ends in the
+    # next, so it survives at day precision and cannot survive at month.
+    ("۱۹ دی ۱۳۶۱", "1983-01-09", "Dey at DAY precision converts exactly"),
+    ("دی ۱۳۶۱", None, "Dey at MONTH precision spans two Gregorian years"),
+    ("مرداد ۱۳۹۲", "2013", "month 1–9 reduces to the Gregorian year, +621"),
+    ("بهمن ۱۳۹۲", "2014", "month 11–12 reduces to the Gregorian year, +622"),
+    ("۱۳۹۲", None,
+     "a bare Solar Hijri year straddles two Gregorian years — 286 days of "
+     "2013 and 79 of 2014 — so no year-precision rendering of it is correct"),
+    ("۵۷/۱۲/۱۵", "1979-03-06",
+     "a two-digit Solar Hijri year, year-first — the whole Markazi governors "
+     "page. Read as 13xx: the abbreviation belongs to a century that ended at "
+     "SH 1399, so 1400+ is unreachable this way. It cannot collide with the "
+     "ASCII `d/m/YYYY` branch, which requires its four-digit year last"),
+    ("۱۳۵۹–۶۰", None,
+     "an abbreviated end year outside the slash shape is still refused — "
+     "nothing there says which century it means"),
+    # Solar and lunar years OVERLAP, which is why the calendar is read from the
+    # marker and never inferred from the range. Astan Quds carries these.
+    ("۹۰۶ه‍.ق", None, "a lunar year, marked"),
+    ("۱۳۴۴ه‍. ق", None,
+     "a LUNAR year sitting inside the solar range in use — the case a "
+     "range-based guard would convert and be wrong by six centuries"),
+    # The two branches that took a year from a shape rather than from a range.
+    ("1392-05-13", None,
+     "an ISO-shaped Solar Hijri cell. Before the guard this returned "
+     "'1392-05-13' verbatim — a 4th-century P39 start date"),
+    ("13/05/1392", None, "the same defect on the d/m/Y branch"),
     # --- Hijri, and dual-dated cells -------------------------------------
     ("1370 هـ", None, "AH year alone: no Gregorian date to be had"),
     ("28/6/1350هـ", None, "AH day/month/year, numeric"),
@@ -137,6 +243,43 @@ DATES = [
     ("¿1983?", "1983",
      "an inverted question mark is Spanish punctuation, not a doubt marker: "
      "only a free-standing '?' suppresses the date"),
+    # --- the Levantine month names ---------------------------------------
+    # Iraqi pages date almost everything this way. Two of the twelve are *two
+    # words*, which the single-token month group cannot capture at all, so these
+    # are rewritten to the Gulf name before it runs. Untreated, every one of
+    # them fell through to the bare-year rule and landed on the item as a year
+    # beside its day-precision neighbours — which is the shape §7 calls a cell
+    # that failed to parse, not a coarse source.
+    ("12 حزيران 1948", "1948-06-12", "the Iraqi central bank's first governor"),
+    ("14 شباط 1949", "1949-02-14", "February"),
+    ("23 آذار 1949", "1949-03-23", "March, with the madda alef"),
+    ("21 نيسان 1924", "1924-04-21", "April"),
+    ("29 أيار 1928", "1928-05-29", "May, with the hamza alef"),
+    ("24 تموز 1921", "1921-07-24", "July"),
+    ("23 آب 1921", "1921-08-23", "August — matched only in the madda spelling"),
+    ("1 أيلول 1936", "1936-09-01", "September"),
+    ("11 تشرين الثاني 1920", "1920-11-11",
+     "two words: Iraq's first prime minister took office on this date"),
+    ("18 تشرين الأول 1930", "1930-10-18", "two words, October"),
+    ("6 كانون الثاني 1921", "1921-01-06", "two words, January"),
+    ("23 كانون الأول 1929", "1929-12-23", "two words, December"),
+    ("1 الاول تشرين 1930", "1930", "the two words the wrong way round are not "
+                                   "a month name and must not become one"),
+    # --- dual-named cells, and what must not be rewritten ----------------
+    ("14 تموز يوليو 1958", "1958-07-14",
+     "both naming systems in one cell. The rewrite names July twice, which "
+     "leaves the year no longer adjacent to the month and costs the day, so the "
+     "repeat has to collapse"),
+    ("6 كانون الثاني/يناير 1921", "1921-01-06", "the same, slash-separated"),
+    ("23 كانون الأول/ديسمبر 1929", "1929-12-23", "the same, two-word month"),
+    ("7 حزيران/ يونيو 2020", "2020-06-07", "the same, space after the slash"),
+    ("2 أبريل/نيسان 1980", "1980-04-02",
+     "Gulf name first, and spelled with the hamza the rewrite's output lacks — "
+     "which is why the repeat is collapsed per month rather than by "
+     "backreference"),
+    ("توفي والده اب عن العائلة سنة 1948", "1948",
+     "'اب' is the word for father, and the bare-alef spelling of August. Only "
+     "the madda form is a month, or this fires on prose"),
 ]
 
 #: (cell text, (start, end), what it is)
@@ -155,6 +298,45 @@ PERIODS = [
     ("23 de julio de 1834 (fallecido en el cargo)", ("1834-07-23", None),
      "'died in office' contains the incumbency phrase; the end date survives "
      "as the start of nothing — the term simply ends"),
+    # --- an Arabic table writes the range in words, not with a dash -------
+    ("12 حزيران 1948 إلى 14 شباط 1949", ("1948-06-12", "1949-02-14"),
+     "ar:البنك المركزي العراقي states all 25 governors' terms this way. The "
+     "dash split cannot see a word, so every one parsed with a start and no "
+     "end — which reads as a sitting governor, not as a lost bound"),
+    ("من: 6 كانون الثاني/يناير 1921 حتى: 3 تشرين الثاني/نوفمبر 1923",
+     ("1921-01-06", "1923-11-03"),
+     "ar:رؤساء أركان الجيش العراقي, with the opener and the separator both "
+     "colon-suffixed, and both months dual-named"),
+    ("14 شباط 1949 الى 23 آذار 1949", ("1949-02-14", "1949-03-23"),
+     "'الى' without the hamza, which is how the same page spells it elsewhere"),
+    ("9 أيلول 2014-الى 14 أيلول 2020", ("2014-09-09", "2020-09-14"),
+     "the same cell writing the dash *and* the word — the Iraqi central bank's "
+     "sitting governor, whose first term ran to 2020. Left as it was, the "
+     "substitution put a second dash beside the glued one, the split read the "
+     "pair as one separator and the end was lost"),
+    ("من تاريخ 2017/1/2 لغاية تاريخ 2017/4/9", ("2017", "2017"),
+     "'لغاية' is a third spelling of the separator. The numeric dates here are "
+     "y/m/d, which the d/m/y rule cannot read, so both fall to the bare year — "
+     "and that is honest for a cell this workbench does not need"),
+]
+
+#: (cell text, still in office, what it is)
+#:
+#: Split out from `PERIODS` because the incumbency flag is decided *before* the
+#: range is split, and that ordering is the whole point: "حتى الآن" — "until
+#: now" — is both the separator word and the incumbency marker. Cutting the
+#: range first turns a sitting minister into an unbounded one, and this was the
+#: only row in 48 prior roster sources that the Arabic separator change touched
+#: until the order was fixed.
+INCUMBENCY = [
+    ("2022 حتى الآن", True, "ar:وزارة الصحة (الكويت)'s sitting minister"),
+    ("من: 7 حزيران/ يونيو 2020 حتى الآن", True,
+     "the Iraqi chief of staff, whose cell carries the opener, a dual-named "
+     "Levantine month and the incumbency phrase at once"),
+    ("12 حزيران 1948 إلى 14 شباط 1949", False,
+     "a closed term is not incumbent merely for carrying a separator word"),
+    ("23 de julio de 1834 (fallecido en el cargo)", False,
+     "died in office is not still in office"),
 ]
 
 
@@ -307,11 +489,105 @@ OFFICEBOXES = [
 ]
 
 
-def header_roles(cells):
+#: (list HTML, bullet_offices, [(name, office, start)], what it is)
+#:
+#: The bucket-over-bullets shape and the two rosters it broke on the way in. Both
+#: negatives are the *default* path, which is what protects every campaign that
+#: does not ask for this.
+BULLETS = [
+    ("<h2>التشكيلة الوزارية</h2><ul>"
+     "<li>وزير المالية: <a href='/wiki/رستم حيدر' title='رستم حيدر'>رستم حيدر</a></li>"
+     "<li>وزير الخارجية: <a href='/wiki/نوري السعيد' title='نوري السعيد'>نوري السعيد</a></li>"
+     "</ul>",
+     True,
+     [("رستم حيدر", "وزير المالية", None), ("نوري السعيد", "وزير الخارجية", None)],
+     "68 of Iraq's 74 bullet cabinets. The office ahead of the colon is the "
+     "routing key and the licence to carry no date — the article dates the "
+     "government, never the row. Without the Arabic headings the list is skipped "
+     "outright; without the office cell all 821 rows share one haystack"),
+    ("<h2>التشكيلة الوزارية</h2><ol>"
+     "<li>رئيس مجلس الوزراء: <a href='/wiki/ناجي شوكت' title='ناجي شوكت'>ناجي شوكت</a></li>"
+     "<li>وزير المالية: <a href='/wiki/نصرت الفارسي' title='نصرت الفارسي'>نصرت الفارسي</a></li>"
+     "</ol>",
+     True,
+     [("ناجي شوكت", "رئيس مجلس الوزراء", None),
+      ("نصرت الفارسي", "وزير المالية", None)],
+     "ar:وزارة ناجي شوكت numbers its ministers with `#`, so the walk has to "
+     "descend into `ol` as well as `ul`"),
+    ("<h2>Руководство</h2><ul>"
+     "<li>Первый заместитель министра: должность вакантна</li>"
+     "<li>Заместители министра: <a href='/wiki/Иванов Иван' title='Иванов Иван'>Иванов Иван</a></li>"
+     "</ul>",
+     False,
+     [],
+     "three Belarusian ministry articles list current leadership this way. The "
+     "deputy marker sits in the *office* half, so stripping it off the name is "
+     "precisely what would hide it from DEPUTY_ROW — nine spurious rows entered "
+     "a shipped campaign this way before the flag was made opt-in"),
+    ("<h2>List of ministers</h2><ul>"
+     "<li>1989–1990: <a href='/wiki/A B' title='A B'>A B</a></li>"
+     "<li>1990–1992: <a href='/wiki/C D' title='C D'>C D</a></li>"
+     "</ul>",
+     True,
+     [("A B", None, "1989"), ("C D", None, "1990")],
+     "en:Ministry of Foreign Affairs (Qatar) puts the *dates* before the colon. "
+     "A date is not an office, and captured as one it feeds the routing haystack "
+     "a date range"),
+]
+
+
+#: (lines as (subject, [(prop, iso)]), flagged, what it is)
+#:
+#: `conflicting_tenures` is a veto — it refuses to render a batch — so both what
+#: it catches and what it lets past are worth pinning. It caught the UAE's twelve
+#: real cases and, until narrowed, also refused two Iraqi governors whose page
+#: says in words that they were appointed twice.
+TENURES = [
+    ([("Q1", [("P580", "1993-09-17")]), ("Q1", [("P580", "2001-05-08")])], False,
+     "ar:قائمة محافظي نينوى on Abdul-Wahid Shannan — 'عُيّن محافظاً مرتين', "
+     "appointed governor twice, and the page gives no end for either. Two bare "
+     "starts have nothing to pair, so this is a faithful record and not one "
+     "tenure dated twice"),
+    ([("Q2", [("P582", "1993-09-17")]), ("Q2", [("P582", "2001-05-08")])], False,
+     "the same shape from the other side"),
+    ([("Q9", [("P580", "2021-08-26"), ("P582", "2021-11-28")]),
+      ("Q9", [("P580", "2024-08-21")])], False,
+     "Alireza Kazemi: caretaker Minister of Education for three months in 2021, "
+     "and the office again from 2024 — the roster's second row ends `متصدی`, "
+     "incumbent. The later line's start is after the earlier line's end, so "
+     "there is nothing to pair and these are two tenures. Until this was "
+     "narrowed it refused the whole Iran batch"),
+    ([("Q10", [("P580", "2021-08-26"), ("P582", "2024-11-28")]),
+      ("Q10", [("P580", "2024-08-21")])], True,
+     "the same shape but OVERLAPPING — the open line begins before the dated "
+     "one ends, so it may well be that spell told twice. Still a defect"),
+    ([("Q3", [("P580", "1977-12-20")]), ("Q3", [("P582", "1989-10-11")])], True,
+     "Hamdan bin Zayed in the UAE batch: a lone start beside a lone end is one "
+     "spell told in two halves, and QuickStatements piled the ends onto one "
+     "statement. Still a defect"),
+    ([("Q4", [("P580", "1977-12-20"), ("P582", "1979-07-01")]),
+      ("Q4", [("P580", "1977-12-20"), ("P582", "1989-10-11")])], True,
+     "Hamdan bin Mohammed Al Nahyan: two rosters dating one tenure, sharing a "
+     "start and disagreeing by ten years"),
+    ([("Q5", [("P580", "2014-09-09")]),
+      ("Q5", [("P580", "2023-01-23"), ("P582", "2026-06-18")])], True,
+     "a half-dated line beside a complete one — the Iraqi central bank governor "
+     "before the dash-glued separator was fixed. Something could complete it, so "
+     "it stays a defect"),
+    ([("Q6", [("P580", "1990-01-01"), ("P582", "1992-01-01")]),
+      ("Q6", [("P580", "2000-01-01"), ("P582", "2002-01-01")])], False,
+     "two fully dated spells a decade apart — the ordinary multi-tenure case the "
+     "claims file exists for"),
+]
+
+
+def header_roles(cells, overrides=()):
     """The roles `_roles` assigns to a header row written as plain text."""
     row = "".join(f"<th>{cell}</th>" for cell in cells)
     table = lxml_html.fromstring(f"<table><tr>{row}</tr></table>")
-    return _roles([(cell, False) for cell in table.xpath("//th")], len(cells))
+    return _roles(
+        [(cell, False) for cell in table.xpath("//th")], len(cells), overrides
+    )
 
 
 def main() -> None:
@@ -326,6 +602,17 @@ def main() -> None:
                 for i, (role, actual) in sorted(wrong.items())
             )
             print(f"FAIL _roles({cells!r})\n  {detail}\n  ({why})")
+    for cells, overrides, want, why in HEADER_OVERRIDES:
+        got = header_roles(cells, overrides)
+        wrong = {i: (role, got[i]) for i, role in want.items() if got[i] != role}
+        if wrong:
+            bad += 1
+            detail = ", ".join(
+                f"{cells[i]!r} want {role!r}, got {actual!r}"
+                for i, (role, actual) in sorted(wrong.items())
+            )
+            print(f"FAIL _roles({cells!r}, overrides={overrides!r})\n  {detail}"
+                  f"\n  ({why})")
     for html, want, why in GENEALOGY:
         got = [(e.name, e.depth, e.parent, e.partner, e.married_in)
                for e in parse_genealogy(html, glosses=True)]
@@ -359,14 +646,44 @@ def main() -> None:
             bad += 1
             print(f"FAIL parse_period({text!r})\n  want {want!r}, "
                   f"got {(start, end)!r}\n  ({why})")
+    for text, want, why in INCUMBENCY:
+        _start, _end, incumbent = parse_period(text)
+        if incumbent != want:
+            bad += 1
+            print(f"FAIL parse_period({text!r}) incumbent\n  want {want!r}, "
+                  f"got {incumbent!r}\n  ({why})")
+    for html, bullet_offices, want, why in BULLETS:
+        got = [
+            (row.name, row.cells.get("office"), row.start)
+            for roster in parse_bullet_rosters(html, bullet_offices)
+            for row in roster.rows
+        ]
+        if got != want:
+            bad += 1
+            print(f"FAIL parse_bullet_rosters(..., {bullet_offices!r})\n  "
+                  f"want {want!r}\n  got  {got!r}\n  ({why})")
+    for lines, want, why in TENURES:
+        rendered = [
+            "\t".join(["Q_subject", "P39", "Q_office"]
+                       + [x for prop, iso in quals
+                          for x in (prop, f"+{iso}T00:00:00Z/11")])
+            .replace("Q_subject", subject)
+            for subject, quals in lines
+        ]
+        got = bool(conflicting_tenures(rendered))
+        if got != want:
+            bad += 1
+            print(f"FAIL conflicting_tenures({lines!r})\n  want flagged="
+                  f"{want!r}, got {got!r}\n  ({why})")
     for wikitext, lang, want, why in OFFICEBOXES:
         got = [(t.office, t.start, t.end) for t in parse_officebox(wikitext, lang)]
         if got != want:
             bad += 1
             print(f"FAIL parse_officebox(..., {lang!r})\n  want {want!r}\n  "
                   f"got  {got!r}\n  ({why})")
-    total = (len(DATES) + len(PERIODS) + len(MERGES) + len(HEADERS)
-             + len(GENEALOGY) + len(GLOSSES) + len(OFFICEBOXES))
+    total = (len(DATES) + len(PERIODS) + len(INCUMBENCY) + len(MERGES) + len(BULLETS) + len(TENURES)
+             + len(HEADERS) + len(HEADER_OVERRIDES) + len(GENEALOGY)
+             + len(GLOSSES) + len(OFFICEBOXES))
     if bad:
         raise SystemExit(f"\n{bad} of {total} cases failed")
     print(f"{total} header, date, term-merge, genealogy and infobox cases pass")

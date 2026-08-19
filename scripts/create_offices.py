@@ -40,6 +40,7 @@ SCRIPTS = {
     "ae": "ae_offices",
     "sa": "sa_offices",
     "qa": "qa_offices",
+    "iq": "iq_offices",
 }
 
 

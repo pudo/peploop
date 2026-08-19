@@ -496,6 +496,119 @@ re-run still offers a `P53` that has been live on `Q99162142` for days.
 `scripts/qa_family.py` uses `STATE_MAX_AGE`; the other two want the same change
 and a re-baseline with it.
 
+## Iran (added 2026-08-18)
+
+Run 2026-08-18. Campaign `scripts/ir_offices.py`, plan `plans/iran_sweep.md`.
+The Solar Hijri date path (`wd/roster.py`, graded by `scripts/check_dates.py`
+against a 151-case fixture) is what made any of it reachable.
+
+### Still to apply
+
+* **`scripts/apply_claims.py --campaign iran --apply`** — the API half, which
+  QuickStatements cannot express at all (a person's several tenures in one
+  office). Written, validated, and spot-checked live: three sampled people hold
+  zero statements on their targets, so nothing duplicates. Blocked in the run
+  by the session's permission classifier, not by any finding. **The ledger is
+  load-bearing here in a way it is not for QS — the API de-duplicates nothing,
+  so a re-run without `claims_written.json` doubles every tenure.**
+
+### Lanes measured but not run
+
+* **The 903 provincial-governor rows.** All 31 provinces publish
+  `فهرست استانداران …`; 879 rows carry a raw date and 72% are wikilinked,
+  against **4** position items and 10 statements. Blocked on 27 item creations
+  *and* a missing archetype — `wd/create.py`'s `provincial_governor` is the
+  Saudi `P279=Q98786082` "emir of province" shape and would make 27 items
+  siblings of nothing. Needs a `governor` archetype (`parent="Q132050"`).
+* **Majlis terms 1–8.** Terms 9–12 shipped. The earlier rolls exist under page
+  titles the `فهرست نمایندگان دوره {ordinal} مجلس شورای اسلامی` pattern does not
+  reach; find them before assuming they are bullets.
+* **The Majlis gate.** `holders()` gates per (person, target), and 423 people
+  already hold `Q17525449` for a *different* term, so their remaining terms are
+  silently dropped. That under-yields rather than writing anything wrong, but a
+  per-term gate would recover them.
+* **17 undated ambassador rosters.** They parse now (765 rows across 32 pages)
+  but only 244 rows anywhere are datable; the other 17 pages would skip as
+  `no_dates` to a row. Not padded into the batch.
+
+### Destructive — stop-and-ask, never a batch line
+
+* **The corpus contains botched Jalali conversions, and the backtest proves it.**
+  Four for four on the IRGC commander-in-chief: `۲۰ شهریور ۱۳۶۰` is 1981-09-11
+  and Wikidata records 1981-09-**20**; `۲ خرداد ۱۳۵۹` is 1980-05-23 and Wikidata
+  records 1980-06-**02**. Someone kept the Solar Hijri **day number** and mapped
+  the month *name* to the nearest Gregorian month — a defect invisible to any
+  year-based check, because the year is right. Full measurement in
+  `data/iran/survey/defects_jalali.md`. Corrections are value changes, so they
+  are a `--dry`-by-default script behind this gate, and they go in **after** the
+  additive batch.
+* Merge `Q60149120` into `Q107040507` (Chairman of the Assembly of Experts).
+  Lanes A and D ruled independently: the two items' holders **interleave into one
+  unbroken succession** — `Q60149120` holds exactly the 2014–2016 segment sitting
+  inside `Q107040507`'s gap — so this is fragmentation, not two offices.
+* Merge `Q106960625` into `Q107391283` (First Vice Chief Justice). Raisi
+  2004-07-27 → 2014-08-23 and Mohseni-Ejei 2014-08-23 → 2021-07-01: consecutive
+  occupants handing over on the identical day, with no era, jurisdiction, body or
+  sitelink distinguishing the items.
+  **Blocker:** `create_offices._existing` treats only `status=="matched"` as a
+  duplicate and this label returns `ambiguous`, so `guard` would mint a **third**
+  item. Fix that before any creation runs.
+* `Q7844710` is a `Category:` item carrying 9 P39 statements — the Iraqi
+  `Q25167655` case exactly. Removal.
+* `Q917663` (the Assembly of Experts **body**) is used as a P39 value by 2 people.
+  Removal.
+* `Q5662557` (Chief Justice) carries `P576 = 2022-10-01`, which ends the
+  incumbent's tenure. Value removal.
+* **Do NOT merge the three Khatam al-Anbiya items** — measured as construction HQ,
+  Central military HQ and air-defence university, three different bodies.
+
+### Item creation (dry first)
+
+* **27 provincial governorships.** All 31 provinces have a `فهرست استانداران …`
+  roster totalling 903 rows, 879 raw-dated, 72% wikilinked, against **4** items
+  and 10 statements. The `P1001 = <province>` convention was measured across 123
+  Iranian position items and is clear enough to mint to.
+  **Blocker:** `wd/create.py` has no archetype for this — the existing
+  `provincial_governor` is the Saudi `P279=Q98786082` "emir of province" shape and
+  would make 27 items siblings of nothing. Needs a `governor` archetype
+  (`parent="Q132050"`).
+* **5 judicial offices with no item**: heads of the Supreme Court (7 rows), the
+  Court of Administrative Justice (14), the General Inspection Office (7), the
+  Tehran Prosecutor-General (4) and the Tehran Revolutionary Courts (8).
+  `Q31068012` and `Q5960362` are bare *article* items — usable as `P2354`, never
+  as a `target`. `ir-tehran-prosecutor` renders its description as "head of Iran"
+  and needs an override.
+* **7 ambassadorships with a fa roster and no item** (Romania 31 rows, Bulgaria
+  23, Denmark 20, Philippines 17, Senegal 14, Uzbekistan, Slovenia). Mint with the
+  `qa_offices.envoy` shape — **not** `wd.create.payload`'s default, which writes
+  the *sender* into `P17`.
+* 10 provincial-capital mayoralties (6 with a real identity channel). `P36`, not
+  `P150`, is the right generator for these.
+* Pre-1979 War minister and `وزیر علوم و آموزش عالی` — both have a roster and no
+  position item (`Q20110822` is a Wikimedia *list article*).
+
+### Not created, deliberately
+
+* **The 17 named Revolutionary Court judges.** `wd/create.py:guard` returns CLEAR
+  on them — duplicate search unmatched, 17 well over the holder floor, body-label
+  check fine — and they should still not be minted: one channel only (a category
+  is a candidate generator, never a fact), **no source dates any judge's
+  appointment**, and the only attested shape is a *branch* presidency rather than
+  a generic judgeship. Salavati, the canonical case, has no officeholder infobox.
+* **Supreme National Security Council membership.** Ex officio — the en page heads
+  the column literally "Ex officio member" and fa fills it with offices, not
+  people. The membership dates are the *other* office's dates. No member item
+  exists and none should.
+* **City councils.** Tehran's is 21 rows and undated, 9% wikilinked. No item, no
+  lane.
+
+### External
+
+* opensanctions/opensanctions#5475 — diplomatic positions carry only the
+  receiving country. Iran's 77 outbound ambassadorships record the sender in
+  `P137` (74/77) and `zavod` does not read it. Wide blast radius: every country's
+  ambassadors.
+
 ## Deferred lanes
 
 - UAE lane E (sovereign wealth funds) — creation-first; see the recipe's SOE note

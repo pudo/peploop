@@ -174,6 +174,40 @@ def edit_entity(
     return True
 
 
+def remove_claim(
+    guid: str, summary: str, ledger: Ledger, ref: str, apply: bool = False
+) -> bool:
+    """Remove one statement by its GUID, or report what would be removed.
+
+    The only *destructive* call in this module, and it exists because some
+    statements are not wrong in their dates but wrong in their subject matter: a
+    `P39` whose value is a `Category:` item, or an organisation rather than a
+    position. Nothing here decides that — `scripts/iq_removals.py` does, and
+    records the reason beside each GUID — but a removal cannot go out as
+    QuickStatements, which is additive by design.
+
+    Two constraints follow from removal being irreversible in practice. It runs
+    **after** the additive batch, so the statement that replaces the wrong one
+    already exists and nobody is left holding no office at all; and it is
+    ledgered like every other API write, because `wb` will happily fail a second
+    removal of an already-removed GUID and turn a re-run into an error storm.
+
+    Returns whether anything was written.
+    """
+    if ledger.qid(ref):
+        return False
+
+    args = ["wb", "remove-claim", guid, "--summary", summary,
+            "--maxlag", str(MAXLAG)]
+    if not apply:
+        _run(args + ["--dry"])
+        return False
+
+    output = _run(args)
+    ledger.record(ref, guid, {"guid": guid, "response": output[:400]})
+    return True
+
+
 def _first_qid(output: str) -> Optional[str]:
     """The created item's id, wherever `wb` chose to put it in its output."""
     try:

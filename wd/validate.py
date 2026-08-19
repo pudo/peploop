@@ -190,13 +190,43 @@ def conflicting_tenures(
     starts and left the ends piled on one statement, which is how they were
     found. Neither can be repaired mechanically — the sources have to be read —
     so they are a defect to resolve rather than work to route.
+
+    A group where *every* line carries only a start — or only an end — is the one
+    shape that is not this. There is nothing to pair: "began on 1993-09-17" and
+    "began on 2001-05-08" are two appointments whose ends the source does not
+    give, which is what `ar:قائمة محافظي نينوى` says of Abdul-Wahid Shannan in so
+    many words ("عُيّن محافظاً مرتين" — appointed governor twice). Reading that as
+    one tenure dated twice would refuse a faithful record; the fragment case this
+    catches always has a bound on *both* sides to join up.
     """
     out = {}
     for key, signatures in collapsing_groups(lines).items():
         bounds = [dict(signature) for signature in signatures]
         starts = [b["P580"] for b in bounds if "P580" in b]
         ends = [b["P582"] for b in bounds if "P582" in b]
-        incomplete = any("P580" not in b or "P582" not in b for b in bounds)
+        # A half-dated line is a fragment only if something could complete it.
+        # With no end anywhere in the group (or no start anywhere), each line
+        # states one bound of a separate spell and stands on its own.
+        one_sided = not ends or not starts
+        # A line with only a start, beginning after every dated spell in the
+        # group has already ended, is not a fragment of them — it is a later,
+        # still-open spell. There is nothing to join it to, which is the test
+        # this whole function rests on. Alireza Kazemi was caretaker Minister of
+        # Education for three months in 2021 and took the office again in 2024
+        # (`۳۱ مرداد ۱۴۰۳ – متصدی`, "incumbent"): two tenures, and reading them
+        # as one dated twice would refuse a faithful record. The UAE shapes this
+        # was written for are untouched — theirs share a bound or interleave,
+        # and a shared start is still caught by the duplicate test below.
+        latest_end = max(ends) if ends else None
+        open_later = {
+            b["P580"] for b in bounds
+            if "P582" not in b and latest_end is not None and b.get("P580", "") > latest_end
+        }
+        incomplete = not one_sided and any(
+            ("P580" not in b or "P582" not in b)
+            and b.get("P580") not in open_later
+            for b in bounds
+        )
         if len(set(starts)) != len(starts) or len(set(ends)) != len(ends) or incomplete:
             out[key] = signatures
     return out

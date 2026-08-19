@@ -47,6 +47,7 @@ comes from `--retrieved` and changes on every re-render, so compare with
 | kuwait | 1,299 | 358 | 253 | 117 |
 | jordan | 495 | 221 | 220 | 161 (applied) |
 | qatar | 158 | 71 | 71 | — |
+| iran | 1,155 | 203 | 717 | 337 |
 
 **The baselines above the Kuwait row predate the two-file split** (§8 of the
 recipe), so their `.qs` still holds the multi-tenure lines that
