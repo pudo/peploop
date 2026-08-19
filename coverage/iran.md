@@ -43,7 +43,7 @@ institutions never looked at, three of which needed only a config line.
 | `security.intelligence` | 1 | 1 | 9 | 9 | ~1 | `shipped` | MOIS |
 | `security.police` | 1 | 1 | 9 | 9 | **9** | `shipped` | `Q114457755` had **0** holders. No roster in either wiki — the Qatar path: en chief-commanders category + the holders' own infoboxes |
 | `subnational.executive` | **31** | **31** | 902 | 640 | **408** | `created+shipped` | **27 items minted 2026-08-19.** Run 1 shipped 0 of 903. 128 rows skipped `pahlavi`, 246 pre-1979 |
-| `subnational.municipal` | 0 | 3 | ~130 | ? | 0 | `⊘ creation-first` | Tehran 75 rows/75 dated; 10 capitals need items. `mayor` archetype now exists |
+| `subnational.municipal` | 0 | 3 | ~130 | 0 | 0 | `blocked:muni-countries` | Tehran 75 rows/75 dated. **Measured 2026-08-19**: `Q6627742` (47 holders), Isfahan and Qom are correctly shaped and dropped at gate 5 — `ir` ∉ `MUNI_COUNTRIES`. Minting more emits nothing |
 | `subnational.assemblies` | 0 | 6 | 21 | 0 | 0 | `no-source` | Tehran council 21 rows, undated, 9% linked — measured |
 | `diplomatic.outbound` | 15 | 78 | 765 | 244 | 28 | `◐ partial` | 15 of 32 parseable rosters; only 244 of 765 rows datable; Oman deferred (RTL) |
 | `diplomatic.multilateral` | 1 | 2 | 21 | 21 | **3** | `shipped` | `Q7169241` had 9 holders and no office. The en table names its columns "Permanent Representative"/"Years served", which match no role key — it produced *no roster at all* until declared |
@@ -52,6 +52,68 @@ institutions never looked at, three of which needed only a config line.
 | `hybrid.parastatal_foundations` | 0 | 1 | 109 | ~3 | 0 | `⊘ creation-first` | 6 bonyad headships ruled *positions*; Astan Quds mostly lunar-dated |
 | `hybrid.state_media` | 0 | 0 | 18 | 18 | 0 | `⊘ creation-first` | **found run 2**: `fa:رئیس سازمان صدا و سیمای جمهوری اسلامی ایران`, 18 rows / 17 dated / 14 linked. No position item exists — `lookup_position` unmatched on three spellings |
 | `political.parties` | 0 | 2 | 99 | 3 | 0 | `no-source` | measured: 10 tables, 99 leaders, **zero dates**; convention is `P488` on the party |
+
+## Item-layer audit (`recipes/position_items.md`, 2026-08-19)
+
+`scripts/position_metadata.py --country ir` over **323** position items scoped to
+Iran, then calibrated against live `yente-cli fetch` for all 279 that have a
+holder. The port and OpenSanctions agree on 190 of 279; the recipe's reading
+order — no holders, then the review layer, then a port bug — accounts for the
+rest, and **no port bug was needed to explain any of it**.
+
+| | |
+|---|---:|
+| items scoped | 323 |
+| pass all five gates | 193 |
+| … and have a holder | **186** |
+| … capable but unheld | 7 |
+| fail ≥1 gate | 130 |
+| … and have a holder | 93 |
+
+**The 27 governorships minted this run pass all five gates** — `P279 = Q132050`
+confers `role.pep` + `gov.executive`. They are absent from OpenSanctions only on
+rebuild cadence, which the recipe warns cannot verify its own fixes.
+
+### Two structural drops, confirmed live
+
+* **Mayoralties are invisible in Iran, whatever the item says.** `Q6627742`
+  Mayor of Tehran (**47 holders**), `Q28169496` Isfahan and `Q109901180` Qom are
+  each correctly `P279 = Q30185` with no `P576`, and each fails gate 5 alone:
+  `ir` is not in `MUNI_COUNTRIES`. All three confirmed absent from
+  OpenSanctions. **This cancels the ~10-mayor creation round** in `To close` —
+  minting them would produce items that look done and emit nothing, which is the
+  recipe's own anti-pattern. Upstream issue, not an item fix.
+* **`Q13561063` Prime Minister of Iran (70 holders)** fails twice: `P279` is
+  `Q14212` "prime minister", which confers `gov.head` and `gov.executive` and no
+  `role.pep`, and `P576 = 1989-08-03` falls four months before the
+  `1990-12-26` abolition cutoff. The parent is fixable on Wikidata (pair it with
+  `Q2285706`); the cutoff is not, so living former premiers stay invisible.
+
+### The port is stricter than OpenSanctions, in a knowable way
+
+37 items the port failed are carried by OpenSanctions anyway — the review layer
+rescuing them — including the second-largest lane in this campaign,
+`Q98458420` Member of the Assembly of Experts (198 holders, `P279` = elective
+office). Reporting those 113 `no_pep_topic` items as broken would have invented
+defects; the recipe says so, and the calibration set is what proved it.
+
+### 22 pass every gate, hold statements, and are absent on their own merits
+
+Two explained groups, neither an item defect:
+
+* **13 ambassadorships.** `P17` on an outbound post is the *receiving* state, so
+  these belong to the receiver's country and not to Iran's — the standing
+  `P137` gap, opensanctions/opensanctions#5475.
+* **The rest are historical or abolished offices** — the National Consultative
+  Assembly (85 holders), Atabeg, Minister of Information and Tourism — plus
+  `Q19718069` Anglican Bishop in Iran, which is the review layer's call to make.
+
+### Scope note
+
+The label channel admits non-Iranian items — Brunei's and Kedah's legislatures,
+a Malaysian religious council, `Q708492` "council member" with 3,050 holders
+worldwide. That is the channel working as designed (it exists to admit items
+with no country path) and not a finding about Iran.
 
 ## Close status: **NOT CLOSED**
 
@@ -80,9 +142,12 @@ What run 2 changed, in one line each:
 Seven `⊘` rows and three `blocked:` ones. `⊘` is not a resting state:
 
 1. **One more creation round** — IRIB headship (18 rows, measured and ready),
-   the General Inspection Office, 5 judicial, ~10 mayoral, ~31 clerical, 6
-   bonyad. The `governor` and `mayor` archetypes and the fixed duplicate guard
-   are in place, so this is a dry run and a human gate, not new machinery.
+   the General Inspection Office, 5 judicial, ~31 clerical, 6 bonyad. **Not the
+   mayors**: the item-layer audit below confirms every Iranian mayoralty is
+   dropped at gate 5, so `subnational.municipal` closes as
+   `blocked:muni-countries` rather than by minting ten items that emit nothing.
+   Watch the parent on each: `Q1162163` director, `Q16533` judge and `Q121998`
+   ambassador all pass the type gate and confer no `role.pep`.
 2. **The remaining 17 ambassador rosters** and Oman's RTL-reversed ranges.
 3. **The 11 portfolio vice-presidencies**, and the deputy-minister rows the
    interior page's heading filter drops.

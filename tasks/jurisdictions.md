@@ -5,6 +5,11 @@ OpenSanctions** — confirmed in code, 2026-08-04. Backfilling `P1001`
 (applies to jurisdiction) / `P17` (country) on legitimate government
 position items directly grows OS PEP coverage without touching any OS code.
 
+The country gate is one of five. `recipes/position_items.md` has the rest, and
+`wd/discover.py` scores an item against all of them locally — a country backfill
+that fixes `P17` while leaving a non-conferring `P279` in place still yields
+nothing.
+
 ## The skip, verified
 
 `zavod/shed/wikidata/position.py:207`:

@@ -252,3 +252,7 @@ items. Close it with the measurement and route the byproduct to `P488`.
 * **Add what you learn here, not to the country plan.** A country plan is a
   transitional artifact; this file is where the next country inherits from. When
   a class kills a lane in a new way, write the failure mode down.
+* **The item shape each class needs is in `recipes/position_items.md`**, not
+  here. This file says where a class's roster lives; that one says which `P279`
+  makes the item discoverable once you have it — and four of the obvious parents
+  confer no PEP status.

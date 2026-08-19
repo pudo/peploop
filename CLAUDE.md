@@ -16,6 +16,16 @@ Where things live:
   script: the three narrowest campaigns in this repo are the three named
   `*_ministers.py`, because a sweep scoped from its own filename outward never
   asks about courts.
+- `recipes/position_items.md` — **what an item needs to be found.** The five
+  gates the OpenSanctions PEP build applies to a position item, ported locally in
+  `wd/discover.py`. Read it before scoping a roster lane and before minting
+  anything. The `P279` parent decides whether an office confers PEP status at all
+  — `Q16533` judge, `Q4175034` legislator, `Q121998` ambassador and `Q1162163`
+  director all look right and leave the PEP default off. `role.pep` is zavod's
+  internal sentinel, discarded before a Position is emitted: never write it, and
+  never pick a parent in order to trip it. A closure read over `P31` alone also
+  invents defects that are not there. **A position with no P39 holder is
+  never emitted**, so metadata and rosters are one number, not two.
 - `recipes/country_sweep.md` — **the method.** One country at a time, run
   99% autonomously: census → blocker triage → item creation → rosters →
   identity gates → policy → backtest → one validated `.qs` the human reviews
