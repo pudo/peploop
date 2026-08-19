@@ -144,6 +144,27 @@ def qs_lines(record: dict, retrieved: str) -> list[str]:
     return lines
 
 
+def withheld_keys(record: dict) -> set[tuple[str, str, str, str]]:
+    """Lines the *source* left open, keyed as `conflicting_tenures` reads them.
+
+    A start-only line is normally half of a tenure whose other half another
+    source dates, and the validator vetoes the batch over it. Where the roster
+    offered an end column for that row and left it blank, it is a spell whose
+    end is unknown — see `wd.roster.RosterRow.end_withheld`.
+    """
+    keys = set()
+    subject = record["subject"]["qid"]
+    for statement in record["statements"]:
+        if not statement.get("end_withheld"):
+            continue
+        bounds = {q["property"]: q["value"] for q in statement.get("qualifiers", [])}
+        start = bounds.get("P580")
+        if start and "P582" not in bounds:
+            keys.add((subject, statement["property"],
+                      snak_value(statement["value"]), qs_time(start["iso"])))
+    return keys
+
+
 def term_str(record: dict) -> str:
     spans = []
     for statement in record["statements"]:
@@ -199,6 +220,7 @@ def main() -> None:
 
     md: list[str] = ["# P39 edit plan", ""]
     qs: list[str] = []
+    withheld_ends: set[tuple[str, str, str, str]] = set()
     by_position: dict[str, list[dict]] = {}
     for record in records:
         target = record["statements"][0]["value"].get("id") if record["statements"] else None
@@ -235,6 +257,7 @@ def main() -> None:
                 if bucket == "add":
                     applied.append(v)
                     qs.extend(qs_lines(v, args.retrieved))
+                    withheld_ends |= withheld_keys(v)
             md.append("")
 
     # One person can be reached through two offices — a party membership the
@@ -257,7 +280,7 @@ def main() -> None:
     # contradiction, whereas the API would write it out as two overlapping
     # statements. It stays in the `.qs` where `check` raises it as a defect, so
     # the render stops and a human reads the sources.
-    contested = set(collapsing_groups(qs)) - set(conflicting_tenures(qs))
+    contested = set(collapsing_groups(qs)) - set(conflicting_tenures(qs, withheld_ends))
     by_subject: dict[str, dict] = {}
     for record in applied:
         keys = {
@@ -281,7 +304,7 @@ def main() -> None:
     # here rather than typed out again per campaign. A defect stops the render:
     # the point of a mechanical check is that it cannot be skipped on a late
     # night.
-    validation = check(qs)
+    validation = check(qs, withheld_ends)
     md[2:2] = validation.lines()
 
     tenures = sum(len(c) for p in claims_payloads for c in p["claims"].values())

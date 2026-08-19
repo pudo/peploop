@@ -82,6 +82,11 @@ class Statement:
     #: True when the item already carries this statement — the diff-against-item
     #: discipline made explicit rather than hidden in a skip.
     existing: bool = False
+    #: The roster gave this term a start and left its end column blank, rather
+    #: than not offering one. Carried through to `wd.validate.check`, which
+    #: otherwise reads a start-only line beside a dated one as one tenure two
+    #: sources date differently — see `RosterRow.end_withheld`.
+    end_withheld: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         out: Dict[str, Any] = {
@@ -94,6 +99,8 @@ class Statement:
             out["references"] = [r.to_dict() for r in self.references]
         if self.existing:
             out["existing"] = True
+        if self.end_withheld:
+            out["end_withheld"] = True
         return out
 
 

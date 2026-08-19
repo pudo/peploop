@@ -1245,7 +1245,8 @@ def position_record(
             for prop, value in sorted(ruling.qualifiers.items())
         ]
         statements.append(
-            Statement("P39", Value.item(target), qualifiers, list(reference))
+            Statement("P39", Value.item(target), qualifiers, list(reference),
+                      end_withheld=bool(term.get("end_withheld")))
         )
     return Record(
         campaign=campaign,
@@ -1576,6 +1577,15 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 continue
             if plain:
                 terms = merge_terms(plain)
+                # Which of the merged terms the roster deliberately left open,
+                # keyed by start because `merge_terms` returns bare pairs. A
+                # start-only term whose row had a blank end *cell* is a spell
+                # whose end the source withholds, not a fragment of another
+                # line — the distinction `conflicting_tenures` cannot make.
+                withheld = {
+                    r.start for r in plain
+                    if r.end_withheld and r.start and not r.end
+                }
                 # A span with neither bound carries nothing, and the era below is
                 # decided by the first term that *has* a start — so on a person
                 # with one dated row and one undated row it rode along on the
@@ -1607,7 +1617,9 @@ def run(session: Session, campaign: Campaign, out_dir: Path, keys: Optional[Sequ
                 )
                 emit(
                     "add", era,
-                    [{"start": start, "end": end} for start, end in terms],
+                    [{"start": start, "end": end,
+                      "end_withheld": end is None and start in withheld}
+                     for start, end in terms],
                     # An officebox claim comes from the person's own article, so
                     # naming a roster page — or "?" where there is none — says
                     # nothing about where the evidence was read.

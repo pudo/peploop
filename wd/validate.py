@@ -18,7 +18,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Dict, List, Sequence, Tuple
+from typing import AbstractSet, Dict, List, Sequence, Tuple
 
 #: A reference is provenance, not part of the claim: the same membership proved
 #: by two different roster pages is one statement with two references, and
@@ -173,6 +173,7 @@ def collapsing_groups(
 
 def conflicting_tenures(
     lines: Sequence[str],
+    withheld_ends: AbstractSet[Tuple[str, str, str, str]] = frozenset(),
 ) -> Dict[Tuple[str, str, str], List[Tuple[Tuple[str, str], ...]]]:
     """Groups that are one tenure dated twice, not two tenures.
 
@@ -190,6 +191,17 @@ def conflicting_tenures(
     starts and left the ends piled on one statement, which is how they were
     found. Neither can be repaired mechanically — the sources have to be read —
     so they are a defect to resolve rather than work to route.
+
+    `withheld_ends` holds `(subject, property, value, P580 token)` for lines the
+    *source* left open — the roster offered an end column for that row and left
+    it blank (`RosterRow.end_withheld`). Those are spells whose end is unknown,
+    not fragments of a neighbouring line, and they are excluded from the pairing
+    test. The signal has to come from the parser because it is not in the dates:
+    `fa:فهرست استانداران آذربایجان غربی` dates no end for four consecutive
+    appointments in the 1980s and one of those governors returned in 2013, which
+    is tuple-for-tuple the same shape as the Iraqi central-bank row whose end a
+    dash-glued separator destroyed. One is two tenures, the other is one tenure
+    told twice, and only the empty cell tells them apart.
 
     A group where *every* line carries only a start — or only an end — is the one
     shape that is not this. There is nothing to pair: "began on 1993-09-17" and
@@ -222,9 +234,16 @@ def conflicting_tenures(
             b["P580"] for b in bounds
             if "P582" not in b and latest_end is not None and b.get("P580", "") > latest_end
         }
+        subject, prop, value = key
+        source_open = {
+            b["P580"] for b in bounds
+            if "P582" not in b and "P580" in b
+            and (subject, prop, value, b["P580"]) in withheld_ends
+        }
         incomplete = not one_sided and any(
             ("P580" not in b or "P582" not in b)
             and b.get("P580") not in open_later
+            and b.get("P580") not in source_open
             for b in bounds
         )
         if len(set(starts)) != len(starts) or len(set(ends)) != len(ends) or incomplete:
@@ -232,7 +251,10 @@ def conflicting_tenures(
     return out
 
 
-def check(lines: Sequence[str]) -> Result:
+def check(
+    lines: Sequence[str],
+    withheld_ends: AbstractSet[Tuple[str, str, str, str]] = frozenset(),
+) -> Result:
     """Run every check over a rendered QuickStatements batch."""
     result = Result(statements=len(lines))
     #: Whole lines, references included. The renderer already drops exact
@@ -287,7 +309,7 @@ def check(lines: Sequence[str]) -> Result:
         if count > 1:
             result.defects.append(f"{count}× this exact line: {line[:90]!r}")
 
-    conflicts = conflicting_tenures(lines)
+    conflicts = conflicting_tenures(lines, withheld_ends)
     for (subject, prop, value), signatures in sorted(conflicts.items()):
         spans = "; ".join(
             ", ".join(f"{key}={token.split('T')[0]}" for key, token in signature)

@@ -1008,6 +1008,20 @@ class RosterRow:
     start: Optional[str] = None
     end: Optional[str] = None
     incumbent: bool = False
+    #: The table offered this row an end column and left it blank — the source
+    #: says "we do not know when they left", not "the parser lost it".
+    #:
+    #: The distinction is invisible in the dates and decides a veto.
+    #: `wd.validate.conflicting_tenures` refuses a batch where a start-only line
+    #: sits beside a dated one, because that is usually one tenure two sources
+    #: date differently and neither write path can merge them. But
+    #: `fa:فهرست استانداران آذربایجان غربی` dates no *end* for four consecutive
+    #: appointments in the 1980s, and one of those governors came back in 2013:
+    #: two real tenures whose tuples are indistinguishable from the Iraqi
+    #: central-bank row whose end a dash-glued separator destroyed. What tells
+    #: them apart is that this one's end cell exists and is empty, which only
+    #: the parser can see.
+    end_withheld: bool = False
     period_raw: str = ""
     appointer: Optional[str] = None
     #: Legend texts for the row's background colours — "Funcionario encargado
@@ -1571,6 +1585,12 @@ def parse_rosters(
             else:
                 spans = _spans(roles, row_cells)
             tr = trs[index] if index < len(trs) else None
+            # Only where the table has a *separate* end column: an empty
+            # `period` cell means no dates at all, and the row does not emit.
+            end_blank = any(
+                role == "end" and cell is not None and not _cell_text(cell)
+                for role, (cell, _origin) in zip(roles, row_cells)
+            )
             for start, end, incumbent, period_raw in spans:
                 rows.append(
                     RosterRow(
@@ -1582,6 +1602,7 @@ def parse_rosters(
                         start=start,
                         end=end,
                         incumbent=incumbent,
+                        end_withheld=end_blank and end is None and not incumbent,
                         period_raw=period_raw,
                         appointer=cells.get("appointer"),
                         flags=_flags(row_cells, tr, legend)

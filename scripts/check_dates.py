@@ -576,6 +576,17 @@ TENURES = [
      "a half-dated line beside a complete one — the Iraqi central bank governor "
      "before the dash-glued separator was fixed. Something could complete it, so "
      "it stays a defect"),
+    ([("Q11", [("P580", "1990-10-28")]),
+      ("Q11", [("P580", "2013-11-20"), ("P582", "2017-10-11")])], True,
+     "Ghorbanali Saadat, governor of West Azarbaijan — tuple for tuple the Q5 "
+     "shape above, and the opposite truth. Without the source signal the "
+     "validator cannot tell them apart, so it vetoes, which is correct"),
+    ([("Q12", [("P580", "1990-10-28")]),
+      ("Q12", [("P580", "2013-11-20"), ("P582", "2017-10-11")])], False,
+     "the same lines once the parser says the roster offered an end column for "
+     "the 1990 row and left it blank: a spell whose end is unknown, not a "
+     "fragment of the 2013 one",
+     {("Q12", "P39", "Q_office", "+1990-10-28T00:00:00Z/11")}),
     ([("Q6", [("P580", "1990-01-01"), ("P582", "1992-01-01")]),
       ("Q6", [("P580", "2000-01-01"), ("P582", "2002-01-01")])], False,
      "two fully dated spells a decade apart — the ordinary multi-tenure case the "
@@ -753,7 +764,9 @@ def main() -> None:
             bad += 1
             print(f"FAIL parse_bullet_rosters(..., headings={override!r})\n  "
                   f"want {want} rows, got {got}\n  ({why})")
-    for lines, want, why in TENURES:
+    for case in TENURES:
+        lines, want, why = case[:3]
+        withheld = case[3] if len(case) > 3 else frozenset()
         rendered = [
             "\t".join(["Q_subject", "P39", "Q_office"]
                        + [x for prop, iso in quals
@@ -761,7 +774,7 @@ def main() -> None:
             .replace("Q_subject", subject)
             for subject, quals in lines
         ]
-        got = bool(conflicting_tenures(rendered))
+        got = bool(conflicting_tenures(rendered, withheld))
         if got != want:
             bad += 1
             print(f"FAIL conflicting_tenures({lines!r})\n  want flagged="
