@@ -216,6 +216,19 @@ def main() -> None:
 
     rename = [tuple(r.split("=", 1)) for r in args.rename]  # type: ignore[misc]
     baseline, baseline_files = load(baseline_dir, rename)
+    # An empty baseline is not an empty diff. It prints "baseline 0 records" and
+    # then reports every pair as new, which reads like a large regression and is
+    # actually no regression net at all — Iran's and Qatar's baselines sat in a
+    # `verdicts/` subdirectory this never looked in, and were inert from the day
+    # they were committed. Creating one is the one case where empty is expected.
+    if not baseline_files and not (args.update and args.force):
+        raise SystemExit(
+            f"No verdicts in {baseline_dir} — a baseline that reads as empty "
+            "compares against nothing, so this is a broken net rather than a "
+            "clean diff. The `*.jsonl` belong directly in the campaign's "
+            "baseline directory, not in a subdirectory of it. To create a "
+            "baseline from scratch, pass --update --force."
+        )
     current, current_files = load(current_dir, rename)
 
     print(f"# {args.campaign}: baseline {sum(baseline_files.values())} records "

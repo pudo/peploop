@@ -9,21 +9,26 @@ institution and marked it uncovered, so the same categories went missing
 country after country without anyone being able to see it.
 
 **Legend:** ✅ covered · ◐ partial · ✗ not attempted (a channel exists, or none
-was looked for) · ⊘ creation-first, no items exist · — not applicable
+was looked for) · ⊘ creation-first, no items exist · **∅ measured: no channel
+exists** · — not applicable
+
+`∅` and `✗` look alike and are opposites. `✗` is an admission that nobody
+looked; `∅` is a finding, and needs the measurement written in the country's
+ledger. A campaign may close on `∅` and may not close on `✗`.
 
 | | EC | BY | CZ | ES | AE | SA | KW | JO | QA | IQ | IR |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | head of state | ✗ | ✗ | ✅ | ✗ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | head of government | ✗ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | cabinet | ✅ | ◐ | ✅ | ◐ | ◐ | ◐ | ◐ | ✅ | ✅ | ✅ | ✅ |
-| legislature membership | ✗ | ✗ | ✗ | ◐ | ✗ | ✅ | ✅ | ◐ | ⊘ | ◐ | ◐ |
+| legislature membership | ✗ | ✗ | ✗ | ◐ | ✗ | ✅ | ✅ | ◐ | ⊘ | ◐ | ✅ |
 | judiciary | ✗ | ✗ | ◐ | ◐ | ⊘ | ✗ | ✗ | ✗ | ✗ | ✗ | ◐ |
-| central bank | ✗ | ✗ | ✗ | ✗ | ⊘ | ✗ | ✗ | ✗ | ✅ | ✅ | ✗ |
+| central bank | ✗ | ✗ | ✗ | ✗ | ⊘ | ✗ | ✗ | ✗ | ✅ | ✅ | ✅ |
 | military / security | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✅ | ✗ | ✗ | ◐ | ✅ |
-| sub-national | ✗ | ✗ | ✗ | ✅ | ◐ | ◐ | ✗ | ✗ | ✗ | ◐ | ⊘ |
+| sub-national | ✗ | ✗ | ✗ | ✅ | ◐ | ◐ | ✗ | ✗ | ✗ | ◐ | ◐ |
 | ambassadors (outbound) | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✅ | ✗ | ◐ |
 | SOE / sovereign wealth | ✗ | ✗ | ✗ | ✗ | ⊘ | ✗ | ✗ | ✗ | ✗ | ⊘ | ⊘ |
-| party officials | ✗ | ✗ | ✗ | ✗ | — | — | — | ✗ | — | ✗ | ⊘ |
+| party officials | ✗ | ✗ | ✗ | ✗ | — | — | — | ✗ | — | ✗ | ∅ |
 | royal / ruling family | — | — | — | ✗ | ◐ | ✅ | ◐ | ✅ | ✅ | — | — |
 
 | campaign | script | offices | plan | baseline |
@@ -38,7 +43,7 @@ was looked for) · ⊘ creation-first, no items exist · — not applicable
 | jordan | `jo_offices.py` + `jo_family.py` | 6 | ✓ | `regression/jordan/` |
 | qatar | `qa_offices.py` + `qa_family.py` | 44 | ✓ | `regression/qatar/` |
 | iraq | `iq_offices.py` | 29 | ✓ | **none** |
-| iran | `ir_offices.py` | 66 | ✓ | `regression/iran/` |
+| iran | `ir_offices.py` | 100 | ✓ | `regression/iran/` |
 
 ## What the columns say
 
@@ -53,8 +58,10 @@ was looked for) · ⊘ creation-first, no items exist · — not applicable
 * **Party officials — 0 of 11.** Only Iran even measured it. Belarus, Czechia and
   Ecuador are where it would matter and none looked.
 * **Mayors — 0 of 11, anywhere.**
-* **Central bank — 2 of 11**, and Kuwait and Jordan each have an *item with no
-  roster* recorded as a deferral rather than as a coverage gap.
+* **Central bank — 3 of 11**, and Kuwait and Jordan each have an *item with no
+  roster* recorded as a deferral rather than as a coverage gap. Iran's was the
+  third kind: an item with 3 holders, a perfectly good roster on **en**, and no
+  office configured against it. The ledger found it; nine campaigns had not.
 * **Ambassadors (outbound) — 1½ of 11.** Several campaigns correctly dismissed
   *inbound* envoys as another country's PEPs, then never ran their own.
 
@@ -83,3 +90,25 @@ country:
   a campaign may close on.
 * `⊘` is not a resting state. It means items must be minted; the campaign is not
   finished while a row reads `⊘`.
+
+## What the second Iran run showed
+
+Iran is the first campaign re-run from its ledger rather than from its script,
+and the ledger's own predictions held:
+
+* **Three offices needed a config line and nothing else** — central bank, Majlis
+  speakership, police command — and had been invisible for a whole campaign
+  because nothing named them. They shipped 23 statements between them, and the
+  speakership shipped 0 *because it was already complete*, which is a result the
+  old method had no way to record.
+* **The biggest lane was gated by one shared toolkit gap, not by its own
+  difficulty.** `parse_bullet_rosters` could not be told "this page is a roster"
+  the way a table source always could, so 1,871 wikilinked Majlis members read
+  as eight empty pages. Fixing the gate tripled the lane.
+* **`⊘` really is not a resting state.** The governor lane went 0 → 408
+  statements the moment its 27 items existed. Nothing else about it changed.
+
+The three rows still worth watching across every country: **SOE / sovereign
+wealth (0 of 11)**, **mayors (0 of 11)** and **party officials (0 of 11)**.
+Iran now has the `mayor` archetype and a fixed duplicate guard, so the mayoral
+row is one creation round from being the first.

@@ -609,6 +609,72 @@ against a 151-case fixture) is what made any of it reachable.
   `P137` (74/77) and `zavod` does not read it. Wide blast radius: every country's
   ambassadors.
 
+## Iran run 2 (added 2026-08-19)
+
+Scoped from `coverage/iran.md` rather than from the campaign script. Batch
+rendered and **not yet applied**: `data/iran/edit_plan.qs` (1,125 statements)
+plus `data/iran/edit_plan_claims.json` (413 statements for 186 people) — the two
+halves of one batch, reviewed together.
+
+### Done this run
+
+* 27 provincial governorship items minted (`data/iran/created.json`), verified
+  live as well-formed. `subnational.executive` went 0 → 408 statements.
+* Majlis terms 1–8 configured — 1,871 rows, 1,851 wikilinked. Lane 388 → 1,078.
+* Central bank `Q20110284`, Majlis speakership `Q6597965`, UN permanent
+  representation `Q7169241` and FARAJA `Q114457755` configured against items
+  that already existed.
+* `regression/iran/` and `regression/qatar/` baselines **un-broken** — both had
+  their verdicts in a `verdicts/` subdirectory that `diff_verdicts.py` never
+  looked in, so both reported "baseline 0 records" and compared against nothing
+  from the day they were committed. Layout flattened to match every other
+  campaign; the differ now refuses an empty baseline instead of printing one.
+
+### Next creation round (dry first, then the human gate)
+
+One round covers all of it; the archetypes and the fixed duplicate guard exist.
+
+* **IRIB headship** — measured and ready: `fa:رئیس سازمان صدا و سیمای جمهوری
+  اسلامی ایران`, 18 rows, 17 dated, 14 linked. `lookup_position` unmatched on
+  three spellings, so no item exists. `agency_head`.
+* **General Inspection Office** head — 7 rows.
+* **5 judicial offices**, **~10 provincial-capital mayors** (`mayor` archetype
+  now exists), **~31 Friday-prayer leaderships**, **6 bonyad headships**
+  (already ruled *positions*).
+
+### Blocked, each named in the ledger
+
+* `blocked:wide-roster` — Deputy Speakership `Q118321724`. Its roster is **two
+  holders per row** (first and second deputy) keyed by term ordinal, and dates
+  nothing. Needs a two-holders-per-row reader, or a decision to take the
+  first-deputy column only and record that it under-covers.
+* `blocked:deputy-ministers` — ten deputy ministers sit on the interior page and
+  the heading filter drops them. `Q116214167` exists with 3 holders.
+* `blocked:historic-chambers` — National Consultative Assembly (`Q134563198`,
+  85 holders) and 7 Senate rolls / 173 people. `era.distinct`; need own items.
+
+### Item repairs (surgical, stop-and-ask — never in a batch)
+
+* `Q106975489` "Governor of Khorasan Province": `P1001 = Q794` should be
+  `Q587090`. Measured as the **only** item in the 242-strong worldwide
+  `P279 = Q132050` cluster whose jurisdiction is its own country.
+* `Q106963302` Ardabil: add `P1001 = Q134228`, add an `fa` label.
+* `Q126003139` East Azarbaijan: `P279` is `Q382844`, should be `Q132050`.
+* `P2354` (has list) missing on all four pre-existing governor items.
+* Mohammad-Sadeq Moatamedian's four governorships are recorded against the
+  **list articles** rather than the offices — add the four correct P39s, then
+  remove the four list-article ones (destructive half, human gate).
+* `P31 = Q13406463` missing on `Q109550030`, `Q28712909`, `Q56360216`,
+  `Q28713751`.
+
+### Known and named, not a defect
+
+`legislature.leadership` ships 0 because all 7 speakers already hold the
+statement — `covered`, measured. The same gate (held per person+target, not per
+term) caps the Majlis lane: a member re-elected in a term already recorded is
+invisible. A per-term gate is a **write-path** change, since per-term membership
+cannot go through QuickStatements at all.
+
 ## Toolkit gaps that block lanes in more than one campaign
 
 Promoted here because a workaround appearing in a *second* campaign is the signal
