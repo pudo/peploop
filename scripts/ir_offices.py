@@ -387,7 +387,12 @@ PREDECESSORS = (
     (r"حکومت خودمختار آذربایجان", ""),
     (r"استانداران استان آذربایجان$", ""),
 )
-PROVINCE_REGIMES = ((r"پهلوی", "Pahlavi"), (r"جمهوری اسلامی", "Islamic Republic"))
+#: Only the *other* regime. `regime_sections` names states this office did not
+#: belong to — Belarus lists the BSSR and the BNR and never the Republic of
+#: Belarus — and naming `جمهوری اسلامی` here made the campaign's own polity
+#: foreign to itself: 431 current-regime governor rows skipped as "a different
+#: polity's office". The Pahlavi sections are genuinely the Imperial State.
+PROVINCE_REGIMES = ((r"پهلوی", "pahlavi"),)
 
 #: The four governorships that already have an item. `Q106975489` is labelled
 #: "Governor of Khorasan Province" and carries `P1001 = Q794` — the only item in
@@ -402,6 +407,35 @@ GOVERNOR_ITEMS = {
     "Q587090": "Q106975489",  # Razavi Khorasan Province
     "Q134228": "Q106963302",  # Ardabil Province
     "Q176081": "Q126003139",  # East Azarbaijan Province
+    # Minted 2026-08-19 by `create_offices.py --country ir --apply`;
+    # the ledger is `data/iran/created.json`.
+    "Q392522": "Q141125483",  # Alborz Province
+    "Q132945": "Q141125419",  # Bushehr Province
+    "Q171702": "Q141125425",  # Chaharmahal and Bakhtiari Province
+    "Q1004666": "Q141125405",  # Fars Province
+    "Q928828": "Q141125404",  # Gilan Province
+    "Q170041": "Q141125473",  # Golestan Province
+    "Q187373": "Q141125458",  # Hamadan Province
+    "Q633659": "Q141125441",  # Hormozgan Province
+    "Q170570": "Q141125428",  # Ilam Province
+    "Q165352": "Q141125403",  # Kerman Province
+    "Q174010": "Q141125407",  # Kermanshah Province
+    "Q241119": "Q141125413",  # Khuzestan Province
+    "Q180068": "Q141125445",  # Kohgiluyeh and Boyer-Ahmad Province
+    "Q134386": "Q141125451",  # Kurdistan Province
+    "Q1131727": "Q141125437",  # Lorestan Province
+    "Q134417": "Q141125431",  # Markazi Province
+    "Q308864": "Q141125410",  # Mazandaran Province
+    "Q180075": "Q141125467",  # North Khorasan Province
+    "Q1105893": "Q141125476",  # Qazvin Province
+    "Q131664": "Q141125464",  # Qom Province
+    "Q168949": "Q141125448",  # Semnan Province
+    "Q939575": "Q141125422",  # Sistan and Baluchestan Province
+    "Q171551": "Q141125479",  # South Khorasan Province
+    "Q590866": "Q141125434",  # Tehran Province
+    "Q134411": "Q141125416",  # West Azarbaijan Province
+    "Q170568": "Q141125461",  # Yazd Province
+    "Q146726": "Q141125455",  # Zanjan Province
 }
 
 #: (key, province item, en label, fa short name, list-article item, roster rows).
