@@ -163,6 +163,9 @@ class RosterSource:
     #: member's province or electoral district *after* them, so the default
     #: resolves every row on those pages to a place.
     person_first: bool = False
+    #: Replaces `BULLET_HEADINGS` for this page. The bullet counterpart of
+    #: `headings`, for a roll sectioned by something other than a keyword.
+    bullet_headings: Optional[str] = None
 
 
 @dataclass
@@ -651,6 +654,7 @@ def office_rows(
             rosters = parse_bullet_rosters(
                 page["html"], source.bullet_offices,
                 dateless=source.dateless_bullets, person_first=source.person_first,
+                headings=source.bullet_headings,
             )
         else:
             rosters = parse_rosters(page["html"], source.column_roles)

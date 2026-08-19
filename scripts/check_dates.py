@@ -27,6 +27,8 @@ from lxml import html as lxml_html
 
 from wd.kinship import _cut_gloss, parse_genealogy
 from wd.officebox import parse_officebox
+from wd.create import duplicate_of
+from wd.positions import Candidate, Lookup
 from wd.validate import conflicting_tenures
 from wd.roster import (
     RosterRow,
@@ -581,6 +583,86 @@ TENURES = [
 ]
 
 
+#: `parse_bullet_rosters`'s `headings` override. The allowlist recognises a
+#: section by the word in its heading; a roll sectioned alphabetically has
+#: letters, and hid every member of the first eight Majlis terms.
+_ALPHA_ROLL = (
+    "<h2>\u0622\u060c \u0627\u060c \u0628</h2><ul>"
+    "<li><a href='/wiki/a' title='\u0645\u0647\u062f\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646'>"
+    "\u0645\u0647\u062f\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646</a></li>"
+    "<li><a href='/wiki/b' title='\u062d\u0633\u0646 \u062d\u0628\u06cc\u0628\u06cc'>"
+    "\u062d\u0633\u0646 \u062d\u0628\u06cc\u0628\u06cc</a></li></ul>"
+)
+_REFS = (
+    "<h2>\u0645\u0631\u0627\u062c\u0639</h2><ul>"
+    "<li><a href='/wiki/a' title='\u0645\u0647\u062f\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646'>"
+    "\u0645\u0647\u062f\u06cc \u0628\u0627\u0632\u0631\u06af\u0627\u0646</a></li>"
+    "<li><a href='/wiki/b' title='\u062d\u0633\u0646 \u062d\u0628\u06cc\u0628\u06cc'>"
+    "\u062d\u0633\u0646 \u062d\u0628\u06cc\u0628\u06cc</a></li></ul>"
+)
+BULLET_OVERRIDES = [
+    (_ALPHA_ROLL, None, 0,
+     "a letter heading matches no keyword, so the default allowlist drops it"),
+    (_ALPHA_ROLL, r".", 2,
+     "the caller has read the page and says every list on it is a roster"),
+    (_REFS, r".", 0,
+     "an override says the page is a roster, not that its references are — "
+     "BULLET_NOT_HEADINGS still applies"),
+]
+
+
+def _cand(qid, label_match=True, country_match=True, is_list=False,
+          countries=("Q794",), types=("Q4164871",)):
+    return Candidate(
+        qid=qid, label="", description=None, types=list(types),
+        country_qids=list(countries), label_match=label_match,
+        country_match=country_match, is_list=is_list,
+    )
+
+
+#: The creation duplicate guard. Every one of these is a case `_existing`'s old
+#: `status == "matched"` test got wrong or right for the wrong reason: the
+#: status only says whether the *search* was decisive, and creation needs to
+#: know whether an item that would be duplicated is sitting in the candidates.
+GUARDS = [
+    (Lookup(status="matched", resolved_qid="Q1", candidates=[_cand("Q1")]),
+     "Q1", "one strong candidate — the case the status test already caught"),
+    (Lookup(status="ambiguous", candidates=[_cand("Q1"), _cand("Q2")]),
+     "Q1", "two items match label and country; the status test minted a third"),
+    (Lookup(status="label-only", resolved_qid="Q1",
+            candidates=[_cand("Q1", country_match=False, countries=())]),
+     "Q1", "unique label match on an item asserting no country at all"),
+    (Lookup(status="ambiguous",
+            candidates=[_cand("Q1", country_match=False, countries=("Q843",))]),
+     None, "same label, a different country — a different office, not a duplicate"),
+    (Lookup(status="ambiguous", candidates=[_cand("Q1", is_list=True,
+                                                  types=["Q13406463"])]),
+     None, "a pure list article is not a position item"),
+    (Lookup(status="label-only", resolved_qid="Q1",
+            candidates=[_cand("Q1", country_match=False, countries=(),
+                              types=["Q5"])]),
+     None, "Q64759749: a human carrying the office as an alias. No P17, so "
+           "they arrive through the same branch `label-only` needs"),
+    (Lookup(status="ambiguous",
+            candidates=[_cand("Q1", country_match=False, countries=(),
+                              types=["Q17633526"])]),
+     None, "Q19793882: a Wikinews headline beginning with the office's name"),
+    (Lookup(status="ambiguous",
+            candidates=[_cand("Q1", is_list=True,
+                              types=["Q13406463", "Q4164871"])]),
+     "Q1", "typed as both a list and a position — block, because a false "
+           "duplicate costs a check and a missed one mints an item"),
+    (Lookup(status="ambiguous",
+            candidates=[_cand("Q1", label_match=False), _cand("Q2", label_match=False)]),
+     None, "label-mismatched noise is why `ambiguous` cannot be trusted wholesale"),
+    (Lookup(status="unmatched"), None, "no candidates"),
+    (Lookup(status="ambiguous",
+            candidates=[_cand("Q1", is_list=True, types=["Q13406463"]),
+                        _cand("Q2")]),
+     "Q2", "the list article is skipped, the real item behind it is not"),
+]
+
+
 def header_roles(cells, overrides=()):
     """The roles `_roles` assigns to a header row written as plain text."""
     row = "".join(f"<th>{cell}</th>" for cell in cells)
@@ -662,6 +744,15 @@ def main() -> None:
             bad += 1
             print(f"FAIL parse_bullet_rosters(..., {bullet_offices!r})\n  "
                   f"want {want!r}\n  got  {got!r}\n  ({why})")
+    for html, override, want, why in BULLET_OVERRIDES:
+        got = sum(
+            len(roster.rows)
+            for roster in parse_bullet_rosters(html, dateless=True, headings=override)
+        )
+        if got != want:
+            bad += 1
+            print(f"FAIL parse_bullet_rosters(..., headings={override!r})\n  "
+                  f"want {want} rows, got {got}\n  ({why})")
     for lines, want, why in TENURES:
         rendered = [
             "\t".join(["Q_subject", "P39", "Q_office"]
@@ -675,6 +766,13 @@ def main() -> None:
             bad += 1
             print(f"FAIL conflicting_tenures({lines!r})\n  want flagged="
                   f"{want!r}, got {got!r}\n  ({why})")
+    for found, want, why in GUARDS:
+        got = duplicate_of(found)
+        if got != want:
+            bad += 1
+            print(f"FAIL duplicate_of({found.status!r}, "
+                  f"{len(found.candidates)} candidates)\n  want {want!r}, "
+                  f"got {got!r}\n  ({why})")
     for wikitext, lang, want, why in OFFICEBOXES:
         got = [(t.office, t.start, t.end) for t in parse_officebox(wikitext, lang)]
         if got != want:
@@ -683,10 +781,11 @@ def main() -> None:
                   f"got  {got!r}\n  ({why})")
     total = (len(DATES) + len(PERIODS) + len(INCUMBENCY) + len(MERGES) + len(BULLETS) + len(TENURES)
              + len(HEADERS) + len(HEADER_OVERRIDES) + len(GENEALOGY)
-             + len(GLOSSES) + len(OFFICEBOXES))
+             + len(GLOSSES) + len(OFFICEBOXES) + len(GUARDS)
+             + len(BULLET_OVERRIDES))
     if bad:
         raise SystemExit(f"\n{bad} of {total} cases failed")
-    print(f"{total} header, date, term-merge, genealogy and infobox cases pass")
+    print(f"{total} header, date, term-merge, genealogy, infobox and creation-guard cases pass")
 
 
 if __name__ == "__main__":

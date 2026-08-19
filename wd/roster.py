@@ -1734,7 +1734,7 @@ def _is_date_link(title: str) -> bool:
 
 def parse_bullet_rosters(
     page_html: str, bullet_offices: bool = False, dateless: bool = False,
-    person_first: bool = False,
+    person_first: bool = False, headings: Optional[str] = None,
 ) -> List[Roster]:
     """Officeholders listed as bullets rather than tabulated.
 
@@ -1747,6 +1747,17 @@ def parse_bullet_rosters(
     `bullet_offices` reads an office named ahead of a colon into the row's
     `office` cell, and lets a row with one carry no date. Both are what a bucket
     lane over bullets needs and neither is safe by default — see `BULLET_OFFICE`.
+
+    `headings` replaces `BULLET_HEADINGS` for this page, and is the bullet
+    counterpart of the `headings` a table source already carries: a caller who
+    has read the page and knows every list on it is a roster can say so. Needed
+    because the allowlist recognises a section by the *word* in its heading, and
+    a roll sectioned alphabetically has letters — `fa:فهرست نمایندگان دوره نخست
+    مجلس شورای اسلامی` heads its groups "آ، ا، ب، پ، ت، ث" and hid all 1,871
+    members of the first eight Majlis terms. Extending the allowlist a fourth
+    time (after Russian, Arabic and Persian) would fix this page and not the
+    next one. `BULLET_NOT_HEADINGS` still applies: an override says the page is
+    a roster, not that its references section is.
     """
     doc = lxml_html.fromstring(page_html)
     notes = _footnotes(doc)
@@ -1764,8 +1775,9 @@ def parse_bullet_rosters(
         # Folded, per §7 #11: a pattern typed in the source spelling matches
         # nothing once Persian yeh and kaf fold to their Arabic code points.
         folded_heading = fold(heading) if heading else ""
+        allowed = re.compile(headings, re.I) if headings else BULLET_HEADINGS
         if heading and (
-            not BULLET_HEADINGS.search(folded_heading)
+            not allowed.search(folded_heading)
             or BULLET_NOT_HEADINGS.search(folded_heading)
         ):
             continue

@@ -287,20 +287,176 @@ JUDICIARY = (
 #: wrong, and the alternative is a per-term gate this run does not build. Term 11
 #: is 276 of 290 already recorded and is the lane's calibration set rather than
 #: its yield.
+#: Terms 1–8 are `bullets`: the pages are alphabetical rolls of wikilinked
+#: names under letter-group headings ("آ، ا، ب، پ، ت، ث"), not tables. The
+#: letter heading matches no word in `BULLET_HEADINGS`, which is why the first
+#: eight terms read as empty pages and the lane looked like it began in 2012;
+#: `bullet_headings` overrides the allowlist for exactly this. 1,871 rows, 1,851
+#: of them wikilinked.
 MAJLIS_TERMS = (
-    ("نهم",      ("2012-05-27", "2016-05-24")),   # Q5957961
-    ("دهم",      ("2016-05-28", "2020-05-26")),   # Q25424055
-    ("یازدهم",   ("2020-05-27", "2024-05-26")),   # Q95215862
-    ("دوازدهم",  ("2024-05-27", None)),           # Q124744493, sitting
+    ("نخست",     ("1980-05-28", "1984-05-27"), "bullets"),
+    ("دوم",      ("1984-05-28", "1988-05-26"), "bullets"),
+    ("سوم",      ("1988-05-28", "1992-05-27"), "bullets"),
+    ("چهارم",    ("1992-05-28", "1996-05-26"), "bullets"),
+    ("پنجم",     ("1996-06-01", "2000-05-24"), "bullets"),
+    ("ششم",      ("2000-05-27", "2004-05-26"), "bullets"),
+    ("هفتم",     ("2004-05-27", "2008-05-25"), "bullets"),
+    ("هشتم",     ("2008-05-27", "2012-05-23"), "bullets"),
+    ("نهم",      ("2012-05-27", "2016-05-24"), "table"),   # Q5957961
+    ("دهم",      ("2016-05-28", "2020-05-26"), "table"),   # Q25424055
+    ("یازدهم",   ("2020-05-27", "2024-05-26"), "table"),   # Q95215862
+    ("دوازدهم",  ("2024-05-27", None),         "table"),   # Q124744493, sitting
 )
 
 LEGISLATURE = (
     Office("majlis", "Member of the Islamic Consultative Assembly", "Q17525449",
            rosters=tuple(
                RosterSource("fa", f"فهرست نمایندگان دوره {ordinal} مجلس شورای اسلامی",
-                            headings=ANY_TABLE, term=term)
-               for ordinal, term in MAJLIS_TERMS
+                            headings=ANY_TABLE, term=term, kind=kind,
+                            # The roll links the electoral district *after* the
+                            # member, so the last anchor is a place (§ lane F).
+                            person_first=(kind == "bullets"),
+                            dateless_bullets=(kind == "bullets"),
+                            bullet_headings=r"." if kind == "bullets" else None)
+               for ordinal, term, kind in MAJLIS_TERMS
            )),
+)
+
+# --- lane L: the items that existed all along ------------------------------
+#: Six position items were already on Wikidata when the first Iran run closed,
+#: each with a handful of holders and no office configured against it — the
+#: cheapest coverage in the country, and `coverage/iran.md`'s first row of
+#: unfinished business. Two of the six have no channel at all and are not here:
+#: the Deputy Speakership `Q118321724` (its roster is two holders per row and
+#: dates nothing) and the Head of the Leader's Office `Q110126773` (measured:
+#: no roster, no category, no infobox chain). Both are recorded in the ledger.
+INHERITED = (
+    # en is strictly better here: fa's `فهرست رؤسای کل بانک مرکزی ایران`
+    # tabulates 24 governors and dates none of them.
+    Office("central_bank", "Governor of the Central Bank of Iran", "Q20110284",
+           rosters=(RosterSource("en", "Governor of the Central Bank of Iran",
+                                 headings=ANY_TABLE),)),
+    Office("majlis_speaker", "Speaker of the Islamic Consultative Assembly",
+           "Q6597965",
+           rosters=(RosterSource("fa", "رئیس مجلس شورای اسلامی",
+                                 headings=ANY_TABLE),)),
+    # "Permanent Representative" and "Years served" are the page's own column
+    # names and match no role key, so the table read as having neither a person
+    # nor a date and produced no roster at all.
+    Office("un_rep", "Permanent Representative of Iran to the United Nations",
+           "Q7169241",
+           rosters=(RosterSource(
+               "en", "Permanent Representative of Iran to the United Nations",
+               headings=ANY_TABLE,
+               column_roles=(("Permanent Representative", "name"),
+                             ("Years served", "period"))),)),
+    # No roster exists in either wiki — the fa article's only table lists
+    # subordinate units. This is the Qatar shape: the category names the
+    # holders and their own infoboxes date them. The *chief* commanders'
+    # category, not `فرماندهان نیروی انتظامی` (43 members, every sub-command).
+    Office("faraja", "Commander-in-Chief of FARAJA", "Q114457755",
+           categories=(("en", "Chief commanders of the Police Command of the "
+                              "Islamic Republic of Iran"),),
+           officebox=("fa", "en")),
+)
+
+# --- lane G: the provincial governors -------------------------------------
+#: The largest single lane in the country: 902 rows across 31 provinces, ~90% of
+#: them dated. Four provinces already have a position item; the other 27 are
+#: minted through `create_offices.py --country ir`, which is why this lane could
+#: not run at all in the first sweep — 778 of its rows sat behind an item that
+#: did not exist.
+#:
+#: Shape measured, not chosen (`recipes/country_sweep.md` §10). Of the 242
+#: worldwide items with `P279 = Q132050` and `P31 = Q4164871`, 185 carry `P1001`
+#: and **172 of those scope strictly narrower than their own `P17`** — the
+#: convention is not "province vs country" but *scope to the polity governed*.
+#: So `P1001` is the province and `P17` stays `Q794`. `P571` is suppressed on
+#: all 27: no Iranian governor item carries one, and the earliest row on most of
+#: these pages belongs to a predecessor office rather than to this one.
+#:
+#: `PREDECESSORS` are those predecessor offices, routed to `""` so their rows
+#: are dropped rather than filed under a governorship that did not yet exist —
+#: the numbered *ostans* of 1937–60 (`استان یکم`, `استان سوم`), the Qajar
+#: `حکمران`/`والی` of Gilan and Kerman, the undivided Azerbaijan province, and
+#: the 1945–46 separatist Azerbaijan People's Government.
+PREDECESSORS = (
+    (r"استاندار(?:ان)? استان (?:یکم|سوم)", ""),
+    (r"والیان ایالت کرمان", ""),
+    (r"حکمران گیلان", ""),
+    (r"حکومت خودمختار آذربایجان", ""),
+    (r"استانداران استان آذربایجان$", ""),
+)
+PROVINCE_REGIMES = ((r"پهلوی", "Pahlavi"), (r"جمهوری اسلامی", "Islamic Republic"))
+
+#: The four governorships that already have an item. `Q106975489` is labelled
+#: "Governor of Khorasan Province" and carries `P1001 = Q794` — the only item in
+#: the worldwide cluster whose jurisdiction is its own country rather than the
+#: polity it governs, which is a repair and not a routing problem.
+#: `Q126003139` is labelled "Governor-general of East Azerbaijan", but its only
+#: holder is Malek Rahmati (2024) and its `P910` is the generic modern category,
+#: so the community uses it as the *modern* governorship under a legacy label:
+#: all 50 East Azarbaijan rows route there and no 28th item is minted.
+GOVERNOR_ITEMS = {
+    "Q1367759": "Q106975471",  # Isfahan Province
+    "Q587090": "Q106975489",  # Razavi Khorasan Province
+    "Q134228": "Q106963302",  # Ardabil Province
+    "Q176081": "Q126003139",  # East Azarbaijan Province
+}
+
+#: (key, province item, en label, fa short name, list-article item, roster rows).
+#: The fa short name is the province label without `استان `, which is both the
+#: roster page's title and the label convention the existing items use
+#: (`Q106975471` is `استاندار اصفهان`, not `استاندار استان اصفهان`).
+PROVINCES = (
+    ("kerman", "Q165352", "Kerman Province", "کرمان", "Q16045843", 67),
+    ("gilan", "Q928828", "Gilan Province", "گیلان", "Q5809662", 56),
+    ("fars", "Q1004666", "Fars Province", "فارس", "Q16045783", 55),
+    ("kermanshah", "Q174010", "Kermanshah Province", "کرمانشاه", "Q16074234", 55),
+    ("east_azarbaijan", "Q176081", "East Azarbaijan Province", "آذربایجان شرقی", "Q16074289", 50),
+    ("isfahan", "Q1367759", "Isfahan Province", "اصفهان", "Q140191194", 49),
+    ("mazandaran", "Q308864", "Mazandaran Province", "مازندران", "Q16045808", 45),
+    ("khuzestan", "Q241119", "Khuzestan Province", "خوزستان", "Q16074354", 40),
+    ("west_azarbaijan", "Q134411", "West Azarbaijan Province", "آذربایجان غربی", "Q16074306", 39),
+    ("bushehr", "Q132945", "Bushehr Province", "بوشهر", "Q16074058", 35),
+    ("sistan_baluchestan", "Q939575", "Sistan and Baluchestan Province", "سیستان و بلوچستان", "Q16045775", 28),
+    ("chaharmahal_bakhtiari", "Q171702", "Chaharmahal and Bakhtiari Province", "چهارمحال و بختیاری", "Q16045833", 27),
+    ("ilam", "Q170570", "Ilam Province", "ایلام", "Q16074395", 26),
+    ("markazi", "Q134417", "Markazi Province", "مرکزی", "Q16045813", 25),
+    ("tehran", "Q590866", "Tehran Province", "تهران", "Q16074088", 25),
+    ("lorestan", "Q1131727", "Lorestan Province", "لرستان", "Q16045800", 24),
+    ("hormozgan", "Q633659", "Hormozgan Province", "هرمزگان", "Q16045819", 23),
+    ("kohgiluyeh_boyer_ahmad", "Q180068", "Kohgiluyeh and Boyer-Ahmad Province", "کهگیلویه و بویراحمد", "Q16045852", 23),
+    ("semnan", "Q168949", "Semnan Province", "سمنان", "Q16074202", 23),
+    ("kurdistan", "Q134386", "Kurdistan Province", "کردستان", "Q16074207", 22),
+    ("zanjan", "Q146726", "Zanjan Province", "زنجان", "Q16074174", 21),
+    ("hamadan", "Q187373", "Hamadan Province", "همدان", "Q16045827", 20),
+    ("yazd", "Q170568", "Yazd Province", "یزد", "Q28712909", 18),
+    ("qom", "Q131664", "Qom Province", "قم", "Q16045795", 16),
+    ("north_khorasan", "Q180075", "North Khorasan Province", "خراسان شمالی", "Q28713751", 15),
+    ("golestan", "Q170041", "Golestan Province", "گلستان", "Q56360216", 14),
+    ("qazvin", "Q1105893", "Qazvin Province", "قزوین", "Q16045790", 14),
+    ("razavi_khorasan", "Q587090", "Razavi Khorasan Province", "خراسان رضوی", "Q109550030", 13),
+    ("south_khorasan", "Q171551", "South Khorasan Province", "خراسان جنوبی", "Q17992164", 13),
+    ("ardabil", "Q134228", "Ardabil Province", "اردبیل", "Q16074314", 12),
+    ("alborz", "Q392522", "Alborz Province", "البرز", "Q16073997", 9),
+)
+
+SUBNATIONAL = tuple(
+    Office(
+        f"gov_{k}", f"Governor of {en}", GOVERNOR_ITEMS.get(prov),
+        rosters=(RosterSource("fa", f"فهرست استانداران {short}",
+                              headings=ANY_TABLE),),
+        section_targets=PREDECESSORS,
+        regime_sections=PROVINCE_REGIMES,
+        archetype=None if prov in GOVERNOR_ITEMS else "governor",
+        jurisdiction=prov,
+        create_labels=(("en", f"Governor of {en}"), ("fa", f"استاندار {short}")),
+        # `P2354` is the roster article this lane actually read, which 74 of the
+        # 242 worldwide governor items carry. `P571` suppressed, per above.
+        create_claims=(("P2354", list_item), ("P571", None)),
+    )
+    for k, prov, en, short, list_item, _rows in PROVINCES
 )
 
 # --- lane K: the diplomatic rosters ---------------------------------------
@@ -348,6 +504,7 @@ DIPLOMATIC = tuple(
 )
 
 OFFICES = (SPINE + PORTFOLIOS + COUNCILS + SECURITY + JUDICIARY + LEGISLATURE
+           + INHERITED + SUBNATIONAL
            + DIPLOMATIC)
 
 CAMPAIGN = Campaign(

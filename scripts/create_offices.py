@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from wd.api import best_label, fetch_entities
 from wd.campaign import office_rows
-from wd.create import CreateSpec, guard, payload, summary
+from wd.create import CreateSpec, duplicate_of, guard, payload, summary
 from wd.http import make_session
 from wd.petscan import category_members
 from wd.positions import lookup_position
@@ -41,6 +41,7 @@ SCRIPTS = {
     "sa": "sa_offices",
     "qa": "qa_offices",
     "iq": "iq_offices",
+    "ir": "ir_offices",
 }
 
 
@@ -142,8 +143,7 @@ def main() -> None:
 
 def _existing(session, name: str, country: str):
     """A QID already carrying this office's name, if one does."""
-    found = lookup_position(session, name, country)
-    return found.resolved_qid if found.status == "matched" else None
+    return duplicate_of(lookup_position(session, name, country))
 
 
 def _label(session, qid: str):

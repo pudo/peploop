@@ -111,6 +111,25 @@ ARCHETYPES: Dict[str, Archetype] = {
     # itself to its province through P1001. The `agency_head` shape would have
     # given the five missing ones `P279 = Q1162163` ("director") and made them a
     # different kind of thing from their own siblings.
+    # Not the same shape as `provincial_governor`, which is an Amir. Measured
+    # over the 242 worldwide items with `P279 = Q132050` and `P31 = Q4164871`:
+    # 185 carry `P1001` and **172 of those scope strictly narrower than their
+    # own `P17`** — the convention is not "province vs country" but *scope to
+    # the polity governed*. The thirteen that scope nationally are offices whose
+    # governed polity genuinely is the country (Governor of Cuba, Ban, King's
+    # Commissioner). Iraq reached for `provincial_governor` and overrode its
+    # parent and inception to get here (`iq_offices.py:329`); a second country
+    # patching the same field is a missing archetype, not a clever workaround.
+    "governor": Archetype(
+        parent="Q132050",
+        description="governor of {jurisdiction}",
+    ),
+    # Q30185 is the office itself rather than a class of it, and is what the
+    # existing municipal items subclass.
+    "mayor": Archetype(
+        parent="Q30185",
+        description="mayor of {jurisdiction}",
+    ),
     "provincial_governor": Archetype(
         parent="Q98786082",
         description="governor of {jurisdiction}",
@@ -222,6 +241,63 @@ def _time(iso: str) -> dict:
         "time": f"+{parts[0]}-{parts[1]}-{parts[2]}T00:00:00Z",
         "precision": precision,
     }
+
+
+#: Types that disqualify a candidate from being the office a spec describes,
+#: whatever its label says. Both were found by the Iran governor lane's first
+#: dry run, and neither is exotic: `استاندار کرمان` matched `Q19793882`, a
+#: **Wikinews headline** that begins with the office's name, and `استاندار
+#: البرز` matched `Q64759749`, **a human** carrying the office as an alias.
+#: The second is the dangerous one — a person has no `P17`, so they arrive
+#: through the same "asserts no country" branch that `label-only` needs.
+#:
+#: A denylist rather than a `P31 = Q4164871` requirement, because a real
+#: position's type can sit behind a preferred or deprecated rank and a positive
+#: test would reject it (see the `wdt:` gotcha). Nothing here is ever also a
+#: position.
+NOT_A_POSITION = {
+    "Q5",          # human
+    "Q4167836",    # Wikimedia category
+    "Q4167410",    # Wikimedia disambiguation page
+    "Q11266439",   # Wikimedia template
+    "Q17633526",   # Wikinews article
+    "Q13442814",   # scholarly article
+}
+#: A Wikimedia list article, which `lookup_position` already refuses to match
+#: strongly. Excluded only when it is *purely* a list: an item typed as both a
+#: list and something else is left to block creation, because a false duplicate
+#: costs a manual check and a missed one mints an item nobody can un-mint.
+LIST_ARTICLE = "Q13406463"
+
+
+def duplicate_of(found) -> Optional[str]:
+    """A QID this spec would duplicate, if any — judged from the candidates.
+
+    Reach for this instead of reading `Lookup.status`. `lookup_position` sets
+    `matched` only when exactly one *strong* candidate exists, so two items
+    that both match the label and the country come back `ambiguous` and a
+    status test mints a third. `label-only` is worse: a unique label match on
+    an item carrying no country property at all, with its QID sitting right
+    there in `resolved_qid`.
+
+    A candidate must also be a plausible *position*: see `NOT_A_POSITION`.
+
+    Trusting `ambiguous` wholesale is not the fix either — it is the default
+    for any search that returned candidates, and would refuse nearly every
+    creation. So judge the candidates: a duplicate is one whose label matches,
+    which is not a pure list article, and which either agrees on country or
+    asserts no country at all. An item labelled the same in a *different*
+    country is a different office and does not block.
+    """
+    for candidate in getattr(found, "candidates", ()) or ():
+        types = set(candidate.types or ())
+        if not candidate.label_match or types & NOT_A_POSITION:
+            continue
+        if types == {LIST_ARTICLE}:
+            continue
+        if candidate.country_match or not candidate.country_qids:
+            return candidate.qid
+    return None
 
 
 def guard(
