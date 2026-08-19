@@ -648,13 +648,16 @@ One round covers all of it; the archetypes and the fixed duplicate guard exist.
   اسلامی ایران`, 18 rows, 17 dated, 14 linked. `lookup_position` unmatched on
   three spellings, so no item exists. `agency_head`.
 * **General Inspection Office** head — 7 rows.
-* **5 judicial offices**, **~31 Friday-prayer leaderships**, **6 bonyad
-  headships** (already ruled *positions*).
-* **NOT the ~10 mayors.** The item-layer audit killed this one: every Iranian
-  mayoralty is dropped at gate 5 because `ir` is not in `MUNI_COUNTRIES`.
-  `Q6627742` Mayor of Tehran is correctly `P279 = Q30185` with 47 holders and is
-  absent from OpenSanctions; so are Isfahan and Qom. Minting ten more would look
-  like coverage and emit nothing.
+* **5 judicial offices**, **~10 provincial-capital mayors**, **~31
+  Friday-prayer leaderships**, **6 bonyad headships** (already ruled
+  *positions*).
+* **The ~10 mayors — decision needs revisiting (corrected 2026-08-19).** This was
+  filed as killed because `ir` is absent from `MUNI_COUNTRIES`, but that list is a
+  staged rollout heading for every country (`position.py:115`) and is irrelevant
+  to what this repo should record. `Q6627742` Mayor of Tehran is correctly
+  `P279 = Q30185` with 47 holders; it is absent from OpenSanctions *today* and
+  well-formed regardless. The honest reason to mint or not is whether the offices
+  are attested and datable, not whether zavod emits them yet.
 * Check each parent against `recipes/position_items.md` before minting.
   `Q1162163` director, `Q16533` judge and `Q121998` ambassador all pass the type
   gate and confer no `role.pep` — the judicial offices need `Q117826617` for an
@@ -672,12 +675,24 @@ One round covers all of it; the archetypes and the fixed duplicate guard exist.
 * `blocked:historic-chambers` — National Consultative Assembly (`Q134563198`,
   85 holders) and 7 Senate rolls / 173 people. `era.distinct`; need own items.
 
+### `P279` backfill — 42 Iranian position items have none (added 2026-08-19)
+
+The largest item-layer defect in the country, and additive throughout. 42 of 196
+Iranian position items carry `P31 = Q4164871` and **no `P279` at all**: the item
+says it is a position and nothing about what kind of office it is. Worst by
+holders: `Q2660216` Vice President (43), `Q20987826` Interior Minister (15),
+`Q107041759` Guardian Council member (13), `Q96375335` Commander of the Navy
+(11), `Q101117334` SNSC Secretary (7), `Q6597965` Speaker of the Majlis (7),
+`Q115625149` Minister of Mines and Metals (6), `Q5719341` Army C-in-C (5).
+
+Full list in `data/iran/verdicts/iran_metadata.jsonl`. Three of them are offices
+this campaign configured in run 2, so the sweep wrote statements onto items that
+do not say what they are.
+
+Every Iranian item **does** have a country path — 0 of 196 lack one.
+
 ### Upstream (file against `opensanctions`, named in the ledger)
 
-* **`MUNI_COUNTRIES` excludes `ir`.** Iranian mayoralties are dropped however
-  well-formed. Tehran alone has 47 holders. Same shape as every other country
-  outside the 28-member list, so this is not an Iran issue so much as an Iran
-  instance of one.
 * **`Q13561063` Prime Minister of Iran, `P576 = 1989-08-03`** — four months
   before the `1990-12-26` abolition cutoff, so 70 holders are invisible,
   including living former premiers. Worth asking whether the cutoff should be
@@ -689,11 +704,9 @@ One round covers all of it; the archetypes and the fixed duplicate guard exist.
 
 ### Item repairs (surgical, stop-and-ask — never in a batch)
 
-* `Q13561063` Prime Minister of Iran: `P279` is `Q14212` "prime minister", which
-  confers `gov.head`/`gov.executive` and **no `role.pep`**. Pair it with
-  `Q2285706` head of government. (Will not rescue the item on its own — the
-  `P576` cutoff still drops it — but the parent is wrong on Wikidata's own
-  terms.)
+* `Q13561063` Prime Minister of Iran carries `P279 = Q14212` alone. The office
+  was Iran's head of government until 1989 and the class that says so is
+  `Q2285706`; add it. Correct on Wikidata's terms whatever any reader does.
 
 * `Q106975489` "Governor of Khorasan Province": `P1001 = Q794` should be
   `Q587090`. Measured as the **only** item in the 242-strong worldwide
@@ -719,8 +732,9 @@ cannot go through QuickStatements at all.
 
 The discoverability lane of the Lithuania sweep. `recipes/position_items.md` is
 the method; `scripts/position_metadata.py --country lt` reproduces every number.
-Measured over **221** position items the country owns: 135 self-sufficient,
-83 with **no holder at all**, and 60 blocked only by `MUNI_COUNTRIES`.
+Measured over **221** position items the country owns. The dominant finding is
+**83 items with no holder at all** — no zero-holder position is ever emitted, so
+those need a roster lane rather than metadata.
 
 ### Batch awaiting QuickStatements upload
 
@@ -762,13 +776,6 @@ them as unreached rather than dropping them silently.
 
 ### Issues to file against opensanctions
 
-- [ ] **`lt` into `MUNI_COUNTRIES`** (`zavod/zavod/shed/wikidata/position.py:116`).
-      All 60 Lithuanian mayoralties are correctly typed, reach `Q30185`, and
-      confer `role.pep` + `gov.muni` — then drop at `position.py:304` because
-      Lithuania is not on the allowlist. This is the *only* thing wrong with
-      them; there is nothing to fix on the Wikidata side. Mayors are the class
-      that is at zero in all eleven campaigns, and this one line is the whole
-      blocker for the country where the item layer already exists.
 - [ ] **`Q14212` "prime minister" does not set the PEP default** (`SUB_TYPES`,
       `position.py:26-80`) — it contributes `gov.head` and `gov.executive` only,
       so a premiership typed solely that way defaults to non-PEP while
@@ -777,6 +784,12 @@ them as unreached rather than dropping them silently.
       classes; not a Lithuanian problem, and not a reason to retype anything.
 
 ### Not defects, recorded so the next run does not chase them
+
+- **The 60 mayoralties are complete and correct.** They reach `Q30185`, set the
+  PEP default and carry `gov.muni`. `MUNI_COUNTRIES` is a staged rollout heading
+  for every country (`position.py:115`), so there is nothing to fix, nothing to
+  file, and no blocker — an earlier draft of this file reported them as a 60-item
+  problem and filed an issue for `lt`. Both were wrong.
 
 - Ordinary bishops are absent from OpenSanctions **correctly** — archbishops and
   nuncios are religious PEPs and ordinary bishops are not, a distinction the type

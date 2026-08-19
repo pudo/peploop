@@ -114,8 +114,12 @@ PEP_SENTINEL = "role.pep"
 #: `position.py:84`. A `P576` before this date drops the position outright.
 POSITION_ABOLISHED_CUTOFF = "1990-12-26"
 
-#: `position.py:116`. Municipal positions outside these countries are dropped
-#: at `position.py:304` however well-formed they are.
+#: `position.py:116`, and **not a gate.** The list is a staged rollout of
+#: municipal PEPs — `position.py:115` says so — and it is on its way to every
+#: country, so a mayoralty outside it is not defective in any way this repo can
+#: act on. Kept only to label an expected calibration disagreement, never to fail
+#: an item: reporting 60 correctly-typed Lithuanian mayoralties as broken invented
+#: a problem that did not exist.
 MUNI_COUNTRIES: Set[str] = {
     "au", "be", "br", "by", "ca", "co", "cz", "es", "fr", "gb", "gt", "hu",
     "id", "is", "it", "ke", "kr", "mx", "ni", "nl", "pl", "ro", "ru", "sk",
@@ -179,8 +183,20 @@ class Verdict:
     matched: List[str] = field(default_factory=list)
     excluded_by: List[str] = field(default_factory=list)
     abolished: Optional[str] = None
-    #: Gate ids, in the order `zavod` applies them.
+    #: Gate ids, in the order `zavod` applies them. The municipal-rollout check
+    #: is deliberately absent — see `MUNI_COUNTRIES`.
     failed: List[str] = field(default_factory=list)
+
+    @property
+    def awaits_muni_rollout(self) -> bool:
+        """A well-formed municipal position that zavod does not yet emit.
+
+        Not a defect and not actionable here; it explains a calibration
+        disagreement and nothing else.
+        """
+        return "gov.muni" in self.topics and not (
+            set(self.countries) & MUNI_COUNTRIES
+        )
 
     @property
     def pep_default(self) -> bool:
@@ -205,6 +221,7 @@ class Verdict:
             "matched": self.matched, "pep_default": self.pep_default,
             "excluded_by": self.excluded_by, "abolished": self.abolished,
             "failed": self.failed, "self_sufficient": self.self_sufficient,
+            "awaits_muni_rollout": self.awaits_muni_rollout,
         }
 
 
@@ -245,12 +262,23 @@ def type_closure(
     Batched level by level and cached; the naive shape (one fetch per item per
     level) takes minutes on a few hundred items.
     """
+    seeds = set(qids)
     edges: Dict[str, List[str]] = {}
     if cache is not None and cache.exists():
         edges.update(json.loads(cache.read_text()))
+    # An audited item's own P31/P279 is *state this engine changes*, so it can
+    # never come from the seven-day cache: a run after its own batch read
+    # `Q131824331` as untyped and re-proposed a parent already on the item.
+    # Ancestor classes above it are stable and stay cached.
+    for qid in seeds:
+        edges.pop(qid, None)
+    fresh = fetch_entities(session, sorted(seeds), max_age=0)
+    seed_edges = {qid: type_targets(fresh.get(qid, {})) for qid in seeds}
 
-    frontier = {q for q in qids if q not in edges}
-    for _ in range(CLOSURE_DEPTH + 1):
+    frontier = {
+        t for targets in seed_edges.values() for t in targets if t not in edges
+    }
+    for _ in range(CLOSURE_DEPTH):
         if not frontier:
             break
         found = fetch_entities(session, sorted(frontier))
@@ -264,8 +292,10 @@ def type_closure(
 
     if cache is not None:
         cache.parent.mkdir(parents=True, exist_ok=True)
-        cache.write_text(json.dumps(edges, sort_keys=True))
+        cache.write_text(json.dumps(
+            {q: v for q, v in edges.items() if q not in seeds}, sort_keys=True))
 
+    edges = {**edges, **seed_edges}
     out: Dict[str, Set[str]] = {}
     for qid in qids:
         seen: Set[str] = {qid}
@@ -380,9 +410,6 @@ def verify(
     verdict.abolished = _time_value(entity, "P576")
     if verdict.abolished and verdict.abolished < POSITION_ABOLISHED_CUTOFF:
         verdict.failed.append("abolished")
-
-    if "gov.muni" in verdict.topics and not (countries & MUNI_COUNTRIES):
-        verdict.failed.append("muni_country")
 
     return verdict
 

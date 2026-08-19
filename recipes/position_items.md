@@ -79,10 +79,12 @@ Asia · `Q4412` West Africa · `Q52062` Nordic countries · `Q7785` Commonwealth
 Nations · `Q4264` Mercosur · `Q18348382` Colony of New South Wales · `Q2334526`
 Province of North Carolina · `Q1070529` Colony of Virginia.
 
-**`MUNI_COUNTRIES`** — the only countries where a `gov.muni` position survives
+**`MUNI_COUNTRIES`** — informational only; the countries where zavod currently
+emits municipal positions, on its way to all of them
 (28): `au` · `be` · `br` · `by` · `ca` · `co` · `cz` · `es` · `fr` · `gb` · `gt` · `hu` · `id` · `is` · `it` · `ke` · `kr` · `mx` · `ni` · `nl` · `pl` · `ro` · `ru` · `sk` · `ua` · `us` · `ve` · `za`.
-Everywhere else a correctly-typed mayoralty is dropped, and the fix is an issue
-against `opensanctions`, not a change to the item.
+A mayoralty outside the list is correct and complete; it is simply not emitted
+yet. Nothing to fix, nothing to file, and nothing to record in a ledger beyond a
+note.
 
 **`POSITION_ABOLISHED_CUTOFF`** — `1990-12-26`. A `P576` before it drops the
 position; living former holders of an office abolished after it stay PEPs.
@@ -112,7 +114,14 @@ drift, so every constant there carries its source line. Verified against
 | 2 | a country resolves | `country.py:_crawl_item_countries`, gate `position.py:227` | `return None` — the item does not exist downstream |
 | 3 | the closure sets the **PEP default** (see below) | `position.py:26-80`, read `:278` | built, then dropped as non-PEP unless a reviewer rescues it |
 | 4 | no `EXCLUDE_TYPES` ancestor, and no `P576` before `1990-12-26` | `position.py:88-104`, `:84`, gate `:234` | silently excluded |
-| 5 | a `gov.muni` position's country is in `MUNI_COUNTRIES` | `position.py:116`, gate `:304` | `return None` |
+| 5 | at least one P39 holder | not in `position.py` — see below | never emitted |
+
+Not a gate: **`MUNI_COUNTRIES`** (`position.py:116`) gates municipal positions on a
+country allowlist, but `position.py:115` marks it a staged rollout on its way to
+every country. A mayoralty outside it is not defective in any way this repo can
+act on. `wd/discover.py` records it as `Verdict.awaits_muni_rollout` and never
+fails an item for it — treating it as a gate reported 60 correctly-typed
+Lithuanian mayoralties as broken and invented a 60-item problem that did not exist.
 
 **`ALLOW_TYPES` beats `EXCLUDE_TYPES`** (`position.py:107-114`), and every
 `SUB_TYPES` key is in it — so one pep-conferring ancestor lifts an item out of
@@ -166,7 +175,7 @@ with `P279`**, and that choice decides whether the item confers PEP status:
 | legislator | `Q486839` member of parliament | `role.pep`, `gov.legislative` |
 | legislator, generic | `Q4175034` legislator | `gov.legislative` — **default is not PEP** |
 | council member | `Q708492` council member | `role.pep` (via `Q17279032`) |
-| mayor | `Q30185` mayor | `role.pep`, `gov.executive`, `gov.muni` — then gate 5 kills it |
+| mayor | `Q30185` mayor | `role.pep`, `gov.executive`, `gov.muni` |
 | outbound ambassador | `Q29645880` ambassador of a country | `role.pep`, `role.diplo` |
 | inbound ambassador | `Q29645886` ambassador to a country | `role.pep`, `role.diplo` |
 | ambassador, generic | `Q121998` ambassador | `role.diplo` only — **default is not PEP** |
@@ -277,6 +286,13 @@ campaign's verdicts; it is the only regression net this reader has, and it is wh
 caught the `P31`-only closure bug above — the signature was a large, suspiciously
 uniform group of items the port called broken and OpenSanctions carried anyway.
 
-Read a disagreement in this order: **no holders** (68 of Lithuania's 78), then the
-**review layer** (the three bishops), then a **port bug**. Only the third is
-yours to fix, and it is the least likely.
+Read a disagreement in this order: **no holders**, then the **municipal rollout**
+(`Verdict.awaits_muni_rollout`), then the **review layer** (the three bishops),
+then a **port bug**. Only the last is yours to fix, and it is the least likely.
+
+**Never read an audited item's own `P31`/`P279` through the HTTP cache.** It is
+state this engine's own batches change, exactly as `wd/campaign.py`'s
+`STATE_MAX_AGE = 0` exists for. `type_closure` fetches the audited items with
+`max_age=0` and caches only the ancestor classes above them; before that split, a
+run after its own batch read `Q131824331` as untyped and offered a `P279` the item
+already carried.
