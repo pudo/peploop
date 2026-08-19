@@ -658,11 +658,11 @@ One round covers all of it; the archetypes and the fixed duplicate guard exist.
   `P279 = Q30185` with 47 holders; it is absent from OpenSanctions *today* and
   well-formed regardless. The honest reason to mint or not is whether the offices
   are attested and datable, not whether zavod emits them yet.
-* Check each parent against `recipes/position_items.md` before minting.
-  `Q1162163` director, `Q16533` judge and `Q121998` ambassador all pass the type
-  gate and confer no `role.pep` — the judicial offices need `Q117826617` for an
-  apex court, and the IRIB headship needs a conferring second parent rather than
-  `agency_head` alone.
+* Check each parent against `recipes/position_items.md` before minting, and pick
+  the one that *describes* the office. `Q1162163` director, `Q16533` judge and
+  `Q121998` ambassador are each the measured convention for their shape even though
+  a reader leaves them non-PEP; that gap is an upstream issue, never a reason to
+  type an office as something it is not.
 
 ### Blocked, each named in the ledger
 
@@ -675,21 +675,32 @@ One round covers all of it; the archetypes and the fixed duplicate guard exist.
 * `blocked:historic-chambers` — National Consultative Assembly (`Q134563198`,
   85 holders) and 7 Senate rolls / 173 people. `era.distinct`; need own items.
 
-### `P279` backfill — 42 Iranian position items have none (added 2026-08-19)
+### Item layer — the fix bundle (added 2026-08-19)
 
-The largest item-layer defect in the country, and additive throughout. 42 of 196
-Iranian position items carry `P31 = Q4164871` and **no `P279` at all**: the item
-says it is a position and nothing about what kind of office it is. Worst by
-holders: `Q2660216` Vice President (43), `Q20987826` Interior Minister (15),
-`Q107041759` Guardian Council member (13), `Q96375335` Commander of the Navy
-(11), `Q101117334` SNSC Secretary (7), `Q6597965` Speaker of the Majlis (7),
-`Q115625149` Minister of Mines and Metals (6), `Q5719341` Army C-in-C (5).
+`scripts/position_metadata.py --country ir` audits 323 items; 257 are well
+modelled. **`data/iran/iran_item_layer.qs` holds 14 additive statements** and is
+ready to run — verified that none of them is already present.
 
-Full list in `data/iran/verdicts/iran_metadata.jsonl`. Three of them are offices
-this campaign configured in run 2, so the sweep wrote statements onto items that
-do not say what they are.
+The defects: **54 `untyped`** (the item says "position" and nothing about what
+kind of office), 8 `no_polity`, 8 `not_a_position`, 1 `also_a_list_article`.
+The bundle fixes the 12 whose class had a decisive convention when `P279` was
+tallied across every position item labelled the same way; the rest came back
+split and keep the tally as their recorded reason.
 
-Every Iranian item **does** have a country path — 0 of 196 lack one.
+**Surgical — stop-and-ask, never a batch line** (wikibase-cli):
+
+* `Q80934037`, `Q80930817`, `Q80930670` — IRGC military *ranks* typed as
+  positions. Retype.
+* `Q49920382`, `Q49920381` — Wikimedia *categories* typed as positions. Retype.
+* `Q4875094` Bazaari (social class), `Q2671576` Bakshy (occupation, a musician),
+  `Q113641745` Daryabegi (naval rank). Retype.
+* `Q106960625` duplicates `Q107391283` First Vice Chief Justice of Iran —
+  identical labels, same `P31`, neither with a sitelink. Merge.
+* `Q107288100` Vice-Speaker probably duplicates `Q118321724` Deputy Speaker,
+  which holds the fawiki sitelink — but they name *different* bodies in `P361`,
+  so a human decides.
+* `Q6597965` Speaker of the Majlis also carries `P31 = Q13406463` Wikimedia list
+  article. Drop that `P31`; its `P279` is in the additive batch.
 
 ### Upstream (file against `opensanctions`, named in the ledger)
 
@@ -730,11 +741,12 @@ cannot go through QuickStatements at all.
 
 ## Lithuania — position metadata (added 2026-08-19)
 
-The discoverability lane of the Lithuania sweep. `recipes/position_items.md` is
+The item-layer lane of the Lithuania sweep. `recipes/position_items.md` is
 the method; `scripts/position_metadata.py --country lt` reproduces every number.
-Measured over **221** position items the country owns. The dominant finding is
-**83 items with no holder at all** — no zero-holder position is ever emitted, so
-those need a roster lane rather than metadata.
+Measured over **221** position items the country owns: **212 soundly modelled**,
+with 5 `untyped`, 3 `no_polity`, 3 `not_a_position` and 1 `also_a_list_article`.
+Separately, **83 have no holder at all**, which is a roster-lane gap and not a
+modelling one.
 
 ### Batch awaiting QuickStatements upload
 
@@ -747,7 +759,33 @@ those need a roster lane rather than metadata.
       County governor. Every parent was measured in live use as a `P279` on real
       position items before being chosen.
 
+### Withdrawn from the applied batch — a statement to remove
+
+The 21-statement batch was rendered while `recipes/position_items.md` was still
+written consumer-first, and one line came from that mistake rather than from the
+convention:
+
+- [ ] `wb remove-claim` on **`Q12663218` Speaker of the Seimas, `P279 =
+      Q108290289`**. The item already carried `P279 = Q1758037` speaker, which is
+      the convention at **84 of 96** typed speakerships worldwide. `Q108290289`
+      "senior government official" was added because it flips the OpenSanctions PEP
+      default and for no other reason. Removing it leaves the office correctly
+      modelled and not PEP-conferring *by type*, which is the upstream issue below,
+      not a reason to keep a parent chosen for a sentinel.
+
+Reviewed and **kept**, with the measurement recorded in
+`scripts/position_metadata.py:PARENTS_BY_COUNTRY`: the four court presidencies on
+`Q117826617` (split practice — 4 / 4 / 3 across `Q117826617`, `Q13554447` chief
+judge, `Q16474031` court president — so attested, not conventional), and
+`Q108290289` on the Judicial Council presidency and the FCIS directorship
+(a catch-all, imprecise but true). `Q3368517` prosecutor general, `Q707492` chief
+of staff and `Q132050` governor stand on convention.
+
 ### Surgical (wikibase-cli, stop-and-ask — never in a batch)
+
+- [ ] `Q12663218` Speaker of the Seimas is also typed `P31 = Q13406463` Wikimedia
+      list article. An office and the list of its holders are different items —
+      retype.
 
 Typed as positions but not offices — retype `P31`:
 
@@ -775,6 +813,12 @@ Out of scope, deliberately: `Q101540148` "Lithuanian teacher" and `Q114059276`
 them as unreached rather than dropping them silently.
 
 ### Issues to file against opensanctions
+
+- [ ] **`Q1758037` "speaker" does not set the PEP default** while `Q108290289`
+      "senior government official" does. A parliamentary speakership modelled to
+      the convention (84 of 96 items) is therefore not PEP-conferring by type,
+      which is what tempted this campaign into adding a catch-all parent. Either
+      `Q1758037` should confer or the asymmetry deserves a comment.
 
 - [ ] **`Q14212` "prime minister" does not set the PEP default** (`SUB_TYPES`,
       `position.py:26-80`) — it contributes `gov.head` and `gov.executive` only,

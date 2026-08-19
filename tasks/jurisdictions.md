@@ -5,10 +5,11 @@ OpenSanctions** — confirmed in code, 2026-08-04. Backfilling `P1001`
 (applies to jurisdiction) / `P17` (country) on legitimate government
 position items directly grows OS PEP coverage without touching any OS code.
 
-The country gate is one of five. `recipes/position_items.md` has the rest, and
-`wd/discover.py` scores an item against all of them locally — a country backfill
-that fixes `P17` while leaving a non-conferring `P279` in place still yields
-nothing.
+Naming the polity is one of several things a position item owes.
+`recipes/position_items.md` has the rest and `wd/shape.py` checks them locally: an
+office that gains a `P17` while still saying only "position" is half-modelled, and
+an office scoped to a *historical* polity legitimately resolves to no country and
+must never be backfilled to a modern state.
 
 ## The skip, verified
 

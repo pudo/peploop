@@ -55,68 +55,70 @@ institutions never looked at, three of which needed only a config line.
 
 ## Item-layer audit (`recipes/position_items.md`, 2026-08-19)
 
-`scripts/position_metadata.py --country ir` over 323 scoped items, **196 of them
-Iranian by `P17`/`P1001`**. The question this audit answers is whether Iran's
-offices are *modelled correctly as Wikidata items*. Whether a downstream reader
-currently emits them is a separate, secondary matter, kept at the bottom.
+`scripts/position_metadata.py --country ir`, 323 items scoped. The question is
+whether Iran's offices are *modelled correctly as Wikidata items*; what a
+downstream reader currently makes of them is recorded separately and is never a
+defect.
 
-### The finding: 42 items say "position" and nothing else
+| | |
+|---|---:|
+| items scoped | 323 |
+| well modelled | 257 |
+| `untyped` — `P31` says position, nothing says what kind | **54** |
+| `no_polity` | 8 |
+| `not_a_position` | 8 |
+| `also_a_list_article` | 1 |
 
-**42 of 196 Iranian position items carry `P31 = Q4164871` and no `P279` at
-all.** The item asserts that it is a position and says nothing about what kind of
-office it is — not that it is a ministry, a command, a council seat or a
-speakership. That is under-modelling on Wikidata's own terms, and it is on
-offices at the centre of the state:
+**The fix bundle: `data/iran/iran_item_layer.qs`, 14 statements, additive.**
+Every parent was chosen by tallying `P279` across all position items whose
+English label names the same class, and only classes with a clear winner are in
+it — vice president 76 of 81, interior minister 25 of 31, speaker of a chamber
+62 of 69, commander-in-chief 9 of 12, general secretary 46 of 58, director
+general 27 of 38, consort 34 of 50. Council seats and secretaryships, deputy
+speakerships, unit commands and spokesmanships were measured too and came back
+**split**, so they stay untyped with the tally as the recorded reason rather
+than take a parent this run invented.
 
-| holders | item | |
-|---:|---|---|
-| 43 | `Q2660216` | Vice President of Iran |
-| 15 | `Q20987826` | Interior Minister of Iran |
-| 13 | `Q107041759` | Member of the Guardian Council |
-| 11 | `Q96375335` | Commander of the Iranian Navy |
-| 7 | `Q101117334` | Secretary of the Supreme National Security Council |
-| 7 | `Q6597965` | Speaker of the Islamic Consultative Assembly |
-| 6 | `Q115625149` | Minister of Mines and Metals |
-| 5 | `Q5719341` | Commander-in-Chief of the Army |
+`Q13561063` Prime Minister of Iran is in the bundle for a different reason: it
+is not untyped, it carries `P279 = Q14212` alone, and the office was Iran's head
+of government until 1989 — `Q2285706` is the class that says so.
 
-…and 34 more, down to the single-holder tail. Three of them are offices *this
-campaign configured this run* — the speakership among them — so the sweep wrote
-statements onto items that do not say what they are.
+Three of the untyped are offices **this campaign configured in run 2**,
+the Majlis speakership among them, so the sweep wrote statements onto items that
+did not say what they were.
 
-**This is the next lane, and it is additive.** One `P279` per item, chosen to
-describe the office and measured against the convention for its class
-(`country_sweep.md` §10) — a ministry is `Q83307`, a command is not a directorship.
-Never chosen to trip a downstream sentinel: pick the parent that is true, and if
-the honest parent leaves a consumer blind, that is the consumer's gap to fix.
+### 11 items are surgical, and never a batch line
 
-Every Iranian item has a country path — **0 of 196 lack one**, which is the half
-of the model this country got right.
+Retypes and merges, listed in `tasks/followups.md`: three IRGC military *ranks*
+and two Wikimedia *categories* typed as positions, a social class (Bazaari), an
+occupation (Bakshy), a naval rank (Daryabegi), a duplicate First Vice Chief
+Justice, and a probable duplicate deputy speakership where the two items name
+different bodies in `P361`.
 
-### `Q13561063` Prime Minister of Iran — a genuine parent defect
+`Q6597965` Speaker of the Majlis is on **both** lists — it is untyped *and*
+dual-typed as a Wikimedia list article. Adding the `P279` is additive and is in
+the batch; dropping the stray `P31` is not.
 
-`P279 = Q14212` "prime minister" alone. The office was Iran's head of government
-until 1989 and the class that says so is `Q2285706`; the item does not carry it.
-Additive fix, correct on Wikidata's terms whatever any reader does with it.
+### Secondary: what a reader currently makes of them
 
-### Secondary: what OpenSanctions currently does and does not see
+Recorded so the ledger does not claim coverage a consumer cannot use, and **not**
+a reason to model anything differently.
 
-Recorded because the ledger should not claim coverage a consumer cannot use, and
-**not** as a reason to model anything differently.
-
-* The 27 governorships minted this run are well-formed and will be read once the
-  dataset rebuilds.
-* **Iranian mayoralties are dropped** because `ir` is absent from `zavod`'s
-  `MUNI_COUNTRIES`. `Q6627742` Mayor of Tehran (47 holders), Isfahan and Qom are
-  each modelled correctly with `P279 = Q30185`. Nothing about the items should
-  change and the mayoral lane proceeds as planned — this is an upstream note.
-* **Prime Minister of Iran** is additionally dropped by a `P576` of 1989-08-03,
-  four months before the reader's `1990-12-26` cutoff. 70 holders, some living.
-* **13 ambassadorships** resolve to the receiving state, the standing `P137` gap
-  (opensanctions/opensanctions#5475).
-* Calibrating against live `yente-cli` over all 279 items with holders was worth
-  it in one specific way: 37 items the port judged non-conferring are carried
-  anyway, including Member of the Assembly of Experts at 198 holders. Read as
-  item defects those would have been a hundred fabricated problems.
+* `pep_default_off` on 113 items, `excluded_type` on 10, `abolished_before_cutoff`
+  on 4.
+* Iranian mayoralties are dropped because `ir` is absent from `zavod`'s
+  `MUNI_COUNTRIES`. `Q6627742` Mayor of Tehran (47 holders) is modelled correctly
+  with `P279 = Q30185`; nothing about the item changes and the mayoral lane
+  proceeds.
+* `Q13561063` is additionally dropped by a `P576` of 1989-08-03, four months
+  before the reader's cutoff — 70 holders, some living.
+* Outbound ambassadorships resolve to the receiving state, the standing `P137`
+  gap (opensanctions/opensanctions#5475). **Their missing `P17` must not be
+  backfilled with Iran**: on an outbound post `P17` is the receiver, so
+  `Q124541201` and `Q65262055` are `no_polity` and stay that way.
+* Calibrating against live `yente-cli` was worth it once: 37 items the reader
+  was expected to drop are carried anyway, Assembly of Experts membership among
+  them at 198 holders. Read as item defects those were fabricated problems.
 
 ## Close status: **NOT CLOSED**
 
@@ -149,8 +151,9 @@ Seven `⊘` rows and three `blocked:` ones. `⊘` is not a resting state:
    bonyad. Choose each `P279` to describe the office and measure it against the
    class's convention; `Q1162163` "director" in particular says very little
    about a ministry or a command.
-2. **Backfill `P279` on the 42 items that have none** — see the audit below. The
-   largest item-layer defect in the country and additive throughout.
+2. **`data/iran/iran_item_layer.qs`** — 14 additive statements, ready to run.
+   Then the 40-odd untyped items whose class came back split, which need a
+   convention measured per office rather than per class.
 3. **The remaining 17 ambassador rosters** and Oman's RTL-reversed ranges.
 4. **The 11 portfolio vice-presidencies**, and the deputy-minister rows the
    interior page's heading filter drops.

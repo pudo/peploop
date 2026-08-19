@@ -16,16 +16,30 @@ Where things live:
   script: the three narrowest campaigns in this repo are the three named
   `*_ministers.py`, because a sweep scoped from its own filename outward never
   asks about courts.
-- `recipes/position_items.md` — **what an item needs to be found.** The five
-  gates the OpenSanctions PEP build applies to a position item, ported locally in
-  `wd/discover.py`. Read it before scoping a roster lane and before minting
-  anything. The `P279` parent decides whether an office confers PEP status at all
-  — `Q16533` judge, `Q4175034` legislator, `Q121998` ambassador and `Q1162163`
-  director all look right and leave the PEP default off. `role.pep` is zavod's
-  internal sentinel, discarded before a Position is emitted: never write it, and
-  never pick a parent in order to trip it. A closure read over `P31` alone also
-  invents defects that are not there. **A position with no P39 holder is
-  never emitted**, so metadata and rosters are one number, not two.
+- `recipes/position_items.md` — **how to model a political office.** The measured
+  Wikidata conventions for a position item: `P31` to a position metaclass (and
+  `Q294414` public office is the modal one, not `Q4164871`), `P279` naming the
+  *kind* of office, `P17` the state with `P1001` the polity actually governed,
+  `P361` the body, `P1365`/`P1366` for a renamed office. Its checker is
+  `wd/shape.py`, run by `scripts/position_metadata.py --country <cc>`; the defects
+  it reports are Wikidata's own — an occupation or a rank typed as an office, an
+  office scoped to no polity, an office that says "position" and never says which
+  kind (54 of Iran's 323 items). Read it before scoping a roster lane and before
+  minting. Whether OpenSanctions currently emits an item is a secondary matter
+  kept in one closing section: `role.pep` is an internal sentinel, never written
+  and never a reason to pick a parent, and `MUNI_COUNTRIES` is irrelevant here.
+- `recipes/person_items.md` — **how to model the holder.** The sibling of the
+  above, for the people a roster lane writes P39 onto, checked by `wd/human.py`
+  and run by `scripts/person_metadata.py --country <QID>`. It keeps three answers
+  apart: Wikidata modelling *defects* (`P31 = Q5` as a best-rank claim, a name in
+  some language, not also typed `Q4164871`), *gaps* a campaign can close (`P569`,
+  `P27`, `P21`), and what OpenSanctions makes of the item, which is again a
+  closing section and never a defect. Two findings invert the obvious priorities:
+  nothing downstream reads `P21` at all, so a gender lane is a Wikidata lane; and
+  a **birth date is what rescues an undated tenure** — with no date on either the
+  person or the P39 statement no occupancy is produced, and the person and the
+  position both vanish. Measured on Lesotho: 10 of 120 holders are one `P569`
+  short of being PEPs.
 - `recipes/country_sweep.md` — **the method.** One country at a time, run
   99% autonomously: census → blocker triage → item creation → rosters →
   identity gates → policy → backtest → one validated `.qs` the human reviews
@@ -59,6 +73,12 @@ Where things live:
 
 ## Editing rules
 
+- **Model Wikidata correctly first; consumer legibility is secondary.** Both
+  recipes are ordered that way, and it decides what to do when they disagree: the
+  measured convention wins, and the gap becomes an issue filed against
+  `opensanctions` with an owner named in the ledger row. Never mass-assert a shape
+  to satisfy a reader, and never record "a consumer does not emit this yet" as a
+  defect.
 - **A campaign is done when every institution has a disposition**, not when a
   `.qs` validates. This is `wd/policy.py`'s rule — every case gets a disposition,
   and "review later" is not one — applied one level up, to institutions. A

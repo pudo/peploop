@@ -1,21 +1,21 @@
-"""Decide whether a position item can be found by the OpenSanctions PEP build.
+"""Score a position item against how Wikidata models political offices.
 
-Reach for this before scoping any roster lane. A P39 statement added to an item
-`zavod` cannot see produces nothing downstream, and the cheapest thing a
-campaign can do for a country is often not harvesting holders but giving the
-existing items the handful of properties that make them discoverable at all.
+Reach for this at phase A of a sweep, before any roster. The defects it reports
+are Wikidata's own — an item typed as a position that is really an occupation, an
+office scoped to no jurisdiction, an office that says "position" and never says
+what *kind* of office — and each is worth fixing whether or not a consumer
+notices. `recipes/position_items.md` is the method; this module is its checker.
 
-The gates below are a port of `zavod/zavod/shed/wikidata/`, cited per constant,
-because the alternative — asking the live API — answers on the dataset's rebuild
-cadence rather than immediately, so it cannot verify its own fixes. `verify()`
-runs against a `wd.api.fetch_entities` payload and returns at once.
+The secondary question, kept separate and clearly labelled, is whether the
+OpenSanctions PEP build can currently read the item. That half is a port of
+`zavod/zavod/shed/wikidata/`, cited per constant, because asking the live API
+answers on the dataset's rebuild cadence and so cannot verify its own fixes.
+It is reported as notes, never as defects: a correctly-modelled office that a
+consumer does not yet emit is not defective, and distorting the model to make it
+emit is how you corrupt the data while appearing to improve it.
 
-What it deliberately does *not* model: `zavod.stateful.positions.categorise`
-reads a review database, so a human can mark any position PEP-conferring and
-rescue an item that fails `role.pep` here. That channel is unreadable from this
-repo and is not the target anyway — a `Verdict` answers "is this item
-discoverable on its own merits", and needing the rescue is the finding.
-Calibrate against reality with `scripts/discover_calibrate.py`.
+`verify()` runs against a `wd.api.fetch_entities` payload and returns at once.
+Calibrate against reality with `scripts/position_metadata.py --calibrate`.
 """
 
 from dataclasses import dataclass, field
@@ -163,18 +163,68 @@ TYPE_PROPS: Tuple[str, ...] = ("P31", "P279")
 ALWAYS_KEPT = "Q3024240"
 
 
+#: Metaclasses that say "this is an office" and nothing about which kind.
+#: An item declaring only these is under-modelled: it cannot be grouped, queried
+#: by kind, or inherited from, and every consumer is left guessing.
+#:
+#: `Q4164871` is *not* the modal choice, measured: of 5,211 items with
+#: `P279 = Q83307` minister, 4,428 (85%) use `P31 = Q294414` public office and 738
+#: use `Q4164871`; `Q11696` President of the United States uses `Q17279032`
+#: elective office. All of them reach `Q4164871` through `P279`, which is why the
+#: closure rule matters — a check demanding a literal `P31 = Q4164871` misses
+#: ~17,800 offices that people actually hold.
+POSITION_METACLASSES: Set[str] = {
+    "Q4164871",  # position
+    "Q294414",  # public office
+    "Q17279032",  # elective office
+    "Q114962596",  # historical position
+    "Q83856136",  # legal position
+    "Q136649946",  # type of position
+}
+
+#: Wikidata's own answer to "what is a position not", read off `Q4164871`'s
+#: `P1889 different from` — the first five below are its literal values — plus the
+#: rank and organisation classes that measurement turned up. Needed because the
+#: closure cannot answer this: within six hops `Q28640` profession and
+#: `Q4189293` rank both reach `Q4164871`, so `dievdirbys` (a wood-carving trade)
+#: and `flotilla admiral` (a naval rank) look like offices to a closure test.
+NOT_AN_OFFICE: Set[str] = {
+    "Q480319",  # title of authority
+    "Q12737077",  # occupation
+    "Q28640",  # profession
+    "Q11348",  # function
+    "Q192581",  # job activity
+    "Q4189293",  # rank
+    "Q56019",  # military rank
+    "Q4226220",  # naval officer rank
+    "Q43229",  # organization
+    "Q495430",  # general staff — a body, not a seat in one
+}
+
+#: `Q4164871`'s own `P1963` "properties for this type": the community's answer to
+#: which properties belong on a position item. Quoted in the recipe, not enforced.
+TYPE_PROPERTIES: Tuple[str, ...] = ("P1308", "P2098", "P2389", "P571", "P17")
+
+#: `wd.create.LIST_ARTICLE`. A position item typed as a Wikimedia list article is
+#: two things at once, and every consumer has to guess which.
+LIST_ARTICLE = "Q13406463"
+
+
 @dataclass
 class Verdict:
-    """Which discoverability gate a position item fails, and why.
+    """How well one position item is modelled, and what a reader makes of it.
 
-    `self_sufficient` is the question worth asking: it is true only when the
-    item's own claims carry it, with no reviewer vouching for it.
+    `defects` are Wikidata modelling errors. `os_notes` are observations about a
+    downstream consumer and are never defects — see the module docstring.
     """
 
     qid: str
     label: Optional[str] = None
     #: P31/P279 closure hit `POSITION_BASICS` (or `ALLOW_TYPES`).
     basics: bool = False
+    #: The item's own `P31`/`P279` targets, before any closure walk. What makes
+    #: `untyped` answerable: the closure would reach `Q4164871` from anywhere.
+    declared: List[str] = field(default_factory=list)
     #: FtM country codes the crawl reached, and the property that got there.
     countries: List[str] = field(default_factory=list)
     country_via: Optional[str] = None
@@ -183,45 +233,47 @@ class Verdict:
     matched: List[str] = field(default_factory=list)
     excluded_by: List[str] = field(default_factory=list)
     abolished: Optional[str] = None
-    #: Gate ids, in the order `zavod` applies them. The municipal-rollout check
-    #: is deliberately absent — see `MUNI_COUNTRIES`.
-    failed: List[str] = field(default_factory=list)
+    #: Wikidata modelling errors: `not_a_position`, `untyped`,
+    #: `also_a_list_article`, `no_polity`.
+    defects: List[str] = field(default_factory=list)
 
     @property
-    def awaits_muni_rollout(self) -> bool:
-        """A well-formed municipal position that zavod does not yet emit.
+    def well_modelled(self) -> bool:
+        return not self.defects
 
-        Not a defect and not actionable here; it explains a calibration
-        disagreement and nothing else.
+    @property
+    def os_notes(self) -> List[str]:
+        """What a downstream reader currently makes of this item. Not defects.
+
+        Each entry is a reason the OpenSanctions PEP build would skip an item
+        that may be perfectly well modelled. `pep_default_off` is the sharpest:
+        it means the honest parent for this office is not one zavod treats as
+        PEP-conferring, which is a gap to file upstream and never a reason to
+        retype the office.
         """
-        return "gov.muni" in self.topics and not (
-            set(self.countries) & MUNI_COUNTRIES
-        )
-
-    @property
-    def pep_default(self) -> bool:
-        """Whether the type layer defaults this position to PEP-conferring.
-
-        Not "does it carry `role.pep`" — nothing does. The sentinel is read once
-        to seed `categorise(default_is_pep=…)` and thrown away, so this says
-        which side of the default the item starts on, and a reviewer may still
-        decide the other way.
-        """
-        return PEP_SENTINEL in self.topics
-
-    @property
-    def self_sufficient(self) -> bool:
-        return not self.failed
+        notes: List[str] = []
+        if PEP_SENTINEL not in self.topics:
+            notes.append("pep_default_off")
+        # `ALLOW_TYPES` beats `EXCLUDE_TYPES` (`position.py:107-114`), and every
+        # `SUB_TYPES` key is allowed. Without that, `Q618779` "award" sits in the
+        # closure of `Q117826617` supreme court judge and every judgeship in the
+        # world reads as an excluded award.
+        if self.excluded_by and not self.matched:
+            notes.append("excluded_type")
+        if self.abolished and self.abolished < POSITION_ABOLISHED_CUTOFF:
+            notes.append("abolished_before_cutoff")
+        return notes
 
     def as_dict(self) -> Dict[str, Any]:
         return {
-            "qid": self.qid, "label": self.label, "basics": self.basics,
+            "qid": self.qid, "label": self.label,
+            "declared": self.declared, "basics": self.basics,
             "countries": self.countries, "country_via": self.country_via,
             "topics": sorted(self.topics - {PEP_SENTINEL}),
-            "matched": self.matched, "pep_default": self.pep_default,
-            "excluded_by": self.excluded_by, "abolished": self.abolished,
-            "failed": self.failed, "self_sufficient": self.self_sufficient,
-            "awaits_muni_rollout": self.awaits_muni_rollout,
+            "matched": self.matched, "excluded_by": self.excluded_by,
+            "abolished": self.abolished,
+            "defects": self.defects, "well_modelled": self.well_modelled,
+            "os_notes": self.os_notes,
         }
 
 
@@ -357,13 +409,28 @@ def _time_value(entity: Dict[str, Any], prop: str) -> Optional[str]:
     return None
 
 
+def _scoped_to_history(entity: Dict[str, Any]) -> bool:
+    """Does this office name a polity at all, all of them historical?
+
+    Distinguishes "nobody said which polity this office belongs to" — a real
+    modelling defect — from "this office belonged to the Grand Duchy of
+    Lithuania", which is complete and correct and resolves to no country.
+    """
+    named = [
+        value
+        for prop in COUNTRY_PROPS + FALLBACK_PROPS
+        for value in claim_qids(entity, prop)
+    ]
+    return bool(named)
+
+
 def verify(
     session: Any,
     entity: Dict[str, Any],
     closure: Dict[str, Set[str]],
     label: Optional[str] = None,
 ) -> Verdict:
-    """Score one position item against every gate, in `zavod`'s own order.
+    """Score one position item: modelling defects first, reader notes second.
 
     `closure` comes from `type_closure` over the whole candidate set at once;
     passing it in is what keeps a country-wide audit to one pass.
@@ -371,15 +438,40 @@ def verify(
     qid = entity.get("id", "")
     types = closure.get(qid, set())
     verdict = Verdict(qid=qid, label=label)
+    verdict.declared = type_targets(entity)
 
     verdict.basics = bool(types & POSITION_BASICS)
-    allowed = bool(types & ALLOW_TYPES)
     verdict.excluded_by = sorted(types & EXCLUDE_TYPES)
-    if not allowed:
-        if not verdict.basics:
-            verdict.failed.append("basics")
-        elif verdict.excluded_by:
-            verdict.failed.append("excluded")
+
+    # Modelling defect 1: this is a kind of work, a rank or a body, not an office.
+    #
+    # Tested on the *declared* types, because the closure cannot answer it: within
+    # six hops `Q28640` profession reaches `Q4164871` position, so `dievdirbys`
+    # (a folk wood-carving trade) and `flotilla admiral` (a naval rank) both look
+    # like positions to a closure test and neither is one. An item earns "position"
+    # by declaring a position root outright, or by declaring a specific kind of
+    # office that `SUB_TYPES` recognises.
+    #
+    # Conservative by construction: it fires only on positive evidence that the
+    # item is something else, never on the absence of evidence that it is an
+    # office. `Q138024519` "Roman Catholic episcopal title" declares no metaclass
+    # and no known kind, yet its own `P279` reaches `Q4164871` — flagging the
+    # Lithuanian bishoprics off that was a false positive, and under-reporting
+    # beats proposing a wrong retype.
+    declared = set(verdict.declared)
+    looks_like_office = bool(declared & (POSITION_METACLASSES | set(SUB_TYPES)))
+    if (declared & NOT_AN_OFFICE) and not looks_like_office:
+        verdict.defects.append("not_a_position")
+
+    # Modelling defect 2: the item says "position" and never says what kind.
+    # Read the item's *own* P31/P279 here too — a closure test could never answer
+    # it, since every position reaches `Q4164871` from somewhere.
+    elif not (declared - POSITION_METACLASSES - {LIST_ARTICLE}):
+        verdict.defects.append("untyped")
+
+    # Modelling defect 3: an office and a list of its holders are different items.
+    if LIST_ARTICLE in declared:
+        verdict.defects.append("also_a_list_article")
 
     via: Optional[str] = None
     countries: Set[str] = set()
@@ -397,19 +489,20 @@ def verify(
             break
     verdict.countries = sorted(countries)
     verdict.country_via = via
-    if not countries:
-        verdict.failed.append("country")
+    # Modelling defect 3: an office belongs to a polity. Note that an office
+    # scoped only to a *historical* polity legitimately resolves to nothing —
+    # `_is_historical` drops those claims — and that is `absent`, not a defect
+    # to backfill: naming the modern republic on a Grand Duchy office would be
+    # a wrong statement in the lane that looks safest.
+    if not countries and not _scoped_to_history(entity):
+        verdict.defects.append("no_polity")
 
+    # Everything below is the reader's view, surfaced through `os_notes`.
     for sub_type in types & set(SUB_TYPES):
         verdict.topics |= SUB_TYPES[sub_type]
         verdict.matched.append(sub_type)
     verdict.matched.sort()
-    if not verdict.pep_default:
-        verdict.failed.append("no_pep_default")
-
     verdict.abolished = _time_value(entity, "P576")
-    if verdict.abolished and verdict.abolished < POSITION_ABOLISHED_CUTOFF:
-        verdict.failed.append("abolished")
 
     return verdict
 

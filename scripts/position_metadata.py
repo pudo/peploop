@@ -1,9 +1,12 @@
-"""Audit a country's position items for discoverability, and propose the fixes.
+"""Audit how a country's position items are modelled, and propose the fixes.
 
-Run this at phase A of a sweep, before scoping a roster lane. A P39 statement
-written onto an item the OpenSanctions PEP build cannot see produces nothing,
-and no holder count reveals which items those are — `recipes/position_items.md`
-has the gates and what each one costs.
+Run this at phase A of a sweep, before scoping a roster lane. It reports Wikidata
+modelling defects — an occupation typed as an office, an office scoped to no
+polity, an office that says "position" and never says what kind — each worth
+fixing on its own terms. `recipes/position_items.md` is the method.
+
+Whether a downstream reader currently emits an item is reported separately as
+notes, never as a defect.
 
     python scripts/position_metadata.py --country lt
     python scripts/position_metadata.py --country lt --calibrate
@@ -25,7 +28,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from wd.api import best_label, claim_qids, fetch_entities, sparql  # noqa: E402
-from wd.discover import verify_all  # noqa: E402
+from wd.shape import verify_all  # noqa: E402
+from wd.validate import check  # noqa: E402
 from wd.http import get_text, make_session  # noqa: E402
 from wd.record import (  # noqa: E402
     Decision, Record, Signal, Snak, Statement, Subject, Value, dumps,
@@ -55,36 +59,66 @@ COUNTRIES: Dict[str, Dict[str, object]] = {
         "qid": "Q794",
         "name": "Iran",
         "campaign": "iran",
-        "label_hints": ("iran", "persia", "majlis", "ایران", "استاندار"),
+        "search_terms": ("Iran", "Iranian", "Persia", "Majlis", "ایران", "استاندار"),
     },
 }
 
 #: Decided per office against the measured convention: every parent below is in
 #: live use as a `P279` on real position items (counts taken 2026-08-19).
 #:
-#: Chosen because it *describes the office*, never to trip `wd.discover`'s PEP
+#: Chosen because it *describes the office*, never to trip `wd.shape`'s PEP
 #: sentinel. That ordering matters: typing a district judgeship as a supreme
 #: court judge would flip the sentinel and corrupt the data to do it. Where the
 #: honest parent does not set the default — `Q16533` judge, `Q14212` prime
 #: minister — the gap is reported upstream and the parent stays honest.
-PARENTS: Dict[str, Tuple[str, str]] = {
+PARENTS_BY_COUNTRY: Dict[str, Dict[str, Tuple[str, str]]] = {
+  "lt": {
     "Q131824331": ("Q117826617", "apex court presidency — supreme court judge"),
     "Q133090275": ("Q117826617", "apex court presidency — supreme court judge"),
     "Q131824524": ("Q117826617", "final-instance court presidency"),
     "Q131807424": ("Q117826617", "constitutional court presidency"),
     "Q132891425": ("Q108290289", "judicial governance body, not a court"),
     "Q133190264": ("Q108290289", "parliamentary leadership"),
-    "Q12663218": ("Q108290289", "parliamentary leadership"),
+    # WITHDRAWN 2026-08-19. The item already carried `P279 = Q1758037` speaker,
+    # which is the convention at 84 of 96 typed speakerships. `Q108290289` was
+    # added because it sets the reader's PEP default and for no other reason —
+    # the thing `recipes/position_items.md` forbids. Removal is on the surgical
+    # list; `Q1758037` not conferring is an upstream issue, not a parent to swap.
+    # "Q12663218": ("Q108290289", "parliamentary leadership"),
     "Q140916310": ("Q108290289", "agency headship"),
     "Q132068652": ("Q3368517", "public prosecutor general"),
     "Q55607326": ("Q707492", "military chief of staff"),
     "Q5177800": ("Q132050", "governor"),
+  },
+  # Iran, measured 2026-08-19 by tallying `P279` over every position item whose
+  # en label matches the office's class. Each share is that tally; only classes
+  # with a clear winner are here. Council seats and secretaryships, deputy
+  # speakerships, unit commands and spokesmanships were measured and came back
+  # split — they stay untyped in the ledger with the tally as the reason, rather
+  # than take a parent this run invented.
+  "ir": {
+    "Q2660216": ("Q42178", "vice president — 76 of 81"),
+    "Q20987826": ("Q17578116", "interior minister — 25 of 31"),
+    "Q115625149": ("Q83307", "minister; the general class, 380 in use"),
+    "Q6597965": ("Q1758037", "speaker of a chamber — 62 of 69"),
+    "Q5719341": ("Q380782", "commander-in-chief — 9 of 12"),
+    "Q113337481": ("Q5784340", "consort — 34 of 50"),
+    "Q107001741": ("Q6501749", "general secretary of a party — 46 of 58"),
+    "Q124609039": ("Q1501800", "director general — 27 of 38"),
+    "Q137004668": ("Q1501800", "director general — 27 of 38"),
+    "Q137005532": ("Q1501800", "director general — 27 of 38"),
+    "Q115625244": ("Q26204040", "deputy minister; the generic class, 10 in use"),
+    # Not untyped — `Q14212` "prime minister" is already there. The office was
+    # Iran's head of government until 1989 and the class that says so is absent.
+    "Q13561063": ("Q2285706", "head of government, beside its existing Q14212"),
+  },
 }
 
 #: Items typed as positions that are not offices at all, or that duplicate one.
 #: These never enter a batch: retyping and merging are destructive-adjacent and
 #: belong on the wikibase-cli list in `tasks/followups.md`.
-SURGICAL: Dict[str, str] = {
+SURGICAL_BY_COUNTRY: Dict[str, Dict[str, str]] = {
+  "lt": {
     "Q114059276": "occupation ('lithuanist'), not a position — retype",
     "Q101540148": "occupation ('Lithuanian teacher'), not a position — retype",
     "Q258874": "folk-craft occupation ('dievdirbys'), not a position — retype",
@@ -94,6 +128,24 @@ SURGICAL: Dict[str, str] = {
     "Q63994897": "no en label, duplicates Grand Duke of Lithuania — merge",
     "Q132476998": "duplicates Q12661306 Minister of National Defence — merge",
     "Q132861229": "duplicates Q107735740 Minister of Transport — merge",
+  },
+  "ir": {
+    "Q80934037": "military rank ('second brigadier general of IRGC') — retype",
+    "Q80930817": "military rank ('brigadier general of IRGC') — retype",
+    "Q80930670": "military rank ('second brigadier general') — retype",
+    "Q49920382": "a Wikimedia category, not a position — retype",
+    "Q49920381": "a Wikimedia category, not a position — retype",
+    "Q4875094": "social class ('Bazaari'), not a position — retype",
+    "Q2671576": "occupation ('Bakshy', a musician), not a position — retype",
+    "Q113641745": "military rank ('Daryabegi'), not a position — retype",
+    "Q106960625": "duplicates Q107391283 First Vice Chief Justice — merge",
+    # Dual-typed. Adding its `P279` is additive and is in the batch; removing
+    # the list-article `P31` is not, and is why it appears in both places.
+    "Q6597965": "also typed Q13406463 Wikimedia list article — drop that P31",
+    "Q107288100": "probably duplicates Q118321724 Deputy Speaker, which holds "
+                  "the fawiki sitelink — the two name different bodies in P361, "
+                  "so a human decides",
+  },
 }
 
 
@@ -174,9 +226,11 @@ def _item(qid: str) -> Value:
 
 
 def records_for(
-    campaign: str, verdict, entity: Dict[str, object], holders: int
+    campaign: str, verdict, entity: Dict[str, object], holders: int,
+    parents: Dict[str, Tuple[str, str]], surgical: Dict[str, str],
+    country_qid: str,
 ) -> Optional[Record]:
-    """One record per item: the statements that would make it discoverable.
+    """One record per item: the statements that would model it correctly.
 
     Every case gets a disposition, including the ones with nothing to add — an
     item that already passes is recorded as a skip with its evidence, so the
@@ -186,54 +240,64 @@ def records_for(
     label = verdict.label or qid
     subject = Subject(kind="position", qid=qid, ref=None, label=label)
     signals = [
-        Signal(channel="gate", supports="yes" if not verdict.failed else "no",
-               detail=f"failed={verdict.failed or ['none']}; "
-                      f"topics={sorted(verdict.topics - {'role.pep'}) or ['none']}; "
-                      f"pep_default={verdict.pep_default}; "
-                      f"country={verdict.countries or ['none']}"
+        Signal(channel="modelling",
+               supports="yes" if verdict.well_modelled else "no",
+               detail=f"defects={verdict.defects or ['none']}; "
+                      f"declared={verdict.declared or ['none']}; "
+                      f"polity={verdict.countries or ['none']}"
                       f" via {verdict.country_via or 'nothing'}",
+               source_url=None),
+        Signal(channel="os_legibility",
+               supports="yes" if not verdict.os_notes else "no",
+               detail=f"notes={verdict.os_notes or ['none']}; "
+                      f"topics={sorted(verdict.topics - {'role.pep'}) or ['none']}",
                source_url=None),
         Signal(channel="holders", supports="yes" if holders else "no",
                detail=f"{holders} holder(s) with a P39 to this item", source_url=None),
     ]
-    flags = list(verdict.failed) + ([] if holders else ["no_holders"])
+    flags = list(verdict.defects) + list(verdict.os_notes) + (
+        [] if holders else ["no_holders"])
 
-    if qid in SURGICAL:
+    # An item can need both. `Q6597965` Speaker of the Majlis is untyped *and*
+    # dual-typed as a list article: the `P279` is additive and belongs in the
+    # batch, dropping the stray `P31` is not and belongs on the surgical list.
+    # Returning early here would have silently dropped the additive half.
+    if qid in surgical and qid not in parents:
         return Record(
             campaign=campaign, subject=subject, statements=[],
             decision=Decision(action="defect", rule="item_layer.surgical",
                               source="default", concern="item_layer",
-                              rationale=SURGICAL[qid]),
+                              rationale=surgical[qid]),
             office="metadata", identity={"method": "qid"}, flags=flags,
             signals=signals, notes="stop-and-ask: never a batch line",
-            byproduct={"kind": "surgical", "detail": SURGICAL[qid]},
+            byproduct={"kind": "surgical", "detail": surgical[qid]},
         )
 
     statements: List[Statement] = []
-    country_qid = "Q37"
     # Only items on the decided list get a country. An office scoped to the Grand
     # Duchy or the Lithuanian SSR resolves to no country *correctly*, and naming
     # the modern republic on one would be a wrong statement in the lane that
     # looks safest — those close `absent` in the ledger instead.
-    if qid in PARENTS and "country" in verdict.failed:
+    if qid in parents and "no_polity" in verdict.defects:
         for prop in ("P17", "P1001"):
             if country_qid not in set(claim_qids(entity, prop)):
                 statements.append(Statement(
                     property=prop, value=_item(country_qid),
                     qualifiers=[], references=[], existing=False,
                     end_withheld=False))
-    parent = PARENTS.get(qid)
+    parent = parents.get(qid)
     if parent and parent[0] not in set(claim_qids(entity, "P279")):
         statements.append(Statement(
             property="P279", value=_item(parent[0]),
             qualifiers=[], references=[], existing=False, end_withheld=False))
 
     if not statements:
-        rule = "metadata.sufficient" if not verdict.failed else "metadata.no_rule"
+        rule = ("modelling.sound" if verdict.well_modelled
+                else "modelling.no_rule")
         rationale = (
-            "already carries a country path and a parent that sets the PEP default"
-            if not verdict.failed else
-            f"fails {verdict.failed} and no measured correction applies — "
+            "already names its polity and says what kind of office it is"
+            if verdict.well_modelled else
+            f"defects {verdict.defects} and no measured correction applies — "
             "see the ledger row"
         )
         return Record(
@@ -245,6 +309,17 @@ def records_for(
         )
 
     detail = parent[1] if parent else "country backfill"
+    if qid in surgical:
+        return Record(
+            campaign=campaign, subject=subject, statements=statements,
+            decision=Decision(action="apply", rule="metadata.two_channel",
+                              source="default", concern="item_layer",
+                              rationale=f"{detail}; parent measured in live use. "
+                                        "Carries a separate surgical note"),
+            office="metadata", identity={"method": "qid"}, flags=flags,
+            signals=signals, notes="stop-and-ask, separately: " + surgical[qid],
+            byproduct={"kind": "surgical", "detail": surgical[qid]},
+        )
     return Record(
         campaign=campaign, subject=subject, statements=statements,
         decision=Decision(action="apply", rule="metadata.two_channel",
@@ -269,12 +344,12 @@ def calibrate(verdicts, holders: Dict[str, int]) -> None:
                 present = json.loads(proc.stdout).get("schema") == "Position"
             except json.JSONDecodeError:
                 present = False
-        table[(verdict.self_sufficient, present)] += 1
-        if verdict.self_sufficient != present:
+        table[(verdict.well_modelled, present)] += 1
+        if verdict.well_modelled != present:
             why = ("no holders" if not holders.get(verdict.qid) else
                    "review layer, or a port bug")
             disagree.append(
-                f"  {verdict.qid:12} self_sufficient={verdict.self_sufficient} "
+                f"  {verdict.qid:12} well_modelled={verdict.well_modelled} "
                 f"in_os={present}  ({why})  {verdict.label}")
     print("\n## Calibration")
     print(f"  agree            : {table[(True, True)] + table[(False, False)]}")
@@ -287,43 +362,58 @@ def calibrate(verdicts, holders: Dict[str, int]) -> None:
 
 
 def check_spec() -> int:
-    """Fail if the recipe no longer enumerates every gate class the code applies.
+    """Fail if the recipe has drifted from the two things it must stay true to.
 
-    The recipe restates constants that live in `wd/discover.py`, which is the
-    kind of duplication that rots quietly — a class added to `zavod` and ported
-    here would leave the documented list wrong with nothing to notice it.
+    The recipe names conventions that live in code, which is the kind of
+    duplication that rots quietly. Two authorities, in priority order:
+
+    `wd/create.py:ARCHETYPES` is the Wikidata authority — it holds the measured
+    `P279` for each kind of office, and the recipe's table is a restatement of it.
+    An archetype added there without the recipe naming it leaves the documented
+    convention incomplete, and the next campaign mints against the gap.
+
+    `wd/shape.py`'s ported constants are the secondary, OpenSanctions authority.
+    Only the classes a reader would *silently* drop need naming, because those are
+    the ones somebody has to look up when a well-modelled item does not appear.
     """
-    from wd import discover
+    from wd import create, shape
 
     recipe = (REPO_ROOT / "recipes" / "position_items.md").read_text()
-    sets = {
-        "POSITION_BASICS": discover.POSITION_BASICS,
-        "EXCLUDE_TYPES": discover.EXCLUDE_TYPES,
-        "ALLOW_TYPES (extras)": discover.ALLOW_TYPES - set(discover.SUB_TYPES),
-        "HISTORICAL_TYPES": discover.HISTORICAL_TYPES,
-        "SKIP_PLACES": discover.SKIP_PLACES,
-        "SUB_TYPES": set(discover.SUB_TYPES),
-    }
     missing: List[str] = []
-    for name, qids in sets.items():
-        absent = sorted(q for q in qids if q not in recipe)
-        # Only the pep-conferring subtypes need naming individually; the recipe
-        # documents the classifying ones exhaustively because those are the traps.
-        if name == "SUB_TYPES":
-            absent = sorted(
-                q for q in absent
-                if "role.pep" not in discover.SUB_TYPES[q]
-            )
-        if absent:
-            missing.append(f"  {name}: {absent}")
-    for code in (discover.POSITION_ABOLISHED_CUTOFF,):
-        if code not in recipe:
-            missing.append(f"  POSITION_ABOLISHED_CUTOFF: {code}")
+
+    absent = sorted(
+        f"{key} ({arch.parent})"
+        for key, arch in create.ARCHETYPES.items()
+        if key not in recipe or arch.parent not in recipe
+    )
+    if absent:
+        missing.append(f"  ARCHETYPES not named in the recipe: {absent}")
+
+    ported = {
+        "POSITION_BASICS": shape.POSITION_BASICS,
+        "EXCLUDE_TYPES": shape.EXCLUDE_TYPES,
+        "SKIP_PLACES": shape.SKIP_PLACES,
+        "HISTORICAL_TYPES": shape.HISTORICAL_TYPES,
+    }
+    for name, qids in ported.items():
+        gone = sorted(q for q in qids if q not in recipe)
+        if gone:
+            missing.append(f"  {name}: {gone}")
+    # The subtypes that contribute topics but leave the PEP default off: the
+    # traps, and the only members worth enumerating one by one.
+    quiet = sorted(
+        q for q, topics in shape.SUB_TYPES.items()
+        if shape.PEP_SENTINEL not in topics and q not in recipe
+    )
+    if quiet:
+        missing.append(f"  SUB_TYPES leaving the default off: {quiet}")
+
     if missing:
-        print("recipes/position_items.md is missing gate classes:")
+        print("recipes/position_items.md has drifted:")
         print("\n".join(missing))
         return 1
-    print("recipes/position_items.md enumerates every gate class and the cutoff.")
+    print("recipes/position_items.md matches wd/create.py:ARCHETYPES "
+          "and names every quietly-dropped class.")
     return 0
 
 
@@ -345,6 +435,9 @@ def main() -> None:
     labels = candidates(session, country)
     print(f"## {country['name']}: {len(labels)} position items")
 
+    parents = PARENTS_BY_COUNTRY.get(args.country, {})
+    surgical = SURGICAL_BY_COUNTRY.get(args.country, {})
+
     verdicts = verify_all(session, sorted(labels), labels=labels)
     holders = holder_counts(session, sorted(labels))
     entities = fetch_entities(session, sorted(labels), max_age=0)
@@ -352,7 +445,8 @@ def main() -> None:
     records = [
         record for record in (
             records_for(campaign, verdict, entities.get(verdict.qid, {}),
-                        holders.get(verdict.qid, 0))
+                        holders.get(verdict.qid, 0), parents, surgical,
+                        str(country["qid"]))
             for verdict in verdicts
         ) if record is not None
     ]
@@ -361,21 +455,46 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / f"{campaign}_metadata.jsonl").write_text(dumps(records))
 
-    gates = Counter(f for v in verdicts for f in v.failed)
+    gates = Counter(f for v in verdicts for f in v.defects)
+    notes = Counter(n for v in verdicts for n in v.os_notes)
     actions = Counter(r.decision.action for r in records)
-    print(f"  self-sufficient : {sum(1 for v in verdicts if v.self_sufficient)}")
+    print(f"  well modelled   : {sum(1 for v in verdicts if v.well_modelled)}")
     print(f"  no holders      : {sum(1 for q in labels if not holders.get(q))}")
-    print("  gate failures   : " + ", ".join(f"{k}={n}" for k, n in gates.most_common()))
+    print("  defects         : " + (", ".join(f"{k}={n}" for k, n in gates.most_common()) or "none"))
+    print("  os notes        : " + (", ".join(f"{k}={n}" for k, n in notes.most_common()) or "none"))
     print("  dispositions    : " + ", ".join(f"{k}={n}" for k, n in actions.most_common()))
     print(f"  wrote {out_dir / f'{campaign}_metadata.jsonl'}")
 
     # A decided item that the candidate set never reached would vanish without
     # a trace, which is the one thing an audit may not do.
     reached = {v.qid for v in verdicts}
-    for name, decided in (("PARENTS", set(PARENTS)), ("SURGICAL", set(SURGICAL))):
+    for name, decided in (("PARENTS", set(parents)), ("SURGICAL", set(surgical))):
         unreached = sorted(decided - reached)
         if unreached:
             print(f"  !! {name} not reached by any channel: {unreached}")
+
+    batch = [
+        "\t".join([r.subject.qid, s.property, s.value.to_dict()["id"]])
+        for r in records if r.decision.action == "apply" for s in r.statements
+    ]
+    if batch:
+        result = check(batch)
+        qs_path = out_dir.parent / f"{campaign}_item_layer.qs"
+        if not result.ok:
+            for defect in result.defects:
+                print(f"  \u2717 {defect}")
+            print(f"  {len(result.defects)} defect(s) — batch not written")
+        else:
+            qs_path.write_text("\n".join(batch) + "\n")
+            print(f"  wrote {qs_path} ({len(batch)} statements)")
+        for warning in result.warnings:
+            print(f"  \u26a0 {warning}")
+
+    surgical_rows = [r for r in records if r.byproduct]
+    if surgical_rows:
+        print(f"  surgical (stop-and-ask, never a batch line): {len(surgical_rows)}")
+        for r in surgical_rows:
+            print(f"     {r.subject.qid:12} {r.byproduct['detail']}")
 
     if args.calibrate:
         calibrate(verdicts, holders)

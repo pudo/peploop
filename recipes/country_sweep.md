@@ -151,10 +151,9 @@ council chairman as a prime minister of Belarus.
 
 Run `scripts/position_metadata.py --country <cc>` first and read
 `recipes/position_items.md` beside it: the census below finds which offices have
-items, and that one says whether the items can be *found*. The two questions are
-not the same and neither answers alone — in Lithuania 136 of 230 items carry
-sufficient metadata while only 65 reach OpenSanctions, because **a position with
-no holder is never emitted**.
+items, and that one says whether the items are *modelled right*. The two questions
+are not the same. Iran's audit found **54 of 323 items that say "position" and
+never say what kind** — under-modelling no holder count reveals.
 
 One SPARQL census of every position item the country owns, with holder counts:
 
@@ -304,11 +303,12 @@ Run it as one serial change with one owner, graded by `scripts/check_dates.py`.
 ## 3b. Mint the items first, not last
 
 Choose the archetype against `recipes/position_items.md`'s `P279` table before
-minting, not after. An item minted with a non-conferring parent is worse than no
-item, because it looks done: `Q16533` judge and `Q1162163` director confer no
-`role.pep`, so a judgeship wants `Q117826617` and an agency headship needs a
-second parent. And a minted item with no holders is not findable at all, which is
-why §3b comes before the lanes rather than instead of them.
+minting, not after — the parent is what says *which kind* of office this is, and an
+item minted without one looks done while telling nobody anything. Pick the parent
+that describes the office and nothing else: typing an ordinary judgeship as
+`Q117826617` supreme court judge to make a consumer emit it corrupts the data and
+the corrupted item then looks correct everywhere. Where no archetype fits, §10
+says measure before minting.
 
 **A creation-first institution has zero coverage by definition**, and creation is
 the only step that cannot be hurried because it needs a human. Scheduling it last
