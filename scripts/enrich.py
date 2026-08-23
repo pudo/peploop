@@ -36,8 +36,8 @@ from wd.cohort import build as build_cohort
 from wd.dossier import build as build_dossier
 from wd.dossier import build_roster_index
 from wd.enrich import (VERDICT_SCHEMA, check, flag_summary, records,
-                      unresolved_offices)
-from wd.gazetteer import for_country, for_target
+                      resolve_offices, unresolved_offices)
+from wd.gazetteer import describe, for_country, for_target
 from wd.http import REPO_ROOT, make_session
 from wd.record import dumps
 from wd.shape import verify_all
@@ -62,6 +62,8 @@ def main() -> None:
                         help="write dossiers and stop, no API call")
     parser.add_argument("--no-rosters", action="store_true",
                         help="skip the shared officeholder-list channel")
+    parser.add_argument("--no-resolve", action="store_true",
+                        help="skip placing offices the gazetteer did not offer")
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--effort", default=EFFORT,
                         choices=["low", "medium", "high", "xhigh", "max"])
@@ -171,6 +173,27 @@ def main() -> None:
     dossiers = {i["qid"]: i["_dossier"] for i in items}
     rows = [json.loads(line) for line in
             (out / f"{name}.jsonl").read_text().splitlines() if line.strip()]
+    # A single-target gazetteer makes every *other* office the person held read
+    # as unresolved by construction, so place those names before judging them:
+    # a creation candidate that already has an item is not a creation candidate.
+    named = [p.get("office_name") for row in rows for p in row.get("proposals") or []
+             if p.get("property") == "P39" and not p.get("position_qid")]
+    placed: dict = {}
+    if named and not args.no_resolve:
+        print(f"\nplacing {len(set(filter(None, named)))} named offices "
+              f"({len(named)} mentions)", file=sys.stderr)
+        found = resolve_offices(session, named, spec.position_country,
+                                log=lambda m: print(m, file=sys.stderr))
+        placed = {n: v["qid"] for n, v in found.items() if v["qid"]}
+        (out / f"{name}_offices.json").write_text(
+            json.dumps(found, indent=1, ensure_ascii=False))
+        if placed:
+            # Keep the invariant that every applied QID is in the gazetteer.
+            gazetteer.entries.extend(
+                describe(session, sorted(set(placed.values()) - gazetteer.qids)))
+        print(f"placed {len(placed)} of {len(found)} names; gazetteer now "
+              f"{len(gazetteer.entries)} offices", file=sys.stderr)
+
     checks, report = [], []
     for row in rows:
         dossier = dossiers.get(row.get("qid"))
@@ -183,7 +206,8 @@ def main() -> None:
             recorded = build_dossier(
                 session, row["qid"], topics=topics, body=False
             ).item["tenures"]
-        found = check(row, dossier, gazetteer, recorded=recorded)
+        found = check(row, dossier, gazetteer, recorded=recorded,
+                      resolved=placed)
         checks.extend(found)
         report.append((row, found, recorded))
 

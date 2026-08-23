@@ -425,9 +425,18 @@ ENRICH_RULES: Tuple[Rule, ...] = (
     #    statement: a byproduct list, carrying an attested holder and a quote.
     #    Whether an item exists is a separate question — `wd/positions.py` answers
     #    it, and only a genuine miss is a creation candidate.
+    #: An office the gazetteer did not offer but `wd/positions.py` placed. Its
+    #: own gate is two-signal — a label variant must match *and* the item's
+    #: P17/P1001 must resolve to the country — so this is a second mechanical
+    #: channel rather than a relaxation. It has to precede `office_unresolved`,
+    #: which is the same flag set minus the match.
+    Rule(
+        "office_resolved", has("office_resolved"), APPLY,
+        "the office was not in the gazetteer and lookup_position placed it",
+    ),
     Rule(
         "office_unresolved", has("office_unresolved"), BYPRODUCT,
-        "the office is named but this run offered no item for it",
+        "the office is named and no item could be placed for it",
     ),
     # 7. The model's own hedge, honoured. Nothing is relaxed to raise a count.
     Rule(

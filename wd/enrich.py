@@ -24,12 +24,14 @@ Two things the model is never allowed to produce:
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from rigour.territories import lookup_territory
 
+from wd.api import claim_qids, fetch_entities
 from wd.dossier import Dossier
 from wd.gazetteer import Gazetteer
+from wd.positions import lookup_position
 from wd.policy import ENRICH_RULES, Candidate, Facts, decide
 from wd.record import Decision, Record, Signal, Snak, Statement, Subject, Value
 
@@ -181,12 +183,23 @@ def check(
     gazetteer: Gazetteer,
     *,
     recorded: Optional[Sequence[Dict[str, Any]]] = None,
+    resolved: Optional[Dict[str, str]] = None,
 ) -> List[Checked]:
     """Run every mechanical check over one person's proposals.
 
     `recorded` defaults to the tenures the dossier discloses. Pass the unhidden
     list in backtest mode, where the dossier deliberately withholds them.
+
+    `resolved` maps an office *name* the model reported to the QID
+    `wd/positions.py:lookup_position` found for it. A single-target gazetteer
+    makes every other office the person held read as unresolved by construction
+    — "Senator of the Republic of Poland" plainly has an item — so a second
+    mechanical pass places them. `lookup_position` is itself two-signal (a label
+    variant must match *and* the item's own P17/P1001 must resolve to the
+    country), which is why a match here is allowed to become a statement rather
+    than a review row.
     """
+    resolved = resolved or {}
     qid = verdict.get("qid", "")
     if recorded is None:
         recorded = dossier.item.get("tenures") or []
@@ -205,6 +218,11 @@ def check(
         prop = proposal.get("property")
         if prop == "P39":
             target = proposal.get("position_qid")
+            if not target:
+                named = (proposal.get("office_name") or "").strip()
+                if named in resolved:
+                    target = resolved[named]
+                    flags.append("office_resolved")
             if not target:
                 # Not a failure: an office with no item is the creation queue,
                 # which is the point of asking rather than letting it guess.
@@ -439,6 +457,84 @@ def records(
             notes=proposal.get("reason") or "",
             byproduct=byproduct,
         ))
+    return out
+
+
+def name_variants(name: str) -> Tuple[str, Tuple[str, ...]]:
+    """Split an office name into a primary query and its alternatives.
+
+    A model writing for a reader disambiguates, and the disambiguation is what
+    breaks a label search: it reports "Minister of Education and Science
+    (Poland)" and "Deputy Voivode of Łódź Voivodeship (wicewojewoda łódzki)".
+    Sixty-one of Poland's sixty-four names went unmatched, and the parenthetical
+    is the first reason.
+
+    The parenthetical is also frequently the *native* name, which is often the
+    better query: Wikidata labels a Polish office in Polish and carries the
+    English only as an alias, if at all. So both halves are tried, the stripped
+    form first.
+    """
+    inner = tuple(
+        m.strip() for m in re.findall(r"\(([^)]+)\)", name)
+        # A parenthetical that is just a country is a disambiguator, not a name:
+        # "(Poland)" would be searched as the country itself.
+        if m.strip() and lookup_territory(m.strip(), fuzzy=True) is None
+    )
+    stripped = re.sub(r"\s*\([^)]*\)", "", name).strip()
+    primary = stripped or name
+    extras = tuple(dict.fromkeys(x for x in (name, *inner) if x and x != primary))
+    return primary, extras
+
+
+def resolve_offices(
+    session: Any,
+    names: Sequence[str],
+    country: Optional[str],
+    *,
+    log: Callable[[str], None] = lambda _m: None,
+) -> Dict[str, Dict[str, Any]]:
+    """Place the office names a run could not offer an item for.
+
+    Returns one entry per distinct name: its `lookup_position` status, the QID
+    when it resolved, and the candidates when it did not. Only `matched`
+    entries become statements — `label-only` and `ambiguous` are the cases the
+    two-signal gate declined, and forcing them would be exactly the padding this
+    workbench refuses. `unmatched` is the genuine creation list.
+
+    Deduplicated by name because a category's members hold the same handful of
+    other offices: Poland's 106 people named 67 offices between them, and the
+    Senate seat alone accounts for several.
+    """
+    out: Dict[str, Dict[str, Any]] = {}
+    for name in sorted({n.strip() for n in names if n and n.strip()}):
+        primary, extras = name_variants(name)
+        try:
+            lookup = lookup_position(session, primary, country, extra_names=extras)
+        except Exception as exc:      # one bad name must not end the pass
+            log(f"  lookup failed for {name!r}: {exc}")
+            continue
+        status, qid = lookup.status, lookup.resolved_qid
+        if status == "matched" and qid:
+            # `lookup_position`'s country gate accepts a `P17` alone, which lets a
+            # *generic* office class through: "Mayor (wójt) of Świlcza" matched
+            # `Q98637505 wójt`, the Polish administrative rank, P17=Poland and no
+            # P1001 at all. Writing a specific village mayoralty onto that is the
+            # generic-occupation trap, and `recipes/position_items.md` calls an
+            # office scoped to no polity a defect — so a match has to name the
+            # polity it governs before it may become a statement.
+            entity = fetch_entities(session, [qid], props="claims").get(qid) or {}
+            if not claim_qids(entity, "P1001"):
+                status, qid = "no-polity", None
+        out[name] = {
+            "status": status,
+            "qid": qid,
+            "candidates": [
+                {"qid": c.qid, "label": c.label, "label_match": c.label_match,
+                 "country_match": c.country_match}
+                for c in lookup.candidates[:4]
+            ],
+        }
+        log(f"  {status:11} {name[:56]:58} {qid or ''}")
     return out
 
 
