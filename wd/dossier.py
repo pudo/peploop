@@ -133,10 +133,16 @@ class Dossier:
         needle = " ".join((quote or "").split())
         if len(needle) < 8:      # too short to be evidence of anything
             return False
-        haystacks = [f.text for f in self.fragments]
-        # The item's own record counts: "already recorded" is a citable claim.
-        haystacks.append(json.dumps(self.item, ensure_ascii=False, sort_keys=True))
-        return any(needle in " ".join(h.split()) for h in haystacks)
+        # Check against the *rendered* dossier — the exact text the model was
+        # shown — and not against `fragments`. Three sections are rendered from
+        # structured fields rather than from a fragment: the item's own record,
+        # the officebox tenures and the roster rows. Checking only fragments
+        # made a faithful citation of those unverifiable, and it rejected four
+        # correct proposals in Poland's run whose quote was the officebox line
+        # this file prints ("Member of the Sejm — 2023-11-13"). A quote gate that
+        # fails on evidence we presented is worse than no gate: it discards
+        # truthful work and looks like the model hallucinating.
+        return needle in " ".join(self.render().split())
 
     def render(self) -> str:
         head = [
@@ -152,7 +158,8 @@ class Dossier:
             "",
         ]
         if self.officebox:
-            head += ["## Tenures parsed from the article's own infobox", ""]
+            head += [f"## [{self.qid}#officebox] tenures from the article's own "
+                     "infobox", ""]
             for tenure in self.officebox:
                 span = "–".join(filter(None, (tenure.start, tenure.end))) or "undated"
                 flags = " ".join(
@@ -166,7 +173,8 @@ class Dossier:
                 )
             head.append("")
         if self.roster_rows:
-            head += ["## Rows naming this person in officeholder lists", ""]
+            head += ["## Rows naming this person in officeholder lists "
+                     "(cite the [source] on the row)", ""]
             for source, row in self.roster_rows:
                 span = "–".join(filter(None, (row.start, row.end))) or "undated"
                 head.append(
