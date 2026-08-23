@@ -403,9 +403,14 @@ ENRICH_RULES: Tuple[Rule, ...] = (
     #    `tasks/birthdates.md`: the infobox against the article's own births
     #    category, which different editors maintain.
     Rule(
-        "dob_one_channel", has("fail_dob_one_channel",
-                               "fail_dob_disagrees_with_infobox"), SKIP,
-        "the birth date has no second, independently maintained channel",
+        "dob_conflict", has("fail_dob_disagrees_with_category",
+                            "fail_dob_disagrees_with_infobox"), SKIP,
+        "the birth date disagrees with the article's own category or infobox",
+    ),
+    Rule(
+        "dob_one_channel", has("fail_dob_no_cross_check",
+                               "fail_dob_category_flagged_uncertain"), SKIP,
+        "no births category to confirm the date the prose states",
     ),
     Rule(
         "unresolvable_value", has("fail_country_unresolved",

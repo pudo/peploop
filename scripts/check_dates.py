@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lxml import html as lxml_html
 
+from wd.infobox import birth_year_category
 from wd.kinship import _cut_gloss, parse_genealogy
 from wd.officebox import parse_officebox
 from wd.create import duplicate_of
@@ -683,8 +684,46 @@ def header_roles(cells, overrides=()):
     )
 
 
+#: (category name, year or None, what it is)
+#:
+#: The birth-year category is the *second* channel behind every P569 this
+#: workbench proposes, and it was English-only — silently, because a wiki with
+#: no matching category yields `no-cross-check` forever rather than an error.
+#: Five of these were wrong on the first pass and only real articles said so:
+#: Hungarian has vowel harmony, Latvian puts the year first, Czech and French
+#: spell more than the year, and Lithuanian could not be verified at all.
+BIRTH_CATEGORIES_CASES = [
+    ("1962 births", "1962", "en, the only one that used to work"),
+    ("Urodzeni w 1985", "1985", "pl"),
+    ("Geboren 1958", "1958", "de"),
+    ("Родившиеся в 1952 году", "1952", "ru"),
+    ("Народились 1978", "1978", "uk"),
+    ("Nacidos en 1972", "1972", "es"),
+    ("Naissance en décembre 1977", "1977",
+     "fr writes the month in as well, so the year is not the whole tail"),
+    ("Narození v roce 1964", "1964", "cs — not the bare 'Narození 1964' guessed first"),
+    ("Nati nel 1977", "1977", "it"),
+    ("1963-ban született személyek", "1963",
+     "hu vowel harmony: '-ban' here, '-ben' after a front-vowel year"),
+    ("1973. gadā dzimušie", "1973", "lv puts the year first, not last"),
+    ("مواليد 1985", "1985", "ar"),
+    ("Narození 1. září", None,
+     "a day-and-month category carries no year and must not be read as one"),
+    ("1985 deaths", None, "the death category is the near-miss that matters most"),
+    ("Ludzie urodzeni w Bolesławcu", None,
+     "born-in-a-place reads like born-in-a-year in Polish, and is not"),
+    ("Year of birth missing", None, "the doubt sibling carries no year"),
+]
+
+
 def main() -> None:
     bad = 0
+    for name, want, why in BIRTH_CATEGORIES_CASES:
+        got = birth_year_category(name)
+        if got != want:
+            bad += 1
+            print(f"FAIL birth_year_category({name!r})\n  want {want!r}, "
+                  f"got {got!r}\n  ({why})")
     for cells, want, why in HEADERS:
         got = header_roles(cells)
         wrong = {i: (role, got[i]) for i, role in want.items() if got[i] != role}
@@ -792,7 +831,8 @@ def main() -> None:
             bad += 1
             print(f"FAIL parse_officebox(..., {lang!r})\n  want {want!r}\n  "
                   f"got  {got!r}\n  ({why})")
-    total = (len(DATES) + len(PERIODS) + len(INCUMBENCY) + len(MERGES) + len(BULLETS) + len(TENURES)
+    total = (len(BIRTH_CATEGORIES_CASES)
+             + len(DATES) + len(PERIODS) + len(INCUMBENCY) + len(MERGES) + len(BULLETS) + len(TENURES)
              + len(HEADERS) + len(HEADER_OVERRIDES) + len(GENEALOGY)
              + len(GLOSSES) + len(OFFICEBOXES) + len(GUARDS)
              + len(BULLET_OVERRIDES))

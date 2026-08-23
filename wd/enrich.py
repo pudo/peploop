@@ -246,17 +246,36 @@ def check(
                 failures.append("january_first_placeholder")
             else:
                 result.resolved = value
+            # The two-channel gate, with the channels this pipeline actually
+            # has. `scripts/harvest_dob.py` pairs the infobox microformat with
+            # the article's births category — but outside enwiki the infobox
+            # channel is simply absent: `worth_rendering` is False for pl, de,
+            # fr and cs because those wikis state the date in prose instead, so
+            # that pair can never both exist and the lane was English-only.
+            #
+            # Here channel one is the model reading that prose, under a verbatim
+            # quote, which is the case `tasks/birthdates.md` lists as left on the
+            # table. Channel two stays the births category, maintained by
+            # different editors and now localised for eleven wikis. The infobox
+            # is a third channel when it exists, and a contradiction from it
+            # still stops the proposal.
             evidence = dossier.birth_evidence
-            # The measured two-channel gate: the infobox microformat against the
-            # article's own births category, maintained by different editors.
-            if evidence is not None and evidence.verdict == "batch":
-                flags.append("dob_two_channel")
-                if evidence.value and result.resolved:
-                    span = min(len(evidence.value), len(result.resolved))
-                    if evidence.value[:span] != result.resolved[:span]:
-                        failures.append("dob_disagrees_with_infobox")
+            years = set(evidence.categories) if evidence else set()
+            if evidence is not None and evidence.category_uncertain:
+                failures.append("dob_category_flagged_uncertain")
+            if result.resolved and years:
+                if result.resolved[:4] in years:
+                    flags.append("dob_two_channel")
+                    if evidence and evidence.value:
+                        span = min(len(evidence.value), len(result.resolved))
+                        if evidence.value[:span] == result.resolved[:span]:
+                            flags.append("dob_infobox_agrees")
+                        else:
+                            failures.append("dob_disagrees_with_infobox")
+                else:
+                    failures.append("dob_disagrees_with_category")
             else:
-                failures.append("dob_one_channel")
+                failures.append("dob_no_cross_check")
             if dossier.item.get("birth_date"):
                 failures.append("already_recorded")
 

@@ -44,9 +44,60 @@ WD_DRIVEN = re.compile(
 
 HAS_INFOBOX = re.compile(r"\{\{\s*infobox", re.IGNORECASE)
 BIRTH_PARAM = re.compile(r"\|\s*birth[ _-]?date\s*=\s*([^|\n]*)", re.IGNORECASE)
-BIRTH_CATEGORY = re.compile(r"^(\d{3,4}) births$")
-# "1965 births" has an "unknown"/"missing" sibling that must not be read as a year.
-CATEGORY_UNCERTAIN = re.compile(r"(births?.*(unknown|missing|uncertain)|year of birth)", re.IGNORECASE)
+#: The birth-year category, per wiki. This is the *second* channel — editors
+#: maintain it separately from the infobox, which is what makes agreement
+#: between them worth anything.
+#:
+#: It was English-only, and that failed silently rather than loudly: on any
+#: other wiki no category matches, so `Evidence.verdict` is `no-cross-check`
+#: forever and every birth date is held back for want of a channel that
+#: structurally could not exist. A Polish MP with only a plwiki article could
+#: never be dated, and nothing said so.
+BIRTH_CATEGORIES = (
+    re.compile(r"^(\d{3,4}) births$"),                       # en
+    re.compile(r"^Urodzeni w (\d{3,4})$"),                   # pl
+    re.compile(r"^Geboren (\d{3,4})$"),                      # de
+    re.compile(r"^Родившиеся в (\d{3,4}) году$"),             # ru
+    re.compile(r"^Народились\s+(?:у\s+)?(\d{3,4})$"),         # uk
+    re.compile(r"^Нарадзіліся ў (\d{3,4})$"),                 # be
+    re.compile(r"^Nacidos en (\d{3,4})$"),                   # es
+    # fr writes the month in too: "Naissance en décembre 1977".
+    re.compile(r"^Naissance en (?:\S+ )?(\d{3,4})$"),         # fr
+    re.compile(r"^Narození v roce (\d{3,4})$"),               # cs
+    re.compile(r"^Narodenia v roku (\d{3,4})$"),              # sk
+    re.compile(r"^Nati nel (\d{3,4})$"),                     # it
+    re.compile(r"^Nascidos em (\d{3,4})$"),                  # pt
+    # hu vowel harmony: "-ban" or "-ben" depending on the year.
+    re.compile(r"^(\d{3,4})-b[ae]n született személyek$"),     # hu
+    re.compile(r"^(\d{3,4})\. gadā dzimušie$"),               # lv
+    # lt: not verified against a real article — Nausėda carries no
+    # birth-year category at all, so this pattern is a guess and is
+    # marked as one rather than counted as coverage.
+    re.compile(r"^(\d{3,4}) m\. gimę žmonės$"),                # lt (unverified)
+    re.compile(r"^مواليد (\d{3,4})$"),                        # ar
+    re.compile(r"^زادگان (\d{3,4}) \(میلادی\)$"),             # fa
+)
+
+#: "1965 births" has an "unknown"/"missing" sibling that must not be read as a
+#: year. Every pattern above requires a year, so an unlocalised sibling cannot
+#: be misread as one — this only has to catch the case where an article carries
+#: both a year category and a doubt category.
+CATEGORY_UNCERTAIN = re.compile(
+    r"(births?.*(unknown|missing|uncertain)|year of birth"
+    r"|rok urodzenia|Geburtsjahr unbekannt|год рождения неизвестен"
+    r"|año de nacimiento desconocido|Date de naissance non renseignée)",
+    re.IGNORECASE,
+)
+
+
+def birth_year_category(name: str) -> Optional[str]:
+    """The year a births category names, or None. Localised per wiki."""
+    for pattern in BIRTH_CATEGORIES:
+        match = pattern.match(name)
+        if match:
+            # `lt` spells the year "1985 m."; keep only the digits.
+            return re.sub(r"[^0-9]", "", match.group(1))
+    return None
 
 
 @dataclass
@@ -129,9 +180,9 @@ def parse_wikitext(evidence: Evidence, wikitext: str) -> None:
 
 def parse_categories(evidence: Evidence, categories: List[str]) -> None:
     for name in categories:
-        match = BIRTH_CATEGORY.match(name)
-        if match:
-            evidence.categories.append(match.group(1))
+        year = birth_year_category(name)
+        if year:
+            evidence.categories.append(year)
         elif CATEGORY_UNCERTAIN.search(name):
             evidence.category_uncertain = True
     evidence.categories = sorted(set(evidence.categories))
