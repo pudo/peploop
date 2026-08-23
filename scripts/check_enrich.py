@@ -183,6 +183,20 @@ def main() -> None:
         bad += 1
         print(f"FAIL recorded with nothing to add must skip: {got.flags}")
 
+    # The statement's own property must survive having qualifiers attached. A
+    # loop variable named `prop` rebound it, and the rendered .qs carried a P39
+    # whose property column read "P768" — valid syntax, wrong statement.
+    got = check({"qid": "Q1", "proposals": [proposal(district="Legnica district",
+                                                     group="Civic Club")]},
+                dossier(), GAZ, qualifiers={"P768": DISTRICTS, "P4100": GROUPS})[0]
+    st = records("s", dossier(), [got], campaign="c")[0].statements[0]
+    if st.property != "P39" or st.value.id != "Q9":
+        bad += 1
+        print(f"FAIL qualifiers rebound the statement: {st.property}={st.value.id}")
+    if {q.property for q in st.qualifiers} != {"P580", "P582", "P768", "P4100"}:
+        bad += 1
+        print(f"FAIL qualifier snaks: {[q.property for q in st.qualifiers]}")
+
     # The birth-date gate: prose against the article's own births category.
     d = dossier()
     d.birth_evidence = Evidence(qid="Q1", title="t")
@@ -201,7 +215,7 @@ def main() -> None:
         bad += 1
         print(f"FAIL birth date contradicting its category: {got.failures}")
 
-    total = len(CASES) + 10
+    total = len(CASES) + 12
     if bad:
         raise SystemExit(f"\n{bad} of {total} enrichment checks failed")
     print(f"{total} enrichment checks pass (rules, undated split, qualifier "

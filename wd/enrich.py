@@ -424,8 +424,10 @@ def _statement(checked: Checked, url: Optional[str]) -> Optional[Statement]:
             qualifiers.append(Snak("P580", Value.time(proposal["start"])))
         if proposal.get("end"):
             qualifiers.append(Snak("P582", Value.time(proposal["end"])))
-        for prop, qid in sorted(checked.qualifiers.items()):
-            qualifiers.append(Snak(prop, Value.item(qid)))
+        # Not `prop`: that is the statement's own property, and rebinding it
+        # here rendered a P39 line whose property column said P768.
+        for qual_prop, qual_qid in sorted(checked.qualifiers.items()):
+            qualifiers.append(Snak(qual_prop, Value.item(qual_qid)))
     references = [Snak(IMPORT_URL, Value.url(url))] if url else []
     return Statement(prop, value, qualifiers=qualifiers, references=references,
                      # The source named a start and no end, rather than not
