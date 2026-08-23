@@ -15,7 +15,6 @@ Output: data/categories/positions.json (interim format) + positions.md.
 """
 
 import json
-import re
 import sys
 from collections import Counter
 from dataclasses import asdict
@@ -26,33 +25,13 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from wd.http import REPO_ROOT, make_session
-from wd.positions import country_names, lookup_position
+from wd.positions import lookup_position
+from wd.specs import granularity as classify
 
 YML = Path(
     "/Users/pudo/Code/opensanctions/datasets/_wikidata/categories/wd_categories.yml"
 )
 OUT_DIR = REPO_ROOT / "data" / "categories"
-
-
-def classify(name: str, country: str | None) -> str:
-    low = name.casefold().strip()
-    if re.search(r"\b(?:a|an)\s+[a-z]", low) or low in ("mayor", "mayor (spain)"):
-        return "bucket"
-    # Class assignments over many distinct offices, not one seat:
-    if re.match(r"^local councillor\b", low) or re.search(
-        r"\b(advisor|leadership)$", low
-    ):
-        return "bucket"
-    # "Minister of <own country>" = any portfolio, not one office:
-    for cname in country_names(country):
-        if re.fullmatch(
-            rf"(?:deputy )?(?:minister|member of the government) of (?:the )?{re.escape(cname)}",
-            low,
-        ):
-            return "bucket"
-    if re.match(r"^(?:member|deputy|senator|mp) (?:of|at|in)\b", low):
-        return "membership"
-    return "office"
 
 
 def main() -> None:

@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from wd.api import fetch_entities, sparql
 from wd.http import REPO_ROOT, make_session
+from wd.wikipedia import wikipedia_langs
 
 BASE = REPO_ROOT / "data" / "jurisdictions"
 SAMPLE_MAX = 8
@@ -56,8 +57,25 @@ SELECT ?pos ?p ?pLabel ?pDesc WHERE {{
 
 
 def is_candidate(r: dict) -> bool:
+    """Is there enough of a prior here to be worth an agent's judgement?
+
+    Two channels qualify, and neither is trusted further than this — both are
+    candidate generators, and the renderer makes the classifier's country
+    agree with one of them before anything is written.
+
+    * a strong citizenship majority among the holders, or
+    * a modern country named in the item's **own label**. This is what the
+      first wave ran on, and without it the ~40% of items whose holders carry
+      no `P27` at all would never be looked at, however plainly their label
+      reads "Speaker of the House of Representatives of Egypt".
+    """
+    if r["abolished"]:
+        return False
+    place = r.get("label_place")
+    if place and place["is_country"] and not place["is_historical"]:
+        return True
     top = r["top"]
-    if top is None or top["historical"] or r["abolished"]:
+    if top is None or top["historical"]:
         return False
     if r["with_p27"] >= 3 and top["share"] >= 0.8:
         return True
@@ -132,9 +150,15 @@ def fetch_samples(session, rows: list[dict]) -> dict[str, list[dict]]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--chunks", type=int, default=20)
+    parser.add_argument("--census", type=Path,
+                        default=BASE / "holder_citizenship.json",
+                        help="holder_citizenship.py output to shortlist from")
+    parser.add_argument("--out", type=Path,
+                        default=BASE / "citizenship_candidates.json")
+    parser.add_argument("--chunk-dir", type=Path, default=BASE / "chunks_citizen")
     args = parser.parse_args()
 
-    data = json.loads((BASE / "holder_citizenship.json").read_text())
+    data = json.loads(args.census.read_text())
     rows = [r for r in data if is_candidate(r)]
     print(f"{len(rows)} candidates", file=sys.stderr)
 
@@ -146,7 +170,7 @@ def main() -> None:
     entities = fetch_entities(session, [r["qid"] for r in rows], props="sitelinks")
     wikis: dict[str, list[str]] = {}
     for qid, e in entities.items():
-        keys = [k for k in e.get("sitelinks", {}) if k.endswith("wiki")]
+        keys = [f"{lang}wiki" for lang in wikipedia_langs(e)]
         keys.sort(key=lambda k: (k != "enwiki", k))
         wikis[qid] = keys[:6]
 
@@ -165,16 +189,25 @@ def main() -> None:
                 for c in r["citizenships"][:6]
             ],
             "top": r["top"],
+            "label_place": r.get("label_place"),
             "wikis": wikis.get(r["qid"], []),
             "holder_samples": samples.get(r["qid"], []),
         })
 
-    (BASE / "citizenship_candidates.json").write_text(
+    args.out.write_text(
         json.dumps(candidates, indent=1, ensure_ascii=False))
 
-    # Sort by top country then size so each agent sees coherent clusters:
-    candidates.sort(key=lambda c: (c["top"]["code"] or c["top"]["qid"], -c["holders"]))
-    chunk_dir = BASE / "chunks_citizen"
+    # Sort by country then size so each agent sees coherent clusters. A
+    # label-only candidate has no citizenship prior to sort on; its label
+    # place puts it beside the same country's citizenship rows.
+    def cluster(c: dict) -> tuple:
+        for prior in (c.get("top"), c.get("label_place")):
+            if prior:
+                return (prior.get("code") or prior["qid"], -c["holders"])
+        return ("zz", -c["holders"])
+
+    candidates.sort(key=cluster)
+    chunk_dir = args.chunk_dir
     chunk_dir.mkdir(parents=True, exist_ok=True)
     per = (len(candidates) + args.chunks - 1) // args.chunks
     for i in range(args.chunks):
@@ -186,7 +219,7 @@ def main() -> None:
     no_sample = sum(1 for c in candidates if not c["holder_samples"])
     print(f"{len(candidates)} candidates, {no_article} without any wiki article, "
           f"{no_sample} without holder samples")
-    print(f"Wrote {BASE / 'citizenship_candidates.json'} and {chunk_dir}/chunk_*.json")
+    print(f"Wrote {args.out} and {chunk_dir}/chunk_*.json")
 
 
 if __name__ == "__main__":

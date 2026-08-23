@@ -1205,7 +1205,7 @@ def _subroles(
     return out
 
 
-def _drop(element) -> None:
+def drop_keeping_tail(element) -> None:
     """Remove an element but keep the text that follows it.
 
     lxml's `remove()` takes the element's tail with it, and the tail is where
@@ -1236,7 +1236,7 @@ def _cell_text(cell, keep_breaks: bool = False) -> str:
         ".//sup[contains(@class, 'reference')]|.//style|.//span[@typeof]"
         "|.//*[contains(translate(@style, ' ', ''), 'display:none')]"
     ):
-        _drop(junk)
+        drop_keeping_tail(junk)
     if keep_breaks:
         # `<hr>` divides a cell as often as `<br>` does: the Spanish Senate's
         # list stacks a president's four sessions in one cell that way, and read

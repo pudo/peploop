@@ -6,7 +6,7 @@ out, and an LLM reads wikitext fine.
 """
 
 import json
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 from requests import Session
 
@@ -16,6 +16,35 @@ WIKI_API = "https://{lang}.wikipedia.org/w/api.php"
 
 # The action API takes up to 50 titles per query for anonymous clients.
 TITLE_CHUNK = 50
+
+
+#: Sitelink keys that end in "wiki" but name a project rather than a language
+#: Wikipedia. Reading them as languages is a live bug in three places before
+#: this list existed: `commonswiki` became the language "commons", which then
+#: got fetched as commons.wikipedia.org and fed a classifier as a wiki
+#: community. Note `nowiki` is *Norwegian* and must not be blocked.
+NON_LANGUAGE_WIKIS = frozenset({
+    "abstract", "commons", "incubator", "login", "media", "mediawiki", "meta",
+    "outreach", "quality", "sources", "species", "test", "test2", "vote",
+    "wikidata", "wikifunctions", "wikimania", "foundation", "donate",
+})
+
+
+def wikipedia_langs(entity: Dict[str, Any]) -> List[str]:
+    """Language codes of the entity's Wikipedia articles, sorted.
+
+    Use this rather than filtering sitelinks on `endswith("wiki")`: that also
+    matches `commonswiki`, `specieswiki` and `abstractwiki`, none of which is a
+    language and none of which has an article to read.
+    """
+    langs = []
+    for key in entity.get("sitelinks") or {}:
+        if not key.endswith("wiki"):
+            continue
+        code = key[: -len("wiki")]
+        if code and code not in NON_LANGUAGE_WIKIS:
+            langs.append(code)
+    return sorted(langs)
 
 
 def sitelink_title(entity: Dict[str, Any], lang: str) -> Optional[str]:

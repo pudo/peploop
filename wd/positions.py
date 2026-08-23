@@ -199,6 +199,32 @@ def lookup_position(
     return result
 
 
+def members_holding(
+    session: Session, people: Sequence[str], target: str
+) -> Set[str]:
+    """Which of these people Wikidata already records in this position.
+
+    The member-side counterpart to `holder_counts`: reach for it when a cohort
+    is small and the office is not. Asking for the office's holders instead
+    would pull 5,497 rows for a national legislature to intersect against a
+    forty-person category, and the ones that matter are the intersection.
+
+    Read at `max_age=0` — this is the state our own batches change, and a
+    cached answer is how already-existing statements get re-proposed.
+    """
+    held: Set[str] = set()
+    people = list(people)
+    # ~150 VALUES items overflow the WDQS GET URI (HTTP 414).
+    for start in range(0, len(people), 120):
+        chunk = people[start:start + 120]
+        values = " ".join(f"wd:{q}" for q in chunk)
+        rows = sparql(session, f"""SELECT DISTINCT ?p WHERE {{
+          VALUES ?p {{ {values} }} ?p p:P39/ps:P39 wd:{target} .
+        }}""", max_age=0)
+        held.update(row["p"] for row in rows)
+    return held
+
+
 def holder_counts(session: Session, qids: Sequence[str]) -> Dict[str, int]:
     """Holders per item, any rank — the gate that is not in `position.py`.
 
