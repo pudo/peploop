@@ -157,6 +157,32 @@ def main() -> None:
         bad += 1
         print(f"FAIL unmatched qualifier must not fail the tenure: {got.failures}")
 
+    # A recorded statement that says nothing about the constituency is not
+    # finished: QS merges the qualifier into it. Only with one statement for the
+    # office — with two, QS cannot know which one the qualifier belongs to.
+    one = dossier(tenures=[{"position": "Q9", "start": "2013", "end": "2017",
+                            "position_label": "Minister of Roads",
+                            "qualifiers": ["P580", "P582"]}])
+    got = check({"qid": "Q1", "proposals": [proposal(district="Legnica district")]},
+                one, GAZ, qualifiers={"P768": DISTRICTS})[0]
+    rule = records("s", one, [got], campaign="c")[0].decision.rule
+    if rule != "qualifies_existing_statement":
+        bad += 1
+        print(f"FAIL qualifying a recorded statement: got {rule} ({got.flags})")
+    two = dossier(tenures=[
+        {"position": "Q9", "start": "2013", "end": "2017", "qualifiers": ["P580"]},
+        {"position": "Q9", "start": "2019", "end": "2023", "qualifiers": ["P580"]}])
+    got = check({"qid": "Q1", "proposals": [proposal(district="Legnica district")]},
+                two, GAZ, qualifiers={"P768": DISTRICTS})[0]
+    if "ambiguous_merge_target" not in got.flags:
+        bad += 1
+        print(f"FAIL two statements must not take a merged qualifier: {got.flags}")
+    # And nothing to add is still a skip.
+    got = check({"qid": "Q1", "proposals": [proposal()]}, one, GAZ)[0]
+    if "already_recorded" not in got.failures:
+        bad += 1
+        print(f"FAIL recorded with nothing to add must skip: {got.flags}")
+
     # The birth-date gate: prose against the article's own births category.
     d = dossier()
     d.birth_evidence = Evidence(qid="Q1", title="t")
@@ -175,7 +201,7 @@ def main() -> None:
         bad += 1
         print(f"FAIL birth date contradicting its category: {got.failures}")
 
-    total = len(CASES) + 7
+    total = len(CASES) + 10
     if bad:
         raise SystemExit(f"\n{bad} of {total} enrichment checks failed")
     print(f"{total} enrichment checks pass (rules, undated split, qualifier "

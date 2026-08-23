@@ -283,9 +283,19 @@ def render_qualifiers(sets: Dict[str, Gazetteer]) -> str:
             continue
         any_set = True
         blocks += [f"## {labels.get(prop, prop)}", ""]
-        blocks += [f"{e.qid} | {e.label or '(no label)'}"
-                   + (f" | {e.description}" if e.description else "")
-                   for e in sorted(gazetteer.entries, key=lambda e: e.qid)]
+        # Aliases, not just the label. A Polish constituency is *labelled* by
+        # number ("Sejm Constituency no. 11") and *named* by place in its
+        # aliases ("Sieradz electoral district"), while the evidence says
+        # "okręgu sieradzkim". Printing the label alone asks the model to know a
+        # place-to-number mapping it has no way to have, and it correctly
+        # declined: one district named across 130 proposals.
+        for e in sorted(gazetteer.entries, key=lambda e: e.qid):
+            parts = [f"{e.qid} | {e.label or '(no label)'}"]
+            if e.aliases:
+                parts.append("also: " + "; ".join(e.aliases))
+            if e.description:
+                parts.append(e.description)
+            blocks.append(" | ".join(parts))
         blocks.append("")
     if not any_set:
         return ""

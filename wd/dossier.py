@@ -387,6 +387,16 @@ def build(
     # the "already recorded" section is a list of bare QIDs, and the model
     # cannot tell whether a statement it is about to propose is the same office
     # under another item — the first run asked for exactly this, in a note.
+    # Which qualifier properties each recorded tenure already carries. Without
+    # this, "the statement is already there" cannot be told apart from "the
+    # statement is there and says nothing about the constituency", and the
+    # second is a fix the loop can make.
+    for tenure in item["tenures"]:
+        for claim in (entity.get("claims") or {}).get("P39", []):
+            snak = (claim.get("mainsnak") or {}).get("datavalue", {}).get("value", {})
+            if (snak or {}).get("id") != tenure.get("position"):
+                continue
+            tenure.setdefault("qualifiers", sorted(claim.get("qualifiers") or {}))
     held = [t["position"] for t in item["tenures"] if t.get("position")]
     if held:
         labels = fetch_entities(session, sorted(set(held)), props="labels")

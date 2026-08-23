@@ -251,22 +251,6 @@ def check(
                 flags.append("gazetteer_hit")
             else:
                 failures.append("position_not_in_gazetteer")
-            failures.extend(_dates_ok(proposal, flags))
-            state = _tenure_state(proposal, recorded) if target else "new"
-            if state == "recorded":
-                flags.append("already_recorded")
-                failures.append("already_recorded")
-            elif state == "undated":
-                # QuickStatements matches on subject, property and value, so a
-                # dated line merges its qualifiers into the statement already
-                # there — which is exactly right for *one* undated statement and
-                # exactly wrong for several, hence `several_terms` below.
-                flags.append("undated_statement")
-            if proposal.get("acting"):
-                flags.append("acting")
-            # Optional enrichment: an unmatched qualifier is dropped from the
-            # statement and never fails the tenure. The tenure is the claim; the
-            # constituency is a detail, and losing a detail must not cost a P39.
             for field, prop in (("district", "P768"), ("group", "P4100")):
                 named = " ".join((proposal.get(field) or "").split()).casefold()
                 if not named:
@@ -277,6 +261,34 @@ def check(
                     flags.append(f"{field}_resolved")
                 else:
                     flags.append(f"{field}_unmatched")
+            failures.extend(_dates_ok(proposal, flags))
+            state = _tenure_state(proposal, recorded) if target else "new"
+            if state == "recorded":
+                # Already there is not the end of it: the statement may say
+                # nothing about the constituency or the caucus, and QuickStatements
+                # merges a qualifier into the statement it finds. Only safe when
+                # there is exactly one statement for the office — with two, QS has
+                # no way to know which one the qualifier belongs to.
+                on_target = [t for t in recorded
+                             if t.get("position") == proposal.get("position_qid")]
+                have = set(on_target[0].get("qualifiers") or []) if on_target else set()
+                adding = set(result.qualifiers) - have
+                if adding and len(on_target) == 1:
+                    flags.append("qualifies_existing_statement")
+                elif adding:
+                    flags.append("ambiguous_merge_target")
+                    failures.append("already_recorded")
+                else:
+                    flags.append("already_recorded")
+                    failures.append("already_recorded")
+            elif state == "undated":
+                # QuickStatements matches on subject, property and value, so a
+                # dated line merges its qualifiers into the statement already
+                # there — which is exactly right for *one* undated statement and
+                # exactly wrong for several, hence `several_terms` below.
+                flags.append("undated_statement")
+            if proposal.get("acting"):
+                flags.append("acting")
             entry = next((e for e in gazetteer.entries if e.qid == target), None)
             if entry and proposal.get("start") and entry.inception:
                 if proposal["start"][:4] < entry.inception:

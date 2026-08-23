@@ -381,6 +381,15 @@ ENRICH_RULES: Tuple[Rule, ...] = (
         "the position QID was not in the gazetteer for this run",
     ),
     # 3. Already there. The diff-against-item discipline, made a rule.
+    #: The statement is there and says nothing about the constituency or the
+    #: caucus. QuickStatements merges a qualifier into the statement it finds,
+    #: so this is the same shape as `dates_existing_statement` — an existing
+    #: claim made more useful rather than a new one. Must precede
+    #: `already_recorded`, which is the same state minus anything to add.
+    Rule(
+        "qualifies_existing_statement", has("qualifies_existing_statement"), APPLY,
+        "the recorded statement lacks a qualifier the evidence supplies",
+    ),
     Rule(
         "already_recorded", has("fail_already_recorded"), SKIP,
         "the item already carries this statement",
