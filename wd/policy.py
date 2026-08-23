@@ -452,13 +452,28 @@ ENRICH_RULES: Tuple[Rule, ...] = (
         "low_confidence", has("low_confidence"), SKIP,
         "the model reported it for a human to look at",
     ),
-    # 8. Several dated terms against one undated statement. QuickStatements
-    #    would merge them all into it; the API would leave it standing beside
-    #    them. Either way the undated statement has to go, and removal is the
-    #    human gate — so this is a surgical list, not a batch line.
+    # 8. What neither write path can do. These precede every applying rule,
+    #    because each of them is a set of proposals that individually look fine.
+    #
+    #    A recorded span the evidence contradicts: one of the two is wrong and
+    #    this engine cannot know which, so it is not an add.
+    Rule(
+        "contradicts_recorded", has("fail_contradicts_recorded"), BYPRODUCT,
+        "the recorded span and the evidence disagree — a human decides which",
+    ),
+    #    Several merges onto one office: QuickStatements folds them all into the
+    #    same statement, and the API leaves the original beside them. Either way
+    #    the original has to go first, and removal is the human gate.
     Rule(
         "undated_needs_removal", has("several_terms"), BYPRODUCT,
-        "several dated terms against one undated statement — remove it first",
+        "several terms merging onto one statement — remove it first",
+    ),
+    #    A merge and a creation onto one office. Both paths through QS and the
+    #    lines fold together; split across paths and QS afterwards faces two
+    #    statements and folds into whichever it finds. No safe order exists.
+    Rule(
+        "mixed_write_paths", has("mixed_write_paths"), BYPRODUCT,
+        "this office needs both a merge and a new statement — no safe order",
     ),
     # 9. Now the applying rules, specific before general — the general one last
     #    or it swallows the tiers and drops their qualifiers.
@@ -473,6 +488,13 @@ ENRICH_RULES: Tuple[Rule, ...] = (
         "dates_existing_statement",
         has("undated_statement"), APPLY,
         "the office is recorded undated; the dates make it emittable",
+    ),
+    #: The statement is open-ended and the evidence closes it. Same tenure,
+    #: better recorded — a merge, and reading it as a new tenure is what
+    #: duplicated four Polish seats.
+    Rule(
+        "closes_existing_statement", has("closes_existing_statement"), APPLY,
+        "the recorded statement is open-ended and the evidence ends it",
     ),
     Rule(
         "acting", has("acting"), APPLY,

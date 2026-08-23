@@ -197,6 +197,48 @@ def main() -> None:
         bad += 1
         print(f"FAIL qualifier snaks: {[q.property for q in st.qualifiers]}")
 
+    # An open-ended statement that the evidence closes is the same tenure, not a
+    # new one. Reading it as new duplicated four Polish seats in a claims file.
+    open_ended = dossier(tenures=[{"position": "Q9", "start": "2013", "end": None,
+                                   "qualifiers": ["P580"]}])
+    got = check({"qid": "Q1", "proposals": [proposal()]}, open_ended, GAZ)[0]
+    rule = records("s", open_ended, [got], campaign="c")[0].decision.rule
+    if rule != "closes_existing_statement":
+        bad += 1
+        print(f"FAIL closing an open-ended statement: got {rule} ({got.flags})")
+
+    # A recorded span the evidence contradicts is a human's call, not an add.
+    other = dossier(tenures=[{"position": "Q9", "start": "2013", "end": "2021",
+                              "qualifiers": ["P580", "P582"]}])
+    got = check({"qid": "Q1", "proposals": [proposal()]}, other, GAZ)[0]
+    rule = records("s", other, [got], campaign="c")[0].decision.rule
+    if rule != "contradicts_recorded":
+        bad += 1
+        print(f"FAIL contradicting span: got {rule} ({got.flags})")
+
+    # One office needing both a merge and a new statement has no safe write
+    # order, so the whole person is surgical rather than a batch line.
+    mixed = check({"qid": "Q1", "proposals": [
+        proposal(),                                   # closes the open-ended one
+        proposal(start="2019", end="2023",
+                 quote="served as Minister of Roads from 2013 to 2017"),
+    ]}, open_ended, GAZ)
+    rules = {records("s", open_ended, [c], campaign="c")[0].decision.rule
+             for c in mixed}
+    if rules != {"mixed_write_paths"}:
+        bad += 1
+        print(f"FAIL merge plus creation on one office: got {rules}")
+
+    # The structural backstop: every merge rule must be named in the renderer's
+    # refusal list, or a future rule could be routed to the API silently.
+    merge_rules = {"dates_existing_statement", "closes_existing_statement",
+                   "qualifies_existing_statement"}
+    text = (Path(__file__).resolve().parent / "render_edit_plan.py").read_text()
+    missing = [r for r in merge_rules if f'"{r}"' not in text]
+    if missing:
+        bad += 1
+        print(f"FAIL render_edit_plan.py must refuse to API-route: {missing}")
+
     # The birth-date gate: prose against the article's own births category.
     d = dossier()
     d.birth_evidence = Evidence(qid="Q1", title="t")
@@ -215,7 +257,7 @@ def main() -> None:
         bad += 1
         print(f"FAIL birth date contradicting its category: {got.failures}")
 
-    total = len(CASES) + 12
+    total = len(CASES) + 15
     if bad:
         raise SystemExit(f"\n{bad} of {total} enrichment checks failed")
     print(f"{total} enrichment checks pass (rules, undated split, qualifier "

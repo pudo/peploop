@@ -44,6 +44,14 @@ from wd.validate import check, collapsing_groups, conflicting_tenures
 
 DATA_DIR = REPO_ROOT / "data"
 
+#: Decision rules that edit a statement already on the item. QuickStatements
+#: matches on subject, property and value and folds the qualifiers in; the API
+#: has no such behaviour, so none of these may ever be routed to it.
+MERGE_RULES = frozenset({
+    "dates_existing_statement", "closes_existing_statement",
+    "qualifies_existing_statement",
+})
+
 #: QuickStatements writes a reference property as "S" + number; the API wants
 #: the property itself.
 QS_REFERENCE = re.compile(r"^S(\d+)$")
@@ -303,6 +311,19 @@ def main() -> None:
         }
         if not keys & contested:
             continue
+        # A record that *edits an existing statement* must never come here. The
+        # API creates rather than merges, so routing a merge to it writes a
+        # second statement instead of qualifying the first — which is how five
+        # duplicate Polish tenures reached a rendered claims payload. The
+        # producer is supposed to have made this combination a byproduct
+        # (`wd/policy.py:mixed_write_paths`); this is the structural backstop, so
+        # a future rule cannot reintroduce it silently.
+        if MERGE_RULES & {record["decision"].get("rule")}:
+            raise SystemExit(
+                f"! {record['subject']['qid']} would send a merge "
+                f"({record['decision'].get('rule')}) to the API, which creates "
+                "rather than merges. Refusing to render."
+            )
         qid = record["subject"]["qid"]
         payload = by_subject.setdefault(
             qid, {"id": qid, "label": record["subject"].get("label"), "claims": {}}

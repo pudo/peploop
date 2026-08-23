@@ -158,29 +158,42 @@ def _tenure_state(
     Reading `undated` as `recorded` is the easy bug, because "does every date
     that exists on both sides agree" is trivially true when one side has none.
     """
+    def same(a: Optional[str], b: Optional[str]) -> bool:
+        span = min(len(a or ""), len(b or ""))
+        return bool(span) and a[:span] == b[:span]
+
     dated_proposal = bool(proposal.get("start") or proposal.get("end"))
-    undated_match = False
+    undated_match = closes = conflicts = False
     for tenure in recorded:
         if tenure.get("position") != proposal.get("position_qid"):
             continue
-        if not (tenure.get("start") or tenure.get("end")):
+        old_start, old_end = tenure.get("start"), tenure.get("end")
+        new_start, new_end = proposal.get("start"), proposal.get("end")
+        if not (old_start or old_end):
             if not dated_proposal:
                 return "recorded"    # undated both sides: nothing to add
             undated_match = True
             continue
-        for key in ("start", "end"):
-            new, old = proposal.get(key), tenure.get(key)
-            if new and old:
-                span = min(len(new), len(old))
-                if new[:span] != old[:span]:
-                    break
-            elif new or old:
-                # One side dates this bound and the other does not. Not the same
-                # span; a coarser record is handled by the shared-precision
-                # comparison above, an absent bound is a different tenure.
-                break
-        else:
+        if not same(new_start, old_start):
+            continue                 # a different spell of the same office
+        # Starts agree. What the ends do decides which of four things this is.
+        if same(new_end, old_end) or (not new_end and not old_end):
             return "recorded"
+        if new_end and not old_end:
+            # The statement is open-ended and the evidence closes it. Same
+            # tenure, better recorded — a merge, not a new statement, and
+            # treating it as new is what put five duplicates in a claims file.
+            closes = True
+        elif old_end and not new_end:
+            continue                 # our version is weaker; leave it alone
+        else:
+            # Both dated and disagreeing. One of them is wrong and this engine
+            # cannot know which, so it is a human's call rather than an add.
+            conflicts = True
+    if conflicts:
+        return "conflicts"
+    if closes:
+        return "closes"
     return "undated" if undated_match else "new"
 
 
@@ -281,6 +294,11 @@ def check(
                 else:
                     flags.append("already_recorded")
                     failures.append("already_recorded")
+            elif state == "closes":
+                flags.append("closes_existing_statement")
+            elif state == "conflicts":
+                flags.append("contradicts_recorded")
+                failures.append("contradicts_recorded")
             elif state == "undated":
                 # QuickStatements matches on subject, property and value, so a
                 # dated line merges its qualifiers into the statement already
@@ -367,22 +385,51 @@ def check(
             flags.append("low_confidence")
         out.append(result)
 
-    # One undated statement cannot absorb several dated terms: QuickStatements
-    # would merge them all into it, leaving one statement carrying every start
-    # and every end with nothing pairing them up — the Q1368615 shape. Adding
-    # them through the API instead leaves the undated statement in place beside
-    # the new ones, so the undated one has to be removed, and removal is a human
-    # gate. Mark the class rather than guessing.
-    per_office: Dict[str, int] = {}
+    # Which write path each proposal needs, counted per office. A *merge* edits
+    # a statement that already exists (QuickStatements matches on subject,
+    # property and value and folds the qualifiers in); a *creation* adds one
+    # (only the API does that, because QS would fold it into the existing
+    # statement instead).
+    #
+    # Two rules follow, and both are about what neither path can do:
+    #
+    # * **Several merges onto one office.** QS would fold them all into the same
+    #   statement, leaving it carrying every start and every end with nothing
+    #   pairing them up — the Q1368615 shape, already live from Ecuador.
+    # * **A merge and a creation onto one office.** Both through QS and the two
+    #   lines fold together; split across paths and QuickStatements afterwards
+    #   faces two statements and folds into whichever it finds. There is no safe
+    #   order, so the person is a surgical case rather than a batch line. Five
+    #   duplicate claims reached a rendered payload before this rule existed.
+    merges: Dict[str, int] = {}
+    creates: Dict[str, int] = {}
     for c in out:
-        if "undated_statement" in c.flags:
-            key = c.proposal.get("position_qid") or ""
-            per_office[key] = per_office.get(key, 0) + 1
+        if c.proposal.get("property") != "P39":
+            continue
+        key = c.proposal.get("position_qid") or ""
+        if MERGE_FLAGS & set(c.flags):
+            merges[key] = merges.get(key, 0) + 1
+        elif not c.failures:
+            creates[key] = creates.get(key, 0) + 1
     for c in out:
-        if ("undated_statement" in c.flags
-                and per_office.get(c.proposal.get("position_qid") or "", 0) > 1):
+        if c.proposal.get("property") != "P39":
+            continue
+        key = c.proposal.get("position_qid") or ""
+        if merges.get(key, 0) > 1:
             c.flags.append("several_terms")
+        elif merges.get(key, 0) and creates.get(key, 0):
+            c.flags.append("mixed_write_paths")
     return out
+
+
+#: Flags meaning "this edits a statement that already exists". Every one of them
+#: is a QuickStatements merge and must never reach the API, which creates rather
+#: than merges — that is how a correct `qualifies_existing_statement` became a
+#: duplicate statement in a claims payload.
+MERGE_FLAGS = frozenset({
+    "undated_statement", "closes_existing_statement",
+    "qualifies_existing_statement",
+})
 
 
 #: Which `.qs` concern a property belongs to. `render_edit_plan.py` groups the
