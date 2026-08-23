@@ -67,13 +67,17 @@ PROPOSAL_SCHEMA: Dict[str, Any] = {
         "start": NULLABLE,
         "end": NULLABLE,
         "acting": {"type": "boolean"},
+        #: Named, never a QID — matched against the qualifier sets afterwards.
+        "district": NULLABLE,
+        "group": NULLABLE,
         "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
         "quote": {"type": "string"},
         "source": {"type": "string"},
         "reason": {"type": "string"},
     },
     "required": ["property", "position_qid", "office_name", "value", "start",
-                 "end", "acting", "confidence", "quote", "source", "reason"],
+                 "end", "acting", "district", "group", "confidence", "quote",
+                 "source", "reason"],
     "additionalProperties": False,
 }
 
@@ -102,6 +106,8 @@ class Checked:
     failures: List[str] = field(default_factory=list)
     #: The resolved value: a QID for P27/P21, a normalised date for P569.
     resolved: Optional[str] = None
+    #: Extra P39 qualifiers whose named value matched a closed set.
+    qualifiers: Dict[str, str] = field(default_factory=dict)
 
     @property
     def ok(self) -> bool:
@@ -111,6 +117,7 @@ class Checked:
         return {
             "qid": self.qid, "flags": sorted(self.flags),
             "failures": sorted(self.failures), "resolved": self.resolved,
+            "qualifiers": dict(self.qualifiers),
             **self.proposal,
         }
 
@@ -184,6 +191,7 @@ def check(
     *,
     recorded: Optional[Sequence[Dict[str, Any]]] = None,
     resolved: Optional[Dict[str, str]] = None,
+    qualifiers: Optional[Dict[str, Gazetteer]] = None,
 ) -> List[Checked]:
     """Run every mechanical check over one person's proposals.
 
@@ -200,6 +208,16 @@ def check(
     than a review row.
     """
     resolved = resolved or {}
+    # Label -> QID per qualifier property, folded so a case or spacing
+    # difference does not silently drop a correct value.
+    qualifier_index: Dict[str, Dict[str, str]] = {}
+    for prop, qualifier_set in (qualifiers or {}).items():
+        index: Dict[str, str] = {}
+        for entry in qualifier_set.entries:
+            for text in [entry.label, *entry.aliases]:
+                if text:
+                    index.setdefault(" ".join(text.split()).casefold(), entry.qid)
+        qualifier_index[prop] = index
     qid = verdict.get("qid", "")
     if recorded is None:
         recorded = dossier.item.get("tenures") or []
@@ -246,6 +264,19 @@ def check(
                 flags.append("undated_statement")
             if proposal.get("acting"):
                 flags.append("acting")
+            # Optional enrichment: an unmatched qualifier is dropped from the
+            # statement and never fails the tenure. The tenure is the claim; the
+            # constituency is a detail, and losing a detail must not cost a P39.
+            for field, prop in (("district", "P768"), ("group", "P4100")):
+                named = " ".join((proposal.get(field) or "").split()).casefold()
+                if not named:
+                    continue
+                found = qualifier_index.get(prop, {}).get(named)
+                if found:
+                    result.qualifiers[prop] = found
+                    flags.append(f"{field}_resolved")
+                else:
+                    flags.append(f"{field}_unmatched")
             entry = next((e for e in gazetteer.entries if e.qid == target), None)
             if entry and proposal.get("start") and entry.inception:
                 if proposal["start"][:4] < entry.inception:
@@ -381,6 +412,8 @@ def _statement(checked: Checked, url: Optional[str]) -> Optional[Statement]:
             qualifiers.append(Snak("P580", Value.time(proposal["start"])))
         if proposal.get("end"):
             qualifiers.append(Snak("P582", Value.time(proposal["end"])))
+        for prop, qid in sorted(checked.qualifiers.items()):
+            qualifiers.append(Snak(prop, Value.item(qid)))
     references = [Snak(IMPORT_URL, Value.url(url))] if url else []
     return Statement(prop, value, qualifiers=qualifiers, references=references,
                      # The source named a start and no end, rather than not

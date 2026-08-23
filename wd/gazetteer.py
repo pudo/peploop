@@ -38,6 +38,27 @@ COUNTRY_OFFICES = """SELECT DISTINCT ?pos WHERE {
   { ?pos wdt:P17 wd:%(country)s } UNION { ?pos wdt:P1001 wd:%(country)s }
 }"""
 
+#: Closed candidate sets for the P39 qualifiers worth asserting. Same principle
+#: as the position gazetteer: the model names the thing in prose and may only be
+#: matched against a set we fetched, so it can never invent an identifier.
+#:
+#: A set is frequently **empty**, and that is a finding rather than a gap —
+#: Guatemala has no electoral-district items and no parliamentary-group items at
+#: all, so those qualifiers cannot be asserted there however good the evidence
+#: is. Report the measurement; do not reach for a looser match.
+QUALIFIER_CLASSES = {
+    #: P768 electoral district — the constituency a seat was won in.
+    "P768": "Q192611",
+    #: P4100 parliamentary group — the caucus, not the party. `P102` is the
+    #: person-level party claim and is a different statement.
+    "P4100": "Q848197",
+}
+
+QUALIFIER_QUERY = """SELECT DISTINCT ?x WHERE {
+  ?x p:P31/ps:P31/wdt:P279* wd:%(cls)s . ?x wdt:P17 wd:%(country)s
+}"""
+
+
 #: The same office under another name. A ministry renamed each cabinet is
 #: several items on Wikidata and a roster's rows are on record under whichever
 #: one covered the term — see `Office.date_targets` in `wd/campaign.py`.
@@ -228,3 +249,52 @@ def for_country(session: Session, country_qid: str) -> Gazetteer:
     return Gazetteer(
         scope=f"country {country_qid}", entries=describe(session, qids)
     )
+
+
+def for_qualifier(
+    session: Session, prop: str, country_qid: str
+) -> Gazetteer:
+    """The items a P39 qualifier may name, for one country.
+
+    Empty is a normal answer and means the qualifier is unavailable for this
+    country, not that the run failed. Check `entries` before offering it.
+    """
+    cls = QUALIFIER_CLASSES.get(prop)
+    if not cls or not country_qid:
+        return Gazetteer(scope=f"{prop} in {country_qid}", entries=[])
+    rows = sparql(
+        session, QUALIFIER_QUERY % {"cls": cls, "country": country_qid}, max_age=0
+    )
+    return Gazetteer(
+        scope=f"{prop} in {country_qid}",
+        entries=describe(session, sorted({r["x"] for r in rows})),
+    )
+
+
+def render_qualifiers(sets: Dict[str, Gazetteer]) -> str:
+    """The qualifier sets as one cacheable block. Skips the empty ones."""
+    blocks = ["# Qualifier values you may name", ""]
+    labels = {"P768": "electoral districts (P768) — the constituency a seat was "
+                      "won in",
+              "P4100": "parliamentary groups (P4100) — the caucus, not the party"}
+    any_set = False
+    for prop, gazetteer in sorted(sets.items()):
+        if not gazetteer.entries:
+            continue
+        any_set = True
+        blocks += [f"## {labels.get(prop, prop)}", ""]
+        blocks += [f"{e.qid} | {e.label or '(no label)'}"
+                   + (f" | {e.description}" if e.description else "")
+                   for e in sorted(gazetteer.entries, key=lambda e: e.qid)]
+        blocks.append("")
+    if not any_set:
+        return ""
+    blocks += [
+        "Name one of these in `district` or `group` when the evidence states it,",
+        "using the label as written above. Leave the field null otherwise — an",
+        "unnamed qualifier costs nothing, and a guessed one is a wrong statement",
+        "on a public database. If a qualifier list is absent above, that value",
+        "cannot be asserted for this country at all.",
+        "",
+    ]
+    return "\n".join(blocks)

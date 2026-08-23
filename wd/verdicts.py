@@ -102,15 +102,37 @@ class Ledger:
     done: set = field(default_factory=set)
     _lock: threading.Lock = field(default_factory=threading.Lock)
 
+    #: Prompt hashes seen in the file, for the staleness check below.
+    seen_prompts: set = field(default_factory=set)
+
     def load(self) -> "Ledger":
         if self.path.exists():
             for line in self.path.read_text().splitlines():
                 if line.strip():
                     try:
-                        self.done.add(json.loads(line)[self.key])
-                    except (json.JSONDecodeError, KeyError):
+                        row = json.loads(line)
+                    except json.JSONDecodeError:
                         continue
+                    stamp = (row.get("_pass") or {}).get("prompt_sha")
+                    if stamp:
+                        self.seen_prompts.add(stamp)
+                    if self.key in row:
+                        self.done.add(row[self.key])
         return self
+
+    def stale_for(self, prompt: str) -> bool:
+        """Were these verdicts produced by a different prompt than this one?
+
+        The ledger's whole value is that an answered item is not re-asked, which
+        is also its whole risk: change the instructions or the schema and the
+        answers stop being comparable, silently, because the key is still the
+        QID. `_pass` exists to make that visible — a run that adds a field to the
+        schema wants to know that its ledger predates it.
+        """
+        if not self.seen_prompts:
+            return False
+        current = hashlib.sha256(prompt.encode()).hexdigest()[:12]
+        return current not in self.seen_prompts
 
     def write(self, rows: Iterable[Dict[str, Any]]) -> None:
         with self._lock:

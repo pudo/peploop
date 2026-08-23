@@ -37,7 +37,8 @@ from wd.dossier import build as build_dossier
 from wd.dossier import build_roster_index
 from wd.enrich import (VERDICT_SCHEMA, check, flag_summary, records,
                       resolve_offices, unresolved_offices)
-from wd.gazetteer import describe, for_country, for_target
+from wd.gazetteer import (describe, for_country, for_qualifier,
+                          for_target, render_qualifiers)
 from wd.http import REPO_ROOT, make_session
 from wd.record import dumps
 from wd.shape import verify_all
@@ -64,6 +65,8 @@ def main() -> None:
                         help="skip the shared officeholder-list channel")
     parser.add_argument("--no-resolve", action="store_true",
                         help="skip placing offices the gazetteer did not offer")
+    parser.add_argument("--no-qualifiers", action="store_true",
+                        help="skip the P768/P4100 qualifier sets")
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--effort", default=EFFORT,
                         choices=["low", "medium", "high", "xhigh", "max"])
@@ -113,6 +116,18 @@ def main() -> None:
     print(f"gazetteer: {len(gazetteer.entries)} offices ({gazetteer.scope})",
           file=sys.stderr)
 
+    # Qualifier sets, per country and closed. Empty is a normal answer: it means
+    # the value cannot be asserted here — Guatemala has no electoral-district and
+    # no parliamentary-group items at all.
+    quals: dict = {}
+    territory = lookup_territory(spec.position_country or "", fuzzy=True)
+    if territory and territory.qid and not args.no_qualifiers:
+        for prop in ("P768", "P4100"):
+            quals[prop] = for_qualifier(session, prop, territory.qid)
+        print("qualifiers: " + ", ".join(
+            f"{p}={len(g.entries)}" for p, g in sorted(quals.items())),
+            file=sys.stderr)
+
     cohort = build_cohort(session, spec)
     print(f"cohort: {cohort.sizes} dropped={cohort.reasons()}", file=sys.stderr)
     people = cohort.held if args.backtest else cohort.todo
@@ -152,12 +167,18 @@ def main() -> None:
 
     name = "backtest" if args.backtest else "verdicts"
     ledger = Ledger(out / f"{name}.jsonl").load()
+    prompt = args.prompt.read_text()
+    if ledger.stale_for(prompt):
+        print(f"! {ledger.path.name} was judged under a different prompt "
+              f"({', '.join(sorted(ledger.seen_prompts))} vs this one). Those "
+              "rows will not be re-asked and may lack fields this run expects — "
+              "move the file aside to re-judge.", file=sys.stderr)
     usage = classify(
         [{"qid": i["qid"], "label": i["label"]} for i in items],
-        prompt=args.prompt.read_text(),
+        prompt=prompt,
         item_schema=VERDICT_SCHEMA,
         ledger=ledger,
-        extra_system=[gazetteer.render()],
+        extra_system=[b for b in (gazetteer.render(), render_qualifiers(quals)) if b],
         render=lambda batch: next(
             i["_dossier"].render() for i in items if i["qid"] == batch[0]["qid"]
         ),
@@ -207,7 +228,7 @@ def main() -> None:
                 session, row["qid"], topics=topics, body=False
             ).item["tenures"]
         found = check(row, dossier, gazetteer, recorded=recorded,
-                      resolved=placed)
+                      resolved=placed, qualifiers=quals)
         checks.extend(found)
         report.append((row, found, recorded))
 

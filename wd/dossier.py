@@ -122,6 +122,19 @@ class Dossier:
         """No article anywhere. There is nothing to judge and nothing to buy."""
         return not self.fragments
 
+    @staticmethod
+    def _fold(text: str) -> str:
+        """Whitespace and dash variants only.
+
+        The gate has to fail a paraphrase — that is the whole point — but a
+        model typing a hyphen where this file renders an en dash has not
+        paraphrased anything, and the two are visually identical. Nothing else
+        is folded: case, punctuation and wording all still have to match.
+        """
+        for dash in "\u2010\u2011\u2012\u2013\u2014\u2015\u2212":
+            text = text.replace(dash, "-")
+        return " ".join(text.split())
+
     def contains(self, quote: str) -> bool:
         """Does this span actually occur in the evidence?
 
@@ -130,7 +143,7 @@ class Dossier:
         `scripts/classify_jurisdictions.py`'s stray-QID guard — a schema
         constrains a field's shape and never its value.
         """
-        needle = " ".join((quote or "").split())
+        needle = self._fold(quote or "")
         if len(needle) < 8:      # too short to be evidence of anything
             return False
         # Check against the *rendered* dossier — the exact text the model was
@@ -142,7 +155,7 @@ class Dossier:
         # this file prints ("Member of the Sejm — 2023-11-13"). A quote gate that
         # fails on evidence we presented is worse than no gate: it discards
         # truthful work and looks like the model hallucinating.
-        return needle in " ".join(self.render().split())
+        return needle in self._fold(self.render())
 
     def render(self) -> str:
         head = [

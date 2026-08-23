@@ -77,6 +77,22 @@ office, not a match.
   all, a birth date is the difference between this person being emitted as a PEP
   and vanishing entirely. It still needs real evidence.
 
+## Qualifiers on a P39
+
+If you were given qualifier lists — electoral districts, parliamentary groups —
+name a value from them in `district` or `group` when the evidence states it,
+using the label as written. These are the same closed sets as the offices: a
+value that is not on the list cannot be asserted, and there is no field for
+naming one in prose.
+
+Leave them null whenever the evidence does not say. An unnamed qualifier costs
+nothing and is dropped silently; a guessed one is a wrong statement on a public
+database. If no qualifier list appears at all, that value cannot be asserted for
+this country and you should not try.
+
+`group` is the **caucus** a member sat in, not their party. The party is a
+separate claim about the person and not a qualifier on the seat.
+
 ## Category membership is a hint, never a fact
 
 The category that swept this person in is a *candidate generator*. Categories
