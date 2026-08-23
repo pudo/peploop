@@ -226,7 +226,8 @@ def main() -> None:
         target = record["statements"][0]["value"].get("id") if record["statements"] else None
         by_position.setdefault(target, []).append(record)
 
-    counts = {"add": 0, "add_held": 0, "reject": 0, "unclear": 0}
+    counts = {"add": 0, "add_held": 0, "reject": 0, "unclear": 0,
+              "byproduct": 0}
     applied: list[dict] = []
     # A create subject has no target item yet; sort those last.
     for position, items in sorted(
@@ -238,6 +239,13 @@ def main() -> None:
             ("add_held", "Held — believed, but no rule releases this tier yet", "hold"),
             ("reject", "Skipped — decided against, with a reason", "skip"),
             ("unclear", "Review — evidence still missing", "review"),
+            # `byproduct` was in `wd/record.py:ACTIONS` from the start and no
+            # producer had ever emitted one, so it rendered as nothing at all —
+            # which for the enrichment loop meant 87 of 117 records vanished,
+            # including every office needing an item and every undated statement
+            # needing a human's removal before it can be dated.
+            ("byproduct", "Byproduct — a list for a human, not statements",
+             "byproduct"),
         ]:
             rows = [v for v in items if v["decision"]["action"] == action]
             rows.sort(key=lambda v: (v["decision"].get("rule") or "", v["subject"]["qid"]))
@@ -254,6 +262,12 @@ def main() -> None:
                     md.append(f"  * source: {source_of(v)}")
                 if v.get("notes"):
                     md.append(f"  * notes: {v['notes']}")
+                if bucket == "byproduct" and v.get("byproduct"):
+                    payload = ", ".join(
+                        f"{k}={val}" for k, val in sorted(v["byproduct"].items())
+                        if val and k != "quote"
+                    )
+                    md.append(f"  * {payload}")
                 if bucket == "add":
                     applied.append(v)
                     qs.extend(qs_lines(v, args.retrieved))
@@ -313,6 +327,9 @@ def main() -> None:
         f"{tenures} via the API for {len(claims_payloads)} people with several "
         f"tenures in one office), {counts['add_held']} held, "
         f"{counts['reject']} skipped, {counts['unclear']} to review"
+        # Only when there are any, so a campaign that emits none renders
+        # byte-identically to before this bucket existed.
+        + (f", {counts['byproduct']} byproduct" if counts["byproduct"] else "")
     )
     md.insert(1, summary)
     plan_md.write_text("\n".join(md) + "\n")

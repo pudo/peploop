@@ -354,3 +354,131 @@ __all__ = [
     "Candidate", "Facts", "Rule", "Ruling",
     "DEFAULT_RULES", "decide", "has", "always", "tally",
 ]
+
+
+#: The enrichment loop's table, over the flags `wd/enrich.py:check` produces.
+#: Separate from `DEFAULT_RULES` because the questions are different: a campaign
+#: asks "does this roster row belong on this item", and an enrichment run asks
+#: "did the mechanical channel confirm what the model read".
+#:
+#: The order is the same kind of load-bearing. Everything that says *this
+#: proposal is not usable* has to precede everything that says *what kind of
+#: statement it is*, because a proposal can be `acting` and unverifiable at
+#: once. Failures come first, and the terminal rule is `skip` rather than
+#: `review`: conservatism belongs in the rules, and a tier a human rules on
+#: later is the thing this table exists to prevent.
+ENRICH_RULES: Tuple[Rule, ...] = (
+    # 1. The evidence is not in the evidence. Nothing else about the proposal
+    #    matters, and this is the check no schema can do.
+    Rule(
+        "quote_unverified", has("fail_quote_not_in_evidence"), SKIP,
+        "the quoted span does not occur in the dossier it cites",
+    ),
+    # 2. A QID nobody offered. The gazetteer is the closed set precisely so
+    #    this is detectable rather than plausible.
+    Rule(
+        "position_invented", has("fail_position_not_in_gazetteer"), SKIP,
+        "the position QID was not in the gazetteer for this run",
+    ),
+    # 3. Already there. The diff-against-item discipline, made a rule.
+    Rule(
+        "already_recorded", has("fail_already_recorded"), SKIP,
+        "the item already carries this statement",
+    ),
+    # 4. Malformed or impossible. Ours to fix, not Wikidata's.
+    Rule(
+        "malformed", has("fail_malformed_start", "fail_malformed_end",
+                        "fail_malformed_date", "fail_start_after_end"), SKIP,
+        "the proposed dates are malformed or impossible",
+    ),
+    Rule(
+        "before_inception", has("fail_starts_before_inception"), SKIP,
+        "the term starts before the office existed",
+    ),
+    Rule(
+        "january_first", has("fail_january_first_placeholder"), SKIP,
+        "a day-precise 1 January is a year-precision import, not a birthday",
+    ),
+    # 5. One channel is not two. `dob_one_channel` is the measured gate from
+    #    `tasks/birthdates.md`: the infobox against the article's own births
+    #    category, which different editors maintain.
+    Rule(
+        "dob_one_channel", has("fail_dob_one_channel",
+                               "fail_dob_disagrees_with_infobox"), SKIP,
+        "the birth date has no second, independently maintained channel",
+    ),
+    Rule(
+        "unresolvable_value", has("fail_country_unresolved",
+                                  "fail_gender_unrecognised"), SKIP,
+        "the named value did not resolve to an item",
+    ),
+    Rule(
+        "unnamed_office", has("fail_unresolved_without_a_name"), SKIP,
+        "no QID and no office name — nothing to act on or to create",
+    ),
+    # 6. An office the run could not offer an item for. Not a failure and not a
+    #    statement: a byproduct list, carrying an attested holder and a quote.
+    #    Whether an item exists is a separate question — `wd/positions.py` answers
+    #    it, and only a genuine miss is a creation candidate.
+    Rule(
+        "office_unresolved", has("office_unresolved"), BYPRODUCT,
+        "the office is named but this run offered no item for it",
+    ),
+    # 7. The model's own hedge, honoured. Nothing is relaxed to raise a count.
+    Rule(
+        "low_confidence", has("low_confidence"), SKIP,
+        "the model reported it for a human to look at",
+    ),
+    # 8. Several dated terms against one undated statement. QuickStatements
+    #    would merge them all into it; the API would leave it standing beside
+    #    them. Either way the undated statement has to go, and removal is the
+    #    human gate — so this is a surgical list, not a batch line.
+    Rule(
+        "undated_needs_removal", has("several_terms"), BYPRODUCT,
+        "several dated terms against one undated statement — remove it first",
+    ),
+    # 9. Now the applying rules, specific before general — the general one last
+    #    or it swallows the tiers and drops their qualifiers.
+    #
+    #    `dates_existing_statement` precedes `dated_tenure` because it is the
+    #    same edit with a different meaning: the statement is already there and
+    #    undated, so no Occupancy can be produced from it at all, and a
+    #    QuickStatements line merges the dates into it rather than adding a
+    #    second statement. This is the largest single class of fix the loop
+    #    finds — 31 of 42 recorded Sejm seats.
+    Rule(
+        "dates_existing_statement",
+        has("undated_statement"), APPLY,
+        "the office is recorded undated; the dates make it emittable",
+    ),
+    Rule(
+        "acting", has("acting"), APPLY,
+        "an acting or interim spell, applied with P2868 = Q4676846",
+        qualifiers={"P2868": "Q4676846"},
+    ),
+    Rule(
+        "dated_tenure", has("gazetteer_hit"), APPLY,
+        "the office is in the gazetteer and the quote checks out",
+    ),
+    Rule(
+        "birth_date", has("dob_two_channel"), APPLY,
+        "the infobox and the births category agree",
+    ),
+    Rule(
+        "citizenship", has("country_resolved"), APPLY,
+        "the country named resolved to an item",
+    ),
+    #: P21 moves nothing downstream — `zavod` reads it nowhere. Applied because
+    #: Wikidata wants it, and kept its own rule so a run can report it as the
+    #: Wikidata-quality lane it is rather than as PEP yield.
+    Rule(
+        "gender_wikidata_only", has("wikidata_only"), APPLY,
+        "a Wikidata-quality statement; no OpenSanctions record moves",
+    ),
+    # 9. Terminal. Every case gets a disposition and this one is a skip with a
+    #    reason, not a queue.
+    Rule(
+        "unmatched", always, SKIP,
+        "no applying rule matched this proposal",
+    ),
+)

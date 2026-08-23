@@ -35,9 +35,11 @@ from wd.backtest import COARSER, CONTAINED, NEAR, SAME_TERM, ExistingTerm, compa
 from wd.cohort import build as build_cohort
 from wd.dossier import build as build_dossier
 from wd.dossier import build_roster_index
-from wd.enrich import VERDICT_SCHEMA, check, flag_summary, unresolved_offices
+from wd.enrich import (VERDICT_SCHEMA, check, flag_summary, records,
+                      unresolved_offices)
 from wd.gazetteer import for_country, for_target
 from wd.http import REPO_ROOT, make_session
+from wd.record import dumps
 from wd.shape import verify_all
 from wd.specs import BUCKET, load_specs, roster_pages
 from wd.verdicts import EFFORT, MODEL, Ledger, classify
@@ -187,6 +189,34 @@ def main() -> None:
 
     (out / f"{name}_checked.json").write_text(json.dumps(
         [c.as_dict() for c in checks], indent=1, ensure_ascii=False))
+
+    # Edit records, in the one schema every renderer reads. Written even in
+    # backtest mode, where every rule should fire `already_recorded` — a
+    # backtest that produced applyable statements would mean the loop is
+    # re-proposing what it was scored against.
+    produced = []
+    for row, found, _ in report:
+        dossier = dossiers.get(row.get("qid"))
+        if dossier is not None:
+            produced.extend(records(spec.key, dossier, found,
+                                    campaign=f"enrich_{slug(spec.key)}"))
+    verdicts = out / "verdicts"
+    verdicts.mkdir(parents=True, exist_ok=True)
+    stem = f"enrich_{name}.jsonl"
+    (verdicts / stem).write_text(dumps(produced))
+    # `render_edit_plan.py` renders only what the manifest owns, which is what
+    # stopped a superseded office key contributing 91 records to a batch.
+    (verdicts / "manifest.json").write_text(
+        json.dumps({"files": [stem]}, indent=1) + "\n")
+    actions: dict = {}
+    for record in produced:
+        key = f"{record.decision.action}/{record.decision.rule}"
+        actions[key] = actions.get(key, 0) + 1
+    print(f"\n{len(produced)} records -> {verdicts / stem}")
+    for key, count in sorted(actions.items(), key=lambda kv: (-kv[1], kv[0])):
+        print(f"  {count:>4}  {key}")
+    print(f"\n  render with: scripts/render_edit_plan.py --campaign "
+          f"enrich/{slug(spec.key)} --retrieved <YYYY-MM-DD>")
     print(f"\n{len(checks)} proposals, {sum(1 for c in checks if c.ok)} passing "
           f"every check")
     for flag, count in flag_summary(checks).items():

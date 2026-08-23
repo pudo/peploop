@@ -30,6 +30,8 @@ from rigour.territories import lookup_territory
 
 from wd.dossier import Dossier
 from wd.gazetteer import Gazetteer
+from wd.policy import ENRICH_RULES, Candidate, Facts, decide
+from wd.record import Decision, Record, Signal, Snak, Statement, Subject, Value
 
 #: Properties a proposal may target. `P21` is here because Wikidata wants it,
 #: not because it moves anything downstream: `zavod` reads `P21` nowhere at all
@@ -128,12 +130,34 @@ def _dates_ok(proposal: Dict[str, Any], flags: List[str]) -> List[str]:
     return bad
 
 
-def _tenure_recorded(
+def _tenure_state(
     proposal: Dict[str, Any], recorded: Sequence[Dict[str, Any]]
-) -> bool:
-    """Is this tenure already on the item? Compared at shared precision."""
+) -> str:
+    """How this proposal stands against what the item records for the office.
+
+    Three outcomes, and the middle one is the whole point of the loop:
+
+    * `recorded` — the same office over the same span, compared at the precision
+      the two share. Nothing to do.
+    * `undated` — the office is on the item with **no dates at all**, and the
+      proposal has some. Not a duplicate: it is the statement that exists and
+      cannot produce an Occupancy, because `zavod` refuses one when nothing is
+      dated. 31 of 42 recorded Sejm seats are in this state, and treating them as
+      already-recorded suppressed every single fix.
+    * `new` — no statement for this office.
+
+    Reading `undated` as `recorded` is the easy bug, because "does every date
+    that exists on both sides agree" is trivially true when one side has none.
+    """
+    dated_proposal = bool(proposal.get("start") or proposal.get("end"))
+    undated_match = False
     for tenure in recorded:
         if tenure.get("position") != proposal.get("position_qid"):
+            continue
+        if not (tenure.get("start") or tenure.get("end")):
+            if not dated_proposal:
+                return "recorded"    # undated both sides: nothing to add
+            undated_match = True
             continue
         for key in ("start", "end"):
             new, old = proposal.get(key), tenure.get(key)
@@ -141,9 +165,14 @@ def _tenure_recorded(
                 span = min(len(new), len(old))
                 if new[:span] != old[:span]:
                     break
+            elif new or old:
+                # One side dates this bound and the other does not. Not the same
+                # span; a coarser record is handled by the shared-precision
+                # comparison above, an absent bound is a different tenure.
+                break
         else:
-            return True
-    return False
+            return "recorded"
+    return "undated" if undated_match else "new"
 
 
 def check(
@@ -187,9 +216,16 @@ def check(
             else:
                 failures.append("position_not_in_gazetteer")
             failures.extend(_dates_ok(proposal, flags))
-            if target and _tenure_recorded(proposal, recorded):
+            state = _tenure_state(proposal, recorded) if target else "new"
+            if state == "recorded":
                 flags.append("already_recorded")
                 failures.append("already_recorded")
+            elif state == "undated":
+                # QuickStatements matches on subject, property and value, so a
+                # dated line merges its qualifiers into the statement already
+                # there — which is exactly right for *one* undated statement and
+                # exactly wrong for several, hence `several_terms` below.
+                flags.append("undated_statement")
             if proposal.get("acting"):
                 flags.append("acting")
             entry = next((e for e in gazetteer.entries if e.qid == target), None)
@@ -250,6 +286,140 @@ def check(
         if proposal.get("confidence") == "low":
             flags.append("low_confidence")
         out.append(result)
+
+    # One undated statement cannot absorb several dated terms: QuickStatements
+    # would merge them all into it, leaving one statement carrying every start
+    # and every end with nothing pairing them up — the Q1368615 shape. Adding
+    # them through the API instead leaves the undated statement in place beside
+    # the new ones, so the undated one has to be removed, and removal is a human
+    # gate. Mark the class rather than guessing.
+    per_office: Dict[str, int] = {}
+    for c in out:
+        if "undated_statement" in c.flags:
+            key = c.proposal.get("position_qid") or ""
+            per_office[key] = per_office.get(key, 0) + 1
+    for c in out:
+        if ("undated_statement" in c.flags
+                and per_office.get(c.proposal.get("position_qid") or "", 0) > 1):
+            c.flags.append("several_terms")
+    return out
+
+
+#: Which `.qs` concern a property belongs to. `render_edit_plan.py` groups the
+#: review document by it; the batch itself is one file.
+CONCERNS = {"P39": "p39", "P569": "dob", "P27": "citizenship", "P21": "gender"}
+
+#: A Wikipedia permalink is an *import*, not a source. `S4656` (Wikimedia import
+#: URL) is where it goes; `S854` reference URL is for a real citation, and a
+#: linter rightly rejects a wiki URL there.
+IMPORT_URL = "S4656"
+
+
+def _statement(checked: Checked, url: Optional[str]) -> Optional[Statement]:
+    """One proposal as a statement, with its own qualifiers and references."""
+    proposal = checked.proposal
+    prop = proposal.get("property")
+    if prop == "P39":
+        # No QID means there is nothing to assert. An office named in prose is a
+        # byproduct, and a statement whose value is absent would render as
+        # `{"type": "item"}` — malformed, and only visible once it reached a
+        # batch.
+        if not proposal.get("position_qid"):
+            return None
+        value = Value.item(proposal["position_qid"])
+    elif prop == "P569":
+        if not checked.resolved:
+            return None
+        value = Value.time(checked.resolved)
+    elif prop in ("P27", "P21"):
+        if not checked.resolved:
+            return None
+        value = Value.item(checked.resolved)
+    else:
+        return None
+
+    qualifiers: List[Snak] = []
+    if prop == "P39":
+        if proposal.get("start"):
+            qualifiers.append(Snak("P580", Value.time(proposal["start"])))
+        if proposal.get("end"):
+            qualifiers.append(Snak("P582", Value.time(proposal["end"])))
+    references = [Snak(IMPORT_URL, Value.url(url))] if url else []
+    return Statement(prop, value, qualifiers=qualifiers, references=references,
+                     # The source named a start and no end, rather than not
+                     # offering one — `wd/validate.py` reads the difference.
+                     end_withheld=bool(proposal.get("start")
+                                       and not proposal.get("end")))
+
+
+def records(
+    spec_key: str,
+    dossier: Dossier,
+    checks: Sequence[Checked],
+    *,
+    campaign: str,
+) -> List[Record]:
+    """Turn one person's checked proposals into edit records.
+
+    One record per proposal, so every one carries the rule that decided it and
+    the review document is an account rather than a queue. A person's several
+    tenures in one office therefore arrive as several records — which is exactly
+    the shape `render_edit_plan.py` partitions into `edit_plan_claims.json`,
+    because QuickStatements would merge them into one statement carrying every
+    start and every end with nothing pairing them up.
+    """
+    urls = {f.source: f.url for f in dossier.fragments}
+    out: List[Record] = []
+    for checked in checks:
+        proposal = checked.proposal
+        flags = list(checked.flags) + [f"fail_{f}" for f in checked.failures]
+        ruling = decide(
+            Candidate(
+                qid=checked.qid,
+                target=proposal.get("position_qid") or "",
+                flags=tuple(flags),
+                identity="quote",
+                office=spec_key,
+            ),
+            Facts(),
+            rules=ENRICH_RULES,
+        )
+        statement = _statement(checked, urls.get(proposal.get("source") or ""))
+        if statement is not None:
+            for prop, qid in ruling.qualifiers.items():
+                statement.qualifiers.append(Snak(prop, Value.item(qid)))
+        byproduct = None
+        if ruling.disposition == "byproduct":
+            byproduct = {
+                "office_name": proposal.get("office_name"),
+                "holder": checked.qid,
+                "start": proposal.get("start"),
+                "end": proposal.get("end"),
+                "quote": proposal.get("quote"),
+            }
+        out.append(Record(
+            campaign=campaign,
+            subject=Subject(qid=checked.qid, label=dossier.label or checked.qid),
+            statements=[statement] if statement is not None else [],
+            decision=Decision(
+                action=ruling.disposition,
+                rule=ruling.rule,
+                source=ruling.source,
+                concern=CONCERNS.get(proposal.get("property") or "", "other"),
+                rationale=ruling.rationale,
+            ),
+            office=spec_key,
+            identity={"channel": "quote", "source": proposal.get("source")},
+            flags=flags,
+            signals=[Signal(
+                channel=proposal.get("source") or "dossier",
+                supports=proposal.get("property") or "",
+                detail=(proposal.get("quote") or "")[:300],
+                source_url=urls.get(proposal.get("source") or ""),
+            )],
+            notes=proposal.get("reason") or "",
+            byproduct=byproduct,
+        ))
     return out
 
 
@@ -284,6 +454,6 @@ def flag_summary(checks: Sequence[Checked]) -> Dict[str, int]:
 
 
 __all__ = [
-    "Checked", "GENDERS", "PROPERTIES", "PROPOSAL_SCHEMA", "VERDICT_SCHEMA",
-    "check", "flag_summary", "unresolved_offices",
+    "Checked", "CONCERNS", "GENDERS", "PROPERTIES", "PROPOSAL_SCHEMA",
+    "VERDICT_SCHEMA", "check", "flag_summary", "records", "unresolved_offices",
 ]
