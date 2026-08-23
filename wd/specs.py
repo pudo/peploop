@@ -13,14 +13,20 @@ progress is a spec whose `position:` block can be deleted, and
 `Spec.retirable_when` names what that takes.
 """
 
+import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import yaml
+from requests import Session
 
+from wd.http import get_text
 from wd.positions import country_names
+from wd.wikipedia import fetch_pages
+
+WD_API = "https://www.wikidata.org/w/api.php"
 
 #: The config lives in the opensanctions repo; this workbench only reads it.
 YML = Path(
@@ -152,3 +158,58 @@ def load_specs(path: Path = YML, position_only: bool = True) -> List[Spec]:
             )
         )
     return specs
+
+
+def category_item(
+    session: Session, sites: Sequence[str], category: str
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """The Wikidata item for a Wikipedia category page, and the wiki it is on.
+
+    `sites` is tried one request per site, so the caller learns *which* wiki has
+    the category rather than only that one does.
+
+    `normalize=1` is load-bearing: every wiki localises the category namespace
+    ("Категория:", "Kategorie:"), and without it the English `Category:` prefix
+    simply misses on a non-English wiki.
+    """
+    title = "Category:" + category.replace("_", " ").strip()
+    for site in sites:
+        raw = get_text(
+            session,
+            WD_API,
+            params={
+                "action": "wbgetentities", "format": "json",
+                "sites": site, "titles": title, "normalize": "1",
+                "props": "labels|descriptions|claims|sitelinks",
+            },
+        )
+        entities = json.loads(raw).get("entities", {})
+        for qid, entity in entities.items():
+            if qid.startswith("-") or "missing" in entity:
+                continue
+            return entity, site[: -len("wiki")]
+    return None, None
+
+
+def roster_pages(session: Session, spec: Spec) -> List[Tuple[str, str]]:
+    """The officeholder-list articles for a spec's category, as (lang, title).
+
+    A category and its list article are two views of one roster, and the list is
+    the better one: it states terms, and a roster row carries better dates than
+    the biography it links to.
+
+    The link between them is the **eponymous-list convention** — a category
+    called "Posłowie na Sejm Rzeczypospolitej Polskiej X kadencji" sits beside an
+    article of exactly that name, 129 KB of tables. Note what does *not* work:
+    the category item's `P301` main topic, which is the obvious structured
+    signal and gives the *body* or the occupation instead ("International
+    Criminal Court", "Prosecutor") — a roster page is not what P301 is for.
+
+    Returns an empty list when no such article exists, which is common and not an
+    error: the run then falls back to per-person evidence. Several PEP categories
+    have no list article at all (the Supreme People's Assembly is one).
+    """
+    plain = spec.category.replace("_", " ").strip()
+    candidates = [plain, f"List of {plain[0].lower() + plain[1:]}"]
+    pages = fetch_pages(session, spec.language, candidates)
+    return [(spec.language, title) for title in candidates if title in pages]

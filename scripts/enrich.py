@@ -30,14 +30,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from rigour.territories import lookup_territory  # noqa: E402
 
+from wd.campaign import resolve_titles
 from wd.backtest import COARSER, CONTAINED, NEAR, SAME_TERM, ExistingTerm, compare
 from wd.cohort import build as build_cohort
 from wd.dossier import build as build_dossier
+from wd.dossier import build_roster_index
 from wd.enrich import VERDICT_SCHEMA, check, flag_summary, unresolved_offices
 from wd.gazetteer import for_country, for_target
 from wd.http import REPO_ROOT, make_session
 from wd.shape import verify_all
-from wd.specs import BUCKET, load_specs
+from wd.specs import BUCKET, load_specs, roster_pages
 from wd.verdicts import EFFORT, MODEL, Ledger, classify
 
 OUT_DIR = REPO_ROOT / "data" / "enrich"
@@ -56,6 +58,8 @@ def main() -> None:
                         help="run the already-recorded holders as a test set")
     parser.add_argument("--dossiers", action="store_true",
                         help="write dossiers and stop, no API call")
+    parser.add_argument("--no-rosters", action="store_true",
+                        help="skip the shared officeholder-list channel")
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--effort", default=EFFORT,
                         choices=["low", "medium", "high", "xhigh", "max"])
@@ -113,11 +117,25 @@ def main() -> None:
     if not people:
         raise SystemExit("nothing to do")
 
+    # Shared evidence, fetched once: a roster page names dozens of people, and
+    # a roster row states a term where a biography usually does not. Absent for
+    # many categories (there is no list article for the Supreme People's
+    # Assembly), which is a fallback rather than a failure.
+    index = None
+    if not args.no_rosters:
+        pages = roster_pages(session, spec)
+        if pages:
+            index = build_roster_index(session, pages, resolve=resolve_titles)
+            print(f"rosters: {len(index.rows)} rows from {len(pages)} page(s), "
+                  f"{len(index.by_qid)} linked to an item", file=sys.stderr)
+        else:
+            print("rosters: no list article for this category", file=sys.stderr)
+
     withhold = [spec.target] if (args.backtest and spec.target) else []
     items = []
     for member in people:
         dossier = build_dossier(session, member.qid, topics=topics,
-                                withhold=withhold)
+                                withhold=withhold, rosters=index)
         if dossier.empty:
             print(f"  skip {member.qid}: no article to read", file=sys.stderr)
             continue
@@ -186,28 +204,38 @@ def main() -> None:
         return
 
     # --- backtest scoring -------------------------------------------------- #
+    #
+    # Three different questions, kept apart. Conflating them is what made a
+    # clean run read as 13/72: `Comparison.target_agrees` is False whenever the
+    # recorded statement is *undated*, because `ExistingTerm.covers` needs two
+    # dates to overlap anything — and most legislature seats are recorded
+    # undated. That is not a disagreement, it is an absence of anything to
+    # disagree with, and it is also the single biggest thing this loop can fix.
     print("\n## Backtest — proposals against the statements that were hidden\n")
-    # Only proposals naming the office under test are scoreable. A proposal for
-    # some *other* office the article mentions is not a wrong answer — it is a
-    # creation candidate, and counting it as a target disagreement makes a
-    # perfect run read as 50%.
-    agree = dates_ok = total = 0
-    elsewhere = 0
+    recorded_total = matched = 0
+    dated_total = dated_ok = 0
+    new_terms = undatable = 0
     for row, found, recorded in report:
+        on_target = [t for t in (recorded or [])
+                     if t.get("position") == spec.target]
+        proposals = [c for c in found
+                     if c.proposal.get("property") == "P39"
+                     and c.proposal.get("position_qid") == spec.target]
+        recorded_total += len(on_target)
         terms = [
             ExistingTerm(position=t["position"], start=t.get("start"),
                          end=t.get("end"),
                          precision=11 if (t.get("start") or "").count("-") == 2
                          else 9 if t.get("start") else 0)
-            for t in (recorded or [])
+            for t in on_target
         ]
-        for c in found:
-            if c.proposal.get("property") != "P39":
-                continue
-            if c.proposal.get("position_qid") != spec.target:
-                elsewhere += 1
-                continue
-            total += 1
+        for tenure in on_target:
+            if not tenure.get("start"):
+                undatable += 1
+        # Recall: was each recorded tenure re-proposed at all? The loop is only
+        # allowed to have found the office, never the specific statement.
+        matched += min(len(proposals), len(on_target))
+        for c in proposals:
             comparison = compare(
                 campaign="enrich", office=spec.key, qid=row["qid"],
                 label=row.get("label", ""), target=spec.target or "",
@@ -215,31 +243,29 @@ def main() -> None:
                 period_raw=c.proposal.get("quote", "")[:80], terms=terms,
                 acting_predicted=bool(c.proposal.get("acting")),
             )
-            agree += comparison.target_agrees
-            dates_ok += comparison.verdict in (SAME_TERM, CONTAINED, NEAR, COARSER)
-            print(f"  {row['qid']:>11} proposed {c.proposal.get('position_qid')} "
-                  f"{c.proposal.get('start')}–{c.proposal.get('end')} | "
-                  f"recorded {comparison.target_actual} "
-                  f"{comparison.recorded_start}–{comparison.recorded_end} | "
-                  f"{comparison.verdict} | target_agrees={comparison.target_agrees}")
-    if total:
-        print(f"\n  target agreement          {agree}/{total}")
-        print(f"  dates not contradicting   {dates_ok}/{total}")
-    print(f"  proposals for other offices {elsewhere} "
-          f"(creation candidates, not scored)")
-    missed = [
-        (row["qid"], t)
-        for row, found, recorded in report
-        for t in (recorded or [])
-        if t.get("position") == spec.target
-        and not any(c.proposal.get("position_qid") == spec.target for c in found)
-    ]
-    # The number that actually matters: a recorded tenure the loop never
-    # proposed at all. A high target agreement over a handful of proposals is
-    # not recall.
-    print(f"  recorded tenures missed     {len(missed)}")
-    for qid, tenure in missed:
-        print(f"    {qid} {tenure.get('start')}–{tenure.get('end')}")
+            if comparison.recorded_start:
+                dated_total += 1
+                dated_ok += comparison.verdict in (SAME_TERM, CONTAINED, NEAR,
+                                                   COARSER)
+                print(f"  {row['qid']:>11} {c.proposal.get('start')}–"
+                      f"{c.proposal.get('end')} vs recorded "
+                      f"{comparison.recorded_start}–{comparison.recorded_end} "
+                      f"| {comparison.verdict}")
+            else:
+                new_terms += 1
+    print(f"\n  recorded tenures on target       {recorded_total}")
+    print(f"  ...of which recorded undated     {undatable}"
+          f"   <- what a dated proposal would fix")
+    print(f"  recall: recorded tenures re-found {matched}/{recorded_total}")
+    if dated_total:
+        print(f"  dates agree where there was a date {dated_ok}/{dated_total}")
+    print(f"  proposals with no matching record  {new_terms}"
+          f"   <- new dated terms, unscoreable here")
+    print(f"  proposals for other offices        "
+          f"{sum(1 for _, f, _ in report for c in f
+                 if c.proposal.get('property') == 'P39'
+                 and c.proposal.get('position_qid') != spec.target)}"
+          f"   <- out of this gazetteer, NOT all creation candidates")
 
 
 if __name__ == "__main__":
