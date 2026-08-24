@@ -144,15 +144,31 @@ def create_entity(
 
 
 def edit_entity(
-    payload: dict, summary: str, ledger: Ledger, ref: str, apply: bool = False
+    payload: dict, summary: str, ledger: Ledger, ref: str, apply: bool = False,
+    baserevid: Optional[int] = None,
 ) -> bool:
-    """Add claims to an existing item, or report what would be added.
+    """Add or remove claims on an existing item, or report what would happen.
 
-    Reach for this for the statements QuickStatements cannot express — today
-    that means a person's several tenures in one office, which QS folds into a
-    single statement with every date on it. `payload` is a wikibase-edit entity
-    blob (`{"id": …, "claims": {…}}`), so all of one person's tenures go in one
-    atomic edit and either all land or none do.
+    Reach for this for the statements QuickStatements cannot express — a
+    person's several tenures in one office, which QS folds into a single
+    statement with every date on it, and any edit that has to *remove* a
+    statement. `payload` is a wikibase-edit entity blob
+    (`{"id": …, "claims": {…}}`) and goes out as one `wbeditentity`, so the
+    whole thing lands or none of it does, in one revision.
+
+    A claim entry of `{"id": <guid>, "remove": true}` removes that statement,
+    and it may sit in the same payload as the claims replacing it
+    (`wikibase-edit`'s `build_claim.ts` accepts it and `entity/edit` sends one
+    `wbeditentity`). That atomicity is the whole reason a split is safe: there
+    is no window where the old statement is gone and the new ones are not, and
+    one revision undoes the lot. Note wikibase-edit's own `claim/move` does
+    remove-then-add as *two* edits — this is a property of `entity/edit`, not a
+    pattern the library models, so do not "helpfully" split it.
+
+    `baserevid` is the optimistic-concurrency guard, and any payload that
+    removes something should pass it: the edit is rejected if the item moved
+    since the revision you read, rather than applied to state nobody inspected.
+    `wd/api.py:fetch_entities` returns `lastrevid` for exactly this.
 
     Returns whether anything was written. The ledger is what makes a re-run
     safe: unlike QuickStatements, the API creates every claim it is given, so
@@ -165,6 +181,8 @@ def edit_entity(
         "wb", "edit-entity", json.dumps(payload, ensure_ascii=False),
         "--summary", summary, "--maxlag", str(MAXLAG),
     ]
+    if baserevid is not None:
+        args += ["--baserevid", str(baserevid)]
     if not apply:
         _run(args + ["--dry"])
         return False
