@@ -353,6 +353,13 @@ recipes/     country_sweep.md                          # the method, written onc
 research/    <topic>.md                                # measured conventions a recipe cites
 tasks/       followups.md + <topic>.md                 # human-gate backlog; briefs only for non-sweep campaigns
 regression/  <campaign>/                               # committed verdicts + .qs from a known-good run
+             ---- the person-first path (recipes/enrichment_loop.md) ----
+wd/          specs.py cohort.py                        # a wd_categories.yml query as a unit of work
+             gazetteer.py dossier.py                   # the closed QID sets; one person's evidence
+             enrich.py verdicts.py                     # the mechanical channel; the Anthropic SDK pass
+scripts/     spec_report.py retirable.py               # what blocks each spec; which queries can be deleted
+             enrich.py check_enrich.py                 # the runner; the offline pins
+prompts/     person_enrichment.md                      # the committed instructions
 data/        (gitignored) cache/ and per-campaign output
 ```
 

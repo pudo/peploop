@@ -10,10 +10,12 @@ every institution nobody declared is invisible, which is why
 This inverts the unit: the person is the unit, their article is the evidence, and
 the offices they turn out to have held are discovered rather than configured.
 
-The frame is `wd_categories.yml` in the `opensanctions` repo — 594 PETScan
-queries that mass-include people as PEPs **because** their Wikidata items lack
-the statements that would find them properly, 284 of which paper over that with a
-synthetic position that has no Wikidata identity at all. A run enriches one
+The frame is `wd_categories.yml` in the `opensanctions` repo — a few hundred
+PETScan queries that mass-include people as PEPs **because** their Wikidata items
+lack the statements that would find them properly, and around 240 of those paper
+over it with a synthetic position that has no Wikidata identity at all. (It was
+594 and 284 when this was written; the count falls as queries retire, which is
+the point. `scripts/spec_report.py` is the live answer.) A run enriches one
 query's members. It closes when that query is deletable, which is a definition of
 done a campaign never had, and which is measured rather than declared.
 
@@ -90,6 +92,25 @@ as a bug if the prompt does not say it (`recipes/position_items.md`).
 
 `p:P31/ps:P31`, never `wdt:`. A live spec target is invisible to `wdt:P31`.
 
+**Qualifier values come from closed sets too.** `for_qualifier` builds them per
+country for `P768` electoral district and `P4100` parliamentary group, and the
+model names a value in prose exactly as it names a country. Two things about
+them are easy to get wrong:
+
+- **Render the aliases, not just the label.** A Polish constituency is
+  *labelled* by number ("Sejm Constituency no. 11") and *named* by place in its
+  aliases ("Sieradz electoral district"), while the evidence says "okręgu
+  sieradzkim". With labels alone the model named one district in 130 proposals,
+  because bridging that gap would mean knowing a place-to-number mapping it has
+  no way to have. With aliases: 56 in 117.
+- **An empty set is an answer.** Guatemala has no electoral-district and no
+  parliamentary-group items at all, so the block is omitted rather than offered
+  and the qualifier simply cannot be asserted there. That is the `∅ measured`
+  disposition from `coverage/README.md`, not a gap to close.
+
+An unmatched qualifier is dropped and never fails the tenure: the tenure is the
+claim, the constituency is a detail, and losing a detail must not cost a P39.
+
 ## 3. Dossier — fetch shared evidence once
 
 `wd/dossier.py:build` assembles one person's packet out of existing primitives:
@@ -140,12 +161,57 @@ fetched", at no marginal cost, and it catches what a JSON schema structurally
 cannot — `output_config.format` constrains every field's shape and no field's
 value.
 
-**Distinguish three states, not two.** A recorded statement that is *undated* is
-not a duplicate: `zavod` refuses an Occupancy when nothing is dated, so it
-produces no PEP at all, and dating it is the largest single class of fix the loop
-finds (31 of 42 recorded Sejm seats). Reading it as already-recorded is the easy
-bug — "do all the dates present on both sides agree" is trivially true when one
-side has none.
+**"Already recorded" is five states, not two**, and `_tenure_state` answers
+which. Collapsing them is where every write-path bug in this loop has come from,
+because each wrong answer is a plausible-looking statement:
+
+| state | what it means | what to do |
+|---|---|---|
+| `recorded` | same office, same span | nothing |
+| `undated` | the office is recorded with **no dates at all** | date it — a QS merge |
+| `closes` | recorded open-ended, the evidence ends it | close it — a QS merge |
+| `conflicts` | both dated and disagreeing | a human decides which is wrong |
+| `new` | no statement for this office | create it |
+
+Two of those are counter-intuitive and both cost real duplicates before they
+existed. **`undated` is not a duplicate** — `zavod` refuses an Occupancy when
+nothing is dated, so the statement produces no PEP at all, and 31 of 42 recorded
+Sejm seats are in that state. **`closes` is not a new tenure** — live
+`2021-03-16–None` against evidence `2021-03-16–2023` is the same spell better
+recorded. The shared failure is that "do all the dates present on both sides
+agree" is trivially true when one side has none.
+
+### 5a. Place the offices the gazetteer never offered
+
+A single-target gazetteer makes **every other office a person held** read as
+unresolved by construction, so `office_unresolved` is not a creation list until
+`resolve_offices` has run `wd/positions.py:lookup_position` over the names. Its
+own gate is two-signal — a label variant must match *and* the item's own
+`P17`/`P1001` must resolve to the country — which is why a match there is
+allowed to become a statement rather than a review row. The driver widens the
+gazetteer with what it places, so the invariant that every applied QID came from
+the gazetteer still holds.
+
+Two things the first pass got wrong, both worth knowing before trusting a match:
+
+- **A model writing for a reader disambiguates**, and a label search takes the
+  string literally: "Minister of Education and Science (Poland)", "Deputy Voivode
+  of Łódź Voivodeship (wicewojewoda łódzki)". Try the stripped form *and* the
+  parenthetical — the parenthetical is often the better query, because Wikidata
+  labels a Polish office in Polish. That went from 2 matches to 9. A parenthetical
+  that is merely a country is dropped, or "(Poland)" is searched as the country.
+- **`lookup_position`'s country gate accepts a bare `P17`, which lets a generic
+  office class through.** "Mayor (wójt) of Świlcza" matched `Q98637505 wójt`, the
+  Polish administrative rank, `P17=Poland` and no `P1001` at all. Writing a
+  specific village mayoralty onto that is the generic-occupation trap, and
+  `recipes/position_items.md` calls an office scoped to no polity a defect — so a
+  match must name the polity it governs.
+
+What is left after that *is* the creation list, and unlike the ~150 offices nine
+campaigns listed and never minted, each row arrives with an attested holder,
+dates and a quote. Poland: 6 names placed onto 4 items, 4 ambiguous, 3 rejected
+for no polity, and **51 genuinely item-less** — municipal councillors, sejmik
+members, deputy voivodes, government plenipotentiaries.
 
 ## 6. Policy, records, batch
 
@@ -158,21 +224,48 @@ usable* precedes everything that says *what kind of statement it is*. The
 terminal rule is `skip` with a reason, not `review` — conservatism belongs in the
 rules, and there is no queue.
 
-Which write path a statement takes is decided by the evidence, not by taste:
+### Merge or create — the distinction the whole write path turns on
 
-- **one undated statement, one dated proposal → QuickStatements.** QS matches on
-  subject, property and value and merges the qualifiers into the statement it
-  finds, which is exactly what is wanted.
-- **several dated terms against one undated statement → neither.** QS would fold
-  them all into it (the `Q1368615` shape) and the API would leave it standing
-  beside them. The undated statement has to be removed first, and removal is the
-  human gate — so this is `undated_needs_removal`, a byproduct list.
-- **several tenures, no undated statement → the claims path.**
-  `render_edit_plan.py` partitions those into `edit_plan_claims.json` already.
+Every P39 record is one of two things, and confusing them writes duplicates:
+
+- a **merge** edits a statement already on the item. QuickStatements matches an
+  incoming line on subject, property and *value* and folds its qualifiers into
+  the statement it finds, which is exactly the wanted behaviour. `MERGE_FLAGS`
+  names them: `undated_statement`, `closes_existing_statement`,
+  `qualifies_existing_statement`.
+- a **creation** adds a statement. Only the API does that, because QS would fold
+  it into the existing one instead.
+
+**The API creates and never merges.** So routing a merge there writes a second
+statement rather than improving the first — which is how a *correct*
+`qualifies_existing_statement` produced five duplicate claims in a rendered
+payload. `render_edit_plan.py` now refuses outright if a merge rule reaches the
+API path, rather than trusting the producer.
+
+Then three combinations neither path can carry out, all byproducts:
+
+- **several merges onto one office** — QS folds them all into the same statement,
+  leaving it with every start and every end and nothing pairing them up. That is
+  the `Q1368615` shape, already live from the Ecuador batch.
+  (`undated_needs_removal`)
+- **a merge and a creation onto one office** — through QS the lines fold
+  together; split across paths, QS afterwards faces two statements and folds into
+  whichever it finds. There is no safe order. (`mixed_write_paths`)
+- **a recorded span the evidence contradicts** — one of them is wrong and this
+  engine cannot know which. (`contradicts_recorded`)
+
+Everything else: **several tenures, none of them a merge → the claims path**,
+which `render_edit_plan.py` already partitions into `edit_plan_claims.json`.
+
+**Pre-flight before applying claims.** The API de-duplicates nothing and
+`claims_written.json` only protects a *re-run*, not a first run against state
+that moved. Read each payload against live claims (`max_age=0`) before
+`--apply`; that check is what caught the five duplicates.
 
 `byproduct` had never been emitted by any producer before this loop, so
-`render_edit_plan.py` had no bucket for it and dropped them silently. It has one
-now; if you add a disposition, check the renderer knows about it.
+`render_edit_plan.py` had no bucket for it and dropped 87 of 117 records
+silently. It has one now; if you add a disposition, check the renderer knows
+about it.
 
 ## 7. Backtest before proposing
 
@@ -204,14 +297,52 @@ dataset when the query goes, because deleting a spec removes its `topic:` too.
 
 ## 9. What has not been tested
 
-Say this out loud rather than discovering it later. As of 2026-08-23:
+Say this out loud rather than discovering it later. As of 2026-08-24:
 
-- **Position association has never actually been exercised.** Both runs were
-  single-office specs whose gazetteer held one item, so there was nothing to
-  choose between. The 24 `bucket` specs are where that question lives.
-- **`office_unresolved` is not a creation list.** For a single-target gazetteer
-  every other office is unresolved by construction. Run
-  `wd/positions.py:lookup_position` over those names first.
-- **Nothing has been written to Wikidata**, so no post-write verification exists,
-  and no `regression/` baseline is committed for a run.
-- Every statement so far cites only a Wikipedia permalink (`S4656`, no `S854`).
+- **Position association still has not been exercised.** Every run so far was a
+  single-office spec whose gazetteer held one item, so there was nothing to
+  choose between. The 24 `bucket` specs are where that question lives and none
+  has been run — `es:Alcaldes_de_Guatemala` is the obvious first.
+- **`undated_needs_removal` has nowhere to go.** 49 Polish records need a live
+  statement removed before their terms can be written, and nothing renders that
+  into a removal list — `wd/write.py:remove_claim` and
+  `scripts/apply_removals.py` both exist and are unwired.
+- **No `regression/` baseline** is committed for a run, which the repo's own
+  convention asks for and which matters more here than usual: see §10.
+- **The `P768` set is noisy.** It carries Senate constituencies, historical
+  2001–2011 ones and at least one outright settlement, because the `P279`
+  closure under `Q192611` reaches further than intended. Nothing wrong has been
+  proposed from it, but narrow it before trusting it elsewhere.
+- Every statement so far cites only a Wikipedia permalink (`S4656`, no `S854`),
+  and roughly half are year-precision.
+
+Since resolved, and left here because the reasoning still governs: office names
+outside the gazetteer *are* now placed by `wd/positions.py:lookup_position`
+(§5a), and statements *have* reached Wikidata — 128 for Polish MPs, 4 for
+Guatemalan deputies — all 102 P39 holders predicted to emit as PEPs.
+
+## 10. How this code fails
+
+Worth its own section, because it has been consistent enough to plan around.
+**Thirteen defects were found in this loop and its dependencies; not one was
+caught by a test.** Every one came from reading real output or pre-flighting a
+payload, and two were in `wd/` modules that had been running for weeks.
+
+The failure mode is always the same: **the code looks right and produces
+plausible output.** A quote gate that rejects truthful citations looks like the
+model hallucinating. A loop variable named `prop` renames the statement it hangs
+on and still renders valid QuickStatements. An undated statement read as a
+duplicate silently suppresses the loop's largest class of fix. A `13/72` score
+looks like a bad model.
+
+So the discipline is:
+
+1. **Dump the artifact and read it.** One dossier, one rendered `.qs` line, one
+   claims payload. `--dossiers` exists for this.
+2. **Audit a matcher's full output with resolved labels**, never a sample.
+   `Mayor (wójt) of Świlcza` matching the generic `wójt` rank, and 56 of 56
+   districts being right, both came out of that.
+3. **Pre-flight anything that writes**, against live state.
+4. **Pin it afterwards**, in `scripts/check_enrich.py`, from the bug that
+   shipped rather than from imagination. It is offline and tokenless, so there is
+   no excuse not to run it.

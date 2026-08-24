@@ -4,7 +4,7 @@ The evidence behind `recipes/enrichment_loop.md`. That file says what to do;
 this says what was counted, what it cost, and which of the counts are one run
 wide and should not be generalised.
 
-**Measured 2026-08-23.** Three kinds of evidence, kept apart because they age
+**Measured 2026-08-23/24.** Three kinds of evidence, kept apart because they age
 differently:
 
 - **Population counts** over `wd_categories.yml` and Wikidata, re-runnable with
@@ -16,10 +16,19 @@ differently:
 
 ## 1. The population
 
-`wd_categories.yml` has **594** PETScan specs. **284** attach a synthetic
-position (`h.make_position`, `wd-cat` hash id, no Wikidata identity) and **239**
-of those carry a resolved `wikidata_id` — **209** unique target QIDs, holding
-**63,353** P39 statements between them.
+`wd_categories.yml` had **594** PETScan specs when this was measured. **284**
+attached a synthetic position (`h.make_position`, `wd-cat` hash id, no Wikidata
+identity) and **239** of those carried a resolved `wikidata_id` — **209** unique
+target QIDs, holding **63,353** P39 statements between them.
+
+**These numbers go down as the project works, which is the point.** By
+2026-08-24 the same file read 551 / 241 / 196, because `scripts/retire_specs.py`
+had commented out 43 specs the ledger found removable. So a figure here is a
+measurement with a date on it and not a constant: re-run `scripts/spec_report.py`
+and `scripts/retirable.py` rather than quoting this section, and expect the
+denominator to shrink. `data/enrich/specs.json` is the live answer; it is
+gitignored, so the committed ledgers `coverage/petscan_specs.md` and
+`coverage/petscan_retirable.md` are the record.
 
 Distribution of those targets by how many holders they have:
 
@@ -141,7 +150,11 @@ One Opus 5 request per person at `effort=high`, two cached system blocks
 |---|---|---|
 | dossier size | ~13k chars (~3.2k tokens) | ~4k chars (~1k tokens) |
 | people | 3 | 40 backtest / 106 gap |
-| cost | $0.34 total | ~$0.04 per person |
+| cost | $0.34 total | **$4.57 for 106 = $0.043 each** |
+
+Guatemala's two Congress specs: 23 people, **$0.84**. So the working figure is
+**4¢ per person**, and the `enrich` class as a whole (72 specs, ~1,970 people
+pre-gate) is roughly **$85**, or ~$42 on the Batch API.
 
 Caching behaves as designed and is visible in the run log: 3,298 tokens written
 once on the first request and read on every one after it. The serialised first
@@ -188,24 +201,70 @@ than Wikidata, which is the right direction.
 len(on_target))`), so 41/42 means one person had fewer proposals than recorded
 tenures. It is a floor, and a crude one.
 
+### Guatemala (n=23 gap, en + es)
+
+A deliberately different second target: 8 specs over 5 offices, the same office
+reached from two wikis (`Presidentes_de_Guatemala` es and
+`Presidents_of_Guatemala` en both → `Q6085537`), a bucket spec, and two
+`os-policy` ones. **25 statements over 23 people for $0.84.**
+
+Its value was structural rather than numerical. Three of its five `enrich` specs
+were retired mid-session by `scripts/retire_specs.py` for the reasons
+`retirable.py` had computed (`48/50 already hold Q6085537; 2 leave the dataset`),
+which closed that pipeline end to end. And **its empty qualifier sets exposed a
+shadowing bug** that Poland would have hidden: see §9.
+
+### What reached Wikidata
+
+| | proposed | live and verified |
+|---|---:|---:|
+| Poland `P39` `Q19269361` | 102 | **102** |
+| Poland `P27` `Q36` | 22 | **22** |
+| Poland `P569` | 4 | **4** |
+| Guatemala `P39` `Q18277108` (API path) | 4 | **4** |
+
+The Polish batch went through QuickStatements; the Guatemalan four through
+`scripts/apply_claims.py --apply`, which was the first exercise of the claims
+path — two people with several tenures in one office, written atomically. A
+second run of it is a clean no-op, which matters because the API de-duplicates
+nothing and the ledger is the only guard.
+
+**All 102 Polish `P39` holders are predicted to emit as PEPs**, with zero
+remaining gaps (`wd/human.py:verify_all` against the office's own topics). That is
+the premise of the whole project and it had not been checked before. A live
+`yente` confirmation is still outstanding: OpenSanctions takes days to pick
+changes up.
+
+### The re-run, and what a cohort read means
+
+Poland's cohort `held` climbed 391 → 416 → 493 across three runs in ninety
+minutes. This looked like WDQS instability and was not: **the batch had been
+applied**, and `members_holding` reading at `max_age=0` saw its own effect. The
+`already_recorded` gate then correctly declined to re-propose. That is
+`STATE_MAX_AGE = 0` doing exactly the job the UAE incident created it for, and it
+is the reason a cohort count is not a stable number to plan against.
+
 ## 6. What not to generalise
 
-- **Two specs, one language family each.** Both are single-office specs where the
-  gazetteer holds one item, so **position association was never actually
-  tested**: there was nothing to choose between. The 24 `bucket` specs are where
-  that question lives and none has been run.
+- **Three specs, all single-office.** Every gazetteer so far held one item, so
+  **position association has still not been tested**: there was nothing to choose
+  between. The 24 `bucket` specs are where that question lives and none has been
+  run.
 - **Legislature membership is the easy case.** One item, no succession, and every
   member's term shares the same boundaries, so target and date agreement are
-  close to free. A good Poland score is necessary, not sufficient.
-- **`45 proposals for other offices` is not a creation list.** For a
-  single-target gazetteer every other office is unresolved by construction, and
-  "Senator of the Republic of Poland" plainly has an item.
-  `wd/positions.py:lookup_position` has to run over those names before any of
-  them is called a creation candidate.
+  close to free. A good Poland score is necessary, not sufficient. Every run here
+  is a legislature or a small executive office.
 - **Every statement cites only a Wikipedia permalink** (`S4656`, no `S854`).
-  `wd/validate.py` warns, correctly. Poland's batch is 18 of 19 at year
-  precision.
-- **Nothing has been applied to Wikidata**, so no post-write verification exists.
+  `wd/validate.py` warns, correctly, and roughly half are year-precision.
+- **The applied statements are not yet confirmed downstream.** They are
+  *predicted* to emit — 102 of 102, by replaying the crawl's gates — but
+  OpenSanctions takes days to pick changes up, so a live `yente` check is
+  outstanding.
+- **A cohort count is not stable.** Poland's `held` moved 391 → 416 → 493 in
+  ninety minutes because the batch was being applied underneath it. Size a run
+  from a fresh read, not from a number written down earlier.
+- **`undated_needs_removal` is unrouted.** 49 Polish records need a live
+  statement removed first and nothing renders that list.
 
 ## 7. The birth-date lane
 
@@ -236,6 +295,13 @@ as a third channel that still vetoes on contradiction.
 Same shape as `tasks/birthdates.md`'s per-country swing. **DOB is a per-spec
 decision, not a lane.**
 
+**Exercised, and the sizing held.** Poland's gap run produced six two-channel
+birth dates, of which four were new and applied — against the ceiling of 4-of-4
+measured before spending anything. The quotes are Polish prose (`ur. 7 września
+1983 w Lublinie`, `ur. 28 grudnia 1973 w Krzeszowicach`), which is the channel
+`harvest_dob.py` structurally cannot reach and `tasks/birthdates.md` lists as
+left on the table.
+
 Five of the eleven category patterns were wrong on the first pass and only real
 articles said so: Hungarian vowel harmony (`-ban` / `-ben`), Latvian word order
 (`1973. gadā dzimušie`), Czech `Narození v roce`, French writing the month in,
@@ -264,7 +330,38 @@ needs a real heading list or nothing.
 Several PEP categories have no list article at all — the Supreme People's
 Assembly is one — so the channel is a fallback rather than a guarantee.
 
-## 9. Bugs found by reading output
+## 9. P39 qualifiers
+
+Closed sets per country, same principle as the position gazetteer:
+
+| country | `P768` districts | `P4100` groups |
+|---|---:|---:|
+| Poland | 139 | 25 |
+| Guatemala | **0** | **0** |
+
+Guatemala has no items of either kind, so the qualifier cannot be asserted there
+at all and the block is omitted rather than offered.
+
+**Rendering decides whether the channel works.** A Polish constituency is
+*labelled* by number and *named* by place in its aliases, while the evidence says
+"okręgu legnickim":
+
+| what the model was shown | proposals naming a district or group |
+|---|---:|
+| label + description | **1 / 130** |
+| label + **aliases** + description | **56 / 117** |
+
+A 28× difference, entirely in the prompt's prefix. All 56 were audited against
+the article that proposed them: **56 correct**, including Warsaw II picked over
+Warsaw I from a category reading "okręgu Warszawa II". The two the audit itself
+flagged were its own crudeness — a five-character stem drops "Łódź", and the
+first alias word is "Warsaw" where Polish says "warszawskim".
+
+The set is **noisy** and was left so: it carries Senate constituencies,
+historical 2001–2011 ones, and one outright settlement ("Imionki PKP"), because
+the `P279` closure under `Q192611` reaches further than intended.
+
+## 10. Bugs found by reading output
 
 Every one silent, and the number that made each visible.
 
@@ -278,7 +375,21 @@ Every one silent, and the number that made each visible.
 | `accepted=` hid the person's existing tenures | the dossier said "do not propose anything already here" and listed nothing | `"tenures": [], "out_of_scope": 2` |
 | `topics` is a `Dict[str, Set[str]]`, not a set | would have crashed on the first person with an accepted tenure | reading the same dossier |
 | the retirable test used the pre-gate gap | 22 removable reported against 44 | building a real cohort |
+| `contains` searched `fragments`, not the rendered dossier | a 2% false-negative rate — four *correct* proposals rejected for citing the officebox section this code prints itself | reading the four "hallucinations" |
+| `for prop, gazetteer in qualifiers.items()` shadowed the parameter | Guatemala rejected its own target 12 times; Poland would have checked positions against 139 electoral districts | a second spec with empty qualifier sets |
+| `for prop, qid in checked.qualifiers.items()` shadowed the statement's property | a committed `.qs` line reading `Q103056893 P768 Q19269361` — valid syntax, wrong statement | reading the rendered line |
+| the qualifier block printed labels and not aliases | 1 district named in 130 proposals instead of 56 in 117 | comparing the block to the evidence wording |
+| a merge routed to the API creates instead of merging | five duplicate claims in a rendered payload | pre-flighting against live claims |
+| closing an open-ended statement read as a new tenure | four Polish seats would have doubled | the same pre-flight |
+| a contradicted span read as an addition | one Polish seat, `2007–2015` against `2007–2011` + `2011–2015` | the same pre-flight |
 
-The pattern is worth stating plainly: **not one of these was caught by a test,
-and every one was caught by looking at real output.** Two were in `wd/` modules
-the workbench had been running for weeks.
+The pattern is worth stating plainly: **thirteen defects, and not one was caught
+by a test.** Every one came from reading real output or pre-flighting a payload,
+and two were in `wd/` modules the workbench had been running for weeks.
+
+They fail the same way: **the code looks right and the output looks plausible.**
+A quote gate rejecting truthful citations looks like hallucination. A rebound
+loop variable still renders valid QuickStatements. A `13/72` score looks like a
+bad model. `recipes/enrichment_loop.md` §10 turns this into a working
+discipline; `scripts/check_enrich.py` is where each one is pinned afterwards, 27
+checks and offline.

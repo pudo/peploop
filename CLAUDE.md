@@ -53,6 +53,16 @@ Where things live:
   in the QuickStatements importer. Read it before starting a run rather than
   re-deriving the method; its calibration table says what countries of each
   coverage profile yield, and §7 catalogues the roster failure modes.
+- `recipes/enrichment_loop.md` — **the other method, and the one to reach for
+  when the goal is coverage rather than one institution.** One *person* per
+  request, scoped to one `wd_categories.yml` PETScan query, done when that query
+  can be deleted. A campaign is office-first, so every institution nobody
+  declared stays invisible; this discovers the offices instead. Its measurements
+  are `research/enrichment_loop.md`, its ledgers are `coverage/petscan_specs.md`
+  (what blocks each spec) and `coverage/petscan_retirable.md` (the PR that
+  deletes them — the spec count falls as they retire, so measure, don't quote).
+  §10 of the recipe is the one to read first: thirteen defects were found in this
+  loop and **not one of them by a test**.
 - `coverage/<country>.md` — **the ledger, and the definition of done.** One row
   per institution class with a disposition. A campaign closes when no row reads
   `deferred` and every `blocked:` names an issue — *not* when a batch validates.
@@ -63,6 +73,12 @@ Where things live:
   (unapplied batches, item-creation lists, the surgical wikibase-cli list).
 - `tasks/*.md` (the rest) — briefs only for campaigns that are a genuinely
   different kind of work (genders, birthdates, jurisdictions, categories).
+- `prompts/<pass>.md` — **what an LLM tier was actually asked.** The
+  instructions for a judgement pass, versioned beside the code that sends them
+  (`wd/verdicts.py`, `scripts/classify_jurisdictions.py`). A prompt that lives
+  only in a session transcript cannot be audited when its verdicts look wrong,
+  and four passes were run that way. When a run surfaces a rule the prompt was
+  missing, write the rule *and* the case that exposed it.
 - `regression/<country>/` — the committed record of every accepted run.
 - `WORKBENCH.md` — design notes and write-path decisions.
 
@@ -171,6 +187,19 @@ Where things live:
   The trade is that the API de-duplicates *nothing*, so re-running without
   `claims_written.json` would double every tenure: the ledger is load-bearing
   here in a way it is not for QS.
+- **Know whether an edit merges or creates.** QuickStatements matches a line on
+  subject, property and *value* and folds its qualifiers into the statement it
+  finds; the API creates and never merges. So a statement that already exists and
+  wants a date, an end or a qualifier is a **QS merge**, and routing it to the
+  API writes a duplicate instead — which is how five duplicate claims reached a
+  rendered payload from a rule that was individually correct. Three combinations
+  are safe on neither path and are byproducts: several merges onto one office,
+  a merge plus a creation onto one office, and a recorded span the evidence
+  contradicts. `wd/enrich.py:MERGE_FLAGS` names them and
+  `scripts/render_edit_plan.py` refuses to API-route one.
+- **Pre-flight any API write against live state.** `claims_written.json` protects
+  a re-run, not a first run against state that moved, and the API de-duplicates
+  nothing. Read the payload against `max_age=0` claims before `--apply`.
 - **Destructive edits still stop and ask** — merges, deletions, statement
   removal, rank changes. They are the one human gate left.
 - Statements derived from an article/source get references (`S854` + `S813`);
@@ -202,10 +231,16 @@ Where things live:
   often ambiguous (P1001!). Measure de-facto practice with SPARQL tallies
   over well-curated item clusters and read exemplar items in full before
   choosing properties (`recipes/country_sweep.md` §10 is the template).
-- **Verification agents:** fan out in parallel, one input file each; they
-  write JSONL verdicts to `data/.../verdicts/` and return only counts +
-  notable calls. Use `model: "opus"` for judgment-heavy passes. Always
-  instruct: cite evidence, prefer "unclear" over guessing, never edit.
+- **A judgement pass is a script with a committed prompt**, not a fleet of
+  chat agents. `wd/verdicts.py` batches candidates through the Anthropic SDK
+  under a schema the API enforces, and `scripts/classify_jurisdictions.py` is
+  the worked example; the instructions live in `prompts/`. Four passes ran the
+  other way and every one of their prompts died with its session, which is why
+  nothing could be re-run, audited, or improved. The ledger is the resume
+  point: verdicts append to one JSONL, answered items are skipped, so a
+  widened candidate set costs only what is new. `scripts/check_verdicts.py`
+  pins that arithmetic offline. Always instruct: cite evidence, prefer
+  "unclear" over guessing, never edit.
 - Wikipedia category membership, name heuristics, and OS-merged values are
   *candidate generators*, not facts — every candidate is verified against
   the item and/or article before an edit is proposed.
@@ -215,11 +250,26 @@ Where things live:
   merely because one wiki community documented its people ("notary" = 98%
   French). The classifier test: is the office inherently bound to ONE
   jurisdiction — would a holder from any country still hold it *there*?
-- **Agents converge via the verdicts directory.** Parallel classifiers that
-  read earlier `verdicts/*.jsonl` adopt each other's precedents (bishoprics,
-  party posts, titular sees). Helpful — but it standardizes *around whoever
-  answered first*, so cross-check convention calls across chunks in the
-  renderer and route splits (church, party offices) to review.
+- **Classifiers converge on whatever shares their context.** When passes read
+  each other's `verdicts/*.jsonl` they adopt each other's precedents
+  (bishoprics, party posts, titular sees) and standardize around whoever
+  answered first; the SDK path removes that channel, because batches are
+  independent requests against one frozen prompt. The failure survives one
+  level down — a batch of ten items is still one context — so keep batches
+  small, and keep routing the unsettled conventions (church, party offices) to
+  review in the renderer rather than trusting a run to be consistent.
+- **The classifier's `kind` is the routing signal; a label regex is its
+  fallback.** Party offices shipped in a batch the classifier had itself
+  marked "routed to human review", because the renderer gated on a regex for
+  the *word* party and a party is usually named ("SPD", "Québec solidaire").
+  Route on the structured field, and treat the regex as cover for a mis-kinded
+  row.
+- **Tell the classifier what `wd/shape.py` already knows.** A ministry, a
+  council, a committee, a general staff is a *body*; the office is the seat in
+  it. Both are bound to one jurisdiction, so the "is this bound to one state"
+  test cannot separate them — four bodies were handed a `P1001` at high
+  confidence before the prompt said so. Any closure the toolkit encodes in
+  code belongs in the prompt too, or the LLM tier re-derives the bug.
 - **Audit mechanical matchers on real output before shipping.** Every
   matcher this workbench has built was too loose on the first pass; always
   dump the full matched list with resolved labels and eyeball it.
