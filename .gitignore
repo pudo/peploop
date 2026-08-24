@@ -1,3 +1,7 @@
 data/
 __pycache__/
 .DS_Store
+
+# Local secrets (ANTHROPIC_API_KEY et al) — never commit
+.envrc
+.env

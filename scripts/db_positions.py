@@ -27,9 +27,9 @@ this question has:
   citizenship pipeline consumes it unchanged.
 
 An office scoped only to a *historical* polity is a fifth answer and is not a
-defect: `verify` drops those claims and `_scoped_to_history` keeps it out of
-the fixable pool, because naming the modern republic on a Grand Duchy office
-is a wrong statement in the lane that looks safest.
+defect — naming the modern republic on a Grand Duchy office is a wrong
+statement in the lane that looks safest — so it is partitioned out too, by
+`scoped_to_dead_polity` below rather than by `wd.shape`'s wider test.
 """
 
 import argparse
@@ -54,6 +54,27 @@ DEFAULT_INPUT = Path.home() / "tmp" / "pos_no_country.jsonl"
 # Kept for the census record's `traversal_props` field, which is what
 # `bare_positions.json` carries and the downstream chunks display.
 TRAVERSAL_PROPS = ["P27", "P361", "P749", "P159", "P1376", "P2389"]
+
+
+#: The only two properties that can put an office *inside* a polity. `wd.shape`
+#: suppresses its `no_polity` defect whenever any of `COUNTRY_PROPS +
+#: FALLBACK_PROPS` names something, which reads a `P361` into a country-less
+#: body ("part of the Catholic Church") as "scoped to history" and hides a
+#: fixable office: 232 of the 493 items that landed there on the first run were
+#: of that kind. Scoped-to-history is tested here on the jurisdiction pair
+#: alone — the office says which polity it belongs to, and that polity is gone.
+POLITY_PROPS = ("P17", "P1001")
+
+
+def scoped_to_dead_polity(entity: Dict[str, Any]) -> bool:
+    """The item names its polity through P17/P1001 and none of them resolved.
+
+    Called only where `verify` already found no country, so "named and did not
+    resolve" means the polity is historical or itself country-less. That is
+    complete and correct modelling — naming the modern successor on a Grand
+    Duchy office would be a wrong statement in the lane that looks safest.
+    """
+    return any(claim_qids(entity, prop) for prop in POLITY_PROPS)
 
 
 def first_year(entity: Dict[str, Any], prop: str) -> Optional[str]:
@@ -184,11 +205,10 @@ def main() -> None:
             buckets["not_positions"].append(row)
         elif verdict.bilateral:
             buckets["bilateral"].append(row)
-        elif "no_polity" in verdict.defects:
-            buckets["census"].append(row)
-        else:
-            # No country and no `no_polity`: `_scoped_to_history` suppressed it.
+        elif scoped_to_dead_polity(entity):
             buckets["historical"].append(row)
+        else:
+            buckets["census"].append(row)
 
     for name in ("census", "bilateral", "not_positions", "resolves", "historical"):
         buckets[name].sort(key=lambda r: -r["holders"])
@@ -196,6 +216,7 @@ def main() -> None:
     write(args.out_dir / "db_bilateral.json", buckets["bilateral"])
     write(args.out_dir / "db_not_positions.json", buckets["not_positions"])
     write(args.out_dir / "db_resolves.json", buckets["resolves"])
+    write(args.out_dir / "db_historical.json", buckets["historical"])
 
     md = report(args.input, len(qids), buckets, type_labels)
     (args.out_dir / "db_report.md").write_text(md)

@@ -130,7 +130,61 @@ was structurally invisible to wd_peps no matter how many P39s pointed at it.
     church/party convention rows, 163 medium/low confidence, 10 prior
     disagreements (incl. Greenland vs Denmark), 52 unclear (incl. Crimea /
     Sevastopol — deliberately not batched), 303 historical.
-- [ ] review citizenship_plan.md → apply citizenship_plan.qs
+- [x] **applied** — verified live 2026-08-19, not from a run log: of the lines
+  touching the positions-DB export, `citizenship_plan.qs` is 178/178 present on
+  Wikidata and `fix_plan.qs` 44/45. The box sat unchecked for two weeks after
+  the edits went in, which is how a re-run nearly re-proposed them.
+  `diplomatic_plan.qs` + `diplomatic_tail.qs` are applied too — all **668**
+  statements over 367 subjects verified present 2026-08-19. An earlier check
+  here read 17/38 and was wrong: it compared the batch's `P137` sender lines
+  against a snapshot holding only `P17`/`P1001`, so every sender statement
+  counted as missing. Check a statement against the property it actually
+  names.
+- [x] **positions-DB run, 2026-08-19** — driven off an export of zavod's
+  positions table (rows with an empty `countries` array) rather than a SPARQL
+  census, because that export *is* the coverage OS tried and failed to emit.
+  `scripts/db_positions.py` partitions it with `wd.shape.verify`:
+  * 3,083 QIDs → **1,861 fixable** (no polity), 501 that resolve today and want
+    a re-crawl not an edit, 404 that are not positions, 244 scoped to a dead
+    polity, 45 bilateral, 28 deleted.
+  * `wd/shape.py:_scoped_to_history` returns `bool(named)` over
+    `COUNTRY_PROPS + FALLBACK_PROPS` and never tests historical-ness, so an item
+    whose `P361` points at a country-less body reads as "scoped to history" and
+    its `no_polity` defect is suppressed — **232 of 493 items landed in the wrong
+    bucket**. Corrected locally in `db_positions.py:scoped_to_dead_polity`
+    (`P17`/`P1001` only); `wd/shape.py` is untouched and 11 campaigns still read
+    the wide test. Fix upstream or not, but know which one is running.
+  * 1,861 → **472 candidates**: strong citizenship majority (387), label-named
+    country (3), both (82). The 1,389 dropped carry 111k P39 holders and that is
+    the gate working — `president`, `minister`, `director`, `member of
+    parliament`, `ambassador`, `professor`, at 5–74% majority shares.
+  * classified through `scripts/classify_jurisdictions.py` (Anthropic SDK, one
+    committed prompt, schema-enforced verdicts, resumable ledger): 472 verdicts,
+    46 requests, **$5.38**. Then 144 `fix-current` re-judged for $1.93 after the
+    audit below. Ledger: `verdicts/db.jsonl`, pre-fix copy in `db_pass1.jsonl`.
+  * **`db_plan.qs` — 19 statements over 517 P39 holders**, all verified absent
+    live. Review backlog in `db_plan.md`: 48 medium/low confidence, 26
+    subnational without a safe entity, 102 historical, 35 unclear.
+- [x] the audit that the 19 survived and 26 did not — read it before trusting a
+  future pass. Two failures, both real, both now closed:
+  * three party offices shipped **despite the classifier marking them "routed to
+    human review"**, because `render_citizenship_plan.py` gated on `PARTY_RE` —
+    a regex for the *word* party — and a party is usually named ("SPD", "Québec
+    solidaire"). `party` is now in `REVIEW_KINDS`; route on the structured field.
+  * four **bodies** were handed a `P1001` at high confidence — the Ministry of
+    Local Self-Government of Macedonia, the Philippine Senate Committee on
+    Banks, the Sudanese Sovereignty Council, the Presidential Administration of
+    Iran. `wd/shape.py:NOT_AN_OFFICE` has encoded "a military staff is a body,
+    not a seat in it" for months; the prompt had never been told, so the LLM
+    tier re-derived the bug with a correct-but-irrelevant argument ("the body
+    exists only in that state"). Rule and all four cases are now in
+    `prompts/jurisdiction_classifier.md`; on re-judge all four flipped to skip,
+    each naming the office that should carry the statement instead.
+- [ ] review db_plan.md → apply db_plan.qs
+- [ ] the 1,389 census items below the candidate gate: single-holder offices
+  (565 items, 744 holders) need a second signal; the ~645 below an 80% majority
+  are mostly the generic classes and want a `P39`-usage cleanup upstream, not a
+  jurisdiction
 - [ ] follow-ups parked: party offices campaign-wide (LDP sec-gen, CCP
   provincial secretaries — PEP-relevant, convention undecided); religious
   sees P17 batch (measured practice: 965/1443 carry P17=country); tier C

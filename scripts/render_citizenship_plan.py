@@ -20,6 +20,7 @@ A row only reaches the .qs when every gate passes:
     review rather than getting a country-level P1001.
 """
 
+import argparse
 import json
 import re
 import sys
@@ -39,7 +40,14 @@ SUBNATIONAL_KINDS = {"subnational", "municipal"}
 # Church offices: the classifiers split on whether a vicariate "applies to"
 # the state (chunk 10/11 said France, chunk 07 skipped bishoprics as
 # diocese-scoped). Convention unsettled → review, never auto.
-REVIEW_KINDS = {"religious"}
+#: `party` belongs here beside `religious`, and its absence shipped three
+#: statements the classifier had itself marked "routed to human review": the
+#: SPD's Secretary General and General Manager, and Québec solidaire's
+#: spokesperson. `PARTY_RE` below was doing the work alone and cannot — it
+#: matches the *word* party, and a party is usually named rather than described
+#: ("SPD", "Québec solidaire", "Fine Gael"). The classifier's `kind` is the
+#: signal; the label regex is only its fallback for a mis-kinded row.
+REVIEW_KINDS = {"religious", "party"}
 # Party-internal offices: most chunks skipped them per precedent, one chunk
 # asserted devolved-party leaderships. Same unsettled-convention treatment.
 PARTY_RE = re.compile(r"\b(part(?:y|ido|it|ija|ei)|labour|democrats)\b", re.I)
@@ -68,15 +76,27 @@ def verify_jurisdictions(session, rows: list[dict]) -> dict[str, bool]:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--verdicts", default="verdicts/citizen_*.jsonl",
+                        help="glob, relative to data/jurisdictions/, of verdict "
+                             "JSONL to render")
+    parser.add_argument("--candidates", type=Path,
+                        default=BASE / "citizenship_candidates.json",
+                        help="the candidate file those verdicts were judged from")
+    parser.add_argument("--out", type=Path, default=BASE / "citizenship_plan",
+                        help="output stem; .md and .qs are written beside it")
+    args = parser.parse_args()
+
     verdicts = []
-    for path in sorted(BASE.glob("verdicts/citizen_*.jsonl")):
+    for path in sorted(BASE.glob(args.verdicts)):
         for line in path.read_text().splitlines():
             if line.strip():
                 verdicts.append(json.loads(line))
+    if not verdicts:
+        raise SystemExit(f"no verdicts matched {BASE / args.verdicts}")
 
     candidates = {
-        c["qid"]: c
-        for c in json.loads((BASE / "citizenship_candidates.json").read_text())
+        c["qid"]: c for c in json.loads(args.candidates.read_text())
     }
     for v in verdicts:
         cand = candidates.get(v["qid"], {})
@@ -247,14 +267,16 @@ def main() -> None:
     excl = Counter((v.get("kind") or "?") for v in excluded_kind)
     md.append(f"\n## fix-current in excluded kinds — not batched ({dict(excl)})")
 
-    (BASE / "citizenship_plan.md").write_text("\n".join(md) + "\n")
-    (BASE / "citizenship_plan.qs").write_text("\n".join(qs) + "\n")
+    md_path = args.out.with_suffix(".md")
+    qs_path = args.out.with_suffix(".qs")
+    md_path.write_text("\n".join(md) + "\n")
+    qs_path.write_text("\n".join(qs) + "\n")
     print(f"{len(verdicts)} verdicts: {dict(by_verdict)}")
     print(f"auto: {len(auto)} QS lines covering {sum(v['holders'] for v in auto)} holders "
           f"({sum(1 for v in auto if v['via'] == 'verified-subnational')} verified subnational)")
     print(f"review: subnational {len(subnational_review)}, disagree {len(disagree)}, "
           f"low-conf {len(low_conf)}, excluded kinds {len(excluded_kind)}")
-    print(f"Wrote {BASE / 'citizenship_plan.md'} and {BASE / 'citizenship_plan.qs'}")
+    print(f"Wrote {md_path} and {qs_path}")
 
 
 if __name__ == "__main__":

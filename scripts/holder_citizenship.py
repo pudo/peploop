@@ -79,14 +79,19 @@ def main() -> None:
     parser.add_argument("--max-positions", type=int, default=300)
     parser.add_argument("--tries", type=int, default=6)
     parser.add_argument("--wait", type=float, default=30.0)
+    parser.add_argument("--census", type=Path, default=BASE / "bare_positions.json",
+                        help="census to tally, in bare_positions.json's record shape")
+    parser.add_argument("--exclude", type=Path,
+                        default=BASE / "label_country_candidates.json",
+                        help="census rows already answered by another channel; "
+                             "pass 'none' to tally the whole census")
     parser.add_argument("--out", type=Path, default=BASE / "holder_citizenship.json")
     args = parser.parse_args()
 
-    census = json.loads((BASE / "bare_positions.json").read_text())
-    labelled = {
-        p["qid"]
-        for p in json.loads((BASE / "label_country_candidates.json").read_text())
-    }
+    census = json.loads(args.census.read_text())
+    labelled = set()
+    if str(args.exclude) != "none" and args.exclude.exists():
+        labelled = {p["qid"] for p in json.loads(args.exclude.read_text())}
     targets = [p for p in census if p["qid"] not in labelled]
     # Ascending by holders keeps each VALUES chunk homogeneous, so one giant
     # position never stalls a chunk of small ones:

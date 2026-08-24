@@ -197,4 +197,49 @@ PRs can start with the cheap ones (small categories, item already good).
   counts can hide different convocation terms), all 270 redirect-side
   statements are fully covered by an identical keeper-side statement, 0
   would lose a distinct tenure. Needs wikibase-cli (QS cannot remove).
+- [x] **the item layer behind the resolved QIDs, audited (2026-08-23).** The
+  QIDs are written into the yml; this asks whether the *items* carry enough to be
+  read. `scripts/audit_os_positions.py` scores all **209 distinct QIDs** with
+  `wd/shape.py` plus zavod's `INTL_ORGS` registry (loaded off `igo.py`, not
+  transcribed), and reports the one gate that stops each item rather than every
+  gate it fails: **80 discoverable today, 101 upstream, 13 IGO-undecided by
+  design, 11 untyped, 3 surgical, 1 country-less.** Then
+  `scripts/render_os_positions_plan.py` → **116 statements over 97 items**
+  (`data/os_positions/`), gates pinned by `scripts/check_os_positions.py`.
+  **115 uploaded 2026-08-23 19:02 and verified against live Wikidata** with
+  `render_os_positions_plan.py --verify`, which suppresses the diff so the tables
+  emit everything they would ever propose and reports what is not there: 188 of
+  189. The one outstanding line is `Q7241113` `P279` `Q965043`, decided after the
+  upload. The 86-item generic-`P31` lane is surgical and is in
+  `tasks/followups.md`; `wd/shape.py` was left alone deliberately.
+  Measurements in `research/position_items.md` §8b; the committed ledger is
+  `coverage/wd_categories.md` (`data/` is gitignored, so the run's own output
+  cannot be the record). Its headline: **80 of 209 targets are positions
+  `wd_peps` would emit**, 127 are blocked on OpenSanctions' own position policy
+  and 2 on Wikidata — so these specs cannot be retired by enrichment. What it
+  took:
+  * The lane I expected to be largest was already closed — **24 of 24** IGO posts
+    carry a registry org link.
+  * The biggest blocker is not Wikidata: `Q4175034` legislator confers no
+    `role.pep` (79 seats), `Q5230427` and `Q42178` are absent from `SUB_TYPES`.
+    Left alone deliberately — retyping 79 correctly-modelled seats to trip a
+    consumer's sentinel is what the recipe forbids.
+  * `Q104881755` Mayor of Managua is the **only** item of the 209 that resolves
+    no country, so zavod drops it and every holder with it. Its `P1001` was first
+    written as `Q3070` — San José, Costa Rica — reproducing the QID-from-memory
+    failure `GAP_TARGETS_BY_COUNTRY` documents, within the hour. `verify_body`
+    now refuses it, and `check_os_positions.py --online` pins that.
+  * Two of three `P2389` rows were already on their items: `wd/shape.py`'s gaps
+    answer "does the item carry this property", which is the wrong question for a
+    decided target. The renderer now diffs the exact claim.
+  * The ICC presidency looked unmeasurable by label (1-1-1-1 over eleven items)
+    and was decided structurally instead: both the ICJ and ECtHR presidencies
+    subclass **their own court's judgeship**, so `Q7241113` takes `Q965043` — an
+    item in this same cohort. A label tally would have said `Q3188089` chief
+    justice, which is a national supreme-court role.
+  * Three gate bugs, each costing a correct statement: a U+200E left-to-right
+    mark inside `Q4467481`'s label; "Volgograd *Regional* Duma" against its body's
+    "Volgograd *Oblast* Duma"; and demanding `P17 == [Q159]` when
+    `Q4146671` carries Russia *and* the Soviet Union and `Q4070652` carries no
+    `P17` at all.
 - [ ] eventually: drop `position:` blocks flagged retirable

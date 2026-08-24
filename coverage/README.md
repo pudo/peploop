@@ -3,6 +3,13 @@
 What each country sweep actually covered, by institution class. Scoped against
 `recipes/institutions.md`; the per-country detail lives in `coverage/<country>.md`.
 
+Not every ledger here is a country. `coverage/wd_categories.md` scores the 209
+position items OpenSanctions names by QID in `wd_categories.yml`, and it answers a
+question no country sweep can: of the targets a consumer had to hand-write a
+`position:` block for, how many could the *item* carry instead. 80 of 209, and
+**127 of the rest are blocked on OpenSanctions' own topic policy rather than on
+Wikidata** — so those queries cannot be retired by enriching anything.
+
 This file exists because the gaps below were invisible for eleven campaigns.
 Each run produced a validated batch and closed; nothing anywhere named an
 institution and marked it uncovered, so the same categories went missing

@@ -324,6 +324,82 @@ life tenure}`) and `Q11147` Chief Justice (`P1269 facet of`, `P937` work locatio
 ambassador to Germany; `P17 = Germany` (receiver); `P137 = United States` (sender);
 `P2389 = Embassy of the United States, Berlin`; no `P1001`.
 
+## 8b. The consumer-named cohort (measured 2026-08-23)
+
+The 209 position items `opensanctions`' `wd_categories.yml` names by QID, scored
+with `wd/shape.py` by `scripts/audit_os_positions.py`. A different sample from
+everything above — it is a *consumer's* list, so it is worldwide, skewed towards
+the offices somebody needed and away from the ones Wikidata happens to document
+well. 194 of 209 are well modelled; 79 are complete.
+
+**Sub-national legislator seats and `P17`.** `P279 = Q4175034` legislator, grouped
+by the country of the polity the seat's `P1001` names:
+
+| polity's country | seats | carrying `P17` |
+|---|---:|---:|
+| Russia | 66 | **2** |
+| Nigeria | 36 | 36 |
+| Italy | 13 | 13 |
+| Malaysia | 12 | 12 |
+| United States | 12 | 10 |
+| Argentina | 8 | 8 |
+| United Kingdom | 7 | 6 |
+| all others in the top 15 | 26 | 21 |
+
+103 of 114 (90%) outside Russia, against 2 of 66 inside it. Over the whole
+`Q4175034` cluster the figure is a misleading 182 of 306 (59%), because Russia's
+bulk-created `Q1332683xx` series is a fifth of it. **The lesson is the one
+`wd/precedent.py` exists for**: the same office class answers differently per
+country, and a corpus-wide percentage here is a statement about one bulk import —
+the same trap as §0's French communes, one property along.
+
+**Parent classes for an office that names no kind.** `P279` tallies over the
+sibling cluster named in each row; CirrusSearch `haswbstatement:P31=Q4164871
+inlabel:"<phrase>"`, capped at 200 hits, relevance-ranked:
+
+| cluster | winner | count |
+|---|---|---|
+| `"secretary general"` (186) | `Q6501749` general secretary | 60 |
+| `"chairperson of the"` (84) | `Q140686` chairperson | 32 |
+| `"mayor of"` (200) | `Q30185` mayor | 64 (behind `Q382617` at 92 — corpus bias) |
+| `"chief of staff"` (200) | *none* | 8 / 5 / 4 across three rivals |
+| `"president of the court"` (11) | *none* | 1 / 1 / 1 / 1 |
+
+**A court presidency is measured structurally, and the sibling channel overrules
+the tally.** `P279` over offices whose `P2389`/`P361` names a court (`Q41487`
+closure) leads with `Q58412318` US district judge 88, `Q3188089` chief justice 73,
+`Q16533` judge 64, `Q16474031` court president 29 — none of which is the answer.
+The two *international* court presidencies that carry any `P279` both subclass
+**their own court's judgeship**: `Q19926443` President of the ICJ takes
+`Q30771010` Judge of the ICJ, `Q94692068` President of the ECtHR takes `Q64682634`
+Judge of the ECtHR. So does the ICC's, on `Q965043`. A label tally would have
+picked `Q3188089`, which is a national supreme-court role and not this.
+
+A "president of an organisation" cluster cannot be measured by label at all —
+`inlabel:"president of the"` is dominated by state presidencies (`Q248577` 21,
+`Q48352` 12) and speakerships (`Q1758037` 35). The structural cluster answers it:
+positions whose `P2389` names an item that is a `Q484652` international
+organization, tallied on `P279` —
+
+| `P279` | positions |
+|---|---:|
+| `Q6501749` general secretary | 19 |
+| `Q140686` chairperson | 12 |
+| `Q1255921` president (leader of an organization) | 10 |
+| `Q1501800` director general | 8 |
+
+which is not one winner but **one winner per title word**, and that is the
+convention: the class follows what the office is called.
+
+**zavod's IGO registry is not the gap it looked like.** All 24 of the cohort's
+international posts already carry a `P2389`/`P361` into an `INTL_ORGS` org, so
+none of them is dropped for want of a link. What stops 101 of the 209 is instead
+`SUB_TYPES`: `Q4175034` legislator confers `gov.legislative` and no `role.pep` (79
+items), and `Q5230427` member of a legislative assembly (12) and `Q42178` vice
+president (5) are absent from it. That is a consumer's topic table, not a
+modelling defect, and it is recorded here so no future run reads those 101 items
+as broken.
+
 ## 9. What failed, and what to distrust
 
 Recorded rather than estimated:
@@ -334,6 +410,20 @@ Recorded rather than estimated:
 - `SELECT (COUNT(DISTINCT ?i)) WHERE { ?i p:P279/ps:P279 wd:Q83307 . FILTER NOT
   EXISTS { ?i p:P31/ps:P31 wd:Q4164871 } }` — repeated 503s. Derived by
   subtraction (5,211 − 739).
+
+Added 2026-08-23, from the `wd_categories.yml` cohort (§8b):
+
+- `?org wdt:P31/wdt:P279* wd:Q1156854` for "an international court" and
+  `wd:Q7188` for "a presidential administration" both returned confidently and
+  **wrongly** — the first answered with ambassadorships and Arabic letters, the
+  second with 1,654 Dutch municipal councillors. Neither QID means what the query
+  assumed. A structural cluster is only worth more than a label tally once the
+  anchor class has been read; an implausible result is the cheap tell, and a
+  *plausible* wrong one would not have been caught.
+- The `P31` shape of the minister cluster, which no gap measures: 4,430 of 5,215
+  carry `Q294414` public office, 740 carry `Q4164871`, and **only 78 carry both**.
+  The community swaps the metaclass rather than stacking it, which is what makes
+  `Q4164871 → Q294414` a removal and not an addition.
 
 Two standing cautions:
 

@@ -88,6 +88,7 @@ used to drop.
 | spain | 32 — the API half only | **79** |
 | belarus | 10 of 16 | **6** |
 | **jordan** | **161 API statements for 60 people, applied 2026-08-13** | **220 `.qs`, not yet uploaded** |
+| **os_positions** | **115 of 116, uploaded 2026-08-23 19:02 and verified live** | **1** — `Q7241113` `P279` `Q965043`, decided after the upload |
 
 Now that the state reads are fresh (`campaign.STATE_MAX_AGE`), the right-hand
 column is simply what `render_edit_plan.py` prints. **Trust that, not this
@@ -131,7 +132,8 @@ in this file that cannot go stale.
       recorded independently
 - [x] **czechia** — applied earlier, its one merged statement repaired, and a
       re-render now yields nothing at all
-- [ ] `data/jurisdictions/diplomatic_plan.qs` + `diplomatic_tail.qs` (572 + 96)
+- [x] `data/jurisdictions/diplomatic_plan.qs` + `diplomatic_tail.qs` (572 + 96)
+  — **applied**; all 668 statements over 367 subjects verified live 2026-08-19
 - [ ] IGO link batches `data/igo/igo_links2_p2389.qs` / `igo_links2_p361.qs`
 
 ## Position/body items to create (`scripts/create_offices.py`, dry first)
@@ -179,6 +181,212 @@ in this file that cannot go stale.
       that succeeded it
 
 ## Surgical (wikibase-cli, stop-and-ask — never in a batch)
+
+### The generic `P31` (added 2026-08-23) — 86 items, and it is a *replacement*
+
+`scripts/audit_os_positions.py` found **86 of the 209 items carrying
+`P31 = Q4164871` "position" and nothing else**, where the measured modal
+convention is `Q294414` public office: 105 of these same 209 items already use
+it, and the 5,215-item minister cluster splits 4,430 for `Q294414` against 740
+for the generic class.
+
+Surgical, not a batch, for one measured reason: **only 78 of those 5,215 items
+carry both** (1.5%), so the community *swaps* the class rather than stacking it.
+Adding `Q294414` beside `Q4164871` would be mass-asserting a minority idiom;
+doing it properly means removing a statement, which QuickStatements cannot do.
+Needs `wikibase-cli` / `wikibase-edit`, one decision per item.
+
+Worth knowing before anyone starts: **this changes nothing downstream.**
+`Q294414`'s own closure reaches `Q4164871`, so both shapes satisfy
+`POSITION_BASICS` and zavod reads either one identically. This is convention
+alignment, and it should be prioritised as such — well below anything that
+changes what an item *says*.
+
+`wd/shape.py` has no gap for this. It checks `no_P279` and never asks whether
+`P31` names only the generic metaclass, though its own docstring records that
+`Q4164871` "is *not* the modal choice". Every country campaign has inherited the
+blind spot; **left as-is deliberately** (2026-08-23) rather than adding a gap that
+would move eleven campaigns' `complete` counts for a no-op edit.
+
+- [ ] **65 national offices** — `Q294414` public office is clearly right on
+      each; grouped by the country the config asserts:
+
+  * `au`:
+    * `Q18912794` member of the Australian House of Representatives
+    * `Q6814428` member of the Australian Senate
+  * `by`:
+    * `Q100699741` Minister of Internal Affairs of the Republic of Belarus
+    * `Q106399613` Minister of Information of the Republic of Belarus
+    * `Q106508605` Minister of Industry of the Republic of Belarus
+    * `Q106510813` Minister of Finance of the Republic of Belarus
+    * `Q106510814` Minister of Justice of the Republic of Belarus
+    * `Q18690228` Deputy Prime Minister of the Republic of Belarus
+    * `Q2045068` Minister of Foreign Affairs of Belarus
+    * `Q28598480` Minister of Communications and Informatization of the Republic of Belarus
+    * `Q44035369` Defence Minister of Belarus
+    * `Q60676745` Minister of Transport and Communications of the Republic of Belarus
+    * `Q89775465` Minister of Health of the Republic of Belarus
+  * `ca`:
+    * `Q15964815` member of Alberta Legislative Assembly
+    * `Q18239264` member of the Nova Scotia House of Assembly
+    * `Q18524027` member of the Senate of Canada
+    * `Q18608478` member of the Yukon Legislative Assembly
+    * `Q18675661` Member of the Legislative Assembly of Saskatchewan
+    * `Q18984329` member of the Legislative Assembly of New Brunswick
+    * `Q19007867` member of the Legislative Assembly of Manitoba
+    * `Q19403853` member of the Newfoundland and Labrador House of Assembly
+    * `Q21010685` member of the Legislative Assembly of Prince Edward Island
+    * `Q3305338` Member of the National Assembly of Quebec
+    * `Q3305347` member of the Ontario Provincial Parliament
+    * `Q45308871` Member of the Legislative Assembly of the Northwest Territories
+  * `co`:
+    * `Q17104133` Vice President of Colombia
+    * `Q19254253` member of the Senate of Colombia
+  * `cz`:
+    * `Q1819381` President of the Czech Republic
+    * `Q18941264` Member of the Senate of the Parliament of the Czech Republic
+    * `Q19803234` Member of the Chamber of Deputies of the Parliament of the Czech Republic
+    * `Q59773473` judge of the Constitutional Court of the Czech Republic
+    * `Q68081922` ministr vlády České republiky
+  * `de`:
+    * `Q15835370` Member of the Bundesrat of Germany
+  * `ec`:
+    * `Q22230757` National Congress Deputy
+  * `es`:
+    * `Q1335465` President of the Spanish Senate
+    * `Q20899145` minister of Spain
+    * `Q3113035` Deputy Prime Minister of Spain
+    * `Q5663900` alcalde
+  * `gr`:
+    * `Q18915989` member of the Hellenic Parliament
+  * `gt`:
+    * `Q18277108` Member of the Congress of Guatemala
+    * `Q5340773` Vice President of Guatemala
+  * `kp`:
+    * `Q21328639` member of the Supreme People's Assembly
+  * `lt`:
+    * `Q132068652` Prosecutor General of Lithuania
+    * `Q18507240` Member of the Seimas
+    * `Q55607326` Chief of Defence of Lithuania
+  * `lv`:
+    * `Q21191589` deputy of Saeima
+  * `mx`:
+    * `Q18534310` Member of the Chamber of Deputies of Mexico
+  * `ni`:
+    * `Q104881755` Mayor of Managua
+    * `Q18616113` Member of the National Assembly of Nicaragua
+    * `Q3649507` Vice President of Nicaragua
+  * `nl`:
+    * `Q18887908` member of the House of Representatives of the Netherlands
+    * `Q19305384` member of the Senate of the Netherlands
+  * `pl`:
+    * `Q19269361` member of the Sejm
+    * `Q81747225` Member of the Senate of the Republic of Poland
+  * `ru`:
+    * `Q108610448` Deputy of the State Council of the Udmurt Republic
+    * `Q1837906` mayor of Moscow
+    * `Q4376672` Chairman of the Federation Council of Russia
+    * `Q4431732` Chief Justice of the Russian Federation
+    * `Q4488944` Kremlin Chief of Staff
+  * `ru,ua-cri`:
+    * `Q4516946` member of the Federation Council of Russia
+  * `sk`:
+    * `Q19967563` Member of the National Council of the Slovak Republic
+  * `us`:
+    * `Q1296423` White House Counsel
+  * `ve`:
+    * `Q20011182` member of the National Assembly of Venezuela
+    * `Q20081434` senator of Venezuela
+    * `Q3556895` Vice President of Venezuela
+
+- [ ] **21 international / private-body posts** — `Q294414` public office is
+      questionable here and each needs its own call: FIFA and the IOC are private
+      associations, and a UN or IMF post is not an office of any public
+      administration. `Q4164871` may simply be correct on these, in which case
+      the right outcome is to close the row rather than edit it.
+
+  * `Q104127429` Secretary-General of the Gulf Cooperation Council — body `Q217172`
+  * `Q110934652` Secretary General of the Organization for Security and Co-operation in Europe — body `Q81299`
+  * `Q1161813` President of the United Nations General Assembly — body `Q47423`
+  * `Q12180685` Secretary General of the Arab League — body `Q7172`
+  * `Q167662` Secretary General of NATO — body `Q7184`
+  * `Q19698214` President of Interpol — body `Q8475`
+  * `Q20054152` Managing Director of the International Monetary Fund — body `Q7804`
+  * `Q22955080` president of FIFA — body `Q253414`
+  * `Q2571270` Chairperson of the African Union Commission — body `Q2362881`
+  * `Q2932400` Under-Secretary-General of the United Nations — body `Q220563`
+  * `Q2942251` Secretary General of the Council of Europe — body `Q8908`
+  * `Q4166474` President of the World Bank Group — body `Q320863`
+  * `Q58281251` President of the Inter-American Development Bank — body `Q1153087`
+  * `Q6123153` General Secretariat of the Organization of American States — body `Q123759`
+  * `Q62070236` Director-General of the World Health Organization — body `Q7817`
+  * `Q6596647` Secretary General of OPEC — body `Q7795`
+  * `Q7241113` President of the International Criminal Court — body `Q47488`
+  * `Q7241513` president of the International Olympic Committee — body `Q40970`
+  * `Q7250572` Prosecutor of the International Criminal Court — body `Q47488`
+  * `Q81066` United Nations Secretary-General — body `Q1065`
+  * `Q965043` Judge of the International Criminal Court — body `Q47488`
+
+### From the `wd_categories.yml` position audit (added 2026-08-23)
+
+Two wrong claims on shared ontology nodes, each one the sole reason a real office
+is dropped by `EXCLUDE_TYPES`. Both normal rank, both a single-claim removal, and
+both high fan-in nodes where a bare delete invites a revert — do them one at a
+time with a reason, never in a batch.
+
+Both items are **semi-protected** (`edit=autoconfirmed`), not write-protected, so
+an established account can edit them; `Q112684029` government attorney is
+unprotected. Semi-protection on an ontology node is a churn signal, not a block.
+
+- [ ] `Q4376672` **Chairman of the Federation Council of Russia**: its
+      `P279 = Q4516946` (member of the Federation Council) is **deprecated**. The
+      claim is true — the chair *is* a member — and with it deprecated the item
+      reaches only `Q1758037` speaker, which confers no `role.pep`, so the chair of
+      Russia's upper house is not emitted at all. Un-deprecate it (a rank change,
+      hence surgical), or give `Q1758037` a `SUB_TYPES` entry — the issue already
+      filed below. Until one of the two, `ru:Председатели Совета Федерации России`
+      cannot be retired; `scripts/retire_specs.py:HOLD_BACK` keeps it live.
+
+- [ ] `Q15978655` **consultant**: remove `P31 = Q3320743` title of honor. A
+      consultant is a profession; the item already declares `Q28640` profession
+      and `Q4164871` position. This claim alone is why `Q1296423` White House
+      Counsel is never emitted.
+- [ ] `Q40348` **lawyer**: remove `P31 = Q189533` academic degree. A lawyer is a
+      profession; a Juris Doctor is a degree. This is why `Q7250572` Prosecutor of
+      the ICC is never emitted, via `academic degree → Q618779 award`.
+- Leave `Q189533` academic degree `P279 = Q618779` award alone — that one is
+      defensible, which is why removing the consultant claim *alone* fixes only
+      one of the two (verified by simulation).
+
+
+`scripts/audit_os_positions.py` scored the 209 position items the config names.
+Four are held out of `os_positions.qs` because the fix removes a statement rather
+than adding one; the batch says so per row.
+
+- [ ] `Q4488944` "Kremlin Chief of Staff" — `P31 = Q4164871` while its own
+      description reads "Wikimedia list article". The item is the *list*, so a
+      `P279` would type a list as an office and a `P1001` would give a list a
+      jurisdiction. Same shape as `Q16074706` and `Q5942489`: a label naming one
+      thing and a description naming another. Retype or split; nothing additive
+      until then.
+- [ ] `Q6085548` President of the National Assembly of Ecuador — typed
+      `Q13406463` Wikimedia list article *and* a position. `Q12251224` (Crown
+      Prince of Saudi Arabia) and `Q12663218` (Speaker of the Seimas) are the
+      same defect and are already on this list above; all three are what the
+      audit's `also_a_list_article` reports.
+- [ ] `Q4139102` "head of municipality" — declares `Q28640` profession and
+      `Q214339` role beside the position metaclass, and names a *class* of office
+      rather than a seat. Wrongly given a `position:` block with country `ru`; a
+      generic bucket takes no jurisdiction, because there is no municipality it
+      governs. Retype, and the yml row wants the bucket treatment
+      (`tasks/category_positions.md`).
+- [ ] `Q4431732` Chief Justice of the Russian Federation — wants a `P361` to the
+      Supreme Court of Russia and no search channel finds that item: `inlabel:
+      "Supreme Court of the Russian Federation"` returns only scholarly articles
+      and the Military Collegium. Either the court has no item or its label is
+      something else; find it by hand, or the `P361` stays open.
+- [ ] `Q1296423` White House Counsel — same, for the White House Office. Every
+      `inlabel:"White House Office"` hit is a NARA records collection.
 
 - [ ] remove Otakar Fischer's 1939 term from Q20058795
 - [ ] merge Crown Prince of Dubai: keep Q30635458, fold in Q125497760
@@ -241,6 +449,13 @@ in this file that cannot go stale.
       members at depth 1 against enwiki's 193, and `ar:وزراء سعوديون` has 49
       portfolio subcategories against enwiki's 41); a `position:` block per
       province governorship; the Consultative Assembly seat (Q21328601)
+- [ ] the two Crimea specs: the yml asserts `ua-cri` on `Q133268428` /
+      `Q133268430` while both items resolve `ru`. A political-scope decision, and
+      the same pair `citizenship_plan.qs` deliberately left unbatched — held out
+      of `os_positions.qs` for the same reason. Whichever way it goes, the config
+      and the item should not disagree silently.
+- [ ] `Q4139102` "head of municipality" and the other generic buckets carry a
+      `position:` block naming one country; see the surgical list above
 - [ ] the retirement report over all resolved specs
 
 ## External
@@ -812,7 +1027,97 @@ Out of scope, deliberately: `Q101540148` "Lithuanian teacher" and `Q114059276`
 *position* audit's candidate set at all. `scripts/position_metadata.py` prints
 them as unreached rather than dropping them silently.
 
+
 ### Issues to file against opensanctions
+
+- [ ] **`EXCLUDE_TYPES` is tested against the whole 6-hop closure**
+      (`position.py:159-164`), so one wrong claim on a shared ancestor silently
+      drops every office beneath it — no log line, no review row. `wd/shape.py`
+      refuses to do this for the mirror-image test and says why: *"the closure
+      cannot answer it: within six hops `Q28640` profession reaches `Q4164871`
+      position"*, so `NOT_AN_OFFICE` reads **declared** types only.
+      `EXCLUDE_TYPES` needs the same guard, or a depth bound.
+      **Measured blast radius: 36,142 in-use position items** sit under
+      `Q2994387` adviser / `Q15978655` consultant with nothing in `ALLOW_TYPES`
+      to rescue them (45,463 items in the subtree, 112,346 P39 holders). Two of
+      the 209 `wd_categories.yml` targets are dropped by it today. This is the fix
+      that ends the class; removing the two bad claims is whack-a-mole.
+
+- [ ] **Interim, and cheaper: add the public-law classes to `ALLOW_TYPES`.**
+      `ALLOW_TYPES` is consulted first (`position.py:159`), so an entry there
+      skips both the basics and the exclude drop. Measured 2026-08-23 —
+      `Q600751` prosecutor rescues **187 in-use positions / 2,441 holders** and
+      `Q112684029` government attorney **188 / 2,657**, and both sit coherently
+      beside the `Q1501926` attorney general and `Q3368517` prosecutor-general
+      entries already in `SUB_TYPES`.
+
+      **What it does and does not do.** `ALLOW_TYPES` is a superset of
+      `SUB_TYPES`'s keys, so anything a *new* `ALLOW_TYPES` entry rescues has by
+      construction no topic-conferring class: no topics, `default_is_pep=False`,
+      still not emitted. Adding a class here can never emit a position on its own.
+      What it buys is **reviewability**, and that is the actual defect: an item
+      dropped at `:163`/`:165` never reaches `categorise()` at `:297`, so it never
+      gets a positions-DB row, so **no reviewer can ever vet it**. The exclusion
+      is self-sealing, which is why it has been invisible.
+
+      Verified on the two affected targets: `Q7250572` Prosecutor of the ICC goes
+      `drop:excluded_type` → `review:igo_undecided`, which is the designed outcome
+      for an IGO post and therefore fully fixed. `Q1296423` White House Counsel
+      goes → `drop:pep_default_off`, joining the other 104 — emitting *it* needs a
+      `SUB_TYPES` entry, not an `ALLOW_TYPES` one.
+
+      Do **not** add `Q40348` lawyer to buy the same rescue: that node's
+      `P31 = Q189533` academic degree is simply wrong and the item is only
+      semi-protected, so fix the claim rather than mask it.
+
+      `Q2994387` adviser is a separate decision, not a bundle: it rescues
+      **36,130 positions / 100,630 holders** — the whole subtree — at no emit cost,
+      but every one of them starts getting a DB row and a place in the review
+      queue. Worth doing, worth deciding on its own.
+
+      **The full census (2026-08-23).** Of the 300 most-used `P279` classes on
+      in-use position items, **18 reach a deny class with no allow rescue,
+      covering 2,639 in-use positions.** Most of that is *correct*: `Q1638918`
+      ordinary alone is 1,410, and `coverage/lithuania`'s note already ruled that
+      ordinary bishops are absent from OpenSanctions rightly. Method note: the
+      census must use nomenklatura's closure, which mixes `P31` and `P279` at
+      **every** hop — the usual `wdt:P31/wdt:P279*` idiom misses these entirely,
+      because consultant is reached by `P279` *then* `P31`.
+
+      | class | positions | holders | verdict |
+      |---|---:|---:|---|
+      | `Q1638918` ordinary + 8 more church offices | 2,041 | — | **correctly denied** — religious-occupation policy |
+      | `Q203184` First Lady | 102 | 615 | **correctly denied** — genuinely an honorary title |
+      | `Q26241072` conde, `Q58481980` duque | 81 | — | **correctly denied** — hereditary titles |
+      | `Q100377581` municipal commissioner (SE) | 160 | 648 | wrongly denied — fix `Q4573805` |
+      | `Q100382287` oppositionsråd | 79 | 226 | wrongly denied — same root |
+      | `Q4594605` magistrate | 41 | 597 | wrongly denied — **add to `ALLOW_TYPES`** |
+      | `Q600751` prosecutor | 36 | 777 | wrongly denied — **add to `ALLOW_TYPES`** |
+      | `Q2994387` adviser | 36 | 3,716 | wrongly denied — fix `Q15978655`, do not allow the class |
+      | `Q185351` jurist | 33 | 5,415 | an occupation, not an office — fix the claim, do not allow |
+
+      So the `ALLOW_TYPES` shortlist is short: **`Q600751` prosecutor,
+      `Q4594605` magistrate, `Q112684029` government attorney.** `Q4594605` sits
+      beside the `Q16533` judge entry already in `SUB_TYPES`. Everything else on
+      the list is either correctly denied or better fixed at the claim.
+
+- [ ] **The same Wikidata error three times, and that is the real finding.** Each
+      is one normal-rank `P31` from an occupation or office to a title-or-degree
+      class, and each kills a cluster of real offices:
+  * `Q15978655` consultant `P31 = Q3320743` title of honor → adviser, prosecutor
+    (36,130 positions by closure). Semi-protected.
+  * `Q185351` jurist `P31 = Q189533` academic degree → jurist, magistrate — and
+    `Q40348` lawyer carries the identical wrong claim. Both semi-protected.
+  * `Q4573805` municipal commissioner `P31 = Q3320743` title of honor → the
+    Swedish municipal commissioners (239 positions, 874 holders). **Unprotected**,
+    so this is the cheapest of the three to fix.
+
+      Worth raising as a pattern rather than three tickets: Wikidata is using
+      `P31 = <title>` where it means "the holder bears this title", and every
+      consumer that walks a mixed `P31`/`P279` closure inherits it. Note the
+      Swedish pair would still not be *emitted* after the fix — `se` is absent
+      from `MUNI_COUNTRIES` — but they would become reviewable.
+
 
 - [ ] **`Q1758037` "speaker" does not set the PEP default** while `Q108290289`
       "senior government official" does. A parliamentary speakership modelled to
@@ -849,6 +1154,37 @@ them as unreached rather than dropping them silently.
   two as one number per institution.
 
 ## Toolkit gaps that block lanes in more than one campaign
+
+- [ ] **`scripts/retirable.py`'s emit check does not replay the type gate.** It
+      called `ru:Председатели Совета Федерации России` removable, and its target
+      does not emit: `Q4376672`'s only non-deprecated `P279` is `Q1758037`
+      speaker. Retiring it would have silently dropped the chair of Russia's upper
+      house — the exact failure the checklist exists to prevent, in the one column
+      it does not check. Replay `position.py`'s gates per target (type, country,
+      IGO registry, topic default) over a **rank-correct** closure, the way
+      `scripts/retire_specs.py` now does before writing, and treat a
+      non-emitting target as a hard blocker rather than a note.
+
+- [ ] **`wd/shape.py`'s type closure disagrees with nomenklatura's, twice, in
+      opposite directions.** Found 2026-08-23 while checking whether the ICC
+      Prosecutor is emitted; anything read out of `excluded_by` is unreliable
+      until both are fixed, and eleven campaigns have read it.
+  * `type_targets` keeps **deprecated** claims. nomenklatura puts them in
+    `Item.deprecated` and `_type_props` only ever reads `Item.claims`
+    (`model.py:152-160`), so the crawler never traverses a deprecated `P279` —
+    `Q216353` title → `Q618779` award is deprecated and is invisible to zavod.
+    shape.py traverses it and reports 19 of the 209 `wd_categories.yml` targets as
+    excluded where the real number is 2. Note this is *not* the `wdt:` gotcha in
+    `CLAUDE.md`: that one is about reading state through best-rank values, and it
+    stands. Rank matters here because the half of shape.py that answers "what
+    would the consumer do" has to match the consumer, deprecated claims included.
+  * **`CLOSURE_CACHE` (`data/discover/closure.json`) is lossy.** `Q17104133`'s
+    closure is 123 nodes read through the cache and 140 read fresh, and the cached
+    one misses `Q618779` entirely — so the cache changes verdicts, not just
+    speed. Same class of bug as the seven-day HTTP cache one layer down, and the
+    same fix: never read a *verdict input* through it, or key it on something that
+    invalidates.
+
 
 Promoted here because a workaround appearing in a *second* campaign is the signal
 that something is missing, not a pattern to copy (`recipes/country_sweep.md` §3a).
