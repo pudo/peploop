@@ -192,6 +192,51 @@ def edit_entity(
     return True
 
 
+def add_qualifier(
+    guid: str, prop: str, value: str, summary: str, ledger: Ledger, ref: str,
+    apply: bool = False, baserevid: Optional[int] = None,
+) -> bool:
+    """Add one qualifier to one existing statement, by GUID.
+
+    The additive counterpart to `edit_entity` for a statement that already
+    exists and only wants a date or a district. Reach for this rather than
+    `edit_entity` with a claim id: `wbeditentity` replaces the statement's data
+    with what you send, so a payload carrying only `P580` would **wipe** the
+    `P2937` and `P4100` already on it. `wbsetqualifier` cannot destroy anything.
+
+    Two consequences of that choice, both worth knowing:
+
+    * **It is not atomic across properties.** Setting a start and an end is two
+      edits. That is benign here — a statement with a start and no end is still
+      an improvement — but it is why this is not the tool for a split.
+    * **It adds rather than sets.** `wbsetqualifier` without a snak hash appends,
+      so calling it twice gives the statement two start dates. The caller must
+      check the qualifier is absent on a *fresh* read, and the ledger is what
+      stops a re-run doing it again.
+
+    `baserevid` is rejected if the item moved since that revision — and since
+    each call bumps it, re-read between calls rather than reusing one.
+    """
+    if ledger.qid(ref):
+        return False
+
+    args = [
+        "wb", "add-qualifier", guid, prop, value,
+        "--summary", summary, "--maxlag", str(MAXLAG),
+    ]
+    if baserevid is not None:
+        args += ["--baserevid", str(baserevid)]
+    if not apply:
+        _run(args + ["--dry"])
+        return False
+
+    output = _run(args)
+    ledger.record(ref, guid.split("$")[0],
+                  {"guid": guid, "property": prop, "value": value,
+                   "response": output[:300]})
+    return True
+
+
 def remove_claim(
     guid: str, summary: str, ledger: Ledger, ref: str, apply: bool = False
 ) -> bool:
