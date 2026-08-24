@@ -31,7 +31,6 @@ Two safety properties, because this is the one operation here that removes data:
 """
 
 import argparse
-import json
 import sys
 from pathlib import Path
 

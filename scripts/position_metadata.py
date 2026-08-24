@@ -36,7 +36,7 @@ from wd.positions import holder_counts  # noqa: E402
 from wd.validate import check  # noqa: E402
 from wd.http import get_text, make_session  # noqa: E402
 from wd.record import (  # noqa: E402
-    Decision, Record, Signal, Snak, Statement, Subject, Value, dumps,
+    Decision, Record, Signal, Statement, Subject, Value, dumps,
 )
 
 WIKIDATA_API = "https://www.wikidata.org/w/api.php"

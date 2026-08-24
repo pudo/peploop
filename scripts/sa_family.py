@@ -43,7 +43,6 @@ prose about cousin marriages rather than rows.
 """
 
 import argparse
-import json
 import sys
 from collections import Counter
 from pathlib import Path

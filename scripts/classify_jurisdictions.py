@@ -23,7 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from wd.http import REPO_ROOT
-from wd.verdicts import EFFORT, MODEL, Ledger, Usage, classify
+from wd.verdicts import EFFORT, MODEL, Ledger, classify
 
 BASE = REPO_ROOT / "data" / "jurisdictions"
 PROMPT = REPO_ROOT / "prompts" / "jurisdiction_classifier.md"

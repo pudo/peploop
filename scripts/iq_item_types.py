@@ -94,7 +94,9 @@ def campaign_targets():
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--retrieved", default=None, help="unused; kept for symmetry")
-    args = parser.parse_args()
+    # Called for its side effects — `--help` and rejecting unknown flags — and
+    # not assigned, because nothing here reads an argument.
+    parser.parse_args()
 
     session = make_session()
     targets = campaign_targets()

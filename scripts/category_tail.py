@@ -23,10 +23,8 @@ the verification agents.
 """
 
 import json
-import re
 import sys
 from collections import Counter
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -45,7 +43,6 @@ from wd.petscan import category_members
 from wd.positions import (
     LIST_ARTICLE,
     country_qid,
-    lookup_position,
     norm_label,
     query_variants,
 )
