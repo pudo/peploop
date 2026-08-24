@@ -63,6 +63,14 @@ Where things live:
   deletes them — the spec count falls as they retire, so measure, don't quote).
   §10 of the recipe is the one to read first: thirteen defects were found in this
   loop and **not one of them by a test**.
+- `coverage/offices_named.md` — **the creation queue, with evidence.** Every
+  office an enrichment run named and could not place, each with the person
+  attested to have held it, the dates, and the sentence that says so. Built by
+  `scripts/office_ledger.py` from artifacts that are otherwise gitignored, which
+  is the point: a queue that lives only in `data/` gets re-derived instead of
+  worked. `create` is the list to mint from — `wd/create.py:guard`'s holder floor
+  is already met, which is what ~150 offices listed across nine campaigns never
+  had.
 - `coverage/<country>.md` — **the ledger, and the definition of done.** One row
   per institution class with a disposition. A campaign closes when no row reads
   `deferred` and every `blocked:` names an issue — *not* when a batch validates.

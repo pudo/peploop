@@ -92,12 +92,14 @@ PRs can start with the cheap ones (small categories, item already good).
   often a subdivision — Kursk Oblast, not Russia; one P17 hop resolves it).
   Note: ~30 label-only rows have no country data on the item — several are
   exactly the positions `citizenship_plan.qs` will fix once applied.
-- [ ] verify the 169 resolved QIDs (agent pass: item is a real position,
-  not a list article — Q6085548 is dual-typed! — and the office actually
-  corresponds to the category's scope)
-- [ ] LLM tail for the 22 ambiguous + 60 unmatched (unmatched splits into
-  naming variants the search missed vs. genuinely item-less offices —
-  the latter feed a position-item creation list, cf. `tasks/followups.md`)
+- [x] verify the 169 resolved QIDs (agent pass: item is a real position, not a
+  list article — Q6085548 is dual-typed! — and the office actually corresponds
+  to the category's scope) — **done, and the result is the next entry.**
+- [x] LLM tail for the 22 ambiguous + 60 unmatched (unmatched splits into
+  naming variants the search missed vs. genuinely item-less offices — the latter
+  feed a position-item creation list) — **done by the 2026-08-06 tail pass
+  below**, and the creation list it wanted now exists with evidence attached:
+  `coverage/offices_named.md`.
 - [x] resolution verification (2026-08-05, 4 Opus agents over the 169
   resolved rows): **162 confirm / 6 replace / 1 reject / 0 unclear**,
   merged back into positions.json → **168 verified QIDs**, 66 scope notes
@@ -118,9 +120,20 @@ PRs can start with the cheap ones (small categories, item already good).
   (web.archive.org) and found ru.wiki errors (Chetverikov's convocations)
   and the declined-list-mandate trap. Review note: Ivanov's early-term
   rows cite the 5th-convocation roster URL as source — check before apply.
-- [ ] bucket-category narrowing design (22 specs: "Minister of the Russian
-  Federation", "Governor of a Russian Region", Australian local
-  councillors...) — per-person office identification from articles
+- [x] **bucket-category narrowing has a design** (2026-08-24):
+  `recipes/enrichment_loop.md`. The narrowing *is* the enrichment loop with the
+  country gazetteer instead of a single target — `wd/gazetteer.py:for_country`,
+  measured at 62 items for Lesotho, 194 Czechia, 200 Iran, so it fits a cached
+  prefix. **Unrun**, and it is the one part of that design with no evidence
+  behind it: every run so far was a single-office spec whose gazetteer held one
+  item, so the model never actually had to *choose*. 24 bucket specs — mayors in
+  Guatemala, Nicaragua, Venezuela and Spain, Australian local councillors across
+  seven states, Russian regional and district heads, party leaders, senior
+  military leadership. Those are the rows reading 0 of 11 in
+  `coverage/README.md`. Start with a national one (`Government_ministers_of_Spain`,
+  `Министры Российской Федерации`) rather than a municipal one: Poland's run
+  suggests municipal offices mostly have no item at all, so a mayoral bucket
+  would test creation rather than choosing.
 - [x] Middle East run (2026-08-05): Presidents_of_Yemen (2 rejects — Houthi
   SPC chairmen, disputed claim lives on the SPC item; Wikidata's Q878256
   holder line is the recognized succession), Sultans_of_Oman (1 historical
@@ -142,9 +155,18 @@ PRs can start with the cheap ones (small categories, item already good).
   like "Minister of Health" bury the right country's item deep in the
   ranking); yml depth=0 on PLC/Bahrain specs means the direct specs catch
   almost nobody — members arrive via the depth-7 sweeps.
-- [ ] retirement report: per-spec P39 coverage (members_total / p39_have /
-  p39_planned / p39_gap) → ranked list of yml sections whose
-  pseudo-positions can be dropped
+- [x] **retirement report built** (2026-08-24). `scripts/spec_report.py` gives
+  every spec one of seven dispositions and writes `coverage/petscan_specs.md`;
+  `scripts/retirable.py` builds the real cohort and writes
+  `coverage/petscan_retirable.md`, the PR checklist, accumulating so a spec keeps
+  the date it was first found removable. Two findings the plan above could not
+  have known: the pre-gate gap **overstates the queue**, sometimes to zero
+  (`Prime_ministers_of_Spain` reads 101 and has none — all born before 1920), so
+  44 specs are removable against the 22 a pre-gate count finds; and the ceiling
+  is **not** made of Wikidata problems — of 209 targets only ~80 are positions
+  `wd_peps` emits, and 127 are blocked on OpenSanctions' own `SUB_TYPES` policy
+  (`coverage/wd_categories.md`). Those queries cannot be retired by enriching
+  anything.
 - [x] **tail resolved + `wikidata_id`s written back (2026-08-06).** Two
   wording-independent signals closed most of what name search couldn't
   (`scripts/category_tail.py`): the Wikipedia **category item's P301**
@@ -242,4 +264,15 @@ PRs can start with the cheap ones (small categories, item already good).
     "Volgograd *Oblast* Duma"; and demanding `P17 == [Q159]` when
     `Q4146671` carries Russia *and* the Soviet Union and `Q4070652` carries no
     `P17` at all.
-- [ ] eventually: drop `position:` blocks flagged retirable
+- [x] **43 specs retired** (2026-08-24) by `scripts/retire_specs.py`, which
+  comments the block out with the date and the reason on it rather than deleting
+  it, because a retirement is the thing most likely to need reverting. The yml
+  went 594 → 551 specs and 284 → 241 with a `position:` block. The remaining
+  removable ones are in `coverage/petscan_retirable.md`.
+- [x] **the creation queue has evidence attached** (2026-08-24).
+  `scripts/office_ledger.py` → `coverage/offices_named.md`: 79 offices an
+  enrichment run named and could not place, each with the holder attested to have
+  held it, the dates, and the sentence saying so. That is what the "unmatched →
+  position-item creation list" line above asked for, and what nine campaigns'
+  creation lists never had — `wd/create.py:guard`'s holder floor is already met.
+  Also 6 ambiguous and 4 refused for naming no polity they govern.
