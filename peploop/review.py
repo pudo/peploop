@@ -19,9 +19,10 @@ from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
 from rich.text import Text
+from textual import events
 from textual.app import App, ComposeResult
 from textual.binding import Binding, BindingType
-from textual.containers import Vertical
+from textual.containers import Horizontal, Vertical
 from textual.markup import escape
 from textual.screen import ModalScreen
 from textual.widgets import DataTable, Footer, Input, Static
@@ -35,6 +36,14 @@ REASONS = (
     "wrong_value", "wrong_precision", "quote_unsupported", "wrong_person",
     "already_recorded", "rule_missing", "source_wrong", "other",
 )
+# The reason as a reviewer would say it, for the sidebar. A word alone does not
+# say what about the thing is wrong, and the identifier is not a phrase.
+REASON_NAMES = {
+    "wrong_value": "wrong value", "wrong_precision": "wrong precision",
+    "quote_unsupported": "quote does not support", "wrong_person": "wrong person",
+    "already_recorded": "already recorded", "rule_missing": "prompt rule missing",
+    "source_wrong": "source itself wrong", "other": "other",
+}
 # One word per reason, for the legend and the verdict cell: what the database
 # stores is too long to read across a row eight times.
 REASON_WORDS = {
@@ -68,13 +77,33 @@ SPAN_QUALIFIERS = (("P580", "from"), ("P582", "to"))
 ACCEPT, REJECT, SKIP = "accept", "reject", "skip"
 MARKS = {ACCEPT: "✓", REJECT: "✗", SKIP: "–"}
 # The digits are the only keys with no footer entry, so they are spelled out.
-# One line: at 118 characters it is the widest thing on screen that must not
-# wrap, which is what the single spaces between the reasons buy.
+# 118 characters, and the narrow layout is the only one that draws it, so it
+# wraps to a second row; the single spaces keep that to two rows.
 LEGEND = (
     f"{MARKS[REJECT]} "
     + " ".join(f"[b]{n}[/b] {REASON_WORDS[r]}" for n, r in enumerate(REASONS, 1))
     + "  [b]A[/b] accept all  [b]R[/b]# reject all  [b]W[/b] wrong person"
 )
+# The sidebar says the same thing with room to spell it out, and it stays on
+# screen while a row is judged rather than being read once and recalled.
+SIDEBAR = "\n".join(
+    [
+        "[dim]reject row with[/dim]",
+        *(f" [b]{n}[/b]  {REASON_NAMES[r]}" for n, r in enumerate(REASONS, 1)),
+        "",
+        "[dim]row[/dim]      [b]a[/b] [dim]accept[/dim]   [b]s[/b] [dim]skip[/dim]",
+        "         [b]n[/b] [dim]note[/dim]",
+        "[dim]person[/dim]   [b]Enter[/b] [dim]submit[/dim]",
+        "         [b]x[/b] [dim]skip person[/dim]",
+        "         [b]A[/b] [dim]accept all[/dim]",
+        "         [b]R#[/b] [dim]reject all with #[/dim]",
+        "         [b]W[/b] [dim]wrong person, submit[/dim]",
+        "[dim]links[/dim]    [b]o[/b] [dim]wikidata[/dim]  [b]w[/b] [dim]article[/dim]",
+    ]
+)
+# Narrower than this the table has nothing left to give, so the sidebar goes and
+# the one-line legend comes back.
+SIDEBAR_MIN_COLUMNS = 110
 
 
 def property_name(prop: str) -> str:
@@ -428,8 +457,15 @@ class ReviewApp(App[None]):
     """Walk a list of people, one screen each, recording verdicts on submit."""
 
     CSS = """
+    #body { height: 1fr; }
+    #main { width: 1fr; }
+    /* Border, one column of padding, and the widest line ("W wrong person,
+       submit") at 31 columns. */
+    #sidebar { width: 33; height: 1fr; padding: 0 0 0 1; border-left: solid $primary; }
     #person { height: 1; padding: 0 1; background: $panel; }
-    #legend { height: 1; color: $text-muted; }
+    /* Height is auto because the legend is only ever drawn below the width it
+       needs, where a second row costs less than a cut-off key. */
+    #legend { height: auto; color: $text-muted; }
     /* The quote column takes whatever is left and is clipped rather than
        scrolled: the evidence panel below holds the quote in full. */
     ProposalTable { height: auto; max-height: 70%; overflow-x: hidden; }
@@ -475,10 +511,13 @@ class ReviewApp(App[None]):
         self.bulk = False
 
     def compose(self) -> ComposeResult:
-        yield Static(id="person")
-        yield Static(LEGEND, id="legend")
-        yield ProposalTable(cursor_type="row")
-        yield Static(id="evidence")
+        with Horizontal(id="body"):
+            with Vertical(id="main"):
+                yield Static(id="person")
+                yield Static(LEGEND, id="legend")
+                yield ProposalTable(cursor_type="row")
+                yield Static(id="evidence")
+            yield Static(SIDEBAR, id="sidebar")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -486,7 +525,17 @@ class ReviewApp(App[None]):
         for key, label in self.COLUMNS:
             width = VALUE_WIDTH if key == "value" else None
             table.add_column(label, key=key, width=width)
+        self.fit_width(self.size.width)
         self.advance()
+
+    def on_resize(self, event: events.Resize) -> None:
+        self.fit_width(event.size.width)
+
+    def fit_width(self, columns: int) -> None:
+        """Show the sidebar where it fits, and the one-line legend where it doesn't."""
+        wide = columns >= SIDEBAR_MIN_COLUMNS
+        self.query_one("#sidebar", Static).display = wide
+        self.query_one("#legend", Static).display = not wide
 
     @property
     def table(self) -> ProposalTable:

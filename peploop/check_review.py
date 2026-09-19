@@ -11,6 +11,7 @@ Run it as `python -m peploop.check_review` from the repository root.
 
 import asyncio
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +20,22 @@ from textual.widgets import Static
 from peploop import db, review
 
 SHOT_PATH = Path("data/review.svg")
+NARROW_SHOT_PATH = Path("data/review_narrow.svg")
 SHOT_PEOPLE = 3
+# Either side of `review.SIDEBAR_MIN_COLUMNS`: the sidebar is the layout at the
+# first size and must be gone at the second, with the legend back in its place.
+WIDE_SIZE = (160, 40)
+NARROW_SIZE = (100, 40)
+
+
+@dataclass
+class Layout:
+    """What one terminal size made of the reason help, and who was drawn in it."""
+
+    sidebar: bool
+    legend: bool
+    sidebar_text: str
+    headers: list[str]
 
 
 def _reviewable(minimum: int) -> list[tuple[str, int]]:
@@ -81,14 +97,20 @@ async def _drive(qid: str) -> tuple[review.ReviewApp, list[review.Row], list[int
     return app, rows, moves
 
 
-async def _screenshots(qids: list[str]) -> list[str]:
-    """Draw every person in a random selection, and save the first screen as SVG."""
+async def _layout(qids: list[str], size: tuple[int, int], path: Path) -> Layout:
+    """Draw every person at one terminal size and report what the reasons look like.
+
+    Drawing all of them and not just the screenshotted one is the cheap half of
+    the check: a person whose table the layout cannot fit throws on render.
+    """
     app = review.ReviewApp(qids, reviewer="check_review")
     headers = []
-    async with app.run_test(size=(120, 40)) as pilot:
+    async with app.run_test(size=size) as pilot:
         await pilot.pause()
-        SHOT_PATH.parent.mkdir(parents=True, exist_ok=True)
-        app.save_screenshot(str(SHOT_PATH))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        app.save_screenshot(str(path))
+        sidebar = app.query_one("#sidebar", Static)
+        seen = (sidebar.display, app.query_one("#legend", Static).display, str(sidebar.content))
         for _ in qids:
             if not app.is_running:
                 break
@@ -96,7 +118,7 @@ async def _screenshots(qids: list[str]) -> list[str]:
             await pilot.press("x")
         if app.is_running:
             await pilot.press("q")
-    return headers
+    return Layout(*seen, headers)
 
 
 def main() -> int:
@@ -166,12 +188,24 @@ def _check(conn: Any, qid: str) -> int:
         f"{len(ids[2:])} skipped rows kept no verdict",
     )
 
-    if not failures:
-        shot = _shot_person()
-        draw = [q for q in review.select_people([], SHOT_PEOPLE) if q != shot]
-        for header in asyncio.run(_screenshots(([shot] if shot else []) + draw)):
-            print(f"  rendered {header}")
-        print(f"screenshot of the first screen at {SHOT_PATH}")
+    shot = _shot_person()
+    draw = [q for q in review.select_people([], SHOT_PEOPLE) if q != shot]
+    qids = ([shot] if shot else []) + draw
+    wide = asyncio.run(_layout(qids, WIDE_SIZE, SHOT_PATH))
+    unnamed = [name for name in review.REASON_NAMES.values() if name not in wide.sidebar_text]
+    expect(
+        wide.sidebar and not wide.legend,
+        f"at {WIDE_SIZE[0]} columns the sidebar replaces the one-line legend",
+    )
+    expect(not unnamed, f"the sidebar spells out all eight reasons (missing {unnamed})")
+    for header in wide.headers:
+        print(f"  rendered {header}")
+    narrow = asyncio.run(_layout(qids[:1], NARROW_SIZE, NARROW_SHOT_PATH))
+    expect(
+        narrow.legend and not narrow.sidebar,
+        f"at {NARROW_SIZE[0]} columns the sidebar is hidden and the legend is back",
+    )
+    print(f"screenshots at {SHOT_PATH} and {NARROW_SHOT_PATH}")
 
     return 1 if failures else 0
 
