@@ -1,0 +1,33 @@
+# Wikipedia categories seeding the Czech pilot: one PetScan query per entry.
+# Copied from the `country: cz` entries of OpenSanctions' wd_categories.yml
+# (datasets/_wikidata/categories), in that file's order, keeping only the
+# category and its language.
+
+- category: Political_office-holders_in_the_Czech_Republic
+  lang: en
+- category: Lists_of_members_of_the_Chamber_of_Deputies_of_the_Czech_Republic
+  lang: en
+- category: Members_of_the_Parliament_of_the_Czech_Republic
+  lang: en
+- category: Senát_Parlamentu_České_republiky
+  lang: cs
+# Full scope: ~6,300 people, most of them not politically exposed. Kept out of
+# the pilot so the prompt is judged on ~700 first; re-enable after the hand check.
+# - category: Čeští_politici
+#   lang: cs
+- category: Poslanci_Parlamentu_České_republiky_(2021–2025)
+  lang: cs
+- category: Poslanci_Parlamentu_České_republiky
+  lang: cs
+- category: Senátoři_Parlamentu_České_republiky
+  lang: cs
+- category: Prezidenti_České_republiky
+  lang: cs
+- category: Ministři_vlád_České_republiky
+  lang: cs
+- category: Soudci_Nejvyššího_soudu_České_republiky
+  lang: cs
+- category: Soudci_Nejvyššího_správního_soudu_České_republiky
+  lang: cs
+- category: Soudci_Ústavního_soudu_České_republiky
+  lang: cs
