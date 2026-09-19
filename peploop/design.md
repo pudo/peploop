@@ -334,8 +334,10 @@ whose every quote `extract` could not find in the article text has no evidence
 behind it, so it is not a candidate edit however well it agrees with Wikidata.
 Name forms carry no quotes and are never `unquoted`.
 
-Only `new` and `refine` are candidates for writing. `conflict` is the human's
-list. A reviewed proposal moves to `accepted` or `rejected`; a written one to
+Only `new` and `refine` are candidates for writing. A `conflict` is reviewed
+too — an article disputing the item is exactly what a human should see — but
+accepting one records that Wikidata looks wrong, which is a to-do about the
+item and not an edit: `apply` writes nothing for it. A reviewed proposal moves to `accepted` or `rejected`; a written one to
 `applied`, carrying `applied_rev` (the revision the edit produced) and, for a
 statement, `claim_guid` (the statement it created or sharpened; a label or an
 alias is not a statement and leaves it null). The kind of evidence behind a proposal (an infobox line, prose, a
@@ -367,6 +369,11 @@ live claims, and routed:
 | the value more coarsely, referenced only by `P143`/`P4656`/`P813` | that same statement, `id` and all, with our value and our reference appended |
 | the value more coarsely, referenced to anything else | a second statement at `rank: preferred`, the old one left alone |
 | a differing value on a `SINGLE_VALUED` property | nothing; it is a conflict |
+
+An accepted `conflict` is therefore inert here by construction: every property
+a proposal can conflict on is `SINGLE_VALUED`, and that row is ruled out before
+anything else. The acceptance stands as a human's note that the item needs
+looking at, and nothing reaches Wikidata through it.
 
 Contradiction is ruled out over *every* statement before anything else, not
 over the one that happens to match: a person recorded with both a coarse 1950

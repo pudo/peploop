@@ -365,11 +365,12 @@ def render(status: str, properties: Sequence[str]) -> None:
 @click.option("--limit", default=20, show_default=True)
 @click.option("--qid", multiple=True, help="Review these people instead of a random draw.")
 def review(limit: int, qid: Sequence[str]) -> None:
-    """Review people's `new` and `refine` proposals and record a verdict for each.
+    """Review people's `new`, `refine` and `conflict` proposals, recording a verdict.
 
     One person per screen, drawn at random from those with something left to
     review; each person's decisions are written in one transaction when the
-    screen is submitted.
+    screen is submitted. An accepted conflict is a note that the item is wrong,
+    not an edit: `apply` never writes a value contradicting what is recorded.
     """
     qids = reviewing.select_people(list(qid), limit)
     if not qids:

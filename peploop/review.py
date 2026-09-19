@@ -29,7 +29,10 @@ from textual.widgets import DataTable, Footer, Input, Static
 
 from peploop import db, prompt, wikidata
 
-REVIEWABLE = ("new", "refine")
+# A conflict is reviewable but not writable: accepting one says the article is
+# right and Wikidata is wrong, which is a human's to-do about the item, and
+# `apply` refuses to write a value that contradicts a single-valued property.
+REVIEWABLE = ("new", "refine", "conflict")
 # The order is the keypad: digit 1 is the first of these. It must stay a subset
 # of the `verdict.reason` check constraint in schema.sql.
 REASONS = (
