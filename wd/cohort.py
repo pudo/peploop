@@ -28,7 +28,7 @@ from wd.api import best_label, fetch_entities, sparql
 from wd.human import AFTER_DEATH, YEAR_DAYS, claim_times
 from wd.petscan import category_members
 from wd.wikipedia import wikipedia_langs
-from wd.positions import members_holding
+from wd.positions import holdings, members_holding
 from wd.specs import Spec
 
 #: Nobody born before this is worth an LLM call: they cannot produce an
@@ -64,6 +64,10 @@ class Cohort:
     members: List[Member] = field(default_factory=list)
     held: List[Member] = field(default_factory=list)
     todo: List[Member] = field(default_factory=list)
+    #: For a `bucket` cohort, which of the in-scope offices each held member
+    #: is recorded in — the backtest's ground truth, and what its dossier must
+    #: hide. Empty for a single-target cohort, where the office is `spec.target`.
+    holdings: Dict[str, List[str]] = field(default_factory=dict)
     dropped: Dict[str, str] = field(default_factory=dict)   # qid -> reason
     not_human: List[str] = field(default_factory=list)
 
@@ -183,12 +187,18 @@ def build(
     gate: bool = True,
     born_after: str = BORN_AFTER,
     max_age: Optional[int] = None,
+    targets: Sequence[str] = (),
 ) -> Cohort:
     """Assemble the spec's cohort: members, the backtest set, and the work.
 
     `langs` restricts which wikis count as readable; empty means any sitelink
     will do. `gate=False` skips the relevance filter, for sizing a spec without
     committing to a policy.
+
+    `targets` replaces `spec.target` when splitting `held` from `todo`, and it
+    is what makes a `bucket` spec testable: a bucket names a *class* of offices
+    and has no single item, so with `spec.target` alone every member falls into
+    `todo` and the backtest set is empty. Pass the gazetteer's QIDs.
     """
     cohort = Cohort(spec=spec)
     listed = category_qids(session, spec, max_age=max_age)
@@ -221,11 +231,21 @@ def build(
             )
         )
 
-    held = (
-        members_holding(session, [m.qid for m in cohort.members], spec.target)
-        if spec.target and cohort.members
-        else set()
-    )
+    if targets and cohort.members:
+        wanted = set(targets)
+        cohort.holdings = {
+            qid: sorted(positions & wanted)
+            for qid, positions in holdings(
+                session, [m.qid for m in cohort.members]).items()
+            if positions & wanted
+        }
+        held = set(cohort.holdings)
+    else:
+        held = (
+            members_holding(session, [m.qid for m in cohort.members], spec.target)
+            if spec.target and cohort.members
+            else set()
+        )
     for member in cohort.members:
         if member.qid in held:
             cohort.held.append(member)

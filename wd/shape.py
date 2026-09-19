@@ -43,7 +43,7 @@ import re
 
 from rigour.territories import get_territory_by_qid
 
-from wd.api import claim_qids, fetch_entities
+from wd.api import best_label, claim_qids, fetch_entities
 from wd.http import REPO_ROOT
 
 #: `position.py:20`. An item whose P31/P279 closure misses all of these never
@@ -530,7 +530,10 @@ def verify(
     """
     qid = entity.get("id", "")
     types = closure.get(qid, set())
-    verdict = Verdict(qid=qid, label=label)
+    # The payload is already here, so an unlabelled verdict is a caller
+    # forgetting a `labels` dict rather than an item without a name — and it
+    # reads downstream as an item with no label at all (`Q20706330 None`).
+    verdict = Verdict(qid=qid, label=label or best_label(entity))
     verdict.declared = type_targets(entity)
 
     verdict.basics = bool(types & POSITION_BASICS)

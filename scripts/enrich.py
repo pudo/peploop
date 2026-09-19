@@ -24,22 +24,26 @@ free for anyone already judged and a widened cohort costs only what is new.
 import argparse
 import json
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from rigour.territories import lookup_territory  # noqa: E402
 
+from wd.api import best_label, fetch_entities
 from wd.campaign import resolve_titles
 from wd.backtest import COARSER, CONTAINED, NEAR, SAME_TERM, ExistingTerm, compare
 from wd.cohort import build as build_cohort
 from wd.dossier import build as build_dossier
-from wd.dossier import build_roster_index
+from wd.dossier import build_roster_index, territory_langs
 from wd.enrich import (VERDICT_SCHEMA, check, flag_summary, records,
                       resolve_offices, unresolved_offices)
 from wd.gazetteer import (describe, for_country, for_qualifier,
                           for_target, render_qualifiers)
 from wd.http import REPO_ROOT, make_session
+from wd.positions import index_for_country, subclass_held
+from wd.rerank import Mention, place_offices
 from wd.record import dumps
 from wd.shape import verify_all
 from wd.specs import BUCKET, load_specs, roster_pages
@@ -47,10 +51,79 @@ from wd.verdicts import EFFORT, MODEL, Ledger, classify
 
 OUT_DIR = REPO_ROOT / "data" / "enrich"
 PROMPT = REPO_ROOT / "prompts" / "person_enrichment.md"
+RERANK_PROMPT = REPO_ROOT / "prompts" / "office_rerank.md"
 
 
 def slug(key: str) -> str:
     return key.replace(":", "_").replace("/", "_").replace(" ", "_")
+
+
+def score_bucket(report, cohort, placed, mentions) -> None:
+    """Score a bucket backtest: did the loop pick the office the record uses?
+
+    Three numbers, kept apart, because they fail for different reasons and a
+    single percentage hides which one did.
+
+    * **retrieval recall** — was the true office reachable at all, either in
+      the gazetteer the model read or in a shortlist the placement pass built?
+      This is the ceiling on everything below it, and its failure is the
+      invisible one: an office the loop never saw comes back as a name, and a
+      name with no item reads as a *finding* rather than as a miss.
+    * **choice accuracy** — of the tenures that were hidden, how many came back
+      pointing at the same item.
+    * **refusal** — how often the loop declined to name a QID. Declining when
+      the office was unreachable is the right answer; declining when it was
+      right there is the cost of a shortlist that buried it.
+
+    A single-target backtest cannot ask any of this: with one item in the
+    gazetteer the only available answer is that item.
+    """
+    proposed: dict = {}
+    named: dict = {}
+    for row, found, _ in report:
+        person = row.get("qid")
+        for c in found:
+            if c.proposal.get("property") != "P39":
+                continue
+            qid = c.proposal.get("position_qid")
+            if qid:
+                proposed.setdefault(person, set()).add(qid)
+            elif c.proposal.get("office_name"):
+                named.setdefault(person, set()).add(c.proposal["office_name"])
+
+    judged = [r[0].get("qid") for r in report]
+    truth = {q: set(cohort.holdings.get(q, ())) for q in judged}
+    hidden = sum(len(v) for v in truth.values())
+    hit = sum(len(truth[q] & proposed.get(q, set())) for q in truth)
+    # An office the placement pass resolved counts as reached even when the
+    # model could only name it in prose — that is the lane working.
+    reached = set(placed.values()) if placed else set()
+    recalled = sum(
+        len(truth[q] & (proposed.get(q, set()) | reached)) for q in truth
+    )
+    people_silent = sum(
+        1 for q in truth if truth[q] and not proposed.get(q) and not named.get(q)
+    )
+
+    print("\n## Bucket backtest — did it pick the office the record uses?\n")
+    print(f"  people scored                    {len(judged)}")
+    print(f"  in-scope tenures hidden          {hidden}")
+    print(f"  ...reachable (gazetteer|placed)  {recalled}/{hidden}"
+          f"   <- the ceiling; a miss here looks like a creation candidate")
+    print(f"  choice: same office re-proposed  {hit}/{hidden}")
+    print(f"  people who named nothing at all  {people_silent}")
+    print(f"  offices named but not placed     {len(mentions) - len(placed)}"
+          f" of {len(mentions)}")
+    wrong = {
+        q: sorted(proposed.get(q, set()) - truth[q]) for q in truth
+        if proposed.get(q, set()) - truth[q]
+    }
+    if wrong:
+        print(f"\n  proposals for an office the record does not have "
+              f"({sum(len(v) for v in wrong.values())}):")
+        for person, qids in sorted(wrong.items())[:20]:
+            print(f"    {person} -> {', '.join(qids)} "
+                  f"(record: {', '.join(sorted(truth[person])) or 'none'})")
 
 
 def main() -> None:
@@ -63,6 +136,10 @@ def main() -> None:
                         help="write dossiers and stop, no API call")
     parser.add_argument("--no-rosters", action="store_true",
                         help="skip the shared officeholder-list channel")
+    parser.add_argument("--allow-class-target", action="store_true",
+                        help="run even when the gap is explained by the "
+                             "target being a superclass of the office the "
+                             "members actually hold")
     parser.add_argument("--no-resolve", action="store_true",
                         help="skip placing offices the gazetteer did not offer")
     parser.add_argument("--no-qualifiers", action="store_true",
@@ -72,12 +149,32 @@ def main() -> None:
                         choices=["low", "medium", "high", "xhigh", "max"])
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--prompt", type=Path, default=PROMPT)
+    parser.add_argument("--rerank-prompt", type=Path, default=RERANK_PROMPT,
+                        help="prompt for the office-placement pass")
+    parser.add_argument("--depth", type=int,
+                        help="override the spec's category recursion depth. A "
+                             "bucket category is often a shelf of per-portfolio "
+                             "subcategories with almost no articles of its own.")
+    parser.add_argument("--language",
+                        help="override the spec's wiki language. Six Czech "
+                             "specs in wd_categories.yml declare `en` and name "
+                             "a cs.wikipedia category, so they sweep in nobody "
+                             "and read as an empty category rather than a "
+                             "broken query.")
     args = parser.parse_args()
 
     specs = {s.key: s for s in load_specs()}
     spec = specs.get(args.spec)
     if spec is None:
         raise SystemExit(f"no such spec: {args.spec}")
+    if args.depth is not None and args.depth != spec.depth:
+        print(f"depth: {spec.depth} -> {args.depth} (override)", file=sys.stderr)
+        spec = replace(spec, depth=args.depth)
+    if args.language and args.language != spec.language:
+        print(f"language: {spec.language} -> {args.language} (override)",
+              file=sys.stderr)
+        spec = replace(spec, language=args.language,
+                       key=f"{args.language}:{spec.category}")
     if spec.granularity != BUCKET and not spec.target:
         raise SystemExit(f"{spec.key} has no resolved wikidata_id — see "
                          "tasks/category_positions.md")
@@ -100,17 +197,22 @@ def main() -> None:
             print("  note: wd_peps would not emit this position as it stands, so "
                   "this spec cannot be retired by enrichment alone.", file=sys.stderr)
 
+    # `rigour` turns the spec's ISO code into a QID; nothing here ever asks a
+    # model for one. Resolved once — the bucket gazetteer, the qualifier sets
+    # and the office-placement index all want it.
+    territory = lookup_territory(spec.position_country or "", fuzzy=True)
+    country_qid = territory.qid if territory else None
+
     if spec.granularity == BUCKET:
         # A bucket spec names a class of offices, so the gazetteer is the whole
-        # country. `rigour` turns the spec's ISO code into the QID; nothing here
-        # ever asks a model for one.
-        territory = lookup_territory(spec.position_country or "", fuzzy=True)
-        if territory is None or not territory.qid:
+        # country.
+        if country_qid is None:
             raise SystemExit(
                 f"{spec.key} is a bucket spec and its country "
                 f"{spec.position_country!r} does not resolve"
             )
-        gazetteer = for_country(session, territory.qid)
+        gazetteer = for_country(session, country_qid,
+                                log=lambda m: print(f"  {m}", file=sys.stderr))
     else:
         gazetteer = for_target(session, spec.target)
     print(f"gazetteer: {len(gazetteer.entries)} offices ({gazetteer.scope})",
@@ -120,16 +222,45 @@ def main() -> None:
     # the value cannot be asserted here — Guatemala has no electoral-district and
     # no parliamentary-group items at all.
     quals: dict = {}
-    territory = lookup_territory(spec.position_country or "", fuzzy=True)
-    if territory and territory.qid and not args.no_qualifiers:
+    if country_qid and not args.no_qualifiers:
         for prop in ("P768", "P4100"):
-            quals[prop] = for_qualifier(session, prop, territory.qid)
+            quals[prop] = for_qualifier(session, prop, country_qid)
         print("qualifiers: " + ", ".join(
             f"{p}={len(g.entries)}" for p, g in sorted(quals.items())),
             file=sys.stderr)
 
-    cohort = build_cohort(session, spec)
+    # A bucket spec has no single target, so the backtest set is "holds any of
+    # the country's offices". Without this every member lands in `todo` and
+    # there is nothing to score the office choice against.
+    bucket_targets = sorted(gazetteer.qids) if spec.granularity == BUCKET else []
+    cohort = build_cohort(session, spec, targets=bucket_targets)
     print(f"cohort: {cohort.sizes} dropped={cohort.reasons()}", file=sys.stderr)
+    # Is the gap real, or is the target a *class* and not a seat? A superclass
+    # target produces a gap on every member while every property the item audit
+    # reads looks right, so nothing upstream of here can catch it: `Q20706330`
+    # "United States Supreme Court justice" is defect-free, emittable, scoped to
+    # Q30 and attached to the Court, and is the `P279` parent of the seat its
+    # members hold. Asked of the gap's own statements, before anything is spent.
+    if spec.target and cohort.todo:
+        children = subclass_held(session, spec.target,
+                                 [m.qid for m in cohort.todo])
+        worst = max(children.items(), key=lambda kv: kv[1], default=None)
+        if worst and worst[1] * 2 >= len(cohort.todo):
+            labels = fetch_entities(session, list(children), props="labels")
+            print(f"\n! the gap holds a subclass of the target. Of "
+                  f"{len(cohort.todo)} people to enrich:", file=sys.stderr)
+            for qid, n in sorted(children.items(), key=lambda kv: -kv[1]):
+                print(f"    {n:>4} already hold {qid} "
+                      f"{best_label(labels.get(qid, {}))} (P279 -> {spec.target})",
+                      file=sys.stderr)
+            print("  The spec's target names a class of offices and its members "
+                  "hold the seat. Point the\n  `position:` block at the child "
+                  "and re-measure — proposing the parent would write a\n  "
+                  "superclass P39 onto people who already hold the child. "
+                  "--allow-class-target overrides.", file=sys.stderr)
+            if not args.allow_class_target:
+                raise SystemExit(1)
+
     people = cohort.held if args.backtest else cohort.todo
     if args.limit:
         people = people[: args.limit]
@@ -150,11 +281,31 @@ def main() -> None:
         else:
             print("rosters: no list article for this category", file=sys.stderr)
 
-    withhold = [spec.target] if (args.backtest and spec.target) else []
+    # Which wikis to read, and it is not the global size ordering `pick_langs`
+    # falls back to: `cs` sits 14th there, so three of the first five Czech
+    # ministers were about to be judged on their Polish, German and Ukrainian
+    # articles with the Czech one unread. The spec's own wiki first — its
+    # category swept the person in, so an article exists there by construction
+    # — then the country's own languages, then English as the widest net.
+    wikis = tuple(dict.fromkeys(
+        [spec.language, *territory_langs(spec.position_country), "en"]
+    ))
+    print(f"wikis, preferred first: {', '.join(wikis)}", file=sys.stderr)
+
     items = []
     for member in people:
+        # Withhold what this person is being tested on. For a single-office
+        # spec that is the target; for a bucket it is every in-scope office
+        # they hold, or the dossier hands the model the answer.
+        if not args.backtest:
+            withhold = []
+        elif bucket_targets:
+            withhold = cohort.holdings.get(member.qid, [])
+        else:
+            withhold = [spec.target] if spec.target else []
         dossier = build_dossier(session, member.qid, topics=topics,
-                                withhold=withhold, rosters=index)
+                                withhold=withhold, rosters=index,
+                                prefer=wikis)
         if dossier.empty:
             print(f"  skip {member.qid}: no article to read", file=sys.stderr)
             continue
@@ -197,23 +348,65 @@ def main() -> None:
     # A single-target gazetteer makes every *other* office the person held read
     # as unresolved by construction, so place those names before judging them:
     # a creation candidate that already has an item is not a creation candidate.
-    named = [p.get("office_name") for row in rows for p in row.get("proposals") or []
-             if p.get("property") == "P39" and not p.get("position_qid")]
+    mentions: dict = {}
+    for row in rows:
+        for proposal in row.get("proposals") or []:
+            office = (proposal.get("office_name") or "").strip()
+            if proposal.get("property") != "P39" or proposal.get("position_qid"):
+                continue
+            if not office:
+                continue
+            mention = mentions.setdefault(office, Mention(name=office))
+            for term in proposal.get("search_terms") or []:
+                if term and term not in mention.terms:
+                    mention.terms.append(term)
+            mention.holders.append({
+                "qid": row.get("qid"), "start": proposal.get("start"),
+                "end": proposal.get("end"), "quote": proposal.get("quote", ""),
+            })
     placed: dict = {}
-    if named and not args.no_resolve:
-        print(f"\nplacing {len(set(filter(None, named)))} named offices "
-              f"({len(named)} mentions)", file=sys.stderr)
-        found = resolve_offices(session, named, spec.position_country,
-                                log=lambda m: print(m, file=sys.stderr))
-        placed = {n: v["qid"] for n, v in found.items() if v["qid"]}
-        (out / f"{name}_offices.json").write_text(
-            json.dumps(found, indent=1, ensure_ascii=False))
-        if placed:
-            # Keep the invariant that every applied QID is in the gazetteer.
-            gazetteer.entries.extend(
-                describe(session, sorted(set(placed.values()) - gazetteer.qids)))
-        print(f"placed {len(placed)} of {len(found)} names; gazetteer now "
-              f"{len(gazetteer.entries)} offices", file=sys.stderr)
+    if mentions and not args.no_resolve:
+        print(f"\nplacing {len(mentions)} named offices", file=sys.stderr)
+        if country_qid is None:
+            # No country means no index to build, so fall back to the label
+            # search. Weaker on every axis — English prefixes, 30 hits, one
+            # literal query — but a spec with no country has nothing better.
+            print("  no country QID; falling back to the label search",
+                  file=sys.stderr)
+            legacy = resolve_offices(session, list(mentions), None,
+                                     log=lambda m: print(f"  {m}", file=sys.stderr))
+            placed = {n: v["qid"] for n, v in legacy.items() if v["qid"]}
+            (out / f"{name}_offices.json").write_text(
+                json.dumps(legacy, indent=1, ensure_ascii=False))
+        else:
+            office_index = index_for_country(session, country_qid)
+            print(f"  index: {len(office_index)} offices in {country_qid}",
+                  file=sys.stderr)
+            found = place_offices(
+                session, office_index,
+                sorted(mentions.values(), key=lambda m: m.name),
+                prompt=args.rerank_prompt.read_text(),
+                ledger_path=out / f"{name}_offices.jsonl",
+                model=args.model, effort=args.effort, workers=args.workers,
+                log=lambda m: print(f"  {m}", file=sys.stderr),
+            )
+            placed = {n: p.qid for n, p in found.items() if p.qid}
+            (out / f"{name}_offices.json").write_text(json.dumps(
+                {n: p.as_dict() for n, p in sorted(found.items())},
+                indent=1, ensure_ascii=False))
+            for kind in sorted({p.kind for p in found.values()}):
+                n = sum(1 for p in found.values() if p.kind == kind)
+                print(f"    {kind}: {n}", file=sys.stderr)
+            vetoed = [p for p in found.values() if p.veto]
+            for p in vetoed:
+                print(f"    vetoed {p.office} -> {p.chosen} ({p.veto})",
+                      file=sys.stderr)
+            if placed:
+                # Keep the invariant that every applied QID is in the gazetteer.
+                gazetteer.entries.extend(
+                    describe(session, sorted(set(placed.values()) - gazetteer.qids)))
+            print(f"  placed {len(placed)} of {len(found)} names; gazetteer now "
+                  f"{len(gazetteer.entries)} offices", file=sys.stderr)
 
     checks, report = [], []
     for row in rows:
@@ -286,6 +479,14 @@ def main() -> None:
     # dates to overlap anything — and most legislature seats are recorded
     # undated. That is not a disagreement, it is an absence of anything to
     # disagree with, and it is also the single biggest thing this loop can fix.
+    if bucket_targets:
+        # The single-target block below is meaningless here and actively
+        # misleading: a bucket's `spec.target` is the generic class item
+        # (`Q68081922` ministr vlády) that nobody actually holds, so it reports
+        # 0 recorded tenures and files every real answer under "other offices".
+        score_bucket(report, cohort, placed, mentions)
+        return
+
     print("\n## Backtest — proposals against the statements that were hidden\n")
     recorded_total = matched = 0
     dated_total = dated_ok = 0

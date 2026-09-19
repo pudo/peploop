@@ -30,6 +30,8 @@ from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from lxml import html as lxml_html
 from requests import Session
+from rigour.langs import iso_639_alpha2
+from rigour.territories import get_territory
 
 from wd.api import best_label, fetch_entities
 from wd.human import Verdict as HumanVerdict
@@ -326,6 +328,30 @@ WIKI_PRIORITY = (
     "uk", "cs", "sv", "tr", "fa", "he", "ko", "id", "hi", "fi", "da", "no",
     "hu", "ro", "el", "bg", "ca", "sr", "sk", "hr", "lt", "lv", "et", "vi",
 )
+
+
+def territory_langs(code: Optional[str]) -> Tuple[str, ...]:
+    """The wikis a country's own politicians are written up in.
+
+    Reach for this before reading anyone's article: `WIKI_PRIORITY` is a global
+    size ordering, so without it a Czech minister is read in Polish and
+    Ukrainian while `cs` — 14th on that list — goes unread, and the Czech
+    article is the one the roster detail is in. A spec's own `language` is a
+    weaker proxy for the same thing, and it can simply be wrong: six specs in
+    `wd_categories.yml` declare `en` for a cs.wikipedia category.
+
+    `rigour` holds the mapping as ISO 639-3; Wikipedia is 639-1, and the codes
+    with no two-letter form (`nso`, `sfs`, `asq`) are dropped rather than
+    guessed at. Ordered by `WIKI_PRIORITY` among themselves, because South
+    Africa lists twelve official languages and `en` should still win the one
+    slot a two-wiki read has to spare.
+    """
+    territory = get_territory(code or "")
+    if territory is None:
+        return ()
+    codes = {a2 for a2 in (iso_639_alpha2(lang) for lang in territory.langs) if a2}
+    ranked = [lang for lang in WIKI_PRIORITY if lang in codes]
+    return tuple(ranked + sorted(codes - set(ranked)))
 
 
 def pick_langs(

@@ -23,7 +23,7 @@ byte-stable: entries are sorted and nothing derived from the clock goes in it.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence, Set
+from typing import Callable, Dict, List, Optional, Sequence, Set
 
 from requests import Session
 
@@ -37,6 +37,23 @@ COUNTRY_OFFICES = """SELECT DISTINCT ?pos WHERE {
   ?pos p:P31/ps:P31/wdt:P279* wd:Q4164871 .
   { ?pos wdt:P17 wd:%(country)s } UNION { ?pos wdt:P1001 wd:%(country)s }
 }"""
+
+#: `Q121998` ambassador. Every ambassadorship is dropped from a country
+#: gazetteer by default, and the reason is that the `P1001` arm above pulls in
+#: the *inbound* ones: `Q56761205` "ambassador of the United Kingdom to the
+#: Czech Republic" is a British office whose jurisdiction is Czechia, and 29 of
+#: Czechia's 194 offices were foreign embassies accredited to Prague. They are
+#: not offices a Czech politician can hold, and they were 17% of the prompt.
+#:
+#: Outbound missions go too. Telling them apart structurally is not free — the
+#: obvious `P17` test fails, because `Mayor of Brno` and the Czech Minister of
+#: Economy both carry a non-Czech `P17` from a predecessor state — and a
+#: diplomatic lane wants its own scoping anyway. Pass `diplomatic=True` for one.
+#:
+#: Applied through `wd/shape.py:type_closure`, never as a `wdt:P279*` FILTER in
+#: the query: that shape times the query service out (504/connection reset),
+#: and truthy values would miss a type sitting behind a preferred claim.
+AMBASSADOR = "Q121998"
 
 #: Closed candidate sets for the P39 qualifiers worth asserting. Same principle
 #: as the position gazetteer: the model names the thing in prose and may only be
@@ -242,13 +259,61 @@ def for_target(
     )
 
 
-def for_country(session: Session, country_qid: str) -> Gazetteer:
-    """Every position item scoped to one state — the `bucket` spec's gazetteer."""
+def is_offerable(entry: Entry) -> bool:
+    """Is this an office a person could be proposed for?
+
+    Two signals, and the second is what stops the rule over-firing.
+    `wd/shape.py` keeps deprecated `P31` claims, so `not_a_position` over-
+    reports; an item it doubts that people are nonetheless *recorded in* is an
+    item it is wrong about. On Czechia that spared `Q81514903` Czech primate
+    and still dropped sixteen ranks and bodies — `General of the Army`,
+    `Národní umělec`, `General Staff of the Army of the Czech Republic`.
+    """
+    return "not_a_position" not in entry.defects or bool(entry.holders)
+
+
+def for_country(
+    session: Session,
+    country_qid: str,
+    *,
+    diplomatic: bool = False,
+    drop_non_positions: bool = True,
+    log: Callable[[str], None] = lambda _m: None,
+) -> Gazetteer:
+    """Every position item scoped to one state — the `bucket` spec's gazetteer.
+
+    Two exclusions, both on by default, because the raw set is not a menu
+    anyone could choose from. Each one *reports what it dropped*: a silent
+    filter reads as "covered everything", and the whole risk of narrowing is
+    that a missing office comes back as a creation candidate rather than as a
+    miss.
+
+    * ambassadorships — see `AMBASSADOR`. `diplomatic=True` keeps them.
+    * items `wd/shape.py` calls `not_a_position` **and** nobody holds. Both
+      signals, because the shape check over-reports: it keeps deprecated `P31`
+      claims, so an item it doubts that people are nonetheless recorded in is
+      an item it is wrong about. On Czechia that spared `Q81514903` Czech
+      primate and dropped sixteen army ranks (`svobodník`, `četař`).
+    """
     rows = sparql(session, COUNTRY_OFFICES % {"country": country_qid}, max_age=0)
     qids = sorted({row["pos"] for row in rows})
-    return Gazetteer(
-        scope=f"country {country_qid}", entries=describe(session, qids)
-    )
+    if not diplomatic:
+        closure = type_closure(session, qids)
+        keep = [q for q in qids if AMBASSADOR not in closure.get(q, set())]
+        if len(keep) != len(qids):
+            log(f"dropped {len(qids) - len(keep)} ambassadorships (an inbound "
+                f"mission carries the receiving state's P1001)")
+        qids = keep
+    entries = describe(session, qids)
+    if drop_non_positions:
+        keep = [e for e in entries if is_offerable(e)]
+        dropped = len(entries) - len(keep)
+        if dropped:
+            names = sorted(e.label or e.qid for e in entries if e not in keep)
+            log(f"dropped {dropped} unheld non-positions "
+                f"(e.g. {', '.join(names[:3])})")
+        entries = keep
+    return Gazetteer(scope=f"country {country_qid}", entries=entries)
 
 
 def for_qualifier(

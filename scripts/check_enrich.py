@@ -22,9 +22,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from wd.dossier import Dossier, Fragment  # noqa: E402
 from wd.enrich import check, records  # noqa: E402
-from wd.gazetteer import Entry, Gazetteer  # noqa: E402
+from wd.gazetteer import Entry, Gazetteer, is_offerable  # noqa: E402
 from wd.infobox import Evidence  # noqa: E402
 from wd.officebox import Tenure  # noqa: E402
+from wd.dossier import territory_langs  # noqa: E402
+from wd.positions import OfficeIndex, fold, tokens  # noqa: E402
+from wd.rerank import MATCH_KINDS, settle  # noqa: E402
 
 TEXT = ("Jan Kowalski (ur. 22 września 1985 w Bolesławcu) served as Minister of "
         "Roads from 2013 to 2017, elected in the Legnica district, and sat with "
@@ -101,6 +104,144 @@ CASES = [
                   "position_label": "Minister of Roads"}]),
      proposal(), {}, "skip", "already_recorded"),
 ]
+
+
+#: A frozen slice of Poland's real index, carrying the two offices the old
+#: matcher wrongly queued for creation and the three generic classes it would
+#: have matched them to instead. Real QIDs and real labels: the point of these
+#: pins is that the shapes are the ones Wikidata actually has.
+FIXTURE = [
+    ("Q140428371", "Marshal of Warmian-Masurian Voivodeship"),
+    ("Q140458581", "Marshal of Łódź Voivodeship"),
+    ("Q1558362", "voivodeship marshal"),
+    ("Q1558362", "marszałek województwa"),
+    ("Q25919989", "Polish Minister of Family, Labour and Social Policy"),
+    ("Q107919654", "Minister of Family and Social Policy"),
+    ("Q177529", "mayor"),
+    ("Q11788787", "Chief Inspector"),
+    ("Q130582164", "member of the voivodeship sejmik"),
+    ("Q111008336", "chair of the city council of Warsaw"),
+    ("Q25598671", "Minister for Foreign Affairs (Poland)"),
+    ("Q124460155", "Undersecretary of State"),
+]
+
+RETRIEVAL_CHECKS = 24
+
+
+def check_retrieval() -> int:
+    """Pin what the index must and must not surface as a *covering* match.
+
+    `covers` is the asymmetry the whole placement lane rests on: the candidate
+    has to name everything the query names. It is the one rule someone will be
+    tempted to relax to raise the match count, and relaxing it writes a named
+    person's mayoralty onto `Q177529 mayor`.
+    """
+    bad = 0
+    index = OfficeIndex(country_qid="Q36")
+    for qid, label in FIXTURE:
+        index.add(qid, label)
+
+    def top(query, *terms):
+        hits = index.search([query, *terms], limit=3)
+        return hits[0] if hits else None
+
+    # Folding: the old `[^a-z0-9]` strip deleted non-ASCII rather than
+    # transliterating it, so `Łódź` became `d`.
+    if fold("Łódź Voivodeship") != "lodz voivodeship":
+        bad += 1
+        print(f"FAIL fold diacritics: {fold('Łódź Voivodeship')!r}")
+    if fold("Warmian–Masurian") != "warmian-masurian":
+        bad += 1
+        print(f"FAIL fold en-dash: {fold('Warmian–Masurian')!r}")
+    if "the" in tokens("Mayor of the City"):
+        bad += 1
+        print("FAIL stopwords not dropped")
+    if not tokens("The Of"):
+        bad += 1
+        print("FAIL stripping emptied a name with no content tokens")
+
+    # The two real items the label search missed, and why.
+    hit = top("Marshal of Warmian–Masurian Voivodeship")
+    if not (hit and hit.qid == "Q140428371" and hit.covers):
+        bad += 1
+        print(f"FAIL en-dash retrieval: {hit}")
+    hit = top("Minister of Family, Labour and Social Policy")
+    if not (hit and hit.qid == "Q25919989" and hit.covers):
+        bad += 1
+        print(f"FAIL renamed-office retrieval: {hit}")
+
+    # The generic-office trap, three ways. Each of these is a real row from
+    # Poland's queue whose best candidate is the *class*, not the seat. They
+    # may be retrieved — the reranker needs to see and reject them — but they
+    # must never be reported as covering.
+    for query, generic in (("Mayor of Chełm", "Q177529"),
+                           ("Chief Labour Inspector", "Q11788787"),
+                           ("member of the Łódź Voivodeship Sejmik", "Q130582164")):
+        hits = {h.qid: h for h in index.search([query], limit=5)}
+        hit = hits.get(generic)
+        if hit is not None and hit.covers:
+            bad += 1
+            print(f"FAIL generic class covers {query!r}: {hit}")
+
+    # A verdict kind that is not a match must never place an item.
+    if "generic-class" in MATCH_KINDS or "wrong-office" in MATCH_KINDS:
+        bad += 1
+        print(f"FAIL non-match kind counted as a match: {MATCH_KINDS}")
+
+    # The two-signal rule. Every one of these is a way a plausible verdict must
+    # still fail to become a statement on a public database.
+    SHOWN = ["Q140428371", "Q1558362"]
+    for name, args, want in (
+        ("a clean match applies",
+         ("same-office", "Q140428371", SHOWN, None), ("Q140428371", None)),
+        ("a rename applies",
+         ("renamed", "Q140428371", SHOWN, None), ("Q140428371", None)),
+        ("a generic-class verdict never applies",
+         ("generic-class", "Q1558362", SHOWN, None), (None, None)),
+        ("a wrong-office verdict never applies",
+         ("wrong-office", "Q1558362", SHOWN, None), (None, None)),
+        ("a QID off the shortlist is refused",
+         ("same-office", "Q99999999", SHOWN, None), (None, "off-shortlist")),
+        ("an item naming no polity is refused",
+         ("same-office", "Q1558362", SHOWN, "no-polity"), (None, "no-polity")),
+    ):
+        got = settle(*args)
+        if got != want:
+            bad += 1
+            print(f"FAIL settle: {name}: got {got}, want {want}")
+
+    # Which wikis a country's politicians are written up in. `rigour` holds
+    # ISO 639-3 and Wikipedia is 639-1, so the conversion is load-bearing.
+    for code, want in (
+        ("cz", ("cs",)),                    # 14th in the global size ordering
+        ("be", ("de", "fr", "nl")),         # multilingual
+        ("ua", ("ru", "uk")),
+        ("xx", ()),                         # an unknown code must not raise
+    ):
+        got = territory_langs(code)
+        if got != want:
+            bad += 1
+            print(f"FAIL territory_langs({code!r}): got {got}, want {want}")
+    # South Africa lists twelve official languages, three with no two-letter
+    # code at all. `en` has to win the one slot a two-wiki read can spare.
+    # What may be offered as a choice at all. The holders signal is what keeps
+    # `not_a_position` from over-firing on an item people demonstrably hold.
+    for name, entry, want in (
+        ("a clean office", Entry(qid="Q1", holders=3), True),
+        ("an unheld non-position (an army rank)",
+         Entry(qid="Q2", defects=["not_a_position"], holders=0), False),
+        ("a doubted item people actually hold",
+         Entry(qid="Q3", defects=["not_a_position"], holders=1), True),
+    ):
+        if is_offerable(entry) is not want:
+            bad += 1
+            print(f"FAIL is_offerable: {name}: got {not want}")
+
+    za = territory_langs("za")
+    if not za or za[0] != "en" or None in za:
+        bad += 1
+        print(f"FAIL territory_langs('za'): {za}")
+    return bad
 
 
 def main() -> None:
@@ -257,11 +398,13 @@ def main() -> None:
         bad += 1
         print(f"FAIL birth date contradicting its category: {got.failures}")
 
-    total = len(CASES) + 15
+    bad += check_retrieval()
+
+    total = len(CASES) + 15 + RETRIEVAL_CHECKS
     if bad:
         raise SystemExit(f"\n{bad} of {total} enrichment checks failed")
     print(f"{total} enrichment checks pass (rules, undated split, qualifier "
-          f"isolation, birth-date channels)")
+          f"isolation, birth-date channels, office retrieval)")
 
 
 if __name__ == "__main__":
