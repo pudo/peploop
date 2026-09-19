@@ -132,22 +132,33 @@ unless you add a date to it. A country it does not record is.
 ### `names`
 
 The forms of the person's name that Wikidata should carry as labels and
-aliases, per language. For each language in which an article was provided:
+aliases, per language. The test for every form is the same: **is this a
+complete and valid passport name** — the name as it would appear on the
+person's own identity document, in that language and script. A given name and
+a family name; a patronymic where the culture writes one; a single name where
+the culture uses mononyms; a former or birth name in full. Anything that is
+not that whole name is not a name form: a family name alone, a given name
+alone, a name with academic, professional or noble titles attached, an office,
+a nickname, a descriptor.
+
+For each language in which an article was provided:
 
 - `label`: the article's title, with any disambiguating parenthesis removed
-  ("Maria Santos (política)" → "Maria Santos").
-- `aliases`: other forms of the *same person's name* that appear in that
-  article's infobox or lead: birth name, maiden name, full formal name with
-  middle names, a pen name or common short form. Not: the name with academic
-  or professional titles attached ("Dr. Chidi Okeke, SAN", "Prof. Dr. Anna <!-- examples -->
-  Müller" are not aliases; strip the titles and, if what remains is the <!-- examples -->
-  label, report nothing), honorifics alone, offices, nicknames applied by
-  opponents, or names of relatives. A surname or a given name on its own is
-  not an alias.
+  ("Maria Santos (política)" → "Maria Santos"). If the title itself carries a <!-- examples -->
+  title or office, strip it; if what remains is not a passport name, report no
+  label.
+- `aliases`: other complete passport names for the *same person* that appear in
+  that article's infobox or lead: the birth name in full, a former name in
+  full, the full formal name with middle names, a pen name if it is a whole
+  name. Not: a form with titles ("Dr. Chidi Okeke, SAN", "Prof. Dr. Anna <!-- examples -->
+  Müller" — strip the titles, and if what remains is the label, report <!-- examples -->
+  nothing), a family name on its own ("born Ordabayeva" yields nothing unless
+  the article gives the full former name), a given name on its own,
+  honorifics, offices, nicknames applied by opponents, or names of relatives.
 
 Additionally, when an article gives the name in another language or script
-inline ("Kazakh: Жәмилә Алмасқызы Стеһликова", "born Ordabayeva"), report that
-form under the language it belongs to, even if no article in that language was
+inline ("Kazakh: Жәмилә Алмасқызы Стеһликова", "Russian: Егор Гайдар"), report <!-- examples -->
+that form, if it is a complete passport name, under the language it belongs to, even if no article in that language was
 provided. If you cannot tell which language a script form belongs to, put it
 under `und`. A form belongs to the language of the script it is written in. A
 name printed in a script the article's language does not use (a Latin-script
