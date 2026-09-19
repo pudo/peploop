@@ -133,8 +133,10 @@ unless you add a date to it. A country it does not record is.
 
 The forms of the person's name that Wikidata should carry as labels and
 aliases, per language. The test for every form is the same: **is this a
-complete and valid passport name** — the name as it would appear on the
-person's own identity document, in that language and script. A given name and
+complete and valid passport name, in any language** — the whole name as it
+would appear on an identity document issued in that language and script. A
+transliterated or translated full name in another script passes the test as
+readily as the original; a fragment in any script fails it. A given name and
 a family name; a patronymic where the culture writes one; a single name where
 the culture uses mononyms; a former or birth name in full. Anything that is
 not that whole name is not a name form: a family name alone, a given name
