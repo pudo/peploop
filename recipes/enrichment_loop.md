@@ -83,7 +83,16 @@ campaign that silently skips an institution.
 `wd/gazetteer.py` builds the **only** QIDs the model may name. For an
 `office`/`membership` spec that is the target plus its succession siblings
 (`P1365`/`P1366`); for a `bucket` spec it is every position item scoped to the
-country, which fits (62 Lesotho, 194 Czechia, 200 Iran).
+country.
+
+**A whole-country gazetteer is a small-country technique**, and the earlier
+claim here that it "fits" rested on the three countries it had been measured
+on. Guatemala is 51, Czechia 194, Poland 322 — those fit a cached prefix.
+Russia is 2,348 and **Spain is 13,198**, mostly per-municipality mayoralties
+plus 210 bishoprics and 118 nobility titles, all of them legitimately under
+`Q4164871`. Filtering Spain to items with a recorded holder still leaves 4,818.
+Both of those were once proposed as the first bucket run. Measure the country
+before scoping one, and above the threshold retrieve per person instead (§5a).
 
 Each entry carries the `P279` *kind* and the `P361` body, because a ministry, a
 council, a committee or a general staff is a **body** and the office is the seat
@@ -181,37 +190,52 @@ Sejm seats are in that state. **`closes` is not a new tenure** — live
 recorded. The shared failure is that "do all the dates present on both sides
 agree" is trivially true when one side has none.
 
-### 5a. Place the offices the gazetteer never offered
+### 5a. Place the offices the gazetteer never offered — retrieve, then rerank
 
-A single-target gazetteer makes **every other office a person held** read as
-unresolved by construction, so `office_unresolved` is not a creation list until
-`resolve_offices` has run `wd/positions.py:lookup_position` over the names. Its
-own gate is two-signal — a label variant must match *and* the item's own
-`P17`/`P1001` must resolve to the country — which is why a match there is
-allowed to become a statement rather than a review row. The driver widens the
-gazetteer with what it places, so the invariant that every applied QID came from
-the gazetteer still holds.
+A gazetteer makes **every other office a person held** read as unresolved by
+construction, so `office_unresolved` is not a creation list until the names have
+been searched for. Three stages, and only the last one costs a request per name:
 
-Two things the first pass got wrong, both worth knowing before trusting a match:
+1. **Expand.** The pass that read the person emits `search_terms` beside
+   `office_name` — the native spelling, the plain-ASCII form, the bare proper
+   noun, the kind on its own. Free, because that pass already runs, and it is
+   the only place where the office's Czech or Polish name is known.
+2. **Retrieve.** `wd/positions.py:index_for_country` holds every label and alias
+   of every position item in the country — ~13 names per item in every language,
+   built at Spain scale in 29 seconds. It replaced `wbsearchentities`, which is
+   an **English prefix** search capped at 30 hits.
+3. **Rerank.** `wd/rerank.py:place_offices` shows the top candidates *in full*
+   — kind, body, `exists:` span, holders, defects — and asks which is the
+   office. One request per distinct name, ledgered, resumable.
 
-- **A model writing for a reader disambiguates**, and a label search takes the
-  string literally: "Minister of Education and Science (Poland)", "Deputy Voivode
-  of Łódź Voivodeship (wicewojewoda łódzki)". Try the stripped form *and* the
-  parenthetical — the parenthetical is often the better query, because Wikidata
-  labels a Polish office in Polish. That went from 2 matches to 9. A parenthetical
-  that is merely a country is dropped, or "(Poland)" is searched as the country.
-- **`lookup_position`'s country gate accepts a bare `P17`, which lets a generic
-  office class through.** "Mayor (wójt) of Świlcza" matched `Q98637505 wójt`, the
-  Polish administrative rank, `P17=Poland` and no `P1001` at all. Writing a
-  specific village mayoralty onto that is the generic-occupation trap, and
-  `recipes/position_items.md` calls an office scoped to no polity a defect — so a
-  match must name the polity it governs.
+**Retrieval ranks; it must not decide.** Measured over all 71 Polish rows the
+old matcher had queued for creation: 2 retrieve a covering match — both real
+items it had wrongly called creation candidates — and **0 retrieve nothing**, so
+a mechanical top-1 would be wrong 69 times. The near-misses are systematic:
+the deputy for the principal (*Undersecretary of State in the MFA* → *Minister
+for Foreign Affairs*), the chair for the member, the class for the seat.
 
-What is left after that *is* the creation list, and unlike the ~150 offices nine
-campaigns listed and never minted, each row arrives with an attested holder,
-dates and a quote. Poland: 6 names placed onto 4 items, 4 ambiguous, 3 rejected
-for no polity, and **51 genuinely item-less** — municipal councillors, sejmik
-members, deputy voivodes, government plenipotentiaries.
+Two rules hold the lane together:
+
+- **Containment is scored in one direction: the candidate must cover the query,
+  never the reverse.** `{mayor} ⊆ {mayor, chelm}` is why *Mayor of Chełm*
+  matched `Q177529 mayor` — the `Q98637505 wójt` trap in a new costume.
+  `scripts/check_enrich.py` pins six of these as negatives, because this is the
+  rule someone will relax to raise the count.
+- **The model chooses and the mechanical gate vetoes.** A pick must be on the
+  shortlist it was shown, and the item must carry a `P1001` naming the polity it
+  governs. A vetoed pick is recorded with both channels, never silently dropped.
+
+The direction rule separates *generic* from *specific* and nothing else. It
+cannot tell a **rename** from a **near neighbour** — `Q25919989` and
+`Q107919654` both read as "fewer words, same subject", and one is the same chair
+under a later name while the other is a sibling. That is what the reranker is
+for, and `prompts/office_rerank.md` carries every closure the code already
+encodes, or the LLM tier re-derives the bug.
+
+What survives all of that *is* the creation list, and unlike the ~150 offices
+nine campaigns listed and never minted, each row arrives with an attested
+holder, dates and a quote.
 
 ## 6. Policy, records, batch
 
@@ -301,8 +325,15 @@ Say this out loud rather than discovering it later. As of 2026-08-24:
 
 - **Position association still has not been exercised.** Every run so far was a
   single-office spec whose gazetteer held one item, so there was nothing to
-  choose between. The 24 `bucket` specs are where that question lives and none
-  has been run — `es:Alcaldes_de_Guatemala` is the obvious first.
+  choose between. The 24 `bucket` specs are where that question lives.
+  `cs:Ministři_vlád_České_republiky` is prepared and is the right first one:
+  194 offices is a real choice that still fits a cached prefix, and 298 members
+  already hold one of them, which is a labelled test set. At that size Czechia
+  can run *both* paths over the same people — the whole-country prefix and
+  retrieve-and-rerank — and Spain can only run the second, with nothing to
+  compare it against. Not `es:Alcaldes_de_Guatemala`, and not Spain or Russia:
+  a mayoral bucket tests item *creation* rather than choosing, and those two
+  countries are 13,198 and 2,348 offices (§2).
 - **`undated_needs_removal` has nowhere to go.** 49 Polish records need a live
   statement removed before their terms can be written, and nothing renders that
   into a removal list — `wd/write.py:remove_claim` and

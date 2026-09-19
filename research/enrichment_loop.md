@@ -129,14 +129,33 @@ and poets, which is what the category generator is for.
 Position items with `P17`/`P1001` pointing at one state, via
 `p:P31/ps:P31/wdt:P279*` → `Q4164871`:
 
-| country | position items |
-|---|---:|
-| Lesotho | 62 |
-| Czechia | 194 |
-| Iran | 200 |
-| United States | 5,005 |
+| country | position items | measured |
+|---|---:|---|
+| Guatemala | 51 | 2026-08-24 |
+| Lesotho | 62 | 2026-08-05 |
+| Czechia | 194 | 2026-08-05 |
+| Iran | 200 | 2026-08-05 |
+| Poland | 322 | 2026-08-24 |
+| **Russia** | **2,348** | 2026-08-24 |
+| United States | 5,005 | 2026-08-05 |
+| **Spain** | **13,198** | 2026-08-24 |
 
-So yes for a sweep target, and the US is the outlier rather than the shape.
+**The first answer — "yes, and the US is the outlier rather than the shape" —
+was wrong, and wrong in the direction that matters.** It rested on three
+countries, and both of the ones later proposed as the first bucket run break it.
+
+Spain is the shape at the far end. A 40-item random sample is almost entirely
+per-municipality mayoralties (`mayor of Alfambra`, `alcalde de Valle de
+Bardají`), and the `P279` tally adds 210 Catholic bishoprics across three
+classes (Latin 75, suffragan 71, diocesan 64) and 118 nobility titles (62
+`marqués`, 56 `conde`). Everything descends from `Q4164871`, so nothing here is
+mis-modelled — the set is simply not a menu anyone could choose from. Filtering
+to items with at least one recorded holder still leaves **4,818**.
+
+So a whole-country gazetteer is a *small-country* technique. Czechia at 194 and
+Poland at 322 fit a cached prefix; Spain cannot be one however it is filtered,
+and the alternative is to retrieve per person — see §11.
+
 Use `p:P31/ps:P31`, never `wdt:P31`: `wdt:` reports `Q12251224` "Crown Prince of
 Saudi Arabia" — a live spec target — as not a position, because its `Q4164871`
 sits behind a preferred value.
@@ -393,3 +412,253 @@ loop variable still renders valid QuickStatements. A `13/72` score looks like a
 bad model. `recipes/enrichment_loop.md` §10 turns this into a working
 discipline; `scripts/check_enrich.py` is where each one is pinned afterwards, 27
 checks and offline.
+
+
+## 11. The office index, and what retrieval can and cannot decide
+
+*Measured 2026-08-24.* `wd/positions.py:index_for_country` — one SPARQL over
+`rdfs:label`/`skos:altLabel` for every position item scoped to a state:
+
+| country | name rows | items | size | time |
+|---|---:|---:|---:|---:|
+| Poland | 4,331 | 322 | 115 KB | 19 s |
+| Spain | 115,551 | 13,197 | 2.8 MB | 29 s |
+
+~13 names per item in every language, against the one English label
+`wbsearchentities` ranks on. It builds at Spain scale in half a minute, which
+is what makes the per-person path affordable.
+
+### What the old matcher was missing
+
+Two of the 79 offices `coverage/offices_named.md` queued for creation already
+had items:
+
+| queued as `create` | the item | why it was missed |
+|---|---|---|
+| Marshal of Warmian–Masurian Voivodeship | `Q140428371` | an en-dash. `wbsearchentities` returns the item for `Warmian-Masurian` and nothing at all for `Warmian–Masurian` |
+| Minister of Family, Labour and Social Policy | `Q25919989`, aliased **"Polish Minister of Family, Labour and Social Policy"** | the name is a registered alias character-for-character; an English prefix search capped at 30 hits never surfaced it |
+
+`wd/positions.py:norm_label` compounded it by stripping non-ASCII rather than
+transliterating, so `Łódź Voivodeship` normalised to `d voivodeship`. It now
+folds through `normality.ascii_text`.
+
+### The whole Polish queue, scored
+
+All 71 Polish `create` rows through the index — the full output read, not a
+sample:
+
+* **2 retrieve a covering match**, and they are exactly the two above.
+* **0 retrieve nothing at all.**
+
+That second number is the finding. Every one of the other 69 rows has a
+plausible-looking top hit, so **a mechanical top-1 would be wrong 69 times out
+of 71**:
+
+| queued office | top hit | what it actually is |
+|---|---|---|
+| Mayor of Chełm | `Q177529` mayor, 0.50 | the occupation class |
+| Chief Labour Inspector | `Q11788787` Chief Inspector, 0.50 | a different, generic office |
+| Undersecretary of State in the MFA | `Q25598671` Minister for Foreign Affairs, 0.43 | the principal, not the deputy |
+| Vice-Marshal of Podlaskie Voivodeship | `Q1558362` voivodeship marshal, 0.50 | generic *and* not the deputy |
+| member of the Warsaw City Council | `Q111008336` chair of the city council of Warsaw, 0.60 | the chair, not a member |
+| member of the Łódź Voivodeship Sejmik | `Q130582164` member of the voivodeship sejmik, 0.75 | the class, not the seat |
+
+### The direction rule
+
+Token *containment* fires on the generic cases because `{mayor} ⊆ {mayor,
+chelm}`. So containment is scored in one direction only: **the candidate must
+cover the query, never the reverse.** Under that rule all six rows above score
+as non-covering and both real items score as covering. It is the rule most
+likely to be relaxed later to raise the match count, and
+`scripts/check_enrich.py` pins all six as negatives.
+
+But the direction rule only separates *generic* from *specific*. It cannot
+separate a **rename** from a **near neighbour** — `Q25919989` and
+`Q107919654` both look like "fewer words, same subject", and one is the same
+chair while the other is a sibling item. That judgement needs the item's
+description, kind, polity, span and holder count, which is why retrieval ranks
+and `prompts/office_rerank.md` decides.
+
+## 11a. What a country gazetteer must not offer
+
+*Measured 2026-08-24 on Czechia.* The raw `for_country` set is not a menu.
+Of 194 entries, **50 were not choices at all**:
+
+| dropped | why |
+|---:|---|
+| 34 | **ambassadorships.** The `P1001` arm of `COUNTRY_OFFICES` pulls in the *inbound* missions — `Q56761205` "ambassador of the United Kingdom to the Czech Republic" is a British office whose jurisdiction is Czechia. 29 foreign embassies accredited to Prague, offered to Czech ministers as though holdable. |
+| 16 | **unheld non-positions** — `General of the Army`, `Národní umělec`, `General Staff of the Army of the Czech Republic`, and thirteen more ranks and bodies that `wd/shape.py` had *already* flagged `not_a_position`. |
+
+194 → 144 entries, 12,748 → 9,265 prompt tokens.
+
+Two things this cost to get right:
+
+* **The obvious structural test for an inbound mission does not work.** "`P17`
+  names a country other than the scope country" catches 16 Czech items and only
+  one is an embassy — it also catches `Mayor of Brno`, `Roman Catholic Bishop of
+  Olomouc` and `ministr hospodářství České republiky`, because those carry a
+  `P17` inherited from a predecessor state. That is the documented "P17 on
+  positions with historical states is a judgment call" gotcha, arriving as a
+  wrong filter. Dropping *all* ambassadorships sidesteps it; a diplomatic lane
+  passes `diplomatic=True` and scopes itself.
+* **`FILTER NOT EXISTS { ?pos wdt:P279* wd:Q121998 }` times the query service
+  out** (504, then a connection reset). The exclusion runs through
+  `wd/shape.py:type_closure` instead, which is disk-cached and reads
+  `p:P31/ps:P31` rather than truthy values.
+
+The `not_a_position` rule needs a second signal: the shape check keeps
+deprecated `P31` claims and so over-reports. `wd/gazetteer.py:is_offerable`
+requires the item to *also* have no recorded holders — an item shape doubts
+that people are nonetheless recorded in is an item shape is wrong about. That
+spared `Q81514903` Czech primate.
+
+## 12. The Czech ministers bucket
+
+*Measured 2026-08-24.* `Ministři_vlád_České_republiky`, the first bucket spec
+prepared for a run. Three defects had to be cleared before it could produce a
+cohort at all, and none of them announced itself:
+
+* **The spec declares `language: en` and names a cs.wikipedia category.**
+  PETScan returns 0 members, and a spec with 0 members reads as an empty
+  category rather than a broken query. **Six specs are affected**, all Czech,
+  and all currently sweep in nobody:
+
+  | category | en | cs |
+  |---|---:|---:|
+  | `Ministři_vlád_České_republiky` | 0 | 35 |
+  | `Poslanci_Parlamentu_České_republiky` | 0 | 16 |
+  | `Senátoři_Parlamentu_České_republiky` | 0 | **294** |
+  | `Prezidenti_České_republiky` | 0 | 9 |
+  | `Soudci_Nejvyššího_soudu_České_republiky` | 0 | 26 |
+  | `Soudci_Ústavního_soudu_České_republiky` | 0 | 48 |
+
+  **Fixed upstream the same day** (opensanctions `29a6c5dbb`), which moved
+  those spec keys from `en:` to `cs:`. The two other
+  non-ASCII `language: en` specs (`Members_of_the_Polish_Sejm_2023–2027`,
+  the Slovak National Council one) are false positives — an en-dash in a year
+  range — and resolve fine on en.
+
+* **`depth: 0` on a category that is a shelf of subcategories.** The Czech
+  ministers category holds 7 articles and 28 per-portfolio subcategories
+  (`Ministři dopravy`, `Ministři financí`, `Ministři kultury`…). At depth 0 the
+  cohort is 5 people; at depth 1 it is **335 members, 298 held, 11 todo**.
+
+* **The dossier was reading the wrong wikis, and not only for Czechia.**
+  `wd/dossier.py:pick_langs` falls back to a globally size-ordered
+  `WIKI_PRIORITY` where `cs` sits 14th, behind `pl` and `uk`, and
+  `scripts/enrich.py` never passed `prefer`. Three of the first five Czech
+  ministers were about to be judged on their Polish, German and Ukrainian
+  articles with the Czech one unread — the wiki whose category swept them in,
+  so it exists by construction.
+
+  The general fix is `wd/dossier.py:territory_langs`, which asks `rigour` what
+  a country's languages actually are (`get_territory(cc).langs`, ISO 639-3,
+  converted by `rigour.langs.iso_639_alpha2`; codes with no two-letter form
+  are dropped rather than guessed at, and the survivors are ordered by
+  `WIKI_PRIORITY` so `en` still wins South Africa's twelve). `scripts/enrich.py`
+  now prefers `(spec.language, *territory_langs(country), "en")`.
+
+  **This changes the second wiki for 19 of the 36 (spec-language, country)
+  combinations in the yml**, and Czechia was the least of it. Every `en:` spec
+  outside the anglophone world was reading **German** second, because `de` is
+  second on a global size list:
+
+  | spec | was | now |
+  |---|---|---|
+  | Crown princes of Saudi Arabia | en, **de** | en, **ar** |
+  | Members of the Supreme People's Assembly (kp) | en, **de** | en, **ko** |
+  | State Administration Council (mm) | en, **de** | en, **my** |
+  | Greece, Yemen, Singapore, Belarus | en, **de** | en, **el / ar / zh / ru** |
+  | Colombia, Ecuador, Guatemala, Nicaragua, Venezuela, Spain | en, **de** | en, **es** |
+  | `ru:` specs for Crimea | ru, **en** | ru, **uk** |
+
+  A German article on a North Korean legislator is not a second channel; it is
+  a stub translated from the first. The specs that do not move are the ones
+  where the old default happened to be right — `us`, `au`, `de`, `eu`, and
+  every spec already written in the country's own language.
+
+`--language` and `--depth` overrides exist on `scripts/enrich.py` so a spec can
+be tested before the yml fix is filed.
+
+### Why this is the right calibration country
+
+298 held members is a labelled test set for the question no run has asked: with
+194 offices in the gazetteer, does the loop name the one the record uses? Five
+dossiers checked by hand hide 14 in-scope tenures between them — Transport,
+Human Rights, Foreign Affairs, Justice, Agriculture, two regional assemblies, a
+governorship, both chambers — with **0 leaking back into the evidence**.
+
+And at 194 items Czechia can run *both* paths over the same people: the
+whole-country cached prefix, and retrieve-and-rerank. Spain can only run the
+second, and there is nothing there to compare it against.
+
+**The numbers themselves are not measured yet** — the run needs an API key that
+was not available in the session that built this. `scripts/enrich.py --backtest`
+prints them: reachability, choice accuracy, and how often the loop named
+nothing.
+
+## 13. A gap that was a superclass — US Supreme Court justices
+
+*Measured 2026-08-24.* `en:Justices_of_the_Supreme_Court_of_the_United_States`,
+the first US spec run, and it produced **no enrichment work at all** — for a
+reason no disposition in `coverage/petscan_specs.md` names.
+
+The spec targets **`Q20706330` United States Supreme Court justice**, and the
+target passes every check the toolkit applies to a target: `verify_all` reports
+`defects=[]` and `os_notes=[]`, `topics=[gov.judicial, gov.national, role.pep]`,
+`P1001=Q30`, `P361=Q11201` Supreme Court of the United States. It is emittable,
+correctly scoped, and attached to the right body. It is also **not the office**:
+
+| item | `P31` | `P279` | holders |
+|---|---|---|---:|
+| `Q20706330` US Supreme Court justice | `Q16533` judge, `Q4164871` position | `Q55736868` national supreme court judge | **2** |
+| `Q11144` Associate Justice of the SCOTUS | `Q294414` public office | `Q20706330` | **104** |
+| `Q11147` Chief Justice of the United States | `Q294414`, `Q12737077` | `Q20706330`, `Q3188089` | **19** |
+
+`Q20706330` is the **parent class of the two seats**, which is why it has two
+holders and its children have 123. So the cohort split against it reads
+
+    members 101, held 1, todo 12, dropped 88 (85 born-before-1920, 3 long-dead)
+
+and every one of those 12 already holds `Q11144`, dated, nine of them already
+emitting as PEPs. Re-run with `target=Q11144` and `targets=[Q11144, Q11147]`:
+
+    members 101, held 100, todo 0, dropped 1
+
+**The 12-person gap was entirely an artefact of the target naming a class rather
+than a seat.** Had the run trusted it, the loop would have proposed a superclass
+P39 to twelve people who already hold the child — the `duplicate_office_item`
+failure with the parent standing in for the sibling.
+
+Three things worth carrying forward:
+
+* **A phantom gap looks exactly like a real one, and the target audit cannot
+  see it.** Every property `wd/shape.py` reads is right on `Q20706330`. What
+  gives it away is *arithmetic between items*: a target whose `P279` children
+  are themselves positions carrying two orders of magnitude more holders is not
+  the office its members hold. Nothing measures that today, and it generalises
+  past this spec — a class-as-target produces a gap on every member.
+* **The holder count is the cheap tell.** 1 of 101 members already holding a
+  well-documented office is not a coverage gap in the world's most heavily
+  edited judiciary; it is a wrong item. Read `held` before scoping, not after.
+* **The spec's own sibling already had it right.** `Chief_justices_of_the_United_States`
+  targets `Q11147` and is on the retirable list at 17/17. One category of the
+  same court, two targets, one of them a class.
+
+The category also contains two non-humans (`Q1780882` the list article,
+`Q6994955` a category page) — the PETScan `P4224` leak, caught by the cohort's
+own `P31=Q5` re-check, as designed.
+
+### What the run found that is worth an edit
+
+One member, and it is the source of `Q20706330`'s two holders:
+**`Q956007` James Iredell** (associate justice 1790–1799) carries
+`P39 = Q20706330` — the class — where his 100 colleagues carry `Q11144`. The
+other holder, `Q437855` Robert H. Harrison, was confirmed to the Court and
+declined the seat, so his statement is a different question and not this run's.
+
+Fixing Iredell is a **value change, not an addition**, so it is a stop-and-ask
+under the workbench's rules rather than anything a batch carries. He is also
+pre-1920 and `zavod` declines him regardless: this is a Wikidata correction with
+no PEP consequence, which is the ordinary case for a category like this one and
+not a reason to skip it.

@@ -122,18 +122,39 @@ PRs can start with the cheap ones (small categories, item already good).
   rows cite the 5th-convocation roster URL as source — check before apply.
 - [x] **bucket-category narrowing has a design** (2026-08-24):
   `recipes/enrichment_loop.md`. The narrowing *is* the enrichment loop with the
-  country gazetteer instead of a single target — `wd/gazetteer.py:for_country`,
-  measured at 62 items for Lesotho, 194 Czechia, 200 Iran, so it fits a cached
-  prefix. **Unrun**, and it is the one part of that design with no evidence
-  behind it: every run so far was a single-office spec whose gazetteer held one
-  item, so the model never actually had to *choose*. 24 bucket specs — mayors in
-  Guatemala, Nicaragua, Venezuela and Spain, Australian local councillors across
-  seven states, Russian regional and district heads, party leaders, senior
-  military leadership. Those are the rows reading 0 of 11 in
-  `coverage/README.md`. Start with a national one (`Government_ministers_of_Spain`,
-  `Министры Российской Федерации`) rather than a municipal one: Poland's run
-  suggests municipal offices mostly have no item at all, so a mayoral bucket
-  would test creation rather than choosing.
+  country gazetteer instead of a single target — `wd/gazetteer.py:for_country`.
+  24 bucket specs — mayors in Guatemala, Nicaragua, Venezuela and Spain,
+  Australian local councillors across seven states, Russian regional and
+  district heads, party leaders, senior military leadership. Those are the rows
+  reading 0 of 11 in `coverage/README.md`.
+- [x] **the "start national" advice was wrong, and so was "it fits a cached
+  prefix"** (2026-08-24). Both rested on three measured countries. Spain is
+  **13,198** position items and Russia **2,348** — the two named here as the
+  national starting point — against Czechia's 194 and Poland's 322. Spain is
+  mostly per-municipality mayoralties plus 210 bishoprics and 118 nobility
+  titles, and filtering to items with a holder still leaves 4,818, so it cannot
+  be a prompt block however it is trimmed. Above the threshold the gazetteer has
+  to retrieve per person; `research/enrichment_loop.md` §11 has the index
+  measurements. **Start at `cs:Ministři_vlád_České_republiky`** — 194 offices is
+  a real choice that still fits a prefix, 298 members already hold one, and at
+  that size both paths can run over the same people, which Spain can never do.
+- [ ] **run the Czech bucket backtest** — prepared and unrun, needs an API key.
+  `scripts/enrich.py --spec en:Ministři_vlád_České_republiky --language cs
+  --depth 1 --backtest`. Three spec defects had to be cleared first and all
+  three are in `research/enrichment_loop.md` §12; the `--language`/`--depth`
+  overrides exist so the run does not wait on the yml fix.
+- [x] **the `wd_categories.yml` language defect is fixed upstream** (2026-08-24,
+  opensanctions `29a6c5dbb`). Six Czech specs declared `language: en` for a
+  cs.wikipedia category, so PETScan returned 0 members and each read as an empty
+  category rather than a broken query; `Senátoři_Parlamentu_České_republiky`
+  alone is 294 people. Spec keys moved from `en:` to `cs:` as a result, so
+  `--language` is no longer needed for them. Full table in
+  `research/enrichment_loop.md` §12.
+- [ ] **`depth: 0` is still wrong for bucket categories.** A bucket category is
+  often a shelf of per-portfolio subcategories with almost no articles of its
+  own: Czech ministers is 7 articles and 28 subcategories, so depth 0 yields 5
+  people and depth 1 yields 335. `--depth` overrides it per run; the yml wants
+  the fix.
 - [x] Middle East run (2026-08-05): Presidents_of_Yemen (2 rejects — Houthi
   SPC chairmen, disputed claim lives on the SPC item; Wikidata's Q878256
   holder line is the recognized succession), Sultans_of_Oman (1 historical

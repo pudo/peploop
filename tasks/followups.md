@@ -182,6 +182,19 @@ in this file that cannot go stale.
 
 ## Surgical (wikibase-cli, stop-and-ask — never in a batch)
 
+### `Q956007` James Iredell holds the class, not the seat (added 2026-08-24)
+
+One member of the SCOTUS category out of 101 carries `P39 = Q20706330`
+"United States Supreme Court justice" — the `P279` parent — where his 100
+colleagues carry `Q11144` Associate Justice. A **value change**, so it cannot
+ride a batch: set the statement to `Q11144` with `P580 1790-05-12` /
+`P582 1799-10-20`, or add the correct statement and deprecate the class one.
+
+He is pre-1920, so `zavod` declines him either way: this is a Wikidata
+correction with no PEP consequence. The class item's other holder,
+`Q437855` Robert H. Harrison, declined the seat after confirmation and is a
+separate question — do not sweep him in with this.
+
 ### The generic `P31` (added 2026-08-23) — 86 items, and it is a *replacement*
 
 `scripts/audit_os_positions.py` found **86 of the 209 items carrying
@@ -456,6 +469,17 @@ than adding one; the batch says so per row.
       and the item should not disagree silently.
 - [ ] `Q4139102` "head of municipality" and the other generic buckets carry a
       `position:` block naming one country; see the surgical list above
+- [ ] **US Supreme Court justices: the target is a superclass.**
+      `Justices_of_the_Supreme_Court_of_the_United_States` names
+      `Q20706330` "United States Supreme Court justice", which is the `P279`
+      *parent* of `Q11144` Associate Justice (104 holders) and `Q11147` Chief
+      Justice (19) and has 2 holders of its own. Against `Q11144`/`Q11147` the
+      cohort is **101 members, 100 held, 0 todo** — the spec is retirable, and
+      the 12-person gap it currently shows is an artefact. Either point the
+      `position:` block at `Q11144` or delete the spec outright, as its sibling
+      `Chief_justices_of_the_United_States` (17/17) already is. Drops 1 person
+      from the dataset (`Q956007`, pre-1920). Measured 2026-08-24,
+      `research/enrichment_loop.md` §13.
 - [ ] the retirement report over all resolved specs
 
 ## External

@@ -143,6 +143,30 @@ Where things live:
   `.qs` containing a duplicate line, a `start > end`, or a malformed value, and
   warns about coarse dates beside day-precision ones on the same item. Don't
   re-type those checks per campaign; that is what it is for.
+- **Retrieval ranks; a model decides; a mechanical gate vetoes.** Matching an
+  office name to its item is not a string comparison: "Minister of Family,
+  Labour and Social Policy" *is* `Q25919989` under a later name, while "Mayor of
+  Chełm" is *not* `Q177529 mayor`, and on tokens alone both read as "the
+  candidate has fewer words". `wd/positions.py:index_for_country` retrieves from
+  the country's own labels and aliases (13 per item, every language, where
+  `wbsearchentities` is an English prefix search capped at 30);
+  `wd/rerank.py` shows the top candidates *in full* and asks. Measured over
+  Poland's 71 queued offices, a mechanical top-1 would have been wrong 69 times.
+  Two rules: **containment is scored one way — the candidate must cover the
+  query**, or `{mayor} ⊆ {mayor, chelm}` writes a named mayoralty onto the
+  occupation class; and a pick must clear the `P1001` gate before it is applied.
+- **Which wiki to read is a property of the country, not of a global ranking.**
+  `wd/dossier.py:pick_langs` falls back to `WIKI_PRIORITY`, a size ordering, so
+  the second article read for a Saudi crown prince, a North Korean legislator
+  and a Myanmar general was **German** — `de` is second on that list. Pass
+  `prefer=(spec.language, *territory_langs(cc), "en")`;
+  `wd/dossier.py:territory_langs` asks `rigour` (`get_territory(cc).langs`, ISO
+  639-3, converted by `rigour.langs.iso_639_alpha2`). It moved the second wiki
+  for 19 of 36 spec/country combinations.
+- **A whole-country gazetteer is a small-country technique.** Czechia is 194
+  position items and Poland 322, but Russia is 2,348 and Spain **13,198** —
+  mostly per-municipality mayoralties, plus bishoprics and nobility titles that
+  are all legitimately under `Q4164871`. Measure before scoping a bucket run.
 - **Measure the convention, don't declare it.** Whether a term belongs on an
   office item is answered by `wd/precedent.py` from that item's own record,
   because the answer differs per item inside one country: Czech Agriculture
@@ -339,7 +363,18 @@ Where things live:
 - WDQS: statement-node scans (`p:`/`pq:`) time out easily; prefer `wdt:`
   and subquery-first shapes, retry patiently, and never cache non-JSON
   bodies (a 200 "upstream request timeout" poisons the cache —
-  `wd/api.py:sparql` guards this).
+  `wd/api.py:sparql` guards this). **An unbounded `wdt:P279*` in a `FILTER NOT
+  EXISTS` is the same trap** — it 504s and then resets the connection. Apply a
+  type exclusion through `wd/shape.py:type_closure`, which is disk-cached and
+  reads `p:P31/ps:P31` rather than truthy values.
+- **A country's position set contains offices of *other* countries.** `P1001`
+  is the jurisdiction, so an inbound ambassadorship ("ambassador of the United
+  Kingdom to the Czech Republic") is scoped to the receiving state: 29 of
+  Czechia's 194 offices were foreign embassies accredited to Prague. Do not try
+  to separate inbound from outbound by `P17` — `Mayor of Brno` and the Czech
+  Minister of Economy both carry a non-Czech `P17` from a predecessor state, so
+  that test catches them and misses the embassies. `wd/gazetteer.py:for_country`
+  drops all ambassadorships by default and logs the count.
 - WDQS via GET: ~150+ `VALUES` items overflow the URI (HTTP 414). A 200
   body that is *truncated* JSON means the query timed out mid-serialization
   — that failure is deterministic, so retrying whole is useless: bisect the
