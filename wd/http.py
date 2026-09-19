@@ -33,9 +33,18 @@ def make_session(timeout: int = HTTP_TIMEOUT) -> Session:
     session = Session()
     session.headers["User-Agent"] = USER_AGENT
     session.request = partial(session.request, timeout=timeout)  # type: ignore
+    # Six attempts over ~2 minutes, not three over seven seconds. A run's
+    # setup makes fifteen-odd sequential WDQS calls at `max_age=0` — the
+    # gazetteer, its type closure, its holder counts, each qualifier set — and
+    # a single one of them failing kills the run *before* it reaches anything
+    # the verdict ledger protects. Three Czech runs died that way, two of them
+    # after spending nothing, while the network flapped for minutes at a time:
+    # `1, 2, 4` seconds of backoff never outlasts that, `2, 4, 8, 16, 32, 64`
+    # does. `total` covers connect errors too, which is what a DNS failure
+    # arrives as.
     retries = Retry(
-        total=3,
-        backoff_factor=1.0,
+        total=6,
+        backoff_factor=2.0,
         backoff_max=120,
         status_forcelist=RETRY_STATUSES,
     )
