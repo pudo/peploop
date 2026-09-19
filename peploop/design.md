@@ -299,10 +299,16 @@ already fetched, deprecated ranks ignored:
 | different value, single-valued property (P569, P570, P21, P19) | any | `conflict` |
 | different value, multi-valued property (P27, labels, aliases) | any | `new` |
 | name `rigour` cannot place | citizenship | `unresolved`|
+| all quotes failed the verbatim gate | any | `unquoted` |
 
 Czechoslovak citizenship beside a recorded Czech one is an addition, not a
 contradiction, and the same holds for every successor state; `conflict` is
 reserved for properties that can only be true once.
+
+`unquoted` comes last and overrides whatever the comparison found: a value
+whose every quote `extract` could not find in the article text has no evidence
+behind it, so it is not a candidate edit however well it agrees with Wikidata.
+Name forms carry no quotes and are never `unquoted`.
 
 Only `new` and `refine` are candidates for writing. `conflict` is the human's
 list. A reviewed proposal moves to `accepted` or `rejected`; a written one to

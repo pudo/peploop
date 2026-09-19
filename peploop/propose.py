@@ -27,6 +27,8 @@ TIME_RE = re.compile(r"^([+-]?\d+)-(\d{2})-(\d{2})")
 # Worst first: several existing claims make a proposal `conflict` only when
 # none of them matches it.
 STATUS_RANK = ("exists", "refine", "new", "conflict", "unresolved")
+# What `extract.py` files the quotes it could not find in the article text under.
+BAD_QUOTES = "_bad_quotes"
 # Only these can be true once, so only here does a differing value contradict
 # the record: a Czechoslovak citizenship beside a Czech one is an addition.
 SINGLE_VALUED = frozenset({"P569", "P570", "P21", "P19"})
@@ -133,12 +135,27 @@ def item_status(existing: list[set[str]], proposed: set[str], prop: str) -> str:
     return "conflict" if prop in SINGLE_VALUED else "new"
 
 
+def quote_status(status: str, quotes: list[str], bad: set[str]) -> str:
+    """Downgrade a status to `unquoted` when no quote behind it survived the gate.
+
+    `extract.py` already decided which quotes it could not find in the text
+    that was sent; this only matches those strings back to the entry that
+    carried them. A value whose every quote is paraphrase or fabrication has no
+    evidence left, whatever the comparison against Wikidata says about it.
+    """
+    if quotes and all(quote in bad for quote in quotes):
+        return "unquoted"
+    return status
+
+
 def _territory_qids(qid: str) -> set[str]:
     territory = get_territory_by_qid(qid)
     return set(territory.qids) if territory is not None else {qid}
 
 
-def _dates(entity: dict[str, Any], data: dict[str, Any], key: str, prop: str) -> list[Proposal]:
+def _dates(
+    entity: dict[str, Any], data: dict[str, Any], key: str, prop: str, bad: set[str]
+) -> list[Proposal]:
     out = []
     existing = wikidata.claim_time(entity, prop, include_deprecated=False)
     for entry in data.get(key) or []:
@@ -150,7 +167,7 @@ def _dates(entity: dict[str, Any], data: dict[str, Any], key: str, prop: str) ->
             Proposal(
                 property=prop,
                 value=value,
-                status=time_status(existing, value),
+                status=quote_status(time_status(existing, value), quotes, bad),
                 quote=quotes[0] if quotes else None,
                 lang=entry.get("lang"),
             )
@@ -158,7 +175,7 @@ def _dates(entity: dict[str, Any], data: dict[str, Any], key: str, prop: str) ->
     return out
 
 
-def _gender(entity: dict[str, Any], data: dict[str, Any]) -> list[Proposal]:
+def _gender(entity: dict[str, Any], data: dict[str, Any], bad: set[str]) -> list[Proposal]:
     value = data.get("gender")
     if value is None:
         return []
@@ -166,7 +183,7 @@ def _gender(entity: dict[str, Any], data: dict[str, Any]) -> list[Proposal]:
     proposal = Proposal(
         property="P21",
         value={},
-        status="unresolved",
+        status=quote_status("unresolved", quotes, bad),
         qualifiers={"_raw": value},
         quote=quotes[0] if quotes else None,
         lang=data.get("gender_lang"),
@@ -175,12 +192,12 @@ def _gender(entity: dict[str, Any], data: dict[str, Any]) -> list[Proposal]:
     if qid is not None:
         existing = [{q} for q in wikidata.claim_qids(entity, "P21", include_deprecated=False)]
         proposal.value = {"entity-type": "item", "id": qid}
-        proposal.status = item_status(existing, {qid}, "P21")
+        proposal.status = quote_status(item_status(existing, {qid}, "P21"), quotes, bad)
         proposal.qualifiers = None
     return [proposal]
 
 
-def _citizenships(entity: dict[str, Any], data: dict[str, Any]) -> list[Proposal]:
+def _citizenships(entity: dict[str, Any], data: dict[str, Any], bad: set[str]) -> list[Proposal]:
     existing = [
         _territory_qids(q)
         for q in wikidata.claim_qids(entity, "P27", include_deprecated=False)
@@ -197,14 +214,16 @@ def _citizenships(entity: dict[str, Any], data: dict[str, Any]) -> list[Proposal
         proposal = Proposal(
             property="P27",
             value={},
-            status="unresolved",
+            status=quote_status("unresolved", quotes, bad),
             qualifiers={**qualifiers, "_name": entry["name"]},
             quote=quotes[0] if quotes else None,
             lang=entry.get("lang"),
         )
         if territory is not None and territory.qid:
             proposal.value = {"entity-type": "item", "id": territory.qid}
-            proposal.status = item_status(existing, set(territory.qids), "P27")
+            proposal.status = quote_status(
+                item_status(existing, set(territory.qids), "P27"), quotes, bad
+            )
             proposal.qualifiers = qualifiers
         out.append(proposal)
     return out
@@ -256,11 +275,16 @@ def _names(entity: dict[str, Any], data: dict[str, Any]) -> list[Proposal]:
 
 
 def build(entity: dict[str, Any], data: dict[str, Any]) -> list[Proposal]:
-    """Turn one extraction's answer into the proposals it implies."""
-    proposals = _dates(entity, data, "birth_date", "P569")
-    proposals.extend(_dates(entity, data, "death_date", "P570"))
-    proposals.extend(_gender(entity, data))
-    proposals.extend(_citizenships(entity, data))
+    """Turn one extraction's answer into the proposals it implies.
+
+    Name forms carry no quotes and so are never `unquoted`: a label is read off
+    the article's own title and lead, not asserted by a sentence in it.
+    """
+    bad = set(data.get(BAD_QUOTES) or [])
+    proposals = _dates(entity, data, "birth_date", "P569", bad)
+    proposals.extend(_dates(entity, data, "death_date", "P570", bad))
+    proposals.extend(_gender(entity, data, bad))
+    proposals.extend(_citizenships(entity, data, bad))
     proposals.extend(_names(entity, data))
     return proposals
 
