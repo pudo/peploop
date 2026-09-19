@@ -304,10 +304,30 @@ already fetched, deprecated ranks ignored:
 | different value, multi-valued property (P27, labels, aliases) | any | `new` |
 | name `rigour` cannot place | citizenship | `unresolved`|
 | all quotes failed the verbatim gate | any | `unquoted` |
+| a mechanical rule excluded it | any | `filtered` |
 
-Czechoslovak citizenship beside a recorded Czech one is an addition, not a
-contradiction, and the same holds for every successor state; `conflict` is
-reserved for properties that can only be true once.
+A citizenship of a predecessor state beside a recorded successor is an
+addition, not a contradiction, and the same holds for every successor state;
+`conflict` is reserved for properties that can only be true once.
+
+`filtered` is what a rule decided so a human does not have to, with the rule's
+name in `qualifiers._reason`. It is never rendered, reviewed or applied, and
+`stats` counts it so each rule's volume stays visible. The reasons:
+
+| reason | what it excludes |
+|---|---|
+| `undated_predecessor` | a citizenship of a dissolved state that no article dates. Wikidata models a citizenship that ended with `P582`, so the dated case is a real addition and stays. |
+| `fragment` | an alias whose tokens are a proper subset of the item's label in that language (`mul`, then `en`, when it has none there): a surname or a given name on its own. |
+| `script:<scripts>` | a name in a script the language is not written in. The expected scripts are derived per language from the item's own terms in it, or failing those from the opening of the article in it; nothing to derive from is no check. |
+
+A value is proposed once per *value*, not once per article: the citizenship
+three wikis attest, or the birth date two of them give at different precisions,
+is one row whose `qualifiers._sources` lists every `{lang, url, rev, quote}`
+behind it. Both write paths read that list — QuickStatements gets one line per
+source and merges them, the API writer one reference per source on one
+statement — and `_basis` carries the strongest grounds any of them gave. A
+literal the item already holds in *any* language, `mul` included, is `exists`
+and not a second language's to add.
 
 `unquoted` comes last and overrides whatever the comparison found: a value
 whose every quote `extract` could not find in the article text has no evidence
@@ -359,9 +379,11 @@ none in that language, an alias as `{language, value, add: ""}` so the ones
 already there survive.
 
 The rows are grouped by the statement they land on before the payload is built,
-because the API de-duplicates nothing: the same citizenship attested in Czech
-and in German is one statement carrying two references, not two identical
-claims, and both rows are recorded against the one guid it produced.
+because the API de-duplicates nothing: the same citizenship attested in two
+languages is one statement carrying two references, not two identical claims,
+and both rows are recorded against the one guid it produced. `propose` now
+groups the same value across articles into one row as well, so that row carries
+its `_sources` list and contributes one reference per language on its own.
 
 Every statement gets the same reference as the QuickStatements path: `P143`
 imported from the item of the source wiki (resolved once by SPARQL over

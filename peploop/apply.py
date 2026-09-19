@@ -178,6 +178,34 @@ def reference(lang: str | None, url: str | None, rev: int | None) -> dict[str, A
     return {"snaks": snaks, "snaks-order": list(snaks)}
 
 
+def row_sources(row: dict[str, Any]) -> list[dict[str, Any]]:
+    """List the articles one proposal was read in, newest shape first.
+
+    `propose` writes every attesting article into `_sources`, because a value
+    three wikis agree on is one statement with three references. A row stored
+    before that grouping carries its one source in its own columns.
+    """
+    stored = (row.get("qualifiers") or {}).get("_sources")
+    if stored:
+        return list(stored)
+    return [
+        {
+            "lang": row.get("source_lang"),
+            "url": row.get("source_url"),
+            "rev": row.get("source_rev"),
+        }
+    ]
+
+
+def references(row: dict[str, Any]) -> list[dict[str, Any]]:
+    """Build one reference per article a proposal's value was read in."""
+    built = [
+        reference(source.get("lang"), source.get("url"), source.get("rev"))
+        for source in row_sources(row)
+    ]
+    return [ref for ref in built if ref is not None]
+
+
 def same_value(existing: dict[str, Any], proposed: dict[str, Any]) -> bool:
     """Say whether two datavalues name the same thing, dates at shared precision."""
     if "time" in proposed and "time" in existing:
@@ -234,7 +262,7 @@ def plan_claim(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[s
     matching = [(claim, found) for claim, found in values if same_value(found, value)]
     if prop in propose.SINGLE_VALUED and len(matching) < len(values):
         return "conflict", None
-    ref = reference(row.get("source_lang"), row.get("source_url"), row.get("source_rev"))
+    refs = references(row)
     qualifiers, order = _qualifiers(row)
     superseding = False
     for claim, found in matching:
@@ -243,7 +271,7 @@ def plan_claim(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[s
         if is_import(claim):
             refined = dict(claim)
             refined["mainsnak"] = _snak(prop, value)
-            refined["references"] = [*(claim.get("references") or []), *([ref] if ref else [])]
+            refined["references"] = [*(claim.get("references") or []), *refs]
             return "refine", refined
         # Somebody else's sourcing on a coarser value: ours goes beside it,
         # outranking it rather than replacing it.
@@ -256,8 +284,8 @@ def plan_claim(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[s
     if qualifiers:
         statement["qualifiers"] = qualifiers
         statement["qualifiers-order"] = order
-    if ref:
-        statement["references"] = [ref]
+    if refs:
+        statement["references"] = refs
     return ("preferred" if superseding else "new"), statement
 
 
@@ -287,8 +315,9 @@ def _summary(rows: list[dict[str, Any]], claims: int, terms: Counter[str]) -> st
         parts.append(f"{count} {kind}{'es' if kind == 'alias' and count > 1 else ''}")
     sources = {}
     for row in rows:
-        if row.get("source_lang") and row.get("source_rev"):
-            sources[f"{row['source_lang']}.wikipedia"] = row["source_rev"]
+        for source in row_sources(row):
+            if source.get("lang") and source.get("rev"):
+                sources[f"{source['lang']}.wikipedia"] = source["rev"]
     where = ", ".join(f"{site} (rev {rev})" for site, rev in sorted(sources.items()))
     head = f"peploop: add {', '.join(parts) or f'{claims} statements'}"
     return f"{head} from {where}" if where else head
@@ -297,8 +326,8 @@ def _summary(rows: list[dict[str, Any]], claims: int, terms: Counter[str]) -> st
 def _statement_key(prop: str, statement: dict[str, Any]) -> str:
     """Identify the statement a row lands on, so two rows cannot both create it.
 
-    The API de-duplicates nothing, so the same citizenship attested in Czech
-    and in German would otherwise go out as two identical claims.
+    The API de-duplicates nothing, so the same citizenship attested in two
+    languages would otherwise go out as two identical claims.
     """
     guid = statement.get("id")
     if guid:

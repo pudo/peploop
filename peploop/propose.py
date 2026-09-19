@@ -17,6 +17,7 @@ from typing import Any
 
 from psycopg.types.json import Jsonb
 from rigour.territories import get_territory_by_qid, lookup_territory
+from rigour.text.scripts import text_scripts
 
 from peploop import db, wikidata
 
@@ -30,11 +31,29 @@ STATUS_RANK = ("exists", "refine", "new", "conflict", "unresolved")
 # What `extract.py` files the quotes it could not find in the article text under.
 BAD_QUOTES = "_bad_quotes"
 # Only these can be true once, so only here does a differing value contradict
-# the record: a Czechoslovak citizenship beside a Czech one is an addition.
+# the record: a citizenship of a predecessor state beside its successor is an
+# addition.
 SINGLE_VALUED = frozenset({"P569", "P570", "P21", "P19"})
 
 LABEL_PREFIX = "label:"
 ALIAS_PREFIX = "alias:"
+# A value a mechanical rule threw out before a human could see it. The rule
+# that did so is in `qualifiers._reason`, so each one's volume is countable.
+FILTERED = "filtered"
+PUNCT_RE = re.compile(r"[^\w\s]", re.UNICODE)
+# How much of an article says which scripts its language is written in. The
+# lead is enough, and a whole article is mostly its own name in any case.
+SCRIPT_SAMPLE = 2000
+# Strongest first, for a value several articles attest on different grounds.
+BASIS_RANK = ("explicit", "demonym")
+
+
+@dataclass
+class Source:
+    """One article a value was read in, and the sentence that carried it."""
+
+    lang: str | None
+    quote: str | None
 
 
 @dataclass
@@ -47,6 +66,10 @@ class Proposal:
     qualifiers: dict[str, Any] | None = None
     quote: str | None = None
     lang: str | None = None
+    # Every article that attested this value. One proposal per value and not
+    # per article, because the same citizenship in three languages is one
+    # statement with three references, not three rows for one reviewer.
+    sources: list[Source] = field(default_factory=list)
 
 
 @dataclass
@@ -153,23 +176,55 @@ def _territory_qids(qid: str) -> set[str]:
     return set(territory.qids) if territory is not None else {qid}
 
 
+def attestations(entries: list[dict[str, Any]]) -> list[Source]:
+    """List one source per language that attested a value, with its first quote."""
+    seen: dict[str, Source] = {}
+    for entry in entries:
+        lang = entry.get("lang")
+        quotes = entry.get("quotes") or []
+        seen.setdefault(lang or "", Source(lang, quotes[0] if quotes else None))
+    return list(seen.values())
+
+
+def group_dates(entries: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
+    """Cluster the date entries that say the same thing, finest value first.
+
+    Two articles giving `1962` and `1962-02-06` are one date one of them knows
+    more exactly, not two candidate values; two giving different days are two
+    rows and a reviewer's decision. The values are `YYYY[-MM[-DD]]` strings, so
+    agreement at the precision they share is a prefix comparison.
+    """
+    groups: list[list[dict[str, Any]]] = []
+    for entry in sorted(entries, key=lambda e: -len(e["value"])):
+        for group in groups:
+            shared = min(len(group[0]["value"]), len(entry["value"]))
+            if group[0]["value"][:shared] == entry["value"][:shared]:
+                group.append(entry)
+                break
+        else:
+            groups.append([entry])
+    return groups
+
+
 def _dates(
     entity: dict[str, Any], data: dict[str, Any], key: str, prop: str, bad: set[str]
 ) -> list[Proposal]:
     out = []
     existing = wikidata.claim_time(entity, prop, include_deprecated=False)
-    for entry in data.get(key) or []:
-        value = time_value(entry["value"])
+    entries = [e for e in data.get(key) or [] if time_value(e["value"]) is not None]
+    for group in group_dates(entries):
+        value = time_value(group[0]["value"])
         if value is None:
             continue
-        quotes = entry.get("quotes") or []
+        quotes = [quote for entry in group for quote in entry.get("quotes") or []]
         out.append(
             Proposal(
                 property=prop,
                 value=value,
                 status=quote_status(time_status(existing, value), quotes, bad),
                 quote=quotes[0] if quotes else None,
-                lang=entry.get("lang"),
+                lang=group[0].get("lang"),
+                sources=attestations(group),
             )
         )
     return out
@@ -187,6 +242,7 @@ def _gender(entity: dict[str, Any], data: dict[str, Any], bad: set[str]) -> list
         qualifiers={"_raw": value},
         quote=quotes[0] if quotes else None,
         lang=data.get("gender_lang"),
+        sources=attestations([{"lang": data.get("gender_lang"), "quotes": quotes}]),
     )
     qid = GENDER_QIDS.get(value)
     if qid is not None:
@@ -197,104 +253,244 @@ def _gender(entity: dict[str, Any], data: dict[str, Any], bad: set[str]) -> list
     return [proposal]
 
 
+def strongest_basis(entries: list[dict[str, Any]]) -> str | None:
+    """Return the best grounds any article gave for a citizenship."""
+    found = [entry.get("basis") for entry in entries if entry.get("basis")]
+    for basis in BASIS_RANK:
+        if basis in found:
+            return basis
+    return found[0] if found else None
+
+
+def _citizenship(existing: list[set[str]], entries: list[dict[str, Any]], bad: set[str]) -> Proposal:
+    """Turn every article that named one country into the one proposal for it.
+
+    An undated citizenship of a state that no longer exists is filtered: it is
+    what a lead sentence about somebody's origins reads as, and beside the
+    successor state the item already records it adds nothing a reviewer wants.
+    Wikidata models a citizenship that ended with `P582`, so the dated case is
+    a real addition and stays.
+    """
+    quotes = [quote for entry in entries for quote in entry.get("quotes") or []]
+    qualifiers: dict[str, Any] = {"_basis": strongest_basis(entries)}
+    for prop, key in (("P580", "start"), ("P582", "end")):
+        for entry in entries:
+            bound = time_value(entry.get(key) or "")
+            if bound is not None:
+                qualifiers[prop] = bound
+                break
+    territory = lookup_territory(entries[0]["name"])
+    proposal = Proposal(
+        property="P27",
+        value={},
+        status=quote_status("unresolved", quotes, bad),
+        qualifiers={**qualifiers, "_name": entries[0]["name"]},
+        quote=quotes[0] if quotes else None,
+        lang=entries[0].get("lang"),
+        sources=attestations(entries),
+    )
+    if territory is None or not territory.qid:
+        return proposal
+    proposal.value = {"entity-type": "item", "id": territory.qid}
+    proposal.qualifiers = qualifiers
+    dated = "P580" in qualifiers or "P582" in qualifiers
+    if territory.is_historical and not dated:
+        proposal.status = FILTERED
+        proposal.qualifiers = {**qualifiers, "_reason": "undated_predecessor"}
+        return proposal
+    proposal.status = quote_status(
+        item_status(existing, set(territory.qids), "P27"), quotes, bad
+    )
+    return proposal
+
+
 def _citizenships(entity: dict[str, Any], data: dict[str, Any], bad: set[str]) -> list[Proposal]:
     existing = [
         _territory_qids(q)
         for q in wikidata.claim_qids(entity, "P27", include_deprecated=False)
     ]
-    out = []
+    groups: dict[str, list[dict[str, Any]]] = {}
     for entry in data.get("citizenships") or []:
-        quotes = entry.get("quotes") or []
-        qualifiers: dict[str, Any] = {"_basis": entry.get("basis")}
-        for prop, key in (("P580", "start"), ("P582", "end")):
-            bound = time_value(entry.get(key) or "")
-            if bound is not None:
-                qualifiers[prop] = bound
         territory = lookup_territory(entry["name"])
-        proposal = Proposal(
-            property="P27",
-            value={},
-            status=quote_status("unresolved", quotes, bad),
-            qualifiers={**qualifiers, "_name": entry["name"]},
-            quote=quotes[0] if quotes else None,
-            lang=entry.get("lang"),
-        )
-        if territory is not None and territory.qid:
-            proposal.value = {"entity-type": "item", "id": territory.qid}
-            proposal.status = quote_status(
-                item_status(existing, set(territory.qids), "P27"), quotes, bad
-            )
-            proposal.qualifiers = qualifiers
-        out.append(proposal)
-    return out
+        key = territory.qid if territory is not None and territory.qid else entry["name"]
+        groups.setdefault(key, []).append(entry)
+    return [_citizenship(existing, entries, bad) for entries in groups.values()]
 
 
-def _names(entity: dict[str, Any], data: dict[str, Any]) -> list[Proposal]:
+def normalise(text: str) -> str:
+    """Fold a name to what makes two spellings of it the same form.
+
+    Case, punctuation and runs of whitespace are what a label and an alias of
+    it differ by while naming the same person, so an academic title written
+    with and without its commas compares equal.
+    """
+    return " ".join(PUNCT_RE.sub(" ", text).casefold().split())
+
+
+def item_terms(entity: dict[str, Any]) -> dict[str, list[str]]:
+    """Map each language to the item's label there, then its aliases."""
+    terms: dict[str, list[str]] = {}
+    for lang, term in (entity.get("labels") or {}).items():
+        terms.setdefault(lang, []).append(term["value"])
+    for lang, group in (entity.get("aliases") or {}).items():
+        terms.setdefault(lang, []).extend(term["value"] for term in group)
+    return terms
+
+
+def expected_scripts(lang: str, terms: dict[str, list[str]], articles: dict[str, str]) -> set[str]:
+    """Derive the scripts a language is written in, from what the run holds.
+
+    The item's own terms in that language first, because they are what the
+    community settled on for this person; failing those, the opening of the
+    article in that language. Nothing to read from is no expectation and no
+    check, which is the honest answer for a language we hold nothing in.
+    """
+    for sample in (" ".join(terms.get(lang) or []), (articles.get(lang) or "")[:SCRIPT_SAMPLE]):
+        found = set(text_scripts(sample))
+        if found:
+            return found
+    return set()
+
+
+def wrong_script(text: str, expected: set[str]) -> str | None:
+    """Name the expected scripts when a form is not written in any of them.
+
+    Only the Latin boundary is decided, because that is the one a set derived
+    from a couple of names can carry: a language written in no Latin script
+    does not take a Latin-script name, and one written only in Latin does not
+    take a name in another script.
+    """
+    if not expected:
+        return None
+    found = set(text_scripts(text))
+    detail = "script:" + "+".join(sorted(expected))
+    if "Latin" not in expected and "Latin" in found:
+        return detail
+    if expected == {"Latin"} and found - {"Latin"}:
+        return detail
+    return None
+
+
+def is_fragment(text: str, lang: str, terms: dict[str, list[str]]) -> bool:
+    """Say whether a form is part of the person's label rather than a name for them.
+
+    A surname or a given name on its own, which is what an infobox row or a
+    later mention of the person in the article reads as. The label of the
+    language the form is proposed for answers it, falling back to the ones
+    every language can see. A one-word pen name is not in the label and passes.
+    """
+    for code in (lang, "mul", "en"):
+        label = (terms.get(code) or [""])[0]
+        if label:
+            tokens = set(normalise(text).split())
+            return bool(tokens) and tokens < set(normalise(label).split())
+    return False
+
+
+def name_status(
+    text: str,
+    lang: str,
+    prefix: str,
+    labelled: set[str],
+    terms: dict[str, list[str]],
+    recorded: set[str],
+    expected: set[str],
+) -> tuple[str, str | None]:
+    """Decide what one name form is, and name the rule that decided it.
+
+    In this order: a language already labelled takes no second label, a literal
+    the item carries in *any* language is not another language's to add, an
+    alias that is only part of the label is a fragment, and a form in a script
+    the language is not written in belongs to whichever language it is written
+    in, not to this one.
+    """
+    if lang == "und":
+        return "unresolved", None
+    if prefix == LABEL_PREFIX and lang in labelled:
+        return "exists", None
+    if normalise(text) in recorded:
+        return "exists", None
+    if prefix == ALIAS_PREFIX and is_fragment(text, lang, terms):
+        return FILTERED, "fragment"
+    reason = wrong_script(text, expected)
+    if reason is not None:
+        return FILTERED, reason
+    return "new", None
+
+
+def _names(
+    entity: dict[str, Any], data: dict[str, Any], articles: dict[str, str]
+) -> list[Proposal]:
     """Propose labels and aliases under the pseudo-properties `label:` and `alias:`.
 
     Wikidata terms are not statements and have no property of their own, so a
     language code carries the slot they belong to instead.
     """
-    labels = {lang: term["value"] for lang, term in entity.get("labels", {}).items()}
-    aliases = {
-        lang: {term["value"] for term in terms}
-        for lang, terms in entity.get("aliases", {}).items()
-    }
+    terms = item_terms(entity)
+    labelled = set(entity.get("labels") or {})
+    recorded = {normalise(term) for group in terms.values() for term in group}
+    scripts: dict[str, set[str]] = {}
     out = []
     for entry in data.get("names") or []:
         lang = entry.get("lang") or "und"
-        unresolved = lang == "und"
-        label = (entry.get("label") or "").strip()
-        if label:
-            taken = lang in labels or label == labels.get("mul")
-            out.append(
-                Proposal(
-                    property=f"{LABEL_PREFIX}{lang}",
-                    value={"language": lang, "text": label},
-                    status="unresolved" if unresolved else ("exists" if taken else "new"),
-                    lang=lang,
-                )
-            )
-        for alias in entry.get("aliases") or []:
-            alias = alias.strip()
-            if not alias:
+        forms = [(LABEL_PREFIX, entry.get("label") or "")]
+        forms.extend((ALIAS_PREFIX, alias) for alias in entry.get("aliases") or [])
+        for prefix, raw in forms:
+            text = raw.strip()
+            if not text:
                 continue
-            taken = alias in aliases.get(lang, set()) or alias in (
-                labels.get(lang),
-                labels.get("mul"),
+            if lang not in scripts:
+                scripts[lang] = expected_scripts(lang, terms, articles)
+            status, reason = name_status(
+                text, lang, prefix, labelled, terms, recorded, scripts[lang]
             )
             out.append(
                 Proposal(
-                    property=f"{ALIAS_PREFIX}{lang}",
-                    value={"language": lang, "text": alias},
-                    status="unresolved" if unresolved else ("exists" if taken else "new"),
+                    property=f"{prefix}{lang}",
+                    value={"language": lang, "text": text},
+                    status=status,
+                    qualifiers={"_reason": reason} if reason else None,
                     lang=lang,
                 )
             )
     return out
 
 
-def build(entity: dict[str, Any], data: dict[str, Any]) -> list[Proposal]:
+def build(
+    entity: dict[str, Any], data: dict[str, Any], articles: dict[str, str] | None = None
+) -> list[Proposal]:
     """Turn one extraction's answer into the proposals it implies.
 
     Name forms carry no quotes and so are never `unquoted`: a label is read off
-    the article's own title and lead, not asserted by a sentence in it.
+    the article's own title and lead, not asserted by a sentence in it. The
+    article texts are what the script gate falls back to for a language the
+    item carries no name in; without them that gate simply does not fire.
     """
     bad = set(data.get(BAD_QUOTES) or [])
     proposals = _dates(entity, data, "birth_date", "P569", bad)
     proposals.extend(_dates(entity, data, "death_date", "P570", bad))
     proposals.extend(_gender(entity, data, bad))
     proposals.extend(_citizenships(entity, data, bad))
-    proposals.extend(_names(entity, data))
+    proposals.extend(_names(entity, data, articles or {}))
     return proposals
 
 
-def _sources(qid: str) -> dict[str, tuple[str, int | None]]:
+def article_urls(qid: str) -> dict[str, tuple[str, int | None]]:
+    """Map each language to the URL and revision of the article read in it."""
     rows = db.conn().execute("SELECT lang, url, rev_id FROM article WHERE qid = %s", (qid,))
     return {lang: (url, rev_id) for lang, url, rev_id in rows}
 
 
-def _key(prop: str, value: dict[str, Any]) -> str:
+def article_texts(qid: str) -> dict[str, str]:
+    """Map each language to as much of its article as the script gate reads."""
+    rows = db.conn().execute(
+        "SELECT lang, left(text, %s) FROM article WHERE qid = %s", (SCRIPT_SAMPLE, qid)
+    )
+    return dict(rows)
+
+
+def value_key(prop: str, value: dict[str, Any]) -> str:
+    """Identify one (property, value) pair, for matching proposals across runs."""
     return prop + "\t" + json.dumps(value, sort_keys=True, ensure_ascii=False)
 
 
@@ -309,7 +505,7 @@ def _store(
     """
     conn = db.conn()
     counts: Counter[tuple[str, str]] = Counter()
-    sources = _sources(qid)
+    urls = article_urls(qid)
     with conn.transaction():
         judged = conn.execute(
             "SELECT p.id, p.property, p.value FROM proposal p"
@@ -317,15 +513,26 @@ def _store(
             " v.proposal_id = p.id)",
             (qid,),
         ).fetchall()
-        kept = {_key(prop, value) for _, prop, value in judged}
+        kept = {value_key(prop, value) for _, prop, value in judged}
         conn.execute(
             "DELETE FROM proposal WHERE person_qid = %s AND NOT (id = ANY(%s))",
             (qid, [row[0] for row in judged]),
         )
         for proposal in proposals:
-            if _key(proposal.property, proposal.value) in kept:
+            if value_key(proposal.property, proposal.value) in kept:
                 continue
-            url, rev = sources.get(proposal.lang or "", (None, None))
+            url, rev = urls.get(proposal.lang or "", (None, None))
+            qualifiers = dict(proposal.qualifiers or {})
+            if proposal.sources:
+                qualifiers["_sources"] = [
+                    {
+                        "lang": source.lang,
+                        "url": urls.get(source.lang or "", (None, None))[0],
+                        "rev": urls.get(source.lang or "", (None, None))[1],
+                        "quote": source.quote,
+                    }
+                    for source in proposal.sources
+                ]
             conn.execute(
                 "INSERT INTO proposal (person_qid, property, value, qualifiers, quote,"
                 " source_lang, source_url, source_rev, extraction_id, item_rev, status)"
@@ -334,7 +541,7 @@ def _store(
                     qid,
                     proposal.property,
                     Jsonb(proposal.value),
-                    Jsonb(proposal.qualifiers) if proposal.qualifiers else None,
+                    Jsonb(qualifiers) if qualifiers else None,
                     proposal.quote,
                     proposal.lang,
                     url,
@@ -377,7 +584,11 @@ def propose_person(qid: str) -> ProposeSummary:
     )
     if not data.get("is_human", True):
         summary.person_status = "not_human"
-    proposals = [] if summary.person_status == "not_human" else build(entity, data)
+    proposals = (
+        []
+        if summary.person_status == "not_human"
+        else build(entity, data, article_texts(qid))
+    )
     summary.counts, summary.kept = _store(qid, proposals, extraction_id, item_rev)
     db.set_person_status(qid, summary.person_status)
     return summary

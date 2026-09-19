@@ -47,7 +47,26 @@ def qs_value(value: dict[str, Any]) -> str:
     raise ValueError(f"no QuickStatements form for {value}")
 
 
-def reference(row: dict[str, Any]) -> list[str]:
+def sources(row: dict[str, Any]) -> list[dict[str, Any]]:
+    """List the articles one proposal was read in, newest shape first.
+
+    `propose` writes every attesting article into `_sources`, because a value
+    three wikis agree on is one statement with three references. A row stored
+    before that grouping carries its one source in its own columns.
+    """
+    stored = (row.get("qualifiers") or {}).get("_sources")
+    if stored:
+        return list(stored)
+    return [
+        {
+            "lang": row.get("source_lang"),
+            "url": row.get("source_url"),
+            "rev": row.get("source_rev"),
+        }
+    ]
+
+
+def reference(source: dict[str, Any]) -> list[str]:
     """Render the three reference snaks that say where a value was read.
 
     The same three the API writer sends, so a value has one provenance shape
@@ -55,33 +74,36 @@ def reference(row: dict[str, Any]) -> list[str]:
     revision that was read, and today.
     """
     fields: list[str] = []
-    wiki = wikipedia.edition_qid(row["source_lang"]) if row.get("source_lang") else None
+    wiki = wikipedia.edition_qid(source["lang"]) if source.get("lang") else None
     if wiki is not None:
         fields.extend(["S143", wiki])
-    if row.get("source_url"):
-        url = wikipedia.revision_url(row["source_url"], row.get("source_rev"))
+    if source.get("url"):
+        url = wikipedia.revision_url(source["url"], source.get("rev"))
         fields.extend(["S4656", qs_string(url)])
     return [*fields, "S813", today()] if fields else []
 
 
-def line(row: dict[str, Any]) -> str:
-    """Render one proposal as one tab-separated QuickStatements line.
+def lines(row: dict[str, Any]) -> list[str]:
+    """Render one proposal as one tab-separated line per article it was read in.
 
-    A term goes out bare: QuickStatements takes no reference on a label or an
-    alias, because neither is a statement.
+    QuickStatements matches a line on subject, property and value and folds
+    that line's references into the statement it finds, so a value two wikis
+    attest goes out as two lines and lands as one statement with two
+    references. A term goes out bare and once: QuickStatements takes no
+    reference on a label or an alias, because neither is a statement.
     """
     prop = row["property"]
     for prefix, code in ((LABEL_PREFIX, "L"), (ALIAS_PREFIX, "A")):
         if prop.startswith(prefix):
             lang = prop[len(prefix) :]
-            return "\t".join([row["person_qid"], f"{code}{lang}", qs_value(row["value"])])
+            return ["\t".join([row["person_qid"], f"{code}{lang}", qs_value(row["value"])])]
     fields = [row["person_qid"], prop, qs_value(row["value"])]
     qualifiers = row.get("qualifiers") or {}
     for qualifier in QUALIFIER_ORDER:
         if qualifier in qualifiers:
             fields.extend([qualifier, qs_time(qualifiers[qualifier])])
-    fields.extend(reference(row))
-    return "\t".join(fields)
+    rendered = ["\t".join([*fields, *reference(source)]) for source in sources(row)]
+    return list(dict.fromkeys(rendered))
 
 
 def check(lines: list[str]) -> list[str]:
@@ -124,5 +146,5 @@ def render(statuses: list[str], properties: list[str]) -> tuple[list[str], list[
         "source_url",
         "source_rev",
     )
-    lines = [line(dict(zip(columns, row))) for row in rows]
-    return lines, check(lines)
+    rendered = [text for row in rows for text in lines(dict(zip(columns, row)))]
+    return rendered, check(rendered)

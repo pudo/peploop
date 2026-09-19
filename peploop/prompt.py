@@ -21,7 +21,8 @@ PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "extract.md"
 
 # A character heuristic, not a tokenizer: the budget only decides how many
 # whole articles are sent, and count_tokens would cost a request per person.
-# Czech and Slovak text runs about two characters per token.
+# Inflected languages in Latin script run about two characters per token; the
+# constant is conservative for English.
 TOKEN_CHARS = 2.0
 TOKEN_BUDGET = 60_000
 

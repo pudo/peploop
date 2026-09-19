@@ -79,12 +79,12 @@ language of the article quoted).
 
 One of `male`, `female`, `other`, or `null`. Articles almost never state gender
 in words, so the evidence is grammatical: pronouns ("she", "her"), gendered
-verb and adjective forms in inflected languages ("narodila se", "była
-ministrą"), gendered nouns ("politician" versus "politička", "Ministerin"),
-and gendered surname forms ("Stehlíková"). Any of these is sufficient evidence
-and the quote should show it. Use `other` only when an article states a
-non-binary identity in words. When the articles give no grammatical or explicit
-signal at all, return `null`.
+verb and adjective forms in inflected languages ("была избрана", "została <!-- examples -->
+ministrą", "elle est née"), gendered nouns ("politician" versus "Ministerin", <!-- examples -->
+"députée"), and gendered surname forms ("Kowalska", "Ivanova"). Any of these <!-- examples -->
+is sufficient evidence and the quote should show it. Use `other` only when an
+article states a non-binary identity in words. When the articles give no
+grammatical or explicit signal at all, return `null`.
 
 If the item already records a gender and the articles agree with it, return
 `null`: there is nothing to add. Return a value only when the item has none, or
@@ -94,24 +94,28 @@ when the articles' grammar contradicts what it records.
 
 A list of countries the person is or was a citizen of, each as `name`: the
 country *as the article writes it*, in the article's language, exactly. Do not
-translate, modernise or normalise: "Czechoslovakia", "Československo", "ČSSR",
-"Kazakh SSR" and "Soviet Union" are each reported as written, and the system
-maps them to Wikidata items. Report the historical state the article names
-for the period it names; a person born in 1950 in Czechoslovakia who is now a
-Czech politician has two entries, not one.
+translate, modernise or normalise: "Soviet Union", "Jugoslavija", "Deutsche
+Demokratische Republik" and "Rhodesia" are each reported as written, and the <!-- examples -->
+system maps them to Wikidata items. Report the historical state the article
+names for the period it names. A lead that names two states — "a Soviet and <!-- examples -->
+Latvian politician", "ein deutscher und preußischer Politiker" — is two <!-- examples -->
+entries, not one, and the item already recording either of them is not a
+reason to drop the other.
 
 Evidence, in descending order of strength, all acceptable:
 
-1. An explicit statement: "is a naturalised Czech citizen", "obtained Austrian
-   citizenship in 1998", an infobox row `Citizenship:` or `Nationality:`.
-2. The demonym in the defining sentence: "is a Czech politician", "je český
-   politik". The lead sentence's nationality adjective is Wikipedia's
-   conventional statement of citizenship and counts as evidence. In that case
-   `name` is the **country's name as a noun in the article's language**
-   ("Česko", "Czech Republic", "Deutschland"), never the adjective: the quote
-   carries "český", the `name` field carries the country it refers to. Write
-   the country in the article's language and script; if the article's
-   language is not one you can name the country in, use its English name.
+1. An explicit statement: "is a naturalised Nigerian citizen", "obtained
+   Austrian citizenship in 1998", an infobox row `Citizenship:` or
+   `Nationality:`.
+2. The demonym in the defining sentence: "is a Nigerian politician", "é um
+   político brasileiro". The lead sentence's nationality adjective is <!-- examples -->
+   Wikipedia's conventional statement of citizenship and counts as evidence.
+   In that case `name` is the **country's name as a noun in the article's
+   language** ("Deutschland", "Nigeria", "Brasil", "日本"), never the <!-- examples -->
+   adjective: the quote carries the adjective, the `name` field carries the
+   country it names. Write the country in the article's language and script;
+   if the article's language is not one you can name the country in, use its
+   English name.
 3. Nothing else. Place of birth alone is not citizenship. Serving in a
    country's parliament or government is not citizenship. A surname is not
    citizenship.
@@ -131,20 +135,25 @@ The forms of the person's name that Wikidata should carry as labels and
 aliases, per language. For each language in which an article was provided:
 
 - `label`: the article's title, with any disambiguating parenthesis removed
-  ("Jan Novák (politik)" → "Jan Novák").
+  ("Maria Santos (política)" → "Maria Santos").
 - `aliases`: other forms of the *same person's name* that appear in that
   article's infobox or lead: birth name, maiden name, full formal name with
   middle names, a pen name or common short form. Not: the name with academic
-  or professional titles attached ("Ing. Jan Novák, MBA", "MUDr. Jana
-  Nováková" are not aliases; strip the titles and, if what remains is the
+  or professional titles attached ("Dr. Chidi Okeke, SAN", "Prof. Dr. Anna <!-- examples -->
+  Müller" are not aliases; strip the titles and, if what remains is the <!-- examples -->
   label, report nothing), honorifics alone, offices, nicknames applied by
-  opponents, or names of relatives.
+  opponents, or names of relatives. A surname or a given name on its own is
+  not an alias.
 
 Additionally, when an article gives the name in another language or script
 inline ("Kazakh: Жәмилә Алмасқызы Стеһликова", "born Ordabayeva"), report that
 form under the language it belongs to, even if no article in that language was
 provided. If you cannot tell which language a script form belongs to, put it
-under `und`.
+under `und`. A form belongs to the language of the script it is written in. A
+name printed in a script the article's language does not use (a Latin-script
+name in a Cyrillic or Japanese article, a Cyrillic name in a German one) is
+not an alias in the article's language; report it under the language it is
+written in, or not at all if that language already has it.
 
 Every form must appear verbatim in some article. Never transliterate,
 translate, or reorder a name yourself.
@@ -155,23 +164,25 @@ One entry per distinct tenure of a political office, in the articles' own
 words. Fields:
 
 - `title`: the office as the article names it, in the article's language,
-  untranslated and unabbreviated where the article spells it out: "ministr
-  dopravy", "Member of the Chamber of Deputies", "primátor města Brna". Not
-  the office holder's description ("Czech politician") and not the party.
+  untranslated and unabbreviated where the article spells it out:
+  "Bundesminister des Innern", "Member of the Chamber of Deputies", "prefeito <!-- examples -->
+  de Salvador". Not the office holder's description ("Nigerian politician") <!-- examples -->
+  and not the party.
 - `jurisdiction`: the state, region, municipality or body the office belongs
-  to, as the article names it ("Česká republika", "Jihomoravský kraj",
-  "Brno", "Senát Parlamentu České republiky"), or `null` when the article
-  does not say. A national office in a national article usually has the state
-  as jurisdiction even when unstated in the sentence; take it from the
-  infobox or the lead if it is there, otherwise leave `null`.
+  to, as the article names it ("Nordrhein-Westfalen", "Bahia", "Pune <!-- examples -->
+  district", "Senate of Nigeria"), or `null` when the article does not say. A
+  national office in a national article usually has the state as jurisdiction
+  even when unstated in the sentence; take it from the infobox or the lead if
+  it is there, otherwise leave `null`.
 - `start`, `end`: at stated precision, `null` when not stated. `end` is `null`
-  for an incumbent ("Incumbent", "Assumed office", "od roku 2021" with no
-  end); do not write today's date.
+  for an incumbent ("Incumbent", "Assumed office", "seit 2021" with no end); <!-- examples -->
+  do not write today's date.
 - `acting`: `true` only when the article says acting, interim, caretaker or
-  the language's equivalent ("pověřen řízením", "kommissarisch", "úřadující
-  ministr" *as a title*). Beware the false friend: a Czech or Slovak infobox
-  line reading just `Úřadující` / `Úradujúci` means *incumbent*, the same as
-  "Incumbent" in an English infobox, and is not acting.
+  the language's equivalent ("kommissarisch", "par intérim", "代理" *as a <!-- examples -->
+  title*). Beware the false friend: many infobox templates print a status word
+  meaning *incumbent* or *in office* on its own line; that word is not
+  *acting*, whatever the language: "Incumbent", "titulaire", "在任" and <!-- examples -->
+  "Úřadující" are all incumbency, none of them acting. <!-- examples -->
 - `quotes`, `lang`.
 
 Rules:
@@ -187,8 +198,8 @@ Rules:
 - Military ranks, academic chairs, company directorships, and posts in state
   enterprises are reported only when the article presents them as public
   appointments (a director general of a state railway is; a professor is not).
-- Do not merge the same office named differently across languages: if the cs
-  article says "ministr dopravy" and the en article "Minister of Transport",
+- Do not merge the same office named differently across languages: if the de
+  article says "Verkehrsminister" and the en article "Minister of Transport", <!-- examples -->
   report each once, with its own quote and `lang`. Matching them is done later
   against Wikidata's items, not by you.
 - If an article lists twenty or thirty offices, report them all. Never
@@ -197,11 +208,11 @@ Rules:
 ### `birth_places`
 
 The place of birth as written, with whatever parent chain the article gives,
-in the article's language: "Almaty, Kazakh SSR, Soviet Union", "Ivančice,
-Československo". One entry per distinct value across articles; the same place
-named in two languages is two entries with their own `lang` and quotes. Do not
-translate or modernise the place name, and do not add a parent the article
-does not give. Not a hospital, not a city district unless that is all the
+in the article's language: "Almaty, Kazakh SSR, Soviet Union", "Oaxaca de <!-- examples -->
+Juárez, Oaxaca, México". One entry per distinct value across articles; the <!-- examples -->
+same place named in two languages is two entries with their own `lang` and
+quotes. Do not translate or modernise the place name, and do not add a parent
+the article does not give. Not a hospital, not a city district unless that is all the
 article gives. `quotes`, `lang`.
 
 ### `notes`
