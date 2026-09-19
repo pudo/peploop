@@ -67,9 +67,10 @@ them, and the rejection reasons are what a coding session reads before it
 edits the prompt. How verdicts turn into prompt changes is left to those
 sessions on purpose.
 
-**Write.** Proposals reach Wikidata through the API with references (`P854`
-URL, `P813` retrieved, and the article's revision) and an edit summary naming
-the tool, under the user's own account with a throttle. Accepted proposals are
+**Write.** Proposals reach Wikidata through the API with references (`P143` the
+wiki they were imported from, `P4656` the permanent URL of the revision read,
+`P813` retrieved) and an edit summary naming the tool, under the user's own
+account with a throttle. Accepted proposals are
 written; so are unreviewed ones for the properties the human has switched on
 after reading the verdict numbers. Making that switch automatic is a later
 round, once the numbers say what the rule should be. Writes are additive. A

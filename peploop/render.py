@@ -10,7 +10,7 @@ import datetime
 import re
 from typing import Any
 
-from peploop import db
+from peploop import db, wikipedia
 
 WRITABLE = ("new", "refine")
 QUALIFIER_ORDER = ("P580", "P582")
@@ -47,6 +47,23 @@ def qs_value(value: dict[str, Any]) -> str:
     raise ValueError(f"no QuickStatements form for {value}")
 
 
+def reference(row: dict[str, Any]) -> list[str]:
+    """Render the three reference snaks that say where a value was read.
+
+    The same three the API writer sends, so a value has one provenance shape
+    whichever path it takes: the wiki it came from, the permanent URL of the
+    revision that was read, and today.
+    """
+    fields: list[str] = []
+    wiki = wikipedia.edition_qid(row["source_lang"]) if row.get("source_lang") else None
+    if wiki is not None:
+        fields.extend(["S143", wiki])
+    if row.get("source_url"):
+        url = wikipedia.revision_url(row["source_url"], row.get("source_rev"))
+        fields.extend(["S4656", qs_string(url)])
+    return [*fields, "S813", today()] if fields else []
+
+
 def line(row: dict[str, Any]) -> str:
     """Render one proposal as one tab-separated QuickStatements line.
 
@@ -63,8 +80,7 @@ def line(row: dict[str, Any]) -> str:
     for qualifier in QUALIFIER_ORDER:
         if qualifier in qualifiers:
             fields.extend([qualifier, qs_time(qualifiers[qualifier])])
-    if row.get("source_url"):
-        fields.extend(["S854", qs_string(row["source_url"]), "S813", today()])
+    fields.extend(reference(row))
     return "\t".join(fields)
 
 
@@ -93,11 +109,20 @@ def render(statuses: list[str], properties: list[str]) -> tuple[list[str], list[
     if bad:
         raise ValueError(f"only {', '.join(WRITABLE)} may be rendered, not {', '.join(bad)}")
     rows = db.conn().execute(
-        "SELECT person_qid, property, value, qualifiers, source_url FROM proposal"
+        "SELECT person_qid, property, value, qualifiers, source_lang, source_url,"
+        " source_rev FROM proposal"
         " WHERE status = ANY(%s) AND (%s OR property = ANY(%s))"
         " ORDER BY person_qid, property, id",
         (statuses, not properties, properties),
     )
-    columns = ("person_qid", "property", "value", "qualifiers", "source_url")
+    columns = (
+        "person_qid",
+        "property",
+        "value",
+        "qualifiers",
+        "source_lang",
+        "source_url",
+        "source_rev",
+    )
     lines = [line(dict(zip(columns, row))) for row in rows]
     return lines, check(lines)

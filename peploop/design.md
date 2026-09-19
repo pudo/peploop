@@ -141,10 +141,14 @@ Two consequences:
   anything that writes.
 - `render` prints stored `new` and `refine` proposals and nothing else; the
   QuickStatements importer the user pastes them into is the check on that
-  batch. The pre-flight belongs to `apply` (round 5): it refreshes the items
-  in its batch with no age tolerance, recomputes every status, and writes only
-  what is still `new` or `refine`. A proposal whose item changed under it is
-  re-decided, not re-used.
+  batch. The pre-flight belongs to `apply`: it re-reads every item it is about
+  to write with `fetch_items`, which never consults a cache, and decides each
+  accepted row against what came back rather than against the stored status.
+  An item whose `lastrevid` has left the row's `item_rev` behind is re-proposed
+  first, so a value our own earlier edit already added is recognised as
+  `exists` and dropped. The revision the pre-flight read is the edit's
+  `baserevid`, which is what makes a concurrent change an `editconflict`
+  instead of a silent overwrite.
 
 `run --qid Q…` bypasses the item TTL for the named items, so re-processing one
 person after fixing something always reads live. Extraction is keyed on the
@@ -312,12 +316,60 @@ Name forms carry no quotes and are never `unquoted`.
 
 Only `new` and `refine` are candidates for writing. `conflict` is the human's
 list. A reviewed proposal moves to `accepted` or `rejected`; a written one to
-`applied`. The kind of evidence behind a proposal (an infobox line, prose, a
+`applied`, carrying `applied_rev` (the revision the edit produced) and, for a
+statement, `claim_guid` (the statement it created or sharpened; a label or an
+alias is not a statement and leaves it null). The kind of evidence behind a proposal (an infobox line, prose, a
 demonym) is not a column: the extraction JSON keeps `basis` and the quotes, so
 it is derivable by query when the verdicts make it worth measuring.
 
 Name forms are proposals too: a label in a language where the item has none is
 `new`; an alias not present is `new`; anything already there is `exists`.
+
+### 7. Apply
+
+`apply` writes one person per `wbeditentity` call: every proposal accepted for
+them lands atomically, under the user's own account through the action API,
+with the pre-flight revision as `baserevid`, `maxlag=5` and no bot flag. The
+credentials are the ones wikibase-cli is configured with, and `action=login`
+takes the bot password it stores.
+
+It is a **dry run by default**. Without `--write` it does the same pre-flight
+and prints the payload it would send; `--write` logs in, fetches a CSRF token
+and sends, one person every ten seconds, single-threaded.
+
+Nothing trusts a stored status. Each accepted row is re-decided against the
+live claims, and routed:
+
+| live state | what is written |
+|---|---|
+| no statement with this value | a new statement, normal rank |
+| the value, at the same or a finer precision | nothing |
+| the value more coarsely, referenced only by `P143`/`P4656`/`P813` | that same statement, `id` and all, with our value and our reference appended |
+| the value more coarsely, referenced to anything else | a second statement at `rank: preferred`, the old one left alone |
+| a differing value on a `SINGLE_VALUED` property | nothing; it is a conflict |
+
+Contradiction is ruled out over *every* statement before anything else, not
+over the one that happens to match: a person recorded with both a coarse 1950
+and a day-precision 1 March 1950 is not someone our 1 February 1950 refines,
+though it agrees with the coarse value at the precision they share. A
+`somevalue` snak records that nobody knows and contradicts nothing.
+
+Labels and aliases ride in the same payload — a label only where the item has
+none in that language, an alias as `{language, value, add: ""}` so the ones
+already there survive.
+
+The rows are grouped by the statement they land on before the payload is built,
+because the API de-duplicates nothing: the same citizenship attested in Czech
+and in German is one statement carrying two references, not two identical
+claims, and both rows are recorded against the one guid it produced.
+
+Every statement gets the same reference as the QuickStatements path: `P143`
+imported from the item of the source wiki (resolved once by SPARQL over
+`wdt:P31 wd:Q10876391; wdt:P424 ?code` and cached), `P4656` the permanent URL
+of the revision that was read, `P813` today. A `maxlag` refusal is slept off
+with `Retry-After`, doubling to about two minutes; an `editconflict` re-reads
+the item, re-proposes and retries once, and then the person gets an `error`
+and their proposals stay `accepted`.
 
 ## Tables
 
@@ -329,7 +381,7 @@ item         qid, lastrevid, json, fetched_at
 article      qid, lang, title, rev_id, url, text, fetched_at
 extraction   id, qid, prompt_hash, model, article_langs[], request_json,
              response_json, usage_json, created_at
-proposal     (as above)
+proposal     (as above, plus applied_rev, claim_guid)
 verdict      proposal_id, decision (accept|reject), reason, note, created_at
 candidate    (as above; empty in round 1)
 ```
@@ -365,19 +417,20 @@ stats
 run     [--limit N] [--threads 4] [--qid Q...]
 render  [--status new,refine] [--property P...] > out.qs
 review  [--qid Q...] [--limit N]
-apply   [--property P...]                             (round 5)
+apply   [--limit N] [--qid Q...] [--write]
 ```
 
-Everything above `apply` exists. `review` is a Textual TUI whose unit is a
+Every command here exists. `review` is a Textual TUI whose unit is a
 person, not a proposal: it shows the item's existing claims and links to the
 articles beside that person's `new` and `refine` proposals, drawn at random
 from those with something left to review, and writes all of one person's
 decisions in one transaction on submit. Accept is the resting state, a digit
 rejects a row with one of the eight `verdict.reason` values, and a row marked
 skipped stays reviewable later.
-`apply` writes `accepted` proposals and the `new` and `refine` proposals of the
-listed properties, throttled, under the user's account. Once verdicts exist,
-`stats` adds acceptance per property and a tally per reason.
+`apply` writes `accepted` proposals, throttled, under the user's account, and
+prints what it would send unless `--write` is given; §7 has the routing. Once
+verdicts exist, `stats` adds acceptance per property and a tally per reason,
+and counts `applied` beside the other statuses.
 
 `extract` reads the model's answer for each `fetched` person and stores it;
 its selection is stable, and a person already answered under this prompt hash
@@ -419,13 +472,14 @@ staying shallow across many categories.
 
 ## What is deliberately not here
 
-- No writes, no QuickStatements beyond a dumb renderer, no graduation rule, no
-  sampling policy, no bot account. The renderer does not yet
-  collapse the same (person, property, value) attested from two languages into
-  one line; QuickStatements merges them into one statement with two references,
-  which is right while their qualifiers agree and wrong the day they differ, so
-  `apply` must group by value before it writes. The `verdict` table is
-  the one piece of those rounds present now, so their data needs no back-fill.
+- No graduation rule, no sampling policy, no bot account: `apply` writes what a
+  human has accepted, one property switch at a time is a later round, and the
+  edits appear under the user's own name. `render` still does not collapse the
+  same (person, property, value) attested from two languages into one line:
+  QuickStatements merges them into one statement with two references, which is
+  right while their qualifiers agree and wrong the day they differ. `apply`
+  groups by statement and sends one claim with both references; the day two
+  attestations carry different qualifiers, that grouping is what has to notice.
 - No roster pages, no Wikipedia lists, no non-Wikimedia sources. The prompt
   material is one person's own articles. Widening the material is round 3.
 - No per-country policy, dispositions, backtests, or coverage ledgers.
@@ -454,6 +508,7 @@ peploop/
   propose.py     compare against existing claims, write proposals
   render.py      proposals → QuickStatements lines
   review.py      Textual TUI: one person per screen, verdicts on submit
+  apply.py       log in, plan one wbeditentity per person, write and record
   run.py         driver, thread pool
   cli.py
 ```

@@ -7,6 +7,7 @@ text the model reads.
 
 import json
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, NamedTuple
 from urllib.parse import quote
@@ -19,6 +20,9 @@ from peploop import db, http
 PETSCAN_URL = "https://petscan.wmcloud.org/"
 REST_HTML = "https://{lang}.wikipedia.org/api/rest_v1/page/html/{title}"
 PAGE_URL = "https://{lang}.wikipedia.org/wiki/{title}"
+SPARQL_URL = "https://query.wikidata.org/sparql"
+# Every Wikipedia language edition with its code, for the `P143` of a reference.
+EDITIONS_QUERY = "SELECT ?wiki ?code WHERE { ?wiki wdt:P31 wd:Q10876391; wdt:P424 ?code. }"
 
 # Class fragments whose elements carry no biography: navigation, references,
 # succession boxes, hatnotes. They differ per wiki (de has "navileiste" and
@@ -230,3 +234,35 @@ def html_to_text(html: str) -> str:
         if line or (lines and lines[-1]):
             lines.append(line)
     return "\n".join(lines).strip()
+
+
+def revision_url(url: str, rev: int | None) -> str:
+    """Turn an article URL into the permanent URL of the revision that was read.
+
+    `P4656` wants a link that still shows what was cited after the page has
+    moved on; `/wiki/<title>` shows whatever is current. The title is already
+    percent-encoded in the stored URL, so it transfers as it stands.
+    """
+    head, marker, title = url.partition("/wiki/")
+    if not marker or rev is None:
+        return url
+    return f"{head}/w/index.php?title={title}&oldid={rev}"
+
+
+@lru_cache(maxsize=1)
+def edition_items() -> dict[str, str]:
+    """Map a language code to the Wikidata item of its Wikipedia, via SPARQL.
+
+    The set barely changes, so the seven-day HTTP cache is the right tolerance:
+    this is a fact about Wikipedia, not the item state a write invalidates.
+    """
+    data = http.get_json(SPARQL_URL, params={"query": EDITIONS_QUERY, "format": "json"})
+    return {
+        row["code"]["value"]: row["wiki"]["value"].rsplit("/", 1)[-1]
+        for row in data["results"]["bindings"]
+    }
+
+
+def edition_qid(lang: str) -> str | None:
+    """Return the item of one language's Wikipedia, or None if it has none."""
+    return edition_items().get(lang)

@@ -88,7 +88,7 @@ def time_value(text: str) -> dict[str, Any] | None:
     }
 
 
-def _at(text: str, precision: int) -> str | None:
+def at_precision(text: str, precision: int) -> str | None:
     """Truncate a time value to a precision, so two dates compare like for like."""
     match = TIME_RE.match(text)
     if match is None:
@@ -111,7 +111,7 @@ def time_status(existing: list[tuple[str, int]], value: dict[str, Any]) -> str:
     verdicts = []
     for text, precision in existing:
         shared = min(precision, value["precision"])
-        if _at(text, shared) != _at(value["time"], shared):
+        if at_precision(text, shared) != at_precision(value["time"], shared):
             verdicts.append("conflict")
         elif precision >= value["precision"]:
             verdicts.append("exists")

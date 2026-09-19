@@ -137,3 +137,9 @@ CREATE INDEX IF NOT EXISTS verdict_proposal_idx ON verdict (proposal_id);
 
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 CREATE INDEX IF NOT EXISTS proposal_property_idx ON proposal (property, status);
+
+-- What `apply` recorded about a written proposal: the item revision its edit
+-- produced, and the statement it created or sharpened. A label or an alias is
+-- not a statement and leaves `claim_guid` null.
+ALTER TABLE proposal ADD COLUMN IF NOT EXISTS applied_rev BIGINT;
+ALTER TABLE proposal ADD COLUMN IF NOT EXISTS claim_guid TEXT;

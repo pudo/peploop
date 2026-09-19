@@ -6,6 +6,7 @@ item and article rows that are still inside their age tolerance.
 """
 
 import json
+import time
 from collections import Counter
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
@@ -14,6 +15,7 @@ from typing import Any
 
 import click
 
+from peploop import apply as applying
 from peploop import db, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import propose as proposals
@@ -381,6 +383,49 @@ def review(limit: int, qid: Sequence[str]) -> None:
     )
     for line in reviewing.summary_lines():
         click.echo(line)
+
+
+@cli.command("apply")
+@click.option("--limit", default=10, show_default=True)
+@click.option("--qid", multiple=True, help="Write these people instead of a batch.")
+@click.option("--write", is_flag=True, help="Send the edits; without it nothing leaves here.")
+def apply_(limit: int, qid: Sequence[str], write: bool) -> None:
+    """Write each person's accepted proposals to Wikidata as one edit.
+
+    A dry run by default: it does the same pre-flight against the live item and
+    prints the payload it would send. `--write` logs in and sends, one person
+    every ten seconds, and records what came back on each proposal.
+    """
+    qids = applying.people(list(qid), limit)
+    if not qids:
+        click.echo("nothing accepted")
+        return
+    token = None
+    if write:
+        click.echo(f"logged in as {applying.login()}")
+        token = applying.csrf_token()
+    applied, failed = 0, 0
+    for index, person_qid in enumerate(qids):
+        if write and index:
+            time.sleep(applying.THROTTLE)
+        try:
+            plan, note = applying.apply_person(person_qid, token)
+        except Exception as exc:  # noqa: BLE001 — a refused edit is a row, not a dead run
+            failed += 1
+            click.echo(f"{person_qid} failed: {type(exc).__name__}: {exc}")
+            continue
+        routes = " ".join(f"{route}={n}" for route, n in sorted(plan.routes.items()))
+        head = f"{person_qid} [{routes}]{note}"
+        click.echo(f"{head}: {plan.summary}" if plan.data else f"{head}: nothing to write")
+        for proposal_id, reason in plan.skipped:
+            click.echo(f"  skipped proposal {proposal_id}: {reason}")
+        if not plan.data:
+            continue
+        applied += plan.covered
+        if not write:
+            click.echo(json.dumps(plan.data, indent=2, ensure_ascii=False))
+    verb = "applied" if write else "would apply"
+    click.echo(f"{len(qids)} people: {verb} {applied} proposals, {failed} failed")
 
 
 @cli.command()

@@ -101,6 +101,16 @@ def get(url: str, params: dict[str, Any] | None = None) -> Response:
     return res
 
 
+def post(url: str, data: dict[str, Any]) -> Response:
+    """POST form data through the rate limiter, returning the response unchecked.
+
+    Nothing is raised for an error status: the action API reports `maxlag` as
+    a 503 whose JSON body and `Retry-After` header are the whole diagnosis.
+    """
+    _pacer(url).take()
+    return session().post(url, data=data)
+
+
 def get_text(
     url: str, params: dict[str, Any] | None = None, max_age: int = CACHE_MAX_AGE
 ) -> str:
