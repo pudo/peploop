@@ -2,9 +2,9 @@
 
 A small, deterministic pipeline that reads a politician's Wikipedia articles,
 asks an LLM one structured question about them, and records the answers as
-*proposals* in Postgres. Nothing in this round writes to Wikidata. Later rounds
-add a review command that records verdicts, and a writer that applies what the
-verdicts have shown can be trusted.
+*proposals* in Postgres. Nothing here writes to Wikidata: a review command
+records a human's verdict on each proposal, and a later round adds the writer
+that applies what those verdicts have shown can be trusted.
 
 The parent repo (`wd/`, `scripts/`) is treated as prior art to read, never as a
 dependency. `peploop/` imports nothing from it. Its one dependency from the
@@ -358,12 +358,17 @@ dump    [--limit N] [--qid Q...]
 stats
 run     [--limit N] [--threads 4] [--qid Q...]
 render  [--status new,refine] [--property P...] > out.qs
-review  [--where ...] [--limit N]                     (round 4)
+review  [--qid Q...] [--limit N]
 apply   [--property P...]                             (round 5)
 ```
 
-Everything above `review` exists. `review` is a terminal prompt loop, one proposal per screen,
-answered with `a` or `r <reason>` and an optional note, writing `verdict`.
+Everything above `apply` exists. `review` is a Textual TUI whose unit is a
+person, not a proposal: it shows the item's existing claims and links to the
+articles beside that person's `new` and `refine` proposals, drawn at random
+from those with something left to review, and writes all of one person's
+decisions in one transaction on submit. Accept is the resting state, a digit
+rejects a row with one of the eight `verdict.reason` values, and a row marked
+skipped stays reviewable later.
 `apply` writes `accepted` proposals and the `new` and `refine` proposals of the
 listed properties, throttled, under the user's account. Once verdicts exist,
 `stats` adds acceptance per property and a tally per reason.
@@ -392,8 +397,7 @@ wide `Čeští_politici` is commented out, because its ~6,300 members are mostly
 not politically exposed and the prompt should be judged on the narrower set
 first. Success for round 1 means: the loop runs on those people without manual
 intervention, `stats` shows a proposal distribution that reads sensibly, a
-review of 50 `new` proposals (with `review` once it exists, by hand until then)
-finds the quote supports the value in at least 48,
+review of 50 `new` proposals finds the quote supports the value in at least 48,
 and 20 people's `positions` lists read beside their infoboxes are complete and
 undated only where the article is. Measured on the first 60 people at Sonnet 5
 rates: $0.025 per person, output tokens being over half of it; a person with a
@@ -409,8 +413,8 @@ staying shallow across many categories.
 
 ## What is deliberately not here
 
-- No review command, no writes, no QuickStatements beyond a dumb renderer, no
-  graduation rule, no sampling policy, no bot account. The renderer does not yet
+- No writes, no QuickStatements beyond a dumb renderer, no graduation rule, no
+  sampling policy, no bot account. The renderer does not yet
   collapse the same (person, property, value) attested from two languages into
   one line; QuickStatements merges them into one statement with two references,
   which is right while their qualifiers agree and wrong the day they differ, so
@@ -442,6 +446,8 @@ peploop/
   prompt.py      render system + user message
   extract.py     schema, parse call
   propose.py     compare against existing claims, write proposals
+  render.py      proposals → QuickStatements lines
+  review.py      Textual TUI: one person per screen, verdicts on submit
   run.py         driver, thread pool
   cli.py
 ```

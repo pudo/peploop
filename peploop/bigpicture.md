@@ -58,9 +58,9 @@ hold is not matched; it is recorded, with its evidence, in a creation queue.
 and marked `new`, `exists`, `refine` or `conflict`. This table is the system's
 real output and the thing every later stage reads.
 
-**Verdicts.** A reviewer sees one proposal at a time, with its quote, the
-article context and the item's current state, and accepts it or rejects it
-with one reason from a short closed set and a note. The reviewer sees a sample
+**Verdicts.** A reviewer sees one person at a time, their proposals listed
+together with the quotes behind them and the item's current state, and accepts
+each or rejects it with one reason from a short closed set and a note. The reviewer sees a sample
 the human chose, never everything. The verdicts are the dataset: acceptance
 per property, per kind of evidence and per prompt version are queries over
 them, and the rejection reasons are what a coding session reads before it

@@ -60,11 +60,13 @@ def system_prompt() -> tuple[str, str]:
     return text, hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _time(value: str, precision: int) -> str:
+def format_time(value: str, precision: int, name_day: bool = True) -> str:
     """Render a Wikidata time value at the precision it claims.
 
     A precision below 9 means the value is coarser than a year, so the year
-    digits it carries are not a year.
+    digits it carries are not a year. `name_day=False` drops the "(day)" from
+    a full date, where the shape of the value already says what it is; a
+    coarser value keeps its name however it is rendered.
     """
     match = TIME_RE.match(value.lstrip("+"))
     name = PRECISION_NAMES.get(precision, f"precision {precision}")
@@ -72,18 +74,18 @@ def _time(value: str, precision: int) -> str:
         return f"{value} ({name})"
     year, month, day = match.groups()
     if precision >= 11:
-        return f"{year}-{month}-{day} ({name})"
+        return f"{year}-{month}-{day}" + (f" ({name})" if name_day else "")
     if precision == 10:
         return f"{year}-{month} ({name})"
     return f"{year} ({name})"
 
 
-def _qualifier_time(claim: dict[str, Any], prop: str) -> str | None:
-    """Read the first time value of a qualifier on a statement."""
+def qualifier_time(claim: dict[str, Any], prop: str) -> dict[str, Any] | None:
+    """Return the first time datavalue of a qualifier on a statement."""
     for snak in claim.get("qualifiers", {}).get(prop, []):
         value = snak.get("datavalue", {}).get("value")
         if isinstance(value, dict) and "time" in value:
-            return _time(value["time"], value.get("precision", 0))
+            return value
     return None
 
 
@@ -94,9 +96,17 @@ def state_qids(entity: dict[str, Any]) -> list[str]:
     return list(dict.fromkeys(qids))
 
 
-def _named(qid: str, labels: dict[str, str | None]) -> str:
+def named(qid: str, labels: dict[str, str | None], label_first: bool = False) -> str:
+    """Render a QID beside its label, or bare when no label was fetched.
+
+    The prompt puts the QID first, because that is what the model answers
+    with; `label_first` puts the words first, which is how a reader scans a
+    column of them.
+    """
     label = labels.get(qid)
-    return f"{qid} {label}" if label else qid
+    if not label:
+        return qid
+    return f"{label} {qid}" if label_first else f"{qid} {label}"
 
 
 def render_state(entity: dict[str, Any], labels: dict[str, str | None]) -> str:
@@ -109,10 +119,10 @@ def render_state(entity: dict[str, Any], labels: dict[str, str | None]) -> str:
     names = {lang: obj["value"] for lang, obj in entity.get("labels", {}).items()}
     lines.append("labels: " + ("; ".join(f"{k}={v}" for k, v in sorted(names.items())) or "—"))
     for prop, name in QID_PROPS.items():
-        values = [_named(q, labels) for q in wikidata.claim_qids(entity, prop)]
+        values = [named(q, labels) for q in wikidata.claim_qids(entity, prop)]
         lines.append(f"{prop} {name}: " + ("; ".join(values) or "—"))
     for prop, name in TIME_PROPS.items():
-        values = [_time(v, p) for v, p in wikidata.claim_time(entity, prop)]
+        values = [format_time(v, p) for v, p in wikidata.claim_time(entity, prop)]
         lines.append(f"{prop} {name}: " + ("; ".join(values) or "—"))
     held = entity.get("claims", {}).get(POSITION_PROP, [])
     lines.append(f"{POSITION_PROP} position held: " + ("" if held else "—"))
@@ -120,10 +130,15 @@ def render_state(entity: dict[str, Any], labels: dict[str, str | None]) -> str:
         value = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
         if not isinstance(value, dict) or "id" not in value:
             continue
-        start = _qualifier_time(claim, "P580")
-        end = _qualifier_time(claim, "P582")
-        span = f" [{start or '?'} → {end or '?'}]" if (start or end) else ""
-        lines.append(f"  - {_named(value['id'], labels)}{span}")
+        start = qualifier_time(claim, "P580")
+        end = qualifier_time(claim, "P582")
+        span = ""
+        if start or end:
+            edges = [
+                format_time(v["time"], v.get("precision", 0)) if v else "?" for v in (start, end)
+            ]
+            span = f" [{edges[0]} → {edges[1]}]"
+        lines.append(f"  - {named(value['id'], labels)}{span}")
     return "\n".join(lines)
 
 

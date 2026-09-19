@@ -45,6 +45,9 @@ DROP_CLASSES = (
 DROP_TAGS = ("style", "script", "link", "meta", "figure", "audio", "video")
 BLOCK_TAGS = ("p", "li", "dd", "dt", "blockquote", "pre")
 HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
+# Whitespace that a cell's join put where no writer would: in front of closing
+# punctuation, or just inside an opening bracket.
+PUNCT_SPACE_RE = re.compile(r"\s+(?=[,.;:)])|(?<=\()\s+")
 
 
 class SeedEntry(NamedTuple):
@@ -174,9 +177,12 @@ def _cell_text(element: Any) -> str:
 
     Infobox cells stack their parts in nested spans and divs with no
     whitespace between them, so plain text extraction yields "In office28
-    November 2021" and loses the date to the label.
+    November 2021" and loses the date to the label. The join is what puts a
+    space in front of the punctuation that ends a span of its own, which is
+    how "Ph.D. , MBA" and "Kolín , Protektorát" come about.
     """
-    return " ".join(" ".join(element.itertext()).split())
+    text = " ".join(" ".join(element.itertext()).split())
+    return PUNCT_SPACE_RE.sub("", text)
 
 
 def _infobox(table: Any, out: list[str]) -> None:

@@ -18,6 +18,7 @@ from peploop import db, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import propose as proposals
 from peploop import render as rendering
+from peploop import review as reviewing
 
 DUMP_DIR = Path("data/extract")
 ITEM_MAX_AGE = "7 days"
@@ -359,6 +360,30 @@ def render(status: str, properties: Sequence[str]) -> None:
 
 
 @cli.command()
+@click.option("--limit", default=20, show_default=True)
+@click.option("--qid", multiple=True, help="Review these people instead of a random draw.")
+def review(limit: int, qid: Sequence[str]) -> None:
+    """Review people's `new` and `refine` proposals and record a verdict for each.
+
+    One person per screen, drawn at random from those with something left to
+    review; each person's decisions are written in one transaction when the
+    screen is submitted.
+    """
+    qids = reviewing.select_people(list(qid), limit)
+    if not qids:
+        click.echo("nothing to review")
+        return
+    app = reviewing.ReviewApp(qids)
+    app.run()
+    click.echo(
+        f"{app.written} verdicts written over {len(qids)} people"
+        f" ({app.skipped} skipped)"
+    )
+    for line in reviewing.summary_lines():
+        click.echo(line)
+
+
+@cli.command()
 @click.option("--limit", default=10, show_default=True)
 @click.option("--qid", multiple=True, help="Dump these people instead of a batch.")
 def dump(limit: int, qid: Sequence[str]) -> None:
@@ -423,6 +448,8 @@ def stats() -> None:
     ).fetchone()
     click.echo(f"proposal     {rows} rows for {proposed} people")
     _echo_property_counts()
+    for line in reviewing.summary_lines():
+        click.echo(line)
 
 
 if __name__ == "__main__":
