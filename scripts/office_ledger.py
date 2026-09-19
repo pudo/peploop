@@ -4,18 +4,28 @@
     python scripts/office_ledger.py
 
 Every run leaves two artifacts under gitignored `data/`: `*_offices.json`, what
-`wd/positions.py:lookup_position` made of each office name the model reported,
-and `unresolved.json`, the attested holder and quote behind it. This joins them
-into `coverage/offices_named.md`, which is committed, because a creation queue
-that lives only in `data/` is not a queue — it is a thing that gets re-derived.
+the placement lane made of each office name the model reported, and
+`unresolved.json`, the attested holder and quote behind it. This joins them into
+`coverage/offices_named.md`, which is committed, because a creation queue that
+lives only in `data/` is not a queue — it is a thing that gets re-derived.
+
+Reads both artifact shapes. The current one is `wd/rerank.py`, whose verdict
+`kind` says *why* a name did not place; the older one is
+`wd/enrich.py:resolve_offices`, whose `status` came from a single English label
+search. Rows of the second kind understate what exists — two Polish offices were
+queued for creation over an en-dash and a rename — so re-run this after a rerank
+pass before minting anything.
 
 Each name gets a disposition, in the same spirit as every other ledger here:
 
 * `create`   — no item found. **This is the list positions-mapping work wants.**
   Unlike the ~150 offices nine campaigns listed and never minted, each row
-  arrives with a holder, dates and a verbatim quote from the article.
-* `placed`   — `lookup_position` matched an item on two signals, and the run
-  already wrote the P39. Nothing to do.
+  arrives with a holder, dates and a verbatim quote from the article. It also
+  covers the near-misses, because a generic class, a body, or a neighbouring
+  seat are all reasons to create rather than to link.
+* `placed`   — matched on two signals, and the run already wrote the P39.
+* `vetoed`   — the model chose and the mechanical gate refused. Two channels
+  disagreeing, which is the design working; a human says which was right.
 * `ambiguous` — candidates found, no unique two-signal match. A human picks.
 * `no-polity` — matched an item that names no polity it governs, so it was
   refused: "Mayor (wójt) of Świlcza" matching the generic Polish rank `wójt` is
@@ -37,9 +47,21 @@ DATA = REPO_ROOT / "data" / "enrich"
 LEDGER = REPO_ROOT / "coverage" / "offices_named.md"
 STATE = REPO_ROOT / "coverage" / "offices_named.json"
 
+#: The pre-rerank matcher's statuses (`wd/enrich.py:resolve_offices`), still
+#: read so a ledger can be regenerated from runs that predate the rerank pass.
 DISPOSITION = {"unmatched": "create", "matched": "placed",
                "ambiguous": "ambiguous", "no-polity": "no-polity"}
-ORDER = ["create", "ambiguous", "no-polity", "placed"]
+
+#: The rerank pass's verdict kinds (`wd/rerank.py:KINDS`). Everything that is
+#: not a match means no item exists *for this office*, however close the
+#: nearest candidate came — a generic class, the body, or a neighbouring seat
+#: are all reasons to create, not to link.
+KIND_DISPOSITION = {
+    "same-office": "placed", "renamed": "placed",
+    "generic-class": "create", "body-not-seat": "create",
+    "wrong-office": "create", "none": "create",
+}
+ORDER = ["create", "vetoed", "ambiguous", "no-polity", "placed"]
 
 BLURB = {
     "create": (
@@ -61,6 +83,12 @@ BLURB = {
         "office wants creating."
     ),
     "placed": "Matched on two signals; the run already wrote the P39.",
+    "vetoed": (
+        "The rerank pass chose an item and the **mechanical gate refused it** — "
+        "the item names no polity it governs, or the pick was not on the "
+        "shortlist it was shown. Two signals disagreeing is the design working; "
+        "each row needs a person to say which channel was right."
+    ),
 }
 
 
@@ -70,11 +98,22 @@ def main() -> None:
     for path in sorted(DATA.glob("*/*_offices.json")):
         spec = path.parent.name
         for name, found in json.loads(path.read_text()).items():
+            if "kind" in found:                      # the rerank pass
+                kind = found["kind"]
+                disposition = (
+                    "vetoed" if found.get("veto")
+                    else KIND_DISPOSITION.get(kind, kind)
+                )
+                candidates = [{"qid": q} for q in found.get("shortlist", [])[:2]]
+            else:                                    # a pre-rerank run
+                disposition = DISPOSITION.get(found["status"], found["status"])
+                candidates = found.get("candidates", [])[:2]
             row = rows.setdefault(name, {
                 "office_name": name, "specs": [],
-                "disposition": DISPOSITION.get(found["status"], found["status"]),
+                "disposition": disposition,
                 "qid": found.get("qid"),
-                "candidates": found.get("candidates", [])[:2],
+                "candidates": candidates,
+                "reason": found.get("reason", ""),
             })
             if spec not in row["specs"]:
                 row["specs"].append(spec)
@@ -112,10 +151,19 @@ def main() -> None:
         "",
         "A run's gazetteer holds the office its spec names and, for a",
         "single-target spec, nothing else — so **every other office a person",
-        "turns out to have held** reads as unresolved by construction.",
-        "`wd/positions.py:lookup_position` places what it can; what is left is a",
-        "creation queue with evidence attached, which is the thing",
-        "`tasks/category_positions.md` has wanted since 2026-08-05.",
+        "turns out to have held** reads as unresolved by construction. Those",
+        "names go through retrieve-and-rerank (`recipes/enrichment_loop.md`",
+        "§5a): the country's own label index proposes candidates and",
+        "`prompts/office_rerank.md` decides, with a mechanical veto for an item",
+        "naming no polity. What is left is a creation queue with evidence",
+        "attached, which is the thing `tasks/category_positions.md` has wanted",
+        "since 2026-08-05.",
+        "",
+        "**Rows produced before the rerank pass understate what exists.** The",
+        "old matcher searched one literal English string, so `Q140428371`",
+        "*Marshal of Warmian-Masurian Voivodeship* was queued for creation over",
+        "an en-dash and `Q25919989` over a rename. Re-run this script after a",
+        "run that used the rerank pass before minting anything.",
         "",
         "One row per office, merged across the runs that named it: an item is",
         "created per office, and two specs naming the same one is corroboration",

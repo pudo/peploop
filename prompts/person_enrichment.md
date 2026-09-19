@@ -37,13 +37,43 @@ says it, you do not have the evidence and should not propose it.
 * For `P39`, `position_qid` must be a QID from the list of position items you
   were given. If the office the evidence names is not in that list, set
   `position_qid` to null and put the office's name in `office_name`. That is a
-  useful answer: it becomes a request to create the item. A QID that looks
-  plausible is not.
+  useful answer: a later pass searches for the item and, failing that, it
+  becomes a request to create one. A QID that looks plausible is not.
 * For `P27`, put the country's **name** in `value` — "Iran", "Côte d'Ivoire",
   "South Korea". A library resolves the identifier. Never write a Q-number
   there.
 * For `P21`, `value` is one of: male, female, non-binary, trans woman, trans
   man.
+
+## Search terms for an office you could not place
+
+Whenever you set `office_name`, also fill `search_terms` with the strings you
+would type to find that office's item. This is the only chance to say it: the
+name you write for a reader is an English gloss, and a later pass searches
+literally. "Marshal of Warmian–Masurian Voivodeship" was searched character for
+character, found nothing, and was filed as an office that needs creating —
+while `Q140428371` "Marshal of Warmian-Masurian Voivodeship" existed the whole
+time, differing by one dash.
+
+Give four kinds of term, as many as apply:
+
+* **the native form** — `marszałek województwa warmińsko-mazurskiego`. Wikidata
+  usually labels a national office in that country's language and carries the
+  English only as an alias, if at all.
+* **the plain-ASCII form** — `Warmian-Masurian`, `Lodz`. Write the hyphen, not
+  the en-dash.
+* **the distinguishing proper noun on its own** — the region, the ministry, the
+  city: `Warmian-Masurian`, `Świętokrzyskie`, `Chełm`.
+* **the kind of office on its own** — `marshal`, `voivode`, `mayor`.
+
+Do not include the country name as a term by itself, and do not invent an
+alternative name for an office you only know under one. Terms are searched, not
+asserted, so a term that finds nothing costs nothing — but a term that is a
+guess about what the office is *called* will retrieve the wrong office and give
+the next pass something plausible to pick.
+
+Leave `search_terms` empty when `position_qid` is set: the office is already
+placed.
 
 ## Do not re-propose what is already there
 
@@ -116,6 +146,8 @@ what decides. Watch for:
   and moves nothing downstream, so never stretch for it.
 * `position_qid` / `office_name` — see rule 2. Exactly one of them is set, and
   only for `P39`.
+* `search_terms` — strings to search for the office's item, whenever
+  `office_name` is set. Empty otherwise.
 * `value` — for `P569`, `P27`, `P21`. Null for `P39`.
 * `start` / `end` — for `P39`. Null otherwise.
 * `acting` — boolean.

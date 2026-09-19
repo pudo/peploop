@@ -70,14 +70,20 @@ PROPOSAL_SCHEMA: Dict[str, Any] = {
         #: Named, never a QID — matched against the qualifier sets afterwards.
         "district": NULLABLE,
         "group": NULLABLE,
+        #: Query expansion for the office-placement lane, filled only when
+        #: `office_name` is set. The pass that reads the person is the one that
+        #: knows the office's native spelling, and a literal search on the
+        #: English name it wrote for the reader is what missed `Q140428371` on
+        #: an en-dash. Free: no extra request.
+        "search_terms": {"type": "array", "items": {"type": "string"}},
         "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
         "quote": {"type": "string"},
         "source": {"type": "string"},
         "reason": {"type": "string"},
     },
     "required": ["property", "position_qid", "office_name", "value", "start",
-                 "end", "acting", "district", "group", "confidence", "quote",
-                 "source", "reason"],
+                 "end", "acting", "district", "group", "search_terms",
+                 "confidence", "quote", "source", "reason"],
     "additionalProperties": False,
 }
 

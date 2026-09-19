@@ -4,10 +4,19 @@ Measured 2026-08-24 by `scripts/office_ledger.py` over every run under `data/enr
 
 A run's gazetteer holds the office its spec names and, for a
 single-target spec, nothing else — so **every other office a person
-turns out to have held** reads as unresolved by construction.
-`wd/positions.py:lookup_position` places what it can; what is left is a
-creation queue with evidence attached, which is the thing
-`tasks/category_positions.md` has wanted since 2026-08-05.
+turns out to have held** reads as unresolved by construction. Those
+names go through retrieve-and-rerank (`recipes/enrichment_loop.md`
+§5a): the country's own label index proposes candidates and
+`prompts/office_rerank.md` decides, with a mechanical veto for an item
+naming no polity. What is left is a creation queue with evidence
+attached, which is the thing `tasks/category_positions.md` has wanted
+since 2026-08-05.
+
+**Rows produced before the rerank pass understate what exists.** The
+old matcher searched one literal English string, so `Q140428371`
+*Marshal of Warmian-Masurian Voivodeship* was queued for creation over
+an en-dash and `Q25919989` over a rename. Re-run this script after a
+run that used the rerank pass before minting anything.
 
 One row per office, merged across the runs that named it: an item is
 created per office, and two specs naming the same one is corroboration
