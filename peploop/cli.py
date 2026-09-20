@@ -386,34 +386,32 @@ def review(limit: int, qid: Sequence[str]) -> None:
         click.echo(line)
 
 
-@cli.command("apply")
-@click.option("--limit", default=10, show_default=True)
-@click.option("--qid", multiple=True, help="Write these people instead of a batch.")
-@click.option("--write", is_flag=True, help="Send the edits; without it nothing leaves here.")
-def apply_(limit: int, qid: Sequence[str], write: bool) -> None:
-    """Write each person's accepted proposals to Wikidata as one edit.
+def _apply_pass(
+    qids: Sequence[str], token: str | None, write: bool, follow: bool
+) -> tuple[int, int, bool]:
+    """Write one pass over `qids`: proposals applied, failures, and whether lag stopped it.
 
-    A dry run by default: it does the same pre-flight against the live item and
-    prints the payload it would send. `--write` logs in and sends, one person
-    every ten seconds, and records what came back on each proposal.
+    In follow mode a person with nothing left to write prints nothing, because
+    a row the router keeps skipping would otherwise be re-announced every pass.
     """
-    qids = applying.people(list(qid), limit)
-    if not qids:
-        click.echo("nothing accepted")
-        return
-    token = None
-    if write:
-        click.echo(f"logged in as {applying.login()}")
-        token = applying.csrf_token()
     applied, failed = 0, 0
     for index, person_qid in enumerate(qids):
         if write and index:
             time.sleep(applying.THROTTLE)
         try:
-            plan, note = applying.apply_person(person_qid, token)
+            plan, note = applying.apply_person(person_qid, token, defer_lag=follow)
+        except applying.ApiError as exc:
+            # The site is lagged, not this person: the next pass comes back.
+            if follow and exc.code == "maxlag":
+                return applied, failed, True
+            failed += 1
+            click.echo(f"{person_qid} failed: {type(exc).__name__}: {exc}")
+            continue
         except Exception as exc:  # noqa: BLE001 — a refused edit is a row, not a dead run
             failed += 1
             click.echo(f"{person_qid} failed: {type(exc).__name__}: {exc}")
+            continue
+        if follow and not plan.data:
             continue
         routes = " ".join(f"{route}={n}" for route, n in sorted(plan.routes.items()))
         head = f"{person_qid} [{routes}]{note}"
@@ -425,8 +423,64 @@ def apply_(limit: int, qid: Sequence[str], write: bool) -> None:
         applied += plan.covered
         if not write:
             click.echo(json.dumps(plan.data, indent=2, ensure_ascii=False))
+    return applied, failed, False
+
+
+@cli.command("apply")
+@click.option("--limit", default=10, show_default=True)
+@click.option("--qid", multiple=True, help="Write these people instead of a batch.")
+@click.option("--write", is_flag=True, help="Send the edits; without it nothing leaves here.")
+@click.option("--follow", is_flag=True, help="Keep draining what review accepts, until Ctrl-C.")
+def apply_(limit: int, qid: Sequence[str], write: bool, follow: bool) -> None:
+    """Write each person's accepted proposals to Wikidata as one edit.
+
+    A dry run by default: it does the same pre-flight against the live item and
+    prints the payload it would send. `--write` logs in and sends, one person
+    every ten seconds, and records what came back on each proposal.
+
+    `--follow` turns it into a drainer that selects again every minute instead
+    of exiting, so it can run detached beside `review` — `nohup` it the way
+    `run` is run — and Ctrl-C ends it with the session's totals. A person the
+    lag budget ran out on is left alone and retried next pass.
+    """
+    if follow and not write:
+        raise click.UsageError("--follow writes: pass --write too")
+    token = None
+    if write:
+        click.echo(f"logged in as {applying.login()}")
+        token = applying.csrf_token()
+    applied, failed, seen, state = 0, 0, 0, ""
+    try:
+        while True:
+            qids = applying.people(list(qid), limit)
+            if not qids:
+                if not follow:
+                    click.echo("nothing accepted")
+                    return
+                state = _note_state(state, "idle", "nothing accepted: waiting")
+            else:
+                seen += len(qids)
+                count, fails, lagged = _apply_pass(qids, token, write, follow)
+                applied += count
+                failed += fails
+                if not follow:
+                    break
+                if lagged:
+                    state = _note_state(state, "lagged", "wikidata is lagged: waiting")
+                elif count:
+                    state = "writing"
+            time.sleep(applying.FOLLOW_IDLE)
+    except KeyboardInterrupt:
+        click.echo("")
     verb = "applied" if write else "would apply"
-    click.echo(f"{len(qids)} people: {verb} {applied} proposals, {failed} failed")
+    click.echo(f"{seen} people: {verb} {applied} proposals, {failed} failed")
+
+
+def _note_state(state: str, now: str, message: str) -> str:
+    """Print a follow-mode heartbeat only when the state it reports has changed."""
+    if state != now:
+        click.echo(message)
+    return now
 
 
 @cli.command()

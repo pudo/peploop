@@ -28,7 +28,10 @@ WD_SITE = "https://www.wikidata.org"
 WD_API = f"{WD_SITE}/w/api.php"
 MAXLAG = 5
 MAX_BACKOFF = 120.0
+# Lag episodes outlast a short budget; the remedy is patience, not a higher threshold.
+MAXLAG_BUDGET = 600.0
 THROTTLE = 10.0
+FOLLOW_IDLE = 60.0
 # A reference built only from these says "imported from a Wikipedia article",
 # which is the one provenance a refinement may overwrite in place.
 IMPORT_PROPS = frozenset({"P143", "P4656", "P813"})
@@ -449,12 +452,28 @@ def _find_guid(entity: dict[str, Any], prop: str, value: dict[str, Any]) -> str 
     return None
 
 
+def maxlag_wait(spent: float, delay: float, retry_after: float | None = None) -> float | None:
+    """Say how long to sleep before retrying a `maxlag` refusal, or None to give up.
+
+    `spent` is what this write has already slept. A `Retry-After` the response
+    carries is a floor, not an override: the header is usually the `maxlag`
+    threshold itself, so obeying it literally would poll every five seconds for
+    the whole budget. The wait is clipped to what is left of `MAXLAG_BUDGET`, so
+    the last one ends on the budget rather than past it.
+    """
+    remaining = MAXLAG_BUDGET - spent
+    if remaining <= 0:
+        return None
+    return min(max(retry_after or 0.0, delay), MAX_BACKOFF, remaining)
+
+
 def send(plan: Plan, token: str) -> dict[str, Any]:
     """Send one person's edit, waiting out replication lag rather than adding to it.
 
     `maxlag` covers the query-service updaters, not just database replication,
     so a refusal means a legitimate wait of minutes; the answer to a lagged
-    site is to sleep, not to declare a willingness to load it further.
+    site is to sleep — up to `MAXLAG_BUDGET` — not to declare a willingness to
+    load it further.
     """
     payload = {
         "action": "wbeditentity",
@@ -468,17 +487,22 @@ def send(plan: Plan, token: str) -> dict[str, Any]:
     if plan.baserevid is not None:
         payload["baserevid"] = plan.baserevid
     delay = 5.0
+    spent = 0.0
     while True:
         body, headers = _api(payload)
         error = body.get("error")
         if error is None:
             return body
-        if error.get("code") != "maxlag" or delay > MAX_BACKOFF:
+        wait = None
+        if error.get("code") == "maxlag":
+            header = headers.get("Retry-After")
+            wait = maxlag_wait(spent, delay, float(header) if header else None)
+        if wait is None:
             raise ApiError(error.get("code", "?"), error.get("info") or json.dumps(error))
-        wait = float(headers.get("Retry-After") or delay)
         print(f"  maxlag {error.get('lag')}s: waiting {wait:.0f}s", flush=True)
         time.sleep(wait)
-        delay *= 2
+        spent += wait
+        delay = min(delay * 2, MAX_BACKOFF)
 
 
 def record(plan: Plan, body: dict[str, Any]) -> int:
@@ -508,11 +532,13 @@ def record(plan: Plan, body: dict[str, Any]) -> int:
     return plan.covered
 
 
-def apply_person(qid: str, token: str | None) -> tuple[Plan, str]:
+def apply_person(qid: str, token: str | None, defer_lag: bool = False) -> tuple[Plan, str]:
     """Plan one person's edit and, with a token, send it and record the result.
 
     An edit conflict is retried once: the item moved between the pre-flight and
-    the write, so the plan is rebuilt against what is there now.
+    the write, so the plan is rebuilt against what is there now. `defer_lag`
+    leaves a person the lag budget ran out on untouched rather than `failed`,
+    for a caller that will come back to them; the error still propagates.
     """
     entity, rows, moved = preflight(qid)
     plan = plan_person(qid, entity, rows)
@@ -524,7 +550,8 @@ def apply_person(qid: str, token: str | None) -> tuple[Plan, str]:
             body = send(plan, token)
         except ApiError as exc:
             if exc.code != "editconflict" or attempt:
-                db.set_person_status(qid, "failed", f"apply: {exc}")
+                if not (defer_lag and exc.code == "maxlag"):
+                    db.set_person_status(qid, "failed", f"apply: {exc}")
                 raise
             entity, rows, _ = preflight(qid)
             plan = plan_person(qid, entity, rows)

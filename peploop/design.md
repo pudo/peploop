@@ -396,9 +396,17 @@ Every statement gets the same reference as the QuickStatements path: `P143`
 imported from the item of the source wiki (resolved once by SPARQL over
 `wdt:P31 wd:Q10876391; wdt:P424 ?code` and cached), `P4656` the permanent URL
 of the revision that was read, `P813` today. A `maxlag` refusal is slept off
-with `Retry-After`, doubling to about two minutes; an `editconflict` re-reads
-the item, re-proposes and retries once, and then the person gets an `error`
-and their proposals stay `accepted`.
+with `Retry-After`, doubling to a single wait of two minutes and to ten minutes
+in total for one person's write; an `editconflict` re-reads the item,
+re-proposes and retries once, and then the person gets an `error` and their
+proposals stay `accepted`.
+
+`apply --write --follow` is the drainer: it selects again every minute instead
+of exiting, so it can run detached beside `review` and write each person up
+within a minute of their being accepted. A lag episode outlasting the ten
+minutes is not that person's fault, so in follow mode it leaves them untouched
+and the next pass retries them silently, while any other API error still marks
+them `failed` — a payload the site refuses must not be offered forever.
 
 ## Tables
 
@@ -446,7 +454,7 @@ stats
 run     [--limit N] [--threads 4] [--qid Q...]
 render  [--status new,refine] [--property P...] > out.qs
 review  [--qid Q...] [--limit N]
-apply   [--limit N] [--qid Q...] [--write]
+apply   [--limit N] [--qid Q...] [--write] [--follow]
 ```
 
 Every command here exists. `review` is a Textual TUI whose unit is a
@@ -457,7 +465,8 @@ decisions in one transaction on submit. Accept is the resting state, a digit
 rejects a row with one of the eight `verdict.reason` values, and a row marked
 skipped stays reviewable later.
 `apply` writes `accepted` proposals, throttled, under the user's account, and
-prints what it would send unless `--write` is given; §7 has the routing. Once
+prints what it would send unless `--write` is given; §7 has the routing. With
+`--write --follow` it stays up and drains whatever `review` accepts next. Once
 verdicts exist, `stats` adds acceptance per property and a tally per reason,
 and counts `applied` beside the other statuses.
 
