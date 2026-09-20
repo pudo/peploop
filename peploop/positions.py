@@ -71,12 +71,24 @@ def country_qid(cc: str) -> str:
     return territory.qid
 
 
-def discover(qid: str, sources: Iterable[str] = SOURCES) -> dict[str, set[str]]:
-    """Run each discovery query for one country, keyed by the source name."""
+def discover(
+    qid: str,
+    sources: Iterable[str] = SOURCES,
+    log: Any = lambda _m: None,
+) -> dict[str, set[str]]:
+    """Run each discovery query for one country, keyed by the source name.
+
+    Each query is timed into the log, because the query service is erratic
+    enough that a load which took an hour is only diagnosable if it says
+    which of its steps the hour went into.
+    """
     found: dict[str, set[str]] = {}
     for source in sources:
+        started = time.monotonic()
         rows = wikidata.sparql(QUERIES[source] % {"country": qid})
         found[source] = {row["pos"] for row in rows}
+        log(f"{source}: {len(found[source])} items in "
+            f"{time.monotonic() - started:.0f}s")
     return found
 
 
@@ -423,18 +435,20 @@ def load_country(
     evidence that an office is gone.
     """
     qid = country_qid(cc)
-    found = discover(qid, sources)
-    for source, qids in found.items():
-        log(f"{source}: {len(qids)} items")
+    found = discover(qid, sources, log=log)
     union = sorted({q for qids in found.values() for q in qids})
     log(f"union: {len(union)} items")
 
+    started = time.monotonic()
     entities = wikidata.fetch_items(union)
+    log(f"entities: {len(entities)} fetched in {time.monotonic() - started:.0f}s")
     missing = [q for q in union if q not in entities]
     if missing:
         log(f"missing or deleted: {len(missing)}")
 
+    started = time.monotonic()
     closure = type_closure(sorted(entities))
+    log(f"type closure: {len(closure)} items in {time.monotonic() - started:.0f}s")
     rows: list[tuple[dict[str, Any], list[tuple[str, str, bool]]]] = []
     referenced: set[str] = set()
     canonical: dict[str, dict[str, Any]] = {}
@@ -494,12 +508,15 @@ def load_country(
             names_of(entity),
         ))
 
+    started = time.monotonic()
     items = _referenced_items(referenced)
     names_by_qid = {qid: sorted({text for _lang, text, _alias in names_of(entity)})
                     for qid, entity in items.items()}
     labels = {qid: label for qid, entity in items.items()
               if (label := wikidata.best_label(entity)) is not None}
-    log(f"referenced items: {len(items)} of {len(referenced)}")
+    log(f"referenced items: {len(items)} of {len(referenced)}"
+        f" in {time.monotonic() - started:.0f}s")
+    started = time.monotonic()
     for row, names in rows:
         row["kinds"] = [labels[q] for q in row.pop("_kind_qids") if q in labels]
         juris = names_by_qid.get(row["jurisdiction_qid"] or "", [])
@@ -516,6 +533,7 @@ def load_country(
         row["search_text"] = " ".join(token_bag(texts))
         row.pop("_closure", None)
         upsert_position(row, names)
+    log(f"upsert: {len(rows)} rows in {time.monotonic() - started:.0f}s")
 
     counts = {source: len(qids) for source, qids in found.items()}
     counts["loaded"] = len(rows)

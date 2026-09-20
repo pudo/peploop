@@ -60,7 +60,7 @@ ordering inside the fifteen, and the quality of the test set.
 | A | Rebuild the silver fixture | done, **resolved** | Two of three rules measured harmful and were dropped. Rule 1 alone: 746 gold rows at 77.5% / 66.8% agreement, beating the superseded set on both readings with 40% more rows. |
 | B | Increment 4: ranking signals | done, **resolved** | One signal carries the stage: a holder count is worth 0.18 MRR and 32 points of top-1 on the primary slice, the other four together 0.012 and 1.4. The date *boost* is measured destructive and ships at zero weight. `Q486839` and `Q108899569` are separated mechanically, by a floor above 46 in-country holders. |
 | C | Increment 5: the second turn | **blocked**, deferred | No `ANTHROPIC_API_KEY` on this host: no `.envrc`, no `.env`, nothing in the shell profile. The build is reordered so C's artefacts are written but never run. |
-| D | Increment 6: Poland, then Spain | running, promoted ahead of C | |
+| D | Increment 6: Poland, then Spain | done, **resolved with a defect** | Poland loads in 457 s, 82% of it discovery. Spain does not: its 13,300-row response cannot be read to the end (three attempts, `ChunkedEncodingError`), though the query itself finishes. Czech recall falls 81.6% to 79.4% on Poland's rows alone, and filling those rows' holder counts costs a further 0.08 MRR and 11 points of top-1. Signals project to 6.3–10.9 h for a Spain-sized table. |
 | E | Increment 7: wire into propose | pending | |
 
 ### A. Rebuild the silver fixture
@@ -251,6 +251,64 @@ left for whenever a key exists. Nothing about D depends on C.
 Spain is ~13,200 positions against the pilot's 343. The questions are load
 time, index size, and whether Czech retrieval degrades with Spain in the same
 table.
+
+#### Outcome (2026-09-20): the third question is the stage
+
+Full account, with every table, is the 2026-09-20 scale section of
+`peploop/positions.md`. The five things a later stage needs from here:
+
+**Poland loads; the cost is discovery and nothing else.** 767 items, 21,235
+names, 457 s end to end, 230 MB peak. 374 of those seconds are the three
+discovery queries; the entity fetch — named in advance as the likely
+bottleneck for a large country — took 16 s for 767 items, about a second per
+50-QID request, and projects to under five minutes for Spain.
+
+**Spain does not load, and the reason is the transfer rather than the query.**
+Three attempts, each dying with `ChunkedEncodingError: Response ended
+prematurely` while reading the body of an HTTP 200. The descent query
+*completed* twice — once in 188 s, once served from the query service's own
+cache in under a second — so the item count is confirmed at **13,300** and the
+query is affordable. The failure is in body iteration, past where the retry
+policy reaches. Nothing was weakened and no fourth attempt was made. The fix
+is the repo's standing rule for this failure, bisect the chunk: page discovery
+with `LIMIT`/`OFFSET`. That is the next increment's first task.
+
+**Czech recall moved, which the brief said would be the most important
+result.** 81.6% to 79.4% aggregate, 93.4% to 91.3% on the primary slice, from
+767 Polish rows alone. Attributable: removing them restores 81.9%, and 78 of
+the 80 newly-displaced answers have a new row above them. It is not a foreign
+item being genuinely better — it is that `search` cuts to `LIMIT 15` in SQL on
+a score with massive ties, before any signal runs, so a row the cut drops is
+unrecoverable. The answer is within the text top 200 for 90.1% of gold rows,
+and re-ranking a top-200 candidate set down to fifteen scores **83.2% recall /
+0.699 MRR**, better than this table managed with one country in it. Retrieval
+depth is a parameter the design never had to choose before.
+
+**Filling a foreign country's holder counts is worse than leaving them null.**
+With Poland's signals null the Czech ordering *improves* (0.808 MRR on the
+primary slice against 0.792); filled, it falls to 0.707 and loses eleven
+points of top-1. One item does most of it: `Q15964890` member of the House of
+Commons of Canada, 4,694 holders, imported by *Poland's* citizen lane, is now
+rank 1 for 74 of 746 Czech gold queries. The holder count is a global quantity
+being scored as a local one, and increment 4 could not see it because on one
+country the largest holder counts were that country's own. `holders_by_country`
+is the intended repair; it measured at only +0.006 MRR here, but only because
+`fill_counts` writes that map under the state it was run with, so the 718 rows
+Poland created carry no Czech key and the fallback fires on exactly the
+offending rows. Re-measuring it needs one query over the table, which the
+query service refused with repeated 504s at the end of the night. **Untested,
+not disproven.**
+
+**The signals cost six to eleven hours for a Spain-sized table.** Per-request
+cost is flat at 38–66 s regardless of chunk contents, so the bill is chunks ×
+five queries × a minute: 600 requests for ~14,400 rows. Poland's own fill took
+1,706 s for 1,061 rows. Combined with the finding above, leaving a large
+country's signals null is not a cost compromise — it is the better of the two
+configurations measured.
+
+Housekeeping done: the three indexes nothing reads are dropped (13.1 MB, and a
+full rewrite of `position_name` went 221 ms to 66 ms). `load_country` and
+`discover` now log a timing per step, which is how the table above exists.
 
 ### E. Increment 7: wire into propose
 

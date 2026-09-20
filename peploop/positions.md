@@ -1365,3 +1365,210 @@ What the position work needs from the laptop, and where each piece went:
 
 Postgres on the VPS needs the `pg_trgm` extension available; `schema.sql`
 creates it. The `wb` CLI is used only by `wd/write.py` and is optional there.
+
+## Scale: Poland loads, Spain does not, and the table stops being neutral (2026-09-20)
+
+Increment 6, run against the pilot database at `d196ea7`. Three questions were
+asked — does a second country load, does a large one, and does the first one
+still work afterwards — and the third has the answer that matters. **Adding
+767 rows to a 343-row table costs the Czech bench 2.3 points of recall, and
+filling those rows' holder counts costs it a further 0.08 of MRR and eleven
+points of top-1.** Both are properties of the design rather than of Poland,
+and neither was visible from one country.
+
+### What each step of a load costs
+
+Per step, live, on an evening when the query service ranged from cooperative
+to refusing. Czechia's column is the three discovery queries timed in the
+section above; the rest of its row was never broken out.
+
+| step | Czechia (343) | Poland (767) | Spain |
+|---|---|---|---|
+| discovery, class descent | 58 s / 203 items | 124 s / 344 | 188 s / 13,300, body truncated |
+| discovery, usage | 92 s / 169 | 209 s / 270 | failed the same way |
+| discovery, by citizen | 21 s / 236 | 41 s / 547 | not reached |
+| union | 343 | 767 | 13,300 from the descent alone |
+| entity fetch (50 per request) | — | 16 s | — |
+| type closure | — | 29 s | — |
+| referenced items (1,239 of 1,239) | — | 33 s | — |
+| upsert, row at a time | — | 5 s | — |
+| **whole load** | — | **457 s** | — |
+| peak RSS | — | 230 MB | — |
+
+**The entity fetch is not the bottleneck and never was.** It was named as the
+likely one for Spain — 264 requests at 50 QIDs each — and it ran at about a
+second a request, so Spain's share of it projects to under five minutes. Of
+Poland's 457 seconds, **374 are the three discovery queries** and 83 are
+everything else. The query service is the whole cost of a load.
+
+### Spain: the query completes and the response does not arrive
+
+Three attempts, all dead in discovery, all with the same failure:
+`ChunkedEncodingError: Response ended prematurely` while reading the body of
+an HTTP 200. The first attempt spent 188 s and died on the stream. The retry
+was served **in under a second** — the query service had cached its own
+result and handed back the 13,300 rows instantly — and then died the same way
+on the *usage* query. A third run, restricted to the descent alone, lost the
+connection again on the query that had just succeeded.
+
+So the shape of the answer is: **the query is affordable and the transfer is
+not.** 13,300 bindings is a response this host cannot reliably read to the
+end, and the failure is in `requests`' body iteration, after `urlopen`
+returned, which is past where `urllib3`'s retry policy applies. Nothing was
+weakened to chase it and no fourth attempt was made; the repo's own rule for
+this failure mode is to bisect the chunk, which for discovery means paging the
+query with `LIMIT`/`OFFSET` and is a change for the next increment rather than
+a thing to improvise at two in the morning.
+
+Spain's item count is therefore confirmed at **13,300** — twice, by a query
+that finished twice — and everything else about Spain below is a projection
+from Poland's per-item costs, labelled as one.
+
+### The ranking signals do not scale, and the number is not close
+
+Five grouped queries over the whole table in chunks of 120, `max_age=0`:
+
+| query | Czechia, 343 rows, 3 chunks | with Poland, 1,061 rows, 9 chunks |
+|---|---|---|
+| holders | 56 s | 583 s |
+| holders who are citizens of the state | 352 s | 251 s |
+| `instance_count` | 159 s | 390 s |
+| `subclass_count` | 268 s | 120 s |
+| `held_subclasses` | 149 s | 363 s |
+| **total** | **984 s** | **1,706 s** |
+| per request | 65.6 s | 37.9 s |
+
+The per-request cost is flat — the service charges for the round trip and the
+query shape, not for the 120 items in it — and the variance between two
+runs of the same query is larger than the difference between any two of the
+queries. So the cost of the signals is **the number of chunks times five
+times a minute**, and that is linear in the size of the table.
+
+A table holding Czechia, Poland and Spain is about 14,400 rows, or 120 chunks,
+or **600 requests: 6.3 hours at tonight's 37.9 s and 10.9 hours at the 65.6 s
+of the run before it.** That is the answer to whether holder counts get filled
+for a 13,000-item country, and it does not depend on which end of the range
+the service is having.
+
+### Czech retrieval degrades, and it degrades twice
+
+The bench was run at each state of the table. `--signals none` is the text
+order alone, so the two `none` rows differ only by what is in the table.
+
+| table | signals | aggregate (746) | tenure (688) | macro (78) | `vocab_overlap` (578) |
+|---|---|---|---|---|---|
+| Czechia alone | all | 81.6% / 0.681 / 59.9% | 82.1% / 0.692 / 61.2% | 74.9% / 0.558 | 93.4% / 0.792 / 70.6% |
+| Czechia alone | none | 81.6% / 0.528 / 33.8% | 82.1% / 0.534 / 34.2% | 74.9% / 0.512 | 93.4% / 0.601 / 37.7% |
+| + Poland, its signals null | all | 79.4% / 0.691 / 63.7% | 80.5% / 0.705 / 65.3% | 70.7% / 0.535 | 91.3% / 0.808 / 75.4% |
+| + Poland, its signals null | none | 79.4% / 0.464 / 31.4% | 80.5% / 0.474 / 32.1% | 70.7% / 0.477 | 91.3% / 0.534 / 36.3% |
+| + Poland, signals filled | all | 79.4% / 0.611 / 52.8% | 80.5% / 0.625 / 54.4% | 70.7% / 0.519 | 91.3% / 0.707 / 61.6% |
+
+**First: recall moves, and it is the cut to fifteen that moves it.** Aggregate
+recall@15 falls 81.6% to 79.4% and the primary slice 93.4% to 91.3%. The drop
+is attributable — remove the rows the Poland run wrote from the candidate list
+and recall returns to 81.9% — and it is not a case of a foreign item being
+genuinely better: of the 80 gold answers now below rank 15 in the text order,
+78 have at least one new row above them, a median of 16 of them.
+
+The mechanism is structural rather than Polish. `search` cuts to `LIMIT 15` in
+SQL on the text score, and the signals then re-order what survived, so **a row
+the cut dropped cannot be recovered by any signal, and the cut is made on a
+score with massive ties** — the document is a bag and `ts_rank` with flag 0
+counts matched lexemes, so dozens of candidates share a score and `qid` breaks
+the tie. More rows means more rows tied at the boundary. Measured over the
+same queries: the answer is within the text top 200 for **90.1%** of gold
+rows, and retrieving 200 and *then* re-ranking to fifteen gives **83.2% recall
+and 0.699 MRR** — better than the 81.6% / 0.681 this table had before Poland
+existed. Retrieval depth is the parameter the design never had to choose while
+it had one country.
+
+**Second, and worse: filling the foreign rows' holder counts costs more than
+their mere presence did.** With Poland's signals left null the ordering is
+*better* than Czechia's own baseline (0.808 against 0.792 on the primary
+slice), because an uncounted row gets neither the bonus nor the `unheld`
+penalty and stays where the text put it. Fill them and the primary slice falls
+to 0.707 and 61.6%, eleven points of top-1 below where it started.
+
+One item accounts for most of it. `Q15964890` member of the House of Commons
+of Canada, **4,694 holders**, reached the table through *Poland's* citizen
+query — an office held by a Polish citizen, which is exactly what that lane is
+for — and it is now the rank-1 answer to **74 of 746 Czech gold queries**, one
+in ten. It carries a Czech name, so it ties on text with the Czech answer, and
+then the holder bonus saturates and breaks the tie in its favour. Behind it:
+`Q140686` chairperson at 8,839 holders (15 queries), `Q4657217` municipal
+executive at 358 (15), `Q1127270` deputy chairperson at 752 (10). Every one of
+them arrived with Poland and is wrong for Czechia.
+
+**The holder count is a global quantity being used as a local one.** It was
+measured on a table where the largest holder counts were the run's own
+country's, and it carried increment 4 on exactly that coincidence. Add any
+second country and the largest count in the table belongs to somebody else.
+`holders_by_country` already exists for the state-scoped reading, and the
+obvious repair — score on the state's own holders and fall back to the global
+count — was measured here and recovers only 0.006 MRR and 1.1 points. That
+number is **not** evidence the repair is worthless: `fill_counts` writes
+`holders_by_country` only under the state it was run with, so the 718 rows
+Poland created have a key for Poland and none for Czechia, and the fallback
+therefore fires on precisely the rows that cause the damage. Filling the
+missing key is one query over the table; it was attempted and the query
+service refused it with repeated 504s after the night's earlier load. **The
+repair is untested, not disproven**, and it is the first thing the next
+increment should measure.
+
+### Latency, and the planner still does not want the index
+
+| table | end to end (300 queries) | ranking query alone | plan |
+|---|---|---|---|
+| 343 rows | 5.79 ms mean, 4.75 median, 12.8 p95 | 1.66 / 0.87 / 5.06 ms | seq scan, 2.6 ms, 2,369 buffers |
+| 1,061 rows | 8.31 ms mean, 6.19 median, 21.5 p95 | 3.05 / 1.38 / 11.8 ms | seq scan, 5.6 ms, 5,555 buffers |
+
+`EXPLAIN (ANALYZE, BUFFERS)` on the same Czech query picks a **sequential scan
+at both sizes** and never `position_tsv_idx`, and the cost scales with the
+table exactly as a scan would: 3.1× the rows, 2.3× the buffers, 2.2× the time.
+That is still a table-size artefact — a query matching 394 of 1,061 rows is
+one Postgres is right to read whole — but the projection is now measurable
+rather than assumed. Extrapolating the seq scan to 14,400 rows gives ~75 ms a
+query, about 40 ms of which is the `ts_rank` evaluation the plan does per
+matching row; whether the GIN index is chosen at that point depends on the
+selectivity of the query, not on the row count, and the honest statement is
+that **the latency figure quoted for this search is a small-table figure and
+has not been measured on a large one**.
+
+### The three indexes nothing read
+
+`position_juris_trgm_idx`, `position_name_trgm_idx` and
+`position_name_fts_idx` were dropped. Their DDL left `schema.sql` when the
+trigram channels lost the ablation; only the live objects remained, and they
+were being maintained on every write. Nothing in `peploop/` or `scripts/`
+names any of them. **13.1 MB freed** on a 343-row table, and a rewrite of
+every row got measurably cheaper: `position` 308 ms to 192 ms, `position_name`
+221 ms to 66 ms — a 70% saving on the names table, which is the one a load
+writes 26,664 rows into.
+
+### Table sizes
+
+| state | rows | names | heap | `position_tsv_idx` | all indexes | mean `search_text` |
+|---|---|---|---|---|---|---|
+| Czechia | 343 | 11,552 | 608 kB | 6,824 kB | 6,904 kB | 3,935 chars / 509 tokens |
+| + Poland | 1,061 | 26,664 | 1,064 kB | 8,744 kB | 8,856 kB | 3,527 chars / 462 tokens |
+| + Poland, after the signal fill | 1,061 | 26,664 | 3,792 kB | 12 MB | 13 MB | unchanged |
+
+The last row is the cost of *updating* every row five times with no vacuum in
+between: the heap triples and the GIN index grows by 37% without a single new
+document. A load that fills signals for 14,400 rows wants a `VACUUM` after it,
+and the index sizes above are the argument for saying so.
+
+### What this says about the next country
+
+- **Discovery is the load.** 82% of Poland's wall clock and the whole of
+  Spain's failure. Anything that makes a load cheaper makes the discovery
+  queries cheaper or it makes nothing cheaper.
+- **Whole-country loading remains a small-country technique**, and now for a
+  reason that is not the item count: the response, not the query, is what
+  breaks at 13,300 rows.
+- **The signals are the expensive half and the damaging half at once.** They
+  cost six to eleven hours for Spain and, as currently scored, filling them
+  for a country that is not the one being searched makes that country's
+  retrieval worse. Leaving them null for a large country is not a compromise
+  forced by cost — on tonight's evidence it is the better of the two
+  configurations measured.
