@@ -79,6 +79,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--country", default="cz")
     parser.add_argument("--limit", type=int, default=15)
+    parser.add_argument("--pool", type=int, default=positions.CANDIDATE_POOL,
+                        help="How deep the text index retrieves before the "
+                             "signals re-order and the shortlist is cut.")
     parser.add_argument("--no-jurisdiction", action="store_true",
                         help="Score the title channel alone.")
     parser.add_argument("--global-scope", action="store_true",
@@ -127,6 +130,7 @@ def main() -> None:
             start=row.get("start"), end=row.get("end"), signals=signals,
             held_subclass_floor=args.held_subclass_floor,
             convention_floor=args.convention_floor,
+            pool=args.pool,
         )
         if not hits:
             empty += 1
@@ -173,6 +177,7 @@ def main() -> None:
         }
         print(json.dumps({
             "signals": list(signals),
+            "pool": args.pool,
             "held_subclass_floor": args.held_subclass_floor,
             "convention_floor": args.convention_floor,
             "aggregate": slice_of(gold_ranks),
@@ -183,6 +188,7 @@ def main() -> None:
         return
 
     print(f"fixture: {path.name}, {len(rows)} titles, limit {args.limit}, "
+          f"pool {args.pool}, "
           f"signals {list(signals) or 'none'}, "
           f"country {'global' if country_qid is None else country_qid}, "
           f"jurisdiction {'off' if args.no_jurisdiction else 'on'}")

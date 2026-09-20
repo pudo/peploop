@@ -1572,3 +1572,99 @@ and the index sizes above are the argument for saying so.
   retrieval worse. Leaving them null for a large country is not a compromise
   forced by cost — on tonight's evidence it is the better of the two
   configurations measured.
+
+## Retrieval depth: the shortlist was being cut before it was ranked (2026-09-20)
+
+Stage E, first of three repairs to what the scale experiment found. The
+defect is one clause: `search` ended with `ORDER BY score DESC, qid LIMIT
+%(k)s` and `k` was the shortlist size, so **Postgres chose the fifteen
+candidates on the raw text score and the ranking signals only shuffled what
+survived that cut**. The text score is a count of matched lexemes over a bag
+in which every lexeme appears once, which is the property that makes it a
+good *coverage* measure and a terrible *tie-breaker*: dozens of rows share a
+score exactly and `qid` decides between them alphabetically. A second
+country's rows are therefore not competing with the first country's on
+merit at the cut — they are competing on their QIDs.
+
+The fix is three lines and a constant: retrieve `CANDIDATE_POOL` rows, run
+the signals over all of them in Python, sort, then cut to `limit`. Display
+names are looked up *after* the cut, so the one part of the search that
+costs per candidate still costs per shown row.
+
+### The curve
+
+Czech bench, 1,061 rows in the table (343 + 718 Polish), `--signals all`,
+`limit` fixed at 15 and only the pool moving. `--holder-scope global` is
+passed so this measures depth alone; the holder repair is the next section.
+
+| pool | aggregate recall@15 | MRR | top-1 | `vocab_overlap` recall | MRR | end to end |
+|---|---|---|---|---|---|---|
+| 15 (shipped) | 79.36% | 0.6105 | 52.82% | 91.35% | 0.7067 | 8.06 ms |
+| 25 | 80.70% | 0.6126 | 52.95% | 92.91% | 0.7092 | — |
+| 50 | 81.77% | 0.6157 | 53.08% | 93.60% | 0.7124 | 8.60 ms |
+| 100 | 82.17% | 0.6160 | 53.08% | 93.77% | 0.7125 | 8.85 ms |
+| **200, adopted** | **82.17%** | **0.6160** | **53.08%** | **93.94%** | **0.7127** | **9.19 ms** |
+| 400 | 82.17% | 0.6160 | 53.08% | 93.94% | 0.7128 | 9.69 ms |
+| 800 | 82.17% | 0.6160 | 53.08% | 93.94% | 0.7128 | — |
+| 2,000 | 82.17% | 0.6160 | 53.08% | 93.94% | 0.7128 | 11.41 ms |
+
+A pool of 2,000 is larger than any query's match set in this table, so the
+last row is "no cut in SQL at all" and the numbers beside it are the ceiling
+of what depth can recover. **The plateau begins at 100 and is complete at
+200**: 613 of 746 gold rows are found at 100 and at 2,000 alike, and the one
+slice still moving between them is the `vocab_overlap` one, where 200 brings
+back the last displaced answer. 400 and 800 buy nothing on any slice to four
+decimals. 200 is adopted as the smallest pool at which every slice is at its
+ceiling, which is a choice from the curve rather than a threshold picked
+because it scored best — nothing scores better.
+
+**Recall is what depth buys, and the aggregate gains 2.8 points of it**:
+79.36% to 82.17%, which is more than Poland's arrival cost (81.6% to 79.4%)
+and lands above the one-country number the pilot shipped. MRR moves 0.006
+and top-1 0.3 points, and that is the honest split: the answers depth
+recovers arrive in the middle of the shortlist, not at the top of it.
+
+### The result that says what the fix actually is
+
+`--signals none` is **identical at every pool size** — 79.36% / 0.4643 /
+31.37% at 15 and at 2,000, to every decimal. With nothing re-ordering the
+candidates, a deeper pool is cut back to the same fifteen rows in the same
+order, so it cannot matter.
+
+That is the whole mechanism in one line. Retrieval depth is not worth
+anything by itself; it is worth something **because there is a re-ranker
+downstream of it**, and what the old code did was hand that re-ranker a
+candidate set already pruned by the one criterion it exists to improve on.
+The signals were being asked to fix an ordering they had not been allowed to
+see. Anything added to the ranking in future inherits this: its measured
+value is bounded by the depth it is given, and the two have to be tuned as a
+pair or not at all.
+
+### Latency
+
+Same 300 Czech queries, warm, 1,061 rows.
+
+| pool | end to end (mean / median / p95) | ranking query alone |
+|---|---|---|
+| 15 | 8.06 / 6.31 / 20.50 ms | 3.03 / 1.39 / 11.63 ms |
+| 100 | 8.85 / 6.98 / 21.79 ms | 3.39 / 1.79 / 11.89 ms |
+| 200 | 9.19 / 7.24 / 24.79 ms | 4.23 / 2.05 / 13.76 ms |
+| 2,000 | 11.41 / 7.61 / 35.00 ms | 4.57 / 2.07 / 16.94 ms |
+
+**A thirteenfold pool costs 14% of the query.** It is cheap for the reason
+the previous section's `EXPLAIN` gave: the plan is a sequential scan that
+evaluates `ts_rank` for every matching row whatever the `LIMIT` is, so
+raising the limit adds sorting and transfer to work that was already being
+done. Deferring the display-name lookup until after the cut is what keeps
+the rest flat — that query reads fifteen rows at every pool size.
+
+### One number from stage D does not reproduce
+
+Stage D projected "83.2% recall / 0.699 MRR" for a top-200 candidate set
+re-ranked to fifteen. Measured here against the same fixture and the same
+table, the top-200 configuration scores **82.17% / 0.6160** aggregate and
+93.94% / 0.7127 on the primary slice. Neither pair matches, and no pool
+size in the table above produces 0.699 on any slice. The projection was made
+from a probe rather than from the bench and is superseded by these rows; it
+is recorded here because it was quoted as the target this repair would hit,
+and it is 1.0 point of recall optimistic.

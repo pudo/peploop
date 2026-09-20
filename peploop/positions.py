@@ -978,9 +978,29 @@ def _display_names(qids: Sequence[str], bag: set[str]) -> dict[str, tuple[str, s
     return out
 
 
+#: How many candidates the text index hands to the ranking, before the
+#: ranking cuts to `limit`. It is a separate number from the shortlist size
+#: because the two answer different questions: `limit` is how many rows a
+#: model can be asked to read, and this is how deep the ordering the model
+#: never sees is allowed to reach.
+#:
+#: It has to exist at all because the text score is a *count of matched
+#: lexemes*, so dozens of candidates tie exactly and `qid` breaks the tie
+#: alphabetically. Cutting at fifteen in SQL therefore threw away answers on
+#: an alphabet, and a second country loaded into the table pushed the first
+#: country's answers over that cliff: 78 of the 80 answers displaced that
+#: way had one of the newcomer's rows above them in text order.
+#:
+#: 200 is measured rather than declared, and it is the smallest pool at
+#: which every slice of the bench is at its ceiling: recall stops moving at
+#: 100, the last displaced answer comes back at 200, and 400, 800 and a pool
+#: larger than any shortlist buy nothing at all on any slice. The curve is
+#: in the 2026-09-20 retrieval-depth section of `positions.md`.
+CANDIDATE_POOL = 200
+
 #: The columns the re-ranking reads, fetched with the shortlist rather than
-#: per row: the candidate set is fifteen items and a second round trip per
-#: item would cost more than the whole search does.
+#: per row: one round trip per candidate would cost more than the whole
+#: search does, and the pool is a few hundred rows of narrow columns.
 SIGNAL_COLUMNS = (
     "not_office", "holders", "holders_by_country", "instance_count",
     "subclass_count", "held_subclasses", "inception", "abolished",
@@ -999,6 +1019,7 @@ def search(
     signals: Sequence[str] = SIGNALS,
     held_subclass_floor: int = HELD_SUBCLASS_FLOOR,
     convention_floor: int = CONVENTION_FLOOR,
+    pool: int = CANDIDATE_POOL,
 ) -> list[Hit]:
     """The positions an office title reaches, best first.
 
@@ -1017,6 +1038,12 @@ def search(
     recorded with a scoping qualifier and every office of the predecessor
     state, and costs 23.7 points of macro recall. As the scope of the
     holder-count signal it is worth 0.04 of MRR instead.
+
+    `pool` is how many candidates SQL hands over before the signals run.
+    It is not a performance knob: the text score ties massively, so a cut
+    taken in SQL is a cut taken alphabetically on `qid`, and anything it
+    drops no re-ranking can recover. Retrieve deep, order in Python, cut
+    last.
     """
     bag = [t for t in token_bag([title, jurisdiction or ""]) if LEXEME.fullmatch(t)]
     if not bag:
@@ -1026,31 +1053,39 @@ def search(
         f"SELECT qid, ts_rank(tsv, to_tsquery('simple', %(q)s), 0) AS score, {columns}"
         " FROM position WHERE tsv @@ to_tsquery('simple', %(q)s)"
         " ORDER BY score DESC, qid LIMIT %(k)s",
-        {"q": " | ".join(bag), "k": limit},
+        {"q": " | ".join(bag), "k": max(pool, limit)},
     ).fetchall()
     if not rows:
         return []
-    names = _display_names([row[0] for row in rows], set(bag))
     # Normalised against the best candidate of *this* query, so a weight is a
     # fraction of a whole query's vocabulary rather than a raw `ts_rank`
-    # value, which means nothing outside the one shortlist it came from.
+    # value, which means nothing outside the one shortlist it came from. The
+    # pool's best is the table's best: SQL ordered by this same score.
     top = max(float(row[1]) for row in rows) or 1.0
-    hits: list[Hit] = []
+    scored: list[tuple[float, float, str, tuple[str, ...]]] = []
     for row in rows:
         qid, score = row[0], float(row[1])
         record = dict(zip(SIGNAL_COLUMNS, row[2:]))
         tags = tags_for(record, country_qid, start, end, signals,
                         held_subclass_floor, convention_floor)
         base = score / top
-        hits.append(Hit(
+        scored.append((base + adjustment(record, tags, signals), base, qid,
+                       tuple(tags)))
+    # Stable on the text order, so a query no signal speaks to comes back in
+    # exactly the order the index produced. Cut here rather than in SQL, and
+    # only then look up the names: display is per shown row, so its cost is
+    # `limit`'s and not the pool's.
+    scored.sort(key=lambda item: -item[0])
+    del scored[limit:]
+    names = _display_names([item[2] for item in scored], set(bag))
+    return [
+        Hit(
             qid=qid,
             name=names.get(qid, (qid, ""))[0],
             lang=names.get(qid, (qid, ""))[1],
-            score=base + adjustment(record, tags, signals),
+            score=score,
             base=base,
-            tags=tuple(tags),
-        ))
-    # Stable on the text order, so a query no signal speaks to comes back in
-    # exactly the order the index produced.
-    hits.sort(key=lambda hit: -hit.score)
-    return hits
+            tags=tags,
+        )
+        for score, base, qid, tags in scored
+    ]

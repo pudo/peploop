@@ -61,7 +61,8 @@ ordering inside the fifteen, and the quality of the test set.
 | B | Increment 4: ranking signals | done, **resolved** | One signal carries the stage: a holder count is worth 0.18 MRR and 32 points of top-1 on the primary slice, the other four together 0.012 and 1.4. The date *boost* is measured destructive and ships at zero weight. `Q486839` and `Q108899569` are separated mechanically, by a floor above 46 in-country holders. |
 | C | Increment 5: the second turn | **blocked**, deferred | No `ANTHROPIC_API_KEY` on this host: no `.envrc`, no `.env`, nothing in the shell profile. The build is reordered so C's artefacts are written but never run. |
 | D | Increment 6: Poland, then Spain | done, **resolved with a defect** | Poland loads in 457 s, 82% of it discovery. Spain does not: its 13,300-row response cannot be read to the end (three attempts, `ChunkedEncodingError`), though the query itself finishes. Czech recall falls 81.6% to 79.4% on Poland's rows alone, and filling those rows' holder counts costs a further 0.08 MRR and 11 points of top-1. Signals project to 6.3–10.9 h for a Spain-sized table. |
-| E | Increment 7: wire into propose | pending | |
+| E | Repair what scale found | in progress | 1 of 3 done. Retrieval depth: the shortlist was cut in SQL on the text score before any signal ran. A 200-row pool re-ranked down to 15 buys 2.8 points of aggregate recall (79.4% → 82.2%) for 14% of the query's time, and is worth exactly nothing with `--signals none`, which is the finding. |
+| F | Increment 7: wire into propose | pending | |
 
 ### A. Rebuild the silver fixture
 
@@ -310,7 +311,47 @@ Housekeeping done: the three indexes nothing reads are dropped (13.1 MB, and a
 full rewrite of `position_name` went 221 ms to 66 ms). `load_country` and
 `discover` now log a timing per step, which is how the table above exists.
 
-### E. Increment 7: wire into propose
+### E. Repair what scale found
+
+Stage D diagnosed three defects and fixed none of them; this stage is the
+repair, in three steps with the bench re-run between each so the deltas are
+attributable. Nothing here is new functionality.
+
+#### E1. Retrieval depth (2026-09-20): done
+
+`search` cut to `LIMIT 15` in SQL, on a text score that is a count of
+matched lexemes and therefore ties by the dozen, with `qid` breaking the tie
+alphabetically. The ranking signals never saw the rows the cut removed. Now
+SQL returns `CANDIDATE_POOL` rows (200), the signals order all of them in
+Python, and the cut happens last; display names are looked up after the cut,
+so their cost stays proportional to the shortlist.
+
+| slice | before (pool 15) | after (pool 200) |
+|---|---|---|
+| aggregate, 746 rows | 79.4% / 0.611 / 52.8% | **82.2% / 0.616 / 53.1%** |
+| per tenure, 688 | 80.5% / 0.625 / 54.4% | 82.7% / 0.630 / 54.7% |
+| macro over 78 answers | 70.7% / 0.519 | 71.3% / 0.522 |
+| `vocab_overlap`, 578 | 91.3% / 0.707 / 61.6% | **93.9% / 0.713 / 61.9%** |
+| `--signals none`, aggregate | 79.4% / 0.464 / 31.4% | 79.4% / 0.464 / 31.4% |
+
+Three things the curve settled, in `positions.md`'s retrieval-depth section:
+
+- **The plateau begins at 100 and is complete at 200.** 400, 800 and a pool
+  larger than any query's match set score identically to four decimals, so
+  200 is not a tuned number; it is the smallest pool at the ceiling.
+- **Depth is worth nothing without a re-ranker.** `--signals none` is
+  identical at every pool size to every decimal, because a deeper pool cut
+  back to the same fifteen in the same order is the same fifteen. Depth pays
+  only because something re-orders the pool, and the old code was pruning
+  the candidate set by the criterion the signals exist to improve on.
+- **It is cheap.** A thirteenfold pool costs 14% of the search: 8.06 ms to
+  9.19 ms mean over 300 queries at 1,061 rows.
+
+Stage D's projection of "83.2% recall / 0.699 MRR" for a top-200 pool does
+**not** reproduce; the measured pair is 82.2% / 0.616, and no pool size
+gives 0.699 on any slice. The projection came from a probe, not the bench.
+
+### F. Increment 7: wire into propose
 
 `P39` with the scoping qualifier the community uses, and a creation queue row
 for anything unmatched.
