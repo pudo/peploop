@@ -698,6 +698,24 @@ about 2,800 titles have a start, ~2,000 P39 statements have `P580`, so several
 hundred gold pairs and a long tail of party and committee posts with nothing.
 Nothing is hand-labelled; the human reads disagreements later.
 
+Built 2026-09-20 from the latest extraction per person (the 3,047 titles
+counted earlier were over every extraction, including superseded prompt
+versions):
+
+| measure                                   | value |
+|-------------------------------------------|-------|
+| people with at least one extracted title  | 723   |
+| titles                                    | 2,234 |
+| titles with a gold pair                   | 532   |
+| titles with a weak label only             | 1,670 |
+| titles whose person has no P39 at all     | 32    |
+
+Gold pairs are dominated by `Q19803234` (248 of 532), so the bench must
+report macro-averaged recall over gold QIDs beside the aggregate, or it will
+mostly measure one office. The first row of the file is the design's central
+case: "Starosta obce Kravaře" pairs by date to `Q99356295`, the generic mayor
+item, with the village in the qualifier.
+
 ### Increment 2: the Czech loader
 
 `peploop/positions.py:load_country(cc)`:
@@ -795,3 +813,20 @@ Deleting rows a re-run no longer finds; a `place` table or any shared lookup
 machinery; a label-regex or CirrusSearch channel (the fixture will say whether
 recall needs it); any filter on `is_pep`, on the 1990 cutoff, or on municipal
 countries — those are PEP policy and belong downstream of a correct P39.
+
+## Moving development to a VPS (2026-09-20)
+
+What the position work needs from the laptop, and where each piece went:
+
+| resource                              | disposition |
+|---------------------------------------|-------------|
+| Czech silver test set                 | `peploop/fixtures/cz_positions.jsonl`, built by `scripts/position_fixture.py` from the local database; committed |
+| the peploop Postgres database (33 MB) | `pg_dump -Fc` to `~/tmp/peploop.dump`; copy out of band, restore with `pg_restore -d peploop ~/tmp/peploop.dump` after `createdb peploop` |
+| dependency manifest                   | `peploop/requirements.txt`, pinned to the versions in the working env, Python 3.13 |
+| prod positions extract (source D)     | still `/Users/pudo/tmp/pep_wd_positions.csv`; not in the repo, decision pending |
+| zavod and poliloom findings           | digested above; the QID lists live in `wd/shape.py` |
+| `data/cache/` (5 GB), `data/discover/` | not moved; re-derivable |
+| secrets                               | `ANTHROPIC_API_KEY` from `.envrc`; Wikidata credentials are read by `peploop/apply.py` from `~/.config/wikibase-cli/config.json`, so that file must exist on the VPS too; `PEPLOOP_DATABASE_URL` if the DSN is not `postgresql:///peploop` |
+
+Postgres on the VPS needs the `pg_trgm` extension available; `schema.sql`
+creates it. The `wb` CLI is used only by `wd/write.py` and is optional there.
