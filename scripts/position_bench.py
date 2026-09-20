@@ -16,6 +16,14 @@ appears -- which is a ceiling, not an accuracy. Gold rows are reported
 macro-averaged over distinct answers as well as in aggregate, because one
 office is nearly half of them and the aggregate is otherwise a statement
 about that office.
+
+The third number is about the test set rather than the search. Pairing by
+date agreement is cheap and wrong a quarter of the time: a party post and
+a parliamentary seat that begin on the same day pair to each other, and no
+retrieval could ever find such an answer. A gold row whose title shares no
+content token with any name of its own answer, in any language, is counted
+as unpairable and reported apart from the misses, because scoring against
+it measures the heuristic and not the index.
 """
 
 import argparse
@@ -28,9 +36,17 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from peploop import positions
+from peploop import db, positions
 
 FIXTURES = Path(__file__).resolve().parents[1] / "peploop" / "fixtures"
+
+
+def name_tokens() -> dict[str, set[str]]:
+    """Every content token of every name, per position, for the label check."""
+    out: dict[str, set[str]] = defaultdict(set)
+    for qid, text in db.conn().execute("SELECT qid, text FROM position_name"):
+        out[qid] |= positions.tokens(text)
+    return out
 
 
 def rank_of(hits: list[Any], wanted: set[str]) -> int | None:
@@ -73,6 +89,9 @@ def main() -> None:
     by_lang: dict[str, list[int | None]] = defaultdict(list)
     by_juris: dict[str, list[int | None]] = defaultdict(list)
     empty = 0
+    unpairable = 0
+    valid_ranks: list[int | None] = []
+    known = name_tokens()
     seen: dict[tuple[str, str | None], int | None] = {}
 
     for row in rows:
@@ -89,6 +108,10 @@ def main() -> None:
             by_juris["with jurisdiction" if row["jurisdiction"]
                      else "without jurisdiction"].append(rank)
             seen.setdefault((title.casefold(), row["gold_qid"]), rank)
+            if positions.tokens(title) & known.get(row["gold_qid"], set()):
+                valid_ranks.append(rank)
+            else:
+                unpairable += 1
         elif row["p39"]:
             weak_ranks.append(rank_of(hits, {c["qid"] for c in row["p39"]}))
 
@@ -107,6 +130,12 @@ def main() -> None:
     print(f"  {'macro over ' + str(len(per_answer)) + ' answers':<34} "
           f"recall@{args.limit}={statistics.mean(recalls):6.1%}"
           f"  MRR={statistics.mean(mrrs):.3f}")
+
+    total_gold = len(gold_ranks)
+    print(f"\n  of {total_gold} gold rows, {unpairable} are unpairable "
+          f"({unpairable / total_gold:.1%}): the title shares no token with any")
+    print("  name of its own answer, so the date heuristic paired them wrongly")
+    summarise("excluding those", valid_ranks, args.limit)
 
     print("\nweak rows (any of the person's P39):")
     summarise("aggregate", weak_ranks, args.limit)
