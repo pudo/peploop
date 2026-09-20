@@ -534,6 +534,25 @@ def load_positions(country: str, sources: Sequence[str]) -> None:
     )
 
 
+@cli.command("position-signals")
+@click.option("--country", required=True, help="ISO code of the country to count.")
+@click.option("--skip-counts", is_flag=True, help="Only the two local signals.")
+def position_signals(country: str, skip_counts: bool) -> None:
+    """Fill the ranking signals for one country's positions.
+
+    Separate from the load because the counts are grouped query-service
+    queries that take minutes and are worth re-running on their own, and
+    because a signal too expensive for a large country has to be skippable
+    without blocking the rows from existing.
+    """
+    qid = positions.country_qid(country)
+    if not skip_counts:
+        timings = positions.fill_counts(qid, log=click.echo)
+        click.echo(f"counts in {sum(timings.values()):.0f}s total")
+    positions.fill_scope_qualifiers(log=click.echo)
+    positions.fill_diplomatic(log=click.echo)
+
+
 @cli.command("position-stats")
 @click.option("--country", help="Report on one country instead of the whole table.")
 def position_stats(country: str | None) -> None:

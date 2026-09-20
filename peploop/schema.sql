@@ -199,3 +199,18 @@ ALTER TABLE position ADD COLUMN IF NOT EXISTS search_text TEXT;
 ALTER TABLE position ADD COLUMN IF NOT EXISTS tsv tsvector
     GENERATED ALWAYS AS (to_tsvector('simple', coalesce(search_text, ''))) STORED;
 CREATE INDEX IF NOT EXISTS position_tsv_idx ON position USING gin (tsv);
+
+-- Two more ranking signals, added after the CREATE above because schema.sql is
+-- applied wholesale to a database that already holds a loaded run. Both are
+-- nullable for the same reason every other signal is: null means nobody has
+-- counted, never that the count came back zero.
+--
+-- `holders_by_country` is a map of state QID to how many of that state's
+-- citizens hold the office, rather than one integer, because the same item is
+-- a country's own convention in one place and a handful of misfilings in the
+-- next -- which is the whole question the abstractness tags turn on.
+ALTER TABLE position ADD COLUMN IF NOT EXISTS holders_by_country JSONB;
+-- An ambassadorship, from the cached type closure. An inbound mission carries
+-- the *receiving* state's P1001, so a country's table is full of other
+-- countries' embassies to it; they are tagged and never dropped.
+ALTER TABLE position ADD COLUMN IF NOT EXISTS diplomatic BOOLEAN;

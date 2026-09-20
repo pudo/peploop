@@ -83,7 +83,25 @@ def main() -> None:
                         help="Score the title channel alone.")
     parser.add_argument("--global-scope", action="store_true",
                         help="Do not try the run's country first.")
+    parser.add_argument("--signals", default="all",
+                        help="Comma-separated ranking signals, 'all', or "
+                             "'none' for the text order alone.")
+    parser.add_argument("--held-subclass-floor", type=int,
+                        default=positions.HELD_SUBCLASS_FLOOR)
+    parser.add_argument("--convention-floor", type=int,
+                        default=positions.CONVENTION_FLOOR)
+    parser.add_argument("--json", action="store_true",
+                        help="Print the four headline slices as one JSON line.")
     args = parser.parse_args()
+    if args.signals == "all":
+        signals = positions.SIGNALS
+    elif args.signals in ("none", ""):
+        signals = ()
+    else:
+        signals = tuple(args.signals.split(","))
+        unknown = set(signals) - set(positions.SIGNALS)
+        if unknown:
+            parser.error(f"unknown signals: {sorted(unknown)}")
 
     path = FIXTURES / f"{args.country}_positions.jsonl"
     rows = [json.loads(line) for line in path.read_text().splitlines()]
@@ -104,7 +122,12 @@ def main() -> None:
     for row in rows:
         title = row["title"]
         jurisdiction = None if args.no_jurisdiction else row["jurisdiction"]
-        hits = positions.search(title, jurisdiction, country_qid, limit=args.limit)
+        hits = positions.search(
+            title, jurisdiction, country_qid, limit=args.limit,
+            start=row.get("start"), end=row.get("end"), signals=signals,
+            held_subclass_floor=args.held_subclass_floor,
+            convention_floor=args.convention_floor,
+        )
         if not hits:
             empty += 1
         if row["gold_qid"]:
@@ -130,7 +153,37 @@ def main() -> None:
         elif row["p39"]:
             weak_ranks.append(rank_of(hits, {c["qid"] for c in row["p39"]}))
 
+    if args.json:
+        def slice_of(ranks: list[int | None]) -> dict[str, float]:
+            found = [r for r in ranks if r is not None]
+            return {
+                "n": len(ranks),
+                "recall": len(found) / len(ranks),
+                "mrr": sum(1 / r for r in found) / len(ranks),
+                "top1": len([r for r in found if r == 1]) / len(ranks),
+            }
+        macro = {
+            "n": len(per_answer),
+            "recall": statistics.mean(
+                len([r for r in rs if r is not None]) / len(rs)
+                for rs in per_answer.values()),
+            "mrr": statistics.mean(
+                sum(1 / r for r in rs if r is not None) / len(rs)
+                for rs in per_answer.values()),
+        }
+        print(json.dumps({
+            "signals": list(signals),
+            "held_subclass_floor": args.held_subclass_floor,
+            "convention_floor": args.convention_floor,
+            "aggregate": slice_of(gold_ranks),
+            "tenure": slice_of(list(per_tenure.values())),
+            "macro": macro,
+            "overlap": slice_of(valid_ranks),
+        }))
+        return
+
     print(f"fixture: {path.name}, {len(rows)} titles, limit {args.limit}, "
+          f"signals {list(signals) or 'none'}, "
           f"country {'global' if country_qid is None else country_qid}, "
           f"jurisdiction {'off' if args.no_jurisdiction else 'on'}")
     print(f"titles retrieving nothing at all: {empty} ({empty / len(rows):.1%})\n")

@@ -58,7 +58,7 @@ ordering inside the fifteen, and the quality of the test set.
 | # | stage | state | outcome |
 |---|---|---|---|
 | A | Rebuild the silver fixture | done, **resolved** | Two of three rules measured harmful and were dropped. Rule 1 alone: 746 gold rows at 77.5% / 66.8% agreement, beating the superseded set on both readings with 40% more rows. |
-| B | Increment 4: ranking signals | pending | |
+| B | Increment 4: ranking signals | done, **resolved** | One signal carries the stage: a holder count is worth 0.18 MRR and 32 points of top-1 on the primary slice, the other four together 0.012 and 1.4. The date *boost* is measured destructive and ships at zero weight. `Q486839` and `Q108899569` are separated mechanically, by a floor above 46 in-country holders. |
 | C | Increment 5: the second turn | pending | |
 | D | Increment 6: Poland, then Spain | pending | |
 | E | Increment 7: wire into propose | pending | |
@@ -180,6 +180,58 @@ Not comparable to anything measured against the superseded set.
 Scored on **top-1 and MRR only** — recall cannot move. Targets named by the
 failure analysis: minted-but-barely-held ministries crowd correct answers
 hardest, and inbound ambassadorships are pure noise.
+
+#### Outcome (2026-09-20)
+
+Five nullable columns filled from five grouped query-service queries plus two
+free local ones, and the ordering moved in Python over the same candidate set
+the text index returned — so recall@15 is **identical in every configuration
+below**, 93.4% on the primary slice, and nothing here is a recall result.
+
+| config | aggregate (746) | per tenure (688) | macro (78) | `vocab_overlap` (578) |
+|---|---|---|---|---|
+| baseline `b4ff356` | 0.528 / 33.8% | 0.534 / 34.2% | 0.512 | 0.601 / 37.7% |
+| + `not_office` | 0.528 / 33.8% | 0.535 / 34.2% | 0.515 | 0.602 / 37.7% |
+| + `holders` | 0.670 / 58.8% | 0.682 / 60.2% | 0.539 | 0.780 / 69.2% |
+| + `class` | 0.679 / 59.8% | 0.690 / 61.0% | 0.545 | 0.790 / 70.4% |
+| + `dates` | 0.680 / 59.8% | 0.691 / 61.0% | 0.547 | 0.791 / 70.4% |
+| + `diplomatic` | **0.681 / 59.9%** | **0.692 / 61.2%** | **0.558** | **0.792 / 70.6%** |
+
+**A holder count is the stage.** It is worth 0.18 of MRR and 32 points of
+top-1 on the primary slice; everything else together is worth 0.012 and 1.4.
+The four small signals stay for the case each one fixes and for what they tag,
+not for their share of a mean.
+
+**One signal was measured harmful and half of it was dropped.** The design's
+date-fit *boost* — an abolished office boosted for a tenure that ended before
+it — costs 0.08 MRR and 16 points of top-1, because an inception preceding a
+tenure is true of nearly every old office and the bonus reaches the wrong
+candidates as freely as the right one. The conflict penalty pays about a
+thousandth and ships; the boost ships at zero weight with its tag intact.
+
+**The two constants.** The convention floor is **50 citizens of the state**,
+determined by two constraints meeting: the grid degrades above 100, and the
+decisive case needs a floor above 46. `held_subclasses ≥ N` **cannot be
+measured** beyond `N ≥ 2` — 2, 3, 5 and 10 score identically to four decimals
+while the rule re-tags between 24 and 10 items, so those items never come near
+the top of a scored shortlist. N=1 and dropping the clause are both worse than
+the plateau, so the clause is earned and its threshold is not; the declared 3
+stays because it is inside the plateau.
+
+**The decisive test resolves, and the aggregate metric could not see it.**
+`Q486839` member of parliament outranks `Q108899569` member of a Czech
+municipal council in 202 of the 223 shortlists that hold both, on the text
+order and still after the holder signal — both saturate its bonus. With the
+floor at 50 it is 2 of 223. With the floor at 25, where the bench's MRR is two
+ten-thousandths lower, it is 202 of 223 again. The measurement that decided
+this is a two-item rank comparison, not the bench.
+
+Carried into stage C: the shortlist a model reads now arrives with tags
+(`not-office`, `unheld`, `abstract`, `generic-by-convention`, `abolished`,
+`date-conflict`, `inbound-diplomatic`, `diplomatic`, `foreign-scoped`) and a
+`scope_qualifier` saying which property makes a generic office concrete. The
+full account, with the query timings and three corrections to earlier notes,
+is the 2026-09-20 ranking-signals section of `peploop/positions.md`.
 
 ### C. Increment 5: the second turn
 

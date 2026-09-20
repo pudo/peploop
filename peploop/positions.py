@@ -12,11 +12,15 @@ for a tenure that ended in 1960, and an item typed as an occupation is worth
 offering *labelled* as one so the pick can be refused for the right reason.
 """
 
+import math
 import re
+import time
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Any, Iterable, Sequence
 
 from normality import ascii_text
+from psycopg.types.json import Jsonb
 from rigour.territories import get_territory
 
 from peploop import db, wikidata
@@ -519,6 +523,395 @@ def load_country(
     return counts
 
 
+# --- Ranking signals -------------------------------------------------------
+#
+# Everything below fills a nullable column. None of it filters: a count is a
+# reason to order one candidate above another and to say why in a tag, and a
+# column left `NULL` means nobody has counted yet -- never that the answer is
+# zero. That distinction is why the counts that can be zero ask with an
+# `OPTIONAL`: an item nobody holds has to come back as a row saying 0, or an
+# absent row would be indistinguishable from an uncounted one. The one query
+# that cannot (a held child either exists or the pattern does not match)
+# defaults to zero for the items its own chunk asked about, and for no others.
+
+#: Holders per item. `wdt:P39`, best rank only, because this is a *ranking*
+#: signal: measured against `p:P39/ps:P39` over one country the two differ by
+#: 29 pairs in 8,938 and cost 32 s against 97 s. A coverage claim would need
+#: the expensive shape; an ordering does not.
+HOLDERS_QUERY = """SELECT ?pos (COUNT(DISTINCT ?h) AS ?n) WHERE {
+  VALUES ?pos { %(values)s } OPTIONAL { ?h wdt:P39 ?pos }
+} GROUP BY ?pos"""
+
+#: Holders who are citizens of one state, which is the signal that separates
+#: an office a country genuinely records its people on from a world-level
+#: class a handful of them were filed under by mistake. Counted per state
+#: rather than per row, because the same item is a convention in one country
+#: and an accident in the next.
+HOLDERS_COUNTRY_QUERY = """SELECT ?pos (COUNT(DISTINCT ?h) AS ?n) WHERE {
+  VALUES ?pos { %(values)s }
+  OPTIONAL { ?h wdt:P39 ?pos ; wdt:P27 wd:%(country)s }
+} GROUP BY ?pos"""
+
+#: Items whose `P31` is this one: the item is a metaclass, a kind of office
+#: rather than an office.
+INSTANCE_QUERY = """SELECT ?pos (COUNT(DISTINCT ?x) AS ?n) WHERE {
+  VALUES ?pos { %(values)s } OPTIONAL { ?x wdt:P31 ?pos }
+} GROUP BY ?pos"""
+
+#: Items whose `P279` is this one. A real office has zero children or a
+#: handful of renamings; a class has hundreds.
+SUBCLASS_QUERY = """SELECT ?pos (COUNT(DISTINCT ?x) AS ?n) WHERE {
+  VALUES ?pos { %(values)s } OPTIONAL { ?x wdt:P279 ?pos }
+} GROUP BY ?pos"""
+
+#: The children somebody actually holds -- the class-versus-seat detector.
+#: Children alone say little, because a renaming succession is modelled the
+#: same way; children *that people are recorded in* say the community treats
+#: this item as the class and the seat as something else.
+HELD_SUBCLASS_QUERY = """SELECT ?pos (COUNT(DISTINCT ?child) AS ?n) WHERE {
+  VALUES ?pos { %(values)s }
+  ?child wdt:P279 ?pos . ?h wdt:P39 ?child .
+} GROUP BY ?pos"""
+
+#: `P39` qualifiers that describe the *tenure* rather than say which office
+#: it was. Everything else a statement carries is a candidate for the
+#: property that makes a generic office concrete.
+#:
+#: The list is not the dates alone, and measuring said so: over this corpus
+#: the modal qualifier of fifty positions is `P1365 replaces`, which is a
+#: fact about who the holder took over from. A column called
+#: `scope_qualifier` that answers `P1365` would be read downstream as the
+#: qualifier to emit, and emitting it would say something untrue.
+NON_SCOPING_QUALIFIERS = frozenset((
+    "P580",   # start time
+    "P582",   # end time
+    "P585",   # point in time
+    "P1319",  # earliest date
+    "P1326",  # latest date
+    "P805",   # statement is subject of
+    "P1365",  # replaces — whom the holder took over from
+    "P1366",  # replaced by — and whom they handed over to
+    "P1534",  # end cause
+    "P2097",  # term length
+    "P748",   # appointed by
+    "P4100",  # parliamentary group — a fact about the holder, not the seat
+))
+
+#: Ambassadorship, reached through `type_closure` and never through a
+#: `wdt:P279*` in a `FILTER NOT EXISTS`, which times the query service out.
+#: An inbound mission is scoped to the *receiving* state, so a country's own
+#: table is full of other countries' embassies to it.
+DIPLOMATIC_CLASS = "Q121998"
+
+
+def grouped_count(query: str, qids: Sequence[str], **params: str) -> dict[str, int]:
+    """Run one grouped count over a list of items, 120 QIDs per request.
+
+    The chunking is not an optimisation: about 150 `VALUES` entries overflow
+    the query service's GET URI and come back as HTTP 414.
+    """
+    counts: dict[str, int] = {}
+    for chunk in wikidata.values_chunks(qids):
+        rows = wikidata.sparql(
+            query % {"values": wikidata.values_block(chunk), **params}, max_age=0
+        )
+        for row in rows:
+            counts[row["pos"]] = counts.get(row["pos"], 0) + int(row["n"])
+    return counts
+
+
+def fill_counts(
+    state_qid: str,
+    qids: Sequence[str] | None = None,
+    log: Any = lambda _m: None,
+) -> dict[str, float]:
+    """Count holders, instances and subclasses for a country's positions.
+
+    One grouped query per signal over the same chunks, intersected with the
+    position set rather than scoped by `P17`: a state's `P17` is carried by
+    items that are not offices at all, and a subclass count taken that way
+    counts the children of a language.
+    """
+    if qids is None:
+        # Every row, not the ones this state scopes. The search offers the
+        # whole table and an office of a neighbouring state is a candidate
+        # like any other, so a count restricted to the state's own offices
+        # would leave exactly the rows that need discouraging uncounted.
+        rows = db.conn().execute("SELECT qid FROM position ORDER BY qid").fetchall()
+        qids = [qid for (qid,) in rows]
+    timings: dict[str, float] = {}
+    results: dict[str, dict[str, int]] = {}
+    plan = (
+        ("holders", HOLDERS_QUERY, {}),
+        ("holders_country", HOLDERS_COUNTRY_QUERY, {"country": state_qid}),
+        ("instance_count", INSTANCE_QUERY, {}),
+        ("subclass_count", SUBCLASS_QUERY, {}),
+        ("held_subclasses", HELD_SUBCLASS_QUERY, {}),
+    )
+    for name, query, params in plan:
+        started = time.monotonic()
+        results[name] = grouped_count(query, qids, **params)
+        timings[name] = time.monotonic() - started
+        log(f"{name}: {len(results[name])} rows in {timings[name]:.0f}s")
+
+    with db.conn().cursor() as cur:
+        cur.executemany(
+            "UPDATE position SET holders = %s, holders_at = now(),"
+            " holders_by_country = coalesce(holders_by_country, '{}'::jsonb) || %s,"
+            " instance_count = %s, subclass_count = %s, held_subclasses = %s"
+            " WHERE qid = %s",
+            [
+                (
+                    results["holders"].get(qid),
+                    Jsonb({state_qid: results["holders_country"].get(qid, 0)}),
+                    results["instance_count"].get(qid),
+                    results["subclass_count"].get(qid),
+                    # Absent from a query with no OPTIONAL means no held child,
+                    # but only for an item the chunk actually asked about.
+                    results["held_subclasses"].get(qid, 0),
+                    qid,
+                )
+                for qid in qids
+            ],
+        )
+    return timings
+
+
+def fill_scope_qualifiers(log: Any = lambda _m: None) -> dict[str, str]:
+    """Record the qualifier property the corpus uses to make an office concrete.
+
+    Read off the `item` table rather than the query service, because the
+    question is what *this* community does with *this* office: a generic
+    council seat is scoped by the municipality, a party post by the
+    organisation, and the corpus already read is the only evidence of which.
+    Modal rather than majority — a property that occurs once on one statement
+    is still the only scoping property anybody used.
+    """
+    tally: dict[str, Counter] = defaultdict(Counter)
+    rows = db.conn().execute("SELECT json FROM item")
+    for (blob,) in rows:
+        for claim in blob.get("claims", {}).get("P39", []):
+            value = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
+            if not isinstance(value, dict) or "id" not in value:
+                continue
+            for prop in claim.get("qualifiers", {}):
+                if prop not in NON_SCOPING_QUALIFIERS:
+                    tally[value["id"]][prop] += 1
+    modal = {qid: counts.most_common(1)[0][0] for qid, counts in tally.items()}
+    # Cleared first, because this is a re-derivation and not an increment: a
+    # value the previous pass wrote from a rule this one no longer applies
+    # would otherwise survive as the answer to a question nobody asks any more.
+    db.conn().execute("UPDATE position SET scope_qualifier = NULL")
+    with db.conn().cursor() as cur:
+        cur.executemany(
+            "UPDATE position SET scope_qualifier = %s WHERE qid = %s",
+            [(prop, qid) for qid, prop in modal.items()],
+        )
+    log(f"scope qualifier recorded for {len(modal)} items")
+    return modal
+
+
+def fill_diplomatic(qids: Sequence[str] | None = None,
+                    log: Any = lambda _m: None) -> int:
+    """Flag the ambassadorships, which a country's own table is full of.
+
+    Through the cached type closure and never through a SPARQL property path:
+    an unbounded `wdt:P279*` inside a `FILTER NOT EXISTS` times the query
+    service out. Flagged, never dropped — an ambassador is a real office and
+    the right answer for somebody.
+    """
+    if qids is None:
+        rows = db.conn().execute("SELECT qid FROM position ORDER BY qid").fetchall()
+        qids = [qid for (qid,) in rows]
+    closure = type_closure(list(qids))
+    flags = {qid: DIPLOMATIC_CLASS in closure.get(qid, set()) for qid in qids}
+    with db.conn().cursor() as cur:
+        cur.executemany(
+            "UPDATE position SET diplomatic = %s WHERE qid = %s",
+            [(value, qid) for qid, value in flags.items()],
+        )
+    count = sum(flags.values())
+    log(f"diplomatic: {count} of {len(flags)}")
+    return count
+
+
+# --- Re-ranking ------------------------------------------------------------
+#
+# The candidate set is whatever the text index returned; re-ranking only
+# changes the order inside it, which is what makes the comparison honest.
+# Recall cannot move, so a signal is judged on MRR and top-1 and on nothing
+# else, and every signal that moves a row also names itself in the row's tags
+# so a reader can see why it moved.
+
+#: The signals, in the order they were added and measured. `search` takes a
+#: subset so the bench can score each one on its own and cumulatively.
+SIGNALS = ("not_office", "holders", "class", "dates", "diplomatic")
+
+#: Where the holder bonus saturates. Log-scaled and capped, because the
+#: question a holder count answers is "does the community use this item at
+#: all", and the difference between 900 and 1,800 holders is not twice the
+#: evidence that 1 and 2 is.
+HOLDER_SATURATION = 1000
+
+#: How much each signal is worth, as a fraction of a perfect text match. The
+#: base score is normalised to 1.0 for the best-matching candidate of each
+#: query, so a weight of 0.3 says "worth three tenths of the whole query's
+#: vocabulary". Penalties are larger than bonuses on purpose: a signal that
+#: says an item is the wrong *kind* of thing is stronger evidence than a
+#: holder count is that it is the right one.
+WEIGHTS = {
+    "holders": 0.30,        # scaled by log10(holders) / log10(saturation)
+    "unheld": -0.15,
+    "not_office": -0.50,
+    "abstract": -0.35,
+    # Zero, and measured rather than assumed. The design said an abolished
+    # office should be *boosted* for a tenure that ended before it, and that
+    # half of the date signal is what wrecks the ranking: an inception that
+    # precedes a tenure is true of almost every old office, so the boost is
+    # an "is old" bonus handed out to the wrong candidates as freely as to
+    # the right one. It costs 8 points of MRR and 16 of top-1. The tag is
+    # still emitted, because the model is owed the observation.
+    "date_fit": 0.0,
+    "date_conflict": -0.30,
+    "inbound_diplomatic": -0.25,
+}
+
+#: A class-like item is one somebody else's item is an instance of, or one
+#: with at least this many children that people are recorded in. Measured,
+#: not declared: see the increment 4 section of `positions.md`.
+HELD_SUBCLASS_FLOOR = 3
+
+#: How many of a state's own citizens have to hold a class-like item before
+#: it stops being an abstraction somebody misfiled under and becomes the
+#: item that state's community uses on purpose. Also measured.
+CONVENTION_FLOOR = 50
+
+
+def _year(value: Any) -> int | None:
+    """The year of a date, however coarse the value that carries it.
+
+    Two dates are compared at the precision they share and a tenure is
+    routinely known only to the year, so the year is the only precision both
+    sides of this comparison reliably have.
+    """
+    if value is None:
+        return None
+    text = str(value)[:4]
+    return int(text) if text.isdigit() else None
+
+
+def date_verdict(
+    inception: Any, abolished: Any, start: Any, end: Any
+) -> str | None:
+    """Whether an office could have been held over a tenure's span.
+
+    Never a filter and never symmetric: an office abolished in 1992 is the
+    *right* answer for a tenure that ended in 1980 and is boosted for it, and
+    wrong only for one that began afterwards. An office with no dates, or a
+    tenure with none, yields no verdict at all rather than a penalty.
+    """
+    began, ended = _year(start), _year(end)
+    opened, closed = _year(inception), _year(abolished)
+    if closed is not None and began is not None and began > closed:
+        return "date_conflict"
+    if opened is not None and ended is not None and ended < opened:
+        return "date_conflict"
+    if closed is not None and ended is not None and ended <= closed:
+        return "date_fit"
+    if opened is not None and began is not None and began >= opened:
+        return "date_fit"
+    return None
+
+
+def tags_for(
+    row: dict[str, Any],
+    state_qid: str | None = None,
+    start: Any = None,
+    end: Any = None,
+    signals: Sequence[str] = SIGNALS,
+    held_subclass_floor: int = HELD_SUBCLASS_FLOOR,
+    convention_floor: int = CONVENTION_FLOOR,
+) -> list[str]:
+    """What is worth saying about a candidate, derived and never hand-listed.
+
+    Every tag is shown to the model beside the row, so this is as much the
+    explanation of the ordering as its cause. A tag is emitted from a column
+    that is actually filled: a `NULL` count means nobody counted, so it
+    produces silence rather than `unheld`.
+    """
+    tags: list[str] = []
+    if "not_office" in signals and row.get("not_office"):
+        tags.append("not-office")
+
+    holders = row.get("holders")
+    by_country = row.get("holders_by_country") or {}
+    local = by_country.get(state_qid) if state_qid else None
+    if "holders" in signals and holders == 0:
+        tags.append("unheld")
+
+    if "class" in signals:
+        held_children = row.get("held_subclasses")
+        class_like = bool(row.get("instance_count")) or (
+            held_children is not None and held_children >= held_subclass_floor
+        )
+        if class_like:
+            # The same shape reads two ways, and only a count of the state's
+            # own holders tells them apart: an abstraction a handful of
+            # people were misfiled under, or the item the state's community
+            # uses on purpose because it mints no item per place.
+            if local is not None and local >= convention_floor:
+                tags.append("generic-by-convention")
+            else:
+                tags.append("abstract")
+
+    if "dates" in signals:
+        if row.get("abolished") is not None:
+            tags.append("abolished")
+        verdict = date_verdict(row.get("inception"), row.get("abolished"), start, end)
+        if verdict is not None:
+            tags.append(verdict.replace("_", "-"))
+
+    if "diplomatic" in signals and row.get("diplomatic"):
+        # A mission is scoped to the *receiving* state, so an ambassadorship
+        # whose scope is the state being searched is somebody else's embassy
+        # to it rather than one of its own postings. Measured here, that
+        # scope is `P17` far more often than `P1001`: of 64 ambassadorships
+        # only 9 carry a jurisdiction at all, and reading the country as the
+        # fallback separates 34 inbound missions from 30 outbound ones.
+        scope = row.get("jurisdiction_qid") or row.get("country_qid")
+        inbound = state_qid is not None and scope == state_qid
+        tags.append("inbound-diplomatic" if inbound else "diplomatic")
+
+    # An office of some *other* state that only the citizen query reached.
+    # A world-level class has no country at all and is not this: it is
+    # already answered by `abstract`.
+    country = row.get("country_qid")
+    if (state_qid is not None and row.get("sources") == ["citizen"]
+            and country is not None and country != state_qid):
+        tags.append("foreign-scoped")
+    return tags
+
+
+def adjustment(
+    row: dict[str, Any], tags: Sequence[str], signals: Sequence[str] = SIGNALS
+) -> float:
+    """What the tags are worth, added to a base score normalised to 1.0."""
+    delta = 0.0
+    if "holders" in signals:
+        holders = row.get("holders")
+        if holders:
+            share = min(1.0, math.log10(1 + holders) / math.log10(1 + HOLDER_SATURATION))
+            delta += WEIGHTS["holders"] * share
+        elif holders == 0:
+            delta += WEIGHTS["unheld"]
+    for tag, key in (("not-office", "not_office"), ("abstract", "abstract"),
+                     ("date-fit", "date_fit"), ("date-conflict", "date_conflict"),
+                     ("inbound-diplomatic", "inbound_diplomatic")):
+        if tag in tags:
+            delta += WEIGHTS[key]
+    return delta
+
+
 @dataclass
 class Hit:
     """One position a query reached, and the name worth showing beside it."""
@@ -529,10 +922,17 @@ class Hit:
     #: the row a model is later shown has to say what it matched instead.
     name: str
     lang: str
-    #: `ts_rank` over the bag, which rises with the number of the query's
-    #: lexemes the document carried and means nothing else. Comparable
-    #: within one shortlist, never between two queries.
+    #: The base text coverage plus what the signals made of it. The order of
+    #: a shortlist is this and nothing else; the number itself is comparable
+    #: within one shortlist and never between two queries.
     score: float
+    #: How much of the query this item's document accounted for, as a
+    #: fraction of what the best candidate of this query accounted for. Kept
+    #: apart from `score` so a reader can see what the signals did.
+    base: float = 1.0
+    #: Why it moved, and what the model is told about it. Derived from the
+    #: filled columns, never hand-listed.
+    tags: tuple[str, ...] = ()
 
 
 def _display_names(qids: Sequence[str], bag: set[str]) -> dict[str, tuple[str, str]]:
@@ -560,11 +960,27 @@ def _display_names(qids: Sequence[str], bag: set[str]) -> dict[str, tuple[str, s
     return out
 
 
+#: The columns the re-ranking reads, fetched with the shortlist rather than
+#: per row: the candidate set is fifteen items and a second round trip per
+#: item would cost more than the whole search does.
+SIGNAL_COLUMNS = (
+    "not_office", "holders", "holders_by_country", "instance_count",
+    "subclass_count", "held_subclasses", "inception", "abolished",
+    "diplomatic", "scope_qualifier", "country_qid", "jurisdiction_qid",
+    "sources",
+)
+
+
 def search(
     title: str,
     jurisdiction: str | None = None,
     country_qid: str | None = None,
     limit: int = 15,
+    start: Any = None,
+    end: Any = None,
+    signals: Sequence[str] = SIGNALS,
+    held_subclass_floor: int = HELD_SUBCLASS_FLOOR,
+    convention_floor: int = CONVENTION_FLOOR,
 ) -> list[Hit]:
     """The positions an office title reaches, best first.
 
@@ -573,29 +989,50 @@ def search(
     all. Pass whatever turn one wrote down — the title and the jurisdiction
     go into one query, because the place the article named is evidence about
     the office, and reading it as a channel of its own scored exactly zero.
+    The tenure's `start` and `end` come in the same way, because whether an
+    abolished office is the right answer is a question about the tenure.
 
-    Ranked by how much of the query an item's document accounts for, and by
-    nothing else.
-
-    `country_qid` neither filters nor ranks today; it is accepted so the call
-    sites do not change when it becomes a ranking signal. Filtering on it is
-    the single most expensive thing this search can do — it hides two fifths
-    of a country's own table, being every globally abstract office recorded
-    with a scoping qualifier and every office of the predecessor state, and
-    costs 23.7 points of macro recall.
+    The text index chooses the candidates and the signals only re-order
+    them, which is why `country_qid` still does not filter. Filtering on it
+    is the single most expensive thing this search can do — it hides two
+    fifths of a country's own table, being every globally abstract office
+    recorded with a scoping qualifier and every office of the predecessor
+    state, and costs 23.7 points of macro recall. As the scope of the
+    holder-count signal it is worth 0.04 of MRR instead.
     """
     bag = [t for t in token_bag([title, jurisdiction or ""]) if LEXEME.fullmatch(t)]
     if not bag:
         return []
+    columns = ", ".join(SIGNAL_COLUMNS)
     rows = db.conn().execute(
-        "SELECT qid, ts_rank(tsv, to_tsquery('simple', %(q)s), 0) AS score"
+        f"SELECT qid, ts_rank(tsv, to_tsquery('simple', %(q)s), 0) AS score, {columns}"
         " FROM position WHERE tsv @@ to_tsquery('simple', %(q)s)"
         " ORDER BY score DESC, qid LIMIT %(k)s",
         {"q": " | ".join(bag), "k": limit},
     ).fetchall()
-    names = _display_names([qid for qid, _score in rows], set(bag))
-    return [
-        Hit(qid=qid, name=names.get(qid, (qid, ""))[0],
-            lang=names.get(qid, (qid, ""))[1], score=float(score))
-        for qid, score in rows
-    ]
+    if not rows:
+        return []
+    names = _display_names([row[0] for row in rows], set(bag))
+    # Normalised against the best candidate of *this* query, so a weight is a
+    # fraction of a whole query's vocabulary rather than a raw `ts_rank`
+    # value, which means nothing outside the one shortlist it came from.
+    top = max(float(row[1]) for row in rows) or 1.0
+    hits: list[Hit] = []
+    for row in rows:
+        qid, score = row[0], float(row[1])
+        record = dict(zip(SIGNAL_COLUMNS, row[2:]))
+        tags = tags_for(record, country_qid, start, end, signals,
+                        held_subclass_floor, convention_floor)
+        base = score / top
+        hits.append(Hit(
+            qid=qid,
+            name=names.get(qid, (qid, ""))[0],
+            lang=names.get(qid, (qid, ""))[1],
+            score=base + adjustment(record, tags, signals),
+            base=base,
+            tags=tuple(tags),
+        ))
+    # Stable on the text order, so a query no signal speaks to comes back in
+    # exactly the order the index produced.
+    hits.sort(key=lambda hit: -hit.score)
+    return hits

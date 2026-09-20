@@ -410,6 +410,247 @@ The top Czech items by live holder count confirm the pilot's reading:
 Chamber of Deputies 1,217, `Q97482814` district representative 556. The
 country's convention is visible from one query.
 
+## The ranking signals, measured on the Czech pilot (2026-09-20)
+
+Increment 4, against the rule-1-only fixture at `b4ff356`. **Scored on MRR
+and top-1 and on nothing else.** The candidate set is whatever the text index
+returned and the signals only re-order inside it, so recall@15 is identical
+in every row of every table below — 93.4% on the `vocab_overlap` slice, from
+the baseline to the shipped configuration. A recall number from this stage
+would be a tautology, not a result.
+
+The `vocab_overlap`-true slice is the primary, for the reason the fixture
+rebuild gave: the pairing still mislabels 22.5% of gold rows and no date rule
+can reach them, but circularity poisons a *recall* measurement, not a
+comparison between two orderings of one candidate set.
+
+### What was filled, and what the query service charged for it
+
+Five grouped queries over the whole table in chunks of 120 QIDs, `max_age=0`,
+run once against the live service on an evening when it was erratic — the
+same shapes had taken half as long two hours earlier, and one of them 48 s
+against 352 s.
+
+| query | rows | first run (205 items) | second run (343 items) |
+|---|---|---|---|
+| holders, `wdt:P39` with `OPTIONAL` | 343 | 48 s | 56 s |
+| holders who are citizens of the state | 343 | 66 s | 352 s |
+| `instance_count`, `wdt:P31` inbound | 343 | 24 s | 159 s |
+| `subclass_count`, `wdt:P279` inbound | 343 | 3 s | 268 s |
+| `held_subclasses`, children somebody holds | 80 | 19 s | 149 s |
+
+Two things the timings say. The service's variance is larger than the
+difference between any two of these query shapes, so timing one of them once
+measures the evening and not the query. And the first run counted only the
+201 rows the state scopes, which is the wrong set: the search offers the
+whole table, and the rows that most need discouraging — a world-level class,
+another state's embassy — are exactly the ones a `P17` scope leaves
+uncounted. `fill_counts` counts every row.
+
+`scope_qualifier` and the ambassadorship flag cost nothing: the first is a
+tally over the `item` table already fetched, the second is `type_closure`
+served out of `type_edge`.
+
+### The delta table
+
+Cumulatively, each signal added to the ones above it:
+
+| config | aggregate (746) | per tenure (688) | macro (78) | `vocab_overlap` (578) |
+|---|---|---|---|---|
+| baseline, text order | 0.528 / 33.8% | 0.534 / 34.2% | 0.512 | 0.601 / 37.7% |
+| + `not_office` | 0.528 / 33.8% | 0.535 / 34.2% | 0.515 | 0.602 / 37.7% |
+| + `holders` | 0.670 / 58.8% | 0.682 / 60.2% | 0.539 | 0.780 / 69.2% |
+| + `class` | 0.679 / 59.8% | 0.690 / 61.0% | 0.545 | 0.790 / 70.4% |
+| + `dates` | 0.680 / 59.8% | 0.691 / 61.0% | 0.547 | 0.791 / 70.4% |
+| + `diplomatic` (shipped) | **0.681 / 59.9%** | **0.692 / 61.2%** | **0.558** | **0.792 / 70.6%** |
+
+Each alone, against the same baseline:
+
+| signal alone | aggregate | per tenure | macro | `vocab_overlap` |
+|---|---|---|---|---|
+| none | 0.528 / 33.8% | 0.534 / 34.2% | 0.512 | 0.601 / 37.7% |
+| `not_office` | 0.528 / 33.8% | 0.535 / 34.2% | 0.515 | 0.602 / 37.7% |
+| `holders` | 0.670 / 58.8% | 0.682 / 60.2% | 0.539 | 0.780 / 69.2% |
+| `class` | 0.539 / 34.0% | 0.546 / 34.4% | 0.512 | 0.616 / 38.1% |
+| `dates` | 0.537 / 35.3% | 0.538 / 34.7% | 0.530 | 0.611 / 39.1% |
+| `diplomatic` | 0.527 / 33.6% | 0.535 / 34.2% | 0.513 | 0.600 / 37.5% |
+
+**One signal is the whole result.** A holder count is worth 0.18 of MRR and
+32 points of top-1 on the primary slice; the other four together are worth
+0.012 and 1.4. That is not a disappointment — it is the answer to the
+question the pilot's reading posed, that the only way to learn a country's
+convention is to count who is recorded where — but it does mean the four
+small signals are kept for what they *tag*, and for one named failure each,
+rather than for their contribution to a mean.
+
+Why the base ranking leaves so much on the table: the document is a bag and
+`ts_rank` counts matched lexemes, so a query of four content words puts
+dozens of candidates on exactly the same score, and the tie is broken by
+QID. Most of what a signal buys here is breaking those ties on something.
+
+### The two constants
+
+`held_subclasses >= N`, at a convention floor of 50:
+
+| N | `vocab_overlap` MRR | top-1 | items it tags that `instance_count` misses |
+|---|---|---|---|
+| 1 | 0.7895 | 70.24% | 29 |
+| 2 | 0.7922 | 70.59% | 24 |
+| 3 | 0.7922 | 70.59% | 20 |
+| 5 | 0.7922 | 70.59% | 14 |
+| 10 | 0.7922 | 70.59% | 10 |
+| ∞ (`instance_count` alone) | 0.7898 | 70.42% | 0 |
+
+**N cannot be measured on this fixture, beyond `N ≥ 2`.** Two through ten
+score identically to four decimal places while the rule changes the tag on
+between 24 and 10 items, which says those items are never near the top of a
+shortlist any gold row is scored on. Both endpoints *are* measured: N=1 is
+worse than the plateau, and dropping the clause entirely is worse than the
+plateau, so the clause earns its place and its threshold does not. The
+declared 3 sits inside the plateau and stays for that reason and no other.
+
+The convention floor, holders who are citizens of the state, at N=3:
+
+| floor | `vocab_overlap` MRR | top-1 | aggregate MRR |
+|---|---|---|---|
+| 0 | 0.7822 | 69.38% | 0.6719 |
+| 10 | 0.7902 | 70.24% | 0.6787 |
+| 25 | 0.7920 | 70.42% | 0.6802 |
+| 50 | **0.7922** | **70.59%** | **0.6807** |
+| 100 | 0.7871 | 70.07% | 0.6767 |
+| 250 | 0.7781 | 69.20% | 0.6703 |
+| 500 | 0.7781 | 69.20% | 0.6703 |
+
+An interior optimum, and a shallow one: 25 and 50 differ by 0.0002. **The
+bench does not choose between them and the decisive test does**, which is the
+useful half of this measurement and is the next section.
+
+### `Q486839` against `Q108899569`: a mechanical rule separates them
+
+The two items have the same class-like *shape* and opposite meanings.
+`Q486839` member of parliament is the bare abstract pick, 20 Czech
+legislators filed on a world-level class. `Q108899569` member of a Czech
+municipal council is the community's own answer, because Czechia mints no
+item per municipality and puts the place in a `P1001` qualifier.
+
+What the filled columns say about them:
+
+| | holders | citizens of the state | `instance_count` | `subclass_count` | `held_subclasses` |
+|---|---|---|---|---|---|
+| `Q486839` | 7,026 | 46 | 18 | 567 | 497 |
+| `Q108899569` | 1,799 | 1,260 | 0 | 4 | 4 |
+
+Measured over every shortlist the 2,234 fixture titles produce, counting the
+223 in which both appear:
+
+| ordering | `Q486839` mean rank | its top-1s | `Q108899569` mean rank | its top-1s | abstract above generic |
+|---|---|---|---|---|---|
+| text only | 8.4 | 2 | 8.4 | 39 | 202 of 223 |
+| + `holders` | 6.0 | 7 | 6.0 | 53 | 202 of 223 |
+| + `class`, floor 25 | 5.6 | 9 | 5.4 | 62 | 202 of 223 |
+| + `class`, floor 50 | 10.8 | 1 | 5.1 | 63 | **2 of 223** |
+| shipped | 10.1 | 1 | 4.9 | 65 | **2 of 223** |
+
+**Yes, and the rule is holders who are citizens of the state, floored above
+46.** Three things in that table are worth keeping.
+
+The holder count, which is otherwise the whole result, does **nothing** here:
+both items saturate the log-scaled bonus, and the bad pick keeps its lead
+over all 223 shortlists. A signal that carries a stage can be blind to the
+case the stage exists for.
+
+The floor is genuinely determined rather than picked. Ordered by citizens of
+the state, the class-like items run … `Q4657217` municipal executive 54,
+`Q486839` member of parliament 46, `Q212071` rector 44 …, so the rule needs a
+floor above 46; the grid says it degrades above 100. The two constraints
+intersect on 50, and the grid's own plateau would have been equally happy
+with 25 — where the rule fires on nothing and the bad pick outranks the good
+one in 202 shortlists out of 223, at an MRR two ten-thousandths lower.
+**The aggregate metric is blind to the failure this increment was built to
+prevent**, which is the third time in this loop that a defect was not found
+by a test.
+
+### The dates signal: half of it pays and half of it is destructive
+
+The design said an abolished office should be boosted for a tenure that
+ended before it and penalised for one that started after. Measured as two
+halves, over the whole `holders + class` configuration:
+
+| date signal | aggregate | `vocab_overlap` |
+|---|---|---|
+| off | 0.679 / 59.8% | 0.790 / 70.4% |
+| conflict penalty only | 0.680 / 59.8% | 0.791 / 70.4% |
+| fit boost only | 0.614 / 46.8% | 0.708 / 54.0% |
+| both, as designed | 0.614 / 46.8% | 0.709 / 54.0% |
+
+The boost costs 0.08 of MRR and **16 points of top-1**. The mechanism is
+plain once it is stated: an inception that precedes a tenure is true of
+almost every office that has existed for a while, so "boost a compatible
+office" is an *is-old* bonus, handed to the twenty wrong old candidates as
+freely as to the right one. The conflict penalty is specific — it fires only
+where the office demonstrably did not exist — and is worth about a
+thousandth.
+
+Shipped as the penalty alone, with `WEIGHTS["date_fit"] = 0.0` and the
+`date-fit` tag still emitted, because the observation is worth showing a
+model even when it is worth nothing to an ordering. This is the stage A
+resolution again: keep the half that pays, keep the measurement of the half
+that does not.
+
+### The named crowders, verified rather than assumed
+
+The failure analysis named six items that most often push a correct answer
+down. Mean rank across the shortlists each appears in, and how often each
+reaches the top three:
+
+| item | shortlists | mean rank before | after | top-3 before | after |
+|---|---|---|---|---|---|
+| `Q110408550` Minister of Industry | 374 | 6.7 | 9.4 | 133 | 43 |
+| `Q110409158` Minister of Commerce and Travel | 383 | 7.2 | 10.1 | 104 | 43 |
+| `Q110414308` Minister for Economic Policy and Development | 386 | 6.6 | 12.3 | 104 | 9 |
+| `Q110420088` ministr hospodářství ČR | 393 | 6.4 | 10.5 | 86 | 42 |
+| `Q101241090` ambassador of Saudi Arabia to Czechia | 128 | 8.7 | 11.0 | 16 | **0** |
+| `Q486839` member of parliament | 445 | 8.4 | 10.1 | 10 | 5 |
+
+All six are demoted and none is filtered; every one is still offered, tagged.
+The four ministries carry 8, 8, 1 and 2 holders, so the holder count alone
+answers them, exactly as predicted.
+
+### Three things that contradict what was written before
+
+**An inbound mission is identified by `P17`, not by `P1001`.** Of the 64
+ambassadorships in the table only 9 carry a jurisdiction at all, and it is
+the country claim that holds the receiving state: "ambassador of Poland to
+the Czech Republic" is `P17` = the receiving state, "ambassador of the Czech
+Republic to the United Kingdom" is `P17` = the United Kingdom. Reading the
+jurisdiction with the country as its fallback splits 34 inbound missions from
+30 outbound ones, which is the order of magnitude `wd/gazetteer.py` measured
+by hand (29 of 194). One item is caught wrongly by it and is a known wart: a
+permanent representation to a supranational body carries its *sending*
+state's `P17`.
+
+**`P463 member of` does occur in this corpus.** Four items take it as their
+modal scoping qualifier, `Q8191099` member among them, which is what the
+pilot's reading of the top thirty items said. A later note claiming it does
+not occur is wrong.
+
+**The modal qualifier is not a scoping qualifier without a deny list.** Taken
+over everything but the dates, the modal qualifier of fifty positions is
+`P1365 replaces` — a fact about whom the holder took over from, not about
+which office this is. `NON_SCOPING_QUALIFIERS` therefore excludes the
+succession, end-cause, term-length and appointed-by properties as well as the
+dates, and the column then reads as its name promises: `P2389` organisation
+directed on 14 items, `P1001` jurisdiction on 13, `P5054` member of cabinet
+on 12, `P463` on 4, `P2937` parliamentary term on the Chamber seat. A column
+that answered `P1365` would have been emitted by increment 7 as the qualifier
+to write, and it would have written something untrue.
+
+### The tag census over the 343 rows
+
+`not_office` 25, `unheld` 43, `abolished` 13, class-like 71 — of which
+`generic-by-convention` 10 and `abstract` 61 — `inbound-diplomatic` 34,
+`diplomatic` 30, `foreign-scoped` 41. Nothing is filtered by any of them.
+
 ## What poliloom does (read 2026-09-20)
 
 `~/Code/poliloom` is the OpenSanctions community tool with the same two-stage
@@ -1064,6 +1305,12 @@ The floor and the "≥ 3" are the two constants this increment exists to
 measure: the bench says whether `Q486839` drops and `Q108899569` stays. If a
 mechanical rule cannot separate them on Czechia, that is the finding, and the
 scoping-qualifier tally from the pilot's own items is the next signal to try.
+
+**Done, and the measurement section above supersedes this table in three
+places**: the abolished row's boost is measured destructive and ships at zero
+weight, `not_office` is a signal of its own rather than an always-on penalty,
+and an inbound mission is recognised by `P17` with `P1001` preferred where it
+exists rather than by `P1001` alone.
 
 ### Increment 5: the second turn
 
