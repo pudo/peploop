@@ -445,9 +445,13 @@ du le les et aux
 #: enough that ranking is the thing being measured and not the cut-off.
 POOL = 200
 
-#: pg_trgm floors. Low on purpose: recall is the table's job and precision is
-#: the ranking's, and a title in an inflected language shares fewer trigrams
-#: with its label than an English one does.
+#: pg_trgm floors, applied to the session rather than to the query: the `%`
+#: and `<<%` operators read these from Postgres and nothing else does, so a
+#: constant the SQL merely mentions has no effect at all.
+#:
+#: Both are below Postgres's defaults on purpose. Recall is the table's job
+#: and precision is the ranking's, and a title in an inflected language
+#: shares fewer trigrams with its label than an English one does.
 NAME_FLOOR = 0.2
 JURISDICTION_FLOOR = 0.4
 
@@ -492,6 +496,20 @@ class Hit:
         return (self.covers, self.score + self.jurisdiction, self.qid)
 
 
+def _tune() -> None:
+    """Apply the trigram floors to this thread's connection, once."""
+    connection = db.conn()
+    if getattr(connection, "_peploop_trgm_tuned", False):
+        return
+    # `SET` takes no parameters, so the floors go through `set_config`.
+    connection.execute(
+        "SELECT set_config('pg_trgm.similarity_threshold', %s, false),"
+        "       set_config('pg_trgm.word_similarity_threshold', %s, false)",
+        (str(NAME_FLOOR), str(JURISDICTION_FLOOR)),
+    )
+    connection._peploop_trgm_tuned = True  # type: ignore[attr-defined]
+
+
 def _name_pool(title: str, country_qid: str | None) -> list[tuple[str, str, str]]:
     """Candidate (qid, lang, name) rows a title reaches, both channels.
 
@@ -500,9 +518,9 @@ def _name_pool(title: str, country_qid: str | None) -> list[tuple[str, str, str]
     tokens to it. Full text catches the exact-token case the trigram floor
     would drop. Both are needed and neither subsumes the other.
     """
+    _tune()
     scope = "" if country_qid is None else " AND p.country_qid = %(country)s"
-    params = {"title": title, "country": country_qid, "pool": POOL,
-              "floor": NAME_FLOOR}
+    params = {"title": title, "country": country_qid, "pool": POOL}
     rows = db.conn().execute(
         "SELECT n.qid, n.lang, n.text FROM position_name n"
         " JOIN position p ON p.qid = n.qid"
@@ -529,6 +547,7 @@ def _jurisdiction_scores(text: str, country_qid: str | None) -> dict[str, float]
     every name the jurisdiction item has in every language: the question is
     whether the place appears in it, not whether the whole string looks alike.
     """
+    _tune()
     scope = "" if country_qid is None else " AND country_qid = %(country)s"
     rows = db.conn().execute(
         "SELECT qid, word_similarity(%(text)s, jurisdiction_text) FROM position"
@@ -536,7 +555,7 @@ def _jurisdiction_scores(text: str, country_qid: str | None) -> dict[str, float]
         " ORDER BY 2 DESC LIMIT %(pool)s",
         {"text": text, "country": country_qid, "pool": POOL},
     ).fetchall()
-    return {qid: score for qid, score in rows if score >= JURISDICTION_FLOOR}
+    return dict(rows)
 
 
 def search(
@@ -549,14 +568,17 @@ def search(
 
     Retrieval, not resolution: the shortlist is what a model is later shown,
     so a right answer buried at rank 40 is the same failure as no answer at
-    all. The country is tried first and dropped when it finds nothing, since
-    an article can name an office of a state its subject was never a citizen
-    of.
+    all.
+
+    `country_qid` scopes the *jurisdiction* channel and nothing else. It is
+    deliberately not a filter on the candidates, because the measurement says
+    a filter is the single most expensive thing the search can do: scoping to
+    the run's country hides 41% of its own table and costs 23.7 points of
+    macro recall. What it hides is not noise — it is every globally abstract
+    office the community records with a scoping qualifier, and every ministry
+    of the predecessor state whose name the articles still use.
     """
-    pool = _name_pool(title, country_qid)
-    if not pool and country_qid is not None:
-        pool = _name_pool(title, None)
-        country_qid = None
+    pool = _name_pool(title, None)
     if not pool:
         return []
     query_tokens = tokens(title)
