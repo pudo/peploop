@@ -90,26 +90,68 @@ CREATE TABLE IF NOT EXISTS proposal (
 CREATE INDEX IF NOT EXISTS proposal_person_idx ON proposal (person_qid);
 CREATE INDEX IF NOT EXISTS proposal_status_idx ON proposal (status);
 
--- Reconciliation targets for round 2. `search_text` is label, aliases and
--- jurisdiction text joined by the loader: index expressions must be
--- IMMUTABLE, which array_to_string() over aliases is not.
-CREATE TABLE IF NOT EXISTS candidate (
-    qid               TEXT PRIMARY KEY,
-    kind              TEXT NOT NULL,
-    label             TEXT,
-    aliases           TEXT[] NOT NULL DEFAULT '{}',
+-- Reconciliation targets for round 2: one row per Wikidata position item a
+-- free-text office title may resolve to. Nothing here is a filter. An
+-- abolished office is the right answer for a tenure that ended before it, an
+-- item typed as an occupation is worth offering labelled as one, and whether
+-- an office confers political exposure is a question for a consumer, not for
+-- a lookup table. Every ranking signal is nullable and filled by its own
+-- step, so one that proves too expensive for a large country is left null
+-- there rather than blocking the load.
+CREATE TABLE IF NOT EXISTS position (
+    qid               TEXT PRIMARY KEY,   -- canonical, after any redirect
+    label             TEXT,               -- en, then mul, then whatever it has
     description       TEXT,
-    country_qid       TEXT,
-    jurisdiction_qid  TEXT,
-    jurisdiction_text TEXT,
-    search_text       TEXT,
+    country_qid       TEXT,               -- P17, first un-ended value
+    jurisdiction_qid  TEXT,               -- P1001, first un-ended value
+    jurisdiction_text TEXT,               -- names of the P1001 item, all languages
+    body_qid          TEXT,               -- P361, or P2389 for an organisation post
+    kinds             TEXT[],             -- labels of the item's own P279 parents
+    sources           TEXT[],             -- which discovery queries found it
+    not_office        BOOLEAN,            -- declared an occupation, a rank, a body
+    inception         DATE,               -- P571
+    abolished         DATE,               -- P576, P582 as fallback
+    replaces          TEXT[],             -- P1365, one hop
+    replaced_by       TEXT[],             -- P1366, one hop
+    holders           INTEGER,            -- NULL is "not counted", never zero
+    holders_at        TIMESTAMPTZ,
+    instance_count    INTEGER,            -- items whose P31 is this
+    subclass_count    INTEGER,            -- items whose P279 is this
+    held_subclasses   INTEGER,            -- of those, the ones somebody holds
+    scope_qualifier   TEXT,               -- the qualifier that makes it concrete
+    redirected_from   TEXT[],             -- QIDs merged into this one
     loaded_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS candidate_kind_idx ON candidate (kind, country_qid);
-CREATE INDEX IF NOT EXISTS candidate_label_trgm_idx ON candidate USING gin (label gin_trgm_ops);
-CREATE INDEX IF NOT EXISTS candidate_juris_trgm_idx ON candidate USING gin (jurisdiction_text gin_trgm_ops);
-CREATE INDEX IF NOT EXISTS candidate_fts_idx ON candidate USING gin (to_tsvector('simple', coalesce(search_text, '')));
+CREATE INDEX IF NOT EXISTS position_country_idx ON position (country_qid);
+CREATE INDEX IF NOT EXISTS position_juris_trgm_idx ON position USING gin (jurisdiction_text gin_trgm_ops);
+
+-- One row per name per language, rather than a TEXT[] of aliases: the article
+-- says "primátor Brna" and the item's English label is "Mayor of Brno", so the
+-- language a name is in is part of the answer to which name matched.
+CREATE TABLE IF NOT EXISTS position_name (
+    qid   TEXT NOT NULL REFERENCES position (qid) ON DELETE CASCADE,
+    lang  TEXT NOT NULL,
+    text  TEXT NOT NULL,
+    alias BOOLEAN NOT NULL DEFAULT false,
+    PRIMARY KEY (qid, lang, text)
+);
+
+-- Trigram for inflection and word order, `simple` full text for exact tokens.
+-- No stemming configuration would be right: the names are in every language
+-- the item has one in.
+CREATE INDEX IF NOT EXISTS position_name_trgm_idx ON position_name USING gin (text gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS position_name_fts_idx ON position_name USING gin (to_tsvector('simple', text));
+CREATE INDEX IF NOT EXISTS position_name_qid_idx ON position_name (qid);
+
+-- The `P31`/`P279` edges of everything the closure has walked, so a second
+-- country does not re-fetch the class hierarchy above the first one. Seeds
+-- are always re-read live; only the stable ancestry is served from here.
+CREATE TABLE IF NOT EXISTS type_edge (
+    qid        TEXT PRIMARY KEY,
+    targets    TEXT[] NOT NULL DEFAULT '{}',
+    fetched_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
 -- Added after the CREATE above, because schema.sql is applied wholesale to a
 -- database that already holds a seeded run.

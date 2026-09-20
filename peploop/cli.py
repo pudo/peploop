@@ -16,7 +16,7 @@ from typing import Any
 import click
 
 from peploop import apply as applying
-from peploop import db, wikidata, wikipedia
+from peploop import db, positions, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import propose as proposals
 from peploop import render as rendering
@@ -511,6 +511,69 @@ def dump(limit: int, qid: Sequence[str]) -> None:
         count += 1
         click.echo(f"{path} ({len(body)} chars sent, {bad_quotes} bad quotes)")
     click.echo(f"{count} dumps written")
+
+
+@cli.command("load-positions")
+@click.option("--country", required=True, help="ISO code of the country to load.")
+@click.option(
+    "--source",
+    "sources",
+    multiple=True,
+    type=click.Choice(positions.SOURCES),
+    help="Run only these discovery queries instead of all three.",
+)
+def load_positions(country: str, sources: Sequence[str]) -> None:
+    """Load one country's position items into the reconciliation table."""
+    started = time.monotonic()
+    counts = positions.load_country(
+        country, sources or positions.SOURCES, log=click.echo
+    )
+    click.echo(
+        f"loaded {counts['loaded']} positions, {counts['names']} names"
+        f" in {time.monotonic() - started:.0f}s"
+    )
+
+
+@cli.command("position-stats")
+@click.option("--country", help="Report on one country instead of the whole table.")
+def position_stats(country: str | None) -> None:
+    """Report what the position table holds, per discovery source."""
+    where, params = "", []
+    if country:
+        where = " WHERE country_qid = %s"
+        params = [positions.country_qid(country)]
+    total = db.conn().execute(
+        f"SELECT count(*) FROM position{where}", params
+    ).fetchone()[0]
+    click.echo(f"positions:        {total}")
+    click.echo(
+        "names:            "
+        + str(db.conn().execute("SELECT count(*) FROM position_name").fetchone()[0])
+    )
+    click.echo(
+        "type edges cached: "
+        + str(db.conn().execute("SELECT count(*) FROM type_edge").fetchone()[0])
+    )
+    click.echo("\nby source set:")
+    rows = db.conn().execute(
+        f"SELECT array_to_string(sources, '+'), count(*) FROM position{where}"
+        " GROUP BY 1 ORDER BY 2 DESC",
+        params,
+    )
+    for label, count in rows:
+        click.echo(f"  {label or '(none)':<24} {count}")
+    click.echo("\nflags:")
+    rows = db.conn().execute(
+        f"SELECT count(*) FILTER (WHERE not_office),"
+        f" count(*) FILTER (WHERE abolished IS NOT NULL),"
+        f" count(*) FILTER (WHERE jurisdiction_qid IS NOT NULL),"
+        f" count(*) FILTER (WHERE holders IS NOT NULL) FROM position{where}",
+        params,
+    ).fetchone()
+    for name, count in zip(
+        ("not_office", "abolished", "has jurisdiction", "holders counted"), rows
+    ):
+        click.echo(f"  {name:<24} {count}")
 
 
 @cli.command()

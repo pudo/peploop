@@ -1,28 +1,87 @@
-"""Read items and revisions from the Wikidata action API.
+"""Read items, revisions and query results from Wikidata.
 
 Items are state, so nothing here is cached by age: `fetch_items` always goes
 to the network and the caller stores what comes back in the `item` table,
 keyed by revision. Two API quirks are handled rather than worked around: a
 transient error can arrive inside an HTTP 200 body, and a merged item comes
-back under the QID it was merged into.
+back under the QID it was merged into. The query service has a third of its
+own, and `sparql` handles that one.
 """
 
-import time
-from collections.abc import Iterable
+import json
+from collections.abc import Iterable, Sequence
 from typing import Any
+import time
 
-from peploop import http
+from peploop import db, http
 
 WD_API = "https://www.wikidata.org/w/api.php"
+SPARQL_API = "https://query.wikidata.org/sparql"
 CHUNK_SIZE = 50
 MAX_ATTEMPTS = 3
 ENTITY_PROPS = "info|sitelinks/urls|aliases|labels|descriptions|claims"
+
+#: A grouped query over a whole country's offices runs for a minute or two,
+#: which is longer than any action-API call is allowed to take. Measured: the
+#: class descent for a 200-office country took 98 s from this host.
+SPARQL_TIMEOUT = 300
+
+#: About 150 `VALUES` items overflow the WDQS GET URI (HTTP 414), so anything
+#: that pins a query to a list of QIDs asks in batches of this size.
+VALUES_CHUNK = 120
+
+ENTITY_URI = "http://www.wikidata.org/entity/"
 
 
 def _chunks(qids: Iterable[str]) -> Iterable[list[str]]:
     todo = list(dict.fromkeys(qids))
     for i in range(0, len(todo), CHUNK_SIZE):
         yield todo[i : i + CHUNK_SIZE]
+
+
+def values_chunks(qids: Iterable[str], size: int = VALUES_CHUNK) -> Iterable[list[str]]:
+    """Split QIDs into batches small enough for a `VALUES` block in a GET."""
+    todo = list(dict.fromkeys(qids))
+    for i in range(0, len(todo), size):
+        yield todo[i : i + size]
+
+
+def values_block(qids: Sequence[str]) -> str:
+    """Render QIDs as the body of a `VALUES` clause."""
+    return " ".join(f"wd:{qid}" for qid in qids)
+
+
+def sparql(query: str, max_age: int = 0) -> list[dict[str, str]]:
+    """Run a SPARQL query, returning string bindings with entity URIs shortened.
+
+    Reach for this when the question is about the corpus rather than about one
+    item — every office a country scopes, how many people hold each. Answers
+    are uncached by default because they are state; pass a `max_age` for the
+    things that are not, such as a class hierarchy.
+
+    Counts arrive as strings, so a caller reading `COUNT(...)` wants `int()`.
+    """
+    params = {"query": " ".join(query.split()), "format": "json"}
+    raw = http.get_text(SPARQL_API, params=params, max_age=max_age,
+                        timeout=SPARQL_TIMEOUT)
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        # WDQS reports a timeout as an "upstream request timeout" body under
+        # HTTP 200, which raise_for_status cannot see; evict it or the retry
+        # is served the same failure out of the cache for a week.
+        db.cache_drop(SPARQL_API, params)
+        raise RuntimeError(f"SPARQL non-JSON response: {raw[:80]!r}") from None
+    rows: list[dict[str, str]] = []
+    for binding in data["results"]["bindings"]:
+        row = {}
+        for var, val in binding.items():
+            value = val["value"]
+            if val["type"] == "uri" and value.startswith(ENTITY_URI):
+                value = value.rsplit("/", 1)[1]
+            row[var] = value
+        rows.append(row)
+    return rows
 
 
 def fetch_items(qids: Iterable[str], props: str = ENTITY_PROPS) -> dict[str, dict[str, Any]]:

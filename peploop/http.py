@@ -33,6 +33,10 @@ HOST_RATES = {
     "www.wikidata.org": 4.0,
     "wikipedia.org": 8.0,
     "petscan.wmcloud.org": 0.5,
+    # The query service is a shared analytics cluster, not an API: one at a
+    # time. Named in full because the suffix fallback below would not find it
+    # — only `www.wikidata.org` is a key, `wikidata.org` is not.
+    "query.wikidata.org": 1.0,
 }
 DEFAULT_RATE = 2.0
 
@@ -93,10 +97,19 @@ def session() -> Session:
     return sess
 
 
-def get(url: str, params: dict[str, Any] | None = None) -> Response:
-    """GET a URL through the rate limiter, raising for an error status."""
+def get(
+    url: str, params: dict[str, Any] | None = None, timeout: int | None = None
+) -> Response:
+    """GET a URL through the rate limiter, raising for an error status.
+
+    `timeout` overrides the session default for one request. A SPARQL query
+    that groups over a whole country legitimately runs longer than any API
+    call does, so the endpoint that needs it asks for it rather than the
+    whole session waiting that long for a 404.
+    """
     _pacer(url).take()
-    res = session().get(url, params=params)
+    kwargs: dict[str, Any] = {} if timeout is None else {"timeout": timeout}
+    res = session().get(url, params=params, **kwargs)
     res.raise_for_status()
     return res
 
@@ -112,20 +125,26 @@ def post(url: str, data: dict[str, Any]) -> Response:
 
 
 def get_text(
-    url: str, params: dict[str, Any] | None = None, max_age: int = CACHE_MAX_AGE
+    url: str,
+    params: dict[str, Any] | None = None,
+    max_age: int = CACHE_MAX_AGE,
+    timeout: int | None = None,
 ) -> str:
     """GET a URL as text, via `http_cache`. `max_age=0` skips the cache both ways."""
     cached = db.cache_get(url, params, max_age)
     if cached is not None:
         return cached
-    text = get(url, params=params).text
+    text = get(url, params=params, timeout=timeout).text
     if max_age > 0:
         db.cache_put(url, params, text)
     return text
 
 
 def get_json(
-    url: str, params: dict[str, Any] | None = None, max_age: int = CACHE_MAX_AGE
+    url: str,
+    params: dict[str, Any] | None = None,
+    max_age: int = CACHE_MAX_AGE,
+    timeout: int | None = None,
 ) -> Any:
     """GET a URL and parse it as JSON, via `http_cache`."""
-    return json.loads(get_text(url, params=params, max_age=max_age))
+    return json.loads(get_text(url, params=params, max_age=max_age, timeout=timeout))
