@@ -93,6 +93,9 @@ def main() -> None:
                         default=positions.HELD_SUBCLASS_FLOOR)
     parser.add_argument("--convention-floor", type=int,
                         default=positions.CONVENTION_FLOOR)
+    parser.add_argument("--holder-scope", default="local",
+                        choices=positions.HOLDER_SCOPES,
+                        help="Whose holder count the bonus reads.")
     parser.add_argument("--json", action="store_true",
                         help="Print the four headline slices as one JSON line.")
     args = parser.parse_args()
@@ -131,6 +134,7 @@ def main() -> None:
             held_subclass_floor=args.held_subclass_floor,
             convention_floor=args.convention_floor,
             pool=args.pool,
+            holder_scope=args.holder_scope,
         )
         if not hits:
             empty += 1
@@ -178,6 +182,7 @@ def main() -> None:
         print(json.dumps({
             "signals": list(signals),
             "pool": args.pool,
+            "holder_scope": args.holder_scope,
             "held_subclass_floor": args.held_subclass_floor,
             "convention_floor": args.convention_floor,
             "aggregate": slice_of(gold_ranks),
@@ -188,7 +193,7 @@ def main() -> None:
         return
 
     print(f"fixture: {path.name}, {len(rows)} titles, limit {args.limit}, "
-          f"pool {args.pool}, "
+          f"pool {args.pool}, holders {args.holder_scope}, "
           f"signals {list(signals) or 'none'}, "
           f"country {'global' if country_qid is None else country_qid}, "
           f"jurisdiction {'off' if args.no_jurisdiction else 'on'}")

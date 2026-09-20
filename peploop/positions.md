@@ -1668,3 +1668,126 @@ size in the table above produces 0.699 on any slice. The projection was made
 from a probe rather than from the bench and is superseded by these rows; it
 is recorded here because it was quoted as the target this repair would hit,
 and it is 1.0 point of recall optimistic.
+
+## The holder count is a local quantity, and filling the map is the repair (2026-09-20)
+
+Stage E, second of three. Increment 4 scored a candidate on `position.holders`
+— a count of everyone in Wikidata recorded in that office — and treated it as
+evidence that the item is the one *this* country's community uses. On a
+one-country table the two readings coincide, because the largest counts in
+the table are that country's. With a second country loaded they part company,
+and the bench could see it: **a foreign legislature's seat with 4,694 holders,
+in the table only because the second country's citizen lane imported it, was
+rank 1 for 74 of 746 Czech gold queries.**
+
+### Two changes, and only one of them is code
+
+`holder_count(row, state_qid, scope)` is now what the bonus reads, and the
+`local` default takes the state's own entry in `holders_by_country`. A row
+with no entry for that state gets **silence** — no bonus, no penalty — which
+is what every other nullable signal column already means by `NULL`, and
+explicitly not the global count. `unheld` moves with it, so the tag now says
+"nobody the state asked about holds this" rather than "nobody anywhere does";
+an office held only abroad earns it, which is the point. The convention floor
+keeps reading the map strictly, under every scope, because 50 is a measured
+number of *this state's* citizens.
+
+The other change is data. `fill_counts` writes `holders_by_country` only
+under the state it ran with, so the 718 rows the second country's load
+created carried a key for that country and none for the first — and those
+are exactly the rows a search of the first country must not credit. The new
+`fill_local_holders` asks the one state-scoped query for the rows that lack
+the key, 60 QIDs a chunk. Twelve chunks, 1,005 s wall clock, per-chunk 7 s to
+427 s with no relation to the chunk's contents — the variance is the query
+service's load, not ours. It is reached as
+`position-signals --country <cc> --local-holders`.
+
+### What it is worth
+
+Czech bench, 1,061 rows, pool 200, `--signals all`, only `--holder-scope`
+moving. Every row below is measured **after** the backfill.
+
+| scope | aggregate recall@15 | MRR | top-1 | `vocab_overlap` MRR | top-1 |
+|---|---|---|---|---|---|
+| `global` (increment 4) | 82.17% | 0.6160 | 53.08% | 0.7127 | 61.94% |
+| `local_or_global` | 84.18% | 0.7150 | 66.09% | 0.8337 | 78.37% |
+| **`local`, adopted** | **84.18%** | **0.7150** | **66.09%** | **0.8337** | **78.37%** |
+| `local_or_zero` | 84.18% | 0.7150 | 66.09% | 0.8337 | 78.37% |
+| `--signals none` | 79.36% | 0.4643 | 31.37% | 0.5341 | 36.33% |
+
+**+0.099 of MRR and 13.0 points of top-1** on the aggregate, +0.121 and
+**+16.4 points** on the primary slice, and two points of recall as a
+by-product, because re-ordering inside the pool changes which rows survive
+the cut to fifteen. This is the largest single movement measured since the
+holder count itself was added, and it is bigger than the whole of increments
+4's four small signals put together by an order of magnitude.
+
+The `global` row is **bit-identical** to the same run before the backfill —
+0.6159590707177838 either way — so nothing here is the backfill changing what
+some other rule saw. The entire delta is the scope of one count.
+
+### The three scopes are indistinguishable, and that is the finding
+
+`local`, `local_or_global` and `local_or_zero` score the same to every
+decimal. Once every row has a key for the state being searched, there is no
+row for the three rules to disagree about: they differ only in what they say
+about a *missing* count, and after a backfill nothing is missing.
+
+So the repair is the **data**, not the rule. Stage D measured
+`local_or_global` at +0.006 MRR and correctly refused to conclude it was
+worthless; the reason it measured nothing is now visible, which is that the
+fallback fired on precisely the 718 rows that caused the damage and turned
+the rule back into the one it was replacing.
+
+The choice of `local` over the other two is therefore **not** a measured one
+on this table, and is recorded as a principled one: it is the only rule that
+does not assert a number nobody took. The measurement that distinguishes them
+is a table with an incomplete map — which is exactly the configuration the
+next section loads, a country whose signals are deliberately left null.
+
+### The crowders, before and after
+
+Rank-1 occupant of the 746 Czech gold shortlists, pool 200:
+
+| item | `global` | `local` | its Czech holders |
+|---|---|---|---|
+| chamber of deputies seat | 252 | **333** | — |
+| *foreign lower-house seat* | **74** | **0** | 0 |
+| senate seat | 38 | 47 | — |
+| capital-city assembly seat | 37 | 44 | — |
+| `Q4657217` municipal executive | 15 | 0 | 54 |
+| `Q581817` deputy mayor (generic) | 14 | 0 | — |
+| deputy mayor *of a place in the country* | 0 | 15 | — |
+| `Q140686` chairperson | 18 | 18 | 165 |
+
+The foreign seat vanishes outright: its Czech count came back 0, so it now
+earns `unheld` rather than a saturated bonus. The two generic items that
+survive — chairperson and deputy chairperson — survive on 165 and 206 Czech
+holders each, which is the signal working rather than failing. And the
+generic "deputy mayor" is replaced at rank 1 by the country's own named
+deputy-mayoralty item, which is the substitution the whole ranking exists to
+make.
+
+**The decisive case of increment 4 still resolves the same way.** `Q486839`
+member of parliament sits above `Q108899569` member of a municipal council in
+2 of the 341 orderings that hold both, against 3 under `global` — the local
+item keeps winning, and the convention floor of 50 is untouched by the change
+(the generic item has 46 Czech holders and the local one 1,260).
+
+### The pool curve moves, and 200 stays
+
+Re-run under `local`, because a re-ranking change can move where depth stops
+paying:
+
+| pool | 15 | 50 | 100 | 200 | 400 | 2,000 |
+|---|---|---|---|---|---|---|
+| aggregate recall | 79.36% | 83.11% | 83.91% | **84.18%** | 84.58% | 84.45% |
+| MRR | 0.7051 | 0.7136 | 0.7148 | **0.7150** | 0.7152 | 0.7151 |
+| top-1 | 65.82% | 66.09% | 66.09% | **66.09%** | 66.09% | 66.09% |
+
+The plateau is less flat than under `global`: 400 finds three more rows than
+200 and 2,000 gives one of them back. A curve that is not monotone in its own
+parameter is noise rather than depth, 0.4 points is three rows of 746, and
+MRR and top-1 do not move at all past 100. **200 is kept**, because raising it
+to chase three rows that a deeper pool loses again is tuning toward the
+number, which this file forbids.

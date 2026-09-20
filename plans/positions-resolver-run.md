@@ -61,7 +61,7 @@ ordering inside the fifteen, and the quality of the test set.
 | B | Increment 4: ranking signals | done, **resolved** | One signal carries the stage: a holder count is worth 0.18 MRR and 32 points of top-1 on the primary slice, the other four together 0.012 and 1.4. The date *boost* is measured destructive and ships at zero weight. `Q486839` and `Q108899569` are separated mechanically, by a floor above 46 in-country holders. |
 | C | Increment 5: the second turn | **blocked**, deferred | No `ANTHROPIC_API_KEY` on this host: no `.envrc`, no `.env`, nothing in the shell profile. The build is reordered so C's artefacts are written but never run. |
 | D | Increment 6: Poland, then Spain | done, **resolved with a defect** | Poland loads in 457 s, 82% of it discovery. Spain does not: its 13,300-row response cannot be read to the end (three attempts, `ChunkedEncodingError`), though the query itself finishes. Czech recall falls 81.6% to 79.4% on Poland's rows alone, and filling those rows' holder counts costs a further 0.08 MRR and 11 points of top-1. Signals project to 6.3–10.9 h for a Spain-sized table. |
-| E | Repair what scale found | in progress | 1 of 3 done. Retrieval depth: the shortlist was cut in SQL on the text score before any signal ran. A 200-row pool re-ranked down to 15 buys 2.8 points of aggregate recall (79.4% → 82.2%) for 14% of the query's time, and is worth exactly nothing with `--signals none`, which is the finding. |
+| E | Repair what scale found | in progress | 2 of 3 done. Depth: a 200-row pool re-ranked to 15 buys 2.8 points of aggregate recall and nothing at all without a re-ranker. Local holder scoring: **+0.099 MRR and 13 points of top-1**, the largest move since the holder count itself — and the repair turns out to be the backfill rather than the rule, since all three readings of a missing count score identically once none is missing. |
 | F | Increment 7: wire into propose | pending | |
 
 ### A. Rebuild the silver fixture
@@ -350,6 +350,42 @@ Three things the curve settled, in `positions.md`'s retrieval-depth section:
 Stage D's projection of "83.2% recall / 0.699 MRR" for a top-200 pool does
 **not** reproduce; the measured pair is 82.2% / 0.616, and no pool size
 gives 0.699 on any slice. The projection came from a probe, not the bench.
+
+#### E2. The holder count, counted where the search is (2026-09-20): done
+
+Two changes, and the code is the smaller one. `holder_count()` reads
+`holders_by_country[state]` for the bonus and `unheld`, with **silence** for
+a row nobody has counted there — not the global count, which is what
+increment 4 scored and what put a foreign lower-house seat with 4,694
+holders at rank 1 for 74 of 746 Czech queries. `fill_local_holders`
+(`position-signals --local-holders`) then fills the key for the rows another
+country's load created: 718 rows, 12 chunks of 60, **1,005 s**, per chunk
+7 s to 427 s with no relation to its contents.
+
+| scope | aggregate | `vocab_overlap` |
+|---|---|---|
+| `global` (increment 4) | 82.2% / 0.616 / 53.1% | 93.9% / 0.713 / 61.9% |
+| **`local`, adopted** | **84.2% / 0.715 / 66.1%** | **95.0% / 0.834 / 78.4%** |
+| `--signals none` | 79.4% / 0.464 / 31.4% | 91.3% / 0.534 / 36.3% |
+
+The `global` row is bit-identical before and after the backfill, so the
+whole delta is the scope of one count and nothing else moved.
+
+Three things to carry forward:
+
+- **`local`, `local_or_global` and `local_or_zero` score identically** to
+  every decimal, because after the backfill no row has a missing count for
+  them to disagree about. The repair is the data. Stage D's +0.006 for
+  `local_or_global` was measuring a fallback firing on exactly the rows that
+  caused the damage; `local` is adopted on the principle that it is the only
+  rule that asserts no number nobody took, not on a measured margin.
+- **The decisive case of increment 4 survives.** The generic parliament item
+  leads the local council item in 2 of 341 orderings holding both, against 3
+  before; the convention floor of 50 is untouched (46 local holders against
+  1,260).
+- **The pool curve is flatter than it looked.** Under `local`, 400 finds
+  three more rows than 200 and 2,000 gives one back, with MRR and top-1
+  static past 100. Non-monotone in its own parameter is noise; 200 stays.
 
 ### F. Increment 7: wire into propose
 

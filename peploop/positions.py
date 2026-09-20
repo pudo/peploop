@@ -695,6 +695,67 @@ def fill_counts(
     return timings
 
 
+#: Chunk size for the backfill below. Half of `VALUES_CHUNK`, and not for the
+#: URI limit: a whole-table pass over the country-holder query is the one
+#: request stage D could not get an answer to, and the query service refused
+#: it with 504s rather than a 414. A smaller chunk is the repo's standing
+#: answer to a query that times out — bisect it — and it costs only requests.
+BACKFILL_CHUNK = 60
+
+
+def fill_local_holders(
+    state_qid: str,
+    only_missing: bool = True,
+    log: Any = lambda _m: None,
+) -> int:
+    """Count one state's citizens among the holders of every position.
+
+    Reach for this after loading a second country. `fill_counts` writes
+    `holders_by_country` only under the state it ran with, so every row a
+    later country's load created carries that country's key and none for the
+    countries already in the table — and those rows are exactly the ones a
+    search of an earlier country must not credit with a borrowed count. This
+    fills the hole without re-running the four whole-corpus queries beside
+    it, which are state-independent and already answered.
+    """
+    sql = "SELECT qid FROM position"
+    params: list[Any] = []
+    if only_missing:
+        # `jsonb_exists` rather than the `?` operator: psycopg reads a bare
+        # `?` in a query as nothing in particular and Postgres then wants
+        # `??`, which is a different error again. The function is the same
+        # operator without the quoting argument.
+        sql += (" WHERE holders_by_country IS NULL"
+                " OR NOT jsonb_exists(holders_by_country, %s)")
+        params = [state_qid]
+    sql += " ORDER BY qid"
+    qids = [qid for (qid,) in db.conn().execute(sql, params).fetchall()]
+    if not qids:
+        log(f"{state_qid}: nothing to backfill")
+        return 0
+    counts: dict[str, int] = {}
+    chunks = list(wikidata.values_chunks(qids, size=BACKFILL_CHUNK))
+    for index, chunk in enumerate(chunks, 1):
+        started = time.monotonic()
+        rows = wikidata.sparql(
+            HOLDERS_COUNTRY_QUERY
+            % {"values": wikidata.values_block(chunk), "country": state_qid},
+            max_age=0,
+        )
+        for row in rows:
+            counts[row["pos"]] = counts.get(row["pos"], 0) + int(row["n"])
+        log(f"{state_qid}: chunk {index}/{len(chunks)}, {len(chunk)} items in "
+            f"{time.monotonic() - started:.0f}s")
+    with db.conn().cursor() as cur:
+        cur.executemany(
+            "UPDATE position SET holders_by_country ="
+            " coalesce(holders_by_country, '{}'::jsonb) || %s WHERE qid = %s",
+            [(Jsonb({state_qid: counts.get(qid, 0)}), qid) for qid in qids],
+        )
+    log(f"{state_qid}: {len(qids)} rows given a local count")
+    return len(qids)
+
+
 def fill_scope_qualifiers(log: Any = lambda _m: None) -> dict[str, str]:
     """Record the qualifier property the corpus uses to make an office concrete.
 
@@ -804,6 +865,34 @@ HELD_SUBCLASS_FLOOR = 3
 #: item that state's community uses on purpose. Also measured.
 CONVENTION_FLOOR = 50
 
+#: How the holder bonus reads a count when a state is being searched. The
+#: default is the only one of these that is a claim about the state asking:
+#: `holders` is a count over the whole of Wikidata, and scoring it as though
+#: it said something about the state being searched is what put one foreign
+#: legislature's seat — 4,694 holders, and in the table only because a
+#: *second* country's citizen lane imported it — at rank 1 for 74 of the
+#: first country's 746 gold queries. The other three scopes exist because
+#: the ablation between them is the measurement, and are reproducible from
+#: the bench's `--holder-scope`.
+#:
+#: `local`
+#:     The state's own count, and **silence** when the map has no key for
+#:     this state. Silence rather than the global count: an absent key means
+#:     nobody has counted here, which is the same thing every other nullable
+#:     signal column means by `NULL`, and it is the reading that keeps a
+#:     foreign office reachable without letting it win on a borrowed number.
+#: `global`
+#:     What increment 4 shipped. Correct only while the table holds one
+#:     country, because then the largest counts are that country's.
+#: `local_or_global`
+#:     The repair stage D attempted. It cannot be right: the rows with no
+#:     local key are exactly the rows another country's load created, so the
+#:     fallback fires on precisely the candidates that need discouraging.
+#: `local_or_zero`
+#:     Missing key read as "held by nobody here", which earns the `unheld`
+#:     penalty. Asserts a count nobody took.
+HOLDER_SCOPES = ("local", "global", "local_or_global", "local_or_zero")
+
 
 def _year(value: Any) -> int | None:
     """The year of a date, however coarse the value that carries it.
@@ -841,6 +930,33 @@ def date_verdict(
     return None
 
 
+def holder_count(
+    row: dict[str, Any], state_qid: str | None, scope: str = "local"
+) -> int | None:
+    """How many holders the ranking may credit this candidate with.
+
+    Reach for this instead of `row["holders"]` whenever the number is about
+    to become a *bonus*: a holder count is evidence that the community whose
+    office this is uses the item, and that community is the one being
+    searched. `None` means nobody has counted for this state, and a caller
+    owes it silence rather than a substitute.
+
+    With no state to be local to — a global search — the whole-corpus count
+    is the only reading there is, and every scope returns it.
+    """
+    holders = row.get("holders")
+    if state_qid is None or scope == "global":
+        return holders
+    local = (row.get("holders_by_country") or {}).get(state_qid)
+    if local is not None:
+        return local
+    if scope == "local_or_global":
+        return holders
+    if scope == "local_or_zero":
+        return 0
+    return None
+
+
 def tags_for(
     row: dict[str, Any],
     state_qid: str | None = None,
@@ -849,22 +965,25 @@ def tags_for(
     signals: Sequence[str] = SIGNALS,
     held_subclass_floor: int = HELD_SUBCLASS_FLOOR,
     convention_floor: int = CONVENTION_FLOOR,
+    holder_scope: str = "local",
 ) -> list[str]:
     """What is worth saying about a candidate, derived and never hand-listed.
 
     Every tag is shown to the model beside the row, so this is as much the
     explanation of the ordering as its cause. A tag is emitted from a column
-    that is actually filled: a `NULL` count means nobody counted, so it
-    produces silence rather than `unheld`.
+    that is actually filled: an uncounted holder count produces silence
+    rather than `unheld`.
     """
     tags: list[str] = []
     if "not_office" in signals and row.get("not_office"):
         tags.append("not-office")
 
-    holders = row.get("holders")
-    by_country = row.get("holders_by_country") or {}
-    local = by_country.get(state_qid) if state_qid else None
-    if "holders" in signals and holders == 0:
+    # Counted where the search is, so `unheld` says "nobody the state asked
+    # about holds this" and not "nobody anywhere does". A globally unheld
+    # office is locally unheld too and still earns the tag; an office held
+    # only abroad now earns it as well, which is the point of the signal.
+    local = holder_count(row, state_qid, holder_scope)
+    if "holders" in signals and local == 0:
         tags.append("unheld")
 
     if "class" in signals:
@@ -876,8 +995,13 @@ def tags_for(
             # The same shape reads two ways, and only a count of the state's
             # own holders tells them apart: an abstraction a handful of
             # people were misfiled under, or the item the state's community
-            # uses on purpose because it mints no item per place.
-            if local is not None and local >= convention_floor:
+            # uses on purpose because it mints no item per place. Strictly
+            # the map, under every holder scope: the floor above is a
+            # measured number of *this state's* citizens, and reading a
+            # global count against it would call every large class a local
+            # convention.
+            counted = (row.get("holders_by_country") or {}).get(state_qid)
+            if counted is not None and counted >= convention_floor:
                 tags.append("generic-by-convention")
             else:
                 tags.append("abstract")
@@ -911,12 +1035,16 @@ def tags_for(
 
 
 def adjustment(
-    row: dict[str, Any], tags: Sequence[str], signals: Sequence[str] = SIGNALS
+    row: dict[str, Any],
+    tags: Sequence[str],
+    signals: Sequence[str] = SIGNALS,
+    state_qid: str | None = None,
+    holder_scope: str = "local",
 ) -> float:
     """What the tags are worth, added to a base score normalised to 1.0."""
     delta = 0.0
     if "holders" in signals:
-        holders = row.get("holders")
+        holders = holder_count(row, state_qid, holder_scope)
         if holders:
             share = min(1.0, math.log10(1 + holders) / math.log10(1 + HOLDER_SATURATION))
             delta += WEIGHTS["holders"] * share
@@ -1020,6 +1148,7 @@ def search(
     held_subclass_floor: int = HELD_SUBCLASS_FLOOR,
     convention_floor: int = CONVENTION_FLOOR,
     pool: int = CANDIDATE_POOL,
+    holder_scope: str = "local",
 ) -> list[Hit]:
     """The positions an office title reaches, best first.
 
@@ -1038,6 +1167,10 @@ def search(
     recorded with a scoping qualifier and every office of the predecessor
     state, and costs 23.7 points of macro recall. As the scope of the
     holder-count signal it is worth 0.04 of MRR instead.
+
+    `holder_scope` decides whose holder count the bonus may read; the
+    default counts the state being searched and says nothing at all about a
+    candidate no query has counted there. `HOLDER_SCOPES` has the account.
 
     `pool` is how many candidates SQL hands over before the signals run.
     It is not a performance knob: the text score ties massively, so a cut
@@ -1067,10 +1200,10 @@ def search(
         qid, score = row[0], float(row[1])
         record = dict(zip(SIGNAL_COLUMNS, row[2:]))
         tags = tags_for(record, country_qid, start, end, signals,
-                        held_subclass_floor, convention_floor)
+                        held_subclass_floor, convention_floor, holder_scope)
         base = score / top
-        scored.append((base + adjustment(record, tags, signals), base, qid,
-                       tuple(tags)))
+        delta = adjustment(record, tags, signals, country_qid, holder_scope)
+        scored.append((base + delta, base, qid, tuple(tags)))
     # Stable on the text order, so a query no signal speaks to comes back in
     # exactly the order the index produced. Cut here rather than in SQL, and
     # only then look up the names: display is per shown row, so its cost is

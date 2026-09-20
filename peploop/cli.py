@@ -537,7 +537,20 @@ def load_positions(country: str, sources: Sequence[str]) -> None:
 @cli.command("position-signals")
 @click.option("--country", required=True, help="ISO code of the country to count.")
 @click.option("--skip-counts", is_flag=True, help="Only the two local signals.")
-def position_signals(country: str, skip_counts: bool) -> None:
+@click.option(
+    "--local-holders",
+    is_flag=True,
+    help="Only count this country's citizens among every position's holders,"
+         " for the rows that have no count for it yet.",
+)
+@click.option(
+    "--recount",
+    is_flag=True,
+    help="With --local-holders, re-ask for rows that already have a count.",
+)
+def position_signals(
+    country: str, skip_counts: bool, local_holders: bool, recount: bool
+) -> None:
     """Fill the ranking signals for one country's positions.
 
     Separate from the load because the counts are grouped query-service
@@ -546,6 +559,13 @@ def position_signals(country: str, skip_counts: bool) -> None:
     without blocking the rows from existing.
     """
     qid = positions.country_qid(country)
+    if local_holders:
+        # The one signal that is a statement about the country asking, and
+        # the only one worth re-running when a *different* country's load
+        # added rows: the other four are whole-corpus counts that a new
+        # country does not change the answer to.
+        positions.fill_local_holders(qid, only_missing=not recount, log=click.echo)
+        return
     if not skip_counts:
         timings = positions.fill_counts(qid, log=click.echo)
         click.echo(f"counts in {sum(timings.values()):.0f}s total")
