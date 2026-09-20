@@ -29,9 +29,10 @@ shortlist is drawn from. It has to be good at three things:
 
 ## Constraints already fixed
 
-- The table is Postgres, `pg_trgm` on label and jurisdiction text, a
-  `simple`-configuration `tsvector` over `search_text`. No search service until
-  birthplace forces the question (`design.md`, *Not in round 1*).
+- The table is Postgres and a `simple`-configuration `tsvector` over
+  `search_text`; the `pg_trgm` channels this originally also named were
+  measured and removed (§2). No search service until birthplace forces the
+  question (`design.md`, *Not in round 1*).
 - Retrieval ranks, a model decides, a mechanical gate vetoes (repo rule). The
   table does not pick; it orders. So ranking heuristics may be soft and
   approximate as long as the true item is *present* and *visible*.
@@ -116,39 +117,84 @@ anyone* is a ranking signal in its own right.
 
 ## 2. Storage and indexing: how a row becomes findable
 
-The `candidate` row already has label, aliases (all languages), description,
-`country_qid`, `jurisdiction_qid`, `jurisdiction_text`, `search_text`. What
-the search must survive:
+Settled by the ablation below, and the shape is much plainer than this
+section originally proposed. **One document per position, not one row per
+name.** `position.search_text` is a de-duplicated, sorted bag of content
+tokens drawn from every name the item carries and every name of the items it
+points at; `position.tsv` is a generated `to_tsvector('simple', search_text)`
+over it with a GIN index. That index is the whole search. The three trigram
+and per-name full-text indexes this section used to specify are gone, and
+`position_name` stays as the per-language source the document is built from
+and as the answer to *which* name matched.
 
-- **Cross-language queries.** The article says "primátor Brna"; the item's
-  labels include `cs` "primátor Brna" and `en` "Mayor of Brno". Aliases in all
-  languages in `search_text` covers this when the term exists in the article's
-  language; when it does not, the jurisdiction string is the bridge ("Brno" is
-  the same in every language). That is why `jurisdiction_text` is indexed
-  separately and why turn one asks for a jurisdiction next to the title.
-- **Inflection and word order.** `simple` tsvector does no stemming, so
-  "ministr obrany" and "ministra obrany" are different tokens. Trigram
-  similarity covers this; the FTS covers exact-token queries. Both are needed,
-  and the score should combine them.
-- **The parent trap.** `{mayor} ⊆ {mayor, brno}`: the class label is a subset
-  of the query, and a naive containment or IDF score prefers it. The rule from
-  `wd/rerank.py` applies: containment is scored one way, the candidate must
-  cover the query, never the reverse.
-- **Not-a-position rows.** If a row typed as a position is really an
-  occupation or a rank, it should still be *in* the table (the article may
-  well name it, and telling the model "this is an occupation, not an office"
-  prevents a wrong P39), but flagged.
+What each part of that is, and what it is worth:
 
-Storage questions still open are whether labels should be one row per
-(qid, lang) so search can prefer the article's language, and whether
-`description` should enter `search_text` (it disambiguates, but it also adds
-noise: every Czech mayor's description says "Czech politician").
+- **The blob beats the per-name channels by 16.9 aggregate points** — 64.1%
+  to 81.0% as shipped, 17.7 in the ablation harness. Scoring each name
+  separately and keeping the best asks "is there one string here that looks
+  like the query", which is the wrong question: an article writes the
+  office and the place in one breath, and no single label on the item has
+  both. Pooling every name of the item and of its jurisdiction, country,
+  body, kinds and succession into one document asks "how much of what the
+  article said does this item account for", which is the right one.
+- **`simple`, and a six-character prefix in place of a stemmer.** The names
+  are in every language the item has one in; Postgres ships a configuration
+  for a minority of them and none at all for the pilot's, so `simple` is the
+  only honest choice. Each token is therefore stored twice, whole and
+  clipped, and the clipped copy is what makes "ministr" reach "ministra" and
+  "Liberecký" reach "Libereckého". Worth about three points.
+- **Trigram is the wrong tool over a blob.** Measured on the same document:
+  `similarity()` 23.3% aggregate at 137 ms a query, `word_similarity()` 75.6%
+  at 225 ms, `ts_rank` 81.8% at 1.6 ms. Trigram earned its place when the
+  unit was one short name; over a document of a few thousand characters it
+  mostly measures length.
+- **The jurisdiction is query text, not a channel.** Concatenating it onto
+  the title before tokenising is worth 7.7 aggregate points over the title
+  alone. Scored as a separate trigram channel over `jurisdiction_text`, as
+  the original design had it, it contributed exactly 0.0 — the place names
+  are already in the document, and a second reading of them adds nothing.
+  `jurisdiction_text` survives as a display column and is no longer indexed.
+- **Cross-language queries** are still answered, and by the same fact as
+  before: an article naming an office in one language and an item labelled in
+  another still agree on the polity. What changed is that the bridge is a
+  *part of the document* rather than a column beside it.
+- **The parent trap is handled by the scoring itself.** `{mayor} ⊆ {mayor,
+  brno}`: the class covers one of the query's two content words and the
+  named mayoralty covers both, so the named one ranks higher without a rule.
+  The boolean `covers` that used to be the first sort key is gone — with
+  coverage scoring, covering the whole query *is* the top score.
+- **Not-a-position rows** are unchanged: still in the table, still flagged,
+  because telling the model "this is an occupation, not an office" prevents a
+  wrong P39 that dropping the row would only hide.
+
+The two storage questions this section left open are answered. Names are one
+row per (qid, lang) — kept, but for display and provenance, since the search
+no longer reads them. Descriptions are **out** of the document: measured,
+`en`/`mul` descriptions are neutral and all-language descriptions cost 1.5
+macro points, because "Czech politician" is in hundreds of documents at once.
 
 ## 3. Ranking: which candidates go first, and which last
 
-The shortlist is drawn by search score; the ranking below re-orders it before
-the model sees it, and each signal that moved a row is *shown* to the model as
-a tag, not applied silently.
+The base ranking is settled and is one line of SQL:
+`ORDER BY ts_rank(tsv, q, 0) DESC, qid`, where `q` is the query's lexemes
+OR-ed together. Because the document is a bag in which every lexeme appears
+exactly once, `ts_rank` with normalisation flag 0 over an OR-query sums to
+*the number of query terms the document matched* — it is uniform coverage,
+numerically identically so, and the fancier options were measured and are
+not worth their code:
+
+- **IDF** — weighting a rare lexeme above a common one — is worth +0.02 MRR
+  and −0.4 aggregate points against uniform coverage.
+- **Normalisation flags** 0, 4 and 32 are identical. Flags 1 and 16 (divide
+  by document length) trade +1.2 macro for −8.6 top-1, which is the wrong
+  trade for a shortlist a model reads from the top. Flags 2 and 8 are
+  catastrophic: 65% aggregate.
+- **Filtering by the run's country** costs 23.7 macro points and is gone.
+  `country_qid` stays in the signature unused, for the ranking signal below.
+
+Everything after this point is increment 4 and is *not* measured yet. Each
+signal re-orders the shortlist before the model sees it, and each one that
+moved a row is *shown* to the model as a tag rather than applied silently.
 
 **Discourage, never exclude:**
 
@@ -189,9 +235,11 @@ a tag, not applied silently.
   integer with a `counted_at`; treat null as unknown, not zero.
 - **Country match.** Row's `country_qid`/`jurisdiction_qid` equals the run's
   country or the jurisdiction turn one named (via `rigour` for countries).
-  Already in the design as "filter to the run's country first, global
-  fallback"; a filter is the strongest possible ranking and probably too
-  strong at the borders (a Czechoslovak minister for a Czech person).
+  The design's original "filter to the run's country first, global fallback"
+  is dead: measured, the filter costs 23.7 macro points, because what it
+  hides is every globally abstract office recorded with a scoping qualifier
+  and every office of the predecessor state. As a *boost* it is untested and
+  is the first thing increment 4 tries.
 - **Tracked by OpenSanctions.** `is_pep` from the prod extract. A weak
   positive: it says the item was judged a real office, not that it is *this*
   one. Non-PEP rows must not be pushed below the abstract ones by it.
@@ -601,6 +649,135 @@ was measured on a different day, and the variance is the point. The usage
 sweep was run with zavod's `P1308` arm and `Q5` guard unchanged; whether either
 matters for the set was not tested.
 
+## The flat document, ablated on the Czech pilot (2026-09-20)
+
+Increment 3 built the search §2 and §3 originally specified — a `pg_trgm`
+channel and a `simple` full-text channel per *name*, a second trigram channel
+over `jurisdiction_text`, a Jaccard token score and a boolean `covers` first
+sort key — measured it, and then measured what else the same table could
+support. It lost to something with a quarter of the code.
+
+| design                                             | macro R@15 | aggregate R@15 | MRR (macro) | top-1 |
+|----------------------------------------------------|-----------:|---------------:|------------:|------:|
+| per-name trigram + FTS, jurisdiction channel, Jaccard | 70.2%   | 64.1%          | 0.493       | 17.5% |
+| one token-bag document per position, `ts_rank`     | 77.2%      | 81.0%          | 0.560       | 40.0% |
+
+The lesson is not about Postgres. Scoring each name separately asks *is there
+one string here that looks like the query*, and no single label on the item
+carries both the office and the place that an article writes in one breath.
+Pooling the names into one document asks *how much of what the article said
+does this item account for*, which is the question retrieval was being asked.
+
+### What earns a place in the document
+
+Measured by removing it and re-running. All of these stay:
+
+| in the bag                              | why it pays |
+|-----------------------------------------|-------------|
+| the item's own labels and aliases, every language | the core; the name the article used is the one that has to match |
+| names of `P1001` jurisdiction, every language     | the cross-language bridge — a place name travels between languages largely unchanged |
+| names of `P17` country                            | offices the article names with the state rather than the polity |
+| names of `P361` / `P2389` body                    | an article often names the chamber and not the seat |
+| names of `P279` kinds                             | the generic word for the office when the item's own label is a proper name. The ablation's note reads *labels*; the loader writes every name, and the divergence below is about that |
+| `P1365` / `P1366` succession, one hop each way    | **reachability, not score** — see the caveat below |
+| each token's six-character prefix                 | ~3 points; the inflection handling, with no stemmer available |
+| the jurisdiction string concatenated onto the title | +7.7 aggregate over the title alone |
+
+### What does not, and was removed
+
+| left out                                    | measurement |
+|---------------------------------------------|-------------|
+| descriptions, any language                  | `en`/`mul` neutral; all languages −1.5 macro, −1.7 top-1. "Czech politician" is in hundreds of documents at once |
+| Wikipedia sitelink titles                   | only 297 of 2,292 carry a token the labels do not; effect exactly zero |
+| `P1448`/`P1813`/`P2561`/`P1705` monolingual names | 28 statements across 343 items. Nothing to index |
+| the other ~74 item-valued statement properties | 1,377 targets over 78 properties, 30 s of extra fetching for one small country; macro flat, MRR −0.03, and the bag 2.4× bigger |
+| `P1889 different from`                      | **never.** It is an anti-relation: it names exactly the items this one is confusable with, so indexing it teaches the search the wrong answer |
+| the jurisdiction as a trigram channel of its own | contributed exactly 0.0. The place names are already in the document |
+| `country_qid` as a candidate filter         | −23.7 macro. Removed before this ablation and not reinstated |
+
+### Scoring
+
+`ts_rank(tsv, q, 0)` over an OR-query, and nothing else. Because the document
+is a *bag* — every lexeme de-duplicated, so every frequency is 1 — `ts_rank`
+with flag 0 sums to the number of query terms the document matched. It is
+uniform coverage, numerically identically so, which is why there is no
+scoring code in Python at all.
+
+| scoring variant                       | against uniform coverage |
+|---------------------------------------|--------------------------|
+| IDF weighting                         | +0.02 MRR, −0.4 aggregate. Not worth the statistics it needs |
+| normalisation flags 0, 4, 32          | identical to each other. Flag 0 is used |
+| flags 1, 16 (divide by document length) | +1.2 macro, −8.6 top-1 — the wrong trade for a list read from the top |
+| flags 2, 8 (divide by unique-word count) | catastrophic: 65% aggregate |
+| `similarity()` over the same document | 23.3% aggregate, 137 ms a query |
+| `word_similarity()` over it           | 75.6% aggregate, 225 ms a query |
+| `ts_rank` over it                     | 81.0% aggregate, 1.8 ms a query |
+
+Trigram earned its place when the unit being compared was one short name.
+Over a document of a few thousand characters it mostly measures length.
+
+### The succession caveat, recorded so nobody quotes the number
+
+Adding `P1365 replaces` alone reads as **+15.4 top-1**, which is not a
+finding about succession. All 120 rows it improved are the single office
+`Q19803234`, which is 248 of the 532 gold rows by itself and whose `P1365`
+is `Q25265211` Czech National Council; macro recall is completely flat.
+Succession is in the document because a renamed office has to be reachable
+by the name it used to have, and for no other reason. One hop, both
+directions, non-transitive, as `wd/gazetteer.py:for_target` does — a
+transitive walk names the whole ministry lineage and dissolves the
+distinction it is there to preserve.
+
+### What the shipped version measures, and where it differs from the ablation
+
+Re-measured after the design was written back into `positions.py` and
+Czechia reloaded (343 positions, 11,567 names, 550 referenced items, 83 s):
+
+| measure                                   | before | after |
+|-------------------------------------------|-------:|------:|
+| macro recall@15 over 72 gold answers      | 70.2%  | 77.2% |
+| aggregate recall@15 over 532 gold rows    | 64.1%  | 81.0% |
+| macro MRR                                 | 0.493  | 0.560 |
+| top-1                                     | 17.5%  | 40.0% |
+| recall@15 over the 400 answerable rows    | 84.0%  | 94.0% |
+| weak rows, recall@15                      | 42.3%  | 53.2% |
+| titles retrieving nothing at all          | 1.1%   | 0.0%  |
+| a search, end to end                      | 58 ms  | 6.2 ms |
+| the ranking query alone                   | —      | 1.8 ms |
+
+Two of those numbers are not what the ablation predicted, and both are worth
+keeping rather than smoothing over.
+
+**Top-1 is 40.0% against a predicted 28.0%.** The arithmetic says why: the
+ablation's flat-design figure was taken *before* succession was added, and
+`P1365` alone was separately measured at +15.4 top-1. Which is exactly the
+artefact the section above warns about — this is `Q19803234` being 47% of
+the gold set, not a twelve-point improvement in anything.
+
+**Macro is 77.2% against a predicted 81.1%**, while aggregate landed on
+target. The shipped loader puts *every name in every language* of each
+referenced item into the document, where the ablation's note reads "`P279`
+kind labels"; the difference is thousands of alias tokens on generic
+parents, and a generic parent that matches more queries is precisely what
+costs a rare office its rank. The mean document is 645 lexemes and the
+largest is 2,967 — a military rank whose own aliases, its kind's aliases and
+its state's names are all in it. Unresolved, and the first thing to try
+before increment 4 adds a signal.
+
+**The gap at k=15 is now ranking, not retrieval — which inverts increment
+3's own conclusion.** At k=200 the same search reaches 91.4% aggregate,
+89.2% macro, and **100.0% of the 400 answerable gold rows**. Every row a
+correct fixture pairing could ask for is in the pool; what is left is the
+order, which is what increment 4 is for. The old search's recall did not
+move between k=15 and k=200 at all.
+
+**The GIN index is used, and the planner is right not to always use it.**
+On a 343-row table a six-lexeme OR-query matches 270 rows, so the planner
+ignores `position_tsv_idx` and takes a sequential scan (5.4 ms); on a
+selective query it takes a bitmap index scan on that index unprompted, and
+forcing the index on the broad query is faster still (1.8 ms). The index is what makes this
+survive Spain, not what makes Czechia fast.
+
 ## 6. Questions the research answered, and the ones left
 
 Answered above:
@@ -630,8 +807,10 @@ Still open, and each is the first measurement of the increment that needs it:
   cheaply enough to store; the pilot's own 873 items say yes for Czechia, and a
   statement-node query for it has not been tried.
 - How search quality degrades when 80,000 French mayoralties share the
-  table with 200 Czech offices, and whether `country_qid` as a first-pass
-  filter is enough to keep it flat. Increment 6.
+  table with 200 Czech offices. Increment 6 — but *not* with `country_qid` as
+  a first-pass filter, which increment 3 measured and removed: it costs 23.7
+  macro points on one country alone, and whatever keeps a large table flat
+  has to be a ranking signal instead.
 
 ## 7. The plan
 
@@ -663,12 +842,14 @@ position
   is_pep            BOOLEAN                 -- from the prod extract; NULL = untracked
   topics            TEXT[]                  -- from the prod extract
   redirected_from   TEXT[]
+  search_text       TEXT                    -- the token bag, whole tokens + 6-char prefixes
+  tsv               tsvector GENERATED      -- to_tsvector('simple', search_text), GIN
   loaded_at         TIMESTAMPTZ
 
 position_name
   qid   TEXT REFERENCES position, lang TEXT, text TEXT, alias BOOLEAN
   PRIMARY KEY (qid, lang, text)
-  GIN (text gin_trgm_ops); GIN to_tsvector('simple', text)
+  INDEX (qid) -- the source of search_text and the display name; not searched
 ```
 
 Names keep their language (poliloom lost it and had to ask the LLM to
@@ -740,16 +921,21 @@ P39 sets is either in the table or listed as missing with its label.
 
 ### Increment 3: the search, measured before any ranking
 
-`peploop/positions.py:search(title, jurisdiction, lang, country_qid, k=15)`:
-trigram similarity over `position_name.text` and over `jurisdiction_text`,
-plus `simple` full-text on the title's tokens, combined into one score;
-`covers` computed as in `wd/positions.py:Hit` and used as the first sort key;
-the run's country first, global fallback. `scripts/position_bench.py` runs
-every fixture row and reports **recall@15 and MRR on gold rows**, recall@15
-on weak rows (any of the person's P39 in the top 15), and the share of rows
-with no hit at all, broken down by `lang` and by whether a jurisdiction string
-was present. This is the number the rest of the plan moves; it is measured
-first with no ranking signal at all so that every later signal has a delta.
+`peploop/positions.py:search(title, jurisdiction, country_qid, limit=15)`.
+`scripts/position_bench.py` runs every fixture row and reports **recall@15
+and MRR on gold rows**, recall@15 on weak rows (any of the person's P39 in
+the top 15), and the share of rows with no hit at all, broken down by `lang`
+and by whether a jurisdiction string was present. This is the number the rest
+of the plan moves; it is measured with no ranking signal at all so that every
+later signal has a delta.
+
+The search this increment specified — trigram over `position_name.text` and
+over `jurisdiction_text`, `simple` full text beside it, a Jaccard score, a
+`covers` first sort key, the run's country first — was built, measured, and
+replaced. What it is now: one `to_tsquery('simple', …)` of the title's and
+the jurisdiction's lexemes against one `tsv` per position, ordered by
+`ts_rank(tsv, q, 0)`. Two queries per search, the second of them only to
+name what matched. The ablation that decided every part of it is below.
 
 ### Increment 4: the ranking signals, one at a time
 

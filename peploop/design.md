@@ -237,25 +237,40 @@ their existing P27), and whether an existing P27 claim already covers a proposed
 makes a proposed `Q183` read as `exists` rather than `new`).
 
 Round 2 adds positions and birthplace. The free-text titles already in
-`extraction` are the test queries for the index; measure retrieval on them
-before the second LLM turn exists. The design is fixed now so the tables do
-not change:
+`extraction` are the test queries for the index; retrieval was measured on
+them before the second LLM turn was built, and the measurement moved the
+design more than once. `positions.md` is the design note and carries the
+numbers; this is the shape that survived them:
 
-- `candidate` table: one row per Wikidata item that may be the target of a
-  reconciliation, with `kind` (`position`, `place`), `qid`, `label`, `aliases`
-  (all languages), `description`, `country_qid` (P17), `jurisdiction_qid`
-  (P1001), and `jurisdiction_text`: the labels and aliases of the P1001 item in
-  all languages, fetched from Wikidata when the candidate is loaded. `rigour`
-  is no help here. P1001 is a country only for national offices; for everything
-  else it is a region ("Jihomoravský kraj"), a municipality ("Brno"), or a body
-  ("Senát Parlamentu České republiky"), and those names are not in any
-  territory table. So jurisdiction is a string the search matches, exactly like
-  the label: an article that says "primátor Brna" has to find `Mayor of Brno`
-  through the jurisdiction text when the position label is in another language.
-  `country_qid` is the one column `rigour` normalises, and it is used only as a
-  filter to try the run's country first. Indexed with `pg_trgm` on `label` and
-  `jurisdiction_text`, and a `simple`-configuration `tsvector` over
-  `search_text` (see *Tables*), since the text is multilingual.
+- `position` table, one row per Wikidata item a free-text office title may
+  resolve to, with `position_name` holding one row per (qid, lang) name. The
+  generalised `candidate (kind, …)` table this section originally specified
+  is dropped: places have a parent chain rather than a jurisdiction and
+  people have neither, so a shared table is nullable columns meaning
+  different things per kind. Birthplace gets its own table when it arrives.
+- The row carries `label`, `description`, `country_qid` (P17),
+  `jurisdiction_qid` (P1001) and `jurisdiction_text`, the labels and aliases
+  of the P1001 item in all languages. `rigour` is no help here: P1001 is a
+  country only for national offices; for everything else it is a region, a
+  municipality or a body, and those names are not in any territory table. So
+  the jurisdiction is text the search reads, exactly like the label — an
+  article that names an office in one language reaches the item through the
+  place when the label is in another.
+- **The search is one index, and it was measured into that shape rather than
+  designed into it.** `position.search_text` is a de-duplicated bag of the
+  content tokens of every name the item carries and every name of the items
+  it points at (jurisdiction, country, body, kind, succession), each token
+  stored beside its six-character prefix in place of a stemmer; a generated
+  `to_tsvector('simple', …)` column over it carries the only GIN index. A
+  query is the title *and* the jurisdiction string through the identical
+  transformation, OR-ed into one `to_tsquery` and ordered by
+  `ts_rank(tsv, q, 0)`, which over a bag counts how much of the query the
+  item accounts for. The three things this paragraph used to say are each
+  measured wrong: trigram-plus-full-text scored per name is 16.9 aggregate
+  points below the blob (and trigram *over* the blob is 58 points below it
+  and 85× slower), the jurisdiction as a channel of its own contributes
+  exactly 0.0, and filtering to the run's country costs 23.7 macro points.
+  `country_qid` is normalised by `rigour` and is not a filter.
 - Position candidates are the union of: items reachable by `P279*` from
   `Q4164871` position and `Q294414` public office that carry a `P17` or
   `P1001`; items held by a human via `P39` with `P17`/`P1001` set (zavod's
@@ -263,10 +278,9 @@ not change:
   `wd_peps` stateful table. Loaded per country on demand, cached in the table
   with a `loaded_at`.
 - Extraction becomes two turns in one conversation: turn one returns free-text
-  position titles with dates and quotes; code searches `candidate` for each
-  title *and* whatever jurisdiction the model names beside it (trigram +
-  full-text over label, aliases and jurisdiction text, filtered to the run's
-  country first, global fallback, top 15); turn two shows the candidates in
+  position titles with dates and quotes; code searches `position` for each
+  title *and* whatever jurisdiction the model names beside it, as one query
+  over the whole table, top 15; turn two shows the candidates in
   full, jurisdiction label included, and asks the model to pick one or `none`.
   The first turn's schema therefore has a `jurisdiction: str | None` field next
   to the title, so "minister of finance" arrives with "Czechoslovakia" or
@@ -420,7 +434,12 @@ extraction   id, qid, prompt_hash, model, article_langs[], request_json,
              response_json, usage_json, created_at
 proposal     (as above, plus applied_rev, claim_guid)
 verdict      proposal_id, decision (accept|reject), reason, note, created_at
-candidate    (as above; empty in round 1)
+position     qid, label, description, country_qid, jurisdiction_qid,
+             jurisdiction_text, body_qid, kinds[], sources[], not_office,
+             inception, abolished, replaces[], replaced_by[], holders,
+             search_text, tsv (generated from search_text), loaded_at
+position_name qid, lang, text, alias                 (unique on qid+lang+text)
+type_edge    qid, targets[], fetched_at              (the P31/P279 ancestry cache)
 ```
 
 `verdict.reason` is one of `wrong_value`, `wrong_precision`,
@@ -429,15 +448,16 @@ candidate    (as above; empty in round 1)
 through `extraction`, so acceptance per prompt version is a join, not a column.
 The table exists from round 1 so nothing later has to back-fill it.
 
-Eight tables plus one for round 2. Migrations are a single `schema.sql` applied
-with `CREATE TABLE IF NOT EXISTS`; no Alembic.
+Eight tables plus three for round 2. Migrations are a single `schema.sql`
+applied with `CREATE TABLE IF NOT EXISTS`; no Alembic.
 
 `person.error` carries the exception text of a failed fetch, so one bad person
-is a row rather than a dead run. `candidate.search_text` is label, aliases and
-jurisdiction text joined by the loader, because Postgres refuses a `to_tsvector`
-expression index over `array_to_string` (it is not IMMUTABLE); the full-text
-index sits on that column and the trigram indexes stay on `label` and
-`jurisdiction_text`.
+is a row rather than a dead run. `position.search_text` is the loader's token
+bag — every name of the item and of the items it points at, folded, stopped,
+de-duplicated, each token beside its six-character prefix — and `position.tsv`
+is generated from it, since `to_tsvector(regconfig, text)` is IMMUTABLE. That
+GIN index is the only one the search reads; `position_name` is indexed on
+`qid` alone, because its job is to say which name matched, not to be searched.
 
 ## Commands
 
