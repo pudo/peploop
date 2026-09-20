@@ -124,7 +124,6 @@ CREATE TABLE IF NOT EXISTS position (
 );
 
 CREATE INDEX IF NOT EXISTS position_country_idx ON position (country_qid);
-CREATE INDEX IF NOT EXISTS position_juris_trgm_idx ON position USING gin (jurisdiction_text gin_trgm_ops);
 
 -- One row per name per language, rather than a TEXT[] of aliases: the article
 -- says "primátor Brna" and the item's English label is "Mayor of Brno", so the
@@ -137,11 +136,9 @@ CREATE TABLE IF NOT EXISTS position_name (
     PRIMARY KEY (qid, lang, text)
 );
 
--- Trigram for inflection and word order, `simple` full text for exact tokens.
--- No stemming configuration would be right: the names are in every language
--- the item has one in.
-CREATE INDEX IF NOT EXISTS position_name_trgm_idx ON position_name USING gin (text gin_trgm_ops);
-CREATE INDEX IF NOT EXISTS position_name_fts_idx ON position_name USING gin (to_tsvector('simple', text));
+-- Not indexed for search. The search reads `position.tsv`, one document per
+-- item; this table is the per-language source that document is built from and
+-- the answer to *which* name matched, which is looked up by qid afterwards.
 CREATE INDEX IF NOT EXISTS position_name_qid_idx ON position_name (qid);
 
 -- The `P31`/`P279` edges of everything the closure has walked, so a second
@@ -185,3 +182,20 @@ CREATE INDEX IF NOT EXISTS proposal_property_idx ON proposal (property, status);
 -- not a statement and leaves `claim_guid` null.
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS applied_rev BIGINT;
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS claim_guid TEXT;
+
+-- One searchable document per position, and the only index the search reads.
+-- The loader writes `search_text` as a de-duplicated bag of content tokens,
+-- each beside its six-character prefix, drawn from every name of the item and
+-- of the items it names (jurisdiction, country, body, kind, succession). A
+-- bag rather than prose: with every lexeme appearing once, `ts_rank(tsv, q, 0)`
+-- over an OR-query sums to the number of query terms the document matched,
+-- which is the ranking that measured best.
+--
+-- `simple` because the names are in every language the item has one in and
+-- no stemmer is right for all of them; the prefixes are what stands in for
+-- one. `to_tsvector(regconfig, text)` is IMMUTABLE, so the column can be
+-- generated and the GIN index sits on it directly.
+ALTER TABLE position ADD COLUMN IF NOT EXISTS search_text TEXT;
+ALTER TABLE position ADD COLUMN IF NOT EXISTS tsv tsvector
+    GENERATED ALWAYS AS (to_tsvector('simple', coalesce(search_text, ''))) STORED;
+CREATE INDEX IF NOT EXISTS position_tsv_idx ON position USING gin (tsv);

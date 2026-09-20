@@ -274,38 +274,99 @@ def names_of(entity: dict[str, Any]) -> list[tuple[str, str, bool]]:
     return out
 
 
-def _label_map(qids: Iterable[str]) -> dict[str, str]:
-    """Best label per QID, for the `P279` kinds shown beside a candidate."""
-    wanted = sorted({q for q in qids if q})
-    if not wanted:
-        return {}
-    entities = wikidata.fetch_items(wanted, props="labels")
-    out = {}
-    for qid, entity in entities.items():
-        label = wikidata.best_label(entity)
-        if label is not None:
-            out[qid] = label
-    return out
+#: The properties whose targets' names join a position's search document.
+#: Each one earned its place in the ablation and nothing else did: the
+#: polity the office governs and the state it belongs to, the body it is a
+#: seat in, the kind of office it is, and the offices it succeeds or is
+#: succeeded by.
+#:
+#: `P1889 different from` is deliberately absent and must stay absent. It is
+#: an anti-relation: it names exactly the items this one is confusable with,
+#: so indexing it teaches the search to answer with the wrong office.
+REFERENCED_PROPS = ("P1001", "P17", "P361", "P2389", "P279", "P1365", "P1366")
 
 
-def _jurisdiction_text(qids: Iterable[str]) -> dict[str, str]:
-    """Every name of each jurisdiction item, joined for the trigram index.
+def _referenced_items(qids: Iterable[str]) -> dict[str, dict[str, Any]]:
+    """Fetch, in one batch, every item the country's positions point at.
 
-    The cross-language bridge, and the reason it is a column of its own: an
-    article naming an office in one language and an item labelled in another
-    still agree on the place, because a place name travels between languages
-    largely unchanged.
+    One request per 50 QIDs for the whole country rather than per position:
+    the jurisdictions, bodies and kinds of one country's offices repeat
+    heavily, and a per-row fetch turns a minute's load into an hour's.
     """
     wanted = sorted({q for q in qids if q})
     if not wanted:
         return {}
-    entities = wikidata.fetch_items(wanted, props="labels|aliases")
-    out = {}
-    for qid, entity in entities.items():
-        names = {text for _lang, text, _alias in names_of(entity)}
-        if names:
-            out[qid] = " | ".join(sorted(names))
-    return out
+    return wikidata.fetch_items(wanted, props="labels|aliases")
+
+
+#: Function words across the languages offices are labelled in. Dropped
+#: before scoring, so a title and a label are compared on their content and
+#: not on how each language spells "of".
+STOPWORDS = frozenset("""
+a an and at by for from in of on or the to with
+i w we na do dla oraz z za o po
+de del la el las los y en al a
+v ve na pro pri se pod pre
+s so dlya iz
+der die das des dem und von zu im
+du le les et aux
+""".split())
+
+#: How much of a token the index keeps as its prefix. Names arrive in every
+#: language the item has one in, Postgres ships a text search configuration
+#: for few of them and one honest choice for all of them (`simple`, which
+#: stems nothing) — so each token is stored twice, whole and clipped, and the
+#: clipped copy is what lets an inflected form in a title reach the nominative
+#: form on the item. Worth about three points of recall.
+PREFIX = 6
+
+#: What a lexeme may contain. `tokens` splits on exactly this, so the filter
+#: in `search` is a guard and not a rule: anything else in a `to_tsquery`
+#: string is a syntax error rather than a miss, and the query text comes from
+#: an article by way of a model.
+LEXEME = re.compile(r"[a-z0-9]+")
+
+
+def fold(text: str) -> str:
+    """Casefolded ASCII, so a diacritic cannot break a comparison.
+
+    Transliterates rather than strips: the plain non-ASCII drop this replaced
+    turned two spellings of the same city into two different words.
+    """
+    return (ascii_text(text) or "").casefold()
+
+
+def tokens(text: str) -> set[str]:
+    """An office name as its content tokens, folded and stopword-free.
+
+    Falls back to the unstripped tokens when stripping would empty the set,
+    so an office genuinely called "The Speaker" stays comparable.
+    """
+    parts = [t for t in re.split(r"[^a-z0-9]+", fold(text)) if t]
+    content = {t for t in parts if t not in STOPWORDS}
+    return content or set(parts)
+
+
+def token_bag(texts: Iterable[str]) -> list[str]:
+    """Some names as the lexemes the search is conducted in, whole and clipped.
+
+    The one transformation both sides go through, which is why it is a
+    function and not two loops: an item's document is this over every name it
+    and the items it points at carry, a query is this over the title and the
+    jurisdiction the article gave, and any divergence makes the query ask for
+    lexemes the index never stored.
+
+    De-duplicated and sorted, which is what makes a document a *bag*. Every
+    lexeme occurs exactly once, so ranking counts how much of the query the
+    document covers rather than how many of an item's thirty languages happen
+    to spell a word the same way.
+    """
+    bag: set[str] = set()
+    for text in texts:
+        for token in tokens(text):
+            bag.add(token)
+            bag.add(token[:PREFIX])
+    return sorted(bag)
 
 
 def upsert_position(row: dict[str, Any], names: Sequence[tuple[str, str, bool]]) -> None:
@@ -314,6 +375,7 @@ def upsert_position(row: dict[str, Any], names: Sequence[tuple[str, str, bool]])
         "qid", "label", "description", "country_qid", "jurisdiction_qid",
         "jurisdiction_text", "body_qid", "kinds", "sources", "not_office",
         "inception", "abolished", "replaces", "replaced_by", "redirected_from",
+        "search_text",
     ]
     assignments = ", ".join(f"{c} = EXCLUDED.{c}" for c in columns[1:])
     db.conn().execute(
@@ -361,8 +423,7 @@ def load_country(
 
     closure = type_closure(sorted(entities))
     rows: list[tuple[dict[str, Any], list[tuple[str, str, bool]]]] = []
-    parents: set[str] = set()
-    jurisdictions: set[str] = set()
+    referenced: set[str] = set()
     canonical: dict[str, dict[str, Any]] = {}
     redirects: dict[str, set[str]] = {}
 
@@ -378,10 +439,14 @@ def load_country(
     for actual, entity in canonical.items():
         declared = set(type_targets(entity))
         kind_qids = wikidata.claim_qids(entity, "P279", include_deprecated=False)
-        parents.update(kind_qids)
         jurisdiction = _unended_qid(entity, "P1001")
-        if jurisdiction:
-            jurisdictions.add(jurisdiction)
+        # Every item whose names join this one's document. Read off all ranks
+        # and both directions of the succession, one hop and no further: a
+        # renamed office is reached by the name it used to have, while a
+        # transitive walk would eventually name the whole ministry lineage.
+        refs = [q for prop in REFERENCED_PROPS
+                for q in wikidata.claim_qids(entity, prop, include_deprecated=False)]
+        referenced.update(refs)
         sources_here = sorted(
             source for source, qids in found.items()
             if actual in qids or qids & redirects.get(actual, set())
@@ -409,16 +474,26 @@ def load_country(
                 "replaced_by": wikidata.claim_qids(entity, "P1366", include_deprecated=False),
                 "redirected_from": sorted(redirects.get(actual, ())),
                 "_kind_qids": kind_qids,
+                "_refs": refs,
                 "_closure": closure.get(actual, set()),
             },
             names_of(entity),
         ))
 
-    kinds = _label_map(parents)
-    juris = _jurisdiction_text(jurisdictions)
+    items = _referenced_items(referenced)
+    names_by_qid = {qid: sorted({text for _lang, text, _alias in names_of(entity)})
+                    for qid, entity in items.items()}
+    labels = {qid: label for qid, entity in items.items()
+              if (label := wikidata.best_label(entity)) is not None}
+    log(f"referenced items: {len(items)} of {len(referenced)}")
     for row, names in rows:
-        row["kinds"] = [kinds[q] for q in row.pop("_kind_qids") if q in kinds]
-        row["jurisdiction_text"] = juris.get(row["jurisdiction_qid"])
+        row["kinds"] = [labels[q] for q in row.pop("_kind_qids") if q in labels]
+        juris = names_by_qid.get(row["jurisdiction_qid"] or "", [])
+        row["jurisdiction_text"] = " | ".join(juris) or None
+        texts = [text for _lang, text, _alias in names]
+        for qid in row.pop("_refs"):
+            texts.extend(names_by_qid.get(qid, ()))
+        row["search_text"] = " ".join(token_bag(texts))
         row.pop("_closure", None)
         upsert_position(row, names)
 
@@ -428,134 +503,45 @@ def load_country(
     return counts
 
 
-#: Function words across the languages offices are labelled in. Dropped
-#: before scoring, so a title and a label are compared on their content and
-#: not on how each language spells "of".
-STOPWORDS = frozenset("""
-a an and at by for from in of on or the to with
-i w we na do dla oraz z za o po
-de del la el las los y en al a
-v ve na pro pri se pod pre
-s so dlya iz
-der die das des dem und von zu im
-du le les et aux
-""".split())
-
-#: How many rows each retrieval channel contributes before scoring. Wide
-#: enough that ranking is the thing being measured and not the cut-off.
-POOL = 200
-
-#: pg_trgm floors, applied to the session rather than to the query: the `%`
-#: and `<<%` operators read these from Postgres and nothing else does, so a
-#: constant the SQL merely mentions has no effect at all.
-#:
-#: Both are below Postgres's defaults on purpose. Recall is the table's job
-#: and precision is the ranking's, and a title in an inflected language
-#: shares fewer trigrams with its label than an English one does.
-NAME_FLOOR = 0.2
-JURISDICTION_FLOOR = 0.4
-
-
-def fold(text: str) -> str:
-    """Casefolded ASCII, so a diacritic cannot break a comparison.
-
-    Transliterates rather than strips: the plain non-ASCII drop this replaced
-    turned two spellings of the same city into two different words.
-    """
-    return (ascii_text(text) or "").casefold()
-
-
-def tokens(text: str) -> set[str]:
-    """An office name as its content tokens, folded and stopword-free.
-
-    Falls back to the unstripped tokens when stripping would empty the set,
-    so an office genuinely called "The Speaker" stays comparable.
-    """
-    parts = [t for t in re.split(r"[^a-z0-9]+", fold(text)) if t]
-    content = {t for t in parts if t not in STOPWORDS}
-    return content or set(parts)
-
-
 @dataclass
 class Hit:
-    """One position a query reached, and why it scored where it did."""
+    """One position a query reached, and the name worth showing beside it."""
 
     qid: str
-    #: The name that scored best — what to show beside the candidate.
+    #: A name the item actually carries, in the language it carries it in.
+    #: The document that was ranked is a pooled token bag and unreadable, so
+    #: the row a model is later shown has to say what it matched instead.
     name: str
     lang: str
+    #: `ts_rank` over the bag, which rises with the number of the query's
+    #: lexemes the document carried and means nothing else. Comparable
+    #: within one shortlist, never between two queries.
     score: float
-    #: Does the candidate name everything the query names? The asymmetry is
-    #: load-bearing: a generic "mayor" is contained *by* "mayor of Kravaře"
-    #: and not the other way round, and ranking on containment alone would
-    #: write a named mayoralty onto the occupation class.
-    covers: bool
-    jurisdiction: float = 0.0
-
-    def sort_key(self) -> tuple[Any, ...]:
-        return (self.covers, self.score + self.jurisdiction, self.qid)
 
 
-def _tune() -> None:
-    """Apply the trigram floors to this thread's connection, once."""
-    connection = db.conn()
-    if getattr(connection, "_peploop_trgm_tuned", False):
-        return
-    # `SET` takes no parameters, so the floors go through `set_config`.
-    connection.execute(
-        "SELECT set_config('pg_trgm.similarity_threshold', %s, false),"
-        "       set_config('pg_trgm.word_similarity_threshold', %s, false)",
-        (str(NAME_FLOOR), str(JURISDICTION_FLOOR)),
+def _display_names(qids: Sequence[str], bag: set[str]) -> dict[str, tuple[str, str]]:
+    """Pick one name per hit to show, in one query over the whole shortlist.
+
+    Display, never ranking. A position's document pools the names of the item
+    and of everything it points at, so nothing in the score says which of an
+    item's thirty-odd names the article was writing; the shortest name that
+    covers most of the query is the closest honest answer, and showing it is
+    what lets a reader see that a hit matched on its jurisdiction alone.
+    """
+    if not qids:
+        return {}
+    rows = db.conn().execute(
+        "SELECT qid, lang, text FROM position_name WHERE qid = ANY(%s)",
+        (list(qids),),
+    ).fetchall()
+    scored = sorted(
+        (qid, -len(bag & set(token_bag([text]))), len(text), text, lang)
+        for qid, lang, text in rows
     )
-    connection._peploop_trgm_tuned = True  # type: ignore[attr-defined]
-
-
-def _name_pool(title: str, country_qid: str | None) -> list[tuple[str, str, str]]:
-    """Candidate (qid, lang, name) rows a title reaches, both channels.
-
-    Trigram similarity survives inflection and word order, which a `simple`
-    tsvector cannot: "ministr obrany" and "ministra obrany" are different
-    tokens to it. Full text catches the exact-token case the trigram floor
-    would drop. Both are needed and neither subsumes the other.
-    """
-    _tune()
-    scope = "" if country_qid is None else " AND p.country_qid = %(country)s"
-    params = {"title": title, "country": country_qid, "pool": POOL}
-    rows = db.conn().execute(
-        "SELECT n.qid, n.lang, n.text FROM position_name n"
-        " JOIN position p ON p.qid = n.qid"
-        " WHERE n.text %% %(title)s" + scope +
-        " ORDER BY similarity(n.text, %(title)s) DESC LIMIT %(pool)s",
-        params,
-    ).fetchall()
-    fts = db.conn().execute(
-        "SELECT n.qid, n.lang, n.text FROM position_name n"
-        " JOIN position p ON p.qid = n.qid"
-        " WHERE to_tsvector('simple', n.text) @@ plainto_tsquery('simple', %(title)s)"
-        + scope +
-        " ORDER BY ts_rank(to_tsvector('simple', n.text),"
-        "                  plainto_tsquery('simple', %(title)s)) DESC LIMIT %(pool)s",
-        params,
-    ).fetchall()
-    return list(rows) + list(fts)
-
-
-def _jurisdiction_scores(text: str, country_qid: str | None) -> dict[str, float]:
-    """How well each position's jurisdiction names the place the title gave.
-
-    Word similarity rather than plain similarity, because the column holds
-    every name the jurisdiction item has in every language: the question is
-    whether the place appears in it, not whether the whole string looks alike.
-    """
-    _tune()
-    scope = "" if country_qid is None else " AND country_qid = %(country)s"
-    rows = db.conn().execute(
-        "SELECT qid, word_similarity(%(text)s, jurisdiction_text) FROM position"
-        " WHERE %(text)s <<%% jurisdiction_text" + scope +
-        " ORDER BY 2 DESC LIMIT %(pool)s",
-        {"text": text, "country": country_qid, "pool": POOL},
-    ).fetchall()
-    return dict(rows)
+    out: dict[str, tuple[str, str]] = {}
+    for qid, _shared, _length, text, lang in scored:
+        out.setdefault(qid, (text, lang))
+    return out
 
 
 def search(
@@ -568,32 +554,32 @@ def search(
 
     Retrieval, not resolution: the shortlist is what a model is later shown,
     so a right answer buried at rank 40 is the same failure as no answer at
-    all.
+    all. Pass whatever turn one wrote down — the title and the jurisdiction
+    go into one query, because the place the article named is evidence about
+    the office, and reading it as a channel of its own scored exactly zero.
 
-    `country_qid` scopes the *jurisdiction* channel and nothing else. It is
-    deliberately not a filter on the candidates, because the measurement says
-    a filter is the single most expensive thing the search can do: scoping to
-    the run's country hides 41% of its own table and costs 23.7 points of
-    macro recall. What it hides is not noise — it is every globally abstract
-    office the community records with a scoping qualifier, and every ministry
-    of the predecessor state whose name the articles still use.
+    Ranked by how much of the query an item's document accounts for, and by
+    nothing else.
+
+    `country_qid` neither filters nor ranks today; it is accepted so the call
+    sites do not change when it becomes a ranking signal. Filtering on it is
+    the single most expensive thing this search can do — it hides two fifths
+    of a country's own table, being every globally abstract office recorded
+    with a scoping qualifier and every office of the predecessor state, and
+    costs 23.7 points of macro recall.
     """
-    pool = _name_pool(title, None)
-    if not pool:
+    bag = [t for t in token_bag([title, jurisdiction or ""]) if LEXEME.fullmatch(t)]
+    if not bag:
         return []
-    query_tokens = tokens(title)
-    best: dict[str, Hit] = {}
-    for qid, lang, name in pool:
-        name_tokens = tokens(name)
-        if not name_tokens or not query_tokens:
-            continue
-        score = len(query_tokens & name_tokens) / len(query_tokens | name_tokens)
-        hit = best.get(qid)
-        if hit is None or score > hit.score:
-            best[qid] = Hit(qid=qid, name=name, lang=lang, score=score,
-                            covers=query_tokens <= name_tokens)
-    if jurisdiction:
-        for qid, score in _jurisdiction_scores(jurisdiction, country_qid).items():
-            if qid in best:
-                best[qid].jurisdiction = score
-    return sorted(best.values(), key=Hit.sort_key, reverse=True)[:limit]
+    rows = db.conn().execute(
+        "SELECT qid, ts_rank(tsv, to_tsquery('simple', %(q)s), 0) AS score"
+        " FROM position WHERE tsv @@ to_tsquery('simple', %(q)s)"
+        " ORDER BY score DESC, qid LIMIT %(k)s",
+        {"q": " | ".join(bag), "k": limit},
+    ).fetchall()
+    names = _display_names([qid for qid, _score in rows], set(bag))
+    return [
+        Hit(qid=qid, name=names.get(qid, (qid, ""))[0],
+            lang=names.get(qid, (qid, ""))[1], score=float(score))
+        for qid, score in rows
+    ]
