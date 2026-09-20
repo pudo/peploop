@@ -1859,3 +1859,93 @@ halving of a page whose body arrives truncated. It never fired in run 2, and
 the failure that remains is at offset 0 where halving changes nothing. It is
 recorded here instead of in the code, because an untested branch that does
 not address the failure it was written for is worse than its absence.
+
+## Increment 5's artefacts, built against a host with no key (2026-09-20)
+
+There is no `ANTHROPIC_API_KEY` on this host — no `.envrc`, no `.env`, nothing
+in any shell profile — so the second turn cannot be run here. It can be
+*built*, and almost all of it turns out not to be the request: the shortlist
+rendering, the closed verdict set, the schema that constrains the pick and the
+gate that refuses an off-list QID are pure functions over their arguments.
+`peploop/reconcile.py` holds them, `peploop/prompts/reconcile.md` is the frozen
+instruction, and `python -m peploop.check_reconcile` pins the lot at **0
+failures** with no network, no key and no tokens spent.
+
+### What the model is shown
+
+One line per candidate, in the order the ranking produced:
+
+```
+QID | label | description | kind: … | part of: … | exists: …–… | holders: … | tags: … | matched: …
+```
+
+Three of those fields are decisions rather than fields.
+
+**`holders` is the count the ranking scored**, read through
+`positions.holder_count` under the same `holder_scope`, so the number in front
+of the model is the number that moved the row. An uncounted row renders
+`uncounted` and never `0`, which is the same distinction the nullable column
+makes and the one the local-holder repair was about.
+
+**`tags` shows every signal.** All ten that `positions.tags_for` can derive —
+`not-office`, `abstract`, `generic-by-convention`, `unheld`, `abolished`,
+`date-conflict`, `date-fit`, `diplomatic`, `inbound-diplomatic`,
+`foreign-scoped` — are printed and explained in the prompt, because a signal
+that reordered a shortlist and was not shown is a silent re-ranking the reader
+has to take on trust. `check_reconcile` provokes each tag from a synthetic row
+and asserts that the set the ranking produces *equals* the set the prompt
+explains, so a tag added to the ranking cannot ship unexplained.
+A `generic-by-convention` row additionally prints `used with:` its scoping
+qualifier, and only that row: the column is filled on many items and is
+decision-relevant on one kind of them.
+
+**`matched` is an explanation, not evidence.** A position's document pools the
+names of the office, the polity it governs, the body it belongs to and the
+office it replaced, so a candidate can be on the list because of a word that is
+not its own name. The prompt says so in those terms.
+
+### The body/seat rule is in the prompt, because it was once only in the code
+
+`wd/gazetteer.py:Gazetteer.render` has carried a header saying that a ministry,
+council, committee or general staff is a *body* and the office is the seat in
+it. A pass whose prompt lacked it handed four bodies a `P1001` at high
+confidence. The rule is therefore stated here as its own section, with the
+verdict that expresses it (`body-not-seat`) and with the converse spelled out —
+an office legitimately says `part of:` a body, and that is not a defect.
+
+### The closed verdict set, and two channels that close it
+
+`same-office`, `renamed`, `generic-class`, `body-not-seat`, `wrong-office`,
+`none`, mirroring `wd/rerank.py:KINDS`. Only the first two are matches.
+`reconcile.settle` mirrors `wd/rerank.py:settle` — a pure function, minus the
+polity gate that repo's campaigns need — and refuses three ways: a non-match
+kind, a match naming no item, and a pick that was not on the shortlist.
+
+The off-shortlist case is guarded twice on purpose. `verdict_schema(qids)`
+builds a per-request pydantic model whose `qid` is `Optional[Literal[…]]` over
+exactly the offered QIDs, so the API enforces the closed set; `settle` then
+refuses an off-list QID again, because a schema is a request and a gate is a
+guarantee. An empty shortlist yields a schema whose only legal `qid` is null.
+
+### What is pinned offline
+
+| pin | what breaking it would mean |
+|---|---|
+| five candidate lines, byte for byte | a field stopped being printed while the ranking kept using it |
+| the whole per-office user message | the evidence half drifted from the documented shape |
+| `settle` on each of the six kinds | a member of the closed set routes nowhere |
+| off-shortlist refusal, schema and gate | the one guarantee the design rests on |
+| an unknown key, a bad kind, a bad confidence | the schema stopped being strict |
+| the prompt's sha256, twice | a verdict's key is the hash, so a drifting hash re-asks everything |
+| every kind and every tag appears in the prompt | a signal moved a row and said nothing |
+| the request's system block, cache breakpoint and single user turn | the request shape changed under a host that cannot test it |
+
+`request_for` assembles the whole request and returns it without sending, which
+is what makes that last row checkable at all.
+
+**No proposal is written.** `propose` still skips positions; wiring a verdict
+into a `P39` is increment 7 and is untouched here. Nothing in this section has
+been run against a model, so there is no agreement number, no verdict
+distribution, and no reading of the `generic-class`-on-`generic-by-convention`
+case the design named as the one to read by hand. Those are the first three
+measurements to take when a key exists.

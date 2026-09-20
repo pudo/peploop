@@ -59,7 +59,7 @@ ordering inside the fifteen, and the quality of the test set.
 |---|---|---|---|
 | A | Rebuild the silver fixture | done, **resolved** | Two of three rules measured harmful and were dropped. Rule 1 alone: 746 gold rows at 77.5% / 66.8% agreement, beating the superseded set on both readings with 40% more rows. |
 | B | Increment 4: ranking signals | done, **resolved** | One signal carries the stage: a holder count is worth 0.18 MRR and 32 points of top-1 on the primary slice, the other four together 0.012 and 1.4. The date *boost* is measured destructive and ships at zero weight. `Q486839` and `Q108899569` are separated mechanically, by a floor above 46 in-country holders. |
-| C | Increment 5: the second turn | **blocked**, deferred | No `ANTHROPIC_API_KEY` on this host: no `.envrc`, no `.env`, nothing in the shell profile. The build is reordered so C's artefacts are written but never run. |
+| C | Increment 5: the second turn | **built, not run** | Still no `ANTHROPIC_API_KEY` on this host. Everything up to the call exists — frozen prompt, closed verdict set, per-request schema closing the pick over the offered QIDs, `settle`, the assembled request — and `python -m peploop.check_reconcile` pins it at 0 failures with no network and no tokens. No agreement number exists, because nothing was asked. |
 | D | Increment 6: Poland, then Spain | done, **resolved with a defect** | Poland loads in 457 s, 82% of it discovery. Spain does not: its 13,300-row response cannot be read to the end (three attempts, `ChunkedEncodingError`), though the query itself finishes. Czech recall falls 81.6% to 79.4% on Poland's rows alone, and filling those rows' holder counts costs a further 0.08 MRR and 11 points of top-1. Signals project to 6.3–10.9 h for a Spain-sized table. |
 | E | Repair what scale found | done, **2 of 3 resolved** | Depth: a 200-row pool re-ranked to 15 buys 2.8 points of aggregate recall and nothing at all without a re-ranker. Local holder scoring: **+0.099 MRR and 13 points of top-1**, the largest move since the holder count itself, and the repair is the backfill rather than the rule. Spain: paging fixes the query three attempts could not receive (13,301 items, twice) and `usage` too, but `citizen` fails at offset 0, where a page is *larger* work than the unpaged query. Spain is not loaded and the bench is unchanged. |
 | F | Increment 7: wire into propose | pending | |
@@ -246,6 +246,32 @@ Rather than stall the night on it, the order changes: **D runs first**, and C
 is then built to the point of being runnable — the prompt file, the candidate
 rendering, the schema, the plumbing, all testable offline — with the API calls
 left for whenever a key exists. Nothing about D depends on C.
+
+#### Outcome (2026-09-20): built to the call, and the offline half is most of it
+
+Three artefacts and a check, with the full account in the increment-5 section
+of `peploop/positions.md`:
+
+- `peploop/prompts/reconcile.md`, frozen and hashed, carrying the body/seat
+  rule that `wd/gazetteer.py:Gazetteer.render` had and the earlier passes'
+  prompts did not, a glossary of all ten tags the ranking derives, and the
+  closed verdict set.
+- `peploop/reconcile.py`: the candidate line
+  (`QID | label | description | kind | part of | exists | holders | tags | matched`),
+  the per-office message, `verdict_schema(qids)` closing `qid` over the
+  offered QIDs with a per-request `Literal`, `settle` mirroring
+  `wd/rerank.py:settle` as a pure function, and `request_for` assembling the
+  whole request without sending it.
+- `peploop/check_reconcile.py`, run as `python -m peploop.check_reconcile`:
+  **0 failures**, no network, no key, no tokens. It pins five candidate lines
+  byte for byte, the whole user message, `settle` on each of the six kinds,
+  off-shortlist refusal on both channels, the prompt's sha256, and — the pin
+  worth having — that the set of tags `positions.tags_for` can derive *equals*
+  the set the prompt explains, so a signal cannot move a row unexplained.
+
+Two things this does **not** produce, and neither is a cost compromise: there
+is no agreement-with-gold number and no verdict distribution, because nothing
+was asked of a model. `propose` still skips positions.
 
 ### D. Increment 6: Poland, then Spain
 
