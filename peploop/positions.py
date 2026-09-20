@@ -71,25 +71,75 @@ def country_qid(cc: str) -> str:
     return territory.qid
 
 
+#: How many items one discovery page asks for. The queries themselves are
+#: affordable at any country size measured — the descent over a 13,300-item
+#: country finished twice, once in 188 s and once off the query service's
+#: own cache — but the *response* could not be read to the end: three
+#: attempts died with `ChunkedEncodingError` part-way through the body of an
+#: HTTP 200, which is past where the retry policy reaches. A truncated body
+#: is a deterministic failure, so the repo's standing answer is to bisect
+#: rather than retry, and paging is that bisection made routine.
+DISCOVERY_PAGE = 2000
+
+#: The wrapper that pages one. `ORDER BY` is what makes it safe: without a
+#: total order, `OFFSET` is a cut through an arbitrary permutation and two
+#: pages may repeat one item and omit another. The cost is that every page
+#: re-evaluates the whole inner query, so a paged discovery is roughly
+#: pages × the unpaged time — paid deliberately, because the unpaged answer
+#: cannot be received at all.
+PAGE_WRAPPER = "SELECT ?pos WHERE { { %(inner)s } } ORDER BY ?pos LIMIT %(limit)d OFFSET %(offset)d"
+
+
 def discover(
     qid: str,
     sources: Iterable[str] = SOURCES,
     log: Any = lambda _m: None,
+    page: int | None = DISCOVERY_PAGE,
 ) -> dict[str, set[str]]:
     """Run each discovery query for one country, keyed by the source name.
 
     Each query is timed into the log, because the query service is erratic
     enough that a load which took an hour is only diagnosable if it says
-    which of its steps the hour went into.
+    which of its steps the hour went into. `page` of `None` asks for the
+    whole answer in one response, which is the shape that fails above a few
+    thousand rows.
     """
     found: dict[str, set[str]] = {}
     for source in sources:
         started = time.monotonic()
-        rows = wikidata.sparql(QUERIES[source] % {"country": qid})
-        found[source] = {row["pos"] for row in rows}
+        inner = QUERIES[source] % {"country": qid}
+        if page is None:
+            found[source] = {row["pos"] for row in wikidata.sparql(inner)}
+        else:
+            found[source] = _discover_paged(source, inner, page, log)
         log(f"{source}: {len(found[source])} items in "
             f"{time.monotonic() - started:.0f}s")
     return found
+
+
+def _discover_paged(
+    source: str, inner: str, page: int, log: Any
+) -> set[str]:
+    """Read one discovery query a page at a time until a short page ends it.
+
+    A short page is the end of the answer: the inner query is stable between
+    requests, so a page holding fewer rows than it asked for is the last one.
+    An exactly-full final page costs one extra empty request, which is the
+    cheap half of the trade.
+    """
+    items: set[str] = set()
+    offset = 0
+    while True:
+        started = time.monotonic()
+        rows = wikidata.sparql(
+            PAGE_WRAPPER % {"inner": inner, "limit": page, "offset": offset}
+        )
+        items.update(row["pos"] for row in rows)
+        log(f"  {source} page at {offset}: {len(rows)} rows in "
+            f"{time.monotonic() - started:.0f}s")
+        if len(rows) < page:
+            return items
+        offset += page
 
 
 #: Metaclasses that say "this is an office" and nothing about which kind.
@@ -426,6 +476,7 @@ def load_country(
     cc: str,
     sources: Iterable[str] = SOURCES,
     log: Any = lambda _m: None,
+    page: int | None = DISCOVERY_PAGE,
 ) -> dict[str, int]:
     """Load every position item one country scopes or its citizens hold.
 
@@ -435,7 +486,7 @@ def load_country(
     evidence that an office is gone.
     """
     qid = country_qid(cc)
-    found = discover(qid, sources, log=log)
+    found = discover(qid, sources, log=log, page=page)
     union = sorted({q for qids in found.values() for q in qids})
     log(f"union: {len(union)} items")
 

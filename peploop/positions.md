@@ -1791,3 +1791,71 @@ parameter is noise rather than depth, 0.4 points is three rows of 746, and
 MRR and top-1 do not move at all past 100. **200 is kept**, because raising it
 to chase three rows that a deeper pool loses again is tuning toward the
 number, which this file forbids.
+
+## Paging discovery: the query that could not be received now arrives (2026-09-20)
+
+Stage E, third of three, and the only one that does not end in a number for
+the bench. Three unpaged attempts in stage D died with
+`ChunkedEncodingError: Response ended prematurely` while reading the body of
+an HTTP 200, and the standing rule for a body that arrives truncated is to
+bisect rather than retry. `discover` now wraps each query as a subselect
+under `ORDER BY ?pos LIMIT n OFFSET m` and reads it a page at a time,
+`DISCOVERY_PAGE` 2,000, stopping on the first short page. `ORDER BY` is not
+decoration: without a total order, `OFFSET` cuts an arbitrary permutation
+and two pages may repeat one item while omitting another.
+
+### The wrapper is correct, measured against a 13,755-row answer
+
+A query returning 13,755 items — the same order of magnitude as the load
+that fails — read unpaged in 4 s and paged in 128 s over seven pages.
+**Identical sets, symmetric difference 0.** The cost is that each page
+re-evaluates the whole inner query, so paging is roughly pages × the unpaged
+time; that is the price of receiving an answer at all.
+
+### Two of the three discovery queries now page cleanly
+
+| run | query | pages | items | time |
+|---|---|---|---|---|
+| 1 | descent | 7 | 13,299 | 1,015 s |
+| 1 | usage | 3, one body truncated | — | failed |
+| 2 | descent | 7 | 13,301 | 474 s |
+| 2 | usage | 3 | 5,073 | 533 s |
+| 2 | citizen | 0 | — | failed at offset 0 |
+
+**The descent is solved.** It is the query stage D could not receive under
+any of three attempts, its item count is now confirmed a third and fourth
+time at 13,299 and 13,301, and it arrived twice in a row. Peak RSS for the
+whole process was 121 MB, half what the second country's load took, because
+a page is discarded once its QIDs are in the set.
+
+**The `usage` truncation did not recur**, which says that failure was
+transient rather than deterministic — run 1 died on its third page and run 2
+read the same three pages without complaint. Nothing was changed between the
+runs that could account for it.
+
+**`citizen` fails at offset 0**, with the original `ChunkedEncodingError`
+rather than a truncated JSON body, on the very first page. That is the one
+result that says something about the method rather than about the night's
+weather: at offset 0 a page is not smaller work than the unpaged query, it
+is *larger* — the wrapper adds a total ordering over the whole result to a
+query that was already the most expensive of the three. Bisecting the page
+cannot help a failure at offset 0, and a smaller page makes the ordering no
+cheaper. Whatever fixes `citizen` is a different shape of query, not a
+smaller slice of this one.
+
+### Spain is not in the table, and the run stops here
+
+`load_country` writes nothing until all three discovery queries have
+answered, so the table is unchanged at 1,061 rows and the Czech bench is
+exactly what the previous section left it at: 84.18% / 0.7150 / 66.09%
+aggregate, 94.98% / 0.8337 / 78.37% on the primary slice, 79.36% / 0.4643 /
+31.37% with `--signals none`, 9.27 ms mean per search. **No measurement of a
+large foreign country's effect on retrieval exists yet**, and the question
+stage D asked — does the first country still work with a big one loaded —
+is still open.
+
+One handler was written and then removed rather than shipped: a recursive
+halving of a page whose body arrives truncated. It never fired in run 2, and
+the failure that remains is at offset 0 where halving changes nothing. It is
+recorded here instead of in the code, because an untested branch that does
+not address the failure it was written for is worse than its absence.

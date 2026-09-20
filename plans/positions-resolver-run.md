@@ -61,7 +61,7 @@ ordering inside the fifteen, and the quality of the test set.
 | B | Increment 4: ranking signals | done, **resolved** | One signal carries the stage: a holder count is worth 0.18 MRR and 32 points of top-1 on the primary slice, the other four together 0.012 and 1.4. The date *boost* is measured destructive and ships at zero weight. `Q486839` and `Q108899569` are separated mechanically, by a floor above 46 in-country holders. |
 | C | Increment 5: the second turn | **blocked**, deferred | No `ANTHROPIC_API_KEY` on this host: no `.envrc`, no `.env`, nothing in the shell profile. The build is reordered so C's artefacts are written but never run. |
 | D | Increment 6: Poland, then Spain | done, **resolved with a defect** | Poland loads in 457 s, 82% of it discovery. Spain does not: its 13,300-row response cannot be read to the end (three attempts, `ChunkedEncodingError`), though the query itself finishes. Czech recall falls 81.6% to 79.4% on Poland's rows alone, and filling those rows' holder counts costs a further 0.08 MRR and 11 points of top-1. Signals project to 6.3–10.9 h for a Spain-sized table. |
-| E | Repair what scale found | in progress | 2 of 3 done. Depth: a 200-row pool re-ranked to 15 buys 2.8 points of aggregate recall and nothing at all without a re-ranker. Local holder scoring: **+0.099 MRR and 13 points of top-1**, the largest move since the holder count itself — and the repair turns out to be the backfill rather than the rule, since all three readings of a missing count score identically once none is missing. |
+| E | Repair what scale found | done, **2 of 3 resolved** | Depth: a 200-row pool re-ranked to 15 buys 2.8 points of aggregate recall and nothing at all without a re-ranker. Local holder scoring: **+0.099 MRR and 13 points of top-1**, the largest move since the holder count itself, and the repair is the backfill rather than the rule. Spain: paging fixes the query three attempts could not receive (13,301 items, twice) and `usage` too, but `citizen` fails at offset 0, where a page is *larger* work than the unpaged query. Spain is not loaded and the bench is unchanged. |
 | F | Increment 7: wire into propose | pending | |
 
 ### A. Rebuild the silver fixture
@@ -386,6 +386,39 @@ Three things to carry forward:
 - **The pool curve is flatter than it looked.** Under `local`, 400 finds
   three more rows than 200 and 2,000 gives one back, with MRR and top-1
   static past 100. Non-monotone in its own parameter is noise; 200 stays.
+
+#### E3. Paged discovery (2026-09-20): two thirds, and the third needs a
+different query
+
+`discover` wraps each query as a subselect under `ORDER BY ?pos LIMIT n
+OFFSET m`, 2,000 a page, stopping on the first short page. Validated
+against a 13,755-row answer: unpaged 4 s, paged 128 s over seven pages,
+**identical sets**.
+
+| query | pages | items | time |
+|---|---|---|---|
+| descent | 7 | 13,301 | 474 s |
+| usage | 3 | 5,073 | 533 s |
+| citizen | 0 | — | `ChunkedEncodingError` at offset 0 |
+
+**The descent is solved** — it is the query three unpaged attempts could not
+receive, and it arrived twice, confirming the count at 13,299/13,301. Peak
+RSS 121 MB. The `usage` truncation seen in the first paged run did not
+recur, so it was transient.
+
+`citizen` is the finding. It fails on its *first* page, which is where
+paging cannot help by construction: at offset 0 the wrapper adds a total
+ordering over the whole result set to the most expensive of the three
+queries, so the page is more work than the unpaged query, not less.
+Bisecting it changes nothing. A halving handler was written for the
+truncated-body case, never fired, and was removed rather than shipped
+untested.
+
+`load_country` writes nothing until all three queries answer, so **Spain is
+not in the table**, it stands at 1,061 rows, and the question stage D asked
+— does a small country's retrieval survive a large one — is still open. The
+next attempt is a different shape of `citizen` query, which is a decision
+rather than a retry.
 
 ### F. Increment 7: wire into propose
 
