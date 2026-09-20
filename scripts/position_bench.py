@@ -9,21 +9,27 @@ the half that cannot be recovered downstream: a model only ever sees the
 shortlist, so the right item at rank 40 and no right item at all are the
 same failure.
 
-Two scores, because the test set has two kinds of label. A *gold* row pairs
-a title to one P39 by date agreement and is scored on rank. A *weak* row
+Three scores, because the test set has two kinds of label and two grains. A
+*gold* row pairs a title to one P39 by date agreement and is scored on rank;
+the same numbers are reported again **per tenure**, deduplicated by
+`(person, tenure_id)`, because one office named in six wikis is six titles
+and one answer, and the per-title aggregate counts it six times. Per tenure
+is the number that means "tenures reconciled". A *weak* row
 knows only the person's whole P39 set and is scored on whether any of it
 appears -- which is a ceiling, not an accuracy. Gold rows are reported
 macro-averaged over distinct answers as well as in aggregate, because one
 office is nearly half of them and the aggregate is otherwise a statement
 about that office.
 
-The third number is about the test set rather than the search. Pairing by
+The last number is about the test set rather than the search. Pairing by
 date agreement is cheap and wrong a quarter of the time: a party post and
 a parliamentary seat that begin on the same day pair to each other, and no
-retrieval could ever find such an answer. A gold row whose title shares no
-content token with any name of its own answer, in any language, is counted
-as unpairable and reported apart from the misses, because scoring against
-it measures the heuristic and not the index.
+retrieval could ever find such an answer. The fixture writes that judgement
+onto each gold row as `vocab_overlap` -- does the title share any content
+token with any name or indexed token of its own answer -- and never uses it
+to select a pair, because a silver set chosen by token overlap cannot
+measure a token-based retriever. Here it only splits the report, so the
+share that is the heuristic's fault is visible apart from the index's.
 """
 
 import argparse
@@ -93,6 +99,7 @@ def main() -> None:
     valid_ranks: list[int | None] = []
     known = name_tokens()
     seen: dict[tuple[str, str | None], int | None] = {}
+    per_tenure: dict[tuple[str, Any], int | None] = {}
 
     for row in rows:
         title = row["title"]
@@ -108,7 +115,15 @@ def main() -> None:
             by_juris["with jurisdiction" if row["jurisdiction"]
                      else "without jurisdiction"].append(rank)
             seen.setdefault((title.casefold(), row["gold_qid"]), rank)
-            if positions.tokens(title) & known.get(row["gold_qid"], set()):
+            # A tenure scores once, on its best-ranked title: several wikis
+            # naming one office is one answer to get right, not six.
+            key = (row["person_qid"], row.get("tenure_id", title.casefold()))
+            if per_tenure.get(key) is None or (rank is not None and rank < per_tenure[key]):
+                per_tenure[key] = rank
+            overlap = row.get("vocab_overlap")
+            if overlap is None:
+                overlap = bool(positions.tokens(title) & known.get(row["gold_qid"], set()))
+            if overlap:
                 valid_ranks.append(rank)
             else:
                 unpairable += 1
@@ -123,6 +138,7 @@ def main() -> None:
     print("gold rows (one dated P39 pairs the title):")
     summarise("aggregate", gold_ranks, args.limit)
     summarise("deduplicated by title", list(seen.values()), args.limit)
+    summarise("deduplicated by tenure", list(per_tenure.values()), args.limit)
     recalls = [len([r for r in rs if r is not None]) / len(rs)
                for rs in per_answer.values()]
     mrrs = [sum(1 / r for r in rs if r is not None) / len(rs)
@@ -132,7 +148,7 @@ def main() -> None:
           f"  MRR={statistics.mean(mrrs):.3f}")
 
     total_gold = len(gold_ranks)
-    print(f"\n  of {total_gold} gold rows, {unpairable} are unpairable "
+    print(f"\n  of {total_gold} gold rows, {unpairable} have vocab_overlap false "
           f"({unpairable / total_gold:.1%}): the title shares no token with any")
     print("  name of its own answer, so the date heuristic paired them wrongly")
     summarise("excluding those", valid_ranks, args.limit)

@@ -897,6 +897,108 @@ mostly measure one office. The first row of the file is the design's central
 case: "Starosta obce Kravaře" pairs by date to `Q99356295`, the generic mayor
 item, with the village in the qualifier.
 
+Those numbers are **against the superseded set**. Everything above this line
+was measured before the rebuild below and is kept as the record of what the
+first heuristic produced.
+
+#### Rebuilding the pairing, and what it measured (2026-09-20)
+
+The first heuristic took the first non-null of a title's start and end,
+looked for exactly one P39 agreeing on it, and never checked the other
+endpoint. It is wrong about a quarter of the time, and the failure is not
+date precision (89.5% of pairs rest on day-precision dates) but correlated
+offices: a member elected on a given day also becomes deputy chair of a
+committee that day, and the committee post inherits the chamber seat as its
+label. `Q10853442` has one P39 serving as gold for six different titles.
+
+The rebuild's constraint is that **a silver set selected by vocabulary
+overlap cannot measure a token-based retriever** -- recall goes to 100% by
+construction. So pairing stays date- and structure-driven, and vocabulary
+agreement is written onto the row as `vocab_overlap` and never read by the
+selection. Four rules:
+
+1. A person's titles group into tenures by `(start, end, acting)`. Extraction
+   reads one article per language, so a language occurring twice inside one
+   date group proves the group holds two offices sharing dates, and the group
+   is awarded nothing.
+2. Every endpoint both sides carry must agree, not just the first one found.
+3. One-to-one at the *tenure* level: a statement is gold for at most one
+   tenure and a tenure for at most one statement, ties dropped rather than
+   broken. At tenure level, so that one ministry named in six wikis stays six
+   titles with one shared answer.
+4. Tightness orders the competition: both endpoints beats one, day beats
+   month beats year.
+
+Each row now also carries `tenure_id`, `evidence`
+(`both-endpoints` | `start` | `end`), `vocab_overlap`, `vocab_distinctive`
+(the same test over tokens carried by under 5% of position documents) and the
+`reason` a tenure was awarded nothing. The bench reports deduplicated by
+tenure beside deduplicated by title.
+
+**It made the set worse, and that is the finding.**
+
+| fixture                     | gold rows | gold tenures | any token | distinctive |
+|-----------------------------|-----------|--------------|-----------|-------------|
+| first heuristic (superseded)| 532       | 357          | 77.3%     | 65.4%       |
+| rules 1+2+3                 | 270       | 244          | 72.2%     | 58.1%       |
+
+Ablated one rule at a time over the same 723 people:
+
+| configuration                          | gold | any token | distinctive |
+|----------------------------------------|------|-----------|-------------|
+| the first heuristic (superseded code)  | 532  | 77.3%     | 65.4%       |
+| every rule off                         | 764  | 77.1%     | 66.1%       |
+| rule 1 alone, language collision       | 746  | 77.5%     | 66.8%       |
+| rule 2 alone, both endpoints           | 305  | 71.8%     | 57.0%       |
+| rule 3 alone, one-to-one per tenure    | 517  | 72.0%     | 58.2%       |
+| rules 1+3                              | 499  | 72.3%     | 58.9%       |
+| rules 1+2+3, as shipped                | 270  | 72.2%     | 58.1%       |
+| rules 1+2+3, endpoints tolerant to 1y  | 452  | 78.5%     | 65.5%       |
+
+Every row but the first is `scripts/position_fixture.py --dry` with
+`--no-collision`, `--loose-endpoints`, `--no-one-to-one` and `--tolerance`
+in the combination that names it; the switches exist so the table can be
+re-run rather than quoted.
+
+The rules keep the suspect rows in preference to the sound ones: of the 411
+old gold rows sharing vocabulary with their answer 44.3% survive, of the 121
+sharing none 57.0% survive. The reason is measurable. Over every
+(tenure, P39) pair with at least one agreeing endpoint, the pairs where
+*both* endpoints agree share vocabulary 64.6% of the time (n=158), against
+70.6% where the second endpoint disagrees (n=677) and 74.0% where there is no
+second endpoint (n=204). **Agreeing on both dates is evidence against a pair
+being right**, because an article dates a tenure by the day the holder left
+and Wikidata by the day the successor arrived, while a committee post copies
+its parliamentary term verbatim and therefore matches perfectly.
+`Q3409229` on `Q10819807` runs 2017-12-06..2021-12-17 against an article's
+2017-12-06..2021-11-28: exact at the start, nineteen days out at the end,
+discarded. `Q12023211`'s "predseda Vyboru pro obranu" 2006..2010 lands
+exactly on a `Q19803234` statement, and is kept.
+
+Rule 1 is the one rule that pays, and it fires on 14 rows: correlated offices
+usually differ in their end date, so they rarely land in one date group at
+all. Against the permissive baseline it costs 18 rows and buys 0.4 and 0.7
+points. The tolerant variant in the last row was measured and **not adopted** --
+picking a tolerance because it raises the acceptance metric is tuning toward
+the number.
+
+Retrieval re-baselined on the rebuilt set, not comparable to the numbers in
+the section below because the label set changed:
+
+| measure                          | superseded set | rebuilt set |
+|----------------------------------|----------------|-------------|
+| gold rows                        | 532            | 270         |
+| aggregate recall@15              | 82.5%          | 78.5%       |
+| deduplicated by tenure, recall@15| 82.9%          | 79.9%       |
+| macro recall@15                  | 81.1% (72)     | 74.4% (56)  |
+| macro MRR                        | 0.553          | 0.457       |
+| aggregate MRR / top-1            | 0.563 / 40.6%  | 0.482 / 31.9% |
+| rows with `vocab_overlap` true   | 95.5% recall   | 92.8% recall |
+| weak rows recall@15              | 54.0% (1,670)  | 58.9% (1,932) |
+
+Every one of those is a statement about the test set and not about the index:
+the search did not change between the two columns.
+
 ### Increment 2: the Czech loader
 
 `peploop/positions.py:load_country(cc)`:
