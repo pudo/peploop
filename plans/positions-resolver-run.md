@@ -57,7 +57,7 @@ ordering inside the fifteen, and the quality of the test set.
 
 | # | stage | state | outcome |
 |---|---|---|---|
-| A | Rebuild the silver fixture | done, acceptance test **failed** | 532 gold rows to 270; vocabulary agreement 77.3% to 72.2%. The rules are anti-correlated with correctness. |
+| A | Rebuild the silver fixture | done, **resolved** | Two of three rules measured harmful and were dropped. Rule 1 alone: 746 gold rows at 77.5% / 66.8% agreement, beating the superseded set on both readings with 40% more rows. |
 | B | Increment 4: ranking signals | pending | |
 | C | Increment 5: the second turn | pending | |
 | D | Increment 6: Poland, then Spain | pending | |
@@ -136,11 +136,44 @@ The tolerant variant is recorded because it was measured, **not adopted**:
 choosing a tolerance from {0, 1, 2} by which one raises the acceptance metric
 is tuning toward the number, which this file forbids. It is the user's call.
 
-Where this leaves stage B: the rebuilt fixture is committed so code and data
-agree, and it is a *worse* test set than the one it replaced. Before stage B
-runs, pick one — revert the fixture to `fd8f36d`'s and keep the new fields
-off, adopt the tolerant variant on its own merits, or accept that this set
-cannot be cleaned by dates and reach for a different label source.
+#### Resolution: keep the rule that pays, drop the two that do not
+
+Rule 1 alone is now the default; rules 2 and 3 survive as `--both-endpoints`
+and `--one-to-one` so the ablation stays reproducible. It is not a tuned
+choice — it is the only configuration that beats the superseded set on
+*both* readings, and it does so with 40% more rows:
+
+| fixture | gold rows | any token | distinctive |
+|---|---|---|---|
+| superseded | 532 | 77.3% | 65.4% |
+| rules 1+2+3 as specified | 270 | 72.2% | 58.1% |
+| **rule 1 alone, adopted** | **746** | **77.5%** | **66.8%** |
+
+The tolerant variant stays unadopted for the reason stage A gave: picking a
+tolerance by which value raises the acceptance metric is tuning.
+
+**Dates are exhausted as a labelling channel, and that is the finding.** The
+residual mispairs are mostly cases where the right answer is absent from the
+person's record entirely — a committee post with no `P39` of its own — so no
+re-pairing rule can reach them. Two consequences carried into stage B:
+
+- The honest primary for a *ranking* change is MRR and top-1 over the
+  `vocab_distinctive` slice. Circularity poisons a recall measurement made
+  that way, but not a comparison between two orderings of the same candidate
+  set, which is all stage B does.
+- Per-tenure is reported beside per-title, because "tenures reconciled" is
+  what the loop is actually for.
+
+#### Baseline for stage B (2026-09-20, rule-1-only fixture)
+
+| slice | n | recall@15 | MRR | top-1 |
+|---|---|---|---|---|
+| aggregate | 746 | 81.6% | 0.528 | 33.8% |
+| deduplicated by tenure | 688 | 82.1% | 0.534 | 34.2% |
+| macro over 78 answers | 78 | 74.9% | 0.512 | — |
+| `vocab_overlap` true | 578 | 93.4% | 0.601 | 37.7% |
+
+Not comparable to anything measured against the superseded set.
 
 ### B. Increment 4: ranking signals
 

@@ -396,10 +396,10 @@ def main() -> None:
                         help="How many newly refused pairs to print.")
     parser.add_argument("--no-collision", action="store_true",
                         help="Ablate rule 1: let a repeated language be awarded.")
-    parser.add_argument("--loose-endpoints", action="store_true",
-                        help="Ablate rule 2: one agreeing endpoint is enough.")
-    parser.add_argument("--no-one-to-one", action="store_true",
-                        help="Ablate rule 3: a statement may answer many tenures.")
+    parser.add_argument("--both-endpoints", action="store_true",
+                        help="Rule 2, measured harmful: demand both dates agree.")
+    parser.add_argument("--one-to-one", action="store_true",
+                        help="Rule 3, measured harmful: one statement, one tenure.")
     parser.add_argument("--tolerance", type=int,
                         help="Years of slack on a disagreeing endpoint.")
     parser.add_argument("--dry", action="store_true",
@@ -408,8 +408,8 @@ def main() -> None:
 
     rules = Rules(
         language_collision=not args.no_collision,
-        both_endpoints=not args.loose_endpoints,
-        one_to_one=not args.no_one_to_one,
+        both_endpoints=args.both_endpoints,
+        one_to_one=args.one_to_one,
         tolerance=args.tolerance,
     )
     fixture = rows(rules)
