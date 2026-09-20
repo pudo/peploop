@@ -59,8 +59,8 @@ ordering inside the fifteen, and the quality of the test set.
 |---|---|---|---|
 | A | Rebuild the silver fixture | done, **resolved** | Two of three rules measured harmful and were dropped. Rule 1 alone: 746 gold rows at 77.5% / 66.8% agreement, beating the superseded set on both readings with 40% more rows. |
 | B | Increment 4: ranking signals | done, **resolved** | One signal carries the stage: a holder count is worth 0.18 MRR and 32 points of top-1 on the primary slice, the other four together 0.012 and 1.4. The date *boost* is measured destructive and ships at zero weight. `Q486839` and `Q108899569` are separated mechanically, by a floor above 46 in-country holders. |
-| C | Increment 5: the second turn | pending | |
-| D | Increment 6: Poland, then Spain | pending | |
+| C | Increment 5: the second turn | **blocked**, deferred | No `ANTHROPIC_API_KEY` on this host: no `.envrc`, no `.env`, nothing in the shell profile. The build is reordered so C's artefacts are written but never run. |
+| D | Increment 6: Poland, then Spain | running, promoted ahead of C | |
 | E | Increment 7: wire into propose | pending | |
 
 ### A. Rebuild the silver fixture
@@ -233,10 +233,18 @@ Carried into stage C: the shortlist a model reads now arrives with tags
 full account, with the query timings and three corrections to earlier notes,
 is the 2026-09-20 ranking-signals section of `peploop/positions.md`.
 
-### C. Increment 5: the second turn
+### C. Increment 5: the second turn — blocked on a missing credential
 
-The model picks from the shortlist or declines. Costs real tokens; budget and
-report it.
+`positions.md`'s VPS-move table lists `ANTHROPIC_API_KEY` as a thing that had
+to come across from `.envrc`. It did not: there is no `.envrc`, no `.env`, and
+nothing in any shell profile on this host. `~/.config/wikibase-cli/config.json`
+*is* present, so the write path would work; the read path that asks a model
+anything does not.
+
+Rather than stall the night on it, the order changes: **D runs first**, and C
+is then built to the point of being runnable — the prompt file, the candidate
+rendering, the schema, the plumbing, all testable offline — with the API calls
+left for whenever a key exists. Nothing about D depends on C.
 
 ### D. Increment 6: Poland, then Spain
 
