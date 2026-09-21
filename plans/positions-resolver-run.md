@@ -62,7 +62,8 @@ ordering inside the fifteen, and the quality of the test set.
 | C | Increment 5: the second turn | **built, not run** | Still no `ANTHROPIC_API_KEY` on this host. Everything up to the call exists — frozen prompt, closed verdict set, per-request schema closing the pick over the offered QIDs, `settle`, the assembled request — and `python -m peploop.check_reconcile` pins it at 0 failures with no network and no tokens. No agreement number exists, because nothing was asked. |
 | D | Increment 6: Poland, then Spain | done, **resolved with a defect** | Poland loads in 457 s, 82% of it discovery. Spain does not: its 13,300-row response cannot be read to the end (three attempts, `ChunkedEncodingError`), though the query itself finishes. Czech recall falls 81.6% to 79.4% on Poland's rows alone, and filling those rows' holder counts costs a further 0.08 MRR and 11 points of top-1. Signals project to 6.3–10.9 h for a Spain-sized table. |
 | E | Repair what scale found | done, **2 of 3 resolved** | Depth: a 200-row pool re-ranked to 15 buys 2.8 points of aggregate recall and nothing at all without a re-ranker. Local holder scoring: **+0.099 MRR and 13 points of top-1**, the largest move since the holder count itself, and the repair is the backfill rather than the rule. Spain: paging fixes the query three attempts could not receive (13,301 items, twice) and `usage` too, but `citizen` fails at offset 0, where a page is *larger* work than the unpaged query. Spain is not loaded and the bench is unchanged. |
-| F | Increment 7: wire into propose | pending | |
+| F | Load Spain; build increment 5's artefacts | done, **resolved with a measured loss** | Two-phase citizen discovery works where four attempts at one query failed: 41,899 people in 41 s, then 350 bounded chunks. Spain loads in 3,983 s and the table is 15,986 rows. Czech recall falls 84.2% to 82.7% aggregate and 95.0% to 93.9% on the primary slice; only 0.3 of the 1.5 points is the pool cut and all of the MRR and top-1 loss is genuine competition. A BCE date aborted the first load at 99% of its upserts. |
+| G | Increment 7: wire into propose | pending | |
 
 ### A. Rebuild the silver fixture
 
@@ -446,7 +447,56 @@ not in the table**, it stands at 1,061 rows, and the question stage D asked
 next attempt is a different shape of `citizen` query, which is a decision
 rather than a retry.
 
-### F. Increment 7: wire into propose
+### F. Load Spain; build increment 5's artefacts (2026-09-21)
+
+Two halves, and the first one finally answers stage D's open question. The
+full account, with every table, is the 2026-09-21 Spain section of
+`peploop/positions.md`; the six things a later stage needs from here:
+
+**The citizen query works in two phases and the one-query form is gone.** Ask
+who the people are — two triple patterns per occupation, 40,309 + 1,647 + 515,
+**41,899 deduplicated in 41 s** — then ask what they hold, 120 holders a chunk,
+**350 chunks**. Both counts are logged before the second phase begins. Phase
+two never failed once in 700 requests across two runs. Paging could not have
+fixed the old shape and this is why: a page at offset 0 orders the whole result
+of the most expensive query, while a chunk of 120 holders is a smaller
+question asked more often.
+
+**Spain loads in 3,983 s**, of which discovery is 79% and the citizen lane 73%.
+Entity fetch was 230 s for 15,018 items — linear in the second country's 16 s
+for 767, exactly as projected, and never the bottleneck it was named as. Peak
+RSS about 900 MB on the first run. The table is **15,986 positions and 167,170
+names**, 318 MB of database, 34 MB of it the GIN index.
+
+**Czech retrieval survives, and it costs 1.5 points.** 84.2% to **82.7%**
+aggregate, 95.0% to **93.9%** on the primary slice, 0.715 to 0.674 of MRR,
+66.1% to 61.3% of top-1. The 1,061-row column was re-measured in the same
+session before the load and reproduced to every digit, so the deltas are the
+table's.
+
+**Stage D's diagnosis is now the smaller half.** Deepening the pool to 400 or
+2,000 recovers 0.3 of the 1.5 points and **none** of the MRR or top-1 — those
+two are identical to four decimals at every pool size. So a Spanish office is
+genuinely outranking the Czech answer inside the fifteen, which no retrieval
+depth can undo. The pool plateau moved from 200 to 400; `CANDIDATE_POOL` is
+**left at 200**, because choosing it by which value raises the headline is
+tuning. The 0.3 points is on the table for the user to spend.
+
+**`--signals none` moved to 78.6% / 0.434 / 30.8% and could not have stayed
+put.** The brief named it as an invariant; the text order is a property of
+what is in the index and 14,925 rows went into it. No ranking code was
+touched.
+
+**A BCE date aborted the first load at 99%.** `-013-01` reached a `DATE`
+column and killed the run in the last two hundred of 15,015 upserts, after two
+hours of discovery. `_claim_date` now yields nothing for a value the column
+cannot hold and tries the next one. It took fifteen thousand items to surface
+a class of data neither smaller country contains.
+
+The second half is increment 5's artefacts, written against a host with no
+key and pinned offline; see stage C's outcome above.
+
+### G. Increment 7: wire into propose
 
 `P39` with the scoping qualifier the community uses, and a creation queue row
 for anything unmatched.

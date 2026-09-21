@@ -17,6 +17,7 @@ import re
 import time
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from datetime import date
 from typing import Any, Iterable, Sequence
 
 from normality import ascii_text
@@ -47,19 +48,32 @@ USAGE_QUERY = """SELECT DISTINCT ?pos WHERE {
   { ?h wdt:P31 wd:Q5 ; p:P39/ps:P39 ?pos } UNION { ?pos wdt:P1308 ?h }
 }"""
 
-#: Discovery by who holds it: offices held by citizens of the country whose
-#: occupation is political. The only route to an office the country's own
-#: people hold that is scoped to no polity of theirs — a posting abroad, a
-#: seat in an international body, an item with no jurisdiction claim at all.
-CITIZEN_QUERY = """SELECT DISTINCT ?pos WHERE {
-  VALUES ?occupation { wd:Q82955 wd:Q193391 wd:Q16533 }
-  ?h wdt:P27 wd:%(country)s ; wdt:P106 ?occupation ; p:P39/ps:P39 ?pos .
+#: Occupations that make a person's offices worth harvesting. The citizen
+#: lane exists for the office scoped to no polity of the holder's state — a
+#: posting abroad, a seat in an international body, an item carrying no
+#: jurisdiction claim at all — which neither the descent nor the usage query
+#: can reach.
+CITIZEN_OCCUPATIONS = ("Q82955", "Q193391", "Q16533")
+
+#: Phase one of the citizen lane: the people, one occupation per request.
+#: Two triple patterns against indexed properties and no reach into the
+#: position tree, so its cost is the size of the answer rather than the size
+#: of the join — 40,309 rows came back in 25 s for the largest occupation of
+#: the largest country measured.
+CITIZEN_PEOPLE_QUERY = """SELECT DISTINCT ?h WHERE {
+  ?h wdt:P27 wd:%(country)s ; wdt:P106 wd:%(occupation)s .
+}"""
+
+#: Phase two: the offices those people hold, asked a bounded chunk of holders
+#: at a time. Every request is the same small size no matter how many people
+#: the first phase found, which is the property the one-query form lacked.
+CITIZEN_HELD_QUERY = """SELECT DISTINCT ?pos WHERE {
+  VALUES ?h { %(values)s } ?h p:P39/ps:P39 ?pos .
 }"""
 
 QUERIES = {
     "descent": DESCENT_QUERY,
     "usage": USAGE_QUERY,
-    "citizen": CITIZEN_QUERY,
 }
 
 
@@ -107,14 +121,55 @@ def discover(
     found: dict[str, set[str]] = {}
     for source in sources:
         started = time.monotonic()
-        inner = QUERIES[source] % {"country": qid}
-        if page is None:
-            found[source] = {row["pos"] for row in wikidata.sparql(inner)}
+        if source == "citizen":
+            found[source] = _discover_citizen(qid, log)
         else:
-            found[source] = _discover_paged(source, inner, page, log)
+            inner = QUERIES[source] % {"country": qid}
+            if page is None:
+                found[source] = {row["pos"] for row in wikidata.sparql(inner)}
+            else:
+                found[source] = _discover_paged(source, inner, page, log)
         log(f"{source}: {len(found[source])} items in "
             f"{time.monotonic() - started:.0f}s")
     return found
+
+
+def _discover_citizen(qid: str, log: Any) -> set[str]:
+    """Find the offices a state's political citizens hold, in two phases.
+
+    The single-query form joins citizenship, occupation and every `P39`
+    statement in one pattern, and above a few thousand people the query
+    service cannot serve it — nor can paging help, because `ORDER BY` at
+    offset 0 makes the first page *more* work than the unpaged query. Asking
+    who the people are and then what they hold turns one unbounded query
+    into a bounded one per chunk of holders, which is the shape the rest of
+    this module already uses.
+
+    The people count and the chunk count are logged before the second phase
+    starts, so the cost of a load is known in advance rather than discovered
+    an hour into it.
+    """
+    people: set[str] = set()
+    for occupation in CITIZEN_OCCUPATIONS:
+        started = time.monotonic()
+        rows = wikidata.sparql(
+            CITIZEN_PEOPLE_QUERY % {"country": qid, "occupation": occupation}
+        )
+        people.update(row["h"] for row in rows)
+        log(f"  citizen people {occupation}: {len(rows)} rows in "
+            f"{time.monotonic() - started:.0f}s")
+    chunks = list(wikidata.values_chunks(sorted(people)))
+    log(f"  citizen: {len(people)} people, {len(chunks)} chunks to ask")
+    items: set[str] = set()
+    for index, chunk in enumerate(chunks, 1):
+        started = time.monotonic()
+        rows = wikidata.sparql(
+            CITIZEN_HELD_QUERY % {"values": wikidata.values_block(chunk)}
+        )
+        items.update(row["pos"] for row in rows)
+        log(f"  citizen chunk {index}/{len(chunks)}: {len(rows)} offices,"
+            f" {len(items)} total, in {time.monotonic() - started:.0f}s")
+    return items
 
 
 def _discover_paged(
@@ -289,10 +344,18 @@ def type_closure(qids: Sequence[str]) -> dict[str, set[str]]:
 
 
 def _claim_date(entity: dict[str, Any], *props: str) -> str | None:
-    """The first time value of these properties, at day precision or coarser.
+    """The first usable time value of these properties, at day precision or coarser.
 
     Returns an ISO string truncated to what the precision actually asserts, so
     a year-precision claim never reads as the first of January.
+
+    A value the column cannot hold yields nothing and the next value is tried,
+    which is the same answer this workbench gives a date it cannot represent
+    rather than converting one. Wikidata writes a year before the common era
+    with a leading minus and does not always pad it to four digits, and an
+    office dated to antiquity is never the answer to a tenure this loop
+    resolves. Measured: one `-013-01` aborted a 15,015-item load in its last
+    two hundred upserts, after two hours of discovery.
     """
     for prop in props:
         for time, precision in wikidata.claim_time(entity, prop, include_deprecated=False):
@@ -300,7 +363,12 @@ def _claim_date(entity: dict[str, Any], *props: str) -> str | None:
             if length is None:
                 continue
             text = time.lstrip("+")[:length]
-            return text + "-01" * (3 - len(text.split("-")))
+            text = text + "-01" * (3 - len(text.split("-")))
+            try:
+                date.fromisoformat(text)
+            except ValueError:
+                continue
+            return text
     return None
 
 

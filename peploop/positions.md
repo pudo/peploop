@@ -1949,3 +1949,216 @@ been run against a model, so there is no agreement number, no verdict
 distribution, and no reading of the `generic-class`-on-`generic-by-convention`
 case the design named as the one to read by hand. Those are the first three
 measurements to take when a key exists.
+
+## Spain loads, and the first country's recall moves again (2026-09-21)
+
+The run began on the evening of the 20th and finished on the 21st. **Spain is
+in the table**: 15,018 positions and 150,719 names in 3,983 s, and with the
+pilot and the second country that is **15,986 rows and 167,170 names**. The
+question stage D asked and stage E could not answer — does a small country's
+retrieval survive a large one — has a number, and it is a loss of **1.5 points
+of aggregate recall, 0.041 of MRR and 4.8 points of top-1**.
+
+### The citizen query, in two phases
+
+Four attempts had failed at one query. The shape that worked is the one the
+rest of this module already uses — ask who the people are, then ask what they
+hold, a bounded chunk at a time:
+
+```
+phase 1   ?h wdt:P27 wd:<state> ; wdt:P106 wd:<occupation>      one per occupation
+phase 2   VALUES ?h { …120 QIDs… } ?h p:P39/ps:P39 ?pos          one per chunk
+```
+
+Phase one is two triple patterns against indexed properties with no reach into
+the position tree, and it answered in **25 s, 8 s and 8 s** for the three
+occupations — 40,309 politicians, 1,647 diplomats, 515 judges, **41,899 people
+deduplicated, 350 chunks**. Both counts are logged before phase two starts, so
+the bill is known in advance rather than discovered an hour into it.
+
+Phase two never failed. Per-chunk cost is the query service's latency and
+nothing about the chunk: chunk 20 returned two offices in 82 s and chunk 3
+returned 114 in under one. The mean was **14.5 s** on the first run and 8.3 s
+on the second.
+
+**This is why paging could not have worked.** A page at offset 0 imposes a
+total ordering on the whole result of the most expensive query, so it is more
+work than the unpaged form; a chunk of 120 holders is a different, smaller
+question that happens 350 times. The one-query form is gone from the module.
+
+### What each step of the load cost
+
+Run 2 is the one that completed. Run 1 is kept because the difference between
+them is a measurement of the query service's own cache, not of this code.
+
+| step | run 1 | run 2 | result |
+|---|---|---|---|
+| discovery, class descent | 611 s | **155 s** | 13,299 / 13,301 items |
+| discovery, usage | 188 s | **73 s** | 5,073 / 5,074 |
+| discovery, by citizen | 5,076 s | **2,922 s** | 5,922 both times |
+| union | — | — | 15,015 / **15,018** |
+| entity fetch (50 per request) | 234 s | **230 s** | 15,018 |
+| type closure | 224 s | **192 s** | 15,018 |
+| referenced items | 309 s | **310 s** | 20,670 of 20,670 |
+| upsert, row at a time | aborted | **100 s** | 15,018 rows |
+| **whole load** | — | **3,983 s** | 150,719 names |
+| peak RSS, sampled | ~900 MB | ~600 MB | — |
+
+Discovery is 79% of the load and the citizen lane is 73% of it. The entity
+fetch, named two stages ago as the likely bottleneck for a large country, came
+in at **230 s for 15,018 items** — a fifteenfold country cost fourteen times
+the second country's 16 s, which is exactly linear and exactly as projected.
+
+The item counts drift by one or two between runs (13,299 against 13,301, 5,073
+against 5,074). That is Wikidata being edited while the query runs, and it
+matches the drift stage E saw.
+
+### The load aborted at 99% on a date Postgres would not take
+
+Run 1 died in the last two hundred of 15,015 upserts with
+`invalid input syntax for type date: "-013-01"`, after two hours of discovery
+it could not repeat cheaply. `_claim_date` truncated a Wikidata time value to
+the precision it claims and handed the result to a `DATE` column without ever
+asking whether it was one. A year before the common era carries a leading
+minus and is not always padded to four digits, so `-013-01-01T00:00:00Z` at
+month precision became the string `-013-01`.
+
+The fix is the answer this workbench already gives a date it cannot represent:
+**a value the column cannot hold yields nothing, and the next value is tried**.
+`date.fromisoformat` is the whole test, which also rules out year zero and a
+day the month does not have, and trying the next value means a bad `P571`
+cannot hide a good one. Nine cases were checked by hand, including the one
+that aborted the load; the four valid shapes are unchanged.
+
+Two things worth keeping from how this was found. It took **fifteen thousand
+items to surface**, and neither the pilot nor the second country contains a
+single office dated before the common era — a class of data that does not
+exist below some scale is not testable below it. And `load_country` writes row
+by row under autocommit, so the crash left 14,834 rows committed and the rest
+absent, which is the worst of both: not a rollback and not a load. The re-run
+closed it, and the shape of that risk is recorded rather than fixed, because
+fixing it is a transaction boundary and this stage is not about that.
+
+### What is in the table
+
+| | rows |
+|---|---|
+| `position` | 15,986 |
+| `position_name` | 167,170 |
+| heap / TOAST / indexes | 16 MB / 196 MB / 35 MB, of which the GIN index is 34 MB |
+| `position_name` total | 37 MB |
+| whole database | 318 MB |
+
+15,018 + 1,061 is 16,079, and the table holds 15,986: **93 offices were
+already there**, reached by the new country's citizen lane because someone
+holds both. Those rows were re-fetched and rewritten in place.
+
+By discovery source, which is the argument for having three of them:
+
+| sources | rows |
+|---|---|
+| descent only | 8,565 |
+| citizen + descent + usage | 4,534 |
+| **citizen only** | **1,914** |
+| descent + usage | 737 |
+| citizen + usage | 125 |
+| usage only | 110 |
+| citizen + descent | 1 |
+
+**1,914 offices — 12% of the table — are reachable by no query but the
+citizen lane**, the one that had failed four times. 250 rows are flagged
+`not_office`, 494 record an abolition, 11,322 carry a jurisdiction.
+
+**Signals were deliberately not filled for the new country.** 1,061 rows carry
+a holder count and 14,925 do not, which is stage D's measured configuration
+rather than a cost compromise: filling a foreign country's holder counts made
+the first country's ordering *worse*, and the projected bill here is 600
+requests and six to eleven hours.
+
+### The bench, with fifteen times the rows
+
+| slice | 1,061 rows | 15,986 rows | delta |
+|---|---|---|---|
+| aggregate, 746 rows | 84.2% / 0.715 / 66.1% | **82.7% / 0.674 / 61.3%** | −1.5 / −0.041 / −4.8 |
+| per tenure, 688 | 84.7% / 0.724 / 67.0% | 83.6% / 0.682 / 61.9% | −1.1 / −0.042 / −5.1 |
+| macro over 78 answers | 74.1% / 0.555 | 72.5% / 0.556 | −1.6 / +0.001 |
+| `vocab_overlap`, 578 | 95.0% / 0.834 / 78.4% | **93.9% / 0.781 / 72.0%** | −1.1 / −0.053 / −6.4 |
+| `--signals none`, aggregate | 79.4% / 0.464 / 31.4% | **78.6% / 0.434 / 30.8%** | −0.8 / −0.030 / −0.6 |
+| titles retrieving nothing | 0.0% | 0.0% | — |
+
+The 1,061-row column was re-measured in this same session before the load and
+reproduced the previous stage's figures to every digit, so the deltas are
+attributable to the table and not to drift between sessions.
+
+**`--signals none` moved, and it had to.** The brief for this stage named it as
+an invariant, and that reading cannot survive the experiment: the text order is
+a property of what is *in* the index, and 14,925 rows were put into it. No
+ranking code was touched. The only code change in this part is `_claim_date`,
+which writes two `DATE` columns; `search_text` is built from names, kinds and
+the jurisdiction and contains neither, and `--signals none` passes an empty
+signal set so `date_verdict` is never called. The one residual is those 93
+rewritten rows, whose documents were rebuilt from entities re-fetched a month
+of Wikidata edits later.
+
+### Where the loss actually is, and it is not mostly the pool
+
+Stage D's account of the second country was that the damage was the `LIMIT` in
+SQL cutting the candidate set before the signals ran. Deepening the pool at
+15,986 rows says that is now the smaller half of it:
+
+| pool | aggregate | `vocab_overlap` |
+|---|---|---|
+| 200 (shipped) | 82.7% / 0.674 / 61.3% | 93.9% / 0.781 / 72.0% |
+| 400 | 83.0% / 0.674 / 61.3% | 94.3% / 0.782 / 72.0% |
+| 2,000 | 83.0% / 0.674 / 61.3% | 94.3% / 0.782 / 72.0% |
+
+**0.3 of the 1.5 lost points is the cut and 1.2 is real competition**, and
+**the whole of the MRR and top-1 loss is competition**: those two do not move
+by a thousandth between a pool of 200 and a pool of 2,000. A Spanish office is
+genuinely outranking the Czech answer inside the fifteen, which no retrieval
+depth can undo — only a signal that knows which country is asking, and the
+one signal that does is null on every Spanish row.
+
+The pool plateau has moved from 200 to 400 with the table. `CANDIDATE_POOL`
+is **left at 200**: 0.3 points is what raising it buys, the curve was
+non-monotone in its own parameter at the last measurement, and choosing a
+constant by which value raises the headline is the thing this file forbids.
+It is the user's call, and the number it would buy is in the table above.
+
+`--signals none` is 78.6% / 0.434 / 30.8% at every pool size measured, which
+is stage E's finding intact: depth is worth nothing without a re-ranker.
+
+### Search cost and the planner, at fifteen times the rows
+
+Measured over the first 300 fixture titles, end to end through `search()`:
+
+| | 1,061 rows | 15,986 rows |
+|---|---|---|
+| mean | 10.17 ms | **16.99 ms** |
+| median | 7.69 ms | 11.15 ms |
+| p95 | 27.34 ms | 40.24 ms |
+
+**A fifteenfold table costs 1.67× the search.** The GIN index is doing its job.
+
+**The planner already preferred `position_tsv_idx`, and the note saying
+otherwise was wrong.** Over 40 fixture queries it chose a bitmap index scan for
+**32 of 40 at 1,061 rows and 33 of 40 at 15,986** — the earlier claim that it
+preferred a sequential scan at 343 and at 1,061 rows is contradicted by
+measurement at the second of those sizes. Nothing about the table's size
+changed the choice.
+
+The seven that still scan sequentially are not a planner mistake. `search`
+builds a `|` disjunction of every content lexeme in the title, so a query of
+common words matches a large share of the table and a bitmap is no cheaper:
+
+| query | lexemes | rows matched |
+|---|---|---|
+| `Zastupitel Královéhradeckého kraje` | 7 | 13,740 of 15,986 |
+| `radní kraje` | 5 | 13,712 |
+| `Mayor of Letohrad` | 3 | 8,175 |
+| `Director General of Railways of the Slovak Republic` | 9 | 2,052 |
+| `Senator from Pelhřimov` | 7 | 1,194 |
+
+Those are the tail of the latency distribution and the reason p95 is four
+times the median. They are a property of the query shape — an OR over every
+token — and not of the index.
