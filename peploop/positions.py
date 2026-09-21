@@ -1238,12 +1238,18 @@ def _display_names(qids: Sequence[str], bag: set[str]) -> dict[str, tuple[str, s
 #: country's answers over that cliff: 78 of the 80 answers displaced that
 #: way had one of the newcomer's rows above them in text order.
 #:
-#: 200 is measured rather than declared, and it is the smallest pool at
-#: which every slice of the bench is at its ceiling: recall stops moving at
-#: 100, the last displaced answer comes back at 200, and 400, 800 and a pool
-#: larger than any shortlist buy nothing at all on any slice. The curve is
-#: in the 2026-09-20 retrieval-depth section of `positions.md`.
-CANDIDATE_POOL = 200
+#: The rule is the smallest pool at which every slice of the bench sits at
+#: its ceiling, measured rather than declared. **Where that falls is a
+#: property of the table, not of the search**: on one country the plateau
+#: completed at 200, and on three it completes at 400 -- 800 and a pool
+#: larger than any shortlist buy nothing further on any slice.
+#:
+#: Depth is free here and that is why the rule can afford to be generous.
+#: The plan is a sequential scan that evaluates `ts_rank` for every matching
+#: row whatever the `LIMIT`, so the pool changes what is *kept*, not what is
+#: read: 200 and 400 time the same to within the noise of a warm cache. The
+#: curves are in the retrieval-depth and scale sections of `positions.md`.
+CANDIDATE_POOL = 400
 
 #: The columns the re-ranking reads, fetched with the shortlist rather than
 #: per row: one round trip per candidate would cost more than the whole

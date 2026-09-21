@@ -500,3 +500,46 @@ key and pinned offline; see stage C's outcome above.
 
 `P39` with the scoping qualifier the community uses, and a creation queue row
 for anything unmatched.
+
+
+## Final state (2026-09-21)
+
+Six stages ran. The resolver retrieves and ranks a free-text office title
+against 15,986 positions in three countries, in about 17 ms.
+
+| slice | n | recall@15 | MRR | top-1 |
+|---|---|---|---|---|
+| aggregate | 746 | 83.0% | 0.674 | 61.3% |
+| per tenure | 688 | 83.7% | 0.682 | 61.9% |
+| `vocab_overlap` | 578 | 94.3% | 0.782 | 72.0% |
+| macro over 78 answers | 78 | 72.9% | 0.556 | — |
+
+Against the text order alone (`--signals none`, 78.6% / 0.434 / 30.8%), the
+ranking is worth 0.24 of MRR and 30 points of top-1.
+
+### What is not done, and why
+
+- **Increment 5 is built but never run.** There is no `ANTHROPIC_API_KEY` on
+  this host. `peploop/reconcile.py`, `peploop/prompts/reconcile.md` and
+  `peploop/check_reconcile.py` exist and the offline half is pinned; the call
+  has never been made, so there is no agreement number and no verdict
+  distribution. Copy the key across and it runs.
+- **Increment 7 (stage G) is untouched.** It writes proposals from picks, and
+  there are no picks until the above runs.
+- **Spain's ranking signals are null**, deliberately: 5 queries x 120 chunks
+  is 6-11 hours, and the measurements say a null foreign count is the better
+  configuration, not merely the cheaper one.
+
+### The open question the scale run leaves
+
+Loading Spain cost 1.5 points of aggregate recall and 4.8 of top-1. Only 0.3
+of the recall was the pool cut, and that is now spent by raising the pool to
+400. **The rest is real competition**: a Spanish office genuinely outranks the
+Czech answer inside the fifteen, and no depth undoes that. It is identical at
+every pool size. The signal that would settle it -- who is asking -- is null
+on every Spanish row, which is exactly the trade accepted above.
+
+So the next measurement is not a bigger pool. It is whether a cheap
+country-side signal that needs no holder count (does this row's country,
+jurisdiction or body match the run's country at all?) recovers the 1.2 points
+without reintroducing the filter that cost 23.7 macro points in increment 3.
