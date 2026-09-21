@@ -28,7 +28,7 @@ downstream reader, only for Wikidata being right.
  seeds ──► fetch ──► extract ──► reconcile ──► propose ──► write
    ▲                                  │             │
    │                                  ▼             ▼
-   └───────────── candidate index     └──── verdicts (sampled review)
+   └───────────── lookup index        └──── verdicts (sampled review)
 ```
 
 **Seeds.** A queue of Wikidata items worth reading. Sources, in the order they
@@ -48,11 +48,14 @@ eventually family relations for dynastic polities). Every value carries a
 verbatim quote and the article it came from.
 
 **Reconcile.** Free-text offices and places become QIDs by searching a local
-candidate index and letting the model pick from what the search returns, or
-decline. The index is a Postgres table of position and place items with labels,
-aliases and jurisdiction text in every language, loaded per country from
-Wikidata and from the OpenSanctions tracked set. An office the index does not
+index and letting the model pick from what the search returns, or decline. The
+index is a Postgres table loaded per country from Wikidata, holding one
+searchable document per item: its names in every language, and the names of
+the jurisdiction, state, body and predecessor it points at. Retrieval ranks
+and the model decides; nothing is filtered out of the table, and every signal
+that moved a row is shown to the model as a tag. An office the index does not
 hold is not matched; it is recorded, with its evidence, in a creation queue.
+Positions are built (`positions.md`); places are not started.
 
 **Propose.** A table of evidenced claims, each compared against the live item
 and marked `new`, `exists`, `refine` or `conflict`. This table is the system's
@@ -82,16 +85,19 @@ rank changes never happen here.
 1. **Flat fields, Czechia.** Seed from one category. The loop runs unattended,
    proposals land in Postgres, a dumb QuickStatements renderer proves the table
    is usable. *Current: `design.md`.*
-2. **Positions and birthplace.** The candidate index, the two-turn
-   reconciliation, the creation queue.
+2. **Positions and birthplace.** The lookup index, the two-turn
+   reconciliation, the creation queue. *Positions are built and measured on
+   three countries; the second turn is assembled but has never been sent, and
+   the creation queue and birthplace are not started.*
 3. **Wider material.** Roster and list pages found from the person's articles
    join the prompt. The seed queue gains SPARQL-found gaps.
 4. **Verdicts.** The review command and the verdict table; review the
    pilot's proposals; read acceptance per property.
 5. **Write.** The throttled writer, references, the atomic multi-tenure edit;
    the first per-property switches.
-6. **Scale.** More countries in one run; the candidate index built from a dump
-   rather than SPARQL; scheduled re-runs against `lastrevid`.
+6. **Scale.** More countries in one run; scheduled re-runs against
+   `lastrevid`. A dump-based index is the fallback, not the plan: SPARQL
+   reaches ~16,000 items per country with paged discovery.
 
 Each round is done when its stage works on the pilot country end to end and
 the previous rounds still do. A round does not start early because a later one
@@ -111,7 +117,7 @@ looks easy.
 - Review of every proposal. Review is a sample that measures; a tool that has
   to be approved value by value never earns the right to write on its own.
 - Country-specific policy code. A country's quirks belong in the prompt
-  material and the candidate index, not in a rules table.
+  material and the lookup index, not in a rules table.
 
 ## Relationship to what came before
 

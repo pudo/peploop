@@ -63,15 +63,19 @@ COLLISION = "the date group names one language twice, so it holds more than one 
 class Rules:
     """Which pairing rules are in force, so the ablation is one command.
 
-    The defaults are what the fixture ships. Turning one off reproduces a row
-    of the ablation table in `peploop/positions.md`, which is the only reason
-    the switches exist: every one of them was measured and none of them is a
-    preference.
+    The defaults are what the fixture ships, and only the first rule does.
+    The other two were implemented, measured against the answers they keep
+    and discard, and found to select *against* correct pairs; they survive as
+    switches because a rejected rule is worth being able to re-run, not
+    because either is a preference. `peploop/positions_discarded.md` says
+    what each cost.
     """
 
+    #: Two titles in one language with the same dates are two offices, not
+    #: one tenure named twice — extraction reads one article per language.
     language_collision: bool = True
-    both_endpoints: bool = True
-    one_to_one: bool = True
+    both_endpoints: bool = False
+    one_to_one: bool = False
     tolerance: int | None = None
 
 

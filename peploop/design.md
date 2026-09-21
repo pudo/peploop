@@ -236,56 +236,38 @@ their existing P27), and whether an existing P27 claim already covers a proposed
 (`get_territory_by_qid`, compared over `Territory.qids` so `Q713750` on the item
 makes a proposed `Q183` read as `exists` rather than `new`).
 
-Round 2 adds positions and birthplace. The free-text titles already in
-`extraction` are the test queries for the index; retrieval was measured on
-them before the second LLM turn was built, and the measurement moved the
-design more than once. `positions.md` is the design note and carries the
-numbers; this is the shape that survived them:
+Round 2 adds positions and birthplace. Positions are built and measured;
+birthplace is not started. `positions.md` is the design and
+`research/peploop_positions.md` the numbers; the shape in one paragraph:
 
-- `position` table, one row per Wikidata item a free-text office title may
-  resolve to, with `position_name` holding one row per (qid, lang) name. The
-  generalised `candidate (kind, …)` table this section originally specified
-  is dropped: places have a parent chain rather than a jurisdiction and
-  people have neither, so a shared table is nullable columns meaning
-  different things per kind. Birthplace gets its own table when it arrives.
-- The row carries `label`, `description`, `country_qid` (P17),
-  `jurisdiction_qid` (P1001) and `jurisdiction_text`, the labels and aliases
-  of the P1001 item in all languages. `rigour` is no help here: P1001 is a
-  country only for national offices; for everything else it is a region, a
-  municipality or a body, and those names are not in any territory table. So
-  the jurisdiction is text the search reads, exactly like the label — an
-  article that names an office in one language reaches the item through the
-  place when the label is in another.
-- **The search is one index, and it was measured into that shape rather than
-  designed into it.** `position.search_text` is a de-duplicated bag of the
-  content tokens of every name the item carries and every name of the items
-  it points at (jurisdiction, country, body, kind, succession), each token
-  stored beside its six-character prefix in place of a stemmer; a generated
-  `to_tsvector('simple', …)` column over it carries the only GIN index. A
-  query is the title *and* the jurisdiction string through the identical
-  transformation, OR-ed into one `to_tsquery` and ordered by
-  `ts_rank(tsv, q, 0)`, which over a bag counts how much of the query the
-  item accounts for. The three things this paragraph used to say are each
-  measured wrong: trigram-plus-full-text scored per name is 16.9 aggregate
-  points below the blob (and trigram *over* the blob is 58 points below it
-  and 85× slower), the jurisdiction as a channel of its own contributes
-  exactly 0.0, and filtering to the run's country costs 23.7 macro points.
-  `country_qid` is normalised by `rigour` and is not a filter.
-- Position candidates are the union of: items reachable by `P279*` from
-  `Q4164871` position and `Q294414` public office that carry a `P17` or
-  `P1001`; items held by a human via `P39` with `P17`/`P1001` set (zavod's
-  usage-based discovery); and the positions OpenSanctions tracks in its
-  `wd_peps` stateful table. Loaded per country on demand, cached in the table
-  with a `loaded_at`.
-- Extraction becomes two turns in one conversation: turn one returns free-text
-  position titles with dates and quotes; code searches `position` for each
-  title *and* whatever jurisdiction the model names beside it, as one query
-  over the whole table, top 15; turn two shows the candidates in
-  full, jurisdiction label included, and asks the model to pick one or `none`.
-  The first turn's schema therefore has a `jurisdiction: str | None` field next
-  to the title, so "minister of finance" arrives with "Czechoslovakia" or
-  "Czech Republic" attached where the article says which. The pick is constrained to the offered QIDs by the schema.
-  The conversation shares the cached system prefix.
+- A `position` table, one row per Wikidata item a free-text office title may
+  resolve to, with `position_name` holding one row per (qid, lang) name and
+  `type_edge` caching the class hierarchy. Places have a parent chain rather
+  than a jurisdiction and people have neither, so there is no generalised
+  `candidate (kind, …)` table: birthplace gets its own when it arrives.
+- Discovery is three per-country lanes — a class descent, offices someone is
+  recorded in, and offices the state's own citizens hold — unioned and tagged
+  by which lane found each item. None is sufficient alone.
+- **The search is one index.** `position.search_text` is a de-duplicated bag
+  of the content tokens of every name the item carries and every name of the
+  items it points at, each token stored beside its six-character prefix in
+  place of a stemmer; a generated `to_tsvector('simple', …)` column over it
+  carries the only GIN index. A query is the title *and* the jurisdiction
+  string through the identical transformation, OR-ed into one `to_tsquery`
+  and ordered by `ts_rank(tsv, q, 0)`, which over a bag counts how much of
+  the query the item accounts for. `country_qid` is not a filter.
+- Retrieval returns a deep pool and Python re-ranks it to fifteen on signals
+  — how many of the asking state's citizens hold the office, whether it is
+  class-like, whether its dates can span the tenure — each shown to the model
+  as a tag rather than applied silently.
+- Extraction becomes two turns in one conversation: turn one returns
+  free-text position titles with dates and quotes; code searches `position`
+  for each title *and* whatever jurisdiction the model names beside it; turn
+  two shows the fifteen candidates in full and asks the model to pick one or
+  `none`, the pick constrained to the offered QIDs by the schema. The first
+  turn's schema therefore has a `jurisdiction: str | None` field next to the
+  title. The conversation shares the cached system prefix. **The second turn
+  is built and has never been run: the host carries no `ANTHROPIC_API_KEY`.**
 
 ### 6. Propose
 
@@ -475,9 +457,15 @@ run     [--limit N] [--threads 4] [--qid Q...]
 render  [--status new,refine] [--property P...] > out.qs
 review  [--qid Q...] [--limit N]
 apply   [--limit N] [--qid Q...] [--write] [--follow]
+
+load-positions   --country cc [--source descent|usage|citizen]
+position-signals --country cc [--local-holders]
+position-stats   [--country cc]
 ```
 
-Every command here exists. `review` is a Textual TUI whose unit is a
+Every command here exists. The three `position*` commands build and measure
+the round-2 lookup table and are documented in `positions.md`; the rest are
+the round-1 loop. `review` is a Textual TUI whose unit is a
 person, not a proposal: it shows the item's existing claims and links to the
 articles beside that person's `new` and `refine` proposals, drawn at random
 from those with something left to review, and writes all of one person's
@@ -554,12 +542,16 @@ staying shallow across many categories.
 peploop/
   design.md
   bigpicture.md
+  positions.md             round 2: the position resolver, as built
+  positions_discarded.md   round 2: measured and rejected, read before changing
   schema.sql
+  fixtures/                the silver test set the bench scores against
   prompts/extract.md
+  prompts/reconcile.md
   __init__.py
   db.py          connection, cache get/put, upserts
   http.py        session, rate limiter, User-Agent (copied and trimmed from wd/http.py)
-  wikidata.py    fetch item, best_label, claim readers
+  wikidata.py    fetch item, best_label, claim readers, SPARQL
   wikipedia.py   PetScan seed, REST HTML fetch, HTML → text
   prompt.py      render system + user message
   extract.py     schema, parse call
@@ -569,16 +561,25 @@ peploop/
   apply.py       log in, plan one wbeditentity per person, write and record
   run.py         driver, thread pool
   cli.py
+  positions.py   round 2: load a country's offices, search and rank them
+  reconcile.py   round 2: the second turn, assembled but never sent
+  check_neutral.py    fails when the code names a country it has run
+  check_regress.py    re-scores a prompt change against recorded verdicts
+  check_review.py     drives the review TUI headlessly and undoes itself
+  check_reconcile.py  pins the second turn offline: no network, no key
 ```
 
-Roughly 800 lines. Anything that wants to be larger than that in round 1 is a
-sign the increment is wrong.
+Round 1 is roughly 800 lines and anything larger is a sign the increment is
+wrong. Round 2 adds about as much again, most of it in `positions.py`; the
+measurements that justify each part are in `research/peploop_positions.md`.
 
 ## Open questions for later rounds
 
-- Whether the position candidate set should be built from a Wikidata dump
-  rather than SPARQL once it covers more than a handful of countries.
 - Whether `refine` proposals (adding a day to a year-precision date) are safe
   to render without review, given how often infoboxes disagree across languages.
 - How the two-turn reconciliation behaves when an article names ten offices;
   batching all titles into one second turn versus one turn per title.
+- Whether a country-match signal that needs no holder count recovers what a
+  large country's arrival costs a small one's retrieval. `positions.md` closes
+  on this; a dump-based candidate set is *not* the answer, since SPARQL
+  reaches ~16,000 items per country with paging.
