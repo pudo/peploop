@@ -138,26 +138,36 @@ def item_cell(qid: str, labels: dict[str, str | None]) -> Text:
     return cell
 
 
-def value_cell(
-    value: dict[str, Any], qualifiers: dict[str, Any] | None, labels: dict[str, str | None]
-) -> Text:
-    """Render a proposed datavalue and its date qualifiers as one cell."""
+def value_cell(value: dict[str, Any], labels: dict[str, str | None]) -> Text:
+    """Render a proposed datavalue as one cell.
+
+    The value only. A tenure's endpoints go in the `when` column, beside the
+    ones the item already records -- see `span_cell`.
+    """
     if "time" in value:
-        cell = Text(date_text(value))
-    elif "id" in value:
-        cell = item_cell(value["id"], labels)
-    elif "text" in value:
-        cell = Text(value["text"])
-    else:
-        cell = Text(str(value))
-    spans = [
-        f"{name} {date_text((qualifiers or {})[prop])}"
-        for prop, name in SPAN_QUALIFIERS
-        if (qualifiers or {}).get(prop)
-    ]
-    if spans:
-        cell.append(f"  [{', '.join(spans)}]", style="dim")
-    return cell
+        return Text(date_text(value))
+    if "id" in value:
+        return item_cell(value["id"], labels)
+    if "text" in value:
+        return Text(value["text"])
+    return Text(str(value))
+
+
+def span_cell(qualifiers: dict[str, Any] | None) -> Text | None:
+    """Render a proposed tenure's endpoints the way the item's own are rendered.
+
+    The column is what a reviewer compares down: the statement above says
+    `2020-10-15 → 2022-06-01` and this has to say `2020-10-15 → 2022-04-20` in
+    the same place and the same shape, or the one date that differs is the one
+    thing the screen does not show. It used to be appended to the value cell,
+    which is truncated at `VALUE_WIDTH`, so an office with a long name lost its
+    dates entirely.
+    """
+    found = {prop: (qualifiers or {}).get(prop) for prop, _name in SPAN_QUALIFIERS}
+    if not any(found.values()):
+        return None
+    start, end = found["P580"], found["P582"]
+    return Text(f"{date_text(start) if start else '?'} → {date_text(end) if end else '?'}")
 
 
 def span_text(claim: dict[str, Any]) -> str:
@@ -301,15 +311,21 @@ def build_lines(person: Person) -> list[Line]:
 
 
 def proposal_cells(row: Row, labels: dict[str, str | None]) -> list[Text]:
-    """Render one proposal as the five cells of its line."""
+    """Render one proposal as the five cells of its line.
+
+    The `when/lang` column holds the tenure where there is one and the article's
+    language otherwise: a dated tenure is what the row is *about*, and the
+    language is on the evidence panel either way.
+    """
     quote = " ".join((row.quote or "").split())
     if len(quote) > QUOTE_PREVIEW:
         quote = quote[:QUOTE_PREVIEW] + "…"
+    span = span_cell(row.qualifiers)
     return [
         Text(row.mark()),
         Text(property_name(row.property)),
-        value_cell(row.value, row.qualifiers, labels),
-        Text(row.lang or ""),
+        value_cell(row.value, labels),
+        span if span is not None else Text(row.lang or ""),
         Text(quote) if quote else Text("—", style="dim"),
     ]
 

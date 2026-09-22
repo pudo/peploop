@@ -94,6 +94,17 @@ Refusing it because no candidate mentions the organisation mistakes the
 convention for a miss. The exception is a shortlist that carries an item for
 that specific post — then pick the specific item instead.
 
+**The `used with:` line is the condition, not decoration.** Where the article
+names the body — a state secretary *at the Ministry of Finance*, a chair *of
+the defence committee* — and the only candidate that fits the title names no
+body and carries no `used with:`, then the convention is not in evidence and
+the specific office has no item yet. Answer `none`. An item with a handful of
+holders and no qualifier anybody uses is not a community's shorthand for
+hundreds of distinct posts: placing them all on it produces statements that
+differ from each other only by their dates, and the office the article names
+disappears. One run put 235 tenures at 39 different ministries onto a single
+such item, which held two holders and one scoping qualifier used once.
+
 ## The tags, and what each one means for your answer
 
 | tag | what the ranking found | what it means for the verdict |

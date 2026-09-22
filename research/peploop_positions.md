@@ -418,3 +418,48 @@ $107.65 for the country, $0.051 per person. Reconcile costs more than
 extraction because it is one request per *mention* and each carries the whole
 article; the cache absorbs 58% of its input. At 12 threads it ran 113
 mentions/min, at 4 threads 8–17 while the sweep competed for capacity.
+
+## 11. What a prompt rule cost and bought (2026-09-22)
+
+The state-secretary lane of §10 was fixed in the prompt rather than in
+`propose`, so the whole country was re-asked: **7,222 mentions, ~$61**. The
+`resolution` key includes the prompt hash, so both answer sets sit in the table
+and the diff is a join.
+
+| | |
+|---|---|
+| unchanged | 6,882 (95.3%) |
+| matched → refused | 278 |
+| refused → matched | 61 |
+| moved to another item | 1 |
+
+**278 dropped, and 253 of them are the four lanes the rule is about**: the
+generic state secretary 200, `party chair` 33, `parliamentary group leader` 10,
+`Member of Abgeordnetenhaus` 10. Of the 25 scattered elsewhere, a hand-read of
+14 found roughly half correct -- a Yugoslav-era `predsednik Republiškega
+komiteja za kulturo` and `předseda slovinského výkonného výboru` are genuinely
+not the Minister of Culture and not the Prime Minister -- and roughly half
+regressions, all of one shape: `mayor of Ljubljana` refused against
+`mayor of Ljubljana City Municipality`, where the candidate *does* name the
+place and the model read the longer official name as a different body. Call it
+~12 regressions against ~253 intended fixes.
+
+**A sample of 50 predicted the run.** Before spending the $61: 16 of 20 in the
+target lane flipped to `none`, 19 of 20 controls held, 10 of 10 existing
+refusals held. The full run's in-lane rate was 200/235 = 85%, against the
+sample's 80%.
+
+**The re-ask nearly did nothing, because of one clause in the wrong place.**
+`propose.placements` filtered `qid IS NOT NULL` in the same query that took the
+newest verdict per mention, so a mention the new prompt refused silently kept
+the old prompt's match: 200 placements were dropped and **226 proposals stayed
+standing on the item**. Newest first, then drop the refusals. After the fix the
+P39 set fell from 1,467 rows to 1,255, and the generic state secretary from 235
+to 38.
+
+**A reviewed row is immune to all of this, by design.** `_store` keeps any
+proposal carrying a verdict, so rows already accepted in the TUI survive a
+re-propose -- including, here, two accepted onto the item the new rule now
+refuses. That is the right default and it means a policy change does not
+silently rewrite what a human has ruled on; it also means those rows have to be
+cleared by hand if the new policy is meant to reach them.

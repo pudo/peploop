@@ -201,6 +201,20 @@ def _check(conn: Any, qid: str) -> int:
         wide.sidebar and not wide.legend,
         f"at {WIDE_SIZE[0]} columns the sidebar replaces the one-line legend",
     )
+    # A tenure has to be readable where the item's own tenures are read, which
+    # is the `when` column. Appending it to the value cell instead put it
+    # behind a `VALUE_WIDTH` truncation, where a long office name ate it.
+    spanned = [
+        review.span_cell({"P580": {"time": "+2020-10-15T00:00:00Z", "precision": 11}}),
+        review.span_cell({"P582": {"time": "+2022-06-01T00:00:00Z", "precision": 11}}),
+        review.span_cell({"P585": {"time": "+2020-10-15T00:00:00Z", "precision": 11}}),
+        review.span_cell(None),
+    ]
+    expect(
+        [str(cell) if cell is not None else None for cell in spanned]
+        == ["2020-10-15 → ?", "? → 2022-06-01", None, None],
+        f"a tenure renders into the when column, one endpoint or two (got {spanned})",
+    )
     expect(
         not unnamed,
         f"the sidebar spells out all {len(review.REASONS)} reasons (missing {unnamed})",

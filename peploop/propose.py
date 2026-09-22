@@ -692,11 +692,18 @@ def placements(extraction_id: int) -> dict[int, tuple[str, int]]:
     Only the rows the reconciler resolved: a null `qid` is a refusal or a veto,
     and belongs in the creation queue rather than on anybody's item. A prompt
     edit re-asks, so the newest verdict per mention is the one that counts.
+
+    **Newest first, then drop the refusals** -- in that order, and the order is
+    the whole point. Filtering the nulls inside the same query picks the newest
+    verdict *that matched*, so a mention a new prompt refuses quietly keeps the
+    old prompt's match and the re-ask changes nothing. Measured: a rule that
+    dropped 200 placements from one item left 226 proposals standing on it.
     """
     rows = db.conn().execute(
-        "SELECT DISTINCT ON (mention_idx) mention_idx, qid, id FROM resolution"
-        " WHERE extraction_id = %s AND qid IS NOT NULL"
-        " ORDER BY mention_idx, id DESC",
+        "SELECT mention_idx, qid, id FROM ("
+        "  SELECT DISTINCT ON (mention_idx) mention_idx, qid, id FROM resolution"
+        "  WHERE extraction_id = %s ORDER BY mention_idx, id DESC"
+        ") newest WHERE qid IS NOT NULL",
         (extraction_id,),
     )
     return {index: (qid, row_id) for index, qid, row_id in rows}
