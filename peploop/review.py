@@ -27,7 +27,7 @@ from textual.markup import escape
 from textual.screen import ModalScreen
 from textual.widgets import DataTable, Footer, Input, Static
 
-from peploop import db, prompt, wikidata
+from peploop import db, prompt, reconcile, wikidata
 
 # A conflict is reviewable but not writable: accepting one says the article is
 # right and Wikidata is wrong, which is a human's to-do about the item, and
@@ -37,7 +37,7 @@ REVIEWABLE = ("new", "refine", "conflict")
 # of the `verdict.reason` check constraint in schema.sql.
 REASONS = (
     "wrong_value", "wrong_precision", "quote_unsupported", "wrong_person",
-    "already_recorded", "rule_missing", "source_wrong", "other",
+    "already_recorded", "rule_missing", "source_wrong", "wrong_office", "other",
 )
 # The reason as a reviewer would say it, for the sidebar. A word alone does not
 # say what about the thing is wrong, and the identifier is not a phrase.
@@ -45,7 +45,8 @@ REASON_NAMES = {
     "wrong_value": "wrong value", "wrong_precision": "wrong precision",
     "quote_unsupported": "quote does not support", "wrong_person": "wrong person",
     "already_recorded": "already recorded", "rule_missing": "prompt rule missing",
-    "source_wrong": "source itself wrong", "other": "other",
+    "source_wrong": "source itself wrong", "wrong_office": "wrong office matched",
+    "other": "other",
 }
 # One word per reason, for the legend and the verdict cell: what the database
 # stores is too long to read across a row eight times.
@@ -53,9 +54,12 @@ REASON_WORDS = {
     "wrong_value": "value", "wrong_precision": "precision",
     "quote_unsupported": "quote", "wrong_person": "person",
     "already_recorded": "recorded", "rule_missing": "rule",
-    "source_wrong": "source", "other": "other",
+    "source_wrong": "source", "wrong_office": "office", "other": "other",
 }
 WRONG_PERSON = REASONS.index("wrong_person") + 1
+# How a shortlist marks the item the office landed on, and the one the model
+# chose where a mechanical gate then refused it.
+PICKED, VETOED = "→", "?"
 
 # The words a reviewer reads instead of a P-code, and the order the groups are
 # drawn in. `labels` is not a property: it is the one summary row standing for
@@ -101,6 +105,7 @@ SIDEBAR = "\n".join(
         "         [b]A[/b] [dim]accept all[/dim]",
         "         [b]R#[/b] [dim]reject all with #[/dim]",
         "         [b]W[/b] [dim]wrong person, submit[/dim]",
+        "[dim]office[/dim]   [b]p[/b] [dim]shortlist[/dim]",
         "[dim]links[/dim]    [b]o[/b] [dim]wikidata[/dim]  [b]w[/b] [dim]article[/dim]",
     ]
 )
@@ -217,6 +222,8 @@ class Row:
     lang: str | None
     url: str | None
     status: str
+    #: The `resolution` row that placed this office, on a P39 and nowhere else.
+    resolution_id: int | None = None
     decision: str = ACCEPT
     reason: str | None = None
     note: str | None = None
@@ -307,7 +314,7 @@ def proposal_cells(row: Row, labels: dict[str, str | None]) -> list[Text]:
     ]
 
 
-def select_people(qids: list[str], limit: int) -> list[str]:
+def select_people(qids: list[str], limit: int, country: str | None = None) -> list[str]:
     """Pick people to review: the named ones, or a random draw of proposed ones.
 
     Random order, because reviewing in insertion order measures whoever was
@@ -318,9 +325,10 @@ def select_people(qids: list[str], limit: int) -> list[str]:
     rows = db.conn().execute(
         "SELECT p.person_qid FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
         " WHERE pe.status = 'proposed' AND p.status = ANY(%s)"
+        " AND (%s::text IS NULL OR pe.country = %s)"
         " AND NOT EXISTS (SELECT 1 FROM verdict v WHERE v.proposal_id = p.id)"
         " GROUP BY p.person_qid ORDER BY random() LIMIT %s",
-        (list(REVIEWABLE), limit),
+        (list(REVIEWABLE), country, country, limit),
     )
     return [row[0] for row in rows]
 
@@ -335,7 +343,8 @@ def load_person(qid: str) -> Person | None:
     rows = [
         Row(*record)
         for record in conn.execute(
-            "SELECT id, property, value, qualifiers, quote, source_lang, source_url, status"
+            "SELECT id, property, value, qualifiers, quote, source_lang, source_url,"
+            " status, resolution_id"
             " FROM proposal WHERE person_qid = %s AND status = ANY(%s)"
             " AND NOT EXISTS (SELECT 1 FROM verdict v WHERE v.proposal_id = proposal.id)"
             " ORDER BY property, id",
@@ -402,26 +411,97 @@ def write_verdicts(rows: list[Row], reviewer: str) -> tuple[int, int]:
     return written, taken
 
 
-def summary_lines() -> list[str]:
+SCOPE = (
+    " AND (%s::text IS NULL OR p.person_qid IN"
+    " (SELECT qid FROM person WHERE country = %s))"
+)
+
+
+def summary_lines(country: str | None = None) -> list[str]:
     """Report acceptance per property and rejections per reason over every verdict."""
     conn = db.conn()
-    total = conn.execute("SELECT count(*) FROM verdict").fetchone()[0]
+    args = (country, country)
+    total = conn.execute(
+        "SELECT count(*) FROM verdict v JOIN proposal p ON p.id = v.proposal_id"
+        " WHERE true" + SCOPE,
+        args,
+    ).fetchone()[0]
     if not total:
         return []
     lines = [f"verdicts: {total}", "acceptance by property:"]
     for prop, accepted, seen in conn.execute(
         "SELECT p.property, count(*) FILTER (WHERE v.decision = 'accept'), count(*)"
         " FROM verdict v JOIN proposal p ON p.id = v.proposal_id"
-        " GROUP BY p.property ORDER BY p.property"
+        " WHERE true" + SCOPE + " GROUP BY p.property ORDER BY p.property",
+        args,
     ):
         lines.append(f"  {property_name(prop):20s} {accepted:4d}/{seen:<4d} {accepted / seen:.0%}")
     lines.append("rejections by reason:")
     for reason, count in conn.execute(
-        "SELECT coalesce(reason, '(none)'), count(*) FROM verdict WHERE decision = 'reject'"
-        " GROUP BY reason ORDER BY count(*) DESC"
+        "SELECT coalesce(v.reason, '(none)'), count(*)"
+        " FROM verdict v JOIN proposal p ON p.id = v.proposal_id"
+        " WHERE v.decision = 'reject'" + SCOPE
+        + " GROUP BY v.reason ORDER BY count(*) DESC",
+        args,
     ):
         lines.append(f"  {reason:20s} {count}")
     return lines
+
+
+class ShortlistScreen(ModalScreen[None]):
+    """Show the office as the article named it, beside every item it was offered.
+
+    A P39 row says only which item the office landed on, and that is the one
+    thing a reviewer cannot check from the row: `Minister of Finance` and
+    `Ministry of Finance` differ by a word and by everything. So the mention,
+    the model's own reading of it, and the ranked shortlist with the pick
+    marked all go on one screen, rebuilt from the recorded verdict rather than
+    searched again.
+    """
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("escape", "dismiss", "close"),
+        Binding("p", "dismiss", "close", show=False),
+        Binding("q", "dismiss", "close", show=False),
+    ]
+
+    def __init__(self, resolution_id: int) -> None:
+        super().__init__()
+        self.resolution_id = resolution_id
+
+    def compose(self) -> ComposeResult:
+        try:
+            record, candidates = reconcile.replay_shortlist(self.resolution_id)
+        except LookupError:
+            yield Static("the verdict behind this row is gone", id="shortlist-box")
+            return
+        span = " – ".join(filter(None, (record["start_text"], record["end_text"])))
+        head = [
+            f"[b]{escape(record['title'])}[/b]"
+            + (f"  [dim]({escape(record['jurisdiction'])})[/dim]"
+               if record["jurisdiction"] else ""),
+            f"[dim]{escape(span or 'undated')} · {record['lang'] or '?'}"
+            f" · {record['kind']} · {record['confidence']}"
+            f" · {record['model'] or '?'}[/dim]",
+        ]
+        if record["evidence"]:
+            head.append(f"[i]{escape(record['evidence'])}[/i]")
+        if record["veto"]:
+            head.append(f"[b]vetoed:[/b] {escape(record['veto'])}")
+        lines = [*head, ""]
+        for rank, candidate in enumerate(candidates, 1):
+            # The applied pick, then the model's pick where a gate refused it:
+            # a vetoed choice is the most useful row on the screen and the one
+            # a bare list would hide.
+            picked = candidate.qid == record["qid"]
+            mark = PICKED if picked else (VETOED if candidate.qid == record["chosen"] else " ")
+            text = escape(candidate.line())
+            lines.append(
+                f"{mark} [dim]{rank:2d}[/dim] " + (f"[b]{text}[/b]" if picked else text)
+            )
+        if not candidates:
+            lines.append("[dim]nothing was offered for this mention[/dim]")
+        yield Static("\n".join(lines), id="shortlist-box")
 
 
 class NoteScreen(ModalScreen[str | None]):
@@ -475,6 +555,11 @@ class ReviewApp(App[None]):
     #evidence { height: auto; max-height: 10; padding: 0 1; border-top: solid $primary; }
     #note-box { width: 70%; height: auto; padding: 1 2; background: $panel; border: thick $primary; }
     NoteScreen { align: center middle; }
+    /* Wide, because a candidate line is the item's whole record on one row and
+       wrapping it costs more than the screen edge does. */
+    #shortlist-box { width: 96%; height: auto; max-height: 90%; padding: 1 2;
+                     background: $panel; border: thick $primary; overflow-y: auto; }
+    ShortlistScreen { align: center middle; }
     """
     BINDINGS: ClassVar[list[BindingType]] = [
         Binding("j", "cursor(1)", "down", show=False),
@@ -490,7 +575,9 @@ class ReviewApp(App[None]):
         Binding("w", "open_article", "article"),
         Binding("escape", "disarm", "cancel", show=False),
         Binding("q", "quit", "quit"),
-        *[Binding(str(n), f"reject({n})", REASONS[n - 1], show=False) for n in range(1, 9)],
+        Binding("p", "shortlist", "shortlist"),
+        *[Binding(str(n), f"reject({n})", REASONS[n - 1], show=False)
+          for n in range(1, len(REASONS) + 1)],
     ]
     COLUMNS = (
         ("verdict", "verdict"),
@@ -512,6 +599,9 @@ class ReviewApp(App[None]):
         self.written = 0
         self.skipped = 0
         self.bulk = False
+        # One replay per verdict per session: the panel is redrawn on every
+        # cursor move and the shortlist behind a row does not change.
+        self._verdicts: dict[int, str] = {}
 
     def compose(self) -> ComposeResult:
         with Horizontal(id="body"):
@@ -602,9 +692,41 @@ class ReviewApp(App[None]):
         parts = [escape(row.quote or "(no quote)")]
         source = f"{row.status} · {row.lang or '?'} · {row.url or 'no source'}"
         parts.append(f"[dim]{escape(source)}[/dim]")
+        if row.resolution_id is not None:
+            parts.append(self.verdict_line(row.resolution_id))
         if row.note:
             parts.append(f"[i]note: {escape(row.note)}[/i]")
         self.query_one("#evidence", Static).update("\n".join(parts))
+
+    def verdict_line(self, resolution_id: int) -> str:
+        """Summarise how this office reached this item, for the evidence panel.
+
+        The office as the article named it, because the row shows the item's
+        label and the two are what a wrong match differs in. `p` opens the
+        whole shortlist; this is the line that says whether it is worth it.
+        """
+        cached = self._verdicts.get(resolution_id)
+        if cached is None:
+            try:
+                record, candidates = reconcile.replay_shortlist(resolution_id)
+            except LookupError:
+                cached = "[dim]the verdict behind this row is gone[/dim]"
+            else:
+                cached = (
+                    f"[dim]office:[/dim] {escape(record['title'])}"
+                    f"  [dim]{record['kind']} · {record['confidence']}"
+                    f" · {len(candidates)} offered · [b]p[/b] to see them[/dim]"
+                )
+            self._verdicts[resolution_id] = cached
+        return cached
+
+    def action_shortlist(self) -> None:
+        """Open the shortlist behind the office under the cursor."""
+        row = self.current()
+        if row is None or row.resolution_id is None:
+            self.bell()
+            return
+        self.push_screen(ShortlistScreen(row.resolution_id))
 
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
         """Keep the cursor on a proposal; a mouse click can land it on a dim row."""

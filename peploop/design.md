@@ -39,9 +39,10 @@ QID lookup, and the languages spoken in a territory.
   writer may apply unreviewed. No stage waits for every proposal to be seen.
 - **Round 1 extracts the whole shape and proposes the flat fields.** Positions
   and birthplace are extracted as free text from the first run, stored raw, and
-  not proposed until round 2 gives them QIDs. This stresses the single-call
-  extraction on its real load early and yields the query corpus the candidate
-  search is designed against.
+  not proposed until reconciliation gives them QIDs. This stresses the
+  single-call extraction on its real load early and yields the query corpus the
+  candidate search is designed against. Positions have since crossed that line;
+  birthplace has not.
 
 ## The loop
 
@@ -210,7 +211,8 @@ Extraction
 
 `positions` and `birth_places` are free text in the articles' own languages —
 the office as the article names it, the place with whatever parent chain the
-article gives. They are stored and read, not proposed, until round 2.
+article gives. They are stored and read until reconciliation places them:
+`positions` become `P39` once it does, `birth_places` still wait.
 
 The raw response, token usage, model id, prompt hash and article set are stored
 in `extraction`. A person is extracted once per (prompt hash, article set);
@@ -236,8 +238,8 @@ their existing P27), and whether an existing P27 claim already covers a proposed
 (`get_territory_by_qid`, compared over `Territory.qids` so `Q713750` on the item
 makes a proposed `Q183` read as `exists` rather than `new`).
 
-Round 2 adds positions and birthplace. Positions are built and measured;
-birthplace is not started. `positions.md` is the design and
+Round 2 adds positions and birthplace. Positions are built, measured and
+proposed; birthplace is not started. `positions.md` is the design and
 `research/peploop_positions.md` the numbers; the shape in one paragraph:
 
 - A `position` table, one row per Wikidata item a free-text office title may
@@ -260,19 +262,27 @@ birthplace is not started. `positions.md` is the design and
   — how many of the asking state's citizens hold the office, whether it is
   class-like, whether its dates can span the tenure — each shown to the model
   as a tag rather than applied silently.
-- Extraction becomes two turns in one conversation: turn one returns
-  free-text position titles with dates and quotes; code searches `position`
-  for each title *and* whatever jurisdiction the model names beside it; turn
-  two shows the fifteen candidates in full and asks the model to pick one or
-  `none`, the pick constrained to the offered QIDs by the schema. The first
-  turn's schema therefore has a `jurisdiction: str | None` field next to the
-  title. The conversation shares the cached system prefix. **The second turn
-  is built and has never been run: the host carries no `ANTHROPIC_API_KEY`.**
+- Reconciliation is one request per office mention, under its own frozen
+  prompt (`prompts/reconcile.md`), not a second turn of the extraction
+  conversation: shortlists differ per office, and several decisions in one
+  context is how a judgement pass standardises on whoever answered first.
+  The request carries the mention as extraction wrote it (title, the
+  `jurisdiction` string the first turn's schema has next to the title, dates,
+  quotes), the whole article the quotes came from when it is under
+  `ARTICLE_CAP`, and the fifteen candidates rendered as whole items. The
+  model answers from a closed verdict set and `settle` refuses any QID not on
+  the list; the answer schema is one fixed shape, because a per-request
+  schema sits in the cached prefix and defeats the prompt cache. Every verdict
+  lands in `resolution`, keyed by extraction, mention, prompt hash and
+  rendering version, which is what a re-run resumes from.
 
 ### 6. Propose
 
-In round 1 `propose` skips `positions` and `birth_places`: they stay in
-`extraction.response_json` until reconciliation can give them QIDs. Every other
+`propose` skips `birth_places`, which stay in `extraction.response_json` until
+a reconciler of their own exists. A `positions` entry becomes a `P39` once
+reconciliation has placed it, carrying `P580`/`P582` and a `resolution_id` back
+to the verdict that placed it -- `positions.md` has the three rules that decide
+the rest, and the reason `render` refuses to emit a `P39` at all. Every other
 extracted value becomes a row in `proposal`:
 
 ```
@@ -426,7 +436,9 @@ type_edge    qid, targets[], fetched_at              (the P31/P279 ancestry cach
 
 `verdict.reason` is one of `wrong_value`, `wrong_precision`,
 `quote_unsupported`, `wrong_person`, `already_recorded`, `rule_missing`,
-`source_wrong`, `other`. The prompt hash that produced a proposal is reachable
+`source_wrong`, `wrong_office`, `other`. `wrong_office` says the office was
+placed on the wrong item, which is the one thing a `P39` row can be wrong about
+that no other reason names. The prompt hash that produced a proposal is reachable
 through `extraction`, so acceptance per prompt version is a join, not a column.
 The table exists from round 1 so nothing later has to back-fill it.
 
@@ -434,7 +446,11 @@ Eight tables plus three for round 2. Migrations are a single `schema.sql`
 applied with `CREATE TABLE IF NOT EXISTS`; no Alembic.
 
 `person.error` carries the exception text of a failed fetch, so one bad person
-is a row rather than a dead run. `position.search_text` is the loader's token
+is a row rather than a dead run. `person.country` is stamped by `seed` from its
+own flag and is the only thing in the schema that knows a run has a country; a
+person two runs both find keeps the first one's stamp.
+`proposal.resolution_id` points a `P39` back at the verdict that placed it, and
+is null on everything else. `position.search_text` is the loader's token
 bag — every name of the item and of the items it points at, folded, stopped,
 de-duplicated, each token beside its six-character prefix — and `position.tsv`
 is generated from it, since `to_tsvector(regconfig, text)` is IMMUTABLE. That
@@ -446,10 +462,11 @@ GIN index is the only one the search reads; `position_name` is indexed on
 Run from the repository root as `python -m peploop.cli <command>`.
 
 ```
-seed    --file peploop/seeds/cz.yml
+seed    --file peploop/seeds/cz.yml [--country cc]
 fetch   [--limit N] [--threads 8] [--qid Q...]
 refresh [--qid Q...] [--articles]
 extract [--limit N] [--threads 4] [--qid Q...]
+reconcile [--limit N] [--threads 4]
 propose [--limit N] [--qid Q...]
 dump    [--limit N] [--qid Q...]
 stats
@@ -459,9 +476,15 @@ review  [--qid Q...] [--limit N]
 apply   [--limit N] [--qid Q...] [--write] [--follow]
 
 load-positions   --country cc [--source descent|usage|citizen]
-position-signals --country cc [--local-holders]
+position-signals --country cc [--local-holders] [--recount]
 position-stats   [--country cc]
 ```
+
+Every command but the three `position*` ones and `refresh` also takes
+`--country`, which selects the people a run seeded under that code and nothing
+else. It is a filter over `person.country` and never reaches a stage: the unit
+of work stays one person, and `--qid` overrides it, because naming someone is
+the answer to "this one" rather than to "the next batch of these".
 
 Every command here exists. The three `position*` commands build and measure
 the round-2 lookup table and are documented in `positions.md`; the rest are
@@ -477,6 +500,13 @@ prints what it would send unless `--write` is given; §7 has the routing. With
 `--write --follow` it stays up and drains whatever `review` accepts next. Once
 verdicts exist, `stats` adds acceptance per property and a tally per reason,
 and counts `applied` beside the other statuses.
+
+`reconcile` resolves each extracted office mention to a position item or
+refuses, one request per mention against `prompts/reconcile.md`; `positions.md`
+has the whole of it. `--country` names the state whose holder counts rank the
+shortlist -- it is not a filter, and another state's office stays reachable and
+tagged as one. A mention already answered under this prompt and rendering is
+skipped without a request, so a re-run costs only what is new.
 
 `extract` reads the model's answer for each `fetched` person and stores it;
 its selection is stable, and a person already answered under this prompt hash
@@ -566,6 +596,7 @@ peploop/
   check_neutral.py    fails when the code names a country it has run
   check_regress.py    re-scores a prompt change against recorded verdicts
   check_review.py     drives the review TUI headlessly and undoes itself
+  check_propose.py    the position lane's three silent failures, offline
   check_reconcile.py  pins the second turn offline: no network, no key
 ```
 

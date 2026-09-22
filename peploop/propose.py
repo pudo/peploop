@@ -5,8 +5,9 @@ later API writer read them unchanged. The status is a comparison against the
 item's non-deprecated claims, recorded together with the revision it was
 computed against: it is a snapshot for `stats`, never a licence to write.
 
-Round 1 proposes the flat fields only. `positions` and `birth_places` stay in
-`extraction.response_json` until reconciliation can give them QIDs.
+`positions` become `P39` once reconciliation has given them a QID; the ones it
+refused stay in `extraction.response_json` as the creation queue. `birth_places`
+still wait for a reconciler of their own.
 """
 
 import json
@@ -66,6 +67,8 @@ class Proposal:
     qualifiers: dict[str, Any] | None = None
     quote: str | None = None
     lang: str | None = None
+    #: The `resolution` row that placed a P39 on its item; null on anything else.
+    resolution_id: int | None = None
     # Every article that attested this value. One proposal per value and not
     # per article, because the same citizenship in three languages is one
     # statement with three references, not three rows for one reviewer.
@@ -456,8 +459,133 @@ def _names(
     return out
 
 
+SPAN = (("start", "P580"), ("end", "P582"))
+
+
+def span_of(claim: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Read a P39 statement's start and end qualifiers as time values."""
+    found: dict[str, dict[str, Any]] = {}
+    for _key, prop in SPAN:
+        for snak in (claim.get("qualifiers") or {}).get(prop, []):
+            value = snak.get("datavalue", {}).get("value")
+            if isinstance(value, dict) and "time" in value:
+                found[prop] = value
+                break
+    return found
+
+
+def held(entity: dict[str, Any], qid: str) -> list[dict[str, dict[str, Any]]]:
+    """List the spans of every non-deprecated P39 statement naming one office.
+
+    Every rank is read but the deprecated ones: a preferred statement hides the
+    normal-rank ones from a truthy read, and a second term is normal-rank.
+    """
+    spans = []
+    for claim in entity.get("claims", {}).get("P39", []):
+        if claim.get("rank") == "deprecated":
+            continue
+        value = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
+        if isinstance(value, dict) and value.get("id") == qid:
+            spans.append(span_of(claim))
+    return spans
+
+
+def same_date(one: dict[str, Any], other: dict[str, Any]) -> bool:
+    """Compare two time values at the precision they share, not at their own."""
+    shared = min(one["precision"], other["precision"])
+    return at_precision(one["time"], shared) == at_precision(other["time"], shared)
+
+
+def tenure_status(spans: list[dict[str, dict[str, Any]]], span: dict[str, Any]) -> str:
+    """Decide what a proposed tenure adds to the ones the item already records.
+
+    A statement is compared endpoint by endpoint: an endpoint the item lacks is
+    what this adds, an endpoint that disagrees is a contradiction a human owns,
+    and agreement on everything proposed is a statement already recorded.
+
+    The two aggregations run opposite ways, and both directions are the point.
+    *Within* one statement the worst endpoint wins, because a tenure that
+    matches on its start and contradicts on its end is a contradiction and not
+    a match. *Across* statements the most benign wins, because several
+    statements naming one office are two terms with a gap, and a proposal has
+    only to be right about one of them.
+    """
+    if not spans:
+        return "new"
+    verdicts = []
+    for recorded in spans:
+        seen = {
+            "refine" if recorded.get(prop) is None else
+            "exists" if same_date(recorded[prop], value) else "conflict"
+            for prop, value in span.items()
+        }
+        verdicts.append(max(seen, key=STATUS_RANK.index) if seen else "exists")
+    return min(verdicts, key=STATUS_RANK.index)
+
+
+def tenure_key(qid: str, span: dict[str, Any]) -> tuple[str, str, str]:
+    """Identify one tenure, so the same spell named in two languages is one row."""
+    return (
+        qid,
+        span.get("P580", {}).get("time", "")[:5],
+        span.get("P582", {}).get("time", "")[:5],
+    )
+
+
+def _positions(
+    entity: dict[str, Any], data: dict[str, Any],
+    resolved: dict[int, tuple[str, int]], bad: set[str],
+) -> list[Proposal]:
+    """Propose a P39 for every office mention reconciliation placed on an item.
+
+    `resolved` maps a mention's index to the item it was placed on and the
+    verdict that placed it, and holds
+    only the mentions that cleared the reconciler's own gate -- so nothing is
+    judged again here. An acting tenure is kept out: Wikidata says "acting"
+    with a qualifier this pipeline does not yet write, and a P39 that omits it
+    asserts more than the article did.
+    """
+    out: dict[tuple[str, str, str], Proposal] = {}
+    for index, entry in enumerate(data.get("positions") or []):
+        placed = resolved.get(index)
+        if placed is None:
+            continue
+        qid, resolution_id = placed
+        span = {}
+        for key, prop in SPAN:
+            value = time_value(entry.get(key) or "")
+            if value is not None:
+                span[prop] = value
+        if entry.get("acting"):
+            status = FILTERED
+        else:
+            status = quote_status(
+                tenure_status(held(entity, qid), span), entry.get("quotes") or [], bad
+            )
+        key = tenure_key(qid, span)
+        existing = out.get(key)
+        if existing is not None:
+            # The same spell read in a second language: one statement with two
+            # references, not two rows asking a reviewer the same question.
+            existing.sources.extend(attestations([entry]))
+            continue
+        quotes = entry.get("quotes") or []
+        out[key] = Proposal(
+            property="P39",
+            value={"entity-type": "item", "id": qid},
+            status=status,
+            qualifiers=span or None,
+            quote=quotes[0] if quotes else None,
+            lang=entry.get("lang"),
+            resolution_id=resolution_id,
+            sources=attestations([entry]),
+        )
+    return list(out.values())
+
+
 def build(
-    entity: dict[str, Any], data: dict[str, Any], articles: dict[str, str] | None = None
+    entity: dict[str, Any], data: dict[str, Any], articles: dict[str, str] | None = None,
+    resolved: dict[int, tuple[str, int]] | None = None,
 ) -> list[Proposal]:
     """Turn one extraction's answer into the proposals it implies.
 
@@ -472,6 +600,7 @@ def build(
     proposals.extend(_gender(entity, data, bad))
     proposals.extend(_citizenships(entity, data, bad))
     proposals.extend(_names(entity, data, articles or {}))
+    proposals.extend(_positions(entity, data, resolved or {}, bad))
     return proposals
 
 
@@ -535,8 +664,9 @@ def _store(
                 ]
             conn.execute(
                 "INSERT INTO proposal (person_qid, property, value, qualifiers, quote,"
-                " source_lang, source_url, source_rev, extraction_id, item_rev, status)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                " source_lang, source_url, source_rev, extraction_id, item_rev, status,"
+                " resolution_id)"
+                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (
                     qid,
                     proposal.property,
@@ -549,10 +679,27 @@ def _store(
                     extraction_id,
                     item_rev,
                     proposal.status,
+                    proposal.resolution_id,
                 ),
             )
             counts[(proposal.property, proposal.status)] += 1
     return counts, len(judged)
+
+
+def placements(extraction_id: int) -> dict[int, tuple[str, int]]:
+    """Map each placed mention of an extraction to its item and its verdict row.
+
+    Only the rows the reconciler resolved: a null `qid` is a refusal or a veto,
+    and belongs in the creation queue rather than on anybody's item. A prompt
+    edit re-asks, so the newest verdict per mention is the one that counts.
+    """
+    rows = db.conn().execute(
+        "SELECT DISTINCT ON (mention_idx) mention_idx, qid, id FROM resolution"
+        " WHERE extraction_id = %s AND qid IS NOT NULL"
+        " ORDER BY mention_idx, id DESC",
+        (extraction_id,),
+    )
+    return {index: (qid, row_id) for index, qid, row_id in rows}
 
 
 def propose_person(qid: str) -> ProposeSummary:
@@ -587,7 +734,7 @@ def propose_person(qid: str) -> ProposeSummary:
     proposals = (
         []
         if summary.person_status == "not_human"
-        else build(entity, data, article_texts(qid))
+        else build(entity, data, article_texts(qid), placements(extraction_id))
     )
     summary.counts, summary.kept = _store(qid, proposals, extraction_id, item_rev)
     db.set_person_status(qid, summary.person_status)

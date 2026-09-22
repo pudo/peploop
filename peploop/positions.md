@@ -2,8 +2,8 @@
 
 Round one extracts an office as the article names it — a title, sometimes a
 jurisdiction string, dates, quotes. This is the half that turns that into a
-Wikidata QID or refuses to. It is built and measured on three countries; the
-one thing it cannot do yet is ask a model, because the host has no API key.
+Wikidata QID or refuses to. It is built and measured on three countries, and
+the second turn has been run and measured on the pilot.
 
 Two rules govern everything here. **Retrieval ranks, a model decides.** And
 **nothing is filtered out of the table**: an abolished office is the right
@@ -148,28 +148,50 @@ shape reads two ways and only a count of the state's own holders tells them
 apart: an abstraction a handful of people were misfiled under, or the item the
 community uses on purpose because it mints no item per place.
 
-## The second turn — built, never run
+## The second turn
 
-`reconcile.py` assembles everything up to the API call. **It has never been
-executed**: there is no `ANTHROPIC_API_KEY` on this host, so there is no
-agreement number and no verdict distribution. Copy the key across and it runs.
+`reconcile.resolve_mention` runs it for one office mention: search, render,
+ask, settle, record. One request per mention, never a batch, and never a
+continuation of the extraction conversation — several decisions in one context
+is how a pass standardises on whoever answered first.
 
-The model sees a shortlist of 15 rendered one per line —
+The model sees the mention as extraction wrote it (title, jurisdiction string,
+dates, quotes), **the whole article the quotes came from** when it is under
+`ARTICLE_CAP = 20,000` characters (a line says so when it is not; the median
+article is under 3,000), and a shortlist of 15 rendered one per line —
 `QID | label | description | kind | part of | exists | holders | tags | used
-with | matched` — under a frozen, hashed prompt (`prompts/reconcile.md`) that
-explains the body/seat distinction, because a ministry or a council is a body
-and the office is the seat in it.
+with | matched` — under a frozen, hashed prompt (`prompts/reconcile.md`). The
+prompt explains the body/seat distinction, every tag, and two conventions the
+tags alone did not carry: a country-wide office with no subclasses is not a
+class and shows `used with:` once the state's holders clear the convention
+floor, and an officer of a named organisation is recorded on the generic
+officer item with the organisation as a qualifier. Bodies are named, not
+printed as QIDs.
 
 It answers with a closed set: `same-office`, `renamed`, `generic-class`,
 `body-not-seat`, `wrong-office`, `none`. Only the first two are matches.
-`verdict_schema(qids)` builds a per-request model whose `qid` is a `Literal`
-over exactly the offered QIDs, and `settle()` refuses off-shortlist picks
-mechanically anyway. An uncounted holder count prints `uncounted`, never `0`.
+`settle()` refuses a pick that was not on the shortlist. **The answer schema is
+one fixed shape for every request**; it used to close `qid` over the offered
+QIDs per request, which put the shortlist inside the cached prefix and made
+every request write the prompt to cache and read nothing. An uncounted holder
+count prints `uncounted`, never `0`.
 
-`python -m peploop.check_reconcile` pins the rendering, the schema, `settle` on
-every verdict kind, and that every tag the ranking can produce is explained in
-the prompt — so a new tag cannot ship unexplained. It needs no network, no key
-and no tokens.
+Every verdict is a row in `resolution`, keyed by (extraction, mention index,
+prompt hash, `RENDER_VERSION`). A mention answered under that key is never
+asked again; a prompt edit or a rendering change re-asks. A row with a null
+`qid` is the creation queue.
+
+`python -m peploop.check_propose` pins the lane above -- both directions of the
+endpoint aggregation, the two-language fold, the acting filter -- with no
+network, no key and no database.
+
+`python -m peploop.check_reconcile` pins the rendering (including the article
+section and the cap), the fixed schema, `settle` on every verdict kind, and that
+every tag the ranking can produce is explained in the prompt — so a new tag
+cannot ship unexplained. It needs no network, no key and no tokens.
+`scripts/reconcile_bench.py` measures the turn against the silver set, scoring
+against `fixtures/cz_positions_verified.jsonl` where a disagreement has been
+hand-read; the numbers are in `research/peploop_positions.md` §9.
 
 ## The test set
 
@@ -187,6 +209,13 @@ it for MRR and top-1 when comparing two orderings; do **not** quote its recall,
 which is flattered by sharing a token-overlap assumption with the retriever.
 `--signals none` is the text order alone.
 
+`fixtures/cz_positions_verified.jsonl` holds hand-read truth for rows where a
+verdict and the silver label disagreed; `reconcile_bench.py` scores against it
+where present. Of 50 read so far the silver label was wrong in 35, so **silver
+agreement is a floor**: the 150-row run reads 58.7% against silver and 77.3%
+against truth, with no confirmed wrong match (`research/peploop_positions.md`
+§9).
+
 **About 22% of gold rows are mispaired and dates cannot fix it.** Correlated
 offices start on the same day — a deputy elected in October also becomes deputy
 chair of their parliamentary club that October — so the club post inherits the
@@ -201,22 +230,73 @@ with no `P39` anywhere on the person, which no re-pairing rule can reach.
 ```
 python -m peploop.cli load-positions --country cz     # discovery, fetch, upsert
 python -m peploop.cli position-signals --country cz   # the ranking columns
+python -m peploop.cli position-signals --country cz --local-holders   # just that state's count
 python -m peploop.cli position-stats                  # what the table holds
+python -m peploop.cli reconcile --country cz          # the second turn, over a run
 python scripts/position_fixture.py                    # rebuild the silver set
 python scripts/position_bench.py --country cz --signals all
 python -m peploop.check_neutral                       # no country token in peploop/*.py
 python -m peploop.check_reconcile                     # the second turn, offline
+python -m peploop.check_propose                       # the P39 lane, offline
+python scripts/reconcile_bench.py --country cz --limit 150   # the second turn, live
 ```
+
+`--local-holders` is the one to reach for on an *n*th country. `fill_counts`
+re-asks all five signals over the whole table -- 268 chunks of query service
+per signal -- and four of them are whole-corpus counts a new country does not
+change the answer to. The fifth, `holders_by_country`, is keyed by the state
+that ran it, so a new country has no key anywhere and every row reads
+`uncounted` until this fills it.
 
 `VACUUM (ANALYZE) position` after a signal fill: five whole-table updates
 triple the heap and grow the GIN index by a third with no new documents.
 
+## From a verdict to a proposal
+
+`propose` reads the verdicts back (`propose.placements`) and writes a `P39` for
+each mention whose `qid` is set -- which is exactly the set `settle()` already
+passed, so nothing is judged twice. The statement carries `P580`/`P582` from the
+tenure, the quote and the article, and `proposal.resolution_id` pointing back at
+the verdict, which is what the review screen reads to show the office as the
+article named it and the shortlist the model was offered.
+
+Three rules decide the rest:
+
+- **The same spell in two languages is one row.** A person's `sl` and `pl`
+  articles both name the tenure and reconciliation places both on one item;
+  `tenure_key` folds them into one proposal with two sources, because a
+  reviewer asked the same question twice is a reviewer being wasted.
+- **Endpoints aggregate one way inside a statement and the other way across
+  statements.** Inside, the worst wins: a tenure matching on its start and
+  contradicting on its end is a contradiction, not a match. Across, the most
+  benign wins: several statements naming one office are two terms with a gap,
+  and the proposal has only to be right about one. Getting the first of those
+  backwards silently turns a contradiction into `exists`, which no reviewer
+  ever sees.
+- **An acting tenure is `filtered`.** Wikidata says "acting" with a qualifier
+  this pipeline does not write, and a `P39` that omits it asserts more than the
+  article did.
+
+`render` refuses `P39` outright, whatever its status. QuickStatements matches a
+line on subject, property and *value* and folds the qualifiers into whatever
+statement it finds, so two terms of one office arrive as one statement carrying
+both starts and both ends. Positions go out through `apply`, which creates and
+never merges.
+
 ## What is not done
 
-- **The second turn has never been run.** Everything up to the call exists.
-- **`propose` still skips positions.** Writing `P39` with the scoping qualifier
-  the community uses, and sending an unmatched title to a creation queue with
-  its evidence, is the remaining increment. It needs picks, which need the key.
+- **`apply` cannot write a `refine`.** A P39 the item already records, wanting
+  the end date the article supplies, is a *merge* into an existing statement,
+  and `apply` creates and never merges: its router sees the office value
+  already there, returns `exists`, and the date is dropped. Measured on
+  `Q101002571`, whose National Assembly statement has a start and no end --
+  `apply --qid Q101002571` reports "nothing to write". A `new` tenure is
+  unaffected. Writing the merge is write-path work and the wrong shape gets
+  duplicates, so the proposals stand and `apply` skips them for now.
+- **The creation queue is a count, not a queue.** A verdict with a null `qid`
+  is an office that was named, evidenced and could not be placed; nothing yet
+  collects those with their evidence for minting. On a country whose offices
+  Wikidata mostly lacks this is the larger half of the output.
 - **A large country's ranking signals are null on purpose.** Filling them is
   600 query-service requests and 6–11 hours, and a null foreign count scores
   *better* than a filled one, so this is not a cost compromise.

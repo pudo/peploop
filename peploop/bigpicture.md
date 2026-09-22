@@ -86,9 +86,10 @@ rank changes never happen here.
    proposals land in Postgres, a dumb QuickStatements renderer proves the table
    is usable. *Current: `design.md`.*
 2. **Positions and birthplace.** The lookup index, the two-turn
-   reconciliation, the creation queue. *Positions are built and measured on
-   three countries; the second turn is assembled but has never been sent, and
-   the creation queue and birthplace are not started.*
+   reconciliation, the creation queue. *Positions are built, measured on four
+   countries, and proposed: the second turn runs over a whole country as
+   `reconcile`, and `propose` writes the `P39` it places. The creation queue is
+   a count of the refusals rather than a queue, and birthplace is not started.*
 3. **Wider material.** Roster and list pages found from the person's articles
    join the prompt. The seed queue gains SPARQL-found gaps.
 4. **Verdicts.** The review command and the verdict table; review the

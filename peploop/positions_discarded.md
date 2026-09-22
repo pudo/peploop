@@ -89,6 +89,19 @@ Counted locally it is worth **+0.099 MRR and 13 points of top-1**.
 6–11 hours. And a null foreign count *scores better* than a filled one, so
 this is a correctness argument and not a budget one.
 
+## The second turn
+
+**A per-request schema closing `qid` over the shortlist.** The structured-output
+schema sits inside the cached prefix, so a `Literal` over the offered QIDs made
+every request write ~3.5k tokens of cache and read **0**; one fixed shape reads
+them back from the second request on. `settle` refuses an off-list QID either
+way, so the schema was enforcing nothing the gate did not.
+
+**Quotes without the article.** With only the copied sentences in view the model
+refused offices whose settling sentence was elsewhere in the article. The whole
+article under a 20,000-character cap is under ten lines of code; a quote window
+around each hit is not, and `check_quotes` shows some quotes are not verbatim.
+
 ## The test set
 
 **Requiring both tenure endpoints to agree.** Strict date agreement is

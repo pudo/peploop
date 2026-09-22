@@ -145,7 +145,11 @@ def main() -> int:
 def _check(conn: Any, qid: str) -> int:
     """Review the person headlessly and report what each assertion found."""
     app, rows, moves = asyncio.run(_drive(qid))
-    ids = [row.id for row in rows]
+    # Drawn order, not load order. The table groups by property and puts the
+    # term pseudo-properties last, so a person with a `label:` or `alias:`
+    # proposal has `person.rows` in a different order from the rows the keys
+    # act on -- and the assertions below are about which row a key reached.
+    ids = [line.row.id for line in app.lines if line.row is not None]
     stops = app.stops
     verdicts = {
         row[0]: (row[1], row[2])
@@ -197,7 +201,10 @@ def _check(conn: Any, qid: str) -> int:
         wide.sidebar and not wide.legend,
         f"at {WIDE_SIZE[0]} columns the sidebar replaces the one-line legend",
     )
-    expect(not unnamed, f"the sidebar spells out all eight reasons (missing {unnamed})")
+    expect(
+        not unnamed,
+        f"the sidebar spells out all {len(review.REASONS)} reasons (missing {unnamed})",
+    )
     for header in wide.headers:
         print(f"  rendered {header}")
     narrow = asyncio.run(_layout(qids[:1], NARROW_SIZE, NARROW_SHOT_PATH))

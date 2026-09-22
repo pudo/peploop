@@ -19,6 +19,7 @@ from peploop import apply as applying
 from peploop import db, positions, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import propose as proposals
+from peploop import reconcile as reconciling
 from peploop import render as rendering
 from peploop import review as reviewing
 
@@ -93,6 +94,30 @@ def cli() -> None:
     db.init_schema()
 
 
+# The country a run is scoped to. It reaches the database as `person.country`,
+# stamped by `seed`, and scopes a command's *selection* only -- every stage
+# still works one person at a time and knows nothing about where they are from.
+# Naming people with `--qid` overrides it, because a named person is the answer
+# to "this one", not to "the next batch of these".
+country_option = click.option(
+    "--country", default=None, help="Only people seeded by this ISO code's run."
+)
+
+
+def _select(
+    qid: Sequence[str], statuses: tuple[str, ...], limit: int, country: str | None = None
+) -> list[str]:
+    """Pick the people a command works on: the named ones, or the next batch."""
+    if qid:
+        return list(qid)
+    rows = db.conn().execute(
+        "SELECT qid FROM person WHERE status = ANY(%s)"
+        " AND (%s::text IS NULL OR country = %s) ORDER BY qid LIMIT %s",
+        (list(statuses), country, country, limit),
+    )
+    return [row[0] for row in rows]
+
+
 @cli.command()
 @click.option(
     "--file",
@@ -101,8 +126,14 @@ def cli() -> None:
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
     help="Seed file of categories, e.g. peploop/seeds/cz.yml.",
 )
-def seed(path: Path) -> None:
-    """Queue the members of every Wikipedia category in a seed file."""
+@click.option("--country", default=None, help="Stamp the people queued with this ISO code.")
+def seed(path: Path, country: str | None) -> None:
+    """Queue the members of every Wikipedia category in a seed file.
+
+    The country is what every later command's `--country` selects on. Someone
+    two runs both find keeps the first one's stamp, so re-seeding a country
+    never moves people out of another.
+    """
     entries = wikipedia.load_seeds(path)
     members_total, new_total, failed = 0, 0, 0
     for entry in entries:
@@ -117,7 +148,7 @@ def seed(path: Path) -> None:
             continue
         added = 0
         for _, qid in members:
-            added += db.upsert_person(qid)
+            added += db.upsert_person(qid, country)
             db.upsert_membership(qid, entry.category, entry.lang)
         members_total += len(members)
         new_total += added
@@ -132,16 +163,10 @@ def seed(path: Path) -> None:
 @click.option("--limit", default=100, show_default=True)
 @click.option("--threads", default=8, show_default=True)
 @click.option("--qid", multiple=True, help="Process these people, ignoring the item age.")
-def fetch(limit: int, threads: int, qid: Sequence[str]) -> None:
+@country_option
+def fetch(limit: int, threads: int, qid: Sequence[str], country: str | None) -> None:
     """Fetch the item and every Wikipedia article of queued people."""
-    if qid:
-        qids: list[str] = list(qid)
-    else:
-        rows = db.conn().execute(
-            "SELECT qid FROM person WHERE status = 'queued' ORDER BY qid LIMIT %s",
-            (limit,),
-        )
-        qids = [row[0] for row in rows]
+    qids = _select(qid, ("queued",), limit, country)
     if not qids:
         click.echo("nothing queued")
         return
@@ -237,22 +262,15 @@ def _propose_one(qid: str) -> tuple[str, str]:
 @click.option("--limit", default=10, show_default=True)
 @click.option("--threads", default=4, show_default=True)
 @click.option("--qid", multiple=True, help="Extract these people instead of a batch.")
-def extract(limit: int, threads: int, qid: Sequence[str]) -> None:
+@country_option
+def extract(limit: int, threads: int, qid: Sequence[str], country: str | None) -> None:
     """Ask the model about fetched people and store the structured answer.
 
     Selection is stable, so the same `--limit` picks the same people twice: a
     person already extracted under this prompt and these article revisions is
     skipped without a request, and re-running costs nothing.
     """
-    if qid:
-        qids: list[str] = list(qid)
-    else:
-        rows = db.conn().execute(
-            "SELECT qid FROM person WHERE status IN ('fetched', 'extracted')"
-            " ORDER BY qid LIMIT %s",
-            (limit,),
-        )
-        qids = [row[0] for row in rows]
+    qids = _select(qid, ("fetched", "extracted"), limit, country)
     if not qids:
         click.echo("nothing fetched")
         return
@@ -261,37 +279,30 @@ def extract(limit: int, threads: int, qid: Sequence[str]) -> None:
             click.echo(line)
 
 
-def _select(qid: Sequence[str], statuses: tuple[str, ...], limit: int) -> list[str]:
-    """Pick the people a command works on: the named ones, or the next batch."""
-    if qid:
-        return list(qid)
-    rows = db.conn().execute(
-        "SELECT qid FROM person WHERE status = ANY(%s) ORDER BY qid LIMIT %s",
-        (list(statuses), limit),
-    )
-    return [row[0] for row in rows]
-
-
 @cli.command()
 @click.option("--limit", default=100, show_default=True)
 @click.option("--qid", multiple=True, help="Propose for these people instead of a batch.")
-def propose(limit: int, qid: Sequence[str]) -> None:
+@country_option
+def propose(limit: int, qid: Sequence[str], country: str | None) -> None:
     """Turn each extracted person's answer into proposals, and status them."""
-    qids = _select(qid, ("extracted", "proposed"), limit)
+    qids = _select(qid, ("extracted", "proposed"), limit, country)
     if not qids:
         click.echo("nothing extracted")
         return
     for person_qid in qids:
         click.echo(_propose_one(person_qid)[1])
-    _echo_property_counts()
+    _echo_property_counts(country)
 
 
-def _echo_property_counts() -> None:
+def _echo_property_counts(country: str | None = None) -> None:
     """Print how many proposals of each property carry each status."""
     click.echo("proposals by property and status:")
     for prop, status, count in db.conn().execute(
-        "SELECT property, status, count(*) FROM proposal GROUP BY property, status"
-        " ORDER BY property, status"
+        "SELECT p.property, p.status, count(*) FROM proposal p"
+        " JOIN person pe ON pe.qid = p.person_qid"
+        " WHERE (%s::text IS NULL OR pe.country = %s)"
+        " GROUP BY p.property, p.status ORDER BY p.property, p.status",
+        (country, country),
     ):
         click.echo(f"  {prop:12s} {status:11s} {count}")
 
@@ -312,9 +323,10 @@ def _run_one(qid: str, entity: dict[str, Any], force: bool) -> tuple[str, str]:
 @click.option("--limit", default=50, show_default=True)
 @click.option("--threads", default=4, show_default=True)
 @click.option("--qid", multiple=True, help="Run these people, ignoring the item age.")
-def run(limit: int, threads: int, qid: Sequence[str]) -> None:
+@country_option
+def run(limit: int, threads: int, qid: Sequence[str], country: str | None) -> None:
     """Fetch, extract and propose in one pass per person."""
-    qids = _select(qid, ("queued",), limit)
+    qids = _select(qid, ("queued",), limit, country)
     if not qids:
         click.echo("nothing queued")
         return
@@ -335,13 +347,14 @@ def run(limit: int, threads: int, qid: Sequence[str]) -> None:
             counts[status] += 1
             click.echo(line)
     click.echo(f"{len(qids)} people: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
-    _echo_property_counts()
+    _echo_property_counts(country)
 
 
 @cli.command()
 @click.option("--status", default="new,refine", show_default=True)
 @click.option("--property", "properties", multiple=True, help="Render only these properties.")
-def render(status: str, properties: Sequence[str]) -> None:
+@country_option
+def render(status: str, properties: Sequence[str], country: str | None) -> None:
     """Print the selected proposals as QuickStatements v1 lines.
 
     Nothing is written to Wikidata: the output is a batch a human pastes into
@@ -349,7 +362,7 @@ def render(status: str, properties: Sequence[str]) -> None:
     """
     statuses = [part.strip() for part in status.split(",") if part.strip()]
     try:
-        lines, problems = rendering.render(statuses, list(properties))
+        lines, problems = rendering.render(statuses, list(properties), country)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
     if problems:
@@ -364,7 +377,8 @@ def render(status: str, properties: Sequence[str]) -> None:
 @cli.command()
 @click.option("--limit", default=20, show_default=True)
 @click.option("--qid", multiple=True, help="Review these people instead of a random draw.")
-def review(limit: int, qid: Sequence[str]) -> None:
+@country_option
+def review(limit: int, qid: Sequence[str], country: str | None) -> None:
     """Review people's `new`, `refine` and `conflict` proposals, recording a verdict.
 
     One person per screen, drawn at random from those with something left to
@@ -372,7 +386,7 @@ def review(limit: int, qid: Sequence[str]) -> None:
     screen is submitted. An accepted conflict is a note that the item is wrong,
     not an edit: `apply` never writes a value contradicting what is recorded.
     """
-    qids = reviewing.select_people(list(qid), limit)
+    qids = reviewing.select_people(list(qid), limit, country)
     if not qids:
         click.echo("nothing to review")
         return
@@ -431,7 +445,10 @@ def _apply_pass(
 @click.option("--qid", multiple=True, help="Write these people instead of a batch.")
 @click.option("--write", is_flag=True, help="Send the edits; without it nothing leaves here.")
 @click.option("--follow", is_flag=True, help="Keep draining what review accepts, until Ctrl-C.")
-def apply_(limit: int, qid: Sequence[str], write: bool, follow: bool) -> None:
+@country_option
+def apply_(
+    limit: int, qid: Sequence[str], write: bool, follow: bool, country: str | None
+) -> None:
     """Write each person's accepted proposals to Wikidata as one edit.
 
     A dry run by default: it does the same pre-flight against the live item and
@@ -452,7 +469,7 @@ def apply_(limit: int, qid: Sequence[str], write: bool, follow: bool) -> None:
     applied, failed, seen, state = 0, 0, 0, ""
     try:
         while True:
-            qids = applying.people(list(qid), limit)
+            qids = applying.people(list(qid), limit, country)
             if not qids:
                 if not follow:
                     click.echo("nothing accepted")
@@ -486,13 +503,16 @@ def _note_state(state: str, now: str, message: str) -> str:
 @cli.command()
 @click.option("--limit", default=10, show_default=True)
 @click.option("--qid", multiple=True, help="Dump these people instead of a batch.")
-def dump(limit: int, qid: Sequence[str]) -> None:
+@country_option
+def dump(limit: int, qid: Sequence[str], country: str | None) -> None:
     """Write each person's request and parsed answer to data/extract/<qid>.md."""
     DUMP_DIR.mkdir(parents=True, exist_ok=True)
     rows = db.conn().execute(
-        "SELECT DISTINCT ON (qid) qid, request_json, response_json, bad_quotes"
-        " FROM extraction WHERE (%s OR qid = ANY(%s)) ORDER BY qid, id DESC LIMIT %s",
-        (not qid, list(qid), limit),
+        "SELECT DISTINCT ON (e.qid) e.qid, e.request_json, e.response_json, e.bad_quotes"
+        " FROM extraction e JOIN person p ON p.qid = e.qid"
+        " WHERE (%s OR e.qid = ANY(%s)) AND (%s::text IS NULL OR p.country = %s)"
+        " ORDER BY e.qid, e.id DESC LIMIT %s",
+        (not qid, list(qid), country, country, limit),
     )
     count = 0
     for person_qid, request, response, bad_quotes in rows:
@@ -511,6 +531,108 @@ def dump(limit: int, qid: Sequence[str]) -> None:
         count += 1
         click.echo(f"{path} ({len(body)} chars sent, {bad_quotes} bad quotes)")
     click.echo(f"{count} dumps written")
+
+
+def _mentions_for(country: str | None, limit: int) -> list[tuple[int, int, Any]]:
+    """List the office mentions still unanswered under the current prompt.
+
+    One row per (extraction, mention index). The extraction chosen per person
+    is the newest, because an older one was answered about articles that have
+    since been re-read. The ledger, not this query, is what makes the pass
+    resumable -- `resolve_mention` returns a recorded verdict without asking --
+    but skipping the answered ones here keeps `--limit` meaning new work.
+    """
+    _text, prompt_hash = reconciling.system_prompt()
+    rows = db.conn().execute(
+        "SELECT e.id, e.response_json->'positions' FROM ("
+        "  SELECT DISTINCT ON (qid) id, qid, response_json FROM extraction"
+        "  WHERE response_json IS NOT NULL ORDER BY qid, id DESC"
+        ") e JOIN person pe ON pe.qid = e.qid"
+        " WHERE (%s::text IS NULL OR pe.country = %s) ORDER BY e.id",
+        (country, country),
+    )
+    answered = {
+        (row[0], row[1])
+        for row in db.conn().execute(
+            "SELECT extraction_id, mention_idx FROM resolution"
+            " WHERE prompt_hash = %s AND render_version = %s",
+            (prompt_hash, reconciling.RENDER_VERSION),
+        )
+    }
+    work: list[tuple[int, int, Any]] = []
+    for extraction_id, mentions in rows:
+        for index, entry in enumerate(mentions or []):
+            if (extraction_id, index) in answered:
+                continue
+            work.append((extraction_id, index, reconciling.mention_from(entry)))
+            if len(work) >= limit:
+                return work
+    return work
+
+
+@cli.command()
+@click.option("--limit", default=100, show_default=True)
+@click.option("--threads", default=4, show_default=True)
+@country_option
+def reconcile(limit: int, threads: int, country: str | None) -> None:
+    """Resolve each extracted office mention to a position item, or refuse.
+
+    One request per mention against the frozen `prompts/reconcile.md`, never a
+    batch: several offices in one context is how a pass standardises on
+    whatever it answered first. The country names whose holder counts rank the
+    shortlist; it is not a filter, and an office of another state stays
+    reachable and is tagged as one.
+
+    A mention already answered under this prompt and rendering is skipped
+    without a request, so a re-run costs only what is new.
+    """
+    state_qid = positions.country_qid(country) if country else None
+    work = _mentions_for(country, limit)
+    if not work:
+        click.echo("nothing to reconcile")
+        return
+    def one(item: tuple[int, int, Any]) -> tuple[str, tuple[str, ...]]:
+        """Resolve one mention, returning its line and what it counts towards.
+
+        The tally is returned rather than incremented: `counts[k] += 1` from a
+        pool is a read-modify-write on shared state, and a lost count in a
+        summary is the kind of wrong number nothing later contradicts.
+
+        A mention the model fails on is a line of output, not the end of the
+        run. Measured once: a response that repeated `0.0}` until it hit
+        `max_tokens` came back as truncated JSON, the structured-output parser
+        raised, and one bad answer out of 440 took the pool down with it. The
+        verdict is simply not recorded, so the next pass asks again.
+        """
+        extraction_id, index, mention = item
+        try:
+            verdict, sent = reconciling.resolve_mention(extraction_id, index, mention, state_qid)
+        except Exception as exc:  # noqa: BLE001 — see above
+            return (
+                f"{extraction_id}#{index} {mention.title[:44]!r} failed:"
+                f" {type(exc).__name__}: {str(exc).splitlines()[0][:90]}",
+                ("failed",),
+            )
+        target = verdict.qid or verdict.chosen or "-"
+        line = (
+            f"{extraction_id}#{index} {mention.title[:44]!r} -> {target}"
+            f" {verdict.kind}/{verdict.confidence}"
+            + (f" veto={verdict.veto}" if verdict.veto else "")
+        )
+        return line, (
+            verdict.kind,
+            "matched" if verdict.resolved else "unmatched",
+            "asked" if sent else "recorded",
+        )
+
+    counts: Counter[str] = Counter()
+    with ThreadPoolExecutor(max_workers=threads) as pool:
+        for line, tally in pool.map(one, work):
+            counts.update(tally)
+            click.echo(line)
+    click.echo(
+        f"{len(work)} mentions: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items()))
+    )
 
 
 @cli.command("load-positions")
@@ -616,41 +738,65 @@ def position_stats(country: str | None) -> None:
 
 
 @cli.command()
-def stats() -> None:
-    """Print row counts per person status, per article language and per table."""
+@country_option
+def stats(country: str | None) -> None:
+    """Print row counts per person status, per article language and per table.
+
+    With `--country` every count that hangs off a person is scoped to that
+    run; `http_cache` is not, because a cache entry belongs to no one.
+    """
     conn = db.conn()
+    # One predicate, spliced into each person-shaped query. The table alias in
+    # front of `qid` differs per query, so the caller supplies it.
+    scope = " AND (%s::text IS NULL OR {alias}qid IN (SELECT qid FROM person WHERE country = %s))"
+    args = (country, country)
     click.echo("person by status:")
     for status, count in conn.execute(
-        "SELECT status, count(*) FROM person GROUP BY status ORDER BY count(*) DESC"
+        "SELECT status, count(*) FROM person WHERE (%s::text IS NULL OR country = %s)"
+        " GROUP BY status ORDER BY count(*) DESC",
+        args,
     ):
         click.echo(f"  {status:12s} {count}")
-    for table in ("membership", "item", "article", "http_cache"):
-        count = conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
+    for table in ("membership", "item", "article"):
+        count = conn.execute(
+            f"SELECT count(*) FROM {table} WHERE true" + scope.format(alias=""), args
+        ).fetchone()[0]
         click.echo(f"{table:12s} {count}")
+    count = conn.execute("SELECT count(*) FROM http_cache").fetchone()[0]
+    click.echo(f"{'http_cache':12s} {count}")
     click.echo("seed categories by members (top 10):")
     for lang, category, count in conn.execute(
-        "SELECT lang, category, count(*) FROM membership GROUP BY lang, category"
-        " ORDER BY count(*) DESC LIMIT 10"
+        "SELECT lang, category, count(*) FROM membership WHERE true"
+        + scope.format(alias="")
+        + " GROUP BY lang, category ORDER BY count(*) DESC LIMIT 10",
+        args,
     ):
         click.echo(f"  {count:6d}  {lang}:{category}")
     extracted, tokens = conn.execute(
         "SELECT count(DISTINCT qid), coalesce(sum((usage_json->>'input_tokens')::bigint"
         " + (usage_json->>'cache_creation_input_tokens')::bigint"
         " + (usage_json->>'cache_read_input_tokens')::bigint"
-        " + (usage_json->>'output_tokens')::bigint), 0) FROM extraction"
+        " + (usage_json->>'output_tokens')::bigint), 0) FROM extraction WHERE true"
+        + scope.format(alias=""),
+        args,
     ).fetchone()
     click.echo(f"extracted    {extracted} people, {tokens} tokens")
     click.echo("articles by language (top 15):")
     for lang, count in conn.execute(
-        "SELECT lang, count(*) FROM article GROUP BY lang ORDER BY count(*) DESC LIMIT 15"
+        "SELECT lang, count(*) FROM article WHERE true"
+        + scope.format(alias="")
+        + " GROUP BY lang ORDER BY count(*) DESC LIMIT 15",
+        args,
     ):
         click.echo(f"  {lang:8s} {count}")
     proposed, rows = conn.execute(
-        "SELECT count(DISTINCT person_qid), count(*) FROM proposal"
+        "SELECT count(DISTINCT person_qid), count(*) FROM proposal WHERE true"
+        + scope.format(alias="person_"),
+        args,
     ).fetchone()
     click.echo(f"proposal     {rows} rows for {proposed} people")
-    _echo_property_counts()
-    for line in reviewing.summary_lines():
+    _echo_property_counts(country)
+    for line in reviewing.summary_lines(country):
         click.echo(line)
 
 

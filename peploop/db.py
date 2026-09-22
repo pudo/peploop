@@ -72,16 +72,24 @@ def cache_drop(url: str, params: dict[str, Any] | None = None) -> None:
     )
 
 
-def upsert_person(qid: str) -> bool:
+def upsert_person(qid: str, country: str | None = None) -> bool:
     """Queue a person, and report whether the row was new.
 
     A person already past `queued` keeps their status: re-seeding must not
-    send someone back through the pipeline.
+    send someone back through the pipeline. The country is filled only where
+    it is still null, so someone two countries both claim stays with the run
+    that found them first rather than flipping on every re-seed.
     """
     row = conn().execute(
-        "INSERT INTO person (qid) VALUES (%s) ON CONFLICT (qid) DO NOTHING RETURNING qid",
-        (qid,),
+        "INSERT INTO person (qid, country) VALUES (%s, %s)"
+        " ON CONFLICT (qid) DO NOTHING RETURNING qid",
+        (qid, country),
     ).fetchone()
+    if row is None and country is not None:
+        conn().execute(
+            "UPDATE person SET country = %s WHERE qid = %s AND country IS NULL",
+            (country, qid),
+        )
     return row is not None
 
 

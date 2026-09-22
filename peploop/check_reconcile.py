@@ -12,8 +12,8 @@ Four things are pinned, and each is a way the pass could go wrong silently:
   is a signal the model stops seeing while the ranking keeps using it;
 * **`settle` on every verdict kind**, because the closed set is only closed
   if each member routes somewhere;
-* **off-shortlist refusal**, on both channels — the schema rejects the QID
-  and the gate rejects it again;
+* **off-shortlist refusal** by the gate, and that the schema is one shape for
+  every request — a per-request schema is what defeated the prompt cache;
 * **the prompt's hash and its coverage**, because a verdict is stored under
   the hash, and because every tag the ranking can derive has to be explained
   in the prompt or it moved a row without saying so.
@@ -21,6 +21,7 @@ Four things are pinned, and each is a way the pass could go wrong silently:
 Run it as `python -m peploop.check_reconcile` from the repository root.
 """
 
+import dataclasses
 import hashlib
 import sys
 from typing import Any
@@ -99,6 +100,16 @@ SHORTLIST = (
         scope_qualifier="P642",
         matched="deputy minister",
     ),
+    # Not class-like, so no tag -- and still recorded with a qualifier by
+    # enough of the state's own holders to be the concrete office.
+    reconcile.Candidate(
+        qid="Q15",
+        label="deputy governor of a region",
+        kinds=["deputy"],
+        holders=56,
+        scope_qualifier="P1001",
+        matched="deputy governor",
+    ),
 )
 
 EXPECTED_LINES = (
@@ -113,6 +124,8 @@ EXPECTED_LINES = (
     " | holders: 0 | tags: unheld, abolished, date-conflict, foreign-scoped"
     " | matched: Commissioner",
     "Q14 | deputy minister | (no description) | holders: 7 | matched: deputy minister",
+    "Q15 | deputy governor of a region | (no description) | kind: deputy | holders: 56"
+    " | used with: P1001 | matched: deputy governor",
 )
 
 MENTION = reconcile.Mention(
@@ -168,7 +181,24 @@ def check_rendering(expect: Any) -> None:
     )
     expect(
         "used with:" not in SHORTLIST[4].line(),
-        "a scoping qualifier is shown only where a tag makes it relevant",
+        "a scoping qualifier below the convention floor and untagged is not shown",
+    )
+    expect(
+        "used with: P1001" in SHORTLIST[5].line(),
+        "a scoping qualifier at the floor is shown without the tag",
+    )
+    short = dataclasses.replace(MENTION, article="He was minister. Then he was not.")
+    got = reconcile.render_mention(short, SHORTLIST)
+    expect(
+        "# The article (en)\n\nHe was minister. Then he was not.\n" in got,
+        "an article under the cap is rendered whole after the quotes",
+    )
+    long = dataclasses.replace(MENTION, article="x" * (reconcile.ARTICLE_CAP + 1))
+    got = reconcile.render_mention(long, SHORTLIST)
+    expect(
+        f"article omitted: {reconcile.ARTICLE_CAP + 1:,} characters, over the cap" in got
+        and "xxxx" not in got,
+        "an article over the cap is named and left out",
     )
     got = reconcile.render_mention(MENTION, SHORTLIST)
     expect(got == EXPECTED_MENTION, "the per-office message renders as documented")
@@ -210,8 +240,14 @@ def check_settle(expect: Any) -> None:
 
 
 def check_schema(expect: Any) -> None:
-    """Pin that the schema itself closes the pick over the offered QIDs."""
-    model = reconcile.verdict_schema([c.qid for c in SHORTLIST])
+    """Pin the answer shape, and that it is the same shape for every request.
+
+    The pick is *not* closed by the schema: it was, and the per-request
+    `Literal` put the shortlist inside the cached prefix, so every request
+    wrote the prompt to cache and read nothing. `settle` is the gate.
+    """
+    model = reconcile.verdict_schema()
+    expect(model is reconcile.verdict_schema(), "the schema is one object for all requests")
     good = {"qid": "Q10", "kind": "same-office", "confidence": "high",
             "evidence": "Minister of Justice", "reason": "same seat"}
     expect(model(**good).qid == "Q10", "an offered QID validates")
@@ -219,8 +255,13 @@ def check_schema(expect: Any) -> None:
         model(**{**good, "qid": None, "kind": "none"}).qid is None,
         "a null pick validates, which is how a refusal is expressed",
     )
+    expect(
+        model(**{**good, "qid": "Q99"}).qid == "Q99"
+        and reconcile.settle("same-office", "Q99", [c.qid for c in SHORTLIST])
+        == (None, "off-shortlist"),
+        "an off-shortlist QID passes the schema and is stopped by the gate",
+    )
     for field, value, what in (
-        ("qid", "Q99", "a QID off the shortlist"),
         ("kind", "maybe", "a verdict outside the closed set"),
         ("confidence", "certain", "a confidence outside the three levels"),
     ):
@@ -236,13 +277,6 @@ def check_schema(expect: Any) -> None:
         expect(True, "an unknown key is rejected by the schema")
     else:
         expect(False, "an unknown key is rejected by the schema")
-    empty = reconcile.verdict_schema([])
-    try:
-        empty(**good)
-    except ValidationError:
-        expect(True, "with nothing retrieved, no QID at all is a legal pick")
-    else:
-        expect(False, "with nothing retrieved, no QID at all is a legal pick")
 
 
 def check_prompt(expect: Any) -> None:

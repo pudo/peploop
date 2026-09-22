@@ -22,6 +22,15 @@ jurisdiction the article named if it named one, the dates of the tenure, and
 the sentences the reader's pass quoted. Everything here is evidence; nothing
 here is normalised, translated or corrected.
 
+**The article.** The whole article the quotes were taken from, when it is
+short enough to include; otherwise a line saying it was left out. It is there
+because the sentence that settles a question -- that a portfolio was renamed,
+that a minister held no ministry, which chamber a committee belongs to -- is
+often not among the quotes. It is evidence of the same standing as the quotes
+and may be quoted in `evidence`. You are still judging **one** office, the one
+the quotes name: the article will mention others, and they are not the
+question.
+
 **The candidates.** One line each:
 
 ```
@@ -42,6 +51,12 @@ QID | label | description | kind: … | part of: … | exists: …–… | holde
   not the same as zero and is not evidence against the candidate.
 - **tags** — derived flags, listed below. Every signal that moved this row up
   or down the list is in there; nothing was applied to the ordering silently.
+- **used with** — the qualifier property this state's community records its
+  people with on this item, shown when enough of them do. It appears on a
+  `generic-by-convention` row and also on a row with no such tag: a
+  country-wide office with no subclasses is not a class at all, and the
+  qualifier is what makes it the concrete office for a tenure that names the
+  place or the body. Such a row is a legitimate `same-office`.
 - **matched** — the name the retrieval matched on. A candidate's document
   pools the names of the office *and* of the polity it governs, the body it
   belongs to and the office it replaced, so a candidate can be on the list
@@ -66,13 +81,26 @@ never said that a body is not an office.
 The reverse is not a defect. An office legitimately says `part of:` a body, and
 a `kind:` naming the sort of body it serves is normal too.
 
+## An officer of a named organisation
+
+The chair, deputy chair, president or secretary of a named organisation — a
+party, an association, a union, a parliamentary committee — usually has no item
+of its own. The community records it on the generic officer item
+(`chairperson`, `deputy chairperson`) with the organisation as a qualifier, and
+the row for that item then shows `used with:` an organisation property such as
+P2389 or P642. Read that row the way you read a place-scoped one: it **is** the
+office, `same-office`, and the qualifier is how the organisation gets named.
+Refusing it because no candidate mentions the organisation mistakes the
+convention for a miss. The exception is a shortlist that carries an item for
+that specific post — then pick the specific item instead.
+
 ## The tags, and what each one means for your answer
 
 | tag | what the ranking found | what it means for the verdict |
 |---|---|---|
 | `not-office` | the item declares itself an occupation, a rank, an honour or an organisation, and no kind of office at all | almost never the answer; if it is the closest candidate the verdict is `wrong-office` or `none` |
 | `abstract` | other items are instances or held subclasses of this one, and few people of this state are recorded in it: it is a *class* of office | picking it is `generic-class`, not `same-office` |
-| `generic-by-convention` | the same class-like shape, but this state's community really does record its people on this one item rather than minting one per place; the line shows `used with:` the qualifier property that makes it concrete | here the generic item **is** the right answer — `same-office` — and the named qualifier is how the office is made specific |
+| `generic-by-convention` | the same class-like shape, but this state's community really does record its people on this one item rather than minting one per place; the line shows `used with:` the qualifier property that makes it concrete | here the generic item **is** the right answer — `same-office` — and the named qualifier is how the office is made specific. The same holds for a row showing `used with:` without this tag |
 | `unheld` | nobody of this state is recorded in it | weak but not disqualifying: a new, short-lived or poorly-documented office is genuinely unheld |
 | `abolished` | the item records an end | right when the tenure sits inside the item's span, wrong when the tenure runs after it |
 | `date-conflict` | the tenure falls outside the span the item records | strong evidence against, unless the tenure's dates are themselves uncertain |
@@ -89,8 +117,7 @@ here — read such a row on its label, description, kind and body alone.
 
 ## What you return
 
-One JSON object. The schema the API enforces allows `qid` to be one of the
-QIDs on the list, or null, and nothing else.
+One JSON object.
 
 ### `kind` — the verdict, from a closed set
 
@@ -120,8 +147,9 @@ each one is worth recording separately, because a creation queue reads them.
 ### `qid`
 
 The item you picked, or the candidate a refusal is describing, or null. It must
-come from the list in front of you. A QID recalled from memory is refused
-mechanically after the fact, so it costs the request and buys nothing.
+come from the list in front of you: a QID that is not on it is refused
+mechanically after the fact, so one recalled from memory costs the request and
+buys nothing.
 
 ### `evidence`
 

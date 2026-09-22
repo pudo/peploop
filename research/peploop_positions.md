@@ -17,12 +17,12 @@ swung 66 s → 352 s. Treat one timing as an order of magnitude, not a number.
 
 ## 1. Discovery, per country
 
-| lane | Czechia (Q213) | Poland (Q36) | Spain (Q29) |
-|---|---|---|---|
-| descent | 203 / 58 s | 344 / 124 s | 13,301 / 155–611 s |
-| usage | 169 / 92 s | 270 / 209 s | 5,074 / 73–188 s |
-| citizen | 236 / 21 s | 547 / 41 s | 5,922 / 2,922–5,076 s |
-| union | 343 | 767 | 15,018 |
+| lane | Czechia (Q213) | Poland (Q36) | Spain (Q29) | Slovenia (Q215) |
+|---|---|---|---|---|
+| descent | 203 / 58 s | 344 / 124 s | 13,301 / 155–611 s | 75 / 23 s |
+| usage | 169 / 92 s | 270 / 209 s | 5,074 / 73–188 s | 68 / 4 s |
+| citizen | 236 / 21 s | 547 / 41 s | 5,922 / 2,922–5,076 s | 92 / 176 s |
+| union | 343 | 767 | 15,018 | **135** |
 
 Czech overlaps: descent ∩ usage 161, descent-only 42, usage-only 8, union 211;
 the citizen lane adds a further 132 items in neither.
@@ -46,6 +46,32 @@ The loaded table, 15,986 rows by source set:
 
 12% of the table is reachable by the citizen lane alone. 93 of Spain's rows
 were already present from the other two countries.
+
+**Slovenia is thin, and that is the measurement, not a bug (2026-09-22).** 135
+offices against Czechia's 343, for a state with a fifth of the population but
+the same institutional shape -- a National Assembly, a National Council, twenty
+ministries, two apex courts, 212 municipalities. 75 of the 135 are scoped to
+Q215 at all; the rest are generic classes and inbound embassies the citizen
+lane reached. The whole load took 221 s and the citizen lane found 1,652
+Slovenian politicians, diplomats and judges holding, between them, 92 distinct
+offices. What is missing is not the famous items -- `Q21296001` member of the
+National Assembly, `Q20522401` its speaker, `Q109070159` Governor of the Bank of
+Slovenia and every ministry are all there, reached by all three lanes -- but
+the tiers below them are barely modelled. The table holds a mayoralty for two
+of 212 municipalities (Ljubljana and Trbovlje), no item scoped to Slovenia for
+a constitutional or supreme court judge, and for the whole state-secretary tier
+one generic `Q37494512 state secretary` carrying two Slovenian holders and no
+`P1001` -- against the 307 people the seed's state-secretary categories
+returned.
+
+**An absence has to be checked against the table, not against
+`wbsearchentities`.** Searching "State Secretary Slovenia" in English returns
+nothing, and the item is labelled `state secretary`; searching "judge of the
+Constitutional Court of Slovenia" returns nothing either, and there the absence
+is real. The prefix search agreed with the table once out of twice, which is
+what `CLAUDE.md` says about it.
+So a Slovenian run's refusals are mostly real absences, and its creation queue
+is the interesting half of its output.
 
 ## 2. What a load costs, per step
 
@@ -245,6 +271,15 @@ with no `P39` anywhere on the person, which no re-pairing rule can reach.
 
 ## 8. Gotchas worth the line
 
+- **One degenerate answer takes a whole pass down.** At mention 440 of a
+  Slovenian run the model emitted `{"qid":null,"kind":"none...` and then
+  repeated `0.0}` until it hit `MAX_TOKENS = 4000`; the structured-output
+  parser raised `ValidationError: Invalid JSON: EOF while parsing a string`,
+  `pool.map` propagated it, and the run stopped. Nothing was lost -- a verdict
+  is stored as it is made and the ledger resumed the rest -- but a pass that
+  dies at 440 of 6,000 has to be noticed and restarted by hand. One bad answer
+  in 440 is the rate to plan for, so `cli.reconcile` catches per mention and
+  records nothing for it, which makes the next pass ask again.
 - **A BCE date crashes the load.** `-013-01` into a `DATE` column aborted a
   load at 99% of its upserts, after two hours of discovery. Neither a 343-item
   nor a 767-item country contains one: this class of bug is not testable below
@@ -265,3 +300,66 @@ with no `P39` anywhere on the person, which no re-pairing rule can reach.
   34 inbound from 30 outbound, matching the hand count in `wd/gazetteer.py`.
 - **`P1365 replaces` is the modal `P39` qualifier for 50 positions.** Without a
   deny list, `scope_qualifier` reads "replaces" as the qualifier to write.
+
+## 9. The second turn, measured (2026-09-21)
+
+`scripts/reconcile_bench.py --country cz`, model `claude-sonnet-5`, one request per
+mention, sampled round-robin over distinct gold answers. Verdicts are in the
+`resolution` table; disagreements were hand-read against the person's live `P39`
+and recorded in `fixtures/cz_positions_verified.jsonl`.
+
+**The 20-row probe, first prompt, quotes only.** 13/20 agreed with silver. All
+four disagreeing matches were silver mispairings (Deputy PM paired to Finance
+Minister on identical dates, a Senate seat paired to a council post, ...); the
+model was right in each. Three refusals with gold shown, one of them a
+rendering gap: `Q30103103` (56 local holders, `P1001`, no subclasses) is not
+class-like, earned no tag, and the model refused it "with no qualifier shown".
+
+**The cache never hit.** 3,519 cache-write tokens and 0 read on every one of
+the 20 requests, against 7.96M read over the extraction pass's 1,156. Six
+diagnostic requests: a fixed schema reads 3,355 from cache on the second call;
+a per-request `Literal` over the offered QIDs writes 3,409 every time, and two
+requests with the *same* literal read it back. The structured-output schema is
+in the cached prefix.
+
+**After the fixes** (fixed schema, `used with:` at the convention floor, whole
+article under 20,000 chars, bodies named, `RENDER_VERSION`): the same 20 rows
+re-asked cost 183 written / 3,482 read / 3,058 input / 218 output per request.
+`Q30103103` resolved at high confidence. One row flipped to a wrong refusal —
+`chairperson` + `P2389` for a hunting-union chair, which the person's item
+records exactly so — and two other `P2389`-scoped officers were read
+inconsistently, so the prompt gained the "officer of a named organisation"
+section before the 150.
+
+**150 rows, prompt `5ea5f9f2`, render 2.** 15 minutes sequential, ~6 s per
+request; per request 26 written / 3,883 read / 3,305 input / 232 output.
+
+| | against silver | against hand-read truth |
+|---|---|---|
+| agreement | 88 / 150 (58.7%) | **116 / 150 (77.3%)** |
+| agreement, answer on the shortlist | 76.5% | 88.2% |
+| matches | 114 (76.0%) | 114 |
+| matches that are wrong | 26 | **0** confirmed, 2 unknown |
+| refusals | 36 | 36 |
+
+The 36 refusals: **4 right** (silver was a bare `minister`/`member`, or a
+Wikidata error — an ICTY judge recorded as ICC), **7 wrong with the answer on
+the shortlist**, **11 where the right item was never retrieved**, 14 unknown.
+Verdicts: `same-office` 114 (97 high, 17 medium), `none` 30, `generic-class` 6.
+
+Of 50 hand-read disagreements the silver label was wrong in 35: the silver set's
+documented ~22% mispairing is what the "false matches" were made of. Read the
+silver agreement as a floor, and the verified figure as the measurement.
+
+**Where the wrong refusals come from.** Three are cross-language
+inconsistencies: "Mayor of Letohrad" (en) and "Menteri Pengembangan Regional"
+(id) refused while the cs and en mentions of the same tenures matched at high
+confidence; "stellvertretender Ministerpräsident" (de) refused as a world
+generic where cs and fr picked the Czech Deputy PM. Two are `generic-class`
+misfires on a right item (`deputy minister`, `parliamentary group leader`). The
+11 not-retrieved refusals are mostly the officer-of-organisation convention —
+`vice president`, `rector`, `director` + `P2389` — whose generic item the search
+did not bring into the fifteen. That is a retrieval question, not a verdict one.
+
+Refusal rate by article language: cs 22/107, all others 14/43. Small numbers;
+the three cross-language cases above are the signal.

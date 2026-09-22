@@ -4,6 +4,12 @@ Nothing here talks to Wikidata: the output is a file a human reads and pastes
 into the QuickStatements importer. Only `new` and `refine` proposals can be
 rendered — an `exists` adds nothing, a `conflict` is the human's list, and an
 `unresolved` has no value to write.
+
+`P39` is never rendered, whatever its status. QuickStatements matches a line on
+subject, property and *value* and folds the line's qualifiers into whatever
+statement it finds, so two terms of one office arrive as a single statement
+carrying both starts and both ends with nothing pairing them up. Positions go
+out through `apply`, which creates a statement and never merges one.
 """
 
 import datetime
@@ -13,6 +19,8 @@ from typing import Any
 from peploop import db, wikipedia
 
 WRITABLE = ("new", "refine")
+#: Properties QuickStatements cannot express without corrupting them; see above.
+NEVER_RENDERED = ("P39",)
 QUALIFIER_ORDER = ("P580", "P582")
 TIME_RE = re.compile(r"^[+-]\d{4,}-\d{2}-\d{2}T00:00:00Z$")
 LABEL_PREFIX = "label:"
@@ -125,17 +133,21 @@ def check(lines: list[str]) -> list[str]:
     return problems
 
 
-def render(statuses: list[str], properties: list[str]) -> tuple[list[str], list[str]]:
+def render(
+    statuses: list[str], properties: list[str], country: str | None = None
+) -> tuple[list[str], list[str]]:
     """Render the selected proposals, returning the lines and what is wrong with them."""
     bad = [status for status in statuses if status not in WRITABLE]
     if bad:
         raise ValueError(f"only {', '.join(WRITABLE)} may be rendered, not {', '.join(bad)}")
     rows = db.conn().execute(
-        "SELECT person_qid, property, value, qualifiers, source_lang, source_url,"
-        " source_rev FROM proposal"
-        " WHERE status = ANY(%s) AND (%s OR property = ANY(%s))"
-        " ORDER BY person_qid, property, id",
-        (statuses, not properties, properties),
+        "SELECT p.person_qid, p.property, p.value, p.qualifiers, p.source_lang, p.source_url,"
+        " p.source_rev FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
+        " WHERE p.status = ANY(%s) AND (%s OR p.property = ANY(%s))"
+        " AND NOT (p.property = ANY(%s))"
+        " AND (%s::text IS NULL OR pe.country = %s)"
+        " ORDER BY p.person_qid, p.property, p.id",
+        (statuses, not properties, properties, list(NEVER_RENDERED), country, country),
     )
     columns = (
         "person_qid",

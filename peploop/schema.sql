@@ -23,6 +23,14 @@ CREATE TABLE IF NOT EXISTS person (
 
 CREATE INDEX IF NOT EXISTS person_status_idx ON person (status);
 
+-- Which country's run queued a person, stamped by `seed` from its own flag.
+-- Added after the CREATE above, because schema.sql is applied wholesale to a
+-- database that already holds a seeded run. It scopes a command's selection
+-- and nothing else: the pipeline reasons about a person, never about a
+-- country, and a person queued by two runs keeps the first one's stamp.
+ALTER TABLE person ADD COLUMN IF NOT EXISTS country TEXT;
+CREATE INDEX IF NOT EXISTS person_country_idx ON person (country, status);
+
 -- Which seed categories admitted a person. A person found through six
 -- categories is one `person` row and six rows here, so a wrong inclusion can
 -- be traced back to the category that caused it.
@@ -167,12 +175,22 @@ CREATE TABLE IF NOT EXISTS verdict (
     proposal_id BIGINT NOT NULL REFERENCES proposal (id) ON DELETE CASCADE,
     decision    TEXT NOT NULL CHECK (decision IN ('accept', 'reject')),
     reason      TEXT CHECK (reason IN ('wrong_value', 'wrong_precision', 'quote_unsupported',
-                 'wrong_person', 'already_recorded', 'rule_missing', 'source_wrong', 'other')),
+                 'wrong_person', 'already_recorded', 'rule_missing', 'source_wrong',
+                 'wrong_office', 'other')),
     note        TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS verdict_proposal_idx ON verdict (proposal_id);
+
+-- The CHECK above only reaches a database that does not have the table yet, so
+-- the closed set is restated here for one that does. `wrong_office` says the
+-- office was placed on the wrong item, which is the one thing a P39 row can be
+-- wrong about that no other reason names.
+ALTER TABLE verdict DROP CONSTRAINT IF EXISTS verdict_reason_check;
+ALTER TABLE verdict ADD CONSTRAINT verdict_reason_check CHECK (reason IN (
+    'wrong_value', 'wrong_precision', 'quote_unsupported', 'wrong_person',
+    'already_recorded', 'rule_missing', 'source_wrong', 'wrong_office', 'other'));
 
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 CREATE INDEX IF NOT EXISTS proposal_property_idx ON proposal (property, status);
@@ -214,3 +232,45 @@ ALTER TABLE position ADD COLUMN IF NOT EXISTS holders_by_country JSONB;
 -- the *receiving* state's P1001, so a country's table is full of other
 -- countries' embassies to it; they are tagged and never dropped.
 ALTER TABLE position ADD COLUMN IF NOT EXISTS diplomatic BOOLEAN;
+
+-- What the second turn made of one office mention: the model's verdict and the
+-- mechanical gate's ruling on it, keyed to the exact extraction that produced
+-- the mention (`mention_idx` indexes `response_json->'positions'`). This is the
+-- ledger a re-run resumes from -- a mention answered under this prompt hash is
+-- never asked again -- and a prompt edit or a rendering change re-asks everyone.
+-- A row whose `qid` is null is the creation queue: the office was named and
+-- could not be placed, and `kind`/`chosen` say how the shortlist misled.
+CREATE TABLE IF NOT EXISTS resolution (
+    id            BIGSERIAL PRIMARY KEY,
+    extraction_id BIGINT NOT NULL REFERENCES extraction (id) ON DELETE CASCADE,
+    mention_idx   INTEGER NOT NULL,
+    title         TEXT NOT NULL,
+    jurisdiction  TEXT,
+    start_text    TEXT,               -- the tenure as round one wrote it
+    end_text      TEXT,
+    lang          TEXT,
+    state_qid     TEXT,               -- whose holder counts the ranking read
+    prompt_hash   TEXT NOT NULL,
+    render_version INTEGER NOT NULL,   -- reconcile.RENDER_VERSION: what else the model saw
+    model         TEXT NOT NULL,
+    shortlist     TEXT[] NOT NULL DEFAULT '{}',  -- every QID the model saw, in rank order
+    chosen        TEXT,               -- the model's pick, kept even when vetoed
+    qid           TEXT,               -- the applied pick; null is a refusal or a veto
+    kind          TEXT NOT NULL,
+    confidence    TEXT NOT NULL,
+    evidence      TEXT,
+    reason        TEXT,
+    veto          TEXT,
+    usage_json    JSONB,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (extraction_id, mention_idx, prompt_hash, render_version)
+);
+
+CREATE INDEX IF NOT EXISTS resolution_qid_idx ON resolution (qid);
+
+-- Which verdict placed a P39 proposal on its item. The review screen reads it
+-- to show the office as the article named it and the shortlist the model was
+-- offered, because whether a match is right cannot be judged from the QID it
+-- landed on. Null on every proposal that is not a position.
+ALTER TABLE proposal ADD COLUMN IF NOT EXISTS resolution_id BIGINT
+    REFERENCES resolution (id) ON DELETE SET NULL;

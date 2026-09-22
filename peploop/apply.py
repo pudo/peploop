@@ -412,14 +412,15 @@ def accepted_rows(qid: str) -> list[dict[str, Any]]:
     return [dict(zip(columns, row)) for row in rows]
 
 
-def people(qids: list[str], limit: int) -> list[str]:
+def people(qids: list[str], limit: int, country: str | None = None) -> list[str]:
     """Pick the people to write: the named ones, or those with accepted rows."""
     if qids:
         return qids
     rows = db.conn().execute(
-        "SELECT DISTINCT person_qid FROM proposal WHERE status = 'accepted'"
-        " ORDER BY person_qid LIMIT %s",
-        (limit,),
+        "SELECT DISTINCT p.person_qid FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
+        " WHERE p.status = 'accepted' AND (%s::text IS NULL OR pe.country = %s)"
+        " ORDER BY p.person_qid LIMIT %s",
+        (country, country, limit),
     )
     return [row[0] for row in rows]
 
