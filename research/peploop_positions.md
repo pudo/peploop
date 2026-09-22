@@ -363,3 +363,58 @@ did not bring into the fifteen. That is a retrieval question, not a verdict one.
 
 Refusal rate by article language: cs 22/107, all others 14/43. Small numbers;
 the three cross-language cases above are the signal.
+
+## 10. A whole country through the second turn (2026-09-22)
+
+Slovenia, `seeds/si.yml`, 39 categories, 2,115 people. The first run of
+`reconcile` and the P39 half of `propose` over a country rather than a fixture.
+
+| | |
+|---|---|
+| people seeded / swept | 2,115 / 2,115 (5 `not_human`, 0 failed) |
+| office mentions extracted | **7,271** (3.44 per person, against Czechia's 2.64) |
+| mentions reconciled | 7,222 (8 lost to a degenerate answer, §8) |
+| placed on an item | **1,806 (25%)** — 1,769 `same-office`, 37 `renamed` |
+| refused | 5,416 — 4,787 `none`, 501 `generic-class`, 88 `wrong-office`, 40 `body-not-seat` |
+| P39 proposals written | 1,467 over 997 people, of which 1,424 reviewable |
+
+**The 25% match rate is the index, not the matcher.** Czechia's bench matched
+76%; Slovenia matches a third of that against a table a quarter the size, and
+the refusals say why. The commonest are `župan` 53, `državni sekretar na
+Ministrstvu za X` 32, `Poslanec Říšské rady` 27, `deželni poslanec` 18,
+`veleposlanik` 17, `občinski svetnik` 10 — that is, bare generic titles the
+article never qualified, Habsburg-era diets the catch-all category drags in,
+and tiers Wikidata has no Slovenian item for. Every one of them is a correct
+refusal. **On a country whose office layer is this thin the creation queue is
+the larger half of the output**, and it is the half nothing collects yet.
+
+**The local holder count is worth filling before the pass, not after.** Eight
+mentions answered with `holders_by_country['Q215']` empty were deleted and
+re-asked with it filled: **seven identical, one flipped** — `državni sekretar`
+went from `none/high` to `Q37494512 same-office/medium` once the item showed 2
+Slovenian holders instead of `uncounted`. One in eight is not a measurement,
+but it is the right direction, and the ledger key does not include the signals,
+so a verdict taken before the fill keeps its answer forever.
+
+**The largest lane after the legislature is decided inconsistently.** 186
+mentions landed on the generic `Q37494512 state secretary` and 118 comparable
+ones were refused; naming the ministry barely moves it (129 matched / 68
+refused when a ministry is named, 56 / 50 when it is not). Every request is
+independent by design, which is what stops a pass standardising on whoever
+answered first — and this is the price. `Q37494512` is genuinely a leaf
+(0 instances, 0 subclasses, 2 holders), so the matches are defensible; what a
+reviewer has to settle is whether 186 statements belong on one item with no
+ministry qualifier. Read this lane first.
+
+**Cost, at Sonnet 5 list rates** ($2/MTok in, $10/MTok out; cache read and
+write at the standard 0.1x and 1.25x of input):
+
+| stage | calls | input | cache read | output | USD |
+|---|---|---|---|---|---|
+| extract | 2,114 | 7.55M | 16.1M | 2.84M | **$46.78** |
+| reconcile | 7,222 | 20.6M | 28.2M | 1.40M | **$60.87** |
+
+$107.65 for the country, $0.051 per person. Reconcile costs more than
+extraction because it is one request per *mention* and each carries the whole
+article; the cache absorbs 58% of its input. At 12 threads it ran 113
+mentions/min, at 4 threads 8–17 while the sweep competed for capacity.
