@@ -15,6 +15,7 @@ URL of the revision read, `P813` today.
 import datetime
 import json
 import time
+import uuid
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -26,6 +27,17 @@ from peploop.review import PROPERTY_NAMES
 CONFIG_PATH = Path.home() / ".config" / "wikibase-cli" / "config.json"
 WD_SITE = "https://www.wikidata.org"
 WD_API = f"{WD_SITE}/w/api.php"
+#: A write waits out replication lag rather than adding to it, so it needs a
+#: timeout longer than a read's: one edit in the older pipeline sat through a
+#: 27-second query-service lag for over four minutes.
+WRITE_TIMEOUT = 420.0
+#: One id per process, so a run's edits are one batch in EditGroups and can be
+#: reverted together. Without it every edit has to be undone one at a time,
+#: which is the capability the QuickStatements path had and this one did not.
+BATCH_ID = uuid.uuid4().hex[:10]
+#: Every payload sent, appended. `data/` is gitignored; this is an operator's
+#: undo log, not a record anybody inherits.
+LOG_PATH = Path(__file__).resolve().parent.parent / "data" / "applied.jsonl"
 MAXLAG = 5
 MAX_BACKOFF = 120.0
 # Lag episodes outlast a short budget; the remedy is patience, not a higher threshold.
@@ -55,9 +67,10 @@ class Plan:
     baserevid: int | None
     data: dict[str, Any] = field(default_factory=dict)
     summary: str = ""
-    # (proposal id, property, value) per statement, for matching the guid back
-    # out of the response.
-    claims: list[tuple[int, str, dict[str, Any]]] = field(default_factory=list)
+    # (proposal id, property, value, qualifiers) per statement. The qualifiers
+    # are here because the value alone stopped identifying a statement the day
+    # two spells of one office became two statements rather than one.
+    claims: list[tuple[int, str, dict[str, Any], dict[str, Any]]] = field(default_factory=list)
     terms: list[int] = field(default_factory=list)
     skipped: list[tuple[int, str]] = field(default_factory=list)
     routes: Counter[str] = field(default_factory=Counter)
@@ -77,13 +90,15 @@ def credentials() -> tuple[str, str]:
     return entry["username"], entry["password"]
 
 
-def _api(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, str]]:
+def _api(
+    payload: dict[str, Any], timeout: float | None = None
+) -> tuple[dict[str, Any], dict[str, str]]:
     """POST one action API call, returning its parsed body and response headers.
 
     An error is left in the body: `maxlag` arrives as HTTP 503 with a JSON
     error and a `Retry-After`, so the status alone must not raise.
     """
-    res = http.post(WD_API, {**payload, "format": "json"})
+    res = http.post(WD_API, {**payload, "format": "json"}, timeout=timeout)
     try:
         return res.json(), dict(res.headers)
     except ValueError as exc:
@@ -149,6 +164,17 @@ def today() -> dict[str, Any]:
         "before": 0,
         "after": 0,
     }
+
+
+def editgroup() -> str:
+    """The marker that makes this run's edits one revertable batch.
+
+    EditGroups reads it out of the edit summary and offers the whole run for
+    revert in one action. The older pipeline had this for free because
+    QuickStatements batches are revertable; an edit made straight through the
+    API has to say so itself, or a bad run has to be undone one item at a time.
+    """
+    return f"([[:toollabs:editgroups/b/CB/{BATCH_ID}|details]])"
 
 
 def _snak(prop: str, value: dict[str, Any] | str) -> dict[str, Any]:
@@ -243,6 +269,33 @@ def _qualifiers(row: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
     return snaks, list(snaks)
 
 
+def _with_qualifiers(claim: dict[str, Any], qualifiers: dict[str, Any]) -> dict[str, Any]:
+    """Add qualifiers to a claim, keeping the ones it already carries."""
+    if not qualifiers:
+        return claim
+    merged = {**(claim.get("qualifiers") or {}), **qualifiers}
+    claim["qualifiers"] = merged
+    claim["qualifiers-order"] = list(merged)
+    return claim
+
+
+def addable_qualifiers(
+    claim: dict[str, Any], qualifiers: dict[str, Any]
+) -> dict[str, Any] | None:
+    """The proposed qualifiers a claim carries none of, or None if it carries any.
+
+    Purely additive, and the guard is what makes it so: a claim already saying
+    when a tenure began is not one this may re-date. `wbeditentity` replaces a
+    statement with what it is sent, so the caller sends the live claim back with
+    these merged in rather than a payload holding only the new qualifier --
+    which would wipe every qualifier already on it.
+    """
+    present = claim.get("qualifiers") or {}
+    if any(prop in present for prop in qualifiers):
+        return None
+    return {prop: snaks for prop, snaks in qualifiers.items() if prop not in present}
+
+
 def plan_claim(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[str, Any] | None]:
     """Decide what one statement proposal does to the live item.
 
@@ -268,17 +321,30 @@ def plan_claim(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[s
     refs = references(row)
     qualifiers, order = _qualifiers(row)
     superseding = False
-    for claim, found in matching:
-        if "time" not in value or found.get("precision", 11) >= value["precision"]:
-            return "exists", None
-        if is_import(claim):
+    # An undated statement first, so a tenure the item records twice is sharpened
+    # on the copy that says nothing rather than on one that already has dates.
+    for claim, found in sorted(matching, key=lambda pair: len(pair[0].get("qualifiers") or {})):
+        sharper = "time" in value and found.get("precision", 11) < value["precision"]
+        if sharper and is_import(claim):
             refined = dict(claim)
             refined["mainsnak"] = _snak(prop, value)
             refined["references"] = [*(claim.get("references") or []), *refs]
-            return "refine", refined
-        # Somebody else's sourcing on a coarser value: ours goes beside it,
-        # outranking it rather than replacing it.
-        superseding = True
+            return "refine", _with_qualifiers(refined, qualifiers)
+        if sharper:
+            # Somebody else's sourcing on a coarser value: ours goes beside it,
+            # outranking it rather than replacing it.
+            superseding = True
+            continue
+        # The value is already recorded. That is the end of it for a date, but
+        # not for a tenure: an office the item names without saying when is what
+        # the article's dates are for, and adding them is a *merge* into the
+        # statement that is there, never a second one beside it.
+        added = addable_qualifiers(claim, qualifiers)
+        if not added:
+            return "exists", None
+        refined = dict(claim)
+        refined["references"] = [*(claim.get("references") or []), *refs]
+        return "refine", _with_qualifiers(refined, added)
     statement: dict[str, Any] = {
         "type": "statement",
         "rank": "preferred" if superseding else "normal",
@@ -326,17 +392,42 @@ def _summary(rows: list[dict[str, Any]], claims: int, terms: Counter[str]) -> st
     return f"{head} from {where}" if where else head
 
 
+def _qualifier_fingerprint(qualifiers: dict[str, Any] | None) -> str:
+    """Render a statement's qualifier values, so two spells can be told apart."""
+    return json.dumps(
+        {
+            prop: [snak.get("datavalue", {}).get("value") for snak in snaks]
+            for prop, snaks in (qualifiers or {}).items()
+        },
+        sort_keys=True,
+        ensure_ascii=False,
+    )
+
+
 def _statement_key(prop: str, statement: dict[str, Any]) -> str:
     """Identify the statement a row lands on, so two rows cannot both create it.
 
     The API de-duplicates nothing, so the same citizenship attested in two
-    languages would otherwise go out as two identical claims.
+    languages would otherwise go out as two identical claims. They are the same
+    statement with two references, and that is what this collapses them into.
+
+    **The qualifiers are part of the identity.** Keyed on the value alone, a
+    person's two spells in one office are one statement and the second one's
+    dates are dropped in silence -- measured on Q6873822, whose two accepted
+    National Council rows produced a single statement carrying no dates at all.
+    That is the collapse `wd/validate.py:collapsing_groups` documents for
+    QuickStatements, and avoiding it is the reason this path writes through the
+    API instead.
     """
     guid = statement.get("id")
     if guid:
         return guid
     value = statement["mainsnak"]["datavalue"]["value"]
-    return prop + "\t" + json.dumps(value, sort_keys=True, ensure_ascii=False)
+    return "\t".join((
+        prop,
+        json.dumps(value, sort_keys=True, ensure_ascii=False),
+        _qualifier_fingerprint(statement.get("qualifiers")),
+    ))
 
 
 def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) -> Plan:
@@ -384,7 +475,9 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
         else:
             already.setdefault("references", []).extend(statement.get("references") or [])
             plan.routes["merged"] += 1
-        plan.claims.append((row["id"], row["property"], row["value"]))
+        plan.claims.append(
+            (row["id"], row["property"], row["value"], (statement.get("qualifiers") or {}))
+        )
         written.append(row)
     if statements:
         plan.data["claims"] = list(statements.values())
@@ -445,12 +538,31 @@ def preflight(qid: str) -> tuple[dict[str, Any], list[dict[str, Any]], bool]:
     return entity, rows, moved
 
 
-def _find_guid(entity: dict[str, Any], prop: str, value: dict[str, Any]) -> str | None:
+def _find_guid(
+    entity: dict[str, Any], prop: str, value: dict[str, Any],
+    qualifiers: dict[str, Any] | None = None, taken: set[str] = frozenset(),
+) -> str | None:
+    """Find the statement a written row produced, in the item the API returned.
+
+    The value alone stopped identifying a statement the day two spells of one
+    office became two statements: both rows then matched the first claim and
+    were recorded under the same id. So the qualifiers narrow it, and `taken`
+    excludes the ids already claimed by rows written in the same edit -- which
+    is what separates two statements the item genuinely records identically.
+    """
+    fallback = None
     for claim in entity.get("claims", {}).get(prop, []):
+        guid = claim.get("id")
+        if guid in taken:
+            continue
         existing = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
-        if isinstance(existing, dict) and same_value(existing, value):
-            return claim.get("id")
-    return None
+        if not isinstance(existing, dict) or not same_value(existing, value):
+            continue
+        if fallback is None:
+            fallback = guid
+        if _qualifier_fingerprint(claim.get("qualifiers")) == _qualifier_fingerprint(qualifiers):
+            return guid
+    return fallback
 
 
 def maxlag_wait(spent: float, delay: float, retry_after: float | None = None) -> float | None:
@@ -468,6 +580,33 @@ def maxlag_wait(spent: float, delay: float, retry_after: float | None = None) ->
     return min(max(retry_after or 0.0, delay), MAX_BACKOFF, remaining)
 
 
+def write_payload(plan: Plan, token: str) -> dict[str, Any]:
+    """The `wbeditentity` call one person's edit goes out as.
+
+    Apart from one `data` blob per person, which is what makes the edit atomic,
+    three things here are easy to get silently wrong and are pinned in
+    `check_apply`: there is no `bot` key at all, because MediaWiki resolves a
+    boolean parameter by its *presence* and `bot=0` therefore asks for the flag
+    rather than declining it; `assert` fails an edit whose session has lapsed
+    instead of attributing it to the client IP, which matters because `--follow`
+    logs in once and may then run for days; and `baserevid` is the revision the
+    decision was made against, so an item that moved underneath is a conflict
+    rather than a silent overwrite.
+    """
+    payload = {
+        "action": "wbeditentity",
+        "id": plan.qid,
+        "data": json.dumps(plan.data, ensure_ascii=False),
+        "summary": f"{plan.summary} {editgroup()}",
+        "token": token,
+        "assert": "user",
+        "maxlag": MAXLAG,
+    }
+    if plan.baserevid is not None:
+        payload["baserevid"] = plan.baserevid
+    return payload
+
+
 def send(plan: Plan, token: str) -> dict[str, Any]:
     """Send one person's edit, waiting out replication lag rather than adding to it.
 
@@ -476,23 +615,14 @@ def send(plan: Plan, token: str) -> dict[str, Any]:
     site is to sleep — up to `MAXLAG_BUDGET` — not to declare a willingness to
     load it further.
     """
-    payload = {
-        "action": "wbeditentity",
-        "id": plan.qid,
-        "data": json.dumps(plan.data, ensure_ascii=False),
-        "summary": plan.summary,
-        "token": token,
-        "bot": 0,
-        "maxlag": MAXLAG,
-    }
-    if plan.baserevid is not None:
-        payload["baserevid"] = plan.baserevid
+    payload = write_payload(plan, token)
     delay = 5.0
     spent = 0.0
     while True:
-        body, headers = _api(payload)
+        body, headers = _api(payload, timeout=WRITE_TIMEOUT)
         error = body.get("error")
         if error is None:
+            log_write(payload, body)
             return body
         wait = None
         if error.get("code") == "maxlag":
@@ -506,17 +636,44 @@ def send(plan: Plan, token: str) -> dict[str, Any]:
         delay = min(delay * 2, MAX_BACKOFF)
 
 
+def log_write(payload: dict[str, Any], body: dict[str, Any]) -> None:
+    """Append what was sent and what came back to `data/applied.jsonl`.
+
+    The proposal table records the *outcome* of an edit -- its revision and the
+    statement id -- which is enough to know something happened and not enough to
+    undo it. This is the payload itself, so a bad run can be read back and
+    reversed by hand without reconstructing it from the item's history.
+    """
+    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    entity = body.get("entity") or {}
+    line = {
+        "at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),
+        "batch": BATCH_ID,
+        "qid": payload.get("id"),
+        "summary": payload.get("summary"),
+        "baserevid": payload.get("baserevid"),
+        "data": json.loads(payload["data"]),
+        "lastrevid": entity.get("lastrevid"),
+    }
+    with LOG_PATH.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(line, ensure_ascii=False, sort_keys=True) + "\n")
+
+
 def record(plan: Plan, body: dict[str, Any]) -> int:
     """Mark the written proposals `applied` and refresh our copy of the item."""
     entity = body.get("entity", {})
     rev = entity.get("lastrevid")
     conn = db.conn()
     with conn.transaction():
-        for proposal_id, prop, value in plan.claims:
+        taken: set[str] = set()
+        for proposal_id, prop, value, qualifiers in plan.claims:
+            guid = _find_guid(entity, prop, value, qualifiers, taken)
+            if guid is not None:
+                taken.add(guid)
             conn.execute(
                 "UPDATE proposal SET status = 'applied', applied_rev = %s, claim_guid = %s"
                 " WHERE id = %s",
-                (rev, _find_guid(entity, prop, value), proposal_id),
+                (rev, guid, proposal_id),
             )
         for proposal_id in plan.terms:
             conn.execute(
