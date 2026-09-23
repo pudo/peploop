@@ -20,14 +20,14 @@ from psycopg.types.json import Jsonb
 from rigour.territories import get_territory_by_qid, lookup_territory
 from rigour.text.scripts import text_scripts
 
-from peploop import db, wikidata
+from peploop import db, scope, wikidata
 
 CALENDAR = "http://www.wikidata.org/entity/Q1985727"
 GENDER_QIDS = {"male": "Q6581097", "female": "Q6581072"}
 DATE_PRECISION = {4: 9, 7: 10, 10: 11}
 TIME_RE = re.compile(r"^([+-]?\d+)-(\d{2})-(\d{2})")
-# Worst first: several existing claims make a proposal `conflict` only when
-# none of them matches it.
+# Worst first: several dates already on the item make a proposed one
+# `conflict` only when none of them matches it.
 STATUS_RANK = ("exists", "refine", "new", "conflict", "unresolved")
 # What `extract.py` files the quotes it could not find in the article text under.
 BAD_QUOTES = "_bad_quotes"
@@ -41,6 +41,10 @@ ALIAS_PREFIX = "alias:"
 # A value a mechanical rule threw out before a human could see it. The rule
 # that did so is in `qualifiers._reason`, so each one's volume is countable.
 FILTERED = "filtered"
+# A tenure the item already records for the same office, dated a few days
+# differently. Inert like `FILTERED` -- in neither `review.REVIEWABLE` nor
+# `render.WRITABLE` -- and the spell it clashed with is in `qualifiers._reason`.
+OVERLAPPING = "overlapping"
 PUNCT_RE = re.compile(r"[^\w\s]", re.UNICODE)
 # How much of an article says which scripts its language is written in. The
 # lead is enough, and a whole article is mostly its own name in any case.
@@ -490,37 +494,109 @@ def held(entity: dict[str, Any], qid: str) -> list[dict[str, dict[str, Any]]]:
     return spans
 
 
-def same_date(one: dict[str, Any], other: dict[str, Any]) -> bool:
-    """Compare two time values at the precision they share, not at their own."""
-    shared = min(one["precision"], other["precision"])
-    return at_precision(one["time"], shared) == at_precision(other["time"], shared)
+#: A tenure widened to the days it could cover, each side None when unbounded.
+Extent = tuple[scope.Point | None, scope.Point | None]
+
+
+def extent(span: dict[str, Any]) -> Extent | None:
+    """The first and last day a tenure could cover, or None if it says nothing.
+
+    Reach for this before comparing one tenure with another, because neither
+    endpoint is the point it looks like. An absent endpoint is unbounded: a
+    statement with a start and no end is a tenure still running, which is what
+    Wikidata means by leaving `P582` off. An endpoint too coarse or too odd to
+    place is unbounded on its side too, since a date nobody can read rules
+    nothing out. The widening itself is `scope.interval`, which already knows
+    that a decade is stored as the year it opens and a century as the year it
+    closes.
+    """
+    if not span:
+        return None
+    bounds: list[scope.Point | None] = []
+    for prop, side in (("P580", 0), ("P582", 1)):
+        value = span.get(prop)
+        placed = (
+            None if value is None
+            else scope.interval(value["time"], value.get("precision", 0))
+        )
+        bounds.append(None if placed is None else placed[side])
+    return bounds[0], bounds[1]
+
+
+def overlaps(one: dict[str, Any], other: dict[str, Any]) -> bool:
+    """Say whether two tenures of one office can be the same appointment.
+
+    An office has one holder at a time, so two overlapping spells of it are one
+    appointment written down twice -- the reasoning `wd/campaign.py`'s
+    `already_under_sibling` applies to a roster row against a sibling item.
+    Both bounds are days a tenure could still cover, so touching counts; a
+    tenure saying nothing overlaps nothing, having no span to intersect.
+    """
+    first, second = extent(one), extent(other)
+    if first is None or second is None:
+        return False
+    starts_before_other_ends = first[0] is None or second[1] is None or first[0] <= second[1]
+    ends_after_other_starts = first[1] is None or second[0] is None or second[0] <= first[1]
+    return starts_before_other_ends and ends_after_other_starts
+
+
+def clashing(
+    spans: list[dict[str, dict[str, Any]]], span: dict[str, Any]
+) -> dict[str, dict[str, Any]] | None:
+    """The recorded spell a proposed tenure is a second writing-down of, if any.
+
+    A proposal carrying no dates clashes with any dated statement for the
+    office: it rules nothing out, so it cannot be a *further* term, and the
+    item already says more about the office than the proposal does. It is only
+    a refinement where what is recorded is itself undated.
+    """
+    for recorded in spans:
+        if not recorded:
+            continue
+        if not span or overlaps(span, recorded):
+            return recorded
+    return None
+
+
+def span_text(span: dict[str, dict[str, Any]]) -> str:
+    """Name a spell the way a reviewer reads it, an open side left blank.
+
+    Wikidata signs every year and a reader does not, so the `+` goes and the
+    `-` of a BCE year stays.
+    """
+    bounds = []
+    for prop in ("P580", "P582"):
+        value = span.get(prop)
+        text = None if value is None else at_precision(value["time"], value["precision"])
+        bounds.append((text or "").lstrip("+"))
+    return "..".join(bounds)
 
 
 def tenure_status(spans: list[dict[str, dict[str, Any]]], span: dict[str, Any]) -> str:
     """Decide what a proposed tenure adds to the ones the item already records.
 
-    A statement is compared endpoint by endpoint: an endpoint the item lacks is
-    what this adds, an endpoint that disagrees is a contradiction a human owns,
-    and agreement on everything proposed is a statement already recorded.
+    An office has one holder at a time, so a proposal overlapping a spell the
+    item already records for the *same* office is that one appointment written
+    down twice, dated a few days apart. It is set aside as `OVERLAPPING`, which
+    forfeits nothing: `apply` sees the office value already on the item and
+    drops the proposal's dates anyway. Only the same office is asked -- a
+    tenure overlapping a *different* office is a minister keeping their
+    parliamentary seat, and legitimate.
 
-    The two aggregations run opposite ways, and both directions are the point.
-    *Within* one statement the worst endpoint wins, because a tenure that
-    matches on its start and contradicts on its end is a contradiction and not
-    a match. *Across* statements the most benign wins, because several
-    statements naming one office are two terms with a gap, and a proposal has
-    only to be right about one of them.
+    The clash test runs first, and the order carries the rule: whether the
+    tenure is already recorded decides whether it belongs on the item at all,
+    and only what survives that is asked what kind of tenure it was. So a
+    recorded statement carrying no dates blocks nothing -- it is the thing the
+    proposal exists to sharpen, and yields `refine` -- while a spell no
+    recorded statement covers is a further term of the office and is `new`.
     """
     if not spans:
         return "new"
-    verdicts = []
-    for recorded in spans:
-        seen = {
-            "refine" if recorded.get(prop) is None else
-            "exists" if same_date(recorded[prop], value) else "conflict"
-            for prop, value in span.items()
-        }
-        verdicts.append(max(seen, key=STATUS_RANK.index) if seen else "exists")
-    return min(verdicts, key=STATUS_RANK.index)
+    if clashing(spans, span) is not None:
+        return OVERLAPPING
+    if any(not recorded for recorded in spans):
+        return "refine"
+    return "new"
 
 
 def tenure_key(qid: str, span: dict[str, Any]) -> tuple[str, str, str]:
@@ -556,12 +632,18 @@ def _positions(
             value = time_value(entry.get(key) or "")
             if value is not None:
                 span[prop] = value
+        quotes = entry.get("quotes") or []
+        # Both deliberate non-proposals name the rule that decided them, so
+        # each one's volume stays countable from the table alone.
+        qualifiers: dict[str, Any] = dict(span)
         if entry.get("acting"):
             status = FILTERED
+            qualifiers["_reason"] = "acting"
         else:
-            status = quote_status(
-                tenure_status(held(entity, qid), span), entry.get("quotes") or [], bad
-            )
+            recorded = held(entity, qid)
+            status = quote_status(tenure_status(recorded, span), quotes, bad)
+            if status == OVERLAPPING:
+                qualifiers["_reason"] = f"overlaps {span_text(clashing(recorded, span) or {})}"
         key = tenure_key(qid, span)
         existing = out.get(key)
         if existing is not None:
@@ -569,12 +651,11 @@ def _positions(
             # references, not two rows asking a reviewer the same question.
             existing.sources.extend(attestations([entry]))
             continue
-        quotes = entry.get("quotes") or []
         out[key] = Proposal(
             property="P39",
             value={"entity-type": "item", "id": qid},
             status=status,
-            qualifiers=span or None,
+            qualifiers=qualifiers or None,
             quote=quotes[0] if quotes else None,
             lang=entry.get("lang"),
             resolution_id=resolution_id,

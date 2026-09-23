@@ -463,3 +463,70 @@ re-propose -- including, here, two accepted onto the item the new rule now
 refuses. That is the right default and it means a policy change does not
 silently rewrite what a human has ruled on; it also means those rows have to be
 cleared by hand if the new policy is meant to reach them.
+
+## 12. What the item already records (2026-09-23)
+
+Re-derived from the stored `resolution` verdicts, so no model was called and
+nothing about the extraction or the reconciliation changed. Only
+`propose.tenure_status` moved: from comparing a proposed tenure's endpoints
+against a recorded statement's, to asking whether the two intervals overlap.
+
+| `P39` status | before | after |
+|---|---|---|
+| `new` | 914 | 934 |
+| `refine` | 134 | 65 |
+| `conflict` | 158 | 0 |
+| `exists` | 24 | 0 |
+| `overlapping` | -- | 231 |
+| `filtered` | 13 | 13 |
+| `unquoted` | 5 | 5 |
+| `accepted` | 5 | 5 |
+| **reviewable** (`new`+`refine`+`conflict`) | **1,206** | **999** |
+| **people with a reviewable row** | **830** | **734** |
+
+96 people lose every `P39` row and none gains one. The three buckets account
+for each other exactly: 316 proposals have a dated statement for the same
+office on the item, and 231 + 65 + 20 = 316 is the before column's
+158 + 134 + 24.
+
+**The 231 are the duplicates, not the disagreements.** Sampled: a ministry the
+item ends on 2022-06-01 and the article on 2022-04-20; a National Assembly
+convocation opening 2018-06-03 against a member sworn in on the 22nd; a
+year-precision article span (`2018..2022`) against a day-precision statement
+inside it. None could reach Wikidata anyway -- `apply.plan_claim` sees the
+office value already on the item, returns `exists` and drops the dates -- and
+downstream each one would be a permanent duplicate Occupancy, since
+`group_common_start` merges only on an *identical* start.
+
+**The 65 that stay `refine` are the undated statements.** A recorded `P39`
+carrying no dates at all blocks nothing: it is precisely what the proposal
+exists to sharpen. This bucket was predicted at 64 before the run.
+
+**The 20 that turn `new` were being shown as contradictions.** `tenure_status`
+returned `new` only from its "no statement for this office" early exit, so a
+person with one recorded term and three earlier ones got three `conflict`s.
+Every one of the 20 is an earlier term of an office the item records a later
+term of -- mostly National Assembly membership (`Q21296001`). This is a
+coverage gain, not a suppression.
+
+**Same office only, and 106 rows depend on it.** Judged against every office,
+a minister keeping their parliamentary seat would read as a clash. That many
+`new` rows overlap a statement for a *different* office and are untouched.
+
+**What the rule costs.** A recorded statement with a start and no end runs to
+today, so a genuine later term of an office the item never closed is
+suppressed. So is a term straddling a coarse recorded span: `Q10861634`'s
+2011-12-21..2014-08-01 seat is set aside against a statement recorded as
+`2004..2012`, where the year precision alone is what reaches into 2012. Both
+are the honest reading of what the item says; the remedy is fixing the item.
+
+**One case the plan got backwards.** A proposal carrying *no* dates fell
+through the overlap test -- nothing to intersect -- and read as `new` even
+where the item already recorded that office with dates. It rules nothing out,
+so it cannot be a further term, and the item already says more about the office
+than the proposal does; it is only a refinement where what is recorded is
+itself undated. Two Slovenian rows, and the direction matters more than the
+count: of 77 dateless proposals the other 75 are for offices the item records
+no statement for at all, where a dateless `P39` is still worth having, because
+`occupancy_status` emits an Occupancy for it as long as the person has a birth
+date. Final counts: `new` 932, `overlapping` 233, `refine` 65.

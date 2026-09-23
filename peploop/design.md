@@ -311,20 +311,36 @@ already fetched, deprecated ranks ignored:
 | name `rigour` cannot place | citizenship | `unresolved`|
 | all quotes failed the verbatim gate | any | `unquoted` |
 | a mechanical rule excluded it | any | `filtered` |
+| a spell of the same office overlapping it | tenure | `overlapping` |
 
 A citizenship of a predecessor state beside a recorded successor is an
 addition, not a contradiction, and the same holds for every successor state;
 `conflict` is reserved for properties that can only be true once.
 
-`filtered` is what a rule decided so a human does not have to, with the rule's
-name in `qualifiers._reason`. It is never rendered, reviewed or applied, and
-`stats` counts it so each rule's volume stays visible. The reasons:
+A tenure is compared against the item's statements for *that office alone*, and
+overlap decides it rather than matching endpoints: an office has one holder at
+a time, so a proposal overlapping a recorded spell of it is that appointment
+written down twice, dated a few days apart. Those are `overlapping` and inert.
+A spell no recorded statement covers is a further term and is `new`; a recorded
+statement carrying no dates at all blocks nothing and yields `refine`, because
+that is the statement the proposal exists to sharpen. `exists` and `conflict`
+do not occur on a tenure -- both only ever meant a statement the item already
+carries, and `apply` could write neither. Overlap is judged against the same
+office only: a spell overlapping a *different* office is a minister keeping
+their parliamentary seat. `peploop/positions.md` has the measured counts.
+
+`filtered` and `overlapping` are what a rule decided so a human does not have
+to, with the rule's name in `qualifiers._reason`. Neither is ever rendered,
+reviewed or applied, and `stats` counts both so each rule's volume stays
+visible. The reasons:
 
 | reason | what it excludes |
 |---|---|
 | `undated_predecessor` | a citizenship of a dissolved state that no article dates. Wikidata models a citizenship that ended with `P582`, so the dated case is a real addition and stays. |
 | `fragment` | an alias whose tokens are a proper subset of the item's label in that language (`mul`, then `en`, when it has none there): a surname or a given name on its own. |
 | `script:<scripts>` | a name in a script the language is not written in. The expected scripts are derived per language from the item's own terms in it, or failing those from the opening of the article in it; nothing to derive from is no check. |
+| `acting` | a tenure the article called acting. Wikidata says so with a qualifier this pipeline does not write, and a `P39` omitting it asserts more than the article did. |
+| `overlaps <start>..<end>` | the recorded spell of the same office a proposed tenure is a second writing-down of, an open side left blank. This one sets `overlapping` rather than `filtered`. |
 
 A value is proposed once per *value*, not once per article: the citizenship
 three wikis attest, or the birth date two of them give at different precisions,
@@ -515,8 +531,13 @@ request and the parsed answer of one person to `data/extract/<qid>.md`, which
 is how a prompt change is judged before it is run over a country.
 
 `fetch` takes `queued` people, reads the item and every sitelinked article, and
-marks each one `fetched`, `not_human` where the `P31=Q5` gate rejects it, or
-`failed` with the exception text. `run` carries the same people on through
+marks each one `fetched`, `not_human` where the `P31=Q5` gate rejects it,
+`out_of_scope` where the item's own dates say nobody is politically exposed any
+more, or `failed` with the exception text. Both item gates run before the first
+article is fetched, which is where a person's cost begins: `scope.py` discards
+whoever is alive and over ninety or dead more than five years, and keeps
+everyone whose dates are missing, contradictory or too coarse to place -- the
+reason it discarded on lands in `person.error`. `run` carries the same people on through
 extract and propose in one pass each and marks them `proposed`. `refresh` checks `lastrevid` for
 every known item (or the named ones) and re-fetches the ones that moved; with
 `--articles` it re-fetches article text as well, which re-queues the affected
@@ -583,6 +604,7 @@ peploop/
   http.py        session, rate limiter, User-Agent (copied and trimmed from wd/http.py)
   wikidata.py    fetch item, best_label, claim readers, SPARQL
   wikipedia.py   PetScan seed, REST HTML fetch, HTML → text
+  scope.py       the dates that say a person is no longer worth an extraction
   prompt.py      render system + user message
   extract.py     schema, parse call
   propose.py     compare against existing claims, write proposals
@@ -597,6 +619,7 @@ peploop/
   check_regress.py    re-scores a prompt change against recorded verdicts
   check_review.py     drives the review TUI headlessly and undoes itself
   check_propose.py    the position lane's three silent failures, offline
+  check_scope.py      the relevance gate's date arithmetic, offline
   check_reconcile.py  pins the second turn offline: no network, no key
 ```
 

@@ -16,7 +16,7 @@ from typing import Any
 import click
 
 from peploop import apply as applying
-from peploop import db, positions, wikidata, wikipedia
+from peploop import db, positions, scope, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import propose as proposals
 from peploop import reconcile as reconciling
@@ -75,11 +75,15 @@ def _fetch_articles(qid: str, entity: dict[str, Any], force: bool) -> int:
 
 
 def _process(qid: str, entity: dict[str, Any], force: bool) -> tuple[str, str]:
-    """Enforce P31=Q5 and read the person's articles, returning their status."""
+    """Enforce the item gates and read the person's articles, returning their status."""
     try:
         if "Q5" not in wikidata.claim_qids(entity, "P31"):
             db.set_person_status(qid, "not_human")
             return qid, "not_human"
+        reason = scope.out_of_scope(entity)
+        if reason is not None:
+            db.set_person_status(qid, "out_of_scope", reason)
+            return qid, "out_of_scope"
         _fetch_articles(qid, entity, force)
         db.set_person_status(qid, "fetched")
         return qid, "fetched"

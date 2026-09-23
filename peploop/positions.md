@@ -260,22 +260,45 @@ tenure, the quote and the article, and `proposal.resolution_id` pointing back at
 the verdict, which is what the review screen reads to show the office as the
 article named it and the shortlist the model was offered.
 
-Three rules decide the rest:
+Four rules decide the rest:
 
+- **A tenure the item already records for the same office is set aside.** Two
+  spells of one office that overlap are one appointment written down twice,
+  dated a few days apart: Wikidata ends a ministry on 2022-06-01 and the
+  article on 2022-04-20, a convocation opens on 2018-06-03 and the member was
+  sworn in on the 22nd. Such a proposal is `overlapping`, which is inert -- in
+  neither `review.REVIEWABLE` nor `render.WRITABLE` -- and carries the spell it
+  clashed with in `qualifiers._reason`. Nothing is forfeited by it: `apply`
+  sees the office value already on the item, returns `exists` and drops the
+  dates (see *What is not done* below), so the only `P39` that can reach
+  Wikidata at all is one for an office the item holds no statement for.
+  Downstream the cost is worse than nothing -- OpenSanctions keys an Occupancy
+  on `(person, position, start, end)` and merges only on an *identical* start,
+  so a near-miss is a permanent duplicate. Measured on 1,253 Slovenian `P39`
+  rows: 231 set aside, reviewable rows 1,206 -> 999, people to review 830 ->
+  734. Two things the rule deliberately does not do. It judges *only* the same
+  office QID -- a spell overlapping a *different* office is a minister keeping
+  their parliamentary seat, and 106 of these rows are exactly that. And a
+  recorded statement carrying **no dates at all** blocks nothing, because it is
+  the thing the proposal exists to sharpen; those 65 rows stay `refine`. The
+  order is load-bearing: the clash is asked first, because whether the tenure
+  is already recorded decides whether it belongs on the item at all, and only
+  what survives it is asked what kind of tenure it was.
 - **The same spell in two languages is one row.** A person's `sl` and `pl`
   articles both name the tenure and reconciliation places both on one item;
   `tenure_key` folds them into one proposal with two sources, because a
   reviewer asked the same question twice is a reviewer being wasted.
-- **Endpoints aggregate one way inside a statement and the other way across
-  statements.** Inside, the worst wins: a tenure matching on its start and
-  contradicting on its end is a contradiction, not a match. Across, the most
-  benign wins: several statements naming one office are two terms with a gap,
-  and the proposal has only to be right about one. Getting the first of those
-  backwards silently turns a contradiction into `exists`, which no reviewer
-  ever sees.
+- **A spell no recorded statement covers is `new`, whatever else the item
+  records for that office.** An earlier term beside a recorded later one is
+  coverage, not a dispute. It used to read `conflict` -- `tenure_status`
+  returned `new` only when the item held no statement for the office at all --
+  and 20 Slovenian rows were being shown as contradictions on that basis.
+  `exists` and `conflict` have left the `P39` lane entirely; both only ever
+  meant a statement the item already carries.
 - **An acting tenure is `filtered`.** Wikidata says "acting" with a qualifier
   this pipeline does not write, and a `P39` that omits it asserts more than the
-  article did.
+  article did. Its `_reason` is `acting`, so its volume stays countable
+  alongside every other rule that decided something.
 
 `render` refuses `P39` outright, whatever its status. QuickStatements matches a
 line on subject, property and *value* and folds the qualifiers into whatever
@@ -292,7 +315,10 @@ never merges.
   `Q101002571`, whose National Assembly statement has a start and no end --
   `apply --qid Q101002571` reports "nothing to write". A `new` tenure is
   unaffected. Writing the merge is write-path work and the wrong shape gets
-  duplicates, so the proposals stand and `apply` skips them for now.
+  duplicates, so the proposals stand and `apply` skips them for now. This gap
+  is also what makes `overlapping` free: a proposal that could never be written
+  costs a reviewer's attention and buys nothing. Closing the gap is what would
+  make those rows worth showing again.
 - **The creation queue is a count, not a queue.** A verdict with a null `qid`
   is an office that was named, evidenced and could not be placed; nothing yet
   collects those with their evidence for minting. On a country whose offices

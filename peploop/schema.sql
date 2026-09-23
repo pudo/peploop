@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS http_cache (
 CREATE TABLE IF NOT EXISTS person (
     qid        TEXT PRIMARY KEY,
     status     TEXT NOT NULL DEFAULT 'queued',
+    -- Free text for a status that needs one: the exception a fetch died on,
+    -- and the dates a person was set aside on before any article was read.
     error      TEXT,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
