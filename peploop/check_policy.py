@@ -59,7 +59,7 @@ def office(**over: Any) -> dict[str, Any]:
         "not_office": False, "holders": None, "holders_by_country": None,
         "instance_count": None, "subclass_count": None, "held_subclasses": None,
         "inception": None, "abolished": None, "diplomatic": None,
-        "scope_qualifier": None,
+        "scope_qualifier": None, "first_held_year": None, "polity_inception_year": None,
     }
     row.update(over)
     return row
@@ -130,6 +130,27 @@ def main() -> int:
           policy.decide(case("P569", time("1970-01-02"),
                              qualifiers={"_sources": [{"lang": "zz", "quote": "born"},
                                                       {"lang": "yy", "quote": "born"}]})),
+          policy.PENDING, "unverified")
+    check("two articles giving different days are both skipped",
+          policy.decide(case("P569", time("1970-01-02"),
+                             qualifiers={"_sources": [{"lang": "aa", "quote": "born"}]},
+                             siblings=[(time("1970-01-03"), "new")])),
+          policy.SKIPPED, "contested")
+    check("a sibling agreeing at the precision it has is no dispute",
+          policy.decide(case("P569", time("1970-01-02"),
+                             qualifiers={"_sources": [{"lang": "aa", "quote": "born"}]},
+                             siblings=[(time("1970"), "new")])),
+          policy.PENDING, "unverified")
+    check("a sibling a rule already threw out is no dispute either",
+          policy.decide(case("P569", time("1970-01-02"),
+                             qualifiers={"_sources": [{"lang": "aa", "quote": "born"}]},
+                             siblings=[(time("1971-01-02"), propose.FILTERED)])),
+          policy.PENDING, "unverified")
+    check("a second citizenship is not a dispute",
+          policy.decide(case("P27", {"entity-type": "item", "id": STATE},
+                             qualifiers={"_basis": "explicit",
+                                         "_sources": [{"lang": "aa", "quote": "q"}]},
+                             siblings=[({"entity-type": "item", "id": OTHER_STATE}, "new")])),
           policy.PENDING, "unverified")
     sourced = claim("P569", time("1970"), references=[{"snaks": {"P248": []}}])
     imported = claim("P569", time("1970"), references=[{"snaks": {"P143": []}}])
@@ -230,6 +251,83 @@ def main() -> int:
           policy.decide(case(position=office(scope_qualifier="P2937"))),
           policy.PENDING, "unverified")
 
+    print("several spells of one office:")
+    closed = {"P580": time("1992"), "P582": time("1996"), "_sources": [1, 2]}
+    open_ = {"P580": time("1992"), "_sources": [1]}
+    later = {"P580": time("2000"), "_sources": [1]}
+    found = policy.spell_conflicts([(1, closed), (2, open_), (3, later)])
+    check("the open-ended reading of a closed spell is set aside",
+          policy.Disposition(policy.SKIPPED, found.get(2, "-")), policy.SKIPPED, "sibling_spell")
+    check("the closed spell itself stands",
+          policy.Disposition(policy.SKIPPED if 1 in found else policy.PENDING, found.get(1, "-")),
+          policy.PENDING, "-")
+    check("a later term is judged against the survivors only, and stands",
+          policy.Disposition(policy.SKIPPED if 3 in found else policy.PENDING, found.get(3, "-")),
+          policy.PENDING, "-")
+    ends_a = {"P580": time("2023"), "P582": time("2025")}
+    ends_b = {"P580": time("2023-09"), "P582": time("2024-10")}
+    found = policy.spell_conflicts([(1, ends_a), (2, ends_b)])
+    check("two closed spells disagreeing on the end are both contested",
+          policy.Disposition(policy.SKIPPED, found.get(1, "-") + "/" + found.get(2, "-")),
+          policy.SKIPPED, "contested/contested")
+    both_open = {"P580": time("1992")}, {"P580": time("2004")}
+    found = policy.spell_conflicts([(1, both_open[0]), (2, both_open[1])])
+    check("of two open spells the earlier is contested and the later stands",
+          policy.Disposition(policy.SKIPPED, found.get(1, "-") + "/" + found.get(2, "-")),
+          policy.SKIPPED, "contested/-")
+    terms = [(1, {"P580": time("1992"), "P582": time("1996")}),
+             (2, {"P580": time("1996"), "P582": time("2000")}),
+             (3, {"P580": time("2000")})]
+    check("consecutive terms sharing a boundary year are not in dispute",
+          policy.Disposition(policy.SKIPPED if policy.spell_conflicts(terms) else policy.PENDING,
+                             str(policy.spell_conflicts(terms))),
+          policy.PENDING, "{}")
+    mixed = [(1, {"P580": time("1992")}), (2, {"P580": time("1996"), "P582": time("2000")})]
+    found = policy.spell_conflicts(mixed)
+    check("an open spell overlapping a closed later one is contested alone",
+          policy.Disposition(policy.SKIPPED, found.get(1, "-") + "/" + found.get(2, "-")),
+          policy.SKIPPED, "contested/-")
+    found = policy.spell_conflicts([(1, closed), (2, {"P580": time("1992"), "P582": time("1996")})])
+    check("the same closed spell twice keeps the better attested one",
+          policy.Disposition(policy.SKIPPED, found.get(2, "-") + "/" + str(1 in found)),
+          policy.SKIPPED, "sibling_spell/False")
+    check("a P39 flagged by its siblings is skipped under that name",
+          policy.decide(case(spell_conflict="contested")), policy.SKIPPED, "contested")
+
+    print("before the polity existed:")
+    check("a tenure that ended before the state was founded is skipped",
+          policy.decide(case(position=office(polity_inception_year=1991),
+                             qualifiers={"P580": time("1978"), "P582": time("1980"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.SKIPPED, "tenure_before_polity")
+    check("the state's first government, a year before recognition, passes",
+          policy.decide(case(position=office(polity_inception_year=1991),
+                             qualifiers={"P580": time("1990"), "P582": time("1992"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.PENDING, "unverified")
+
+    print("before anyone was recorded in the office:")
+    check("a tenure generations before the first recorded holder is skipped",
+          policy.decide(case(position=office(first_held_year=1995),
+                             qualifiers={"P580": time("1948"), "P582": time("1951"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.SKIPPED, "tenure_before_record")
+    check("one inside the margin passes",
+          policy.decide(case(position=office(first_held_year=2008),
+                             qualifiers={"P580": time("1990"), "P582": time("1994"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.PENDING, "unverified")
+    check("an office nobody is dated in says nothing",
+          policy.decide(case(position=office(first_held_year=None),
+                             qualifiers={"P580": time("1948"), "P582": time("1951"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.PENDING, "unverified")
+    check("an office with an inception is the date-conflict tag's business",
+          policy.decide(case(position=office(first_held_year=1995, inception="1900-01-01"),
+                             qualifiers={"P580": time("1948"), "P582": time("1951"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.PENDING, "unverified")
+
     print("the verifier:")
     check("nothing is accepted before the verifier has answered",
           policy.decide(case()), policy.PENDING, "unverified")
@@ -252,9 +350,11 @@ def main() -> int:
     funnel.add(case(), policy.decide(case()))
     funnel.add(case(position=None), policy.decide(case(position=None)))
     lines = policy.report_lines(funnel, {OFFICE: "an office"})
-    ok = any("office/unindexed" in line for line in lines) and any(OFFICE in line for line in lines)
+    ok = any("office/unindexed" in line for line in lines)
+    ok = ok and any(OFFICE in line for line in lines)
     failures += 0 if ok else 1
-    print(f"  {'ok  ' if ok else 'FAIL'} every rule that fired is a line, and the offices are listed")
+    mark = "ok  " if ok else "FAIL"
+    print(f"  {mark} every rule that fired is a line, and the offices are listed")
     names = [rule.__name__ for rule in policy.RULES]
     ok = policy._rule_order("verify/low")[0] == names.index("verify_refused") and (
         policy._rule_order("office/abstract")[0] == names.index("office_rejected"))

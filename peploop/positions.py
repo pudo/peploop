@@ -909,6 +909,105 @@ def fill_scope_qualifiers(log: Any = lambda _m: None) -> dict[str, str]:
     return modal
 
 
+#: When the earliest recorded holder of each office took it up. Read with
+#: `p:P39/ps:P39` so a preferred statement does not hide the normal-rank ones,
+#: and as a year rather than a date, because a BCE start has aborted a load
+#: here before and a year is all the rule that reads it needs.
+FIRST_HELD_QUERY = """SELECT ?pos (MIN(YEAR(?s)) AS ?n) WHERE {
+  VALUES ?pos { %(values)s }
+  ?h p:P39 ?st . ?st ps:P39 ?pos ; pq:P580 ?s .
+} GROUP BY ?pos"""
+
+
+def fill_first_held(qids: Sequence[str], log: Any = lambda _m: None) -> dict[str, int]:
+    """Record the year each office was first held, by Wikidata's own statements.
+
+    Reach for this on the offices a run is about to write onto: an item with
+    no inception cannot earn `date-conflict`, and a 1948 mayoralty was placed
+    on an item whose every recorded holder began after 1994. Every asked
+    office gets a timestamp, so one nobody has dated reads as counted-and-
+    empty rather than as never asked.
+    """
+    wanted = [qid for qid in dict.fromkeys(qids) if qid]
+    if not wanted:
+        return {}
+    years: dict[str, int] = {}
+    for chunk in wikidata.values_chunks(wanted):
+        rows = wikidata.sparql(
+            FIRST_HELD_QUERY % {"values": wikidata.values_block(chunk)}, max_age=0
+        )
+        for row in rows:
+            # An unbound aggregate is an office with a holder and no readable
+            # start; it stays null, which the rule reads as silence.
+            if row.get("n", "").lstrip("-").isdigit():
+                years[row["pos"]] = int(row["n"])
+    with db.conn().cursor() as cur:
+        cur.executemany(
+            "UPDATE position SET first_held_year = %s, first_held_at = now() WHERE qid = %s",
+            [(years.get(qid), qid) for qid in wanted],
+        )
+    log(f"first holder dated for {len(years)} of {len(wanted)} offices")
+    return years
+
+
+def fill_polity_inception(qids: Sequence[str], log: Any = lambda _m: None) -> dict[str, int]:
+    """Record the year the polity each office is scoped to came into being.
+
+    `P571` of the `P1001` target, or of the `P17` one where there is no
+    jurisdiction, read through `wbgetentities` rather than the query service.
+    A republic founded in 1991 did not have a minister in 1978, whatever the
+    label says; the interior secretary of the socialist republic is another
+    era's office. Every asked office gets a timestamp, and a polity with no
+    inception recorded stays null, which the rule reads as silence.
+    """
+    wanted = [qid for qid in dict.fromkeys(qids) if qid]
+    if not wanted:
+        return {}
+    rows = db.conn().execute(
+        "SELECT qid, coalesce(jurisdiction_qid, country_qid) FROM position WHERE qid = ANY(%s)",
+        (wanted,),
+    ).fetchall()
+    scopes = sorted({scope for _qid, scope in rows if scope})
+    years: dict[str, int] = {}
+    for scope, item in wikidata.fetch_items(scopes, props="claims").items():
+        for stamp, precision in wikidata.claim_time(item, "P571", include_deprecated=False):
+            year = stamp.lstrip("+")[:4]
+            if precision >= 9 and year.isdigit():
+                years[scope] = int(year)
+                break
+    by_office = {qid: years.get(scope) for qid, scope in rows}
+    with db.conn().cursor() as cur:
+        cur.executemany(
+            "UPDATE position SET polity_inception_year = %s, polity_inception_at = now()"
+            " WHERE qid = %s",
+            [(year, qid) for qid, year in by_office.items()],
+        )
+    log(f"polity inception dated for {sum(1 for y in by_office.values() if y)} of {len(wanted)}")
+    return {qid: year for qid, year in by_office.items() if year is not None}
+
+
+def unfilled_polity_inception(qids: Sequence[str]) -> list[str]:
+    """The offices among these whose polity nobody has dated yet."""
+    if not qids:
+        return []
+    rows = db.conn().execute(
+        "SELECT qid FROM position WHERE qid = ANY(%s) AND polity_inception_at IS NULL",
+        (list(dict.fromkeys(qids)),),
+    )
+    return [row[0] for row in rows]
+
+
+def unfilled_first_held(qids: Sequence[str]) -> list[str]:
+    """The offices among these nobody has asked the first-holder question about."""
+    if not qids:
+        return []
+    rows = db.conn().execute(
+        "SELECT qid FROM position WHERE qid = ANY(%s) AND first_held_at IS NULL",
+        (list(dict.fromkeys(qids)),),
+    )
+    return [row[0] for row in rows]
+
+
 def fill_diplomatic(qids: Sequence[str] | None = None,
                     log: Any = lambda _m: None) -> int:
     """Flag the ambassadorships, which a country's own table is full of.

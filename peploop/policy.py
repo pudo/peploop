@@ -30,7 +30,7 @@ from typing import Any
 from psycopg.rows import dict_row
 from rigour.territories import get_territory_by_qid
 
-from peploop import db, positions, prompt, propose, scope, wikidata
+from peploop import db, positions, prompt, propose, scope, verify, wikidata
 
 ACCEPTED = "accepted"
 SKIPPED = "skipped"
@@ -68,6 +68,15 @@ SCOPING_QUALIFIERS = frozenset({
 })
 SUPPORTED = "supported"
 LOW = "low"
+#: How many years before an office's earliest recorded holder a tenure may
+#: end and still be written onto it. Coverage is sparse -- a ministry held
+#: since 1991 had its first dated holder in 2008 -- so the margin is wide,
+#: and what it still catches is a mayoralty of 1948 on a municipality whose
+#: every recorded mayor began after 1994.
+FIRST_HELD_MARGIN = 30
+#: How many years before the polity's own inception a tenure may end. Two,
+#: because a state's first government usually predates its recognition.
+POLITY_MARGIN = 2
 
 
 @dataclass
@@ -100,6 +109,11 @@ class Case:
     position: dict[str, Any] | None = None
     #: The verifier's answer for this content, once one has been recorded.
     verification: dict[str, Any] | None = None
+    #: The person's other proposals for the same property, as (value, status).
+    siblings: list[tuple[dict[str, Any], str]] = field(default_factory=list)
+    #: What `spell_conflicts` found for a P39 among the person's other spells
+    #: of the same office: `sibling_spell`, `contested`, or None.
+    spell_conflict: str | None = None
     today: date | None = None
 
     @property
@@ -194,6 +208,31 @@ def minor_wiki_only(case: Case) -> Disposition | None:
     return None
 
 
+def contested(case: Case) -> Disposition | None:
+    """Two articles giving different values for a fact that can be true once.
+
+    The verifier reads one article, so a disagreement between two is invisible
+    to it: each side would pass on its own. Both were rejected as `source_wrong`
+    when a human read them side by side. Neither is written; the report shows
+    the pair, and fixing the wiki that is wrong is the remedy.
+    """
+    if case.property not in propose.SINGLE_VALUED:
+        return None
+    for value, status in case.siblings:
+        if status in (propose.FILTERED, "unquoted"):
+            continue
+        if "time" in value and "time" in case.value:
+            shared = min(value.get("precision", 11), case.value.get("precision", 11))
+            agree = propose.at_precision(value["time"], shared) == propose.at_precision(
+                case.value["time"], shared
+            )
+        else:
+            agree = value == case.value
+        if not agree:
+            return _skip("contested")
+    return None
+
+
 def refine_over_sourced(case: Case) -> Disposition | None:
     """A sharper date over somebody else's citation stays unwritten.
 
@@ -248,6 +287,142 @@ def demonym_abroad(case: Case) -> Disposition | None:
 
 
 # --- positions ----------------------------------------------------------------
+
+
+def _endpoints(span: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {p: span[p] for p in ("P580", "P582") if isinstance(span.get(p), dict)}
+
+
+def _covers(one: dict[str, Any], other: dict[str, Any]) -> bool:
+    """Whether spell `one` says everything `other` says, and agrees with it."""
+    mine, theirs = _endpoints(one), _endpoints(other)
+    if not set(theirs) <= set(mine):
+        return False
+    for prop, value in theirs.items():
+        shared = min(value.get("precision", 11), mine[prop].get("precision", 11))
+        if propose.at_precision(value["time"], shared) != propose.at_precision(
+            mine[prop]["time"], shared
+        ):
+            return False
+    return True
+
+
+def _spell_rank(span: dict[str, Any]) -> tuple[int, int, int]:
+    """More endpoints, then finer, then better attested."""
+    ends = _endpoints(span)
+    return (
+        len(ends),
+        sum(v.get("precision", 0) for v in ends.values()),
+        len(span.get("_sources") or []),
+    )
+
+
+def _touching(one: dict[str, Any], other: dict[str, Any]) -> bool:
+    """Whether two spells only share a boundary: one ends the year the other starts.
+
+    `propose.overlaps` counts touching as overlap, which is right for a spell
+    against the item's record -- a date a few days off is the same appointment
+    -- and wrong between two of the article's own spells, where 1992–1996 and
+    1996–2000 are two terms.
+    """
+    for first, second in ((one, other), (other, one)):
+        end, start = first.get("P582"), second.get("P580")
+        if not (isinstance(end, dict) and isinstance(start, dict)):
+            continue
+        shared = min(end.get("precision", 11), start.get("precision", 11))
+        if propose.at_precision(end["time"], shared) == propose.at_precision(start["time"], shared):
+            return True
+    return False
+
+
+def _disputed(one: dict[str, Any], other: dict[str, Any]) -> bool:
+    return propose.overlaps(one, other) and not _touching(one, other)
+
+
+def spell_conflicts(spells: Sequence[tuple[int, dict[str, Any]]]) -> dict[int, str]:
+    """Judge a person's several proposed spells of one office against each other.
+
+    Two articles date one spell differently -- one says 1992–1996, the other
+    1992 and nothing more -- and each passes the verifier on its own, because
+    the verifier reads one article; written, they are two statements with one
+    start. A spell another spell covers (same endpoints where both have them,
+    fewer of its own) is `sibling_spell`. Among the survivors, two spells that
+    overlap without merely touching are in dispute: both closed, both are
+    `contested`; one open, the open one is, because an end the article did not
+    state is evidently before the other spell began; both open, the earlier.
+    Covered spells are set aside first, so a third term is judged against the
+    survivors only.
+    """
+    out: dict[int, str] = {}
+    for pid, span in spells:
+        for other_id, other in spells:
+            if other_id == pid or not propose.overlaps(span, other):
+                continue
+            if _covers(other, span) and (
+                not _covers(span, other) or _spell_rank(other) > _spell_rank(span)
+                or (_spell_rank(other) == _spell_rank(span) and other_id < pid)
+            ):
+                out[pid] = "sibling_spell"
+                break
+    live = [(pid, span) for pid, span in spells if pid not in out]
+    for pid, span in live:
+        for other_id, other in live:
+            if other_id == pid or not _disputed(span, other):
+                continue
+            mine_open = "P582" not in _endpoints(span)
+            theirs_open = "P582" not in _endpoints(other)
+            if mine_open == theirs_open:
+                if not mine_open or _year(span.get("P580")) <= _year(other.get("P580")):
+                    out[pid] = "contested"
+            elif mine_open:
+                out[pid] = "contested"
+            if pid in out:
+                break
+    return out
+
+
+def sibling_spell(case: Case) -> Disposition | None:
+    """Another proposal of the same office already says this, or disputes it."""
+    if case.property == "P39" and case.spell_conflict is not None:
+        return _skip(case.spell_conflict)
+    return None
+
+
+def tenure_before_record(case: Case) -> Disposition | None:
+    """A tenure generations before anyone Wikidata records in the office.
+
+    An item with no inception earns no `date-conflict`, and a 1948 mayoralty
+    was placed on an item whose every recorded holder began after 1994: a
+    municipality created that year. The first recorded holder's year stands
+    in for the missing inception, with a margin for sparse coverage.
+    """
+    if case.property != "P39" or case.position is None:
+        return None
+    first = case.position.get("first_held_year")
+    if first is None or case.position.get("inception") is not None:
+        return None
+    latest = _year(case.tenure("P582")) or _year(case.tenure("P580"))
+    if latest is not None and latest < first - FIRST_HELD_MARGIN:
+        return _skip("tenure_before_record")
+    return None
+
+
+def tenure_before_polity(case: Case) -> Disposition | None:
+    """A tenure that ended before the polity the office governs existed.
+
+    A republic founded in 1991 had no minister of the interior in 1978: that
+    was the socialist republic's secretary, another era's office under a
+    similar name, and the reconciler had no item to prefer.
+    """
+    if case.property != "P39" or case.position is None:
+        return None
+    founded = case.position.get("polity_inception_year")
+    if founded is None:
+        return None
+    latest = _year(case.tenure("P582")) or _year(case.tenure("P580"))
+    if latest is not None and latest < founded - POLITY_MARGIN:
+        return _skip("tenure_before_polity")
+    return None
 
 
 def resolution_weak(case: Case) -> Disposition | None:
@@ -381,6 +556,7 @@ RULES: tuple[Rule, ...] = (
     no_quote,
     # Per property, what the evidence has to be.
     minor_wiki_only,
+    contested,
     refine_over_sourced,
     demonym_abroad,
     resolution_weak,
@@ -389,6 +565,9 @@ RULES: tuple[Rule, ...] = (
     start_precision,
     office_rejected,
     generic_needs_scope,
+    tenure_before_polity,
+    tenure_before_record,
+    sibling_spell,
     # Only then the model, and only as one more gate.
     unverified,
     verify_refused,
@@ -466,8 +645,21 @@ def person_cases(qid: str, today: date | None = None) -> list[tuple[int, Case]]:
     )
     state_qid = _state_qid(person["country"])
     seed_lang = _seed_lang(qid)
+    keys = {
+        row["id"]: verify.content_key(qid, row["property"], row["value"], row["qualifiers"])
+        for row in rows
+    }
+    verified = verify.recorded_many(list(keys.values()))
+    by_property: dict[str, list[tuple[dict[str, Any], str]]] = {}
+    for row in rows:
+        by_property.setdefault(row["property"], []).append((row["value"], row["status"]))
     out = []
     for row in rows:
+        verification = verified.get(keys[row["id"]])
+        siblings = [
+            (value, status) for value, status in by_property.get(row["property"], [])
+            if value != row["value"]
+        ]
         proposed = row["proposed_status"] or row["status"]
         resolution = None
         if row["kind"] is not None:
@@ -487,9 +679,24 @@ def person_cases(qid: str, today: date | None = None) -> list[tuple[int, Case]]:
             seed_lang=seed_lang,
             resolution=resolution,
             position=offices.get(row["value"].get("id")) if row["property"] == "P39" else None,
-            verification=None,
+            verification=None if verification is None else {
+                "verdict": verification.verdict, "confidence": verification.confidence,
+            },
+            siblings=siblings,
             today=today,
         )))
+    # Spells are judged against each other only among the rows every other
+    # rule lets through: a spell a rule has already set aside -- a rename the
+    # reconciler was unsure of, a tenure before the polity -- is not going to
+    # be written, and must not take a good sibling down with it.
+    spells: dict[str, list[tuple[int, dict[str, Any]]]] = {}
+    by_id = {pid: case for pid, case in out}
+    for pid, case in out:
+        if case.property == "P39" and decide(case).status != SKIPPED:
+            spells.setdefault(case.value.get("id", ""), []).append((pid, case.qualifiers))
+    for group in spells.values():
+        for pid, conflict in spell_conflicts(group).items():
+            by_id[pid].spell_conflict = conflict
     return out
 
 
@@ -530,8 +737,32 @@ def property_group(prop: str) -> str:
     return prop
 
 
+def offices_of(qids: Sequence[str]) -> list[str]:
+    """The offices the P39 proposals of these people name."""
+    if not qids:
+        return []
+    rows = db.conn().execute(
+        "SELECT DISTINCT value->>'id' FROM proposal WHERE person_qid = ANY(%s)"
+        " AND property = 'P39' AND status = ANY(%s)",
+        (list(qids), list(DECIDABLE)),
+    )
+    return [row[0] for row in rows if row[0]]
+
+
 def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
-    """Decide every decidable proposal of these people, writing unless told not to."""
+    """Decide every decidable proposal of these people, writing unless told not to.
+
+    The one thing here that reaches the network: an office nobody has asked
+    the first-holder question about is asked it once, so `tenure_before_record`
+    reads a filled column rather than silence.
+    """
+    offices = offices_of(qids)
+    unfilled = positions.unfilled_polity_inception(offices)
+    if unfilled:
+        positions.fill_polity_inception(unfilled)
+    unfilled = positions.unfilled_first_held(offices)
+    if unfilled:
+        positions.fill_first_held(unfilled)
     funnel = Funnel()
     for qid in qids:
         for proposal_id, case in person_cases(qid, today):

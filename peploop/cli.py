@@ -16,7 +16,7 @@ from typing import Any
 import click
 
 from peploop import apply as applying
-from peploop import db, policy, positions, scope, wikidata, wikipedia
+from peploop import db, policy, positions, scope, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import propose as proposals
 from peploop import reconcile as reconciling
@@ -579,6 +579,83 @@ def policy_(limit: int, qid: Sequence[str], dry_run: bool, country: str | None) 
     for line in policy.report_lines(funnel, labels):
         click.echo(line)
     click.echo(f"{len(people)} people, {'reported' if dry_run else 'decided'}")
+
+
+def _pending_people(qid: Sequence[str], limit: int, country: str | None) -> list[str]:
+    """The people with a proposal the policy has held for the verifier."""
+    if qid:
+        return list(qid)
+    rows = db.conn().execute(
+        "SELECT DISTINCT p.person_qid FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
+        " WHERE p.status = 'pending' AND (%s::text IS NULL OR pe.country = %s)"
+        " ORDER BY p.person_qid LIMIT %s",
+        (country, country, limit),
+    )
+    return [row[0] for row in rows]
+
+
+@cli.command("verify")
+@click.option("--limit", default=50, show_default=True, help="How many people to verify.")
+@click.option("--threads", default=4, show_default=True)
+@click.option("--qid", multiple=True, help="Verify these people instead of a batch.")
+@click.option("--dry-run", is_flag=True, help="Print what the model would be shown; send nothing.")
+@country_option
+def verify_(
+    limit: int, threads: int, qid: Sequence[str], dry_run: bool, country: str | None
+) -> None:
+    """Ask a second model about every proposal the policy holds as `pending`.
+
+    One request per proposal against the frozen `prompts/verify.md`, shown the
+    edit as it would land beside the article and the item's own claims. A
+    verdict is stored by the content it was about, so a re-run asks only what
+    is new; once a person's rows are answered the policy is run over them
+    again, and each row leaves as `accepted` or `skipped`.
+    """
+    people = _pending_people(qid, limit, country)
+    if not people:
+        click.echo("nothing pending")
+        return
+    if dry_run:
+        for person_qid in people:
+            for row in verifying.pending_rows(person_qid):
+                click.echo(f"===== proposal {row['id']} =====")
+                click.echo(verifying.render_edit(verifying.edit_for(row)))
+        return
+
+    def one(person_qid: str) -> tuple[list[str], Counter[str]]:
+        """Verify one person's pending rows, then re-decide them.
+
+        A row the model fails on is a line of output and stays `pending`, so
+        the next pass asks again; the person's other rows are still decided.
+        """
+        lines: list[str] = []
+        counts: Counter[str] = Counter()
+        for row in verifying.pending_rows(person_qid):
+            head = f"{person_qid} #{row['id']} {row['property']}"
+            try:
+                verification, sent = verifying.verify_proposal(row)
+            except Exception as exc:  # noqa: BLE001 — one bad answer is a line, not a dead run
+                lines.append(f"{head} failed: {type(exc).__name__}: {str(exc)[:90]}")
+                counts["failed"] += 1
+                continue
+            counts["sent" if sent else "cached"] += 1
+            counts[verification.verdict] += 1
+            lines.append(
+                f"{head} -> {verification.verdict}/{verification.confidence}"
+                f" {'(sent)' if sent else '(cached)'} {verification.reason[:80]}"
+            )
+        funnel = policy.run([person_qid], write=True)
+        for (_group, rule), n in funnel.decided.items():
+            counts[f"policy:{rule}"] += n
+        return lines, counts
+
+    totals: Counter[str] = Counter()
+    with ThreadPoolExecutor(max_workers=threads) as pool:
+        for lines, counts in pool.map(one, people):
+            for line in lines:
+                click.echo(line)
+            totals.update(counts)
+    click.echo(f"{len(people)} people: " + ", ".join(f"{k}={v}" for k, v in sorted(totals.items())))
 
 
 def _mentions_for(country: str | None, limit: int) -> list[tuple[int, int, Any]]:

@@ -405,6 +405,38 @@ Measured on the pilot's second country before any verifier existed: of 960
 missing start, 69 to a tenure that ended before anyone alive was born, and the
 mayors of a city from the 1500s went with them.
 
+### 6b. Verify
+
+`verify` is the second reading, and the policy's last rule. A proposal the
+deterministic gates hold as `pending` is rendered as the edit it would make --
+property, value with its label, qualifiers with their precision spelled out,
+for a position the office re-rendered as the reconciler showed it and the
+office as the article wrote it -- beside the item's current claims for that
+property, the quotes, and the whole article when it is under the cap. A second
+model, from a different family than the extractor's (`PEPLOOP_VERIFY_MODEL`),
+is asked under the frozen `prompts/verify.md` to find the reason the edit is
+wrong, and answers from a closed set: `supported`, `unsupported`,
+`contradicted`, `imprecise`, `already-recorded`, `wrong-item`, `wrong-person`.
+It never sees the extractor's JSON, its notes or the reconciler's reason,
+because a second opinion is worth only its uncorrelated error. One proposal per
+request, never a batch.
+
+The ledger, `verification`, is keyed on *content*: a hash of the person, the
+property, the value, the qualifiers that reach Wikidata and the (language,
+revision) of every source. A re-propose replaces the row and finds its verdict
+again; a re-fetched article is a new question; a prompt edit or a rendering
+change re-asks. `policy` looks the verdict up by that key and passes only
+`supported` at better than low confidence. Everything else is `skipped` under
+`verify/<verdict>`, with the model's reason in the ledger for the report.
+
+Measured on the first twelve requests: nine supported, one `already-recorded`
+(a mayoralty the item held), one `contradicted` (an ethnic descriptor read as
+a citizenship, with Austria-Hungary already on the item), one `unsupported`
+(the same, on another person) -- three refusals a reviewer would have made,
+at about $0.02 a request. The same run showed the one thing a single reading
+cannot see, two wikis dating a death two days apart, so `policy` now skips a
+single-valued value as `contested` when a sibling proposal disagrees.
+
 ### 7. Apply
 
 `apply` writes one person per `wbeditentity` call: every proposal accepted for
@@ -498,6 +530,9 @@ position     qid, label, description, country_qid, jurisdiction_qid,
              search_text, tsv (generated from search_text), loaded_at
 position_name qid, lang, text, alias                 (unique on qid+lang+text)
 type_edge    qid, targets[], fetched_at              (the P31/P279 ancestry cache)
+verification proposal_key, proposal_id, person_qid, property, prompt_hash,
+             render_version, model, verdict, confidence, evidence, reason,
+             usage_json, created_at   (unique on key, prompt, rendering, model)
 ```
 
 `verdict.reason` is one of `wrong_value`, `wrong_precision`,
@@ -539,6 +574,7 @@ stats
 run     [--limit N] [--threads 4] [--qid Q...]
 render  [--status new,refine] [--property P...] > out.qs
 policy  [--limit N] [--qid Q...] [--dry-run]
+verify  [--limit N] [--threads 4] [--qid Q...] [--dry-run]
 review  [--qid Q...] [--limit N]
 apply   [--limit N] [--qid Q...] [--write] [--follow]
 
@@ -650,6 +686,7 @@ peploop/
   fixtures/                the silver test set the bench scores against
   prompts/extract.md
   prompts/reconcile.md
+  prompts/verify.md
   __init__.py
   db.py          connection, cache get/put, upserts
   http.py        session, rate limiter, User-Agent (copied and trimmed from wd/http.py)
@@ -660,6 +697,7 @@ peploop/
   extract.py     schema, parse call
   propose.py     compare against existing claims, write proposals
   policy.py      decide every proposal by rule: accepted, skipped or pending
+  verify.py      the second reading: render the edit, ask, keep the answer by content
   render.py      proposals → QuickStatements lines
   review.py      Textual TUI: one person per screen, verdicts on submit
   apply.py       log in, plan one wbeditentity per person, write and record
@@ -673,6 +711,7 @@ peploop/
   check_propose.py    the position lane's three silent failures, offline
   check_scope.py      the relevance gate's date arithmetic, offline
   check_policy.py     one fabricated case per rule of the policy, offline
+  check_verify.py     the verifier's rendering, key, schema and prompt coverage, offline
   check_reconcile.py  pins the second turn offline: no network, no key
 ```
 

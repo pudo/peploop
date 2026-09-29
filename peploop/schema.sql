@@ -290,3 +290,44 @@ ALTER TABLE proposal ADD COLUMN IF NOT EXISTS proposed_status TEXT;
 -- they are the diff link an audit reads, and the batch a bad run is reverted by.
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS base_rev BIGINT;
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS applied_batch TEXT;
+
+-- What the verifier made of one proposed edit, keyed on what was asked rather
+-- than on the proposal row: `proposal_key` hashes the person, the property,
+-- the value, the qualifiers and the (language, revision) of every source, so
+-- a re-propose that replaces the row finds its verdict again and a re-fetched
+-- article does not. `proposal_id` is the row it was asked for, kept for the
+-- audit and not relied on. A prompt edit or a rendering change re-asks.
+CREATE TABLE IF NOT EXISTS verification (
+    id             BIGSERIAL PRIMARY KEY,
+    proposal_key   TEXT NOT NULL,
+    proposal_id    BIGINT,
+    person_qid     TEXT NOT NULL,
+    property       TEXT NOT NULL,
+    prompt_hash    TEXT NOT NULL,
+    render_version INTEGER NOT NULL,
+    model          TEXT NOT NULL,
+    verdict        TEXT NOT NULL,
+    confidence     TEXT NOT NULL,
+    evidence       TEXT,
+    reason         TEXT,
+    usage_json     JSONB,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (proposal_key, prompt_hash, render_version, model)
+);
+
+CREATE INDEX IF NOT EXISTS verification_key_idx ON verification (proposal_key);
+CREATE INDEX IF NOT EXISTS verification_person_idx ON verification (person_qid);
+
+-- The year an office's earliest recorded holder took it up, and when that was
+-- asked. An item with no inception cannot earn `date-conflict`, and a tenure
+-- generations before anyone Wikidata records in the office is the wrong item
+-- or the wrong era; the policy skips it. Null year with a timestamp means
+-- asked and nobody is dated, which is silence rather than a number.
+ALTER TABLE position ADD COLUMN IF NOT EXISTS first_held_year INTEGER;
+ALTER TABLE position ADD COLUMN IF NOT EXISTS first_held_at TIMESTAMPTZ;
+
+-- The year the polity an office is scoped to came into being: `P571` of the
+-- `P1001` target, or of the `P17` one. A tenure that predates the polity is
+-- another era's office under a similar name.
+ALTER TABLE position ADD COLUMN IF NOT EXISTS polity_inception_year INTEGER;
+ALTER TABLE position ADD COLUMN IF NOT EXISTS polity_inception_at TIMESTAMPTZ;
