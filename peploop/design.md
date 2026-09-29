@@ -369,6 +369,42 @@ it is derivable by query when the verdicts make it worth measuring.
 Name forms are proposals too: a label in a language where the item has none is
 `new`; an alias not present is `new`; anything already there is `exists`.
 
+### 6a. Policy
+
+`policy` is the gate that replaced the human one. It reads every `new` and
+`refine` row and decides each by an ordered list of rules in `policy.py` --
+first match wins, the rule's name lands in `proposal.decided_by` as
+`policy:<rule>`, and the status becomes `accepted` (what `apply` writes),
+`skipped` (a decision with a reason, never a queue) or `pending` (the verifier
+has not been asked yet). The deterministic rules come first, so nothing a rule
+would skip anyway is ever sent to a model; the verifier's answer is the last
+rule, and only `supported` at better than low confidence passes it.
+
+What the rules say, in order: labels and aliases are never written (13 of the
+19 reviewed were titles or fragments); the dates the *extraction* found set a
+person aside the item's own dates could not; a value nobody quoted has nothing
+to verify. A birth or death date attested by one wiki outside the person's own
+languages is skipped, and so is a refinement over a statement somebody other
+than a Wikipedia import referenced. A citizenship from a demonym passes only
+when it names the run's own state. A `P39` passes only on a `same-office`
+verdict at `high` confidence, with a start at year precision or finer, on a
+tenure that ended within a lifetime, on an office the ranking tags neither
+`not-office`, `abstract`, `inbound-diplomatic`, `date-conflict` nor
+`foreign-scoped` (an outbound `diplomatic` posting excepted), and not on a
+generic item its community uses *with* a scoping qualifier this pipeline does
+not yet write. Every threshold is a constant at the top of `policy.py`, and
+`check_policy` fabricates one case per rule.
+
+A row a human ruled on is theirs and the policy never reads it; everything else
+is re-decided from scratch on every run, so a rule change is one command.
+`proposed_status` keeps the `new`/`refine` a row started as. `policy --dry-run`
+prints the funnel -- per property, what entered and which rule took each row --
+and that funnel is the first thing to read after any change to the rules.
+Measured on the pilot's second country before any verifier existed: of 960
+`P39` rows 600 reached the verifier, 153 fell to medium confidence, 69 to a
+missing start, 69 to a tenure that ended before anyone alive was born, and the
+mayors of a city from the 1500s went with them.
+
 ### 7. Apply
 
 `apply` writes one person per `wbeditentity` call: every proposal accepted for
@@ -382,7 +418,14 @@ and prints the payload it would send; `--write` logs in, fetches a CSRF token
 and sends, one person every ten seconds, single-threaded.
 
 Nothing trusts a stored status. Each accepted row is re-decided against the
-live claims, and routed:
+live claims, and routed. A dated spell of an office is matched to the statements
+it *overlaps*, never to the office value alone -- keyed on the value, a
+legislator's every later term read as already recorded and was never written.
+A spell overlapping nothing is a further term and a new statement; one
+overlapping a statement that lacks an endpoint the article gives, and agrees on
+the endpoint they share, has that endpoint merged in; a near miss on a shared
+endpoint touches nothing; and a statement with no dates at all takes the
+article's whole. For everything else:
 
 | live state | what is written |
 |---|---|
@@ -394,8 +437,15 @@ live claims, and routed:
 
 An accepted `conflict` is therefore inert here by construction: every property
 a proposal can conflict on is `SINGLE_VALUED`, and that row is ruled out before
-anything else. The acceptance stands as a human's note that the item needs
-looking at, and nothing reaches Wikidata through it.
+anything else. Nothing reaches Wikidata through it, and with `--write` the row
+is closed as `skipped` under `apply:conflict` -- as is every accepted row the
+edit could not carry -- so a drainer does not select it again every minute.
+
+A pre-flight that finds the item moved re-proposes the person and then runs
+the policy over them again, because a re-propose re-derives every row the
+policy decided; a verdict the verifier already gave is found by its content.
+Each written row records `base_rev` and `applied_batch` beside `applied_rev`,
+which is the diff link an audit reads and the batch a bad run is reverted by.
 
 Contradiction is ruled out over *every* statement before anything else, not
 over the one that happens to match: a person recorded with both a coarse 1950
@@ -440,7 +490,7 @@ item         qid, lastrevid, json, fetched_at
 article      qid, lang, title, rev_id, url, text, fetched_at
 extraction   id, qid, prompt_hash, model, article_langs[], request_json,
              response_json, usage_json, created_at
-proposal     (as above, plus applied_rev, claim_guid)
+proposal     (as above, plus applied_rev, claim_guid, proposed_status)
 verdict      proposal_id, decision (accept|reject), reason, note, created_at
 position     qid, label, description, country_qid, jurisdiction_qid,
              jurisdiction_text, body_qid, kinds[], sources[], not_office,
@@ -488,6 +538,7 @@ dump    [--limit N] [--qid Q...]
 stats
 run     [--limit N] [--threads 4] [--qid Q...]
 render  [--status new,refine] [--property P...] > out.qs
+policy  [--limit N] [--qid Q...] [--dry-run]
 review  [--qid Q...] [--limit N]
 apply   [--limit N] [--qid Q...] [--write] [--follow]
 
@@ -608,6 +659,7 @@ peploop/
   prompt.py      render system + user message
   extract.py     schema, parse call
   propose.py     compare against existing claims, write proposals
+  policy.py      decide every proposal by rule: accepted, skipped or pending
   render.py      proposals → QuickStatements lines
   review.py      Textual TUI: one person per screen, verdicts on submit
   apply.py       log in, plan one wbeditentity per person, write and record
@@ -620,6 +672,7 @@ peploop/
   check_review.py     drives the review TUI headlessly and undoes itself
   check_propose.py    the position lane's three silent failures, offline
   check_scope.py      the relevance gate's date arithmetic, offline
+  check_policy.py     one fabricated case per rule of the policy, offline
   check_reconcile.py  pins the second turn offline: no network, no key
 ```
 

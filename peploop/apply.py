@@ -21,8 +21,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from peploop import db, http, propose, wikidata, wikipedia
-from peploop.review import PROPERTY_NAMES
+from peploop import db, http, policy, propose, wikidata, wikipedia
+
+PROPERTY_NAMES = wikidata.PROPERTY_NAMES
 
 CONFIG_PATH = Path.home() / ".config" / "wikibase-cli" / "config.json"
 WD_SITE = "https://www.wikidata.org"
@@ -46,7 +47,7 @@ THROTTLE = 10.0
 FOLLOW_IDLE = 60.0
 # A reference built only from these says "imported from a Wikipedia article",
 # which is the one provenance a refinement may overwrite in place.
-IMPORT_PROPS = frozenset({"P143", "P4656", "P813"})
+IMPORT_PROPS = wikidata.IMPORT_PROPS
 TERM_PREFIXES = (propose.LABEL_PREFIX, propose.ALIAS_PREFIX)
 
 
@@ -247,17 +248,7 @@ def same_value(existing: dict[str, Any], proposed: dict[str, Any]) -> bool:
     return existing == proposed
 
 
-def is_import(claim: dict[str, Any]) -> bool:
-    """Say whether a statement rests on nothing but Wikipedia imports.
-
-    An unreferenced statement counts: there is no sourcing to lose by writing
-    a better value over it. One `P248` reference is enough to make the claim
-    somebody else's, and a refinement then goes beside it instead.
-    """
-    for ref in claim.get("references") or []:
-        if not set(ref.get("snaks") or {}) <= IMPORT_PROPS:
-            return False
-    return True
+is_import = wikidata.is_import
 
 
 def _qualifiers(row: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
@@ -320,6 +311,8 @@ def plan_claim(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[s
         return "conflict", None
     refs = references(row)
     qualifiers, order = _qualifiers(row)
+    if "id" in value and propose.span_of({"qualifiers": qualifiers}):
+        return plan_tenure(prop, value, matching, qualifiers, order, refs, row)
     superseding = False
     # An undated statement first, so a tenure the item records twice is sharpened
     # on the copy that says nothing rather than on one that already has dates.
@@ -345,17 +338,68 @@ def plan_claim(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[s
         refined = dict(claim)
         refined["references"] = [*(claim.get("references") or []), *refs]
         return "refine", _with_qualifiers(refined, added)
-    statement: dict[str, Any] = {
-        "type": "statement",
-        "rank": "preferred" if superseding else "normal",
-        "mainsnak": _snak(prop, value),
-    }
+    route = "preferred" if superseding else "new"
+    rank = "preferred" if superseding else "normal"
+    return route, _statement(prop, value, qualifiers, order, refs, rank)
+
+
+def _statement(
+    prop: str, value: dict[str, Any], qualifiers: dict[str, Any], order: list[str],
+    refs: list[dict[str, Any]], rank: str = "normal",
+) -> dict[str, Any]:
+    """A new statement, as `wbeditentity` takes one."""
+    statement: dict[str, Any] = {"type": "statement", "rank": rank, "mainsnak": _snak(prop, value)}
     if qualifiers:
         statement["qualifiers"] = qualifiers
         statement["qualifiers-order"] = order
     if refs:
         statement["references"] = refs
-    return ("preferred" if superseding else "new"), statement
+    return statement
+
+
+def plan_tenure(
+    prop: str, value: dict[str, Any], matching: list[tuple[dict[str, Any], Any]],
+    qualifiers: dict[str, Any], order: list[str], refs: list[dict[str, Any]],
+    row: dict[str, Any],
+) -> tuple[str, dict[str, Any] | None]:
+    """Decide what one dated spell of an office does to the statements for it.
+
+    An office is held more than once, so the value alone does not say which
+    statement a spell is about: matched on it, a legislator's second term read
+    as "already recorded" and was never written. A spell is judged against the
+    statements it *overlaps*, the way `propose.tenure_status` judges it. One it
+    overlaps is the same appointment: if the record lacks an endpoint the
+    article gives and agrees on the one they share, that endpoint is merged in;
+    otherwise nothing is touched, a near miss being nobody's to re-date. A
+    statement carrying no dates at all is what the dates are for, and takes
+    them whole. A spell overlapping nothing is a further term, and new.
+    """
+    proposed = propose.span_of({"qualifiers": qualifiers})
+    undated = None
+    for claim, _found in matching:
+        recorded = propose.span_of(claim)
+        if not recorded:
+            undated = undated or claim
+            continue
+        if not propose.overlaps(proposed, recorded):
+            continue
+        for endpoint in ("P580", "P582"):
+            if endpoint in proposed and endpoint in recorded and not same_value(
+                recorded[endpoint], proposed[endpoint]
+            ):
+                return "exists", None
+        present = claim.get("qualifiers") or {}
+        missing = {p: snaks for p, snaks in qualifiers.items() if p not in present}
+        if not missing:
+            return "exists", None
+        refined = dict(claim)
+        refined["references"] = [*(claim.get("references") or []), *refs]
+        return "refine", _with_qualifiers(refined, missing)
+    if undated is not None:
+        refined = dict(undated)
+        refined["references"] = [*(undated.get("references") or []), *refs]
+        return "refine", _with_qualifiers(refined, qualifiers)
+    return "new", _statement(prop, value, qualifiers, order, refs)
 
 
 def plan_term(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, str, str] | None:
@@ -533,7 +577,11 @@ def preflight(qid: str) -> tuple[dict[str, Any], list[dict[str, Any]], bool]:
     rows = accepted_rows(qid)
     moved = any(row["item_rev"] != entity.get("lastrevid") for row in rows)
     if moved:
+        # A re-propose re-derives every row the policy decided, so the policy
+        # runs again here; a verdict the verifier already gave is found by its
+        # content, and only a row the move changed is left pending.
         propose.propose_person(qid)
+        policy.run([qid], write=True)
         rows = accepted_rows(qid)
     return entity, rows, moved
 
@@ -671,14 +719,15 @@ def record(plan: Plan, body: dict[str, Any]) -> int:
             if guid is not None:
                 taken.add(guid)
             conn.execute(
-                "UPDATE proposal SET status = 'applied', applied_rev = %s, claim_guid = %s"
-                " WHERE id = %s",
-                (rev, guid, proposal_id),
+                "UPDATE proposal SET status = 'applied', applied_rev = %s, claim_guid = %s,"
+                " base_rev = %s, applied_batch = %s WHERE id = %s",
+                (rev, guid, plan.baserevid, BATCH_ID, proposal_id),
             )
         for proposal_id in plan.terms:
             conn.execute(
-                "UPDATE proposal SET status = 'applied', applied_rev = %s WHERE id = %s",
-                (rev, proposal_id),
+                "UPDATE proposal SET status = 'applied', applied_rev = %s, base_rev = %s,"
+                " applied_batch = %s WHERE id = %s",
+                (rev, plan.baserevid, BATCH_ID, proposal_id),
             )
     stored = db.conn().execute(
         "SELECT json FROM item WHERE qid = %s", (plan.qid,)
@@ -688,6 +737,25 @@ def record(plan: Plan, body: dict[str, Any]) -> int:
     merged = {**(stored[0] if stored else {}), **entity}
     db.upsert_item(plan.qid, rev, merged)
     return plan.covered
+
+
+def retire(plan: Plan) -> int:
+    """Close the accepted rows the edit could not carry, naming the route that said so.
+
+    A conflict, a value already there, a term already on the item: none of
+    these will write on a later pass either, and an accepted row that stays
+    accepted is selected again every minute by `--follow`. They become
+    `skipped` under `apply:<route>`, which a report counts like any other rule.
+    """
+    conn = db.conn()
+    with conn.transaction():
+        for proposal_id, route in plan.skipped:
+            conn.execute(
+                "UPDATE proposal SET status = %s, decided_by = %s, decided_at = now()"
+                " WHERE id = %s AND status = 'accepted'",
+                (policy.SKIPPED, f"apply:{route}", proposal_id),
+            )
+    return len(plan.skipped)
 
 
 def apply_person(qid: str, token: str | None, defer_lag: bool = False) -> tuple[Plan, str]:
@@ -701,7 +769,10 @@ def apply_person(qid: str, token: str | None, defer_lag: bool = False) -> tuple[
     entity, rows, moved = preflight(qid)
     plan = plan_person(qid, entity, rows)
     note = " (re-proposed: item moved)" if moved else ""
-    if token is None or not plan.data:
+    if token is None:
+        return plan, note
+    if not plan.data:
+        retire(plan)
         return plan, note
     for attempt in (0, 1):
         try:
@@ -718,5 +789,6 @@ def apply_person(qid: str, token: str | None, defer_lag: bool = False) -> tuple[
                 return plan, note
             continue
         record(plan, body)
+        retire(plan)
         return plan, note
     return plan, note

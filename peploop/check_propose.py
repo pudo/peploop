@@ -200,6 +200,20 @@ def main() -> int:
     expect([p.status for p in out], ["unquoted"],
            "a mention whose only quote is bad is unquoted")
 
+    print("what identifies a stored proposal:")
+    value = {"entity-type": "item", "id": OFFICE}
+    first = propose.proposal_key("P39", value, span("1996-01-01", "2000-01-01"))
+    second = propose.proposal_key("P39", value, span("2004-12-03", "2008-11-21"))
+    expect(first == second, False,
+           "two spells of one office are two proposals, whatever one of them was ruled")
+    expect(propose.proposal_key("P39", value, {**span("1996-01-01"), "_sources": [1]}),
+           propose.proposal_key("P39", value, {**span("1996-01-01"), "_reason": "x"}),
+           "and peploop's own bookkeeping keys are not part of it")
+
+    print("a value with no quote at all:")
+    expect(propose.quote_status("new", [], set()), "unquoted",
+           "has no evidence behind it, however well it agrees with the item")
+
     print("the statuses the lane may emit:")
     expect(propose.OVERLAPPING in propose.STATUS_RANK, False,
            "overlapping is never ranked against a date comparison")

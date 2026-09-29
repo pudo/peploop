@@ -16,7 +16,7 @@ from typing import Any
 import click
 
 from peploop import apply as applying
-from peploop import db, positions, scope, wikidata, wikipedia
+from peploop import db, policy, positions, scope, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import propose as proposals
 from peploop import reconcile as reconciling
@@ -233,8 +233,12 @@ def _extract_one(qid: str) -> tuple[str, str]:
     except Exception as exc:  # noqa: BLE001 — a failed person is a row, not a dead run
         db.set_person_status(qid, "failed", f"{type(exc).__name__}: {exc}")
         return "failed", f"{qid} failed: {type(exc).__name__}: {exc}"
-    db.set_person_status(qid, "extracted")
     head = f"{row.qid} {(row.label or '?')[:28]:28s} arts={row.articles}"
+    reason = _extracted_out_of_scope(qid)
+    if reason is not None:
+        db.set_person_status(qid, "out_of_scope", reason)
+        return "out_of_scope", f"{head} out of scope: {reason}"
+    db.set_person_status(qid, "extracted")
     if row.skipped:
         return "extracted", f"{head} skipped (already extracted from these revisions)"
     dropped = ",".join(row.dropped) or "-"
@@ -243,6 +247,22 @@ def _extract_one(qid: str) -> tuple[str, str]:
         f" cache_r={row.cache_read} out={row.output_tokens} bad_quotes={row.bad_quotes}"
         f" positions={row.positions} {row.seconds:.1f}s"
     )
+
+
+def _extracted_out_of_scope(qid: str) -> str | None:
+    """Apply the relevance gate a second time, to the dates the articles gave.
+
+    The item gate ran before any article was read and kept everyone whose item
+    carries no date; the extraction is the first thing that says when such a
+    person lived. A person set aside here is never reconciled or proposed,
+    which on the pilot's second country was every mayor of the 1500s.
+    """
+    row = db.conn().execute(
+        "SELECT response_json FROM extraction WHERE qid = %s ORDER BY id DESC LIMIT 1", (qid,)
+    ).fetchone()
+    if row is None or row[0] is None:
+        return None
+    return scope.out_of_scope_extracted(row[0])
 
 
 def _propose_one(qid: str) -> tuple[str, str]:
@@ -537,6 +557,30 @@ def dump(limit: int, qid: Sequence[str], country: str | None) -> None:
     click.echo(f"{count} dumps written")
 
 
+@cli.command("policy")
+@click.option("--limit", default=100000, show_default=True)
+@click.option("--qid", multiple=True, help="Decide these people instead of a run's.")
+@click.option("--dry-run", is_flag=True, help="Report what the rules would decide; write nothing.")
+@country_option
+def policy_(limit: int, qid: Sequence[str], dry_run: bool, country: str | None) -> None:
+    """Decide every proposal by rule: accepted, skipped, or pending the verifier.
+
+    Reads each person's `new` and `refine` rows -- and whatever the policy
+    itself decided last time, so a rule change is one re-run -- and never a
+    row a human ruled on or `apply` has written. The report is the funnel:
+    per property, how many rows entered and which rule took each of them.
+    """
+    people = _select(qid, ("proposed",), limit, country)
+    if not people:
+        click.echo("nobody proposed")
+        return
+    funnel = policy.run(people, write=not dry_run)
+    labels = policy.office_labels(list(funnel.offices))
+    for line in policy.report_lines(funnel, labels):
+        click.echo(line)
+    click.echo(f"{len(people)} people, {'reported' if dry_run else 'decided'}")
+
+
 def _mentions_for(country: str | None, limit: int) -> list[tuple[int, int, Any]]:
     """List the office mentions still unanswered under the current prompt.
 
@@ -552,7 +596,8 @@ def _mentions_for(country: str | None, limit: int) -> list[tuple[int, int, Any]]
         "  SELECT DISTINCT ON (qid) id, qid, response_json FROM extraction"
         "  WHERE response_json IS NOT NULL ORDER BY qid, id DESC"
         ") e JOIN person pe ON pe.qid = e.qid"
-        " WHERE (%s::text IS NULL OR pe.country = %s) ORDER BY e.id",
+        " WHERE (%s::text IS NULL OR pe.country = %s)"
+        " AND pe.status <> 'out_of_scope' ORDER BY e.id",
         (country, country),
     )
     answered = {

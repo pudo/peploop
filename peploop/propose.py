@@ -171,9 +171,10 @@ def quote_status(status: str, quotes: list[str], bad: set[str]) -> str:
     `extract.py` already decided which quotes it could not find in the text
     that was sent; this only matches those strings back to the entry that
     carried them. A value whose every quote is paraphrase or fabrication has no
-    evidence left, whatever the comparison against Wikidata says about it.
+    evidence left, whatever the comparison against Wikidata says about it --
+    and neither has one the model quoted nothing for at all.
     """
-    if quotes and all(quote in bad for quote in quotes):
+    if not quotes or all(quote in bad for quote in quotes):
         return "unquoted"
     return status
 
@@ -704,32 +705,51 @@ def value_key(prop: str, value: dict[str, Any]) -> str:
     return prop + "\t" + json.dumps(value, sort_keys=True, ensure_ascii=False)
 
 
+def proposal_key(prop: str, value: dict[str, Any], qualifiers: dict[str, Any] | None) -> str:
+    """Identify one proposal by its value *and* its qualifiers.
+
+    The value alone stopped identifying a proposal the day two spells of one
+    office became two statements: keyed on it, a person's second term was
+    never inserted once their first carried a verdict. Only the qualifiers
+    that reach Wikidata count; peploop's own `_` keys are bookkeeping.
+    """
+    real = {k: v for k, v in (qualifiers or {}).items() if k.startswith("P")}
+    return value_key(prop, value) + "\t" + json.dumps(real, sort_keys=True, ensure_ascii=False)
+
+
+#: A row `propose` may not replace: it records something a re-run cannot
+#: reproduce -- a human's ruling, or an edit that has already reached Wikidata.
+KEPT_STATUSES = ("applied",)
+
+
 def _store(
     qid: str, proposals: list[Proposal], extraction_id: int, item_rev: int | None
 ) -> tuple[Counter[tuple[str, str]], int]:
-    """Replace this person's proposals, keeping the ones a human has ruled on.
+    """Replace this person's proposals, keeping what a re-run cannot reproduce.
 
-    A verdict is the only thing in the table that a re-run cannot reproduce,
-    so rows carrying one survive and the proposal that would duplicate them is
-    not inserted again.
+    A human's verdict and a written edit are the two things in the table that
+    are not derived from the extraction, so rows carrying either survive and
+    the proposal that would duplicate them is not inserted again. Everything
+    else -- including what the policy decided last time -- is re-derived, and
+    the policy runs again after; that is what makes a rule change one command.
     """
     conn = db.conn()
     counts: Counter[tuple[str, str]] = Counter()
     urls = article_urls(qid)
     with conn.transaction():
         judged = conn.execute(
-            "SELECT p.id, p.property, p.value FROM proposal p"
-            " WHERE p.person_qid = %s AND EXISTS (SELECT 1 FROM verdict v WHERE"
-            " v.proposal_id = p.id)",
-            (qid,),
+            "SELECT p.id, p.property, p.value, p.qualifiers FROM proposal p"
+            " WHERE p.person_qid = %s AND (p.status = ANY(%s) OR EXISTS ("
+            " SELECT 1 FROM verdict v WHERE v.proposal_id = p.id))",
+            (qid, list(KEPT_STATUSES)),
         ).fetchall()
-        kept = {value_key(prop, value) for _, prop, value in judged}
+        kept = {proposal_key(prop, value, quals) for _, prop, value, quals in judged}
         conn.execute(
             "DELETE FROM proposal WHERE person_qid = %s AND NOT (id = ANY(%s))",
             (qid, [row[0] for row in judged]),
         )
         for proposal in proposals:
-            if value_key(proposal.property, proposal.value) in kept:
+            if proposal_key(proposal.property, proposal.value, proposal.qualifiers) in kept:
                 continue
             url, rev = urls.get(proposal.lang or "", (None, None))
             qualifiers = dict(proposal.qualifiers or {})

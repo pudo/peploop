@@ -64,16 +64,7 @@ PICKED, VETOED = "→", "?"
 # The words a reviewer reads instead of a P-code, and the order the groups are
 # drawn in. `labels` is not a property: it is the one summary row standing for
 # every language the item has a label in.
-PROPERTY_NAMES = {
-    "P31": "human",
-    "labels": "labels",
-    "P21": "gender",
-    "P569": "birth date",
-    "P570": "death date",
-    "P19": "birth place",
-    "P27": "citizenship",
-    "P39": "position",
-}
+PROPERTY_NAMES = wikidata.PROPERTY_NAMES
 ITEM_GROUPS = ("P31", "P21", "P19", "P27")
 TIME_GROUPS = ("P569", "P570")
 # How many languages the `labels` row names before it falls back to a count.

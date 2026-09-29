@@ -109,25 +109,74 @@ def _latest_readings(values: list[tuple[str, int]], now: Point, limit: int) -> P
     return latest
 
 
-def out_of_scope(entity: dict[str, Any], today: date | None = None) -> str | None:
-    """Say why a person is no longer politically relevant, or None to keep them.
+#: A date as Wikidata stores one: the time string and its precision.
+Dated = tuple[str, int]
 
-    A reason discards them; None sends them on to the article fetch. The rule
-    only ever fires when *every* reading of the dates on the item agrees --
-    someone born in the 1930s could be 87, so the decade keeps them.
+
+def out_of_scope_dates(
+    births: list[Dated], deaths: list[Dated], today: date | None = None
+) -> str | None:
+    """Say why someone with these dates is no longer politically relevant.
+
+    The one rule behind both gates: `out_of_scope` reads the dates off the
+    item before any article is fetched, and the policy reads the dates the
+    extraction found, which is how a mayor of 1595 whose item carries no date
+    at all is still set aside. A death date answers on its own -- how old they
+    would be now says nothing about anyone who is not alive -- and the rule
+    only ever fires when *every* reading of the dates agrees: someone born in
+    the 1930s could be 87, so the decade keeps them.
     """
     reference = today or date.today()
     now: Point = (reference.year, reference.month, reference.day)
-
-    deaths = wikidata.claim_time(entity, "P570", include_deprecated=False)
     if deaths:
-        # A death date answers the question on its own: how old they would be
-        # now says nothing about anyone who is not alive.
         latest = _latest_readings(deaths, now, MAX_YEARS_DEAD)
         return None if latest is None else f"dead since {_year_text(latest)}"
-
-    births = wikidata.claim_time(entity, "P569", include_deprecated=False)
     latest = _latest_readings(births, now, MAX_AGE_YEARS)
     if latest is None:
         return None
     return f"born {_year_text(latest)}, no death recorded"
+
+
+def out_of_scope(entity: dict[str, Any], today: date | None = None) -> str | None:
+    """Say why a person is no longer politically relevant, or None to keep them.
+
+    A reason discards them; None sends them on to the article fetch.
+    """
+    return out_of_scope_dates(
+        wikidata.claim_time(entity, "P569", include_deprecated=False),
+        wikidata.claim_time(entity, "P570", include_deprecated=False),
+        today,
+    )
+
+
+#: `YYYY`, `YYYY-MM`, `YYYY-MM-DD` as the extraction writes them, to a precision.
+_TEXT_PRECISION = {4: 9, 7: 10, 10: 11}
+
+
+def extracted_dates(data: dict[str, Any]) -> tuple[list[Dated], list[Dated]]:
+    """Read the birth and death dates an extraction found, as Wikidata times.
+
+    The strings are the extraction schema's own (`YYYY[-MM[-DD]]`), padded the
+    way Wikidata pads an unknown month and day; anything else is left out.
+    """
+    out: tuple[list[Dated], list[Dated]] = ([], [])
+    for slot, key in enumerate(("birth_date", "death_date")):
+        for entry in data.get(key) or []:
+            text = str(entry.get("value") or "")
+            precision = _TEXT_PRECISION.get(len(text))
+            if precision is None:
+                continue
+            padded = (text + "-00-00")[:10]
+            out[slot].append((f"+{padded}T00:00:00Z", precision))
+    return out
+
+
+def out_of_scope_extracted(data: dict[str, Any], today: date | None = None) -> str | None:
+    """Say why the person the articles describe is no longer relevant, or None.
+
+    The second gate, after extraction: the item gate keeps everyone whose item
+    carries no dates, and for a long-dead mayor the article is the only thing
+    that says so. Same rule, same thresholds, read off the extraction instead.
+    """
+    births, deaths = extracted_dates(data)
+    return out_of_scope_dates(births, deaths, today)

@@ -276,3 +276,17 @@ CREATE INDEX IF NOT EXISTS resolution_qid_idx ON resolution (qid);
 -- landed on. Null on every proposal that is not a position.
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS resolution_id BIGINT
     REFERENCES resolution (id) ON DELETE SET NULL;
+
+-- What the policy decided and what `propose` had said before it did. A row's
+-- `status` is `accepted`, `skipped` or `pending` once the policy has read it,
+-- with the rule in `decided_by` as `policy:<rule>`; `proposed_status` keeps the
+-- `new` or `refine` it started as, because the rules read it and a re-run
+-- must see what `propose` saw. A human's ruling sets `decided_by` to their
+-- name instead, and the policy never touches such a row again.
+ALTER TABLE proposal ADD COLUMN IF NOT EXISTS proposed_status TEXT;
+
+-- What `apply` sent, beside what it produced: the revision the edit was made
+-- against and the EditGroups batch it went out in. Together with `applied_rev`
+-- they are the diff link an audit reads, and the batch a bad run is reverted by.
+ALTER TABLE proposal ADD COLUMN IF NOT EXISTS base_rev BIGINT;
+ALTER TABLE proposal ADD COLUMN IF NOT EXISTS applied_batch TEXT;

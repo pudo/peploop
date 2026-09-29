@@ -308,17 +308,14 @@ never merges.
 
 ## What is not done
 
-- **`apply` cannot write a `refine`.** A P39 the item already records, wanting
-  the end date the article supplies, is a *merge* into an existing statement,
-  and `apply` creates and never merges: its router sees the office value
-  already there, returns `exists`, and the date is dropped. Measured on
-  `Q101002571`, whose National Assembly statement has a start and no end --
-  `apply --qid Q101002571` reports "nothing to write". A `new` tenure is
-  unaffected. Writing the merge is write-path work and the wrong shape gets
-  duplicates, so the proposals stand and `apply` skips them for now. This gap
-  is also what makes `overlapping` free: a proposal that could never be written
-  costs a reviewer's attention and buys nothing. Closing the gap is what would
-  make those rows worth showing again.
+- **`apply` writes a `refine` by overlap.** A P39 the item already records,
+  wanting the end date the article supplies, is a merge into the statement it
+  overlaps, and the router now finds that statement by its span rather than
+  by the office value -- which is also what lets a further, non-overlapping
+  term go out as a second statement instead of reading as "already there".
+  Measured on `Q101002571`, whose National Assembly statement has a start and
+  no end: it used to report "nothing to write". A near miss on a shared
+  endpoint still touches nothing, and `overlapping` stays inert.
 - **The creation queue is a count, not a queue.** A verdict with a null `qid`
   is an office that was named, evidenced and could not be placed; nothing yet
   collects those with their evidence for minting. On a country whose offices

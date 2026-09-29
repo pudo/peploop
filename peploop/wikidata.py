@@ -219,3 +219,32 @@ NON_WIKIPEDIA_SITES = {
     "incubatorwiki",
     "outreachwiki",
 }
+
+
+#: How an edit summary and a report name the properties this pipeline writes.
+PROPERTY_NAMES = {
+    "P31": "human",
+    "labels": "labels",
+    "P21": "gender",
+    "P569": "birth date",
+    "P570": "death date",
+    "P19": "birth place",
+    "P27": "citizenship",
+    "P39": "position",
+}
+
+#: The reference properties a Wikipedia import carries and nothing else.
+IMPORT_PROPS = frozenset({"P143", "P4656", "P813"})
+
+
+def is_import(claim: dict[str, Any]) -> bool:
+    """Say whether a statement rests on nothing but Wikipedia imports.
+
+    An unreferenced statement counts: there is no sourcing to lose by writing
+    a better value over it. One `P248` reference is enough to make the claim
+    somebody else's, and a refinement then goes beside it instead.
+    """
+    for ref in claim.get("references") or []:
+        if not set(ref.get("snaks") or {}) <= IMPORT_PROPS:
+            return False
+    return True

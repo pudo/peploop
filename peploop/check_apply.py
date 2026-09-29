@@ -145,9 +145,39 @@ def main() -> int:
     expect(dict(plan.routes), {"exists": 1},
            "is never re-dated, because replacing a date is not this tool's to do")
     expect(plan.data, {}, "and nothing is sent")
+    expect([reason for _id, reason in plan.skipped], ["exists"],
+           "and the row is closed under the route that refused it")
+
+    print("a further term of an office the item already dates:")
+    live = item(claim(OFFICE, span("1996-01-01", "2000-01-01")))
+    plan = apply.plan_person(PERSON, live, [office(quals=span("2004-12-03", "2008-11-21"))])
+    made = (plan.data or {}).get("claims", [])
+    # The gap this was written for: keyed on the office alone, a legislator's
+    # every later term read as already recorded and was never written.
+    expect(dict(plan.routes), {"new": 1}, "is a second statement, not 'exists'")
+    expect(made[0].get("id") if made else "none", None, "created, not sent back under an id")
+
+    print("a term the item records with a start and no end:")
+    live = item(claim(OFFICE, span("2018-06-22")))
+    plan = apply.plan_person(PERSON, live, [office(quals=span("2018-06-22", "2022-05-13"))])
+    made = (plan.data or {}).get("claims", [])
+    expect(dict(plan.routes), {"refine": 1}, "takes the end the article gives")
+    expect(made[0].get("id"), GUID, "on the statement that is there")
+    expect(sorted(made[0].get("qualifiers") or {}), ["P580", "P582"],
+           "keeping the start it already had")
+    live = item(claim(OFFICE, span("2018-06-03")))
+    plan = apply.plan_person(PERSON, live, [office(quals=span("2018-06-22", "2022-05-13"))])
+    expect(dict(plan.routes), {"exists": 1},
+           "but a start that disagrees by days is a near miss, and nothing is touched")
+    live = item(claim(OFFICE, span("2018-06-22", "2022-05-13")))
+    year = {"P580": {**day("2018-01-01"), "precision": 9},
+            "P582": {**day("2022-01-01"), "precision": 9}}
+    plan = apply.plan_person(PERSON, live, [office(quals=year)])
+    expect(dict(plan.routes), {"exists": 1},
+           "and a year-precision spell inside a day-precision one adds nothing")
 
     print("which statement a refinement lands on:")
-    live = item(claim(OTHER, {"P580": day("1990-01-01")}, id=f"{PERSON}$dated"),
+    live = item(claim(OTHER, span("1990-01-01", "1994-01-01"), id=f"{PERSON}$dated"),
                 claim(OTHER, id=f"{PERSON}$undated"))
     plan = apply.plan_person(PERSON, live, [office(OTHER, quals=span("2001-01-01"))])
     made = (plan.data or {}).get("claims", [])
@@ -164,6 +194,8 @@ def main() -> int:
     plan = apply.plan_person(PERSON, live, [row("P569", other)])
     expect(dict(plan.routes), {"conflict": 1}, "is a human's to-do, not an edit")
     expect(plan.data, {}, "and nothing is sent")
+    expect([reason for _id, reason in plan.skipped], ["conflict"],
+           "and the row is closed, so a drainer does not select it forever")
 
     print("a label the item already has:")
     live = {"lastrevid": 1, "claims": {}, "labels": {"aa": {"language": "aa", "value": "X"}}}

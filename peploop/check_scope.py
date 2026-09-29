@@ -177,6 +177,21 @@ def main() -> int:
                           died=[time("+2024-03-02T00:00:00Z", 11, rank="deprecated")])),
            "born 1850, no death recorded", "a deprecated death leaves the age rule to answer")
 
+    print("the dates the articles gave, after extraction:")
+    expect(scope.out_of_scope_extracted({"death_date": [{"value": "1901-03-02"}]}, TODAY),
+           "dead since 1901", "a death the item never recorded sets a person aside")
+    expect(scope.out_of_scope_extracted({"birth_date": [{"value": "1934"}]}, TODAY),
+           "born 1934, no death recorded", "a year-only birth is read whole")
+    expect(scope.out_of_scope_extracted({"birth_date": [{"value": "1936"}]}, TODAY), None,
+           "and a year that could still be under ninety keeps them")
+    expect(scope.out_of_scope_extracted({}, TODAY), None,
+           "an extraction with no dates keeps them")
+    expect(scope.out_of_scope_extracted({"birth_date": [{"value": "1901"}, {"value": "1991"}]},
+                                        TODAY), None,
+           "two articles disagreeing keep them, since one reading is recent")
+    expect(scope.out_of_scope_extracted({"birth_date": [{"value": "circa 1901"}]}, TODAY),
+           None, "a value that is not a date is not a reason")
+
     print(f"{len(failures)} failures")
     return 1 if failures else 0
 
