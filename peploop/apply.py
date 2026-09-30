@@ -790,5 +790,20 @@ def apply_person(qid: str, token: str | None, defer_lag: bool = False) -> tuple[
             continue
         record(plan, body)
         retire(plan)
+        _clear_failure(qid)
         return plan, note
     return plan, note
+
+
+def _clear_failure(qid: str) -> None:
+    """Take a person out of `failed` once an edit for them has gone through.
+
+    A lag episode marks the person `failed` with the refusal text, and the
+    next pass retries them by their accepted rows rather than by that status;
+    a write that then succeeds would otherwise leave the failure standing.
+    """
+    db.conn().execute(
+        "UPDATE person SET status = 'proposed', error = NULL, updated_at = now()"
+        " WHERE qid = %s AND status = 'failed'",
+        (qid,),
+    )

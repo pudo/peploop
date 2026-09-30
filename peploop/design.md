@@ -395,6 +395,19 @@ generic item its community uses *with* a scoping qualifier this pipeline does
 not yet write. Every threshold is a constant at the top of `policy.py`, and
 `check_policy` fabricates one case per rule.
 
+Four rules read a proposal against its *siblings*, which no single reading
+can: a single-valued value another wiki disagrees with is `contested`; among a
+person's several spells of one office, one another spell covers (the open
+reading of a closed term) is a `sibling_spell`, and two that overlap without
+merely touching -- consecutive terms share a boundary year and are not in
+dispute -- are `contested`, the open one alone where one is open. And two
+stand in for an inception the office item lacks: a tenure that ended before
+the polity the office governs existed (`tenure_before_polity`, `P571` of the
+`P1001` or `P17` target) or a generation before the office's earliest
+recorded holder (`tenure_before_record`). Both years are filled lazily, once
+per office, the first time the policy meets it; they are the one thing in the
+policy that reaches the network.
+
 A row a human ruled on is theirs and the policy never reads it; everything else
 is re-decided from scratch on every run, so a rule change is one command.
 `proposed_status` keeps the `new`/`refine` a row started as. `policy --dry-run`
@@ -527,6 +540,7 @@ verdict      proposal_id, decision (accept|reject), reason, note, created_at
 position     qid, label, description, country_qid, jurisdiction_qid,
              jurisdiction_text, body_qid, kinds[], sources[], not_office,
              inception, abolished, replaces[], replaced_by[], holders,
+             first_held_year, polity_inception_year (each with an _at stamp),
              search_text, tsv (generated from search_text), loaded_at
 position_name qid, lang, text, alias                 (unique on qid+lang+text)
 type_edge    qid, targets[], fetched_at              (the P31/P279 ancestry cache)
