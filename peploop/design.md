@@ -297,10 +297,14 @@ queue) has the mechanics; the decisions are these.
 
 - **The evidence bar is people, not rows.** An office is minted only on two
   distinct attested holders, at least one of them current; an office held by
-  one person at a time passes on one current holder plus an official source
-  that answers when read. A census (`census/<cc>.yml`) names offices that must
-  exist, but never stands in for a holder. The floor is applied in code before
-  a model is asked, and neither model can lower it.
+  one person at a time passes on one current holder plus a second channel
+  saying the office exists -- its census entry (`census/<cc>.yml`, curated
+  from measurement before any article is read), or an official source that
+  answers when read. Asking a one-seat office for two people measures whether
+  its predecessor was seeded, not whether it exists. A census entry never
+  stands in for the holder itself, and a seat of many always needs two. The
+  floor is applied in code before a model is asked, and neither model can
+  lower it.
 - **The shape is fixed, not drafted.** Each kind of office is an archetype in
   `offices.py` -- its `P279` parent, how it names its body, whether it is
   scoped, whether it is one seat -- with the parents measured across other
@@ -467,7 +471,12 @@ the polity the office governs existed (`tenure_before_polity`, `P571` of the
 `P1001` or `P17` target) or a generation before the office's earliest
 recorded holder (`tenure_before_record`). Both years are filled lazily, once
 per office, the first time the policy meets it; they are the one thing in the
-policy that reaches the network.
+policy that reaches the network. A last one reads the person's record against
+the office's: a spell aimed at an office nobody in the state holds, when the
+record already has another `P39` starting the same day, is
+`office/recorded-elsewhere` -- the unused twin of a seat the community records
+on its other item. A minted office is uncounted rather than unheld, so it is
+never caught.
 
 A row a human ruled on is theirs and the policy never reads it; everything else
 is re-decided from scratch on every run, so a rule change is one command.

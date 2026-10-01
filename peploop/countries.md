@@ -145,9 +145,10 @@ The mint stage sits between `reconcile` and `propose` because its input is the
 reconciler's refusals and its output is items those refusals can now land on.
 Write `census/<cc>.yml` before `mint-categorize`: the offices the country has
 whether or not a seeded article named them, by institution class of
-`recipes/institutions.md`, each with its body QID and, for a one-seat office,
-an official source -- and only a source that has been checked, since a source
-is what lets such an office pass on one current holder. Its bodies come from
+`recipes/institutions.md`, each with its body QID and, optionally, an
+official source -- only one that has been checked. A one-seat office in the
+census passes on one current holder, so an entry is a claim that the office
+exists and is written only from measurement. Its bodies come from
 measurement (`research/position_items.md` §10 is the template), never from
 memory; `census/cu.yml` is the first. A census entry nobody's article attests
 is skipped, so the file says what must exist and the seeds still decide what

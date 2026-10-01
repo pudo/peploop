@@ -336,9 +336,10 @@ have somewhere to go.
   gendered form, the same title in two languages, with and without its place
   -- so categorize sees every surviving group, single-person ones included, and
   the floor counts *distinct people* across the pieces it merged: two, and at
-  least one current; or, for a one-seat office, one current holder and an
-  official source that answers live. Three mentions of one minister are one
-  holder. Neither model can override it.
+  least one current; or, for a one-seat office, one current holder and a
+  second channel -- its census entry, or an official source that answers
+  live. Three mentions of one minister are one holder. Neither model can
+  override it.
 - **Two models and a veto.** Categorize (`prompts/mint_categorize.md`, the
   reconciler's model) clusters the groups into offices in chunks ordered so
   the pieces of one office share a request, gives each an institution class
@@ -357,9 +358,17 @@ have somewhere to go.
   is not a position and shares a content word with the office, a jurisdiction
   inside the state, the shape, no bilateral post. The shape itself is fixed per
   archetype and follows the state's own siblings, falling back to `Q294414`.
+  Siblings are the state's offices and those of its current subdivisions,
+  less any that is dissolved (`P576`), typed historical, or last held more
+  than 30 years ago: one colonial "Governor of Cuba" otherwise set the type of
+  every minted governorship. A body two or more siblings already use is
+  measured rather than drafted, so it skips the shared-word check ("Council
+  of Ministers" shares no content word with "Minister of X").
 - **A disagreement is a skip, never a review row.** `mint.RULES` is ordered
   like `policy.py`'s and writes one of three statuses: `found` (a live
-  duplicate, or the item a pass named), `guarded` (categorize, verify at high
+  duplicate, or the item a pass named -- which counts only when it is an
+  office of the state or one of its subdivisions, not a class and not a
+  posting; ambassadorships are skipped before it is read), `guarded` (categorize, verify at high
   confidence and the guard all agree), or `skipped` under the rule that
   decided it -- `verify:not-current`, `disagree/shape:parent_qid`,
   `guard:body-word/…`. The corrections a verifier proposed are kept on the
