@@ -381,15 +381,19 @@ def floor(candidate: Attested) -> str | None:
 
     Applied before any tokens are spent, and neither model can override it:
     two distinct people and at least one current holder, or for a seat held by
-    one person at a time, one current holder and an official source. A census
-    anchor nobody's article attests is refused first, under its own rule, so
-    the funnel shows how much of the census the seeds reached.
+    one person at a time, one current holder plus a second channel that says
+    the office exists: an official source, or the census, which is curated
+    from measurement before any article is read. Asking a one-seat office for
+    two people measures whether its predecessor was seeded, not whether it
+    exists. A census anchor nobody's article attests is refused first, under
+    its own rule, so the funnel shows how much of the census the seeds reached.
     """
     rows = list(candidate.rows)
-    if "census" in candidate.origin and not rows:
+    census = "census" in candidate.origin
+    if census and not rows:
         return "census/unattested"
     people = distinct_holders({"person": r.person} for r in rows)
-    needed = 1 if candidate.single_seat and candidate.source_url else 2
+    needed = 1 if candidate.single_seat and (candidate.source_url or census) else 2
     if people < needed:
         return f"holders/{people}"
     if not any(r.current for r in rows):
@@ -2197,7 +2201,9 @@ def guard_reasons(cand: Candidate, spec: offices.Spec, ctx: Context,
         spec,
         holders=cand.holders,
         current_holders=cand.current_holders,
-        single_seat_source_ok=ctx.source_ok(cand.source_url),
+        # The census is the second channel for a one-seat office as much as a
+        # checked source is; `floor` reads it the same way.
+        single_seat_source_ok="census" in cand.origin or ctx.source_ok(cand.source_url),
         duplicates=found,
         run_labels=ctx.run_labels(cand),
         body=records.get(spec.body_qid) if spec.body_qid else None,

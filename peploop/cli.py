@@ -973,9 +973,12 @@ def mint_verify(country: str, limit: int | None, threads: int, dry_run: bool) ->
     if verify is None:
         raise click.ClickException("mint.verify is not implemented yet")
     stats = verify(country, limit=limit, threads=threads, dry_run=dry_run, log=click.echo)
-    if isinstance(stats, dict):
-        click.echo(json.dumps({k: v for k, v in stats.items() if _jsonable(v)},
-                              sort_keys=True, default=str))
+    if not isinstance(stats, dict):
+        return
+    for (status, rule), n in sorted((stats.get("funnel") or {}).items(), key=lambda kv: -kv[1]):
+        click.echo(f"{n:5d}  {status:10s} {rule}")
+    click.echo(json.dumps({k: v for k, v in stats.items() if k not in ("funnel", "decided") and _jsonable(v)},
+                          sort_keys=True, default=str))
 
 
 def _jsonable(value: Any) -> bool:

@@ -86,6 +86,14 @@ def check_floor(expect: Any) -> None:
            "a single seat with a source passes on one current holder")
     expect(mint.floor(group([row("Q1", start="2024")], single_seat=True)) == "holders/1",
            "a single seat with no source still needs two people")
+    expect(mint.floor(group([row("Q1", start="2024")], single_seat=True,
+                            origin=("reconcile", "census"))) is None,
+           "a census-anchored single seat passes on one current holder")
+    expect(mint.floor(group([row("Q1", start="2024")], origin=("reconcile", "census")))
+           == "holders/1", "but a census-anchored seat of many still needs two people")
+    expect(mint.floor(group([row("Q1", start="1990", end="1994")], single_seat=True,
+                            origin=("reconcile", "census"))) == "not-current",
+           "and a census-anchored single seat still needs its holder to be current")
     expect(mint.floor(group([row("Q1", start="1990", end="1994"),
                              row("Q2", start="1995", end="1999")])) == "not-current",
            "two past holders and nobody now is not current")
