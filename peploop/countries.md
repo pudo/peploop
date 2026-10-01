@@ -281,9 +281,9 @@ people), `4e234c5722` (four people retried after a query-service lag). Eleven
 accepted rows closed at the pre-flight: 8 `apply:termed`, 3 `apply:conflict`.
 No written statement absorbed two spells. Cost, all stages: about $90.
 
-**Cuba** (`seeds/cu.yml`, `census/cu.yml`, measured 2026-09-30, in progress).
-The first country run with the mint stage, because most of what it needs has
-no item; the numbers are recorded here when the run closes. Also the first
+**Cuba** (`seeds/cu.yml`, `census/cu.yml`, measured 2026-09-30, written
+2026-10-01). The first country run with the mint stage, because most of what
+it needs has no item. Also the first
 country whose own wiki is the irregular one: es `Políticos de Cuba` is a flat bag of
 1902-1959 secretaries, Spanish Cortes deputies, colonial governors and 76
 dissidents, and the tiers are on en.wikipedia (twenty ministerial portfolios,
@@ -304,4 +304,28 @@ a Politburo seat and the Second Secretary are offices and are in the census;
 Central Committee membership is politically exposed too, but Wikidata records
 it as `P463` on the body rather than as a seat, so it is not minted, and
 peploop does not write `P463` yet.
+
+The run: 518 people seeded, 156 extracted (the rest out of scope), 697
+office mentions reconciled, 428 left unplaced in 409 groups. **Mint**: 149
+groups had no current holder near them and cost nothing; categorize (4 Sonnet
+requests) made 159 candidates, verify asked Opus about 7. Four created --
+the governorships of Villa Clara `Q141612240`, Cienfuegos `Q141612505`,
+Granma `Q141612511` and Pinar del Río `Q141612637`, each shaped on
+`Q113662078` -- and 9 found already on Wikidata; 145 skipped by rule, chiefly
+one holder (40), no archetype for a deputy minister (35), ambassadorships
+deferred (31) and census offices no seeded article named (15). Two rules
+came out of it: a one-seat census office passes on one current holder (the
+census is the second channel; asking for two people measures whether the
+predecessor was seeded), and siblings that are dissolved or last held 30
+years ago do not set a minted item's shape (the colonial governor did).
+Artemisa and the Politburo seat stopped at verify's medium confidence. One
+`creating` row survived a maxlag refusal and was recovered on the next run.
+Mint cost $1.34. **Statements**: 115 `P39` proposed, 38 written; verify
+passed 86 of 97 rows. One rule came out of the funnel: `recorded_elsewhere`
+skips a spell already on the record under another office when the target
+has no holder (2 rows: the presidency twin `Q89188209`, and the Havana
+provincial assembly presidency recorded as "mayor of Havana"). Written:
+**84 statements on 60 items** -- 38 `P39` (19 open, the five governors'
+holders among them), 30 `P27`, 15 `P569`, 1 `P570` -- in EditGroups batches
+`3016bd0155` (the first three people) and `a1b09a190b` (the drain).
 
