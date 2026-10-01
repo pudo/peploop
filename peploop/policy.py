@@ -537,6 +537,44 @@ def office_rejected(case: Case) -> Disposition | None:
     return None
 
 
+def _same_start(one: dict[str, Any], other: dict[str, Any]) -> bool:
+    """Do two start times agree at the precision they share?"""
+    shared = min(one.get("precision", 11), other.get("precision", 11))
+    width = 11 if shared >= 11 else 8 if shared == 10 else 5
+    return one["time"][:width] == other["time"][:width]
+
+
+def recorded_elsewhere(case: Case) -> Disposition | None:
+    """A spell nobody records under this office, already recorded under another.
+
+    One office is often two items, and the unused twin is the trap: an
+    unlabelled item for a presidency held by no one, beside the item the
+    community uses for the same seat. When the item has no holder in this
+    state and the person's record already carries another `P39` starting the
+    same day, the spell is on record and writing it again would make the twin
+    its first holder. An office minted this run is uncounted, not unheld, so
+    it is never caught here.
+    """
+    if case.property != "P39" or case.position is None:
+        return None
+    counts = case.position.get("holders_by_country") or {}
+    if case.state_qid is None or counts.get(case.state_qid) != 0:
+        return None
+    start = case.tenure("P580")
+    if start is None:
+        return None
+    target = (case.value or {}).get("id")
+    for claim in case.entity.get("claims", {}).get("P39", []):
+        held = claim.get("mainsnak", {}).get("datavalue", {}).get("value", {})
+        if not isinstance(held, dict) or held.get("id") in (None, target):
+            continue
+        for qualifier in claim.get("qualifiers", {}).get("P580", []):
+            other = qualifier.get("datavalue", {}).get("value")
+            if isinstance(other, dict) and "time" in other and _same_start(start, other):
+                return _skip("office/recorded-elsewhere")
+    return None
+
+
 def generic_needs_scope(case: Case) -> Disposition | None:
     """A generic item is concrete only with the qualifier its community uses.
 
@@ -592,6 +630,7 @@ RULES: tuple[Rule, ...] = (
     undated_tenure,
     start_precision,
     office_rejected,
+    recorded_elsewhere,
     generic_needs_scope,
     tenure_before_polity,
     tenure_before_record,

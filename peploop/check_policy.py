@@ -237,6 +237,20 @@ def main() -> int:
           policy.PENDING, "unverified")
     check("an office the table does not hold is skipped",
           policy.decide(case(position=None)), policy.SKIPPED, "office/unindexed")
+    other = {"mainsnak": {"property": "P39", "snaktype": "value", "datavalue": {
+                 "type": "wikibase-entityid", "value": {"entity-type": "item", "id": "Q7"}}},
+             "qualifiers": {"P580": [{"datavalue": {"value": time("2018-06-22")}}]}}
+    check("an unheld twin of a spell already recorded elsewhere is skipped",
+          policy.decide(case(entity={"claims": {"P39": [other]}},
+                             position=office(holders_by_country={STATE: 0}))),
+          policy.SKIPPED, "office/recorded-elsewhere")
+    check("but an office others hold is not",
+          policy.decide(case(entity={"claims": {"P39": [other]}},
+                             position=office(holders_by_country={STATE: 3}))),
+          policy.PENDING, "unverified")
+    check("nor an office minted this run, which is uncounted",
+          policy.decide(case(entity={"claims": {"P39": [other]}}, position=office())),
+          policy.PENDING, "unverified")
     check("an item that is not an office is skipped",
           policy.decide(case(position=office(not_office=True))),
           policy.SKIPPED, "office/not-office")
