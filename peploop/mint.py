@@ -1603,14 +1603,25 @@ def _run_labels(cand: Candidate) -> list[str]:
     return [text for (labels,) in rows for text in (labels or {}).values()]
 
 
+#: Words that make a title another seat than the office it was clustered into:
+#: the acting holder, the substitute, the co-judge, the deputy. Such a title
+#: still attests the office's existence, but as an alias it would name a
+#: different seat and let a later search place its holders here.
+NOT_THE_SEAT = re.compile(
+    r"\b(acting|interim|interino|interina|encargad[oa]|substitute|suplente|alternate"
+    r"|co[- ]?judge|conjuez|conjueza|deputy|vice|vice-?\w+|adjunt[oa]|ad hoc|provisional)\b"
+)
+
+
 def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str],
                      state_names: Iterable[str] = ()) -> dict[str, list[str]]:
     """The titles the holders' articles wrote, as aliases, per language.
 
     So the item is found by the words the next article uses. Folded and
     deduplicated, the most-held first, at most `ALIASES_PER_LANG` a language,
-    never one of the labels, and never a bare seat word ("Governor"), which
-    names every office of its kind and would make a live search find them all.
+    never one of the labels, never a bare seat word ("Governor"), which
+    names every office of its kind and would make a live search find them all,
+    and never a title that marks another seat (`NOT_THE_SEAT`).
     """
     taken = {_fold(text) for text in labels.values()}
     drop = offices.ROLE_STEMS | state_stems(state_names)
@@ -1622,7 +1633,7 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
         folded = _fold(a.title)
         if not folded or folded in taken or offices.QID.search(a.title):
             continue
-        if not _stems(a.title, drop):
+        if not _stems(a.title, drop) or NOT_THE_SEAT.search(folded):
             continue
         key = (a.lang, folded)
         written.setdefault(key, _SPACE.sub(" ", a.title).strip())
@@ -2212,6 +2223,7 @@ def guard_reasons(cand: Candidate, spec: offices.Spec, ctx: Context,
         langs=ctx.langs,
         state_names=ctx.state_names,
         known_bodies={q for q, n in ctx.siblings.bodies.items() if n >= offices.MEASURED_BODY_USES},
+        regions=set(ctx.subdivisions),
     )
 
 

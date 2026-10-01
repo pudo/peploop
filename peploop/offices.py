@@ -54,20 +54,27 @@ class Archetype:
     #: Whether `P1001` is written. An office governs a polity; a company's
     #: chair does not.
     scoped: bool = True
+    #: The level of polity the office governs: the state itself, one of its
+    #: first-level subdivisions (`P150`), or a municipality below them. A
+    #: mayor scoped to the state, or to the department its town sits in, is
+    #: the default a missing jurisdiction falls to, and reads as plausible.
+    level: str = "state"
 
 
 ARCHETYPES: dict[str, Archetype] = {
     "minister": Archetype("Q83307", description="minister in the government of {jurisdiction}"),
-    "legislator": Archetype("Q4175034", description="member of {body}"),
-    "judge": Archetype("Q16533", description="judge of {body}"),
-    "supreme_judge": Archetype("Q117826617", description="judge of {body}"),
+    "legislator": Archetype("Q4175034", description="member of the {body}"),
+    "judge": Archetype("Q16533", description="judge of the {body}"),
+    "supreme_judge": Archetype("Q117826617", description="judge of the {body}"),
     # Scoped to the polity governed, not the state: of 185 governorships with a
     # `P1001`, 172 name something narrower than their own `P17`.
-    "governor": Archetype("Q132050", description="governor of {jurisdiction}", single_seat=True),
+    "governor": Archetype("Q132050", description="governor of {jurisdiction}", single_seat=True,
+                          level="region"),
     # `Q30185` is the office itself rather than a class of it, and is what the
     # existing municipal items subclass.
-    "mayor": Archetype("Q30185", description="mayor of {jurisdiction}", single_seat=True),
-    "agency_head": Archetype("Q1162163", description="head of {body}"),
+    "mayor": Archetype("Q30185", description="mayor of {jurisdiction}", single_seat=True,
+                       level="municipality"),
+    "agency_head": Archetype("Q1162163", description="head of the {body}"),
     # The parents below were measured across other states' items (P279 tallies
     # and the parents read in full); see research/position_items.md §10.
     # A seat in a party's standing politburo. Membership of a large organ (a
@@ -79,28 +86,28 @@ ARCHETYPES: dict[str, Archetype] = {
         "Q115136557", description="member of the political bureau of the {body}"),
     # A seat in a collegial organ of the state (a council of state, a
     # presidium). The only recurring class, and a weak one: prefer a sibling's.
-    "state_body_member": Archetype("Q16862850", description="member of {body}"),
+    "state_body_member": Archetype("Q16862850", description="member of the {body}"),
     "party_secretary": Archetype("Q836971", description="party office in the {body}", single_seat=True),
     # "Chief of defence", a subclass of chief of staff, is what 70% of typed
     # items use; the general staff is named under `P2389`, not `P361`.
     "military_chief_of_staff": Archetype(
-        "Q5097014", body_property="P2389", description="head of {body}", single_seat=True,
+        "Q5097014", body_property="P2389", description="head of the {body}", single_seat=True,
     ),
     # "Chief justice", a subclass of court president, is the plurality for apex
     # courts and the one every Latin American presidency uses.
     "court_president": Archetype(
-        "Q3188089", body_property="P2389", description="president of {body}", single_seat=True,
+        "Q3188089", body_property="P2389", description="president of the {body}", single_seat=True,
     ),
     # The class follows the title word (director general, chair, president);
     # director general is the default and a sibling's or the drafted parent
     # from `SOE_PARENTS` may replace it. Never "chief executive officer": it is
     # typed as an occupation. A company's head governs no polity.
     "soe_head": Archetype(
-        "Q1501800", body_property="P2389", description="head of {body}", single_seat=True,
+        "Q1501800", body_property="P2389", description="head of the {body}", single_seat=True,
         scoped=False,
     ),
     "central_bank_governor": Archetype(
-        "Q107363151", body_property="P2389", description="governor of {body}", single_seat=True,
+        "Q107363151", body_property="P2389", description="governor of the {body}", single_seat=True,
     ),
     "prosecutor_general": Archetype(
         "Q3368517", description="prosecutor general of {jurisdiction}", single_seat=True,
@@ -386,6 +393,7 @@ def guard(
     langs: Sequence[str] = (),
     state_names: Iterable[str] = (),
     known_bodies: Collection[str] = (),
+    regions: Collection[str] | None = None,
 ) -> list[str]:
     """Every static reason not to mint this office. Empty means it may be created.
 
@@ -397,6 +405,8 @@ def guard(
     are the bodies the state's own offices already sit in: such a body is
     measured rather than drafted, so the word check, which exists to catch a
     drafted QID that is the wrong thing entirely, is not asked of it.
+    `regions` are the state's first-level subdivisions, against which an
+    archetype's `level` is checked; None skips that check.
     """
     problems: list[str] = []
     for lang in ("en", *langs):
@@ -433,6 +443,12 @@ def guard(
             problems.append(f"jurisdiction/{spec.jurisdiction}")
         elif spec.state_qid not in wikidata.claim_qids(jurisdiction, "P17", include_deprecated=False):
             problems.append(f"jurisdiction-state/{spec.jurisdiction}")
+    if spec.archetype in ARCHETYPES and spec.shape.scoped and regions is not None:
+        level, where = spec.shape.level, spec.jurisdiction
+        if level == "region" and where not in regions:
+            problems.append(f"jurisdiction-level/{level}")
+        if level == "municipality" and (where == spec.state_qid or where in regions):
+            problems.append(f"jurisdiction-level/{level}")
 
     problems.extend(shape_defects(spec, closure))
     if any(bilateral(text) for text in spec.labels.values()):

@@ -256,6 +256,13 @@ def check_build_spec(expect: Any) -> None:
     expect("ministro de Salud de Alvania" not in es and "Minister of Health of Alvania"
            not in spec.aliases.get("en", []), "an alias never repeats a label")
     expect("Ministro" not in es, "a bare seat word is never an alias")
+    other = mint.attested_aliases(
+        [mint.Attestation(person=f"Q{i}", title=t, lang="en", current=True) for i, t in enumerate(
+            ["Co-Judge of the Constitutional Court", "Acting President of the Court",
+             "Magistrate of the Constitutional Court"])],
+        {"en": "Justice of the Constitutional Court"})
+    expect(other.get("en") == ["Magistrate of the Constitutional Court"],
+           "a title that names another seat (a co-judge, an acting holder) is never an alias")
     expect(spec.aliases.get("en") == ["Minister of Health"], "aliases are kept per language")
     expect(spec.parent == SIB_PARENT and spec.metaclass == "Q294414",
            f"the parent and metaclass are the siblings': {spec.parent} {spec.metaclass}")

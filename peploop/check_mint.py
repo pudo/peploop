@@ -118,7 +118,7 @@ def main() -> int:
     print("text that leaks an identifier:")
     expect(guard(judge(descriptions={"en": f"president of {BODY}"})), ["qid-in-description/en"],
            "a QID in a description is refused")
-    expect(offices.describe(judge(), LABELS), "president of Supreme Tribunal of Aland",
+    expect(offices.describe(judge(), LABELS), "president of the Supreme Tribunal of Aland",
            "describe fills the template from resolved labels")
     expect(offices.describe(judge(), {STATE: "Aland"}), None,
            "and gives nothing rather than a QID when a label is missing")
@@ -179,6 +179,17 @@ def main() -> int:
     expect(guard(judge(parent="Q4164871")), ["untyped"], "an office that never says which kind is refused")
     expect(guard(judge(archetype="central_committee_member")), ["archetype/central_committee_member"],
            "a membership recorded as P463 on the body has no archetype, so it is never minted")
+    print("the level of polity an office governs:")
+    mayor = lambda **kw: governor(archetype="mayor", labels={"en": "Mayor of Bray"},
+                                  descriptions={"en": "mayor of Bray"}, **kw)
+    expect(guard(mayor(jurisdiction_qid=None), regions={PROVINCE}), ["jurisdiction-level/municipality"],
+           "a mayor that fell back to the state is refused")
+    expect(guard(mayor(), regions={PROVINCE}), ["jurisdiction-level/municipality"],
+           "and so is one scoped to a first-level subdivision, the department its town is in")
+    expect(guard(governor(), regions={PROVINCE}), [], "a governor of a first-level subdivision passes")
+    expect(guard(governor(jurisdiction_qid=None), regions={PROVINCE}), ["jurisdiction-level/region"],
+           "but a governor scoped to the state does not")
+    expect(guard(mayor()), [], "without the state's subdivisions the level is not judged")
     expect(guard(judge(parent="Q12737077")), ["not-an-office/Q12737077"], "an occupation is not a kind of office")
     expect(guard(judge(parent="Q0000050")), ["unreached/Q0000050"], "nor is a class the closure never reaches")
     expect(offices.shape_defects(judge(parent="Q0000050"), lambda qid: qid == "Q0000050"), [],
