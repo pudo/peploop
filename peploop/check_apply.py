@@ -11,7 +11,11 @@ none of this needs the network, a database or a credential. Run it as
 `python -m peploop.check_apply` from the repository root.
 """
 
+import datetime
+import json
 import sys
+import tempfile
+from pathlib import Path
 from typing import Any
 
 from peploop import apply, propose, wikipedia
@@ -27,6 +31,8 @@ GUID = f"{PERSON}$0000-1111"
 #: the case of a wiki Wikidata has no item for is pinned too.
 EDITIONS = {"aa": "Q0000101", "ab": "Q0000102"}
 wikipedia.edition_items = lambda: EDITIONS
+#: Recorded action API responses for the creation path, placeholder QIDs only.
+FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "create_item.json").read_text())
 
 
 def day(text: str) -> dict[str, Any]:
@@ -263,8 +269,94 @@ def main() -> int:
     expect("toollabs:editgroups" in payload["summary"], True,
            "a batch marker, so a bad run is revertable in one action")
 
+    check_create(expect)
+
     print(f"{len(failures)} failures")
     return 1 if failures else 0
+
+
+class Replay:
+    """Stand in for `apply._api`: answer each call with the next recorded body."""
+
+    def __init__(self, *bodies: dict[str, Any]) -> None:
+        self.bodies = list(bodies)
+        self.sent: list[dict[str, Any]] = []
+
+    def __call__(
+        self, payload: dict[str, Any], timeout: float | None = None
+    ) -> tuple[dict[str, Any], dict[str, str]]:
+        self.sent.append(dict(payload))
+        return self.bodies.pop(0), {}
+
+
+def check_create(expect: Any) -> None:
+    """Pin the creation path: its payload, its two outcomes and crash recovery."""
+    real_api, real_sleep, real_log = apply._api, apply.time.sleep, apply.LOG_PATH
+    scratch = tempfile.TemporaryDirectory()
+    apply.LOG_PATH = Path(scratch.name) / "applied.jsonl"
+    apply.time.sleep = lambda _seconds: None
+    try:
+        print("what a creation carries:")
+        data = {"labels": {"en": {"language": "en", "value": "Minister of Placeholders"}}}
+        payload = apply.create_payload(data, "peploop: create office [mint:t1]", "TOKEN+\\")
+        expect(payload.get("action"), "wbeditentity", "a wbeditentity call")
+        expect(payload.get("new"), "item", "that makes a new item")
+        expect([key for key in ("id", "baserevid", "bot") if key in payload], [],
+               "with no id, no baserevid and no bot key")
+        expect(payload.get("assert"), "user", "asserting the session is logged in")
+        expect(payload.get("maxlag"), apply.MAXLAG, "a maxlag the site can push back with")
+        expect(payload.get("format"), "json", "asking for json")
+        expect("[mint:t1]" in payload["summary"] and "toollabs:editgroups" in payload["summary"],
+               True, "and a summary carrying the caller's tag and the batch marker")
+        expect(json.loads(payload["data"]), data, "the data is the entity as JSON")
+
+        print("a creation that goes through:")
+        replay = Replay(FIXTURE["maxlag"], FIXTURE["created"])
+        apply._api = replay
+        made = apply.create_item(data, "peploop: create office [mint:t1]", "TOKEN")
+        expect(made, ("Q0000500", 2100000001), "answers the new QID and its first revision")
+        expect(len(replay.sent), 2, "after waiting out a maxlag refusal")
+        logged = json.loads(apply.LOG_PATH.read_text().splitlines()[-1])
+        expect((logged["qid"], logged["new"], logged["baserevid"]), ("Q0000500", "item", None),
+               "and is logged under the QID the response named")
+
+        print("a creation an existing item already occupies:")
+        apply._api = Replay(FIXTURE["label_conflict"])
+        try:
+            apply.create_item(data, "peploop: create office [mint:t1]", "TOKEN")
+            caught: Any = None
+        except apply.ApiError as exc:
+            caught = exc
+        expect(type(caught).__name__, "LabelConflict", "raises a label conflict")
+        expect(getattr(caught, "qid", None), "Q0000042", "naming the item that holds the label")
+        apply._api = Replay(FIXTURE["other_failure"])
+        try:
+            apply.create_item(data, "peploop: create office [mint:t1]", "TOKEN")
+            caught = None
+        except apply.ApiError as exc:
+            caught = exc
+        expect(type(caught).__name__, "ApiError", "while any other refusal stays a plain error")
+
+        print("finding a creation back after a crash:")
+        since = datetime.datetime(2026, 10, 1, 12, 0, tzinfo=datetime.timezone.utc)
+        replay = Replay(*FIXTURE["usercontribs"])
+        apply._api = replay
+        found = apply.find_created("[mint:wanted]", since, user="Example")
+        expect(found, "Q0000502",
+               "the creation with the tag, past an edit that only carries it and another tag")
+        first, second = replay.sent
+        expect((first["list"], first["ucuser"], first["ucnamespace"], first["ucshow"]),
+               ("usercontribs", "Example", 0, "new"),
+               "reading this account's page creations in the main namespace")
+        expect((first["ucdir"], first["ucstart"]), ("newer", "2026-10-01T12:00:00Z"),
+               "forward from the moment the intent was recorded")
+        expect(second.get("uccontinue"), "20261001120600|2100000003", "following continuation")
+        apply._api = Replay(*FIXTURE["usercontribs"])
+        expect(apply.find_created("[mint:absent]", since, user="Example"), None,
+               "and a tag nobody created under is None")
+    finally:
+        apply._api, apply.time.sleep, apply.LOG_PATH = real_api, real_sleep, real_log
+        scratch.cleanup()
 
 
 if __name__ == "__main__":

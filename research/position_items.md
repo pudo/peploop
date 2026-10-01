@@ -434,3 +434,275 @@ Two standing cautions:
   items on one run.
 - **Holder-derived priors are corpus-biased** (`country_sweep.md` §10 rule 5).
   Nothing above rests on them, deliberately.
+
+## 10. Party organs, collegial state organs and other mint archetypes (measured 2026-10-01)
+
+Measured for the peploop mint stage (Cuba first). The question each cluster
+answers is "what `P31`, `P279` and body property does an item of this kind carry
+today", so that a minted item has a sibling and not an invention. Live reads
+(`max_age=0` for everything Cuban); clusters are CirrusSearch
+`haswbstatement:P31=<mc> inlabel:"<phrase>"` over the six metaclasses in §2
+(`Q4164871`, `Q294414`, `Q17279032`, `Q114962596`, `Q83856136`, `Q136649946`), in
+several languages, then hand-filtered to the kind. `P31`/`P279` are read off
+claims (all ranks), not `wdt:`. **Samples are small.** Most of these kinds are
+barely modelled, and an n of 5 is a hint, not a convention.
+
+### 10a. Party organ seats
+
+| cluster | n | `P31` | `P279` | body |
+|---|---:|---|---|---|
+| member of a Politburo (CPSU, CPSU candidate, CCP, CCP PSC, WPK, WPK Presidium) | 6 | `Q4164871` 5, `Q114962596` 1 | `Q115136557` Politburo member 3; `Q115168134` member of the CC of the CPSU 2; `Q20046316`, `Q618536`, `Q120800191`, `Q46403368`, `Q30945753` 1 each | `P361` organ 3/6 |
+| member of a Central Committee (RO, RO alternate, HU, CPSU, CCP, CCP alternate, Fatah, PCF, MES, CP Byelorussia) | 10 | `Q4164871` 9, `Q114962596` 1 | **none 7**; `Q8191099` member 2; `Q115252544` CPSU member 1 | `P361` the CC 8/10 |
+
+No Politburo-membership item exists for Vietnam, Laos or Cuba. `Q61127295`
+"Permanent Member of the Secretariat" (Vietnam) exists with **no claims at all**.
+
+**The modelling is itself split: P39 on a membership seat vs P463 on the body.**
+Counted with `p:P39/ps:P39` and `p:P463/ps:P463`, distinct holders:
+
+| organ | P463 → body | P39 → body | P39 → membership seat |
+|---|---:|---:|---:|
+| Politburo of the CPSU `Q842008` | 106 | 0 | 89 (`Q108495011`) |
+| Central Committee of the CPSU `Q1971373` | **933** | 0 | **2** (`Q115168134`) |
+| Politburo of the CCP `Q1076970` | 4 | 0 | 75 (`Q20046316`) |
+| PSC of the CCP `Q197542` | 5 | 0 | 62 (`Q42327067`) |
+| Central Committee of the CCP `Q50963` | 0 | 0 | 12 (`Q60988843`) |
+| Politburo of the CPV `Q7210126` | 0 | 0 | — |
+
+The Soviet Central Committee is a P463 convention; the Chinese Politburo is a P39
+one. Vietnamese leaders (`Q10831196` Tô Lâm, `Q318458`, `Q10806940`) carry
+neither. One Cuban (`Q44008911` Roberto Morales Ojeda) holds `P39 = Q1516390`
+Council of State of Cuba, which is the body itself.
+
+### 10b. Collegial state organ seats
+
+Executive or standing collegial organs only. Legislative "Council of State"
+chambers (Oman, Sudan, Libya, the Russian republics' State Councils) are
+`Q486839`/`Q4175034` seats and are excluded, as is the Swiss Federal Council
+(`Q83307`).
+
+| n | `P31` | `P279` | body |
+|---:|---|---|---|
+| 13 | `Q4164871` 10, `Q294414` 2, `Q114962596` 1 | `Q16862850` Member of State Council **4** (LU, NL, GDR, Russian Empire); `Q41961533` member of the Presidium of the Supreme Soviet 2; none 2 (ES `Q106223649`, MZ `Q111893540`); one each of `Q41961562`, `Q8191099`, `Q120800191`, `Q17279032`, and three defects | `P361` the organ 8/13; `P2389` 0 |
+
+The three defects are worth naming because each one is a trap a minting run
+could copy: `Q94994178` (Monaco) subclasses `Q1216422` "State councillor", which
+is a **disambiguation page**. `Q84704434` (NK SAC) subclasses `Q25263528` State
+Affairs Commission, and `Q98796960` subclasses `Q11515680` Standing Committee of
+the SPA. Both of those parents are the **bodies**.
+
+### 10c. Party secretaries (national level)
+
+| cluster | n | `P279` | body |
+|---|---:|---|---|
+| leader: first/general secretary of a national ruling communist party | 17 | `Q6501749` general secretary 8, `Q1553195` party leader 7, `Q48352` head of state 6, none 5, `Q62003554` 2 | `P2389` the party 10/17; `P361` 3/17 |
+| deputy/secretariat seat: Second Sec. CP Azerbaijan `Q136228845`, Secretary CPSU `Q115147301`, Secretary CC CP Az. `Q124313750`, Secretary CCP Secretariat `Q46404263`, CPV Permanent Member `Q61127295` | 5 | `Q836971` party secretary 3 of 4 typed; `Q138784034` 1 (stacked); `Q46403368` 1 | `P361` the Secretariat/CC 3/5 |
+
+`inlabel:"Second Secretary"` returns parliamentary bureau seats and diplomatic
+ranks. The only national party second secretaryship on Wikidata is
+`Q136228845` (Azerbaijan SSR), which stacks `Q836971` **and** `Q138784034`.
+
+### 10d. Armed-forces chief of staff
+
+The national armed-forces chief only. Service chiefs (army, navy, air), logistics,
+intelligence, procurement, presidential military staffs and commanders-in-chief
+are excluded.
+
+| n | `P31` | `P279` | body |
+|---:|---|---|---|
+| 93 | `Q4164871` 92, `Q294414` 2, `Q56019` 2 | **`Q5097014` chief of defence 28 of 40 typed (70%)**; `Q707492` Chief of Staff 7; `Q189290` 2; one each of `Q2257775`, `Q380782`, `Q83460`, `Q11247470`; none 53 | `P2389` 27/93, naming the general staff (RU, BY, UA, PT, HU, IR, AL) or the armed forces (IL); `P361` 8/93 |
+
+`Q5097014` is itself `P279 Q707492`, so the two answers agree. `P17` 53/93, and
+`P1001` 42/93.
+
+### 10e. Apex court president
+
+National supreme, cassation and constitutional courts. Sub-national, electoral,
+audit and colonial courts are excluded.
+
+| cluster | n | `P31` | `P279` | body |
+|---|---:|---|---|---|
+| all apex presidencies | 46 | `Q4164871` 31, `Q294414` 21 (both on 6) | `Q3188089` chief justice 15, none 10, `Q13554447` 6, `Q16474031` court president 5, `Q117826617` 4, `Q16533` 3, `Q1255921` 2 | **`P2389` the court 40/46**; `P361` 13/46 |
+| supreme / cassation only | 32 | `Q4164871` 21, `Q294414` 14 | **`Q3188089` 13 of 26 typed (50%)**; `Q13554447` 5; `Q117826617` 3; `Q16533` 3; `Q16474031` 2 | |
+
+This is wider than §7's English-label cluster of 12, and it moves the answer from
+"split three ways" to "plurality `Q3188089`". The Latin American presidencies all
+take it: CL `Q6634829`, PE `Q6024100`, MX `Q6085566`, HN `Q116908996` and GT
+`Q6085575`. `Q3188089` is `P279 Q16474031` court president, so it subsumes the
+rival label. Six items stack a second parent, **their own court's judgeship** (US,
+SE, GT, SV, FI, KR), which is §8b's international-court pattern again. Two
+cautions:
+- `Q13554447` "chief judge" is described "highest-ranking judge of a court in US"
+  and carries `P17 = Q30`. The five non-US items using it (RU, FI, UK, SA, CZ)
+  have picked a US-scoped class.
+- Constitutional-court presidencies lean `Q16474031` (IT, ES, TN).
+
+### 10f. Head of a state-owned enterprise
+
+Structural: positions whose `P2389` names an item typed `Q270791` / `Q4481739` /
+`Q10876322` / `Q48851989` / `Q15811601` / `Q4830453` / `Q783794` / `Q6881511` /
+`Q891723` / `Q1589009` / `Q167037` / `Q219577`. That gives 103 positions, 13 of
+them central-bank governors, leaving **90**.
+
+| `P31` (n=103) | `P279` (n=90, ex-central-bank) |
+|---|---|
+| `Q4164871` 84, `Q294414` 20 | none 35; `Q140686` chairperson 10; `Q484876` CEO 9; `Q1501800` director general 8; `Q2534525` chairperson of the executive board 7; `Q428322` PDG 3; `Q1255921` president (of an org) 2; **`Q30461` president 2**; `Q2660648` sōsai 2; `Q1162163` director 1 |
+
+`P361` 13/103. There is no winner, and the class follows the title word, as §8b
+found for IGO heads: "CEO" → `Q484876`, "director general" → `Q1501800`,
+"chair(man)" / "styrelseordförande" → `Q140686` / `Q2534525`. **`Q30461` is
+"leader of a country or part of a country" (`P279 Q48352` head of state)**, and
+`Q138139721` President of SOCAR and `Q139927564` Presidente de ANTEL both took it.
+An SOE "presidente" is `Q1255921`, "leader of an organization".
+
+### 10g. Governor of a first-level subdivision
+
+Labels "Gobernador de/del", "Governor of … province/region/state", "Provincial
+Governor". Vice, lieutenant, colonial and central-bank governors are excluded.
+n = **661**.
+
+- `P31`: `Q294414` 355, `Q4164871` 268, `Q17279032` 113, `Q114962596` 28.
+- `P279`: **`Q132050` 218** direct. The next largest are national governor
+  classes that themselves subclass `Q132050`: PH 50, NG 38, MX 32, BR 25, AR 23,
+  AO 13, KR 12. Then `Q2285706` 95 and `Q48352` 61, which are stacked parents.
+- `P1001` 605/661, `P17` 590/661, `P361` 185/661 (28%).
+
+`Q132050` is confirmed. It is `P279 Q1097498` ruler, `P31` public office +
+position, and its `P1889` separates it from `Q889821` (US state governor).
+
+### 10h. Parents, read in full
+
+| QID | en label | en description | read |
+|---|---|---|---|
+| `Q115136557` | Politburo member | — | `P31 Q4164871`, `P279 Q8191099`, `P361 Q309118` politburo; 0 sitelinks, 3 subclasses |
+| `Q8191099` | member | individual or organization with membership in a group; constitutive components of a corporate body | 155 subclasses, mostly academies and honours (Freemason, EMBO); generic |
+| `Q16862850` | Member of State Council | — | `P31 Q4164871`, `P279 Q294414`; 0 sitelinks, 4 subclasses |
+| `Q41961562` | member of the supreme collegiate body of executive power | — | `P279 Q1097498` ruler, `P361 Q22950320` collective head of state |
+| `Q836971` | party secretary | senior official within a political party with responsibility for the organizational and daily political work | `P279` politician, party official, secretary; `P1889 Q140716837` regional party secretary |
+| `Q138784034` | second secretary | — | `P279` four secretary/undersecretary classes; its 13 subclasses are mostly embassy ranks and parliamentary bureau seats |
+| `Q62003554` | First Secretary | In communist party, head of a territorial committee (local or regional) | the description says sub-national, and two national items use it anyway |
+| `Q5097014` | chief of defence | highest ranked commissioned officer of a nation's armed forces | `P31 Q16631188` military position, `P279 Q707492` |
+| `Q3188089` | chief justice | presiding member of a supreme court | `P279 Q55736868`, `Q16474031`, `Q25713832`; `P361 Q190752` |
+| `Q16474031` | court president | chief of a court of justice | `P279` leader of org, judge, chairperson |
+| `Q13554447` | chief judge | highest-ranking judge of a court in US | `P17`/`P1001 = Q30`; **US-scoped** |
+| `Q1255921` | president | leader of an organization | `P1889 Q30461` |
+| `Q30461` | president | leader of a country or part of a country, usually in republics | `P279 Q48352`; **not for an SOE** |
+| `Q484876` | chief executive officer | highest-ranking officer of an organization | corporate title |
+| `Q1501800` | director general | title given to the highest executive officer in some organizations | |
+| `Q132050` | governor | high ranked governing official in a state | `P279 Q1097498` |
+| `Q46403368` / `Q30945753` | deputy / chief at the national level | civil service rank in China | ranks, not parents for any other state |
+| `Q115252544` | CPSU member | — | party **membership** (`P279 Q11388835`); `Q115168134` CC member inherits it, which conflates the seat with membership |
+| `Q1216422` | State councillor | Wikimedia disambiguation page | not a class |
+
+### 10i. Cuba's own offices (Q241)
+
+Population: positions with `P17` or `P1001` = `Q241` at statement level (89
+items), plus positions whose `P1001` is a Cuban place. Inbound ambassadorships, the
+nuncio and bishoprics are removed. **n = 53**, of which 10 are pre-1959
+`secretario de …` cabinet secretaries (`P279 Q135496778`).
+
+| property | tally |
+|---|---|
+| `P31` | **`Q294414` 30**, `Q4164871` 23 |
+| `P279` | `Q83307` minister 23; `Q135496778` cabinet secretary 10; none 3 (`Q5453781` UJC first secretary, `Q89188209`, `Q132672793`); `Q132050` 2; `Q30185` 2; one each of `Q7330070`, `Q248577`, `Q1758037`, `Q486839`, `Q11812509`, `Q42178`, `Q4018482`, `Q1553195`, `Q48352`, `Q14212`, `Q2518691`, `Q1255921`, `Q107363151`, `Q203184` |
+| `P361` | **`Q834304` Council of Ministers 32**; none 16; `Q1516390` Council of State 3; one each NA, CC of the PCC, Ayuntamiento, Provincial Assembly |
+| `P17` | **none 31**, `Q241` 22. The `Q114433xxx` ministry batch carries `P1001` only |
+| `P1001` | `Q241` 45, Havana 3, `Q12588` 1, none 4 |
+
+The modern state (the `Q114433xxx`/`Q114436xxx` series, ~30 items) is uniformly
+`Q294414` + `Q83307` + `P1001 Q241` + `P361 Q834304` + `P2389` its ministry. The
+older, high-traffic items (President, PM, MINREX, the assembly seat, First
+Secretary) are `Q4164871`. A sibling-derived metaclass for Cuba is `Q294414`.
+
+Exemplars, read in full:
+- **`Q113662078` Governor of La Habana Province**: `P31 Q294414`, `P279 Q132050`,
+  `P1001 Q12588`, `P1365 Q132672896`. No `P17`, `P361`, holders or sitelinks.
+  `Q12588` "Havana Province" is the current province: it is in `Q241`'s `P150`,
+  with no `P576`. Its predecessor `Q132672896` (Provincial Assembly president,
+  1959–2020-01) is `P279 Q30185` mayor, `P1366 Q113662078`.
+- **`Q1370482` President of Cuba**: `P31 Q4164871`, `P279 Q248577`, `P17`/`P1001
+  Q241`, `P361 Q1516390` + `Q834304`, `P2389 Q834304`, `P748 Q720753`, `P2098
+  Q21071159`, `P263`, 8 `P1308`. The aliases carry "Presidente del Consejo de
+  Estado", which is the origin of the `Q89188209` twin (ruwiki only, `Q294414`,
+  `P361 Q1516390`, no `P279`).
+- **`Q6502015` Prime Minister**: `Q4164871`, `P279 Q14212`, `P17`/`P1001`,
+  `P361 Q834304`, `P748 Q720753`, `P2354`, 4 `P1308`.
+- **`Q21272829` diputado de la ANPP**: no `en` label. `Q4164871`, `P279 Q486839`,
+  `P17`/`P1001`, `P361 Q720753`. Holds 46 Cuban P39s, the most of any item.
+- **`Q7644899` People's Supreme Court**: the **body**, `P31 Q190752` supreme
+  court, `P17`/`P1001`. No presidency item exists.
+- **`Q114436623` President of the Central Bank**: `Q294414`, `P279 Q107363151`,
+  `P17`, `P2389 Q2607787`, `P361 Q834304`. No `P1001`.
+
+Body items:
+
+| body | QID | state |
+|---|---|---|
+| Communist Party of Cuba | `Q371402` | `P31 Q233591` |
+| Politburo of the PCC (standing) | **missing** | only per-term items: `Q106764104` 1st … `Q106808574` 8th (2021), each `P17` alone |
+| Central Committee | `Q30914590` | `P31 Q43229`, `P361 Q371402`; per-term `Q61129184` 1st … `Q106649332` 8th |
+| Secretariat of the CC | `Q29075190` | **no claims**; per-term `Q106839095` 1st … `Q106808350` 8th |
+| Council of State | `Q1516390` | `P31 Q11204` legislature, `P749 Q720753`, `P527` President + VP; `Q56063251` 8th Council of State has no claims |
+| Council of Ministers | `Q834304` | `P31 Q35798`, `P279 Q640506` |
+| People's Supreme Court | `Q7644899` | `P31 Q190752` |
+| Revolutionary Armed Forces (FAR) | `Q663472` | `P31 Q772547` |
+| Ministry of the FAR | `Q56274945` | ministry of Cuba |
+| FAR General Staff (EMG) | **missing** | |
+| MININT | `Q3858481` | ministry of Cuba |
+| Fiscalía General de la República | **missing** | |
+| Contraloría General | `Q25408126` | no `P31` |
+| Central Bank | `Q2607787` | |
+| GAESA | `Q113204847` | `P31 Q17326725`, `P361 Q663472`; `P1037` still the late López-Calleja |
+| CIMEX | `Q113134286` | company |
+| Gaviota | `Q18624414` | **no claims** |
+| Cubana de Aviación | `Q849910` | airline |
+| CUPET | `Q3007579` | SOE |
+| ETECSA | `Q490323` | SOE |
+| BioCubaFarma | `Q107363258` | government organization |
+| Unión Eléctrica | `Q116178079` | "Crown corporation" |
+| Habanos S.A. | **only `Q1142914` trademark** | no company item |
+
+### 10j. Cuban items of the new kinds that already exist
+
+Searched in en and es: "Buró Político", "miembro del Buró Político", "Segundo
+Secretario" + Cuba, "Comité Central" + miembro, "Consejo de Estado" / "Council of
+State" + Cuba, "Gobernador/Governor of <each of the 15 P150 provinces>", "Tribunal
+Supremo Popular", "Estado Mayor General", "Jefe del Estado Mayor", GAESA,
+"Fiscal General", "Contralor". The P39 values held by `P102 = Q371402` or Cuban
+politicians were also tallied (126 targets).
+
+- **None exist** for Politburo, Central Committee or Secretariat membership,
+  Council of State membership, Second Secretary, chief of the general staff,
+  president of the People's Supreme Court, or any SOE head.
+- **Governor: 1 of 15**. `Q113662078` La Habana is the only one, so the 14 are
+  missing as scoped. Isla de la Juventud is a special municipality, not a
+  province.
+- Near misses that a categorize pass will be offered:
+  - `Q18060652` "Governor of Cuba" is a **colonial** administrator: `P279
+    Q132050`, `P1308` Diego de Mazariegos. Not the 2020 office.
+  - `Q89188209` is the presidency's twin.
+  - `Q24953065` "Secretario general del Partido Comunista de Cuba" is an **empty**
+    item (eswiki sitelink, no claims). It is a probable duplicate of `Q5453787`,
+    not a second secretaryship.
+  - `Q1516390` is used as a P39 value once.
+
+### 10k. What failed, and what to distrust (this run)
+
+- `haswbstatement:P279` (any value) as a "position" filter is useless. With
+  `inlabel:"Political Bureau"` / `inlabel:Politikai` it returned 140 political
+  science concepts and genres. Filter on the metaclass instead.
+- Anchoring on the body class undercounts. `?b wdt:P31 wd:Q309118` politburo finds
+  13 bodies, and only 1 of them has a linked position, because bodies are typed
+  `P279 Q309118` about as often as `P31`. The CCP Politburo is `P31` political
+  organization, `P279` politburo.
+- The SOE anchor on `Q270791` and its national subclasses yields only 23
+  positions, because enterprises are typed "company" or "business". Widening to
+  company classes brings in central banks, which have to be removed by hand.
+- The Cuba SPARQL on `P17`/`P1001 = Q241` misses offices scoped only to a province
+  (`Q113662078` has no `P17`) and the Republic-era offices whose `P17` is
+  `Q14905932`. The second query, on `P1001` → a place with `P17 Q241`, is needed.
+- `inlabel:"Chief of Staff"` (544) is dominated by civilian chiefs of staff.
+  `inlabel:"Second Secretary"` returns legislative and diplomatic seats. Use
+  military and party phrases.
+- WDQS answered every query in this run. Nothing timed out, because all were
+  subquery-first or Q241-bounded.

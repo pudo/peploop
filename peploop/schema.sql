@@ -264,11 +264,24 @@ CREATE TABLE IF NOT EXISTS resolution (
     reason        TEXT,
     veto          TEXT,
     usage_json    JSONB,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (extraction_id, mention_idx, prompt_hash, render_version)
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS resolution_qid_idx ON resolution (qid);
+
+-- BEGIN resolution.reopened_for
+-- A verdict re-asked because the item its office was missing has since been
+-- minted. `reopened_for` names that item, and is '' on every ordinary verdict;
+-- it is part of the key, so a re-ask under the same prompt and rendering is a
+-- new row beside the original rather than a collision with it, and the newest
+-- row per mention is the one `propose.placements` reads. The original stays:
+-- what the model said before the item existed is history, not an error.
+ALTER TABLE resolution ADD COLUMN IF NOT EXISTS reopened_for TEXT NOT NULL DEFAULT '';
+ALTER TABLE resolution
+    DROP CONSTRAINT IF EXISTS resolution_extraction_id_mention_idx_prompt_hash_render_ver_key;
+CREATE UNIQUE INDEX IF NOT EXISTS resolution_key_idx ON resolution
+    (extraction_id, mention_idx, prompt_hash, render_version, reopened_for);
+-- END resolution.reopened_for
 
 -- Which verdict placed a P39 proposal on its item. The review screen reads it
 -- to show the office as the article named it and the shortlist the model was
@@ -331,3 +344,90 @@ ALTER TABLE position ADD COLUMN IF NOT EXISTS first_held_at TIMESTAMPTZ;
 -- another era's office under a similar name.
 ALTER TABLE position ADD COLUMN IF NOT EXISTS polity_inception_year INTEGER;
 ALTER TABLE position ADD COLUMN IF NOT EXISTS polity_inception_at TIMESTAMPTZ;
+
+-- BEGIN mint
+-- The minting stage: offices reconciliation could not place, turned into items.
+-- `mint_call` is the LLM ledger of both passes, keyed by what was shown, so a
+-- prompt edit or a rendering change re-asks and an unchanged rerun pays nothing.
+CREATE TABLE IF NOT EXISTS mint_call (
+    id             BIGSERIAL PRIMARY KEY,
+    pass           TEXT NOT NULL CHECK (pass IN ('categorize', 'verify')),
+    country        TEXT NOT NULL,
+    content_key    TEXT NOT NULL,      -- hash of the rendered request body
+    prompt_hash    TEXT NOT NULL,
+    render_version INTEGER NOT NULL,
+    model          TEXT NOT NULL,
+    request_json   JSONB,
+    response_json  JSONB,
+    usage_json     JSONB,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (pass, content_key, prompt_hash, render_version, model)
+);
+
+-- One office the stage may mint, from the reconcile misses, the census or
+-- both. `ref` is stable across reruns (a group key or a census key), so a
+-- re-categorize updates the row it made rather than adding a second one.
+-- `status` and `rule` are the disposition; a skip names the rule that decided
+-- it, and nothing waits on a human. The intent fields make a create
+-- crash-safe: a row left in `creating` is resolved by its tag, not retried.
+CREATE TABLE IF NOT EXISTS office_candidate (
+    id                BIGSERIAL PRIMARY KEY,
+    country           TEXT NOT NULL,
+    ref               TEXT NOT NULL,
+    origin            TEXT[] NOT NULL DEFAULT '{}',   -- reconcile, census
+    census_key        TEXT,
+    institution_class TEXT,
+    archetype         TEXT,
+    single_seat       BOOLEAN NOT NULL DEFAULT false,
+    draft             JSONB,           -- what categorize proposed
+    corrections       JSONB,           -- what verify changed
+    spec              JSONB,           -- the shape the guard read
+    data              JSONB,           -- the wbeditentity payload
+    holders           INTEGER,         -- distinct people attested
+    current_holders   INTEGER,
+    source_url        TEXT,
+    source_checked_at TIMESTAMPTZ,
+    status            TEXT NOT NULL DEFAULT 'queued',
+    rule              TEXT,
+    problems          TEXT[] NOT NULL DEFAULT '{}',
+    categorize_call   BIGINT REFERENCES mint_call (id),
+    verify_call       BIGINT REFERENCES mint_call (id),
+    qid               TEXT,            -- created or found
+    created_rev       BIGINT,
+    batch             TEXT,            -- the EditGroups batch it went out in
+    intent_at         TIMESTAMPTZ,
+    intent_tag        TEXT,
+    decided_by        TEXT,
+    decided_at        TIMESTAMPTZ,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (country, ref)
+);
+
+CREATE INDEX IF NOT EXISTS office_candidate_status_idx ON office_candidate (country, status);
+
+-- Which mentions a candidate was clustered from: the floor counts them, and
+-- `feed` reopens exactly these once the item exists, never a mention that
+-- merely shares a word with it.
+CREATE TABLE IF NOT EXISTS office_attestation (
+    candidate_id  BIGINT NOT NULL REFERENCES office_candidate (id) ON DELETE CASCADE,
+    resolution_id BIGINT REFERENCES resolution (id) ON DELETE SET NULL,
+    extraction_id BIGINT NOT NULL,
+    mention_idx   INTEGER NOT NULL,
+    person_qid    TEXT NOT NULL,
+    current       BOOLEAN NOT NULL DEFAULT false,
+    retrieved     BOOLEAN,             -- would the new item reach its shortlist
+    reopened_id   BIGINT REFERENCES resolution (id) ON DELETE SET NULL,
+    PRIMARY KEY (candidate_id, extraction_id, mention_idx)
+);
+
+-- A group categorize gave no office, with its reason, so every group has a
+-- disposition and the funnel adds up.
+CREATE TABLE IF NOT EXISTS office_unassigned (
+    country         TEXT NOT NULL,
+    group_key       TEXT NOT NULL,
+    reason          TEXT,
+    categorize_call BIGINT REFERENCES mint_call (id),
+    PRIMARY KEY (country, group_key)
+);
+-- END mint

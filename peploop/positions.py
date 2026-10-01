@@ -425,7 +425,7 @@ def names_of(entity: dict[str, Any]) -> list[tuple[str, str, bool]]:
 #: confusable with, which is the opposite of what an index wants.
 #:
 #: `P279` is deliberately absent. A kind contributes its one best label
-#: through `kinds`, not its aliases: see `load_country`.
+#: through `kinds`, not its aliases: see `load_items`.
 REFERENCED_PROPS = ("P1001", "P17", "P361", "P2389", "P1365", "P1366")
 
 
@@ -513,14 +513,24 @@ def token_bag(texts: Iterable[str]) -> list[str]:
 
 
 def upsert_position(row: dict[str, Any], names: Sequence[tuple[str, str, bool]]) -> None:
-    """Write one position and its names, replacing what a previous load wrote."""
+    """Write one position and its names, replacing what a previous load wrote.
+
+    Every column is replaced except `sources`, which accumulates.
+    """
     columns = [
         "qid", "label", "description", "country_qid", "jurisdiction_qid",
         "jurisdiction_text", "body_qid", "kinds", "sources", "not_office",
         "inception", "abolished", "replaces", "replaced_by", "redirected_from",
         "search_text",
     ]
-    assignments = ", ".join(f"{c} = EXCLUDED.{c}" for c in columns[1:])
+    # `sources` is a union, never an overwrite: a run of one discovery query,
+    # or a minted item fed back in, says how *this* run found the item, and
+    # how earlier runs found it is still true.
+    assignments = ", ".join(
+        f"{c} = EXCLUDED.{c}" for c in columns[1:] if c != "sources"
+    ) + (", sources = ARRAY(SELECT DISTINCT unnest("
+         "coalesce(position.sources, '{}') || coalesce(EXCLUDED.sources, '{}'))"
+         " ORDER BY 1)")
     db.conn().execute(
         f"INSERT INTO position ({', '.join(columns)}, loaded_at)"
         f" VALUES ({', '.join(['%s'] * len(columns))}, now())"
@@ -555,6 +565,41 @@ def load_country(
     """
     qid = country_qid(cc)
     found = discover(qid, sources, log=log, page=page)
+    return load_items(found, log=log)
+
+
+#: The source an item carries when it was created by this loop rather than
+#: found by a discovery query.
+MINTED = "minted"
+
+
+def load_qids(
+    qids: Iterable[str],
+    source: str = MINTED,
+    log: Any = lambda _m: None,
+) -> dict[str, int]:
+    """Load specific items into the position table, as a country load would.
+
+    Reach for this when an item has just been created, or found to exist, and
+    has to be searchable before the next country load: a fresh item is not in
+    the query service yet, so discovery cannot reach it, while `wbgetentities`
+    reads it live. The state and jurisdiction come from the item's own `P17`
+    and `P1001`. No holder counts are filled, so the item is uncounted rather
+    than `unheld`.
+    """
+    wanted = {q for q in qids if q}
+    return load_items({source: wanted}, log=log)
+
+
+def load_items(
+    found: dict[str, set[str]],
+    log: Any = lambda _m: None,
+) -> dict[str, int]:
+    """Fetch the items discovery found and write them, their names and types.
+
+    `found` maps a source name to the QIDs it reached; an item's `sources`
+    are the keys it appears under, joined to whatever it already carried.
+    """
     union = sorted({q for qids in found.values() for q in qids})
     log(f"union: {len(union)} items")
 

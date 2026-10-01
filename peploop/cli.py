@@ -18,6 +18,7 @@ import click
 from peploop import apply as applying
 from peploop import db, policy, positions, scope, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
+from peploop import mint_write as minting
 from peploop import propose as proposals
 from peploop import reconcile as reconciling
 from peploop import render as rendering
@@ -928,6 +929,151 @@ def stats(country: str | None) -> None:
     _echo_property_counts(country)
     for line in reviewing.summary_lines(country):
         click.echo(line)
+    click.echo("mint candidates by status:")
+    for status, count in conn.execute(
+        "SELECT status, count(*) FROM office_candidate WHERE (%s::text IS NULL OR country = %s)"
+        " GROUP BY status ORDER BY count(*) DESC, status",
+        args,
+    ):
+        click.echo(f"  {status:12s} {count}")
+
+
+# --- mint --------------------------------------------------------------------
+#
+# The stage between `reconcile` and `propose` that creates the offices nobody's
+# P39 had anywhere to go. `mint` is imported inside each command: the verify half
+# is still growing, and a command that does not touch it should not depend on it.
+
+
+def _mint_module() -> Any:
+    from peploop import mint
+
+    return mint
+
+
+@cli.command("mint-categorize")
+@click.option("--country", required=True, help="ISO code of the country to categorize.")
+@click.option("--dry-run", is_flag=True, help="Print the first request; ask and write nothing.")
+def mint_categorize(country: str, dry_run: bool) -> None:
+    """Cluster a country's unplaced offices into candidates, and draft each one."""
+    stats = _mint_module().categorize(country, dry_run=dry_run, log=click.echo)
+    stats.pop("clusters", None)
+    stats.pop("truncated", None)
+    click.echo(json.dumps(stats, sort_keys=True))
+
+
+@cli.command("mint-verify")
+@click.option("--country", required=True, help="ISO code of the country to verify.")
+@click.option("--limit", default=None, type=int, help="Verify at most this many candidates.")
+@click.option("--threads", default=4, show_default=True)
+@click.option("--dry-run", is_flag=True, help="Print what the model would be shown; send nothing.")
+def mint_verify(country: str, limit: int | None, threads: int, dry_run: bool) -> None:
+    """Ask the second model about each categorized office, and decide each by rule."""
+    verify = getattr(_mint_module(), "verify", None)
+    if verify is None:
+        raise click.ClickException("mint.verify is not implemented yet")
+    stats = verify(country, limit=limit, threads=threads, dry_run=dry_run, log=click.echo)
+    if isinstance(stats, dict):
+        click.echo(json.dumps({k: v for k, v in stats.items() if _jsonable(v)},
+                              sort_keys=True, default=str))
+
+
+def _jsonable(value: Any) -> bool:
+    return isinstance(value, (str, int, float, bool, list, dict, type(None)))
+
+
+@cli.command("mint")
+@click.option("--country", required=True, help="ISO code of the country to mint for.")
+@click.option("--limit", default=None, type=int, help="Create at most this many items.")
+@click.option("--id", "ids", multiple=True, type=int, help="Only these candidates.")
+@click.option("--write", is_flag=True, help="Create the items; without it nothing leaves here.")
+def mint_(country: str, limit: int | None, ids: Sequence[int], write: bool) -> None:
+    """Create each guarded office as a Wikidata item, then feed it back into the run.
+
+    A dry run by default: it prints each guarded payload with the labels of
+    every item it names, and writes nothing anywhere. `--write` logs in, takes
+    the country's writer lock, resolves any creation a crash left behind, and
+    then creates one item every ten seconds, re-checking each live first and
+    feeding it into the position table and the mentions it was attested by.
+    """
+    if not write:
+        rows = minting.guarded(country, ids, limit)
+        for cand in rows:
+            names = minting.labels_of(cand)
+            click.echo(f"===== #{cand['id']} {cand['ref']} ({cand['holders']} holders,"
+                       f" {cand['current_holders']} current) =====")
+            for qid, label in sorted(names.items()):
+                click.echo(f"  {qid} = {label}")
+            click.echo(json.dumps(cand["data"], indent=2, ensure_ascii=False))
+        click.echo(f"{len(rows)} guarded; would create {len(rows)} items (dry run)")
+        return
+    click.echo(f"logged in as {applying.login()}")
+    token = applying.csrf_token()
+    recheck = minting.default_recheck()
+    if recheck is minting.fallback_recheck:
+        click.echo("mint.reguard not found: re-checking by live duplicate search only")
+    counts: Counter[str] = Counter()
+    with minting.writer_lock(country):
+        for cid, outcome, qid in minting.recover(country, log=click.echo):
+            counts[f"recovered:{outcome}"] += 1
+        rows = minting.guarded(country, ids, limit)
+        for index, cand in enumerate(rows):
+            if index:
+                time.sleep(applying.THROTTLE)
+            head = f"#{cand['id']} {cand['ref']}"
+            try:
+                qid = minting.mint_one(cand["id"], token, recheck=recheck)
+            except Exception as exc:  # noqa: BLE001 — stop: recover resolves the row next run
+                counts["failed"] += 1
+                click.echo(f"{head} failed, left for recover: {type(exc).__name__}: {exc}")
+                break
+            after = db.conn().execute(
+                "SELECT status, rule FROM office_candidate WHERE id = %s", (cand["id"],)
+            ).fetchone()
+            counts[after[0]] += 1
+            click.echo(f"{head} -> {qid or '-'} {after[0]} {after[1] or ''}".rstrip())
+            if after[0] in minting.FEEDABLE:
+                click.echo("  " + minting.feed(country, [cand["id"]], log=click.echo).line())
+    click.echo(f"{country}: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+
+
+@cli.command("mint-feed")
+@click.option("--country", required=True, help="ISO code of the country to feed.")
+@click.option("--id", "ids", multiple=True, type=int, help="Only these candidates.")
+def mint_feed(country: str, ids: Sequence[int]) -> None:
+    """Load every created or found item and re-ask the mentions it was attested by."""
+    click.echo(minting.feed(country, list(ids) or None, log=click.echo).line())
+
+
+@cli.command("mint-report")
+@click.option("--country", required=True, help="ISO code of the country to report on.")
+@click.option("--out", "out", default=None, type=click.Path(dir_okay=False, path_type=Path),
+              help="Write the markdown here instead of printing it.")
+def mint_report(country: str, out: Path | None) -> None:
+    """Report the funnel by rule, what was created and found, the skips, and the cost."""
+    text = minting.report(country)
+    if out is None:
+        click.echo(text, nl=False)
+        return
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(text)
+    click.echo(f"{out} written")
+
+
+@cli.command("mint-audit")
+@click.option("--id", "cand_id", required=True, type=int, help="The candidate audited.")
+@click.option("--skip", is_flag=True, required=True, help="Skip it; the only ruling there is.")
+@click.option("--reason", required=True, help="Why, as the export list will show it.")
+@click.option("--by", required=True, help="Who audited it; the rule becomes audit:<by>.")
+def mint_audit(cand_id: int, skip: bool, reason: str, by: str) -> None:
+    """Skip a candidate after the fact. There is no approve: nothing waits on a human."""
+    if not skip:
+        raise click.UsageError("an audit can only skip: pass --skip")
+    try:
+        cand = minting.audit_skip(cand_id, reason, by)
+    except (LookupError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"#{cand_id} {cand['ref']}: {cand['status']} -> skipped (audit:{by})")
 
 
 if __name__ == "__main__":

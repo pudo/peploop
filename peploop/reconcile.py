@@ -412,7 +412,7 @@ def replay_shortlist(resolution_id: int) -> tuple[dict[str, Any], list[Candidate
     row = db.conn().execute(
         "SELECT id, extraction_id, mention_idx, title, jurisdiction, start_text,"
         " end_text, lang, state_qid, shortlist, chosen, qid, kind, confidence,"
-        " evidence, reason, veto, model FROM resolution WHERE id = %s",
+        " evidence, reason, veto, model, reopened_for FROM resolution WHERE id = %s",
         (resolution_id,),
     ).fetchone()
     if row is None:
@@ -420,7 +420,7 @@ def replay_shortlist(resolution_id: int) -> tuple[dict[str, Any], list[Candidate
     columns = (
         "id", "extraction_id", "mention_idx", "title", "jurisdiction", "start_text",
         "end_text", "lang", "state_qid", "shortlist", "chosen", "qid", "kind",
-        "confidence", "evidence", "reason", "veto", "model",
+        "confidence", "evidence", "reason", "veto", "model", "reopened_for",
     )
     record = dict(zip(columns, row))
     offered = list(record["shortlist"] or [])
@@ -557,18 +557,20 @@ LEDGER_COLUMNS = (
 def recorded(
     extraction_id: int, mention_idx: int, prompt_hash: str,
     render_version: int = RENDER_VERSION,
+    reopened_for: str = "",
 ) -> Verdict | None:
     """Return the verdict already stored for this mention under this prompt, if any.
 
     The ledger is the resume point: a mention answered once is never asked
     again, and a prompt edit or a rendering change makes the old answer stop
-    counting, because either changes what the model was shown.
+    counting, because either changes what the model was shown. A re-ask after
+    an item was minted is its own entry, found only under the item it was for.
     """
     row = db.conn().execute(
         f"SELECT {', '.join(LEDGER_COLUMNS)} FROM resolution"
         " WHERE extraction_id = %s AND mention_idx = %s AND prompt_hash = %s"
-        " AND render_version = %s",
-        (extraction_id, mention_idx, prompt_hash, render_version),
+        " AND render_version = %s AND reopened_for = %s",
+        (extraction_id, mention_idx, prompt_hash, render_version, reopened_for),
     ).fetchone()
     if row is None:
         return None
@@ -584,14 +586,18 @@ def store(
     mention: Mention,
     state_qid: str | None,
     verdict: Verdict,
+    reopened_for: str = "",
 ) -> None:
     """Append one verdict to the ledger. Never replaces: the key is what was shown."""
     db.conn().execute(
         "INSERT INTO resolution (extraction_id, mention_idx, title, jurisdiction,"
         " start_text, end_text, lang, state_qid, prompt_hash, render_version, model,"
-        " shortlist, chosen, qid, kind, confidence, evidence, reason, veto, usage_json)"
-        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        " ON CONFLICT (extraction_id, mention_idx, prompt_hash, render_version) DO NOTHING",
+        " shortlist, chosen, qid, kind, confidence, evidence, reason, veto, usage_json,"
+        " reopened_for)"
+        " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,"
+        " %s, %s, %s)"
+        " ON CONFLICT (extraction_id, mention_idx, prompt_hash, render_version,"
+        " reopened_for) DO NOTHING",
         (
             extraction_id, mention_idx, mention.title, mention.jurisdiction,
             mention.start, mention.end, mention.lang, state_qid,
@@ -599,8 +605,31 @@ def store(
             verdict.chosen, verdict.qid, verdict.kind, verdict.confidence,
             verdict.evidence, verdict.reason, verdict.veto,
             Jsonb(verdict.usage) if verdict.usage is not None else None,
+            reopened_for,
         ),
     )
+
+
+def shortlist_hits(mention: Mention, state_qid: str | None) -> list[positions.Hit]:
+    """Retrieve the ranked shortlist a mention is asked about.
+
+    The one search both the live pass and `retrievable` run, so that "would the
+    model be shown this item" is answered by the same call that shows it.
+    """
+    return positions.search(
+        mention.title, mention.jurisdiction, state_qid, limit=SHORTLIST,
+        start=mention.start, end=mention.end,
+    )
+
+
+def retrievable(mention: Mention, state_qid: str | None, qid: str) -> bool:
+    """Whether `qid` would be on the shortlist this mention is asked about.
+
+    Reach for this after minting an item and before re-asking its mentions: an
+    item the search does not surface cannot be picked, and re-asking would buy
+    the same refusal again.
+    """
+    return any(hit.qid == qid for hit in shortlist_hits(mention, state_qid))
 
 
 def resolve_mention(
@@ -609,6 +638,7 @@ def resolve_mention(
     mention: Mention,
     state_qid: str | None,
     model: str = MODEL,
+    reopened_for: str = "",
 ) -> tuple[Verdict, bool]:
     """Run the whole second turn for one office mention, once.
 
@@ -620,9 +650,13 @@ def resolve_mention(
     article the quotes came from goes in whole when it is under the cap: the
     sentence that settles a rename or a portfolio is often not among the
     quotes the reader's pass copied.
+
+    `reopened_for` asks again under a key of its own; see `reopen`.
     """
     _text, prompt_hash = system_prompt()
-    known = recorded(extraction_id, mention_idx, prompt_hash)
+    known = recorded(
+        extraction_id, mention_idx, prompt_hash, reopened_for=reopened_for
+    )
     if known is not None:
         return known, False
     if mention.article is None and mention.lang:
@@ -632,11 +666,29 @@ def resolve_mention(
             (mention.lang, extraction_id),
         ).fetchone()
         mention.article = None if row is None else row[0]
-    hits = positions.search(
-        mention.title, mention.jurisdiction, state_qid, limit=SHORTLIST,
-        start=mention.start, end=mention.end,
-    )
+    hits = shortlist_hits(mention, state_qid)
     candidates = candidates_for(hits, state_qid)
     verdict = reconcile(mention, candidates, model=model)
-    store(extraction_id, mention_idx, mention, state_qid, verdict)
+    store(extraction_id, mention_idx, mention, state_qid, verdict, reopened_for)
     return verdict, True
+
+
+def reopen(
+    extraction_id: int,
+    mention_idx: int,
+    mention: Mention,
+    state_qid: str | None,
+    qid: str,
+    model: str = MODEL,
+) -> tuple[Verdict, bool]:
+    """Ask about one mention again, now that `qid` exists to be offered.
+
+    Use it after minting the item a mention could not be placed on. The new
+    verdict is a row beside the original, never in place of it, and being the
+    newer row it is the one `propose.placements` reads. Reopening twice for the
+    same item reads the first answer back instead of paying again.
+    """
+    return resolve_mention(
+        extraction_id, mention_idx, mention, state_qid, model=model,
+        reopened_for=qid,
+    )

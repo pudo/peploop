@@ -177,9 +177,12 @@ every request write the prompt to cache and read nothing. An uncounted holder
 count prints `uncounted`, never `0`.
 
 Every verdict is a row in `resolution`, keyed by (extraction, mention index,
-prompt hash, `RENDER_VERSION`). A mention answered under that key is never
-asked again; a prompt edit or a rendering change re-asks. A row with a null
-`qid` is the creation queue.
+prompt hash, `RENDER_VERSION`, `reopened_for`). A mention answered under that
+key is never asked again; a prompt edit or a rendering change re-asks. A row
+with a null `qid` is the raw input of the creation queue (below);
+`reopened_for` is empty except on a verdict re-asked because the item it was
+missing has since been minted, which sits beside the original and, being
+newer, is the one `propose` reads.
 
 `python -m peploop.check_propose` pins the lane above -- both directions of the
 endpoint aggregation, the two-language fold, the acting filter -- with no
@@ -306,6 +309,72 @@ statement it finds, so two terms of one office arrive as one statement carrying
 both starts and both ends. Positions go out through `apply`, which creates and
 never merges.
 
+## The creation queue
+
+A verdict with a null `qid` is an office that was named, evidenced and could
+not be placed. On a country whose offices Wikidata mostly lacks this is the
+larger half of the output, and the mint stage (`mint.py`, `mint_write.py`,
+the shape rules in `offices.py`) turns it into items, so those holders' `P39`s
+have somewhere to go.
+
+- **Two sources, one queue.** `mint.unplaced` reads every miss of the
+  country's people (not those the scope gate discarded) and pools them by
+  folded title and jurisdiction; `census/<cc>.yml` adds the offices the state
+  has whether or not anyone's article named them, expanded per subdivision
+  over a live `P150` read where an office exists in each. A census office is
+  a prompt, not evidence: one no mention attests is skipped as
+  `census/unattested`, so the funnel says how much of the census the seeds
+  reached.
+- **Current is read conservatively.** An acting tenure or a dead holder never
+  counts, an end counts only while its earliest reading is still ahead, an
+  open tenure only if it began within twelve years, an undated one never.
+- **What cannot become current costs nothing.** A group with no current holder
+  that shares no place or subject stem with one that has is dropped before the
+  first request. Most of a queue is single historical mentions, and asking
+  about them is what pushed a request past its output budget.
+- **The floor runs after clustering.** One office is many spellings -- a
+  gendered form, the same title in two languages, with and without its place
+  -- so categorize sees every surviving group, single-person ones included, and
+  the floor counts *distinct people* across the pieces it merged: two, and at
+  least one current; or, for a one-seat office, one current holder and an
+  official source that answers live. Three mentions of one minister are one
+  holder. Neither model can override it.
+- **Two models and a veto.** Categorize (`prompts/mint_categorize.md`, the
+  reconciler's model) clusters the groups into offices in chunks ordered so
+  the pieces of one office share a request, gives each an institution class
+  and an archetype, and drafts labels, body, jurisdiction and predecessor from
+  the QIDs it was shown -- an off-list QID is removed after the fact, and every
+  group gets exactly one answer, the ones no office took landing in
+  `office_unassigned` with a reason. Verify (`prompts/mint_verify.md`, the
+  person verifier's model, a different family on purpose) reads one office per
+  request: the attestations in full, the live duplicate hits, the state's
+  index and its sibling tallies, the draft with every QID labelled. It answers
+  from a closed set (`mint`, `exists`, `not-an-office`, `not-current`,
+  `not-distinct`, `generic-convention`, `unclear`) and agrees with the shape or
+  corrects it. Then `offices.guard` vetoes mechanically: labels in the state's
+  languages, no QID in any text, the floor again, a live duplicate search per
+  label and alias and against the run's own candidates, a body that resolves,
+  is not a position and shares a content word with the office, a jurisdiction
+  inside the state, the shape, no bilateral post. The shape itself is fixed per
+  archetype and follows the state's own siblings, falling back to `Q294414`.
+- **A disagreement is a skip, never a review row.** `mint.RULES` is ordered
+  like `policy.py`'s and writes one of three statuses: `found` (a live
+  duplicate, or the item a pass named), `guarded` (categorize, verify at high
+  confidence and the guard all agree), or `skipped` under the rule that
+  decided it -- `verify:not-current`, `disagree/shape:parent_qid`,
+  `guard:body-word/…`. The corrections a verifier proposed are kept on the
+  row, so a disagreement class an audit shows to be sound can become a rule
+  that accepts it; nothing is relaxed per row. `mint-report` is the export
+  list, the way `conflict` rows are for the person loop.
+- **Feed reopens only what was attested.** Once an item is created or found,
+  `feed` loads it into `position` with its holder counts left null, so it
+  reads `uncounted` rather than unheld; then, for each mention the candidate
+  was clustered from, asks `retrievable` whether the shortlist would now offer
+  it -- a mention the search cannot surface would buy the same refusal again --
+  and `reopen`s only those, under the same prompt and rendering, before
+  re-proposing their people. A mention that merely looks like the office is
+  never re-asked on the strength of the new item.
+
 ## What is not done
 
 - **`apply` writes a `refine` by overlap.** A P39 the item already records,
@@ -316,10 +385,6 @@ never merges.
   Measured on `Q101002571`, whose National Assembly statement has a start and
   no end: it used to report "nothing to write". A near miss on a shared
   endpoint still touches nothing, and `overlapping` stays inert.
-- **The creation queue is a count, not a queue.** A verdict with a null `qid`
-  is an office that was named, evidenced and could not be placed; nothing yet
-  collects those with their evidence for minting. On a country whose offices
-  Wikidata mostly lacks this is the larger half of the output.
 - **A large country's ranking signals are null on purpose.** Filling them is
   600 query-service requests and 6–11 hours, and a null foreign count scores
   *better* than a filled one, so this is not a cost compromise.

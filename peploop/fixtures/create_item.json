@@ -1,0 +1,83 @@
+{
+  "_comment": "Action API responses recorded in the shape Wikibase returns them, with placeholder QIDs. Read by check_apply.",
+  "created": {
+    "entity": {
+      "type": "item",
+      "id": "Q0000500",
+      "labels": {"en": {"language": "en", "value": "Minister of Placeholders"}},
+      "descriptions": {"en": {"language": "en", "value": "government position"}},
+      "aliases": {},
+      "claims": {
+        "P31": [{
+          "mainsnak": {"snaktype": "value", "property": "P31", "datatype": "wikibase-item",
+                       "datavalue": {"value": {"entity-type": "item", "numeric-id": 294414, "id": "Q294414"},
+                                     "type": "wikibase-entityid"}},
+          "type": "statement", "id": "Q0000500$5C4A1B2E-0000-4000-8000-000000000001", "rank": "normal"
+        }]
+      },
+      "sitelinks": {},
+      "lastrevid": 2100000001
+    },
+    "success": 1
+  },
+  "label_conflict": {
+    "error": {
+      "code": "modification-failed",
+      "info": "Item [[Q0000042|Q0000042]] already has label \"Minister of Placeholders\" associated with language code en, using the same description text.",
+      "messages": [{
+        "name": "wikibase-validator-label-with-description-conflict",
+        "parameters": ["Minister of Placeholders", "en", "[[Q0000042|Q0000042]]"],
+        "html": {"*": "Item <a href=\"/wiki/Q0000042\" title=\"Q0000042\">Q0000042</a> already has label \"Minister of Placeholders\" associated with language code en, using the same description text."}
+      }],
+      "*": "See https://www.wikidata.org/w/api.php for API usage. Subscribe to the mediawiki-api-announce mailing list at &lt;https://lists.wikimedia.org/postorius/lists/mediawiki-api-announce.lists.wikimedia.org/&gt; for notice of API deprecations and breaking changes."
+    },
+    "servedby": "mw-api-ext.eqiad.main-0000000000-xxxxx"
+  },
+  "other_failure": {
+    "error": {
+      "code": "modification-failed",
+      "info": "Malformed input: claims",
+      "messages": [{"name": "wikibase-api-invalid-claim", "parameters": [], "html": {"*": "Malformed input: claims"}}],
+      "*": "See https://www.wikidata.org/w/api.php for API usage."
+    }
+  },
+  "maxlag": {
+    "error": {
+      "code": "maxlag",
+      "info": "Waiting for wdqs1013: 7.2 seconds lagged.",
+      "host": "wdqs1013",
+      "lag": 7.2,
+      "type": "wikibase-queryservice",
+      "*": "See https://www.wikidata.org/w/api.php for API usage."
+    }
+  },
+  "usercontribs": [
+    {
+      "batchcomplete": "",
+      "continue": {"uccontinue": "20261001120600|2100000003", "continue": "-||"},
+      "query": {
+        "usercontribs": [
+          {"userid": 1, "user": "Example", "pageid": 900001, "revid": 2100000001, "parentid": 0,
+           "ns": 0, "title": "Q0000500", "timestamp": "2026-10-01T12:05:00Z",
+           "new": "", "top": "",
+           "comment": "/* wbeditentity-create-item:0| */ peploop: create office [mint:othertag] ([[:toollabs:editgroups/b/CB/abcdef0123|details]])"},
+          {"userid": 1, "user": "Example", "pageid": 900002, "revid": 2100000002, "parentid": 2099999999,
+           "ns": 0, "title": "Q0000501", "timestamp": "2026-10-01T12:05:30Z",
+           "top": "",
+           "comment": "/* wbeditentity-update:0| */ peploop: add position [mint:wanted] ([[:toollabs:editgroups/b/CB/abcdef0123|details]])"}
+        ]
+      }
+    },
+    {
+      "batchcomplete": "",
+      "query": {
+        "usercontribs": [
+          {"userid": 1, "user": "Example", "pageid": 900003, "revid": 2100000003, "parentid": 0,
+           "ns": 0, "title": "Q0000502", "timestamp": "2026-10-01T12:06:00Z",
+           "new": "", "top": "",
+           "comment": "/* wbeditentity-create-item:0| */ peploop: create office [mint:wanted] ([[:toollabs:editgroups/b/CB/abcdef0123|details]])"}
+        ]
+      }
+    }
+  ]
+}

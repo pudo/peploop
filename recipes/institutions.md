@@ -240,6 +240,27 @@ the convention is `P488` (chairperson) on the *party* item. Iran had 99 leaders
 across 10 tables with zero dates anywhere and exactly two leadership position
 items. Close it with the measurement and route the byproduct to `P488`.
 
+Where the party rules, its national organs are state power and three different
+things, which take three different shapes:
+
+* **Party membership** is `P102` on the person. Never an office.
+* **Membership of a large organ** — a central committee, its alternates — is
+  `P463` on the *body*, by a wide margin: the Soviet Central Committee has 933
+  distinct holders recorded that way against 2 on a membership-seat item, and
+  seven of ten central-committee "member" items carry no `P279` at all
+  (`research/position_items.md` §10a). Don't mint a seat for it.
+* **A seat in a standing politburo or presidium, a secretariat seat, and the
+  national party offices** (general, first and second secretary) are offices:
+  `P39` onto an item. The Chinese Politburo and its Standing Committee hold
+  75 and 62 holders on seat items against 4 and 5 by `P463`; the Soviet
+  Politburo is split, 89 on the seat against 106 on the body. Their parents are
+  measured in §10a and §10c (`Q115136557` politburo member, `Q836971` party
+  secretary). **Failure mode:** these organs are barely modelled — no
+  politburo-seat item exists for Vietnam, Laos or Cuba, and the one national
+  second secretaryship on Wikidata is a Soviet republic's — so this class is
+  creation-first, and the first sibling found is as likely a defect as a
+  convention.
+
 ---
 
 ## Using this file

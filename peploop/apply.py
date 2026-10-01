@@ -14,6 +14,7 @@ URL of the revision read, `P813` today.
 
 import datetime
 import json
+import re
 import time
 import uuid
 from collections import Counter
@@ -686,14 +687,18 @@ def write_payload(plan: Plan, token: str) -> dict[str, Any]:
 
 
 def send(plan: Plan, token: str) -> dict[str, Any]:
-    """Send one person's edit, waiting out replication lag rather than adding to it.
+    """Send one person's edit, waiting out replication lag rather than adding to it."""
+    return _send(write_payload(plan, token))
+
+
+def _send(payload: dict[str, Any]) -> dict[str, Any]:
+    """POST one write, retrying a `maxlag` refusal and raising any other error.
 
     `maxlag` covers the query-service updaters, not just database replication,
     so a refusal means a legitimate wait of minutes; the answer to a lagged
     site is to sleep — up to `MAXLAG_BUDGET` — not to declare a willingness to
     load it further.
     """
-    payload = write_payload(plan, token)
     delay = 5.0
     spent = 0.0
     while True:
@@ -707,11 +712,127 @@ def send(plan: Plan, token: str) -> dict[str, Any]:
             header = headers.get("Retry-After")
             wait = maxlag_wait(spent, delay, float(header) if header else None)
         if wait is None:
-            raise ApiError(error.get("code", "?"), error.get("info") or json.dumps(error))
+            raise api_error(error)
         print(f"  maxlag {error.get('lag')}s: waiting {wait:.0f}s", flush=True)
         time.sleep(wait)
         spent += wait
         delay = min(delay * 2, MAX_BACKOFF)
+
+
+class LabelConflict(ApiError):
+    """A creation refused because another item already has its label and description.
+
+    Wikibase keeps label plus description unique per language, so this refusal
+    is a duplicate the live search missed, and it names the item: the caller
+    records that QID as found rather than retrying under another wording.
+    """
+
+    def __init__(self, code: str, info: str, qid: str) -> None:
+        super().__init__(code, info)
+        self.qid = qid
+
+
+_CONFLICT_QID = re.compile(r"\[\[(?:Item:)?(Q\d+)\|")
+
+
+def api_error(error: dict[str, Any]) -> ApiError:
+    """Turn an action API `error` object into the exception a caller can act on."""
+    code = error.get("code", "?")
+    info = error.get("info") or json.dumps(error)
+    if code in ("modification-failed", "failed-save"):
+        messages = error.get("messages") or []
+        texts = [info]
+        for message in messages:
+            if "conflict" in (message.get("name") or ""):
+                texts.extend(str(param) for param in message.get("parameters") or [])
+        if "already has label" in info or len(texts) > 1:
+            for text in texts:
+                found = _CONFLICT_QID.search(text)
+                if found:
+                    return LabelConflict(code, info, found.group(1))
+    return ApiError(code, info)
+
+
+def create_payload(data: dict[str, Any], summary: str, token: str) -> dict[str, Any]:
+    """The `wbeditentity` call that creates one new item.
+
+    The same guards as `write_payload` -- no `bot` key, `assert=user`, maxlag,
+    the EditGroups marker -- and no `id` or `baserevid`, because there is no
+    revision yet for the edit to be decided against. The caller puts its intent
+    tag in `summary`, which is what `find_created` reads back after a crash.
+    """
+    return {
+        "action": "wbeditentity",
+        "new": "item",
+        "data": json.dumps(data, ensure_ascii=False),
+        "summary": f"{summary} {editgroup()}",
+        "token": token,
+        "assert": "user",
+        "maxlag": MAXLAG,
+        "format": "json",
+    }
+
+
+def create_item(data: dict[str, Any], summary: str, token: str) -> tuple[str, int]:
+    """Create one item and return its QID and first revision.
+
+    Raises `LabelConflict` when an item with the same label and description
+    exists, and `ApiError` for any other refusal.
+    """
+    body = _send(create_payload(data, summary, token))
+    entity = body.get("entity") or {}
+    qid, rev = entity.get("id"), entity.get("lastrevid")
+    if not body.get("success") or not qid or rev is None:
+        raise ApiError("no-entity", f"creation answered without an item: {json.dumps(body)[:300]}")
+    return qid, int(rev)
+
+
+def account() -> str:
+    """Name the account the shared session is logged in as."""
+    info, _ = _api({"action": "query", "meta": "userinfo"})
+    userinfo = info.get("query", {}).get("userinfo", {})
+    if not userinfo.get("name") or userinfo.get("anon") is not None:
+        raise RuntimeError("not logged in: usercontribs needs the account name")
+    return userinfo["name"]
+
+
+def find_created(
+    tag: str, since: datetime.datetime, user: str | None = None
+) -> str | None:
+    """Find the item this account created with `tag` in its summary, if any.
+
+    This is how a creation interrupted between the API call and the database
+    write is resolved: `usercontribs` reads the edit log directly, so unlike
+    search or the query service it is authoritative the moment the edit lands.
+    Only page creations count -- a later edit carrying the same tag is not the
+    one that made the item. Read live through the session, never cached.
+    """
+    user = user or account()
+    start = since.astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    params: dict[str, Any] = {
+        "action": "query",
+        "list": "usercontribs",
+        "ucuser": user,
+        "ucnamespace": 0,
+        "ucshow": "new",
+        "ucdir": "newer",
+        "ucstart": start,
+        "ucprop": "title|comment|ids|timestamp|flags",
+        "uclimit": 500,
+    }
+    while True:
+        body, _ = _api(params)
+        if body.get("error"):
+            raise api_error(body["error"])
+        for contrib in body.get("query", {}).get("usercontribs", []):
+            if "new" not in contrib:
+                continue
+            if tag in (contrib.get("comment") or ""):
+                return contrib.get("title")
+        more = body.get("continue")
+        if not more:
+            return None
+        params = {**params, **more}
 
 
 def log_write(payload: dict[str, Any], body: dict[str, Any]) -> None:
@@ -727,7 +848,9 @@ def log_write(payload: dict[str, Any], body: dict[str, Any]) -> None:
     line = {
         "at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),
         "batch": BATCH_ID,
-        "qid": payload.get("id"),
+        # A creation has no id until the response names it.
+        "qid": payload.get("id") or entity.get("id"),
+        "new": payload.get("new"),
         "summary": payload.get("summary"),
         "baserevid": payload.get("baserevid"),
         "data": json.loads(payload["data"]),

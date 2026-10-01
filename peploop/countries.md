@@ -57,7 +57,8 @@ municipalities); the holder-ranked list of those items, read whole, says two
 things the run needs to know before it starts: **which tiers have no item at
 all** (Colombia: no magistrate of any apex court, four outbound
 ambassadorships against 72 categories -- those mentions will end in the
-creation queue, which is a count, not a failure), and **which offices have two
+creation queue the mint stage works, which is not a failure, and a tier with
+no item is also a `census/<cc>.yml` entry), and **which offices have two
 items competing for one era** (Colombia: the presidency of each chamber, one
 ministry). Two items for one era is a merge decision and a human gate; the
 run does not write onto the unused twin, and the holder signal is what keeps
@@ -118,6 +119,11 @@ extract --country <cc> --limit N --threads 4   # one request per person, Sonnet
 position-signals --country <cc> --skip-counts  # scope qualifiers read the item table: after fetch
 position-signals --country <cc> --local-holders    # this state's holder count per office
 reconcile --country <cc> --limit N --threads 8 # one request per office mention
+mint-categorize --country <cc>                 # cluster the misses and the census into offices, Sonnet
+mint-verify --country <cc>                     # one request per office that clears the floor, Opus; decides each
+mint --country <cc> [--write]                  # dry by default; --write creates and feeds each item
+mint-feed --country <cc>                       # the re-run: load, re-ask the attested mentions, re-propose
+mint-report --country <cc> --out data/mint/<cc>.md   # funnel by rule, the skip list, cost
 propose --country <cc> --limit N               # P39 rows appear only now
 policy --country <cc> --dry-run                # the funnel
 verify --country <cc> --limit N --threads 4    # one request per pending row, Opus; re-runs the policy
@@ -135,6 +141,24 @@ pass the country's size. `position-signals` without `--local-holders` runs
 `fill_counts` over the whole table unless `--skip-counts` is given, and those
 four counts are whole-corpus numbers a new country does not change.
 
+The mint stage sits between `reconcile` and `propose` because its input is the
+reconciler's refusals and its output is items those refusals can now land on.
+Write `census/<cc>.yml` before `mint-categorize`: the offices the country has
+whether or not a seeded article named them, by institution class of
+`recipes/institutions.md`, each with its body QID and, for a one-seat office,
+an official source -- and only a source that has been checked, since a source
+is what lets such an office pass on one current holder. Its bodies come from
+measurement (`research/position_items.md` §10 is the template), never from
+memory; `census/cu.yml` is the first. A census entry nobody's article attests
+is skipped, so the file says what must exist and the seeds still decide what
+gets made. `mint --write` feeds each item as soon as it is created, so
+`mint-feed` is not a step of the normal run: it is the re-run and the repair,
+for a feed a crash or a propose failure cut short, and for the rows
+`mint-verify` decided `found` -- an item that already existed -- which `mint`
+does not select. Both are idempotent.
+`mint-audit --id N --skip --reason … --by <name>` skips a row after the fact;
+there is no approve.
+
 Every LLM stage is ledgered on content (prompt hash, article revisions,
 rendering version), so re-running one after a prompt edit costs only what is
 new, and re-running one that was interrupted costs nothing. Run the long ones
@@ -150,6 +174,10 @@ connection error or a `maxlag` wait is a retry, not a bug.
 | `load-positions` | items loaded per lane; the duplicate pairs from §1 and which twin is used | go on |
 | `extract` | `stats --country <cc>`: people per status (how many the scope gate discarded), token total | go on |
 | `reconcile` | verdicts by kind; the creation queue (`resolution` rows with a null `qid`) by office title; where the incumbents' offices landed | go on |
+| `mint-categorize` | candidates per institution class; the groups no office took (`office_unassigned`) and why | go on |
+| `mint-verify` | `mint-report`: the funnel by rule, then every `guarded` row with its payload's labels and every `found` row with the item it names | first runs: **stop and show it** |
+| `mint --write --limit 1` | the item on Wikidata; the feed line (attestations `retrieved`, reopened verdicts by kind); the `P39` rows `propose` made on it | first runs: **only on the user's go** |
+| `mint --write` | created, found at the re-check, failed; a re-run creates nothing | go on to `propose` |
 | `policy --dry-run` | the funnel, per property, rule by rule | **stop and show it** |
 | `verify` | verdicts by kind; every refusal class read by the observer; doubtful `supported` rows listed | go on to `policy` |
 | `apply --write --limit 3` | the three diffs | **only on the user's go** |
@@ -159,6 +187,16 @@ Nothing is written to Wikidata and nothing is pushed to git without the user
 asking. The funnel is the one place to stop unasked: a rule that fires on a
 class the country's shape explains is fine, and a rule firing on a class
 nobody predicted is a finding to report before any request is spent.
+
+The two mint stops are development checkpoints, held while the stage is new
+(Cuba, then one more country), not gates in the runtime: nothing in `mint`
+waits on a human. Creating an item is the one write peploop cannot take back
+by editing, so for those runs an observer reads the skips and the guarded rows
+after `mint-verify`, and each class it finds wrong becomes a rule in
+`mint.RULES` with a case in `check_mint` -- never a ruling on a row. Once the
+stage has run clean on two countries, `mint-categorize`, `mint-verify` and
+`mint --write` run back to back as one step, and what is shown is the funnel
+number first (offices created and found against candidates), then the report.
 
 The funnel's usual shape (Slovenia, 960 `P39` rows in): about 60% reach the
 verifier; the rest fall to a medium-confidence placement, a missing start, a
@@ -243,8 +281,10 @@ people), `4e234c5722` (four people retried after a query-service lag). Eleven
 accepted rows closed at the pre-flight: 8 `apply:termed`, 3 `apply:conflict`.
 No written statement absorbed two spells. Cost, all stages: about $90.
 
-**Cuba** (`seeds/cu.yml`, measured 2026-09-30, not run). The first country
-whose own wiki is the irregular one: es `Políticos de Cuba` is a flat bag of
+**Cuba** (`seeds/cu.yml`, `census/cu.yml`, measured 2026-09-30, in progress).
+The first country run with the mint stage, because most of what it needs has
+no item; the numbers are recorded here when the run closes. Also the first
+country whose own wiki is the irregular one: es `Políticos de Cuba` is a flat bag of
 1902-1959 secretaries, Spanish Cortes deputies, colonial governors and 76
 dissidents, and the tiers are on en.wikipedia (twenty ministerial portfolios,
 the 2020 provincial governors, 48 ambassadorships). Seeded for the 2019
@@ -260,6 +300,8 @@ of Cuba" (36 colonial holders) beside the one 2020 governorship item
 (`Q1370482`) for 1976-2019; `Q6502015` holding prime ministers under three
 constitutional names; an assembly item (`Q21272829`) with 54 statements, six
 dated, no term qualifier. The party offices are the lane this country adds:
-Politburo and Central Committee membership is politically exposed and has no
-place to land.
+a Politburo seat and the Second Secretary are offices and are in the census;
+Central Committee membership is politically exposed too, but Wikidata records
+it as `P463` on the body rather than as a seat, so it is not minted, and
+peploop does not write `P463` yet.
 

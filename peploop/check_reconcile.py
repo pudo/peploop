@@ -16,7 +16,11 @@ Four things are pinned, and each is a way the pass could go wrong silently:
   every request — a per-request schema is what defeated the prompt cache;
 * **the prompt's hash and its coverage**, because a verdict is stored under
   the hash, and because every tag the ranking can derive has to be explained
-  in the prompt or it moved a row without saying so.
+  in the prompt or it moved a row without saying so;
+* **the reopen ledger**: a re-ask after an item is minted sits beside the
+  original verdict rather than colliding with it, and is the one `propose`
+  reads. This one needs the local database, and runs against a temporary
+  table that shadows the real one, so nothing stored is read or written.
 
 Run it as `python -m peploop.check_reconcile` from the repository root.
 """
@@ -24,11 +28,13 @@ Run it as `python -m peploop.check_reconcile` from the repository root.
 import dataclasses
 import hashlib
 import sys
+from types import SimpleNamespace
 from typing import Any
 
+import psycopg
 from pydantic import ValidationError
 
-from peploop import check_neutral, positions, reconcile
+from peploop import check_neutral, db, positions, propose, reconcile
 
 #: A state to be local to, so the holder counts below mean something.
 STATE = "Q1"
@@ -339,6 +345,87 @@ def check_request(expect: Any) -> None:
     )
 
 
+def check_retrievable(expect: Any) -> None:
+    """Pin that `retrievable` asks the very search the live pass asks."""
+    calls: list[tuple[Any, ...]] = []
+
+    def fake_search(*args: Any, **kwargs: Any) -> list[Any]:
+        calls.append((args, kwargs))
+        return [SimpleNamespace(qid="Q10"), SimpleNamespace(qid="Q11")]
+
+    real = positions.search
+    positions.search = fake_search  # type: ignore[assignment]
+    try:
+        found = reconcile.retrievable(MENTION, STATE, "Q11")
+        missing = reconcile.retrievable(MENTION, STATE, "Q99")
+        reconcile.shortlist_hits(MENTION, STATE)
+    finally:
+        positions.search = real  # type: ignore[assignment]
+    expect(found and not missing, "an item is retrievable exactly when the search returns it")
+    expect(
+        calls[0] == calls[2]
+        and calls[0][1].get("limit") == reconcile.SHORTLIST
+        and calls[0][1].get("start") == MENTION.start
+        and calls[0][1].get("end") == MENTION.end,
+        "retrievable searches with the live pass's limit and tenure dates",
+    )
+
+
+def check_reopen(expect: Any) -> None:
+    """Pin the reopen ledger against a temporary table shadowing `resolution`."""
+    try:
+        conn = db.conn()
+    except psycopg.OperationalError as exc:
+        print(f"  skip no database ({exc.__class__.__name__})")
+        return
+    conn.execute("CREATE TEMP SEQUENCE IF NOT EXISTS check_resolution_seq")
+    conn.execute(
+        "CREATE TEMP TABLE resolution (LIKE public.resolution"
+        " INCLUDING DEFAULTS INCLUDING INDEXES)"
+    )
+    try:
+        conn.execute(
+            "ALTER TABLE pg_temp.resolution ALTER COLUMN id"
+            " SET DEFAULT nextval('pg_temp.check_resolution_seq')"
+        )
+        _text, prompt_hash = reconcile.system_prompt()
+        mention = dataclasses.replace(MENTION, article="")
+        refused = reconcile.Verdict(
+            title=mention.title, kind="none", shortlist=["Q10", "Q11"],
+            prompt_hash=prompt_hash, model="check",
+        )
+        placed = reconcile.Verdict(
+            title=mention.title, qid="Q99", chosen="Q99", kind="same-office",
+            confidence="high", shortlist=["Q99", "Q10"],
+            prompt_hash=prompt_hash, model="check",
+        )
+        reconcile.store(1, 0, mention, STATE, refused)
+        reconcile.store(1, 0, mention, STATE, placed, reopened_for="Q99")
+        reconcile.store(1, 0, mention, STATE, refused)
+        rows = conn.execute(
+            "SELECT id, reopened_for, qid FROM pg_temp.resolution ORDER BY id"
+        ).fetchall()
+        expect(
+            [(r[1], r[2]) for r in rows] == [("", None), ("Q99", "Q99")],
+            "a reopened verdict sits beside the original, and a repeat store is a no-op",
+        )
+        original = reconcile.recorded(1, 0, prompt_hash)
+        expect(
+            original is not None and original.kind == "none" and original.qid is None,
+            "recorded() without reopened_for still finds the original verdict",
+        )
+        again = reconcile.recorded(1, 0, prompt_hash, reopened_for="Q99")
+        expect(again is not None and again.qid == "Q99",
+               "recorded() under the minted item finds the reopened verdict")
+        verdict, asked = reconcile.reopen(1, 0, mention, STATE, "Q99")
+        expect(verdict.qid == "Q99" and not asked,
+               "reopening twice for one item reads the first answer back")
+        expect(propose.placements(1) == {0: ("Q99", rows[1][0])},
+               "placements reads the reopened verdict, the newer row")
+    finally:
+        conn.execute("DROP TABLE IF EXISTS pg_temp.resolution")
+
+
 def main() -> int:
     """Run every pin and report, without touching the network or a key."""
     failures: list[str] = []
@@ -355,6 +442,8 @@ def main() -> int:
         ("prompt", check_prompt),
         ("tags", check_tags),
         ("request", check_request),
+        ("retrievable", check_retrievable),
+        ("reopen", check_reopen),
     ):
         print(f"{name}:")
         check(expect)

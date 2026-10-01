@@ -47,8 +47,11 @@ QID lookup, and the languages spoken in a territory.
 ## The loop
 
 ```
-seed ─► fetch ─► prompt ─► extract ─► reconcile (round 2) ─► propose
+seed ─► fetch ─► prompt ─► extract ─► reconcile (round 2) ─► mint ─► propose
 ```
+
+`mint` is the one stage whose unit is not a person: it works a country's
+offices, and feeds what it creates back into the per-person stages around it.
 
 Each stage is a function over one QID; a driver runs them under a thread pool
 with a per-host rate limiter. Stages are idempotent: re-running a QID re-reads
@@ -279,6 +282,57 @@ proposed; birthplace is not started. `positions.md` is the design and
   schema sits in the cached prefix and defeats the prompt cache. Every verdict
   lands in `resolution`, keyed by extraction, mention, prompt hash and
   rendering version, which is what a re-run resumes from.
+
+### 5a. Mint
+
+A reconciler refusal is often right: the office has no item, and its holder's
+`P39` has nowhere to land. On a country Wikidata models thinly -- a one-party
+state's organs, the provincial governorships, the apex court's presidency --
+those refusals outweigh the statements, and a loop that only fills existing
+offices never reaches the people they make politically exposed. The mint stage
+creates the missing items, and is built as the most conservative stage in the
+loop, because a creation is the one write that cannot be taken back by
+editing: undoing it needs a deletion or a merge. `positions.md` (the creation
+queue) has the mechanics; the decisions are these.
+
+- **The evidence bar is people, not rows.** An office is minted only on two
+  distinct attested holders, at least one of them current; an office held by
+  one person at a time passes on one current holder plus an official source
+  that answers when read. A census (`census/<cc>.yml`) names offices that must
+  exist, but never stands in for a holder. The floor is applied in code before
+  a model is asked, and neither model can lower it.
+- **The shape is fixed, not drafted.** Each kind of office is an archetype in
+  `offices.py` -- its `P279` parent, how it names its body, whether it is
+  scoped, whether it is one seat -- with the parents measured across other
+  states' items (`research/position_items.md` §10), and the metaclass and
+  parent taken from the state's own offices where they agree. A model drafts
+  labels and picks a body; it does not invent a data model per item.
+- **Unsupervised, like the rest of the loop.** Categorize clusters and drafts,
+  a verifier of another model family reads each office against its evidence
+  and the live duplicates, and `offices.guard` vetoes mechanically. An item is
+  created when all three agree; anything else is `skipped` under the rule that
+  says which stage disagreed, or `found` when the item turns out to exist. No
+  status means "waiting for a human": a recurring disagreement becomes a rule,
+  and `mint-audit` can only skip, after the fact.
+- **Crash-safe by intent, not by retry.** Before the API call the row is
+  re-guarded live, marked `creating` with an intent tag unique to the row and
+  its payload, and committed; the tag rides in the edit summary. A row a crash
+  leaves in `creating` is resolved by `usercontribs`, which -- unlike search or
+  the query service -- is authoritative the moment an edit lands: a creation
+  carrying the tag is recorded, and only when there is none does a live
+  duplicate search return the row to `found` or to `guarded`. One advisory
+  lock per country keeps a second writer from reading another's in-flight row
+  as a crash. The create goes through `apply`'s session (`wbeditentity
+  new=item`, `assert=user`, `maxlag`, the EditGroups tag), under the user's
+  account like every other write.
+- **Fed back, narrowly.** A created or found item is loaded into `position`,
+  and only the mentions it was clustered from are re-asked -- and only those
+  the new item would reach on their shortlist -- so `propose` writes their
+  `P39`s through the ordinary policy, verify and apply.
+
+The knowledge is ported from `wd/create.py` and `wd/shape.py` and trimmed;
+the mechanics (`wb create-entity`, JSON ledgers, a target pasted back into a
+script) are left behind, and nothing is imported.
 
 ### 6. Propose
 
@@ -554,6 +608,16 @@ type_edge    qid, targets[], fetched_at              (the P31/P279 ancestry cach
 verification proposal_key, proposal_id, person_qid, property, prompt_hash,
              render_version, model, verdict, confidence, evidence, reason,
              usage_json, created_at   (unique on key, prompt, rendering, model)
+mint_call    pass (categorize|verify), country, content_key, prompt_hash,
+             render_version, model, request_json, response_json, usage_json
+             (unique on pass, content, prompt, rendering, model)
+office_candidate country, ref, origin[], institution_class, archetype,
+             single_seat, draft, corrections, spec, data, holders,
+             current_holders, source_url, status, rule, problems[], qid,
+             created_rev, batch, intent_at, intent_tag   (unique on country+ref)
+office_attestation candidate_id, extraction_id, mention_idx, person_qid,
+             current, retrieved, reopened_id
+office_unassigned country, group_key, reason, categorize_call
 ```
 
 `verdict.reason` is one of `wrong_value`, `wrong_precision`,
@@ -564,7 +628,11 @@ that no other reason names. The prompt hash that produced a proposal is reachabl
 through `extraction`, so acceptance per prompt version is a join, not a column.
 The table exists from round 1 so nothing later has to back-fill it.
 
-Eight tables plus three for round 2. Migrations are a single `schema.sql`
+Eight tables plus three for round 2, and four for the mint stage:
+`office_candidate.status` is the disposition (`skipped`, `found`, `guarded`,
+then `creating`, `created`, `loaded`) and `rule` the rule that set it;
+`office_attestation` is what the floor counted and what `feed` may reopen, and
+nothing else. Migrations are a single `schema.sql`
 applied with `CREATE TABLE IF NOT EXISTS`; no Alembic.
 
 `person.error` carries the exception text of a failed fetch, so one bad person
@@ -602,7 +670,18 @@ apply   [--limit N] [--qid Q...] [--write] [--follow]
 load-positions   --country cc [--source descent|usage|citizen]
 position-signals --country cc [--local-holders] [--recount]
 position-stats   [--country cc]
+
+mint-categorize  --country cc [--dry-run]
+mint-verify      --country cc [--limit N] [--threads 4] [--dry-run]
+mint             --country cc [--limit N] [--id N...] [--write]
+mint-feed        --country cc [--id N...]
+mint-report      --country cc [--out data/mint/cc.md]
+mint-audit       --id N --skip --reason TEXT --by NAME
 ```
+
+The `mint*` commands take `--country` as the unit of work, since the queue is
+a country's. `mint` is a dry run unless `--write`, and feeds each item it
+creates; `mint-feed` re-runs the feed and is idempotent.
 
 Every command but the three `position*` ones and `refresh` also takes
 `--country`, which selects the people a run seeded under that code and nothing
@@ -705,10 +784,13 @@ peploop/
   positions.md             round 2: the position resolver, as built
   positions_discarded.md   round 2: measured and rejected, read before changing
   schema.sql
-  fixtures/                the silver test set the bench scores against
+  fixtures/                the silver test set the bench scores against, and API pins
+  census/<cc>.yml          the offices a state has whether or not anyone named them
   prompts/extract.md
   prompts/reconcile.md
   prompts/verify.md
+  prompts/mint_categorize.md   cluster unplaced offices, draft each item
+  prompts/mint_verify.md       is this office real, current, missing, rightly shaped
   __init__.py
   db.py          connection, cache get/put, upserts
   http.py        session, rate limiter, User-Agent (copied and trimmed from wd/http.py)
@@ -727,6 +809,9 @@ peploop/
   cli.py
   positions.py   round 2: load a country's offices, search and rank them
   reconcile.py   round 2: the second turn, assembled but never sent
+  offices.py     mint: the archetypes, the payload, the guard, the live duplicate reads
+  mint.py        mint: the queue, the floor, categorize, verify, the disposition rules
+  mint_write.py  mint: create crash-safely, recover, feed back, report, audit
   check_neutral.py    fails when the code names a country it has run
   check_regress.py    re-scores a prompt change against recorded verdicts
   check_review.py     drives the review TUI headlessly and undoes itself
@@ -735,6 +820,11 @@ peploop/
   check_policy.py     one fabricated case per rule of the policy, offline
   check_verify.py     the verifier's rendering, key, schema and prompt coverage, offline
   check_reconcile.py  pins the second turn offline: no network, no key
+  check_apply.py      the write payloads and the router, offline
+  check_mint.py       every reason not to mint, on the payload itself
+  check_mint_queue.py the queue: what counts as current evidence, how mentions pool
+  check_mint_categorize.py  the categorize rendering, gate and ledger, offline
+  check_mint_write.py crash, recovery, feed and audit transitions, offline
 ```
 
 Round 1 is roughly 800 lines and anything larger is a sign the increment is
