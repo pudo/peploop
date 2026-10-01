@@ -116,6 +116,18 @@ def main() -> int:
           policy.decide(case(qualifiers={"P580": time("2018"),
                                          "_sources": [{"lang": "aa", "quote": None}]})),
           policy.SKIPPED, "no_quote")
+    check("a tenure whose end is still to come is a schedule, not a record",
+          policy.decide(case(qualifiers={"P580": time("2024-01-01"), "P582": time("2027-12-31"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.SKIPPED, "future_date")
+    check("and so is a start still to come",
+          policy.decide(case(qualifiers={"P580": time("2026-08-07"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.SKIPPED, "future_date")
+    check("a year that has begun is not in the future",
+          policy.decide(case(qualifiers={"P580": time("2026"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.PENDING, "unverified")
 
     print("dates:")
     check("a date only a minor wiki gives is skipped",
@@ -193,17 +205,25 @@ def main() -> int:
           policy.SKIPPED, "resolution/renamed")
     check("a P39 with no verdict behind it is skipped",
           policy.decide(case(resolution=None)), policy.SKIPPED, "resolution/missing")
-    check("a tenure that ended a lifetime ago is skipped",
-          policy.decide(case(qualifiers={"P580": time("1901"), "P582": time("1905"),
+    check("a tenure that ended a generation ago is skipped",
+          policy.decide(case(qualifiers={"P580": time("2000"), "P582": time("2004"),
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
-          policy.SKIPPED, "tenure_out_of_scope")
+          policy.SKIPPED, "tenure_ended")
+    check("and so is one that started then and never ended",
+          policy.decide(case(qualifiers={"P580": time("2001"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.SKIPPED, "tenure_ended")
+    check("a tenure that ended within a generation goes on to the verifier",
+          policy.decide(case(qualifiers={"P580": time("2006"), "P582": time("2010"),
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.PENDING, "unverified")
     check("a tenure with no start is skipped",
-          policy.decide(case(qualifiers={"P582": time("2005"),
+          policy.decide(case(qualifiers={"P582": time("2015"),
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
           policy.SKIPPED, "undated_tenure")
     check("a refinement carrying only an end passes",
           policy.decide(case(proposed="refine",
-                             qualifiers={"P582": time("2005"),
+                             qualifiers={"P582": time("2015"),
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
           policy.PENDING, "unverified")
     decade = {**time("2010"), "precision": 8}
@@ -294,36 +314,42 @@ def main() -> int:
     check("a P39 flagged by its siblings is skipped under that name",
           policy.decide(case(spell_conflict="contested")), policy.SKIPPED, "contested")
 
+    # The era rules sit behind the recency rule and are asked about tenures the
+    # recency rule would take first, so these cases are judged from a day when
+    # those tenures were recent.
+    era = date(1971, 6, 15)
+    later = date(2000, 6, 15)
     print("before the polity existed:")
     check("a tenure that ended before the state was founded is skipped",
-          policy.decide(case(position=office(polity_inception_year=1991),
+          policy.decide(case(today=later, position=office(polity_inception_year=1991),
                              qualifiers={"P580": time("1978"), "P582": time("1980"),
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
           policy.SKIPPED, "tenure_before_polity")
     check("the state's first government, a year before recognition, passes",
-          policy.decide(case(position=office(polity_inception_year=1991),
+          policy.decide(case(today=later, position=office(polity_inception_year=1991),
                              qualifiers={"P580": time("1990"), "P582": time("1992"),
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
           policy.PENDING, "unverified")
 
     print("before anyone was recorded in the office:")
     check("a tenure generations before the first recorded holder is skipped",
-          policy.decide(case(position=office(first_held_year=1995),
+          policy.decide(case(today=era, position=office(first_held_year=1995),
                              qualifiers={"P580": time("1948"), "P582": time("1951"),
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
           policy.SKIPPED, "tenure_before_record")
     check("one inside the margin passes",
-          policy.decide(case(position=office(first_held_year=2008),
+          policy.decide(case(today=later, position=office(first_held_year=2008),
                              qualifiers={"P580": time("1990"), "P582": time("1994"),
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
           policy.PENDING, "unverified")
     check("an office nobody is dated in says nothing",
-          policy.decide(case(position=office(first_held_year=None),
+          policy.decide(case(today=era, position=office(first_held_year=None),
                              qualifiers={"P580": time("1948"), "P582": time("1951"),
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
           policy.PENDING, "unverified")
     check("an office with an inception is the date-conflict tag's business",
-          policy.decide(case(position=office(first_held_year=1995, inception="1900-01-01"),
+          policy.decide(case(today=era,
+                             position=office(first_held_year=1995, inception="1900-01-01"),
                              qualifiers={"P580": time("1948"), "P582": time("1951"),
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
           policy.PENDING, "unverified")

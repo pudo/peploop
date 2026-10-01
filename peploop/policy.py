@@ -48,6 +48,11 @@ P39_MIN_CONFIDENCE = "high"
 #: The coarsest start a tenure may carry and still be written. 9 is a year,
 #: which the reviewer accepted 23 times against 4 refusals; 11 would be a day.
 P39_MIN_START_PRECISION = 9
+#: How many years ago a tenure may have ended and still be written. The loop
+#: records who holds office now; a tenure that ended a generation ago is a
+#: biography, and a start that long ago with no end is more often an end the
+#: article did not give than a career still running.
+P39_MAX_ENDED_YEARS = 20
 #: Tags `positions.tags_for` derives that rule an office out as the value of
 #: a P39: the item is not an office, is a class of office, is another state's
 #: mission to this one, or did not exist when the tenure ran.
@@ -183,6 +188,28 @@ def no_quote(case: Case) -> Disposition | None:
     """A value no article was quoted for has no evidence to verify."""
     if not any(source.get("quote") for source in case.sources):
         return _skip("no_quote")
+    return None
+
+
+def _dated_after(value: dict[str, Any] | None, today: date) -> bool:
+    """Whether a time value names a day, month or year after today.
+
+    A coarse value compares as its first day ("+2027-00-00" sorts after
+    2026-09-30 and "+2026-00-00" before it), which is the right reading: a
+    year that has begun is not in the future.
+    """
+    if not value or not isinstance(value.get("time"), str):
+        return False
+    return value["time"][1:11] > today.isoformat()
+
+
+def future_date(case: Case) -> Disposition | None:
+    """A date after today is a schedule, not a record: a term's planned end, a nominee's start."""
+    today = case.today or date.today()
+    dates = [case.value if case.property in ("P569", "P570") else None,
+             case.tenure("P580"), case.tenure("P582")]
+    if any(_dated_after(value, today) for value in dates):
+        return _skip("future_date")
     return None
 
 
@@ -439,14 +466,14 @@ def resolution_weak(case: Case) -> Disposition | None:
     return None
 
 
-def tenure_out_of_scope(case: Case) -> Disposition | None:
-    """A tenure that ended before anyone alive was born is not exposure."""
+def tenure_ended(case: Case) -> Disposition | None:
+    """A tenure that ended a generation ago is a biography, not who holds office now."""
     if case.property != "P39":
         return None
     latest = _year(case.tenure("P582")) or _year(case.tenure("P580"))
     today = case.today or date.today()
-    if latest is not None and latest < today.year - scope.MAX_AGE_YEARS:
-        return _skip("tenure_out_of_scope")
+    if latest is not None and latest < today.year - P39_MAX_ENDED_YEARS:
+        return _skip("tenure_ended")
     return None
 
 
@@ -554,13 +581,14 @@ RULES: tuple[Rule, ...] = (
     lane_removed,
     extracted_out_of_scope,
     no_quote,
+    future_date,
     # Per property, what the evidence has to be.
     minor_wiki_only,
     contested,
     refine_over_sourced,
     demonym_abroad,
     resolution_weak,
-    tenure_out_of_scope,
+    tenure_ended,
     undated_tenure,
     start_precision,
     office_rejected,

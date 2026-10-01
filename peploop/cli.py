@@ -68,6 +68,10 @@ def _fetch_articles(qid: str, entity: dict[str, Any], force: bool) -> int:
         if lang in fresh:
             continue
         article = wikipedia.fetch_article(lang, title)
+        landed = article["redirect"]
+        if landed and wikipedia.page_item(lang, landed) != qid:
+            click.echo(f"{qid} {lang}:{title} redirects to {landed}, another item; dropped")
+            continue
         text = wikipedia.html_to_text(article["html"])
         db.upsert_article(qid, lang, title, article["rev_id"], article["url"], text)
         count += 1

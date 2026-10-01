@@ -102,6 +102,21 @@ counted, so choose the one that names what is actually wrong.
   of the party": if the edit's item is the generic office and the edit carries
   no qualifier naming the ministry, the committee or the party, the office the
   article names is not on the edit. `wrong-item`.
+- **A scheduled date is not a recorded one.** An infobox filled in before a
+  change of government or the end of a term carries that day as the tenure's
+  end, and it stays there whether or not the person left. An end date that
+  coincides with such a boundary is `supported` only where a sentence says the
+  person left office -- a successor named, "served from X to Y", "until", "left
+  the post"; otherwise `unsupported`. The same holds for a start on that day.
+- **"Incumbent" in an infobox is a date, not a fact.** It says what was true
+  when the box was written. An open tenure is `supported` only where the prose
+  presents the person as holding the office now; an infobox marked incumbent
+  beside a start years old, with prose in the past tense or naming later
+  posts, is `contradicted`.
+- **An election year is not a start, and a career span is not a tenure.**
+  "Elected in 2007, re-elected in 2011" gives no start date and no single
+  tenure; "in the periods 2003-2012" spans several terms of a fixed-term body.
+  A tenure built from either is `unsupported`.
 - **The item's own flags are evidence.** `not-office` means the item declares
   itself an occupation, a rank or an organisation; `abstract` means it is a
   class other offices are instances of; `inbound-diplomatic` means another

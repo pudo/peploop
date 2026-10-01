@@ -372,14 +372,25 @@ def plan_tenure(
     article gives and agrees on the one they share, that endpoint is merged in;
     otherwise nothing is touched, a near miss being nobody's to re-date. A
     statement carrying no dates at all is what the dates are for, and takes
-    them whole. A spell overlapping nothing is a further term, and new.
+    them whole -- unless it carries a term or a district, in which case it is a
+    specific tenure nobody can date-check, and nothing is written (`termed`).
+    A spell overlapping nothing is a further term, and new.
     """
     proposed = propose.span_of({"qualifiers": qualifiers})
     undated = None
+    termed = False
     for claim, _found in matching:
         recorded = propose.span_of(claim)
         if not recorded:
-            undated = undated or claim
+            # An undated statement that still carries qualifiers -- a term, a
+            # district, an ordinal -- is a specific tenure the article's dates
+            # may or may not be about, not a blank to fill: a councillor's
+            # "periods 2003-2012" was measured stretching one term's statement
+            # over three.
+            if claim.get("qualifiers"):
+                termed = True
+            else:
+                undated = undated or claim
             continue
         if not propose.overlaps(proposed, recorded):
             continue
@@ -399,6 +410,8 @@ def plan_tenure(
         refined = dict(undated)
         refined["references"] = [*(undated.get("references") or []), *refs]
         return "refine", _with_qualifiers(refined, qualifiers)
+    if termed:
+        return "termed", None
     return "new", _statement(prop, value, qualifiers, order, refs)
 
 
@@ -474,6 +487,12 @@ def _statement_key(prop: str, statement: dict[str, Any]) -> str:
     ))
 
 
+def _further_term(row: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    """A row's proposal as a statement of its own, beside whatever the item holds."""
+    qualifiers, order = _qualifiers(row)
+    return "new", _statement(row["property"], row["value"], qualifiers, order, references(row))
+
+
 def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) -> Plan:
     """Turn one person's accepted proposals into the edit they imply.
 
@@ -513,6 +532,17 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
             continue
         key = _statement_key(row["property"], statement)
         already = statements.get(key)
+        if already is not None and route == "refine" and _qualifier_fingerprint(
+            already.get("qualifiers")
+        ) != _qualifier_fingerprint(statement.get("qualifiers")):
+            # A second spell landing on the one undated statement a sibling has
+            # just taken: once that edit is in, the statement carries the
+            # sibling's dates and this spell overlaps nothing, so it is a
+            # further term. Folded in as references it would be lost, and
+            # recorded as applied.
+            route, statement = _further_term(row)
+            key = _statement_key(row["property"], statement)
+            already = statements.get(key)
         if already is None:
             statements[key] = statement
             plan.routes[route] += 1

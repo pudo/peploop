@@ -132,6 +132,9 @@ REQUIRED_PHRASES = (
     "Background knowledge may inform, never decide",
     "is exactly what an edit carrying the article's dates sharpens",
     "names a people,\n  not a passport",
+    "A scheduled date is not a recorded one",
+    "is a date, not a fact",
+    "An election year is not a start",
 )
 
 

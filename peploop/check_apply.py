@@ -139,6 +139,35 @@ def main() -> int:
     expect(made[0].get("id"), GUID, "sent back under the id of the statement it sharpens")
     expect(sorted(made[0].get("qualifiers") or {}), ["P580", "P582"], "now carrying the dates")
 
+    print("two spells, and one undated statement to land on:")
+    live = item(claim(OFFICE))
+    rows = [office(quals=span("1998-07-20", "2002-07-19"), id=1),
+            office(quals=span("2002-07-20", "2006-07-19"), id=2)]
+    plan = apply.plan_person(PERSON, live, rows)
+    made = (plan.data or {}).get("claims", [])
+    expect(dict(plan.routes), {"refine": 1, "new": 1},
+           "the first takes the undated statement, the second is a further term")
+    expect([c.get("id") for c in made], [GUID, None], "one sent back under its id, one created")
+    expect([c["qualifiers"]["P580"][0]["datavalue"]["value"]["time"][:5] for c in made],
+           ["+1998", "+2002"], "each carrying its own start, neither lost")
+    expect(len(made[1].get("references") or []), 1,
+           "and the new one carries only its own reference")
+    rows = [office(quals=span("1998-07-20", "2002-07-19"), id=1),
+            office(quals=span("1998-07-20", "2002-07-19"), id=2, source_lang="bb")]
+    plan = apply.plan_person(PERSON, live, rows)
+    expect(dict(plan.routes), {"refine": 1, "merged": 1},
+           "while the same spell from two wikis still merges into one")
+
+    print("an undated statement that carries a term:")
+    term = {"P2937": [{"property": "P2937", "snaktype": "value", "datatype": "wikibase-item",
+                       "datavalue": {"type": "wikibase-entityid",
+                                     "value": {"entity-type": "item", "id": "Q0000077"}}}]}
+    live = item(claim(OFFICE, qualifiers=term))
+    plan = apply.plan_person(PERSON, live, [office(quals=span("2003-01-01", "2012-12-31"))])
+    expect(dict(plan.routes), {"termed": 1},
+           "is a specific tenure, not a blank: nothing is written")
+    expect(plan.data, {}, "and nothing is sent")
+
     print("a tenure the item already dates:")
     live = item(claim(OFFICE, {"P580": day("1997-02-01")}))
     plan = apply.plan_person(PERSON, live, [office(quals=span("1999-01-01", "2000-06-30"))])

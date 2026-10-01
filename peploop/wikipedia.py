@@ -10,7 +10,7 @@ import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, NamedTuple
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 import yaml
 from lxml import html as lxml_html
@@ -135,7 +135,39 @@ def fetch_article(lang: str, title: str) -> dict[str, Any]:
         "url": PAGE_URL.format(lang=lang, title=path),
         "rev_id": _revision(res.headers.get("etag"), res.text),
         "html": res.text,
+        "redirect": _landed_elsewhere(title, res.text),
     }
+
+
+def page_item(lang: str, title: str) -> str | None:
+    """The Wikidata item a page is linked to, or None when it has none."""
+    raw = http.get_text(
+        f"https://{lang}.wikipedia.org/w/api.php",
+        params={"action": "query", "prop": "pageprops", "ppprop": "wikibase_item",
+                "titles": title, "redirects": "1", "format": "json"},
+    )
+    for page in json.loads(raw).get("query", {}).get("pages", {}).values():
+        return page.get("pageprops", {}).get("wikibase_item")
+    return None
+
+
+def _landed_elsewhere(title: str, body: str) -> str | None:
+    """The page the response is a version of, when it is not the one asked for.
+
+    The REST endpoint follows a redirect whatever it is asked, so a sitelink
+    that has become one comes back as some other page. Most such pages are the
+    same person under a moved title; the one that matters was a politician's
+    title redirected to his wife's biography, stored and read as his. The body
+    names the page it belongs to (`dc:isVersionOf`); the caller asks whose item
+    that page is.
+    """
+    root = lxml_html.fromstring(body)
+    for link in root.iter("link"):
+        if link.get("rel") == "dc:isVersionOf":
+            landed = unquote((link.get("href") or "").rsplit("/wiki/", 1)[-1]).replace("_", " ")
+            if landed.casefold() != title.replace("_", " ").casefold():
+                return landed
+    return None
 
 
 def _revision(etag: str | None, body: str) -> int | None:

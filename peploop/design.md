@@ -92,7 +92,11 @@ For one QID:
   not by age. See *Caching and invalidation* below.
 - **Wikipedia articles**: every sitelink, fetched as Parsoid HTML from the
   REST API (`/page/html/{title}`), which is stable markup with the infobox and
-  section structure intact. Reduced to plain text by a small function that
+  section structure intact. The endpoint follows redirects, so a sitelink
+  that has become one comes back as another page; when that page belongs to
+  another item it is dropped (a politician's title measured redirecting to
+  his wife's biography), and when it is the same person under a moved title
+  it is kept. Reduced to plain text by a small function that
   keeps the infobox as `key: value` lines, keeps headings, drops navboxes,
   references, tables of succession, and hatnotes. Cached in `article` with the
   revision id, which comes from the response's `etag`
@@ -383,12 +387,15 @@ rule, and only `supported` at better than low confidence passes it.
 What the rules say, in order: labels and aliases are never written (13 of the
 19 reviewed were titles or fragments); the dates the *extraction* found set a
 person aside the item's own dates could not; a value nobody quoted has nothing
-to verify. A birth or death date attested by one wiki outside the person's own
+to verify; a date after today is a schedule, not a record (a term's planned
+end, a nominee's start), and the verifier passed two of those before the rule
+existed. A birth or death date attested by one wiki outside the person's own
 languages is skipped, and so is a refinement over a statement somebody other
 than a Wikipedia import referenced. A citizenship from a demonym passes only
 when it names the run's own state. A `P39` passes only on a `same-office`
 verdict at `high` confidence, with a start at year precision or finer, on a
-tenure that ended within a lifetime, on an office the ranking tags neither
+tenure that ended within a generation (`P39_MAX_ENDED_YEARS`; the loop records
+who holds office now), on an office the ranking tags neither
 `not-office`, `abstract`, `inbound-diplomatic`, `date-conflict` nor
 `foreign-scoped` (an outbound `diplomatic` posting excepted), and not on a
 generic item its community uses *with* a scoping qualifier this pipeline does
@@ -693,6 +700,7 @@ staying shallow across many categories.
 ```
 peploop/
   design.md
+  countries.md             how a country is run, and the ones that have been
   bigpicture.md
   positions.md             round 2: the position resolver, as built
   positions_discarded.md   round 2: measured and rejected, read before changing
