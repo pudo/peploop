@@ -282,6 +282,23 @@ people), `4e234c5722` (four people retried after a query-service lag). Eleven
 accepted rows closed at the pre-flight: 8 `apply:termed`, 3 `apply:conflict`.
 No written statement absorbed two spells. Cost, all stages: about $90.
 
+Colombia was the second country through the mint stage (2026-10-02), without
+a census: 2,169 unplaced groups, 440 with no current holder near them, 990
+candidates from 22 Sonnet requests. Two created -- Justice of the
+Constitutional Court `Q141621249` and its President `Q141621254`, the seats
+the reconciler had refused as `body-not-seat` against the court -- and 23
+found already on Wikidata, which put 10 more mentions on an office. Skipped
+mostly for no archetype (350: vice-ministers, directors), one holder (266:
+no census, so a one-seat office needs two) and ambassadorships (93). Three
+mayoralties had been guarded scoped to the state or the department their
+town sits in, because categorize is offered no municipalities; an archetype
+now names the level it governs and the guard checks it, so mayors wait for a
+municipality resolver. Aliases no longer take an acting holder's or a
+co-judge's title. Mint cost $8.44. The rerun of the person stages wrote
+**44 statements** (43 `P39`, 35 of them on the two court items, and 1 `P569`)
+in EditGroups batches `c1a4c231ae`, `080763000f` and `97f567b202`; verify
+passed 45 of 134, refusing 46 as already on the record.
+
 **Cuba** (`seeds/cu.yml`, `census/cu.yml`, measured 2026-09-30, written
 2026-10-01). The first country run with the mint stage, because most of what
 it needs has no item. Also the first
