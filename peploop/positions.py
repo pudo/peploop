@@ -778,6 +778,8 @@ NON_SCOPING_QUALIFIERS = frozenset((
     "P2097",  # term length
     "P748",   # appointed by
     "P4100",  # parliamentary group — a fact about the holder, not the seat
+    "P2937",  # parliamentary term — which term of the seat, not which seat
+    "P1545",  # series ordinal — the holder's place in the line
 ))
 
 #: Ambassadorship, reached through `type_closure` and never through a
@@ -921,6 +923,20 @@ def fill_local_holders(
     return len(qids)
 
 
+def modal_scope_qualifiers(entities: Iterable[dict[str, Any]]) -> dict[str, str]:
+    """The modal scoping qualifier of every office these people's `P39`s name."""
+    tally: dict[str, Counter] = defaultdict(Counter)
+    for blob in entities:
+        for claim in blob.get("claims", {}).get("P39", []):
+            value = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
+            if not isinstance(value, dict) or "id" not in value:
+                continue
+            for prop in claim.get("qualifiers", {}):
+                if prop not in NON_SCOPING_QUALIFIERS:
+                    tally[value["id"]][prop] += 1
+    return {qid: counts.most_common(1)[0][0] for qid, counts in tally.items()}
+
+
 def fill_scope_qualifiers(log: Any = lambda _m: None) -> dict[str, str]:
     """Record the qualifier property the corpus uses to make an office concrete.
 
@@ -931,17 +947,8 @@ def fill_scope_qualifiers(log: Any = lambda _m: None) -> dict[str, str]:
     Modal rather than majority — a property that occurs once on one statement
     is still the only scoping property anybody used.
     """
-    tally: dict[str, Counter] = defaultdict(Counter)
     rows = db.conn().execute("SELECT json FROM item")
-    for (blob,) in rows:
-        for claim in blob.get("claims", {}).get("P39", []):
-            value = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
-            if not isinstance(value, dict) or "id" not in value:
-                continue
-            for prop in claim.get("qualifiers", {}):
-                if prop not in NON_SCOPING_QUALIFIERS:
-                    tally[value["id"]][prop] += 1
-    modal = {qid: counts.most_common(1)[0][0] for qid, counts in tally.items()}
+    modal = modal_scope_qualifiers(blob for (blob,) in rows)
     # Cleared first, because this is a re-derivation and not an increment: a
     # value the previous pass wrote from a rule this one no longer applies
     # would otherwise survive as the answer to a question nobody asks any more.

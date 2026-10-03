@@ -16,7 +16,7 @@ import sys
 from datetime import date
 from typing import Any
 
-from peploop import offices, policy, propose
+from peploop import offices, policy, positions, propose
 
 OFFICE = "Q0000001"
 STATE = "Q0000003"
@@ -284,6 +284,13 @@ def main() -> int:
     check("a term qualifier is not a scoping one",
           policy.decide(case(position=office(scope_qualifier="P2937"))),
           policy.PENDING, "unverified")
+    seat = {"mainsnak": {"datavalue": {"value": {"id": OFFICE}}}}
+    terms = [{"claims": {"P39": [{**seat, "qualifiers": {"P2937": [], "P1545": [], "P580": []}}]}},
+             {"claims": {"P39": [{**seat, "qualifiers": {"P2937": [], "P642": []}}]}}]
+    modal = positions.modal_scope_qualifiers(terms)
+    failures += 0 if modal == {OFFICE: "P642"} else 1
+    print(f"  {'ok  ' if modal == {OFFICE: 'P642'} else 'FAIL'} a seat's term and ordinal never"
+          f" stand in for the qualifier that scopes it {modal}")
 
     print("several spells of one office:")
     closed = {"P580": time("1992"), "P582": time("1996"), "_sources": [1, 2]}
