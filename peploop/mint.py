@@ -1632,10 +1632,29 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
     deduplicated, the most-held first, at most `ALIASES_PER_LANG` a language,
     never one of the labels, never a bare seat word ("Governor"), which
     names every office of its kind and would make a live search find them all,
-    and never a title that marks another seat (`NOT_THE_SEAT`).
+    and never a title that marks another seat (`NOT_THE_SEAT`), nor one written
+    in another language than the article's: a title whose words all sit in
+    another language's label and not in its own language's label.
     """
     taken = {_fold(text) for text in labels.values()}
     drop = offices.ROLE_STEMS | state_stems(state_names)
+    state = state_stems(state_names)
+
+    def words(text: str) -> set[str]:
+        # Whole words, not stems: "secretary" and "secrétaire" share a stem,
+        # and with the role words dropped an acronym is all a title has left.
+        return {t for t in positions.tokens(text) if t[: positions.PREFIX] not in state}
+
+    label_words = {lang: words(text) for lang, text in labels.items()}
+
+    def misfiled(title: str, lang: str) -> bool:
+        # An article quoting a title in another language is attested in its
+        # own: the English "Secretary-General of X" from a French article.
+        mine = words(title)
+        if not mine or mine <= label_words.get(lang, set()):
+            return False
+        return any(mine <= other for other_lang, other in label_words.items() if other_lang != lang)
+
     people: dict[tuple[str, str], set[str]] = {}
     written: dict[tuple[str, str], str] = {}
     for a in attestations:
@@ -1645,6 +1664,8 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
         if not folded or folded in taken or offices.QID.search(a.title):
             continue
         if not _stems(a.title, drop) or NOT_THE_SEAT.search(folded):
+            continue
+        if misfiled(a.title, a.lang):
             continue
         key = (a.lang, folded)
         written.setdefault(key, _SPACE.sub(" ", a.title).strip())

@@ -264,6 +264,19 @@ def check_build_spec(expect: Any) -> None:
     expect(other.get("en") == ["Magistrate of the Constitutional Court"],
            "a title that names another seat (a co-judge, an acting holder) is never an alias")
     expect(spec.aliases.get("en") == ["Minister of Health"], "aliases are kept per language")
+    quoted = mint.attested_aliases(
+        [mint.Attestation(person="Q1", title="Secretary-General of the Unity Party", lang="fr", current=True),
+         mint.Attestation(person="Q2", title="secrétaire général du Parti de l'Unité", lang="fr", current=True),
+         mint.Attestation(person="Q3", title="Secretary General of the Unity Party", lang="en", current=True),
+         mint.Attestation(person="Q4", title="Katibu Mkuu wa Unity Party", lang="sw", current=True)],
+        {"en": "General Secretary of the Unity Party", "fr": "secrétaire général du Parti de l'Unité, Alvania"},
+        ["Alvania"])
+    expect("Secretary-General of the Unity Party" not in quoted.get("fr", []),
+           f"an English title quoted in a French article is not a French alias: {quoted}")
+    expect(quoted.get("fr") == ["secrétaire général du Parti de l'Unité"]
+           and quoted.get("en") == ["Secretary General of the Unity Party"]
+           and quoted.get("sw") == ["Katibu Mkuu wa Unity Party"],
+           f"while a same-language variant, and a language with no label, keep theirs: {quoted}")
     expect(spec.parent == SIB_PARENT and spec.metaclass == "Q294414",
            f"the parent and metaclass are the siblings': {spec.parent} {spec.metaclass}")
     expect(spec.jurisdiction_qid == STATE, "a null jurisdiction on a scoped seat is the state")
