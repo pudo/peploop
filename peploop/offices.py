@@ -48,8 +48,7 @@ class Archetype:
     #: English description; `{body}`, `{jurisdiction}` and `{state}` are filled
     #: from resolved labels by `describe`.
     description: str = "public office in {jurisdiction}"
-    #: One holder at a time, so one current holder plus an official source can
-    #: stand in for the two-person floor.
+    #: One holder at a time: what verify is told the seat is.
     single_seat: bool = False
     #: Whether `P1001` is written. An office governs a polity; a company's
     #: chair does not.
@@ -81,8 +80,6 @@ ARCHETYPES: dict[str, Archetype] = {
     # existing municipal items subclass.
     "mayor": Archetype("Q30185", description="mayor of {jurisdiction}", single_seat=True,
                        level="municipality"),
-    # One person heads an agency at a time, so a census entry is a second
-    # channel for it like for any other one-seat office.
     "agency_head": Archetype("Q1162163", description="head of the {body}", single_seat=True,
                              unbodied="head of a public body of {jurisdiction}"),
     # The presiding officer of a chamber: 84 of 96 speakerships measured use
@@ -506,7 +503,7 @@ def distinct_holders(rows: Iterable[dict[str, Any]], key: str = "person") -> int
     """How many different people some attestations name.
 
     The floor counts people, not rows: one minister mentioned in three articles
-    is one holder, and three rows would clear a floor of two.
+    is one holder, and a row naming nobody is none.
     """
     return len({row[key] for row in rows if row.get(key)})
 
@@ -535,7 +532,6 @@ def guard(
     *,
     holders: int,
     current_holders: int,
-    single_seat_source_ok: bool,
     duplicates: Sequence[Found],
     run_labels: Iterable[str],
     body: dict[str, Any] | None,
@@ -579,9 +575,7 @@ def guard(
         if QID.search(text):
             problems.append(f"qid-in-{kind}/{lang}")
 
-    single = spec.archetype in ARCHETYPES and spec.shape.single_seat
-    floor = 1 if single and single_seat_source_ok else 2
-    if holders < floor:
+    if holders < 1:
         problems.append(f"holders/{holders}")
     if current_holders < 1:
         problems.append(f"current/{current_holders}")

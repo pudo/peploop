@@ -23,7 +23,7 @@ from psycopg.types.json import Jsonb
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory
 
-from peploop import db, http, offices, positions, reconcile, scope, wikidata
+from peploop import db, offices, positions, reconcile, scope, wikidata
 from peploop import verify as person_verify
 from peploop.offices import ARCHETYPES, distinct_holders
 
@@ -216,9 +216,6 @@ class Group:
 
     key: str
     rows: list[Row]
-    #: Not a property of a written title; set on census anchors and drafts.
-    single_seat: bool = False
-    source_url: str | None = None
     origin: tuple[str, ...] = ("reconcile",)
 
     @property
@@ -381,8 +378,6 @@ class Attested(Protocol):
     """What the floor reads: a group, or a candidate built from one."""
 
     rows: Sequence[Row]
-    single_seat: bool
-    source_url: str | None
     origin: Sequence[str]
 
 
@@ -390,21 +385,19 @@ def floor(candidate: Attested) -> str | None:
     """The rule that keeps an office from being asked about, or None.
 
     Applied before any tokens are spent, and neither model can override it:
-    two distinct people and at least one current holder, or for a seat held by
-    one person at a time, one current holder plus a second channel that says
-    the office exists: an official source, or the census, which is curated
-    from measurement before any article is read. Asking a one-seat office for
-    two people measures whether its predecessor was seeded, not whether it
-    exists. A census anchor nobody's article attests is refused first, under
-    its own rule, so the funnel shows how much of the census the seeds reached.
+    one distinct person attested, and a current holder among them. One holder
+    is enough for any office, because the offices PEP screening needs most --
+    a party's leadership, a state company's head, an agency's director -- are
+    exactly the ones whose predecessors nobody seeded; verify and the guard
+    are the gate on whether the office is real. A census anchor nobody's
+    article attests is refused under its own rule, so the funnel shows how
+    much of the census the seeds reached.
     """
     rows = list(candidate.rows)
-    census = "census" in candidate.origin
-    if census and not rows:
+    if "census" in candidate.origin and not rows:
         return "census/unattested"
     people = distinct_holders({"person": r.person} for r in rows)
-    needed = 1 if candidate.single_seat and (candidate.source_url or census) else 2
-    if people < needed:
+    if people < 1:
         return f"holders/{people}"
     if not any(r.current for r in rows):
         return "not-current"
@@ -417,8 +410,8 @@ def floor(candidate: Attested) -> str | None:
 # is often many spellings: a gendered form, the same title in two languages,
 # with and without its place. Categorize clusters them into offices, says what
 # kind of thing each one is, and drafts the item it would be. It sees every
-# group, including those one person attests, because the floor counts people
-# across the pieces of an office and a piece alone always looks too thin.
+# group, including those one person attests, because the floor reads a current
+# holder across the pieces of an office and a piece alone may have none.
 
 CATEGORIZE_PROMPT = Path(__file__).resolve().parent / "prompts" / "mint_categorize.md"
 
@@ -1479,7 +1472,6 @@ class Context:
         labels_of: Callable[[Iterable[str]], dict[str, str]] | None = None,
         resolve: Callable[[Iterable[str]], dict[str, dict[str, Any]]] | None = None,
         run_labels: Callable[[Candidate], list[str]] | None = None,
-        source_ok: Callable[[str], bool] | None = None,
         lookup: Callable[[str, str, str], list[offices.Found]] | None = None,
         items: Callable[[Sequence[str]], dict[str, dict[str, Any]]] | None = None,
         subdivisions: Sequence[str] | None = None,
@@ -1498,7 +1490,6 @@ class Context:
         self._labels_of = labels_of or _labels
         self.resolve = resolve or offices.resolve
         self._run_labels = run_labels or _run_labels
-        self._source_ok = source_ok or _source_live
         self.lookup = lookup or offices.live_lookup
         self._items = items or (lambda qids: wikidata.fetch_items(qids, props="labels|descriptions"))
         self._subdivisions = list(subdivisions) if subdivisions is not None else None
@@ -1509,7 +1500,6 @@ class Context:
         #: Every type an item reaches through `P31`/`P279`, itself included.
         self.types = types or (lambda qid: positions.type_closure([qid]).get(qid, set()))
         self._labels: dict[str, str] = {}
-        self._sources: dict[str, bool] = {}
 
     @property
     def subdivisions(self) -> list[str]:
@@ -1597,21 +1587,6 @@ class Context:
 
     def run_labels(self, cand: Candidate) -> list[str]:
         return self._run_labels(cand)
-
-    def source_ok(self, url: str | None) -> bool:
-        if not url:
-            return False
-        if url not in self._sources:
-            self._sources[url] = self._source_ok(url)
-        return self._sources[url]
-
-
-def _source_live(url: str) -> bool:
-    """Does an official source still answer? A GET returning 200, read live."""
-    try:
-        return http.get(url).status_code == 200
-    except Exception:  # noqa: BLE001 -- any failure is a source not checked
-        return False
 
 
 def _run_labels(cand: Candidate) -> list[str]:
@@ -2215,7 +2190,7 @@ RULES: tuple[Rule, ...] = (
     categorize_exists,   # 4. categorize named the item it is: only an office
                          #    of this state and not a class; else fall through
     no_archetype,        # 5. no fixed shape to build
-    below_floor,         # 6. two people and one current, or one plus a source
+    below_floor,         # 6. one attested holder, and a current one
     # Decided on the live search and the model, in that order: a duplicate
     # beats any verdict, and an item the verifier names is taken as found.
     live_duplicate,      # 7. a live item of this state already has the name
@@ -2287,9 +2262,6 @@ def guard_reasons(cand: Candidate, spec: offices.Spec, ctx: Context,
         spec,
         holders=cand.holders,
         current_holders=cand.current_holders,
-        # The census is the second channel for a one-seat office as much as a
-        # checked source is; `floor` reads it the same way.
-        single_seat_source_ok="census" in cand.origin or ctx.source_ok(cand.source_url),
         duplicates=found,
         run_labels=ctx.run_labels(cand),
         body=records.get(spec.body_qid) if spec.body_qid else None,
@@ -2346,8 +2318,7 @@ def load_candidates_by_id(ids: Sequence[int]) -> list[Candidate]:
 
 
 def record_disposition(cand: Candidate, status: str, rule: str, *, spec: offices.Spec | None,
-                       problems: Sequence[str], verdict: MintVerdict | None, qid: str | None,
-                       source_checked: bool = False) -> bool:
+                       problems: Sequence[str], verdict: MintVerdict | None, qid: str | None) -> bool:
     """Write one decision onto its candidate. False when the row moved on meanwhile."""
     if status not in DISPOSITION_STATUSES:
         raise ValueError(f"not a disposition: {status}")
@@ -2355,14 +2326,13 @@ def record_disposition(cand: Candidate, status: str, rule: str, *, spec: offices
     row = db.conn().execute(
         "UPDATE office_candidate SET status = %s, rule = %s, problems = %s, spec = %s, data = %s,"
         " corrections = %s, verify_call = %s, qid = %s,"
-        " source_checked_at = CASE WHEN %s THEN now() ELSE source_checked_at END,"
         " updated_at = now() WHERE id = %s AND status = ANY(%s) AND decided_by IS NULL"
         " RETURNING id",
         (status, rule, kept + list(problems),
          Jsonb(asdict(spec)) if spec is not None else None,
          Jsonb(offices.entity_data(spec)) if spec is not None else None,
          Jsonb(verdict.corrections) if verdict is not None else None,
-         verdict.call if verdict is not None else None, qid, source_checked,
+         verdict.call if verdict is not None else None, qid,
          cand.id, list(VERIFIABLE)),
     ).fetchone()
     return row is not None
@@ -2497,8 +2467,7 @@ def verify(
         written += [f"verify:{p}" for p in (verdict.problems if verdict else [])]
         written += [f"guard:{r}" for r in reasons]
         if record_disposition(cand, status, rule, spec=spec, problems=written, verdict=verdict,
-                              qid=qid, source_checked=ctx.source_ok(cand.source_url)
-                              if cand.source_url and early is None else False):
+                              qid=qid):
             stats["funnel"][(status, rule)] += 1
             decided[cand.id] = {"status": status, "rule": rule, "qid": qid, "spec": spec,
                                 "verdict": verdict, "problems": written}

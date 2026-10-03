@@ -146,13 +146,13 @@ reconciler's refusals and its output is items those refusals can now land on.
 Write `census/<cc>.yml` before `mint-categorize`: the offices the country has
 whether or not a seeded article named them, by institution class of
 `recipes/institutions.md`, each with its body QID and, optionally, an
-official source -- only one that has been checked. A one-seat office in the
-census passes on one current holder, so an entry is a claim that the office
-exists and is written only from measurement. Its bodies come from
-measurement (`research/position_items.md` §10 is the template), never from
-memory; `census/cu.yml` is the first. A census entry nobody's article attests
-is skipped, so the file says what must exist and the seeds still decide what
-gets made. `mint --write` feeds each item as soon as it is created, so
+official source. An entry is a prompt for the offices nobody's article names
+-- it puts the anchor and its body in front of categorize -- and not a second
+channel of evidence: every office passes on one current holder, census or
+not. Its bodies come from measurement (`research/position_items.md` §10 is
+the template), never from memory; `census/cu.yml` is the first. A census
+entry nobody's article attests is skipped, so the file says what must exist
+and the seeds still decide what gets made. `mint --write` feeds each item as soon as it is created, so
 `mint-feed` is not a step of the normal run: it is the re-run and the repair,
 for a feed a crash or a propose failure cut short, and for the rows
 `mint-verify` decided `found` -- an item that already existed -- which `mint`

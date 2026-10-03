@@ -141,8 +141,8 @@ def check_floor(expect: Any) -> None:
     cluster = mint.merge([(drafted, 1)], [])[mint.candidate_ref(drafted)]
     expect((cluster.holders, cluster.current_holders) == (2, 1),
            "a merged candidate counts distinct people across its groups")
-    expect(mint.floor(a) == "holders/1" and mint.floor(cluster) is None,
-           "groups of one person each clear the floor once clustered")
+    expect(mint.floor(b) == "not-current" and mint.floor(cluster) is None,
+           "a piece with no current holder clears the floor once clustered with one that has")
     anchor = Anchor("court", "judiciary.apex", "court_president", {"en": "President of the Court"})
     clusters = mint.merge([], [anchor])
     expect(mint.floor(clusters["court"]) == "census/unattested",

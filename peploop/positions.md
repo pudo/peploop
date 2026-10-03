@@ -322,9 +322,9 @@ have somewhere to go.
   folded title and jurisdiction; `census/<cc>.yml` adds the offices the state
   has whether or not anyone's article named them, expanded per subdivision
   over a live `P150` read where an office exists in each. A census office is
-  a prompt, not evidence: one no mention attests is skipped as
-  `census/unattested`, so the funnel says how much of the census the seeds
-  reached.
+  a prompt for the offices nobody's article names, not a second channel of
+  evidence: one no mention attests is skipped as `census/unattested`, so the
+  funnel says how much of the census the seeds reached.
 - **Current is read conservatively.** An acting tenure or a dead holder never
   counts, an end counts only while its earliest reading is still ahead, an
   open tenure only if it began within twelve years, an undated one never.
@@ -335,11 +335,12 @@ have somewhere to go.
 - **The floor runs after clustering.** One office is many spellings -- a
   gendered form, the same title in two languages, with and without its place
   -- so categorize sees every surviving group, single-person ones included, and
-  the floor counts *distinct people* across the pieces it merged: two, and at
-  least one current; or, for a one-seat office, one current holder and a
-  second channel -- its census entry, or an official source that answers
-  live. Three mentions of one minister are one holder. Neither model can
-  override it.
+  the floor reads the pieces it merged together: one distinct person attested,
+  and a current holder among them, for every office. A floor of two people
+  (or one plus the census or a source, for a one-seat office) removed the
+  party, state-company and agency heads screening needs most, so it went;
+  verify and the guard are the gate on whether an office is real. Neither
+  model can override the floor.
 - **Two models and a veto.** Categorize (`prompts/mint_categorize.md`, the
   reconciler's model) clusters the groups into offices in chunks ordered so
   the pieces of one office share a request, gives each an institution class
@@ -353,7 +354,7 @@ have somewhere to go.
   from a closed set (`mint`, `exists`, `not-an-office`, `not-current`,
   `not-distinct`, `generic-convention`, `unclear`) and agrees with the shape or
   corrects it. Then `offices.guard` vetoes mechanically: labels in the state's
-  languages, no QID in any text, the floor again, a live duplicate search per
+  languages, no QID in any text, a current holder, a live duplicate search per
   label and alias and against the run's own candidates, a body that resolves,
   is not a position and shares a content word with the office, a jurisdiction
   inside the state, the shape, no bilateral post. The shape itself is fixed per

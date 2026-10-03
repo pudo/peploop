@@ -72,7 +72,7 @@ def governor(**over: Any) -> Spec:
 def guard(spec: Spec, **over: Any) -> list[str]:
     """The guard with every input clean, so a case changes only what it tests."""
     args: dict[str, Any] = dict(
-        holders=2, current_holders=1, single_seat_source_ok=False, duplicates=(),
+        holders=2, current_holders=1, duplicates=(),
         run_labels=(), body=COURT if spec.body_qid else None,
         jurisdiction=BRAY if spec.jurisdiction_qid else None, closure=CLOSURE,
         state_names=(LABELS[STATE],),
@@ -130,18 +130,17 @@ def main() -> int:
     current = offices.distinct_holders(r for r in rows if r["current"])
     expect(held, 1, "three mentions of one person are one holder")
     expect(guard(judge(archetype="minister", body_qid=None), holders=held, current_holders=current),
-           ["holders/1"], "and one holder fails the floor of a many-seat office")
+           [], "and one current holder clears the floor of any office")
+    expect(guard(judge(), holders=0, current_holders=0), ["holders/0", "current/0"],
+           "an office nobody is attested to hold is refused")
     two = rows + [{"person": "Q8", "current": False}, {"person": None, "current": True}]
     expect(offices.distinct_holders(two), 2, "a second person counts, a row naming nobody does not")
     expect(guard(judge(), current_holders=0), ["current/0"], "an office nobody holds now is refused")
 
-    print("a one-seat office:")
-    expect(guard(governor(), holders=1, single_seat_source_ok=True), [],
-           "passes on its one current holder plus an official source")
-    expect(guard(governor(), holders=1), ["holders/1"], "and fails on the holder alone")
+    print("one holder, whatever the seat:")
+    expect(guard(governor(), holders=1), [], "a one-seat office passes on its one current holder")
     expect(guard(judge(archetype="legislator", descriptions={"en": "member of Supreme Tribunal of Aland"}),
-                 holders=1, single_seat_source_ok=True),
-           ["holders/1"], "a source does not lower the floor of a many-seat office")
+                 holders=1), [], "and so does a seat of many: no second channel is asked for")
 
     print("text that leaks an identifier:")
     expect(guard(judge(descriptions={"en": f"president of {BODY}"})), ["qid-in-description/en"],
@@ -222,11 +221,11 @@ def main() -> int:
            "with no siblings to measure, every state language is required")
 
     print("one-seat archetypes:")
-    expect(guard(judge(archetype="agency_head"), holders=1, single_seat_source_ok=True), [],
-           "an agency has one head at a time, so the census can stand in for a second holder")
+    expect(guard(judge(archetype="agency_head"), holders=1), [],
+           "an agency's head passes on one current holder")
     expect(guard(judge(archetype="speaker", labels={"en": "President of the Senate of Aland"},
                        descriptions={"en": "presiding officer of the Senate"}),
-                 holders=1, single_seat_source_ok=True,
+                 holders=1,
                  body=entity(BODY, "Senate of Aland", p31="Q43229", p17=STATE)), [],
            "as does a chamber's speaker")
     data = offices.entity_data(judge(archetype="speaker"))

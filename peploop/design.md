@@ -295,16 +295,16 @@ loop, because a creation is the one write that cannot be taken back by
 editing: undoing it needs a deletion or a merge. `positions.md` (the creation
 queue) has the mechanics; the decisions are these.
 
-- **The evidence bar is people, not rows.** An office is minted only on two
-  distinct attested holders, at least one of them current; an office held by
-  one person at a time passes on one current holder plus a second channel
-  saying the office exists -- its census entry (`census/<cc>.yml`, curated
-  from measurement before any article is read), or an official source that
-  answers when read. Asking a one-seat office for two people measures whether
-  its predecessor was seeded, not whether it exists. A census entry never
-  stands in for the holder itself, and a seat of many always needs two. The
-  floor is applied in code before a model is asked, and neither model can
-  lower it.
+- **The evidence bar is one current holder.** An office is minted on one
+  distinct attested person who holds it now, whatever the seat. An earlier bar
+  asked for two people, or one plus a census entry or an official source, and
+  it worked as a noise filter that also removed the offices PEP screening
+  needs most: a party's leadership, a state company's head, an agency's
+  director, whose predecessors nobody seeded. Whether the office is real and
+  missing is what the verifier and the guard decide; the floor only says that
+  somebody holds it now. A census entry is a prompt for offices nobody's
+  article names, not evidence: one no mention attests is skipped. The floor
+  is applied in code before a model is asked, and neither model can lower it.
 - **The shape is fixed, not drafted.** Each kind of office is an archetype in
   `offices.py` -- its `P279` parent, how it names its body, whether it is
   scoped, whether it is one seat -- with the parents measured across other

@@ -67,7 +67,7 @@ def ctx(**kw: Any) -> Context:
         index=[PositionRow("Q950", "Minister of Finance of Alvania", ["minister of Alvania"])],
         labels_of=lambda qids: {q: LABELS[q] for q in qids if q in LABELS},
         resolve=lambda qids: {q: BODY_ITEM for q in qids if q == BODY},
-        run_labels=lambda _cand: [], source_ok=lambda _url: True,
+        run_labels=lambda _cand: [],
         lookup=lambda _text, _lang, _state: [], items=lambda _qids: {},
         subdivisions=["Q901"],
         anchors=[mint.Anchor("gov/Q901", "subnational.executive", "governor",
@@ -134,8 +134,11 @@ def check_rules(expect: Any) -> None:
          ("skipped", "diplomatic/deferred")),
         ("5 no archetype", cand(draft={"archetype": None}), verdict(), [], None,
          ("skipped", "archetype/none")),
-        ("6 one person", cand(attestations=[att("Q1", True), att("Q1", True)]), verdict(), [], None,
-         ("skipped", "holders/1")),
+        ("6 nobody attested", cand(attestations=[]), verdict(), [], None,
+         ("skipped", "holders/0")),
+        ("12 one current person clears rule 6 and is decided by the model",
+         cand(attestations=[att("Q1", True), att("Q1", True)]), verdict(), [], None,
+         ("guarded", "mint:agreed")),
         ("6 nobody current", cand(attestations=[att("Q1"), att("Q2")]), verdict(), [], None,
          ("skipped", "not-current")),
         ("7 a live duplicate beats a mint verdict", cand(), verdict(), ["duplicate/Q960"], "Q960",
@@ -215,7 +218,7 @@ def check_offices_fixes(expect: Any) -> None:
     spec, _p = mint.build_spec(cand(draft={"body_qid": COUNCIL}), ctx())
     council = {"id": COUNCIL, "labels": {"en": {"language": "en", "value": "Council of Ministers"}},
                "claims": {"P17": _claim("P17", STATE)}}
-    common = dict(holders=2, current_holders=1, single_seat_source_ok=False, duplicates=[],
+    common = dict(holders=2, current_holders=1, duplicates=[],
                   run_labels=[], body=council, jurisdiction=None, closure={SIB_PARENT},
                   langs=["es"], state_names=["Alvania"])
     bare = offices.guard(spec, **common)
