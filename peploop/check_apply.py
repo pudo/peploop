@@ -173,6 +173,13 @@ def main() -> int:
     expect(dict(plan.routes), {"termed": 1},
            "is a specific tenure, not a blank: nothing is written")
     expect(plan.data, {}, "and nothing is sent")
+    apply._TERM_SPANS["Q0000077"] = {"P580": day("2020-08-19"), "P582": day("2025-03-18")}
+    plan = apply.plan_person(PERSON, live, [office(quals={"P580": day("2025-04-28")})])
+    expect(dict(plan.routes), {"new": 1},
+           "but a spell outside the term the statement names is a further term, written new")
+    plan = apply.plan_person(PERSON, live, [office(quals=span("2021-01-01", "2024-12-31"))])
+    expect(dict(plan.routes), {"termed": 1}, "while one inside that term stays termed")
+    apply._TERM_SPANS.clear()
 
     print("a tenure the item already dates:")
     live = item(claim(OFFICE, {"P580": day("1997-02-01")}))

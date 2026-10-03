@@ -358,6 +358,53 @@ def _statement(
     return statement
 
 
+#: What a term item (a legislature's convocation) spans, by QID: its own
+#: start and end, read live once per run. Replaced in checks.
+_TERM_SPANS: dict[str, dict[str, dict[str, Any]]] = {}
+
+
+def term_span(qid: str) -> dict[str, dict[str, Any]]:
+    """The span of a term item, from its P580/P582 or else its P571/P576."""
+    if qid not in _TERM_SPANS:
+        entity = wikidata.fetch_items([qid], props="claims").get(qid) or {}
+        span: dict[str, dict[str, Any]] = {}
+        for into, props in (("P580", ("P580", "P571")), ("P582", ("P582", "P576"))):
+            for prop in props:
+                found = wikidata.claim_time(entity, prop, include_deprecated=False)
+                if found:
+                    time_, precision = found[0]
+                    span[into] = {"time": time_, "precision": precision}
+                    break
+        if "P582" not in span:
+            # A convocation often records no end of its own, only its
+            # successor, whose start is that end.
+            for prop in ("P156", "P1366"):
+                nxt = next(iter(wikidata.claim_qids(entity, prop, include_deprecated=False)), None)
+                if nxt:
+                    successor = wikidata.fetch_items([nxt], props="claims").get(nxt) or {}
+                    found = (wikidata.claim_time(successor, "P580", include_deprecated=False)
+                             or wikidata.claim_time(successor, "P571", include_deprecated=False))
+                    if found:
+                        span["P582"] = {"time": found[0][0], "precision": found[0][1]}
+                        break
+        _TERM_SPANS[qid] = span
+    return _TERM_SPANS[qid]
+
+
+def _term_excludes(claim: dict[str, Any], proposed: dict[str, Any]) -> bool:
+    """Does the statement's term qualifier rule out the proposed spell?
+
+    A seat recorded for the 12th Parliament is not the 13th Parliament's seat
+    the article now dates: four sitting members were left unwritten because
+    their previous term's statement was read as covering the new one. Only a
+    term whose own dates are known and miss the spell rules it out.
+    """
+    terms = [snak.get("datavalue", {}).get("value", {}).get("id")
+             for snak in (claim.get("qualifiers") or {}).get("P2937", [])]
+    spans = [term_span(q) for q in terms if q]
+    return bool(spans) and all(s and not propose.overlaps(proposed, s) for s in spans)
+
+
 def plan_tenure(
     prop: str, value: dict[str, Any], matching: list[tuple[dict[str, Any], Any]],
     qualifiers: dict[str, Any], order: list[str], refs: list[dict[str, Any]],
@@ -389,7 +436,7 @@ def plan_tenure(
             # "periods 2003-2012" was measured stretching one term's statement
             # over three.
             if claim.get("qualifiers"):
-                termed = True
+                termed = termed or not _term_excludes(claim, proposed)
             else:
                 undated = undated or claim
             continue
