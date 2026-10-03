@@ -5,6 +5,7 @@ is idempotent: seeding twice queues nothing new, fetching twice re-uses the
 item and article rows that are still inside their age tolerance.
 """
 
+import contextlib
 import json
 import time
 from collections import Counter
@@ -492,7 +493,12 @@ def apply_(
     if follow and not write:
         raise click.UsageError("--follow writes: pass --write too")
     token = None
+    lock = contextlib.nullcontext()
     if write:
+        # One drain per country: a second picks the same people, and the API
+        # writes their statements twice.
+        lock = minting.writer_lock(country or "qids:" + ",".join(sorted(qid)), "apply")
+        lock.__enter__()
         click.echo(f"logged in as {applying.login()}")
         token = applying.csrf_token()
     applied, failed, seen, state = 0, 0, 0, ""
@@ -518,6 +524,8 @@ def apply_(
             time.sleep(applying.FOLLOW_IDLE)
     except KeyboardInterrupt:
         click.echo("")
+    finally:
+        lock.__exit__(None, None, None)
     verb = "applied" if write else "would apply"
     click.echo(f"{seen} people: {verb} {applied} proposals, {failed} failed")
 

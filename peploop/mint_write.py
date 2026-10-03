@@ -174,18 +174,20 @@ def mint_one(cand_id: int, token: str, *, recheck: Recheck) -> str | None:
 
 
 @contextmanager
-def writer_lock(country: str) -> Iterator[None]:
+def writer_lock(country: str, stage: str = "mint") -> Iterator[None]:
     """Hold the one-writer-per-country lock for the length of a write run.
 
     `recover` treats every `creating` row as interrupted, which is only true
     when no other process is in the middle of a creation: a second writer would
-    otherwise reset a row whose edit is still in flight and send it twice.
+    otherwise reset a row whose edit is still in flight and send it twice. The
+    same holds for `apply`: two drains of one country picked the same people
+    and wrote 24 statements twice, because the API de-duplicates nothing.
     """
     conn = db.conn()
-    key = f"peploop-mint:{country}"
+    key = f"peploop-{stage}:{country}"
     got = conn.execute("SELECT pg_try_advisory_lock(hashtext(%s))", (key,)).fetchone()[0]
     if not got:
-        raise RuntimeError(f"another mint writer holds the lock for {country}")
+        raise RuntimeError(f"another {stage} writer holds the lock for {country}")
     try:
         yield
     finally:

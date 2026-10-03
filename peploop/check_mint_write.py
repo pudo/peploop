@@ -106,6 +106,17 @@ def check_lock(expect: Any, conn: psycopg.Connection) -> None:
         finally:
             other.close()
     expect(not taken, "a second writer is refused the country's lock")
+    with mint_write.writer_lock(COUNTRY, "apply"):
+        other = psycopg.connect(db.DATABASE_URL, autocommit=True)
+        try:
+            taken = other.execute("SELECT pg_try_advisory_lock(hashtext(%s))",
+                                  (f"peploop-apply:{COUNTRY}",)).fetchone()[0]
+            mint_free = other.execute("SELECT pg_try_advisory_lock(hashtext(%s))",
+                                      (f"peploop-mint:{COUNTRY}",)).fetchone()[0]
+        finally:
+            other.close()
+    expect(not taken, "a second drain of one country is refused: the API writes twice")
+    expect(mint_free, "and the apply lock is its own, so a mint writer is not held up by it")
 
 
 def check_resend(expect: Any, conn: psycopg.Connection) -> None:
