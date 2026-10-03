@@ -47,6 +47,11 @@ NEW_PROVINCES = ["Q131844468", "Q15478219", "Q131844612", "Q131844755"]
 PROVINCE_CLASSES = {"Q476075", "Q34876"}  # province of Burundi; province
 GITEGA = "Q720843"  # kept its name and P150 statement through the reform
 RUMONGE = "Q20669646"  # dissolved in 2025 but not in P150: reported only
+#: When the five provinces took effect: the governors took office on a Friday
+#: reported on 2025-07-06. Month precision, because the source names the day
+#: only as "Friday". Two of the items carry the law's 2023 signing date as
+#: P571 and two carry none, so the start is not read from them.
+REFORM_START = "2025-07"
 REFORM_URL = (
     "https://www.burunditimes.com/"
     "burundis-new-governors-sworn-in-following-major-provincial-reforms/"
@@ -225,7 +230,6 @@ def plan_burundi_provinces(reader: Reader, notes: List[str]) -> List[Edit]:
         ent = targets[qid]
         p31 = {item_value(c["mainsnak"]) for c in claims(ent, "P31")}
         p17 = {item_value(c["mainsnak"]) for c in claims(ent, "P17")}
-        starts = [t for t in (time_value(c["mainsnak"]) for c in claims(ent, "P571")) if t]
         problems = []
         if not p31 & PROVINCE_CLASSES:
             problems.append(f"P31 is {sorted(p31)}, not a province class")
@@ -233,16 +237,12 @@ def plan_burundi_provinces(reader: Reader, notes: List[str]) -> List[Edit]:
             problems.append(f"P17 is {sorted(p17)}, not {BURUNDI}")
         if claims(ent, "P576"):
             problems.append("carries a P576")
-        if len(starts) != 1:
-            problems.append(f"has {len(starts)} P571 values, needs exactly one")
-        elif not wb_time(starts[0]).startswith("2025"):
-            problems.append(f"P571 is {wb_time(starts[0])}, not in 2025")
         if problems:
             notes.append(f"skip P150 {L(reader, qid)}: " + "; ".join(problems))
             continue
-        start = wb_time(starts[0])
+        start = REFORM_START
         reason = (f"add current province {L(reader, qid)} to P150 of "
-                  f"{L(reader, BURUNDI)}, from its P571 {start}")
+                  f"{L(reader, BURUNDI)}, in effect from the 2025 reform ({start})")
         payload = {"id": BURUNDI, "claims": {"P150": [{
             "value": qid,
             "qualifiers": {"P580": start},
