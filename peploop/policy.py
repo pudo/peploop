@@ -148,8 +148,9 @@ MULTI_SEAT_KINDS = CHAMBER_KINDS | {
 #: premiers has six; a chamber has dozens.
 CHAMBER_COHORT = 10
 #: The most people who may start one office in the same year for it still to
-#: be read as one seat: an incumbent replaced mid-year is two.
-SINGLE_SEAT_COHORT = 2
+#: be read as one seat: an incumbent replaced mid-year is two, and a premier
+#: who served months between two others is three.
+SINGLE_SEAT_COHORT = 3
 #: How long two people's spells must certainly overlap before the office is
 #: read as held by several at once. A handover dated a few weeks apart is one
 #: seat changing hands.
@@ -220,6 +221,9 @@ class Case:
     #: statements and the proposals on record, as `OfficeSpell`. None when
     #: nobody read them, which no rule reads as an empty office.
     office_spells: list[OfficeSpell] | None = None
+    #: When the office, or a body it is a seat in, was dissolved: `P576` as
+    #: time values, read live. None when nobody read it.
+    dissolved: list[dict[str, Any]] | None = None
     today: date | None = None
 
     @property
@@ -832,11 +836,13 @@ def seat_kind(position: dict[str, Any], spells: Sequence[OfficeSpell]) -> str | 
     people took it up. One seat when nothing says otherwise: no kind of a
     many-seat office, no year with more than `SINGLE_SEAT_COHORT` starters,
     and no two people certainly holding it at once. Anything between --
-    three deputies appointed in a year, a deputy ministry -- is neither, and
-    neither rule below reads it.
+    four deputies appointed in a year, a deputy ministry -- is neither, and
+    neither rule below reads it. Cohorts count only the spells on record or
+    on their way: an office's turbulent decades long past, which the policy
+    has already set aside, say nothing about how many hold it now.
     """
     kinds = set(position.get("kind_qids") or ())
-    cohorts = _cohorts(spells)
+    cohorts = _cohorts([spell for spell in spells if spell.live])
     largest = max(cohorts.values(), default=0)
     if kinds & CHAMBER_KINDS or largest >= CHAMBER_COHORT:
         return "chamber"
@@ -896,11 +902,27 @@ def open_superseded(case: Case) -> Disposition | None:
     least a measured term (`term_years`) less `TERM_SLACK_YEARS` after the
     tenure began. A seat whose term cannot be measured is left alone, and so
     is everything between one seat and a chamber.
+
+    First of all, an office that was abolished, or whose body was dissolved
+    (`Case.dissolved`), after the tenure began and before today has nobody
+    in it, whatever its holders' statements say: a senate that lapsed with
+    every term in it. One dissolved *before* the tenure began says nothing
+    here: a body re-formed under its old item is the case it would get wrong.
     """
-    if case.property != "P39" or case.position is None or case.office_spells is None:
+    if case.property != "P39" or case.position is None:
         return None
     start = case.tenure("P580")
     if start is None or case.tenure("P582") is not None:
+        return None
+    today = case.today or date.today()
+    ended = list(case.dissolved or [])
+    abolished = case.position.get("abolished")
+    if abolished is not None:
+        ended.append({"time": f"+{abolished}T00:00:00Z", "precision": 11})
+    for value in ended:
+        if _later(start, value) and not _dated_after(value, today):
+            return _skip("open_superseded/dissolved")
+    if case.office_spells is None:
         return None
     me = case.entity.get("id")
     kind = seat_kind(case.position, case.office_spells)
@@ -1040,6 +1062,7 @@ def office_spells(offices: Sequence[str]) -> dict[str, list[OfficeSpell]]:
 def person_cases(
     qid: str, today: date | None = None,
     spells: dict[str, list[OfficeSpell]] | None = None,
+    dissolved: dict[str, list[dict[str, Any]]] | None = None,
 ) -> list[tuple[int, Case]]:
     """Build a case for every proposal of one person the policy may decide.
 
@@ -1113,6 +1136,8 @@ def person_cases(
             siblings=siblings,
             office_spells=None if spells is None or row["property"] != "P39"
             else spells.get(row["value"].get("id"), []),
+            dissolved=None if dissolved is None or row["property"] != "P39"
+            else dissolved.get(row["value"].get("id"), []),
             today=today,
         )))
     # Spells are judged against each other only among the rows every other
@@ -1226,7 +1251,8 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     reads a filled column rather than silence; and a state whose offices'
     kinds were never read has them read once, so `family_conflicts` counts the
     whole table rather than the part that happened to be loaded since. Every
-    office's holders are read live once per run, for `open_superseded`.
+    office's holders and dissolution are read live once per run, for
+    `open_superseded`.
     """
     offices = offices_of(qids)
     unfilled = positions.unfilled_polity_inception(offices)
@@ -1239,9 +1265,10 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     if unfilled:
         positions.fill_kinds(unfilled)
     spells = office_spells(offices)
+    dissolved = positions.dissolutions(offices)
     funnel = Funnel()
     for qid in qids:
-        for proposal_id, case in person_cases(qid, today, spells):
+        for proposal_id, case in person_cases(qid, today, spells, dissolved):
             disposition = decide(case)
             funnel.add(case, disposition)
             if write:

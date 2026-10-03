@@ -521,6 +521,22 @@ def main() -> int:
     check("an office whose holders nobody read is left alone",
           policy.decide(case(entity=me, office_spells=None, qualifiers=open_from("2010-05-28"))),
           policy.PENDING, "unverified")
+    check("an open 2017 seat in a body dissolved in 2023 is skipped",
+          policy.decide(case(entity=me, dissolved=[time("2023-01-10")],
+                             qualifiers=open_from("2017-01-10"))),
+          policy.SKIPPED, "open_superseded/dissolved")
+    check("and so is one on an office abolished since, with nobody's holders read",
+          policy.decide(case(entity=me, position=office(abolished="2023-01-10"),
+                             qualifiers=open_from("2017-01-10"))),
+          policy.SKIPPED, "open_superseded/dissolved")
+    check("a body dissolved before the tenure began was re-formed, and says nothing",
+          policy.decide(case(entity=me, dissolved=[time("2016-01-10")],
+                             qualifiers=open_from("2017-01-10"))),
+          policy.PENDING, "unverified")
+    check("a dissolution still to come ends nothing yet",
+          policy.decide(case(entity=me, dissolved=[time("2027-02-07")],
+                             qualifiers=open_from("2024-04-25"))),
+          policy.PENDING, "unverified")
     check("a closed tenure is never superseded",
           policy.decide(case(entity=me, office_spells=ministry)),
           policy.PENDING, "unverified")

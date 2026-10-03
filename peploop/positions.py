@@ -1042,6 +1042,33 @@ def holder_spells(qids: Sequence[str]) -> dict[str, list[tuple[str, dict[str, An
     return out
 
 
+#: `P576` of each office and of the bodies it is a seat in (`P361`, `P2389`),
+#: every rank but deprecated.
+DISSOLVED_QUERY = """SELECT ?pos ?t ?p WHERE {
+  VALUES ?pos { %(values)s }
+  { ?pos p:P576 ?st } UNION { ?pos wdt:P361 ?x . ?x p:P576 ?st }
+  UNION { ?pos wdt:P2389 ?y . ?y p:P576 ?st }
+  ?st psv:P576 [ wikibase:timeValue ?t ; wikibase:timePrecision ?p ] ; wikibase:rank ?rank .
+  FILTER(?rank != wikibase:DeprecatedRank)
+}"""
+
+
+def dissolutions(qids: Sequence[str]) -> dict[str, list[dict[str, Any]]]:
+    """When each office, or a body it is a seat in, was dissolved, read live.
+
+    A chamber that lapsed and a council that was wound up end every seat in
+    them, whether or not anybody wrote an end on the seats' holders.
+    """
+    out: dict[str, list[dict[str, Any]]] = {}
+    for chunk in wikidata.values_chunks([q for q in dict.fromkeys(qids) if q], size=BACKFILL_CHUNK):
+        rows = wikidata.sparql(DISSOLVED_QUERY % {"values": wikidata.values_block(chunk)}, max_age=0)
+        for row in rows:
+            value = _sparql_time(row.get("t"), row.get("p"))
+            if value is not None and value not in out.get(row["pos"], []):
+                out.setdefault(row["pos"], []).append(value)
+    return out
+
+
 def fill_polity_inception(qids: Sequence[str], log: Any = lambda _m: None) -> dict[str, int]:
     """Record the year the polity each office is scoped to came into being.
 
