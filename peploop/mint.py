@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field, replace
 from datetime import date
 from pathlib import Path
-from typing import Any, Callable, Iterable, Literal, Optional, Protocol, Sequence
+from typing import Any, Callable, Collection, Iterable, Literal, Optional, Protocol, Sequence
 
 import yaml
 from anthropic.lib._parse._transform import transform_schema
@@ -1780,16 +1780,20 @@ def live_duplicates(spec: offices.Spec, ctx: Context) -> list[offices.Found]:
     return list(out.values())
 
 
-def scoped_duplicate(found: Iterable[offices.Found]) -> str | None:
+def scoped_duplicate(found: Iterable[offices.Found], bodies: Collection[str] = ()) -> str | None:
     """The duplicate that is this state's, or None.
 
     `duplicate_of` also blocks on a matching item that names no state at all,
     which is right for a guard and wrong for `found`: a countryless "member of
     the political bureau" would then receive this state's holders. So only a
     duplicate that names the state is taken as the office; the other kind
-    still blocks, through the guard, as a skip.
+    still blocks, through the guard, as a skip. Nor is a body the office: a
+    council found by its own name would receive its members' `P39`s, so the
+    office's `bodies` and any hit typed as an organisation are passed over
+    here and named by the guard as `hit-is-body`.
     """
-    return offices.duplicate_of(hit for hit in found if hit.country_match)
+    return offices.duplicate_of(hit for hit in found if hit.country_match
+                                and not (hit.qid in bodies or hit.is_body))
 
 
 @dataclass
@@ -2263,6 +2267,12 @@ def found_qid(rule: str, cand: Candidate, verdict: MintVerdict | None, dup: str 
     return None
 
 
+def spec_bodies(cand: Candidate, spec: offices.Spec | None, ctx: Context) -> set[str]:
+    """The bodies a candidate is known to sit in: its spec's, and its census anchor's."""
+    anchor = ctx.anchors.get(cand.census_key or "") if cand.census_key else None
+    return {q for q in (spec.body_qid if spec else None, anchor.body if anchor else None) if q}
+
+
 def guard_reasons(cand: Candidate, spec: offices.Spec, ctx: Context,
                   found: Sequence[offices.Found]) -> list[str]:
     """Run `offices.guard` over a candidate with every live input it reads."""
@@ -2290,6 +2300,7 @@ def guard_reasons(cand: Candidate, spec: offices.Spec, ctx: Context,
         known_bodies={q for q, n in ctx.siblings.bodies.items() if n >= offices.MEASURED_BODY_USES},
         regions=set(ctx.subdivisions),
         municipal=municipal,
+        bodies=spec_bodies(cand, spec, ctx),
     )
 
 
@@ -2470,7 +2481,7 @@ def verify(
         elif cand.id in results:
             verdict = results[cand.id].verdict
             found = results[cand.id].evidence.found
-            dup = scoped_duplicate(found)
+            dup = scoped_duplicate(found, spec_bodies(cand, spec, ctx))
             reasons = guard_reasons(cand, spec, ctx, found) if spec is not None else []
             verify_problem = (ctx.exists_problem(verdict.exists_qid)
                               if verdict is not None and verdict.verdict == "exists" else None)

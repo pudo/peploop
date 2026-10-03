@@ -310,6 +310,9 @@ class Found:
     is_class: bool = False
     #: The searched names, folded, that matched one of the hit's.
     matched: frozenset[str] = frozenset()
+    #: The hit is typed as an organisation and not as an office: a council,
+    #: a ministry, a party. Read only for a hit whose name matched.
+    is_body: bool = False
 
 
 def names_state(text: str, state_names: Iterable[str]) -> bool:
@@ -339,6 +342,25 @@ def without_state(text: str, state_names: Iterable[str]) -> str:
     for name in sorted({_phrase(n) for n in state_names if _phrase(n).strip()}, key=len, reverse=True):
         out = out.replace(name, " ")
     return out
+
+
+#: What a body reaches through `P31`/`P279`: organization.
+ORGANISATION = "Q43229"
+
+
+def body_hit(found: Iterable[Found], bodies: Collection[str] = ()) -> str | None:
+    """A hit matching the office's name that is a body, not an office.
+
+    The office's own body, or the census anchor's, or anything typed as an
+    organisation: an article alias naming the council the seat is in finds
+    the council. That is not a duplicate -- no office would be minted twice --
+    but a name of the body is about to be written onto the seat, and the
+    guard says so under its own name.
+    """
+    for hit in found:
+        if hit.label_match and (hit.qid in bodies or hit.is_body):
+            return hit.qid
+    return None
 
 
 def duplicate_of(found: Iterable[Found], state_names: Iterable[str] = ()) -> str | None:
@@ -524,6 +546,7 @@ def guard(
     known_bodies: Collection[str] = (),
     regions: Collection[str] | None = None,
     municipal: bool = False,
+    bodies: Collection[str] = (),
 ) -> list[str]:
     """Every static reason not to mint this office. Empty means it may be created.
 
@@ -538,7 +561,8 @@ def guard(
     `regions` are the state's first-level subdivisions, against which an
     archetype's `level` is checked; None skips that check. `municipal` says
     the jurisdiction is typed as a town (`MUNICIPAL_CLASSES`), which makes a
-    first-level subdivision a mayor's polity all the same.
+    first-level subdivision a mayor's polity all the same. `bodies` are any
+    the office is known to sit in besides its own (the census anchor's).
     """
     problems: list[str] = []
     for lang in ("en", *langs):
@@ -563,6 +587,10 @@ def guard(
         problems.append(f"current/{current_holders}")
 
     state_named = any(names_state(text, state_names) for text in spec.labels.values())
+    own = {q for q in (spec.body_qid, *bodies) if q}
+    if hit := body_hit(duplicates, own):
+        problems.append(f"hit-is-body/{hit}")
+    duplicates = [d for d in duplicates if not (d.label_match and (d.qid in own or d.is_body))]
     if dup := duplicate_of(duplicates, state_names if state_named else ()):
         problems.append(f"duplicate/{dup}")
     others = {label_key(text) for text in run_labels}
@@ -809,6 +837,10 @@ def live_lookup(label: str, lang: str, state_qid: str) -> list[Found]:
         hit = found_from(entity, label, state_qid, states_of)
         if hit.label_match and not hit.country_qids and is_office_class(hit.qid):
             hit = replace(hit, is_class=True)
+        if hit.label_match:
+            types = positions.type_closure([hit.qid]).get(hit.qid, set())
+            if ORGANISATION in types and not types & POSITION_METACLASSES:
+                hit = replace(hit, is_body=True)
         out.setdefault(hit.qid, hit)
     return list(out.values())
 

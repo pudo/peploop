@@ -276,6 +276,15 @@ def main() -> int:
     expect(guard(judge(archetype="agency_head", labels={"en": "Commissioner of Police"}, body_qid=None),
                  duplicates=[bare]), ["duplicate/Q77"],
            "and an office whose own label names no state is still blocked by it")
+    council = replace(hit, qid=BODY)
+    expect(guard(judge(), duplicates=[council]), [f"hit-is-body/{BODY}"],
+           "a hit that is the office's own body is not a duplicate, and says what it is")
+    expect(guard(judge(body_qid=None), duplicates=[replace(hit, qid="Q78")], bodies={"Q78"}),
+           ["hit-is-body/Q78"], "and so is the census anchor's body")
+    expect(guard(judge(), duplicates=[replace(hit, qid="Q79", is_body=True)]), ["hit-is-body/Q79"],
+           "and any hit typed as an organisation rather than an office")
+    expect(guard(judge(), duplicates=[council, replace(hit, qid="Q80")]),
+           [f"hit-is-body/{BODY}", "duplicate/Q80"], "while a real duplicate beside it still blocks")
     expect(offices.names_state("Chief Secretary of Bray", ["Alba and Bray"]), False,
            "a state's name is a phrase, not its last word")
 

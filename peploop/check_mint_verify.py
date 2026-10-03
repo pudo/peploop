@@ -13,6 +13,7 @@ Run it as `python -m peploop.check_mint_verify` from the repository root.
 """
 
 import sys
+from dataclasses import replace
 from collections import Counter
 from typing import Any
 
@@ -189,6 +190,11 @@ def check_rules(expect: Any) -> None:
     scoped = offices.Found("Q971", label_match=True, country_match=True)
     expect(mint.scoped_duplicate([unscoped]) is None and mint.scoped_duplicate([unscoped, scoped]) == "Q971",
            "only a duplicate naming the state is taken as found; a countryless one only blocks")
+    council = offices.Found("Q972", label_match=True, country_match=True, is_body=True)
+    expect(mint.scoped_duplicate([council]) is None
+           and mint.scoped_duplicate([replace(council, is_body=False)], bodies={"Q972"}) is None
+           and mint.scoped_duplicate([council, scoped]) == "Q971",
+           "a body found by its own name is never taken as the office it seats")
 
 
 def check_exists_problem(expect: Any) -> None:
