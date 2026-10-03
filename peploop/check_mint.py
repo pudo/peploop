@@ -191,6 +191,18 @@ def main() -> int:
            "ahead of the level check, which says less")
     check_subdivisions(expect, merged)
 
+    print("label languages follow the state's own offices:")
+    measured = Siblings(offices=30, label_langs=Counter({"en": 30, "fr": 28, "rn": 0}))
+    expect(offices.label_langs(measured, ("en", "fr", "rn")), ["en", "fr"],
+           "a language none of the state's offices is labelled in is not required")
+    expect(guard(judge(labels={"en": "President of the Supreme Tribunal", "fr": "président du Tribunal"}),
+                 langs=offices.label_langs(measured, ("en", "fr", "rn"))), [],
+           "so an office labelled in English and French passes")
+    half = Siblings(offices=30, label_langs=Counter({"en": 30, "rn": 15}))
+    expect(offices.label_langs(half, ("en", "rn")), ["en", "rn"], "half the siblings is enough to require it")
+    expect(offices.label_langs(Siblings(), ("en", "fr", "rn")), ["en", "fr", "rn"],
+           "with no siblings to measure, every state language is required")
+
     print("postings between states:")
     for label in ("Ambassador of Aland to Bray", "Embajador de Aland en Bray",
                   "Ambassadeur d'Aland au Bray"):

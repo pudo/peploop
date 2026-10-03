@@ -297,6 +297,10 @@ class Siblings:
     metaclasses: Counter[str] = field(default_factory=Counter)
     #: The bodies (`P361`/`P2389`) the state's offices are seats in.
     bodies: Counter[str] = field(default_factory=Counter)
+    #: How many current offices were tallied, and how many carry a label in
+    #: each language: what `label_langs` measures the guard's languages by.
+    offices: int = 0
+    label_langs: Counter[str] = field(default_factory=Counter)
 
 
 def _mode(tally: Counter[str] | None) -> str | None:
@@ -305,6 +309,21 @@ def _mode(tally: Counter[str] | None) -> str | None:
     if not ranked or (len(ranked) > 1 and ranked[0][1] == ranked[1][1]):
         return None
     return ranked[0][0]
+
+
+def label_langs(siblings: Siblings, langs: Sequence[str], share: float = 0.5) -> list[str]:
+    """The state languages a minted office must be labelled in, besides English.
+
+    The ones at least `share` of the state's own offices are labelled in. A
+    territory's official languages are not the languages its items are
+    written in: one state's thirty-odd offices carried no label in its
+    national language, and requiring one made a model draft it, badly -- "the
+    government of X" as the label of X's governor. With no siblings to measure,
+    every language is required, which is the conservative answer.
+    """
+    if not siblings.offices:
+        return list(langs)
+    return [lang for lang in langs if siblings.label_langs[lang] >= share * siblings.offices]
 
 
 def metaclass_for(siblings: Siblings, parent: str) -> str:
@@ -793,7 +812,7 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
     unflagged = [qid for qid, flag in rows if flag is None]
     closure = positions.type_closure(unflagged) if unflagged else {}
     keep = [qid for qid, _flag in rows if positions.DIPLOMATIC_CLASS not in closure.get(qid, set())]
-    items = wikidata.fetch_items(keep, props="claims")
+    items = wikidata.fetch_items(keep, props="labels|claims")
     held = last_held(list(items))
     items = {qid: ent for qid, ent in items.items()
              if not historical(ent, held.get(qid), this_year)}
@@ -804,6 +823,8 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
          *(s.parent for s in ARCHETYPES.values())])
     out = Siblings()
     for qid, entity in items.items():
+        out.offices += 1
+        out.label_langs.update(entity.get("labels", {}).keys())
         metas = set(_values(entity, "P31")) & POSITION_METACLASSES
         out.metaclasses.update(metas)
         for kind in dict.fromkeys(kinds[qid]):
