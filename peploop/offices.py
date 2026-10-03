@@ -1013,7 +1013,7 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
         out.bodies.update(list(dict.fromkeys(_values(entity, "P361") + _values(entity, "P2389"))))
         for arch in typed:
             out.bodies_by_archetype.setdefault(arch, Counter()).update(
-                dict.fromkeys(_values(entity, ARCHETYPES[arch].body_property)))
+                list(dict.fromkeys(_values(entity, ARCHETYPES[arch].body_property))))
     return out
 
 
