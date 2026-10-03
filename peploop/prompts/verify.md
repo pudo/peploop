@@ -113,10 +113,22 @@ counted, so choose the one that names what is actually wrong.
   presents the person as holding the office now; an infobox marked incumbent
   beside a start years old, with prose in the past tense or naming later
   posts, is `contradicted`.
-- **An election year is not a start, and a career span is not a tenure.**
-  "Elected in 2007, re-elected in 2011" gives no start date and no single
-  tenure; "in the periods 2003-2012" spans several terms of a fixed-term body.
-  A tenure built from either is `unsupported`.
+- **An election year dates the seat it won, at year precision and no finer.**
+  "In 2024 she was elected to the chamber's eighth convocation" supports a
+  seat in that chamber starting in 2024 (year), with no end: a fixed-term
+  chamber sits in the year it is elected, and the article has said which
+  year. It supports no month and no day. Where the chamber is seated only in
+  the year after its election -- a congress elected in November and sworn in
+  in January, a regional assembly elected in October whose term opens on
+  1 January -- a start in the election year is `unsupported`, and so is one
+  where you cannot tell. This rule was missing once: 65 members of both
+  chambers of one national assembly, each article giving only "elected in
+  2024" for the sitting convocation, were refused as having no start.
+- **A career span is not a tenure.** "Elected in 2007, re-elected in 2011"
+  is two terms, not one tenure running from 2007; "in the periods 2003-2012"
+  spans several terms of a fixed-term body. A tenure built from either -- a
+  start from one election and an end from a later one, or a range across
+  several terms -- is `unsupported`.
 - **The item's own flags are evidence.** `not-office` means the item declares
   itself an occupation, a rank or an organisation; `abstract` means it is a
   class other offices are instances of; `inbound-diplomatic` means another

@@ -134,7 +134,10 @@ REQUIRED_PHRASES = (
     "names a people,\n  not a passport",
     "A scheduled date is not a recorded one",
     "is a date, not a fact",
-    "An election year is not a start",
+    "An election year dates the seat it won, at year precision and no finer",
+    "seated only in\n  the year after its election",
+    "A career span is not a tenure",
+    "65 members of both\n  chambers of one national assembly",
 )
 
 
