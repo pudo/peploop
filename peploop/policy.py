@@ -1159,6 +1159,12 @@ def person_cases(
     return out
 
 
+def state_office(position: dict[str, Any], state_qid: str | None) -> bool:
+    """Whether an office is the state's own, by `P17` or by the `P1001` it governs."""
+    return state_qid is not None and state_qid in (
+        position.get("country_qid"), position.get("jurisdiction_qid"))
+
+
 def _family_conflicts_of(cases: Sequence[tuple[int, Case]], state_qid: str | None) -> dict[int, str]:
     """`family_conflicts` over the surviving spells on the state's own offices.
 
@@ -1168,7 +1174,7 @@ def _family_conflicts_of(cases: Sequence[tuple[int, Case]], state_qid: str | Non
     live = [
         (pid, case.position, case.qualifiers) for pid, case in cases
         if case.spell_conflict is None and case.position is not None
-        and state_qid is not None and case.position.get("country_qid") == state_qid
+        and state_office(case.position, state_qid)
     ]
     if state_qid is None or not any(
         office["qid"] != other_office["qid"] and _disputed(span, other)

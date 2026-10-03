@@ -392,6 +392,14 @@ def main() -> int:
           policy.Disposition(policy.PENDING,
                              family((1, envoys[0], fr_spell), (2, envoys[1], pt_spell))),
           policy.PENDING, "-/-")
+    ok = (policy.state_office(office(country_qid=None, jurisdiction_qid=STATE), STATE)
+          and policy.state_office(office(jurisdiction_qid=None), STATE)
+          and not policy.state_office(office(country_qid=OTHER_STATE, jurisdiction_qid=OTHER_STATE),
+                                      STATE))
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} an office with P1001 and no P17 is the state's,"
+          " and its twins are judged")
+
     plural = {a.parent for a in offices.ARCHETYPES.values()} - policy.FAMILY_GENERIC
     ok = plural == {"Q5097014", "Q107363151", "Q3368517"} and set(
         offices.SOE_PARENTS) <= policy.FAMILY_GENERIC

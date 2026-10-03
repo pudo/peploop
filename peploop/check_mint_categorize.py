@@ -298,6 +298,25 @@ def check_ledger(expect: Any) -> None:
             conn.execute(f"DROP SEQUENCE IF EXISTS pg_temp.{table}_seq")
 
 
+def check_state_positions(expect: Any) -> None:
+    """An office scoped to the state only by `P1001` is in the index categorize sees."""
+    try:
+        conn = db.conn()
+    except psycopg.OperationalError as exc:
+        print(f"  skip no database ({exc.__class__.__name__})")
+        return
+    conn.execute("CREATE TEMP TABLE position (LIKE public.position INCLUDING DEFAULTS)")
+    try:
+        for qid, country, jurisdiction in (("Q1", "Q90", None), ("Q2", None, "Q90"),
+                                           ("Q3", "Q91", "Q91")):
+            conn.execute("INSERT INTO pg_temp.position (qid, label, country_qid, jurisdiction_qid)"
+                         " VALUES (%s, %s, %s, %s)", (qid, qid, country, jurisdiction))
+        got = [row.qid for row in mint.state_positions("Q90")]
+        expect(got == ["Q1", "Q2"], f"by P17 or by P1001 alone, and no other state's: {got}")
+    finally:
+        conn.execute("DROP TABLE IF EXISTS pg_temp.position")
+
+
 def main() -> int:
     """Run every pin and report."""
     failures: list[str] = []
@@ -315,6 +334,7 @@ def main() -> int:
         ("prompt", check_prompt),
         ("worth_asking", check_worth_asking),
         ("ledger", check_ledger),
+        ("state_positions", check_state_positions),
     ):
         print(f"{name}:")
         check(expect)

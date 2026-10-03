@@ -1016,6 +1016,21 @@ def _labels(qids: Iterable[str]) -> dict[str, str]:
     return out
 
 
+def state_positions(state: str) -> list[PositionRow]:
+    """The state's own offices as categorize is shown them.
+
+    By `P1001` as well as `P17`: an office that names only the polity it
+    governs is as much the state's, and left out it is the office categorize
+    is asked to mint a second time.
+    """
+    rows = db.conn().execute(
+        "SELECT qid, label, kinds, coalesce(not_office, false) FROM position"
+        " WHERE country_qid = %s OR jurisdiction_qid = %s ORDER BY label NULLS LAST, qid",
+        (state, state),
+    ).fetchall()
+    return [PositionRow(q, l, list(k or []), bool(n)) for q, l, k, n in rows]
+
+
 def offered_for(country: str, gs: Sequence[Group], anchors: Sequence[Anchor]) -> tuple[Offered, str | None]:
     """Everything categorize may cite for a country, and the kind tallies.
 
@@ -1023,11 +1038,7 @@ def offered_for(country: str, gs: Sequence[Group], anchors: Sequence[Anchor]) ->
     come from the live `P150` read the census uses.
     """
     state = positions.country_qid(country)
-    rows = db.conn().execute(
-        "SELECT qid, label, kinds, coalesce(not_office, false) FROM position"
-        " WHERE country_qid = %s ORDER BY label NULLS LAST, qid", (state,),
-    ).fetchall()
-    rows_out = [PositionRow(q, l, list(k or []), bool(n)) for q, l, k, n in rows]
+    rows_out = state_positions(state)
     subs = _subdivisions(state, dissolved=True)
     current = set(_subdivisions(state))
     chosen = {q for g in gs for q in g.chosen}
