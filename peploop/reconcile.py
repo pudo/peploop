@@ -25,6 +25,7 @@ verdict is a row for a later increment to act on.
 import hashlib
 import json
 import os
+import re
 import threading
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -610,6 +611,27 @@ def store(
     )
 
 
+#: An abbreviation for a legislator no office item is labelled with.
+MP = re.compile(r"(?i)(?<![\w.])m\.?\s?p\.?(?![\w.])")
+#: The constituency a seat's title names after the chamber, which no seat item
+#: carries: "Member of Parliament for Ashton North" is the seat. Only a
+#: chamber's member: a committee "for" something is named by what follows.
+CONSTITUENCY = re.compile(
+    r"(?i)^(member of\b.*?\b(?:parliament|house|chamber|assembly|senate|congress|legislature)\b.*?)"
+    r"\s+for\s+\S.*$")
+
+
+def search_title(title: str) -> str:
+    """The title as the search is asked it: "MP" spelled out, the constituency off.
+
+    Only the search reads this; the model is shown the title as written. The
+    constituency comes off a member's title alone, so "Minister for Foreign
+    Affairs" keeps its portfolio.
+    """
+    text = MP.sub("member of parliament", title).strip()
+    return CONSTITUENCY.sub(r"\1", text)
+
+
 def shortlist_hits(mention: Mention, state_qid: str | None) -> list[positions.Hit]:
     """Retrieve the ranked shortlist a mention is asked about.
 
@@ -617,7 +639,7 @@ def shortlist_hits(mention: Mention, state_qid: str | None) -> list[positions.Hi
     model be shown this item" is answered by the same call that shows it.
     """
     return positions.search(
-        mention.title, mention.jurisdiction, state_qid, limit=SHORTLIST,
+        search_title(mention.title), mention.jurisdiction, state_qid, limit=SHORTLIST,
         start=mention.start, end=mention.end,
     )
 

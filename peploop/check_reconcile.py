@@ -371,6 +371,22 @@ def check_retrievable(expect: Any) -> None:
     )
 
 
+def check_search_title(expect: Any) -> None:
+    """Pin what the search is asked for a member's seat, and what it is not."""
+    cases = {
+        "MP for Ashton North": "member of parliament",
+        "M.P. for Ashton North": "member of parliament",
+        "Member of Parliament for Ashton North": "Member of Parliament",
+        "Member of the House of Representatives for Ashton": "Member of the House of Representatives",
+        "Minister for Foreign Affairs": "Minister for Foreign Affairs",
+        "Member of the Senate": "Member of the Senate",
+        "Mayor of Ampleforth": "Mayor of Ampleforth",
+        "Member of the Committee for Recovery": "Member of the Committee for Recovery",
+    }
+    got = {title: reconcile.search_title(title) for title in cases}
+    expect(got == cases, f"MP spelled out, a member's constituency off, a portfolio kept: {got}")
+
+
 def check_reopen(expect: Any) -> None:
     """Pin the reopen ledger against a temporary table shadowing `resolution`."""
     try:
@@ -443,6 +459,7 @@ def main() -> int:
         ("tags", check_tags),
         ("request", check_request),
         ("retrievable", check_retrievable),
+        ("search_title", check_search_title),
         ("reopen", check_reopen),
     ):
         print(f"{name}:")
