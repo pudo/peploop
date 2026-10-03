@@ -208,6 +208,39 @@ def check_prompt(expect: Any) -> None:
     rendered = mint.render_categorize([group("Alcalde de Velmora", "Q1")], [], "mayor 3", offered())
     expect("g1 | Alcalde de Velmora" in rendered and "Q950 | Mayor of Bray | mayor" in rendered
            and "(not an office)" in rendered, "a request numbers its groups and lists the offices")
+    expect("**parties**" in text and "`party_leader`" in text,
+           "the prompt says what the parties list is for, and which archetype a leader is")
+
+
+def check_parties(expect: Any) -> None:
+    """A party office can name its party: the run's people's parties are offered."""
+    def member(*parties: str, deprecated: str | None = None) -> dict[str, Any]:
+        claims = [{"rank": "normal", "mainsnak": {"datavalue": {"value": {"id": q}}}} for q in parties]
+        if deprecated:
+            claims.append({"rank": "deprecated", "mainsnak": {"datavalue": {"value": {"id": deprecated}}}})
+        return {"claims": {"P102": claims}}
+
+    world = {"Q1": member("Q960", "Q960"), "Q2": member("Q960", "Q961"), "Q3": member(deprecated="Q962")}
+    counts = mint.party_members("zz", people=["Q1", "Q2", "Q3"],
+                                items=lambda qids: {q: world[q] for q in qids if q in world})
+    expect(dict(counts) == {"Q960": 2, "Q961": 1},
+           f"members are counted once each, a deprecated membership not at all: {dict(counts)}")
+    expect(mint.party_order(counts) == ["Q960", "Q961"] and mint.party_order(counts, cap=1) == ["Q960"],
+           "the most-joined party is listed first, and the list is capped")
+    o = offered(parties={"Q960": "Partido Azul"})
+    rendered = mint.render_categorize([group("Presidente del Partido Azul", "Q1")], [], None, o)
+    expect("## Parties" in rendered and "- Q960 | Partido Azul" in rendered,
+           "a request lists the parties under their own heading")
+    answer = CategorizeAnswer(offices=[office(["g1"], institution_class="political.parties",
+                                              archetype="party_leader", body_qid="Q960")],
+                              unassigned=[])
+    settled, _l, problems = mint.settle_categorize(answer, [group("Presidente del Partido Azul", "Q1")], o)
+    expect(settled[0].body_qid == "Q960" and problems == [], "a listed party is a body categorize may cite")
+    settled, _l, problems = mint.settle_categorize(answer, [group("Presidente del Partido Azul", "Q1")],
+                                                   offered())
+    expect(settled[0].body_qid is None and problems == ["off-list:body_qid:Q960"],
+           "and an unlisted one is removed like any off-list QID")
+    expect(mint.CATEGORIZE_RENDER_VERSION >= 2, "the rendering with parties is a new version")
 
 
 TABLES = ("mint_call", "office_candidate", "office_attestation", "office_unassigned")
@@ -340,6 +373,7 @@ def main() -> int:
         ("order", check_order),
         ("settle", check_settle),
         ("floor", check_floor),
+        ("parties", check_parties),
         ("census_exclude", check_census_exclude),
         ("prompt", check_prompt),
         ("worth_asking", check_worth_asking),

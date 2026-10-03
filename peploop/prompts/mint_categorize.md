@@ -28,6 +28,8 @@ from anywhere else is removed mechanically after the fact. They are:
   evidence is about that place;
 - **census bodies**: courts, chambers, councils and organs a country survey
   named;
+- **parties**: the political parties the country's seeded people belong to,
+  most members first. They are what a party office names as its `body_qid`;
 - **kinds of office**: the generic class items an archetype is a kind of;
 - **items the reconciler considered**: what the matcher looked at for these
   groups and refused, with its verdict counts on each group's line;
@@ -128,11 +130,16 @@ Each office gets one `decision`:
 large party organ — a central committee, a national council, a party congress:
 Wikidata records it as membership of the organ (`member of`), not as a seat,
 by hundreds to one, and such an office is never created. Say so in `reason`.
-The seats that are offices are the party's national leadership offices (its
-president, first or general secretary, secretary-general, national director)
-and a seat in its secretariat, archetype `party_secretary`, and a seat in its
-political bureau, archetype `politburo_member`. Local and regional party posts
-and a party's spokesperson in a chamber are `not-state`.
+The seats that are offices are a national party's leader, chair or president
+(archetype `party_leader`), its general secretary or secretary-general and a
+seat in its secretariat (`party_secretary`), and a seat in its political
+bureau (`politburo_member`). The title word decides between the first two: a
+general secretary is `party_secretary` even where the post leads the party, a
+first secretary or chair is `party_leader`. Every one of them names its party
+as `body_qid`, from the parties list or the census bodies; draft one whose
+party is on neither with a null body, and it will be skipped for that. Local
+and regional party posts and a party's spokesperson in a chamber are
+`not-state`. Minor and opposition parties are parties like any other.
 
 **Diplomacy.** An ambassadorship or a permanent representation abroad is
 `office` with archetype `ambassador`. It will not be created in this round, but
@@ -182,7 +189,8 @@ For every office, whatever its decision:
   | `soe_head` | the head of a state-owned enterprise |
   | `state_body_member` | a member of a collegial state body that is not a chamber or a court: an electoral council, a board, a commission |
   | `politburo_member` | a seat in a party's political bureau |
-  | `party_secretary` | a national leadership office of a party, or a seat in its secretariat |
+  | `party_leader` | the leader, chair or president of a national party |
+  | `party_secretary` | the general secretary or secretary-general of a national party, or a seat in its secretariat |
   | `ambassador` | an ambassadorship or a permanent representation abroad |
 
   The head of a police force or an intelligence service is `agency_head`. A
@@ -220,12 +228,14 @@ For every office, whatever its decision:
   offices of this kind are all a kind of one country-specific class ("mayor of
   a place in …"), that class is the parent. The head of a state-owned
   enterprise takes the class its title word names: director general,
-  chairperson or president, all among the kinds of office. Null when unsure;
-  the archetype supplies a default.
+  chairperson or president, all among the kinds of office; so does the head of
+  an agency (director, director general or chairperson). A party's general
+  secretary takes general secretary, a seat in its secretariat party
+  secretary. Null when unsure; the archetype supplies a default.
 
-- **`body_qid`** — the court, chamber, ministry, council, organ or company the
-  seat is in. Null when the office is not a seat in a body, or the body is not
-  on the lists.
+- **`body_qid`** — the court, chamber, ministry, council, organ, company or
+  party the seat is in. Null when the office is not a seat in a body, or the
+  body is not on the lists.
 
 - **`jurisdiction_qid`** — the polity the office governs, when it is the state
   or one of the listed subdivisions. **`jurisdiction_name`** — the polity's

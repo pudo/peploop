@@ -26,7 +26,9 @@ STATE = "Q900"
 BODY = "Q910"
 SIB_PARENT = "Q920"  # the state's own "minister of Alvania" class
 
+PARTY = "Q940"
 LABELS = {STATE: "Alvania", BODY: "Ministry of Health of Alvania", SIB_PARENT: "minister of Alvania",
+          PARTY: "Blue Party of Alvania",
           "Q83307": "minister", "Q294414": "public office", "Q901": "Ostra"}
 
 BODY_ITEM = {
@@ -336,8 +338,26 @@ def check_build_spec(expect: Any) -> None:
     expect(kept.parent == SIB_PARENT, "a drafted sibling class is kept")
     soe, _p = mint.build_spec(cand(draft={"archetype": "soe_head", "parent_qid": "Q140686",
                                           "labels": {"en": "Chair of Alvania Oil"}}), ctx())
-    expect(soe.parent == "Q140686" and soe.jurisdiction_qid is None,
-           "an enterprise head keeps its drafted title class and governs no polity")
+    expect(soe.parent == "Q140686" and soe.jurisdiction_qid is None and soe.metaclass == "Q4164871",
+           "an enterprise head keeps its drafted title class, governs no polity, and is a position")
+    leader, problems = mint.build_spec(cand(draft={
+        "archetype": "party_leader", "body_qid": PARTY, "parent_qid": "Q140686",
+        "labels": {"en": "President of the Blue Party"}}), ctx())
+    expect((leader.parent, leader.metaclass, leader.body_qid, leader.jurisdiction_qid,
+            leader.descriptions) == ("Q1553195", "Q4164871", PARTY, None,
+                                     {"en": "leader of the Blue Party of Alvania"})
+           and problems == ["parent-replaced/Q140686"],
+           f"a party leader takes the measured shape whatever was drafted: {leader} {problems}")
+    seat, _p = mint.build_spec(cand(draft={
+        "archetype": "party_secretary", "body_qid": PARTY, "parent_qid": "Q836971",
+        "labels": {"en": "Secretary of the Secretariat of the Blue Party"}}), ctx())
+    expect((seat.parent, seat.metaclass) == ("Q836971", "Q4164871"),
+           "a secretariat seat keeps the party-secretary class its title names")
+    agency, _p = mint.build_spec(cand(draft={
+        "archetype": "agency_head", "body_qid": BODY, "parent_qid": "Q1501800",
+        "labels": {"en": "Director General of Health"}}), ctx())
+    expect((agency.parent, agency.metaclass) == ("Q1501800", "Q4164871"),
+           "an agency head keeps a director-general title class, and is a position")
     unlabelled, problems = mint.build_spec(
         cand(draft={"archetype": "legislator", "body_qid": "Q999"}), ctx())
     expect(unlabelled.descriptions == {} and "description" in problems,

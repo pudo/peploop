@@ -105,6 +105,8 @@ FAMILY_GENERIC = frozenset({
     "Q1758037",    # speaker: one senate president presides over the whole congress too
     "Q115136557",  # politburo member
     "Q16862850",   # member of a state body
+    "Q1553195",    # party leader: one per party, many per state
+    "Q6501749",    # general secretary
     "Q836971",     # party secretary
     "Q3188089",    # court president
     "Q1501800",    # director general

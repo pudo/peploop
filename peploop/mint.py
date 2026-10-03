@@ -423,7 +423,13 @@ CATEGORIZE_EFFORT = "low"
 
 #: What the model is shown apart from the prompt. Bumped whenever the rendering
 #: changes without a prompt edit, because an answer is keyed by what was shown.
-CATEGORIZE_RENDER_VERSION = 1
+#: 2: the parties the run's people belong to are listed, so a party's leader
+#: can name its party as the body. Every chunk is asked again once.
+CATEGORIZE_RENDER_VERSION = 2
+
+#: How many of the parties the run's people belong to are listed, most members
+#: first. A party with one seeded member is still listed while there is room.
+PARTIES_CAP = 80
 
 #: Groups per request. One request is one context, so related groups have to
 #: share it to be clustered at all; `chunk_order` is what puts them together.
@@ -552,6 +558,9 @@ class Offered:
     langs: list[str] = field(default_factory=list)
     subdivisions: dict[str, str] = field(default_factory=dict)
     bodies: dict[str, str] = field(default_factory=dict)
+    #: The parties the country's people belong to (`P102`), most members first:
+    #: what a party office may name as its body.
+    parties: dict[str, str] = field(default_factory=dict)
     parents: dict[str, str] = field(default_factory=dict)
     #: The items the reconciler chose for any group, by label.
     chosen: dict[str, str] = field(default_factory=dict)
@@ -565,11 +574,11 @@ class Offered:
 
     @property
     def qids(self) -> set[str]:
-        return ({self.state_qid} | set(self.subdivisions) | set(self.bodies)
+        return ({self.state_qid} | set(self.subdivisions) | set(self.bodies) | set(self.parties)
                 | set(self.parents) | set(self.chosen) | {p.qid for p in self.positions})
 
     def label(self, qid: str) -> str | None:
-        for table in (self.chosen, self.subdivisions, self.bodies, self.parents):
+        for table in (self.chosen, self.subdivisions, self.bodies, self.parties, self.parents):
             if qid in table:
                 return table[qid]
         for row in self.positions:
@@ -637,6 +646,8 @@ def render_categorize(
         parts += ["## Subdivisions", ""] + [f"- {q} | {l}" for q, l in o.subdivisions.items()] + [""]
     if o.bodies:
         parts += ["## Census bodies", ""] + [f"- {q} | {l}" for q, l in o.bodies.items()] + [""]
+    if o.parties:
+        parts += ["## Parties", ""] + [f"- {q} | {l}" for q, l in o.parties.items()] + [""]
     if o.parents:
         parts += ["## Kinds of office", ""] + [f"- {q} | {l}" for q, l in o.parents.items()] + [""]
     if o.chosen:
@@ -1025,26 +1036,58 @@ def state_positions(state: str) -> list[PositionRow]:
     return [PositionRow(q, l, list(k or []), bool(n)) for q, l, k, n in rows]
 
 
-def offered_for(country: str, gs: Sequence[Group], anchors: Sequence[Anchor]) -> tuple[Offered, str | None]:
+PEOPLE_SQL = "SELECT qid FROM person WHERE country = %s AND NOT (status = ANY(%s)) ORDER BY qid"
+
+
+def party_members(country: str, *, people: Sequence[str] | None = None,
+                  items: Callable[[Sequence[str]], dict[str, dict[str, Any]]] | None = None
+                  ) -> Counter[str]:
+    """How many of the country's people each party counts as a member (`P102`), read live.
+
+    The run's own people, not a list of the state's parties: the leader an
+    article names belongs to a party the run seeded someone from, and a party
+    no seeded person belongs to is not one categorize will meet.
+    """
+    items = items or (lambda qids: wikidata.fetch_items(qids, props="claims"))
+    if people is None:
+        people = [q for (q,) in db.conn().execute(
+            PEOPLE_SQL, (country, list(EXCLUDED_STATUSES))).fetchall()]
+    out: Counter[str] = Counter()
+    for entity in items(list(people)).values():
+        out.update(set(wikidata.claim_qids(entity, "P102", include_deprecated=False)))
+    return out
+
+
+def party_order(members: Counter[str], cap: int = PARTIES_CAP) -> list[str]:
+    """The parties categorize is shown: most members first, then by QID, at most `cap`."""
+    return [q for q, _n in sorted(members.items(), key=lambda kv: (-kv[1], kv[0]))][:cap]
+
+
+def offered_for(country: str, gs: Sequence[Group], anchors: Sequence[Anchor],
+                parties: Counter[str] | None = None) -> tuple[Offered, str | None]:
     """Everything categorize may cite for a country, and the kind tallies.
 
     Read from the position table and the cached item reader. The subdivisions
-    come from the live `P150` read the census uses.
+    come from the live `P150` read the census uses; the parties from the
+    run's people (`party_members`), unless passed.
     """
     state = positions.country_qid(country)
+    parties = party_members(country) if parties is None else parties
+    party_qids = party_order(parties)
     rows_out = state_positions(state)
     subs = _subdivisions(state, dissolved=True)
     current = set(_subdivisions(state))
     chosen = {q for g in gs for q in g.chosen}
-    parents = {a.parent for a in ARCHETYPES.values()} | set(offices.SOE_PARENTS)
+    parents = {q for a in ARCHETYPES.values() for q in (a.parent, *a.parents)}
     bodies = {a.body for a in anchors if a.body}
-    labels = _labels([state, *subs, *chosen, *parents, *bodies])
+    labels = _labels([state, *subs, *chosen, *parents, *bodies, *party_qids])
     territory = get_territory(country)
     langs = [iso_639_alpha2(lang) or lang for lang in (territory.langs if territory else [])]
     offered = Offered(
         state_qid=state, state_label=labels.get(state, state), langs=langs,
         subdivisions={q: labels.get(q, q) + ("" if q in current else " (dissolved)") for q in subs},
         bodies={q: labels.get(q, q) for q in sorted(bodies)},
+        parties={q: labels.get(q, q) for q in party_qids},
         parents={q: labels.get(q, q) for q in sorted(parents)},
         chosen={q: labels.get(q, q) for q in sorted(chosen)},
         positions=rows_out, census_keys={a.key for a in anchors},
@@ -1675,8 +1718,9 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
 
     The shape comes from the archetype and the state's own offices rather than
     the draft wherever the two could differ: `parent_for` over the siblings
-    unless the draft named a class the siblings of this kind already use (or,
-    for an enterprise head, one of `SOE_PARENTS`), and `metaclass_for` always.
+    unless the draft named a class the siblings of this kind already use or
+    one its title word may name (`Archetype.parents`), and `metaclass_for`
+    always.
     The description is `describe`d from resolved labels, never the draft's
     text. None, with the reason, for a seat no archetype fits: there is no
     shape to build.
@@ -1711,7 +1755,7 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
     jurisdiction = draft.get("jurisdiction_qid") or (ctx.state_qid if shape.scoped else None)
     drafted = draft.get("parent_qid")
     measured = set(sibs.parents.get(arch) or ())
-    if drafted and ((arch == "soe_head" and drafted in offices.SOE_PARENTS) or drafted in measured):
+    if drafted and (drafted in shape.parents or drafted in measured):
         parent = drafted
     else:
         parent = offices.parent_for(sibs, arch)
@@ -1720,7 +1764,7 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
     spec = offices.Spec(
         ref=cand.ref, archetype=arch, labels=labels, state_qid=ctx.state_qid,
         aliases=attested_aliases(cand.attestations, labels, ctx.state_names),
-        metaclass=offices.metaclass_for(sibs, parent), parent=parent,
+        metaclass=offices.metaclass_for(sibs, parent, shape.metaclass), parent=parent,
         jurisdiction_qid=jurisdiction, body_qid=body,
         replaces=draft.get("replaces_qid"),
     )

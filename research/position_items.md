@@ -839,3 +839,63 @@ Traps:
 - `Q786`'s `P150` is the 31 provinces and the Distrito Nacional, which has no
   governor. Five es province labels carry "Provincia" or a parenthetical, so a
   label template filled from them reads badly.
+
+### 10n. Party leaders, chairs and secretaries; agency heads (measured 2026-10-03)
+
+For the mint's `party_leader` and `party_secretary` archetypes, and a re-check
+of `agency_head` and `soe_head`. Live reads. Two populations, because each is
+biased in a different way.
+
+**Structural:** every position whose `P2389` or `P361` names an item typed
+(`P31`/`P279?`) `Q7278` political party: 289 items. Hand-split by label into
+national leaders, chairs/presidents and secretaries (deputies, youth wings,
+whips and parliamentary posts dropped; regional branches kept, and named
+below):
+
+| cluster | n | states | `P31` | `P279` | body | `P1001` |
+|---|---:|---:|---|---|---|---|
+| leader | 61 | 16 | `Q4164871` 61 | **`Q1553195` party leader 43**; none 10; one or two each of `Q82955`, `Q319544`, `Q140686` | `P2389` 50, `P361` 34 (both on 23) | absent 39; the state 11; a subdivision 9 (Australian and Canadian branches) |
+| chair / president | 86 | 30 | `Q4164871` 83, `Q294414` 3 | **`Q1553195` 37**; `Q140686` chairperson 17; none 17; `Q1255921` 7; `Q2746259` party chair 3; `Q2054321` Parteiobmann 2 | `P2389` 73, `P361` 25 | absent 41; the state 18; Cyprus 10 (one batch, no `P17`); a subdivision 10 |
+| general secretary / secretary-general | 47 | 25 | `Q4164871` 44, `Q114962596` 3 | **`Q6501749` general secretary 29**; `Q1553195` 12 (stacked, where the post leads the party); none 8; `Q48352` 5 | `P2389` 38, `P361` 15 | absent 25; the state 13; a subdivision 6 |
+
+**By class:** every item with `P279 = Q1553195` (160): `P2389` 113 (83 of
+them a party), `P361` 37, no body 37, `P1001` 67, `P17` 102. Every item with
+`P279 = Q6501749` (251) is mostly not a party's: only 27 name a party under
+`P2389`, the rest are secretaries-general of IGOs, ministries and
+presidencies. `Q836971` party secretary has 15 subclasses, none of them
+naming a party.
+
+Exemplars read in full: `Q3615378` Leader of the Labour Party (UK) —
+`P31 Q4164871`, `P279 Q1553195`, `P2389` and `P361` the party, `P17 Q145`,
+**`P1001` novalue**; `Q29576752` chairman of the SPD — the same, with `P2389`
+the party and its executive board, `P1001 Q183`; `Q33195772` Secretary
+General of the PSOE — `P279 Q6501749`, `P2389`/`P361` the party, no `P17`, no
+`P1001`; `Q52413578` President of the PRI — `P279 Q1553195`, `P2389` the party,
+`P17 Q96`; `Q6310828` Chairperson of the DPP — `P279 Q1553195`, `P2389`/`P361`
+the party, `P1001 Q865`. The parents: `Q1553195` "leading official of a
+political party" (`P31` position and occupation, `P279 Q1251441` leader,
+`Q82955` politician; itself `P2389`/`P361 Q7278`); `Q6501749` "leader or chief
+officer of an organisation" (`P279 Q140686`); `Q2746259` party chair (5
+subclasses); `Q836971` "senior official within a political party with
+responsibility for the organizational and daily political work".
+
+So leaders and chairs are one shape and secretaries another only in `P279`:
+`party_leader` takes `Q1553195`, `party_secretary` `Q6501749` (or `Q836971`
+for a secretariat seat, §10c), both name the party under `P2389`, both carry
+no `P1001` — absent from the majority of every cluster, and a party governs no
+polity — and both are `Q4164871`, not the public office a state's ministries
+declare.
+
+**Agency heads:** positions whose `P2389`/`P361` names an item typed
+`Q327333` government agency, filtered to head titles (director, chief, head,
+president, chair, administrator, commissioner, general): 3,190 across 169
+states. `P31` `Q4164871` 2,827, `Q294414` 355. `P279` none 2,589; past the
+central-bank governors (122) and ministers, `Q1501800` director general 79,
+`Q1162163` director 29, `Q61861399` 18, `Q140686` chairperson 15. Body
+**`P2389` 2,088 against `P361` 1,265**; `P1001` 1,557. The archetype named
+its agency under `P361` until now; it takes `P2389`, and the title word picks
+director, director general or chairperson, as for an enterprise.
+
+**Enterprise heads** (§10f's 90, re-read): `P31` `Q4164871` 79, `Q294414` 10;
+`P1001` absent 68, present 22 (17 of them the state). `scoped=False` and
+`P2389` stand; the metaclass is `Q4164871`.

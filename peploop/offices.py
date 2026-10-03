@@ -62,6 +62,16 @@ class Archetype:
     #: office is, said of the polity instead. None where no such sentence is
     #: true of every office of the kind, and `describe` then refuses.
     unbodied: str | None = None
+    #: Other kinds the office may take when its title word names one: a
+    #: drafted parent among these is kept, where any other is replaced.
+    parents: tuple[str, ...] = ()
+    #: The `P31` the measured items of this kind use, where the state's own
+    #: offices of the same kind say nothing: a party's leader is a position,
+    #: and the public office most of a state's offices declare is not its kind.
+    metaclass: str | None = None
+    #: The office means nothing without its body: a party's leader with no
+    #: party named is an item nobody can tell from any other party's.
+    body_required: bool = False
 
 
 ARCHETYPES: dict[str, Archetype] = {
@@ -80,8 +90,12 @@ ARCHETYPES: dict[str, Archetype] = {
     # existing municipal items subclass.
     "mayor": Archetype("Q30185", description="mayor of {jurisdiction}", single_seat=True,
                        level="municipality"),
-    "agency_head": Archetype("Q1162163", description="head of the {body}", single_seat=True,
-                             unbodied="head of a public body of {jurisdiction}"),
+    # Of ~3,200 heads of a government agency, 89% are typed `Q4164871`, and
+    # 2,088 name the agency under `P2389` against 1,265 under `P361`. The class
+    # follows the title word: director, director general, chairperson.
+    "agency_head": Archetype("Q1162163", body_property="P2389", description="head of the {body}",
+                             single_seat=True, unbodied="head of a public body of {jurisdiction}",
+                             parents=("Q1162163", "Q1501800", "Q140686"), metaclass=POSITION),
     # The presiding officer of a chamber: 84 of 96 speakerships measured use
     # `Q1758037`, and a state's existing one names its chamber under `P2389`.
     # A deputy speaker is not a speaker and has no archetype.
@@ -98,13 +112,28 @@ ARCHETYPES: dict[str, Archetype] = {
     # own, and "member of {party}" would read as party membership.
     "politburo_member": Archetype(
         "Q115136557", description="member of the political bureau of the {body}",
-        unbodied="member of a party's political bureau in {jurisdiction}"),
+        unbodied="member of a party's political bureau in {jurisdiction}", metaclass=POSITION),
     # A seat in a collegial organ of the state (a council of state, a
     # presidium). The only recurring class, and a weak one: prefer a sibling's.
     "state_body_member": Archetype("Q16862850", description="member of the {body}",
                                    unbodied="member of a state body of {jurisdiction}"),
-    "party_secretary": Archetype("Q836971", description="party office in the {body}", single_seat=True,
-                                 unbodied="party office in {jurisdiction}"),
+    # A national party's leader, chair or president: 43 of 61 leaders and the
+    # plurality of 86 chairs and presidents subclass `Q1553195`, across 30
+    # states. The party is named under `P2389` (about 82%), and `P1001` is
+    # absent from most, rightly: a party governs no polity. Typed `Q4164871`
+    # throughout. research/position_items.md §10n.
+    "party_leader": Archetype(
+        "Q1553195", body_property="P2389", description="leader of the {body}", single_seat=True,
+        scoped=False, metaclass=POSITION, body_required=True,
+    ),
+    # Its general secretary or secretary-general: 29 of 47 subclass `Q6501749`,
+    # with the leader's shape otherwise. A seat in a secretariat may take
+    # `Q836971` instead, the class the few such items use.
+    "party_secretary": Archetype(
+        "Q6501749", body_property="P2389", description="party secretary of the {body}",
+        single_seat=True, scoped=False, parents=("Q6501749", "Q836971"), metaclass=POSITION,
+        body_required=True,
+    ),
     # "Chief of defence", a subclass of chief of staff, is what 70% of typed
     # items use; the general staff is named under `P2389`, not `P361`.
     "military_chief_of_staff": Archetype(
@@ -121,9 +150,12 @@ ARCHETYPES: dict[str, Archetype] = {
     # director general is the default and a sibling's or the drafted parent
     # from `SOE_PARENTS` may replace it. Never "chief executive officer": it is
     # typed as an occupation. A company's head governs no polity.
+    # 79 of 90 measured enterprise heads are typed `Q4164871`, and 68 carry
+    # no `P1001`.
     "soe_head": Archetype(
         "Q1501800", body_property="P2389", description="head of the {body}", single_seat=True,
         scoped=False, unbodied="head of a state enterprise of {state}",
+        parents=("Q1501800", "Q140686", "Q1255921"), metaclass=POSITION,
     ),
     "central_bank_governor": Archetype(
         "Q107363151", body_property="P2389", description="governor of the {body}", single_seat=True,
@@ -149,7 +181,7 @@ MUNICIPAL_CLASSES = frozenset({
 
 #: The parents an enterprise head may take by its title word: director general,
 #: chairperson, president.
-SOE_PARENTS = ("Q1501800", "Q140686", "Q1255921")
+SOE_PARENTS = ARCHETYPES["soe_head"].parents
 
 #: Types a duplicate-search hit can carry that make it not the office, whatever
 #: its label says: a human holding the office as an alias, a news headline
@@ -439,9 +471,14 @@ def label_langs(siblings: Siblings, langs: Sequence[str], share: float = 0.5) ->
     return [lang for lang in langs if siblings.label_langs[lang] >= share * siblings.offices]
 
 
-def metaclass_for(siblings: Siblings, parent: str) -> str:
-    """The `P31` this state's offices of the same kind use, else its usual one."""
-    return _mode(siblings.metaclass_by_parent.get(parent)) or _mode(siblings.metaclasses) or PUBLIC_OFFICE
+def metaclass_for(siblings: Siblings, parent: str, default: str | None = None) -> str:
+    """The `P31` this state's offices of the same kind use, else the kind's, else its usual one.
+
+    `default` is the archetype's measured metaclass: it outranks the state's
+    usual one, which is a statement about its ministries, not about a party.
+    """
+    return (_mode(siblings.metaclass_by_parent.get(parent)) or default
+            or _mode(siblings.metaclasses) or PUBLIC_OFFICE)
 
 
 def body_for(siblings: Siblings, archetype: str, min_agree: int | None = None) -> str | None:
@@ -593,6 +630,8 @@ def guard(
 
     if spec.body_qid:
         problems.extend(_body_problems(spec, body, state_names, known_bodies))
+    elif spec.archetype in ARCHETYPES and spec.shape.body_required:
+        problems.append("body/none")
     if spec.archetype in ARCHETYPES and spec.shape.scoped and spec.jurisdiction != spec.state_qid:
         if jurisdiction is None or jurisdiction.get("id") != spec.jurisdiction:
             problems.append(f"jurisdiction/{spec.jurisdiction}")

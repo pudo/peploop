@@ -151,11 +151,13 @@ def main() -> int:
            "and gives nothing rather than a QID when a label is missing")
     expect(offices.describe(governor(), {PROVINCE: PROVINCE}), None,
            "or when the label it resolved is itself a QID")
-    party = judge(archetype="party_secretary", body_qid=None, labels={"en": "President of the Party"})
-    expect(offices.describe(party, LABELS), "party office in Aland",
-           "a party office whose party has no item is described by its state")
+    party = judge(archetype="party_leader", body_qid=None, labels={"en": "President of the Party"})
+    expect(offices.describe(party, LABELS), None,
+           "a party office whose party has no item has nothing true to be described by")
+    expect(offices.describe(judge(archetype="party_leader"), LABELS),
+           "leader of the Supreme Tribunal of Aland", "a party's leader is described by its party")
     expect(offices.describe(judge(archetype="party_secretary"), LABELS),
-           "party office in the Supreme Tribunal of Aland", "and by its body when it has one")
+           "party secretary of the Supreme Tribunal of Aland", "and its secretary the same way")
     expect(offices.describe(judge(archetype="minister", body_qid=None), LABELS),
            "minister in the government of Aland", "a template naming no body is untouched")
     expect(offices.describe(judge(archetype="politburo_member", body_qid=None), {}), None,
@@ -231,6 +233,32 @@ def main() -> int:
     data = offices.entity_data(judge(archetype="speaker"))
     expect((statement(data, "P279"), statement(data, "P2389"), statement(data, "P361")),
            (["Q1758037"], [BODY], []), "a speaker is kind speaker, naming its chamber under P2389")
+
+    print("party offices:")
+    party_item = entity(BODY, "Blue Party of Aland", p31="Q7278", p17=STATE)
+    leader = judge(archetype="party_leader", labels={"en": "Leader of the Blue Party"},
+                   descriptions={"en": "leader of the Blue Party of Aland"})
+    expect(guard(leader, body=party_item), [], "a party's leader naming its party passes")
+    data = offices.entity_data(leader)
+    expect((statement(data, "P279"), statement(data, "P2389"), statement(data, "P361"),
+            statement(data, "P1001"), statement(data, "P17")),
+           (["Q1553195"], [BODY], [], [], [STATE]),
+           "a party leader is kind party leader, names its party under P2389, and governs no polity")
+    secretary = offices.entity_data(judge(archetype="party_secretary"))
+    expect((statement(secretary, "P279"), statement(secretary, "P2389"), statement(secretary, "P1001")),
+           (["Q6501749"], [BODY], []), "a party's general secretary is kind general secretary, the same shape")
+    expect(guard(replace(leader, body_qid=None)), ["body/none"],
+           "a party office with no party is refused under its own rule")
+    expect(offices.metaclass_for(Siblings(metaclasses=Counter({"Q294414": 9})), "Q1553195",
+                                 offices.ARCHETYPES["party_leader"].metaclass),
+           "Q4164871", "a party office is a position, not the state's usual public office")
+    expect(offices.metaclass_for(Siblings(metaclass_by_parent={"Q1553195": Counter({"Q294414": 3})},
+                                          metaclasses=Counter({"Q294414": 9})), "Q1553195",
+                                 offices.ARCHETYPES["party_leader"].metaclass),
+           "Q294414", "unless the state's own party leaders are typed otherwise")
+    agency = offices.entity_data(judge(archetype="agency_head"))
+    expect((statement(agency, "P279"), statement(agency, "P2389"), statement(agency, "P361")),
+           (["Q1162163"], [BODY], []), "an agency head names its agency under P2389, as most do")
 
     print("postings between states:")
     for label in ("Ambassador of Aland to Bray", "Embajador de Aland en Bray",
