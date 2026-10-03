@@ -16,7 +16,7 @@ last section, all of them live.
 import re
 import string
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 from typing import Any, Callable, Collection, Iterable, Sequence
 
@@ -272,6 +272,9 @@ class Found:
     country_qids: tuple[str, ...] = ()
     #: The hit's declared `P31`, every rank but deprecated.
     types: frozenset[str] = frozenset()
+    #: Other offices name the hit as their `P279`: it is a kind of office
+    #: ("president of the senate"), not one. Read only for a stateless hit.
+    is_class: bool = False
 
 
 def duplicate_of(found: Iterable[Found]) -> str | None:
@@ -288,7 +291,12 @@ def duplicate_of(found: Iterable[Found]) -> str | None:
             continue
         if hit.types == {LIST_ARTICLE}:
             continue
-        if hit.country_match or not hit.country_qids:
+        if hit.country_match:
+            return hit.qid
+        # A stateless hit is this office with its state left out, unless
+        # other offices subclass it: then it is the kind, which a state's
+        # own seat is a subclass of rather than a duplicate of.
+        if not hit.country_qids and not hit.is_class:
             return hit.qid
     return None
 
@@ -539,6 +547,8 @@ def _body_problems(spec: Spec, body: dict[str, Any] | None, state_names: Iterabl
 #: How many of the state's offices must sit in a body before the caller
 #: passes it to `guard` as measured, skipping the body word check.
 MEASURED_BODY_USES = 2
+#: How many of a stateless hit's subclasses `is_office_class` reads.
+CLASS_PROBE = 5
 
 #: How long ago an office's most recent recorded holder may have started or
 #: ended and the office still be a sibling. Past it the office is history --
@@ -655,6 +665,21 @@ def _cirrus(query: str) -> list[str]:
             if QID.fullmatch(hit.get("title", ""))]
 
 
+def is_office_class(qid: str, children: Callable[[str], list[str]] | None = None,
+                    items: Callable[[list[str]], dict[str, dict[str, Any]]] | None = None) -> bool:
+    """Whether a position item is the `P279` parent of other position items.
+
+    Only the first few subclasses are read: one office among them is enough to
+    say the item is a kind of office.
+    """
+    children = children or (lambda q: _cirrus(f"haswbstatement:P279={q}")[:CLASS_PROBE])
+    items = items or (lambda qs: wikidata.fetch_items(qs, props="claims"))
+    found = children(qid)
+    if not found:
+        return False
+    return any(set(_values(ent, "P31")) & POSITION_METACLASSES for ent in items(found).values())
+
+
 def live_lookup(label: str, lang: str, state_qid: str) -> list[Found]:
     """Search Wikidata live for an item this office would duplicate.
 
@@ -678,6 +703,8 @@ def live_lookup(label: str, lang: str, state_qid: str) -> list[Found]:
     out: dict[str, Found] = {}
     for entity in entities.values():
         hit = found_from(entity, label, state_qid, states_of)
+        if hit.label_match and not hit.country_qids and is_office_class(hit.qid):
+            hit = replace(hit, is_class=True)
         out.setdefault(hit.qid, hit)
     return list(out.values())
 

@@ -342,6 +342,31 @@ def main() -> int:
     expect(offices.found_from(preferred, "President of Aland", STATE, {}).types,
            frozenset({"Q4164871", "Q294414"}), "but a preferred one does not hide the normal ones")
 
+    print("a kind of office is not a duplicate of a state's seat:")
+    generic = entity("Q74", "president of the senate", p31="Q4164871")
+    # The search runs per label and alias, and an article's bare "President of
+    # the Senate" is an alias of the state's seat.
+    seen = offices.found_from(generic, "President of the Senate", STATE, {})
+    expect((seen.label_match, seen.country_qids), (True, ()),
+           "a stateless 'president of the senate' matches the seat's bare alias")
+    expect(offices.duplicate_of([seen]), "Q74", "and, read as an office, it blocks")
+    expect(offices.duplicate_of([replace(seen, is_class=True)]), None,
+           "but not once other offices are seen to subclass it")
+    stateless = offices.found_from(entity("Q75", "President of the Senate", p31="Q4164871",
+                                          aliases=("President of the Senate of Aland",)),
+                                   "President of the Senate", STATE, {})
+    expect(offices.duplicate_of([replace(seen, is_class=True), stateless]), "Q75",
+           "while a stateless item of the same office, which nothing subclasses, still blocks")
+    world = {"Q76": entity("Q76", "President of the Senate of Bray", p31="Q294414"),
+             "Q77": entity("Q77", "Senate rules", p31="Q7748")}
+    items = lambda qs: {q: world[q] for q in qs}
+    expect(offices.is_office_class("Q74", children=lambda _q: ["Q77", "Q76"], items=items), True,
+           "an item one office subclasses is a kind of office")
+    expect(offices.is_office_class("Q74", children=lambda _q: ["Q77"], items=items), False,
+           "one only a non-office subclasses is not")
+    expect(offices.is_office_class("Q74", children=lambda _q: [], items=items), False,
+           "nor one nothing subclasses")
+
     print(f"{len(failures)} failures")
     return 1 if failures else 0
 
