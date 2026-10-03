@@ -443,6 +443,11 @@ def guard(
             problems.append(f"jurisdiction/{spec.jurisdiction}")
         elif spec.state_qid not in wikidata.claim_qids(jurisdiction, "P17", include_deprecated=False):
             problems.append(f"jurisdiction-state/{spec.jurisdiction}")
+        elif dissolved(jurisdiction):
+            # Before the level check, which would also refuse it but say less:
+            # an article's stale "since 2015" makes the holder of a merged
+            # province's governorship read as current.
+            problems.append(f"jurisdiction-dissolved/{spec.jurisdiction}")
     if spec.archetype in ARCHETYPES and spec.shape.scoped and regions is not None:
         level, where = spec.shape.level, spec.jurisdiction
         if level == "region" and where not in regions:
@@ -552,6 +557,32 @@ def _unended(entity: dict[str, Any], prop: str) -> list[str]:
         if isinstance(value, dict) and "id" in value:
             out.append(value["id"])
     return out
+
+
+def dissolved(entity: dict[str, Any], today: date | None = None) -> bool:
+    """Whether the item records its own dissolution (`P576`) on or before today.
+
+    A state's `P150` is not ended when the subdivisions are merged: one
+    state's still lists sixteen provinces merged a year ago with no qualifier,
+    while each province's own item carries the date. A dissolution at year precision
+    counts from the first day of its year, and one of unknown date counts at
+    once: an office of a polity that has ended is never minted as current.
+    """
+    today = today or date.today()
+    for claim in entity.get("claims", {}).get("P576", []):
+        if claim.get("rank") == "deprecated":
+            continue
+        snak = claim.get("mainsnak", {})
+        if snak.get("snaktype") == "somevalue":
+            return True
+        value = snak.get("datavalue", {}).get("value")
+        match = re.match(r"^\+?(\d{1,4})-(\d{2})-(\d{2})", (value or {}).get("time", "")
+                         if isinstance(value, dict) else "")
+        if match:
+            year, month, day = (int(g) for g in match.groups())
+            if date(year, max(month, 1), max(day, 1)) <= today:
+                return True
+    return False
 
 
 def found_from(entity: dict[str, Any], label: str, state_qid: str,
@@ -789,9 +820,13 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
 
 
 def subdivisions(state_qid: str) -> list[tuple[str, dict[str, str]]]:
-    """The state's current first-level subdivisions (`P150`), with every label."""
+    """The state's current first-level subdivisions (`P150`), with every label.
+
+    Current means the `P150` claim is not ended and the subdivision's own item
+    is not `dissolved`: a merger is often recorded only on the merged items.
+    """
     state = wikidata.fetch_items([state_qid], props="claims").get(state_qid, {})
     qids = list(dict.fromkeys(_unended(state, "P150")))
-    found = wikidata.fetch_items(qids, props="labels") if qids else {}
+    found = wikidata.fetch_items(qids, props="labels|claims") if qids else {}
     return [(qid, {lang: obj["value"] for lang, obj in found[qid].get("labels", {}).items()})
-            for qid in qids if qid in found]
+            for qid in qids if qid in found and not dissolved(found[qid])]

@@ -81,6 +81,34 @@ def guard(spec: Spec, **over: Any) -> list[str]:
     return offices.guard(spec, **args)
 
 
+def dissolution(time: str, rank: str = "normal") -> dict[str, Any]:
+    return {"rank": rank, "mainsnak": {"snaktype": "value", "property": "P576",
+            "datavalue": {"type": "time", "value": {"time": time, "precision": 9}}}}
+
+
+def check_subdivisions(expect: Any, merged: dict[str, Any]) -> None:
+    """Both P150 readers drop a subdivision whose own item says it was dissolved."""
+    from peploop import mint, wikidata
+
+    other = "Q0000005"
+    world = {
+        STATE: {"id": STATE, "claims": {"P150": [
+            {"rank": "normal", "mainsnak": {"datavalue": {"value": {"id": q}}}} for q in (PROVINCE, other)]}},
+        PROVINCE: merged,
+        other: entity(other, "Cray Province", p17=STATE),
+    }
+    real = wikidata.fetch_items
+    wikidata.fetch_items = lambda qids, props="": {q: world[q] for q in qids if q in world}
+    try:
+        expect([q for q, _l in offices.subdivisions(STATE)], [other],
+               "the state's subdivisions leave out a merged province its P150 still lists")
+        expect(mint._subdivisions(STATE), [other], "and so does the census expansion")
+        expect(mint._subdivisions(STATE, dissolved=True), [PROVINCE, other],
+               "but categorize may still name it, so a mention of it is not scoped to the state")
+    finally:
+        wikidata.fetch_items = real
+
+
 def statement(data: dict[str, Any], prop: str) -> list[str]:
     return [claim["mainsnak"]["datavalue"]["value"]["id"]
             for claim in data["claims"] if claim["mainsnak"]["property"] == prop]
@@ -147,6 +175,21 @@ def main() -> int:
            [f"jurisdiction-state/{PROVINCE}"], "a subdivision of another state is refused")
     expect(guard(governor(), jurisdiction=None), [f"jurisdiction/{PROVINCE}"],
            "as is one that did not resolve")
+
+    print("a dissolved jurisdiction:")
+    merged = {**BRAY, "claims": {**BRAY["claims"], "P576": [dissolution("+2025-00-00T00:00:00Z")]}}
+    expect(offices.dissolved(merged), True, "a province merged in 2025 is dissolved")
+    expect(offices.dissolved({"claims": {"P576": [dissolution("+2999-01-01T00:00:00Z")]}}), False,
+           "a dissolution still ahead is not")
+    expect(offices.dissolved({"claims": {"P576": [dissolution("+2025-00-00T00:00:00Z", "deprecated")]}}),
+           False, "nor a deprecated one")
+    expect(offices.dissolved({"claims": {"P576": [{"rank": "normal", "mainsnak": {"snaktype": "somevalue"}}]}}),
+           True, "and one of unknown date is")
+    expect(guard(governor(), jurisdiction=merged), [f"jurisdiction-dissolved/{PROVINCE}"],
+           "a governorship of a merged province is refused for it, whoever is said to hold it")
+    expect(guard(governor(), jurisdiction=merged, regions=set())[0], f"jurisdiction-dissolved/{PROVINCE}",
+           "ahead of the level check, which says less")
+    check_subdivisions(expect, merged)
 
     print("postings between states:")
     for label in ("Ambassador of Aland to Bray", "Embajador de Aland en Bray",

@@ -23,7 +23,9 @@ its offices are labelled in.
 from anywhere else is removed mechanically after the fact. They are:
 
 - **the state** and **its first-level subdivisions**, which are the values a
-  `jurisdiction_qid` may take;
+  `jurisdiction_qid` may take. One marked "(dissolved)" no longer exists: an
+  office of it is still scoped to it, never to the state, because the
+  evidence is about that place;
 - **census bodies**: courts, chambers, councils and organs a country survey
   named;
 - **kinds of office**: the generic class items an archetype is a kind of;

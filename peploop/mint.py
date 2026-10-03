@@ -285,8 +285,15 @@ class Anchor:
     jurisdiction: str | None = None
 
 
-def _subdivisions(state_qid: str) -> list[str]:
-    """The state's current first-level subdivisions, read live."""
+def _subdivisions(state_qid: str, dissolved: bool = False) -> list[str]:
+    """The state's current first-level subdivisions, read live.
+
+    A `P150` value whose own item records its dissolution is left out, because
+    a state's list is often not updated when its provinces merge. `dissolved`
+    asks for those too: categorize must still be able to name the province a
+    mention is about, or a stale governorship is scoped to the whole state
+    rather than refused for the province it governed.
+    """
     entity = wikidata.fetch_items([state_qid], props="claims").get(state_qid) or {}
     out = []
     for claim in entity.get("claims", {}).get("P150", []):
@@ -295,7 +302,10 @@ def _subdivisions(state_qid: str) -> list[str]:
         value = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
         if isinstance(value, dict) and value.get("id") and value["id"] not in out:
             out.append(value["id"])
-    return out
+    if dissolved or not out:
+        return out
+    items = wikidata.fetch_items(out, props="claims")
+    return [qid for qid in out if not offices.dissolved(items.get(qid) or {})]
 
 
 def _labels_of(qids: Sequence[str]) -> dict[str, dict[str, str]]:
@@ -1018,7 +1028,8 @@ def offered_for(country: str, gs: Sequence[Group], anchors: Sequence[Anchor]) ->
         " WHERE country_qid = %s ORDER BY label NULLS LAST, qid", (state,),
     ).fetchall()
     rows_out = [PositionRow(q, l, list(k or []), bool(n)) for q, l, k, n in rows]
-    subs = _subdivisions(state)
+    subs = _subdivisions(state, dissolved=True)
+    current = set(_subdivisions(state))
     chosen = {q for g in gs for q in g.chosen}
     parents = {a.parent for a in ARCHETYPES.values()} | set(offices.SOE_PARENTS)
     bodies = {a.body for a in anchors if a.body}
@@ -1027,7 +1038,7 @@ def offered_for(country: str, gs: Sequence[Group], anchors: Sequence[Anchor]) ->
     langs = [iso_639_alpha2(lang) or lang for lang in (territory.langs if territory else [])]
     offered = Offered(
         state_qid=state, state_label=labels.get(state, state), langs=langs,
-        subdivisions={q: labels.get(q, q) for q in subs},
+        subdivisions={q: labels.get(q, q) + ("" if q in current else " (dissolved)") for q in subs},
         bodies={q: labels.get(q, q) for q in sorted(bodies)},
         parents={q: labels.get(q, q) for q in sorted(parents)},
         chosen={q: labels.get(q, q) for q in sorted(chosen)},
