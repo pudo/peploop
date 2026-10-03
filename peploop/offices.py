@@ -59,13 +59,20 @@ class Archetype:
     #: mayor scoped to the state, or to the department its town sits in, is
     #: the default a missing jurisdiction falls to, and reads as plausible.
     level: str = "state"
+    #: The description when a `{body}` template has no body to name: what the
+    #: office is, said of the polity instead. None where no such sentence is
+    #: true of every office of the kind, and `describe` then refuses.
+    unbodied: str | None = None
 
 
 ARCHETYPES: dict[str, Archetype] = {
     "minister": Archetype("Q83307", description="minister in the government of {jurisdiction}"),
-    "legislator": Archetype("Q4175034", description="member of the {body}"),
-    "judge": Archetype("Q16533", description="judge of the {body}"),
-    "supreme_judge": Archetype("Q117826617", description="judge of the {body}"),
+    "legislator": Archetype("Q4175034", description="member of the {body}",
+                            unbodied="member of a legislature of {jurisdiction}"),
+    "judge": Archetype("Q16533", description="judge of the {body}",
+                       unbodied="judge in {jurisdiction}"),
+    "supreme_judge": Archetype("Q117826617", description="judge of the {body}",
+                               unbodied="judge of a superior court of {jurisdiction}"),
     # Scoped to the polity governed, not the state: of 185 governorships with a
     # `P1001`, 172 name something narrower than their own `P17`.
     "governor": Archetype("Q132050", description="governor of {jurisdiction}", single_seat=True,
@@ -76,13 +83,14 @@ ARCHETYPES: dict[str, Archetype] = {
                        level="municipality"),
     # One person heads an agency at a time, so a census entry is a second
     # channel for it like for any other one-seat office.
-    "agency_head": Archetype("Q1162163", description="head of the {body}", single_seat=True),
+    "agency_head": Archetype("Q1162163", description="head of the {body}", single_seat=True,
+                             unbodied="head of a public body of {jurisdiction}"),
     # The presiding officer of a chamber: 84 of 96 speakerships measured use
     # `Q1758037`, and a state's existing one names its chamber under `P2389`.
     # A deputy speaker is not a speaker and has no archetype.
     "speaker": Archetype(
         "Q1758037", body_property="P2389", description="presiding officer of the {body}",
-        single_seat=True,
+        single_seat=True, unbodied="presiding officer of a chamber of {jurisdiction}",
     ),
     # The parents below were measured across other states' items (P279 tallies
     # and the parents read in full); see research/position_items.md §10.
@@ -92,20 +100,25 @@ ARCHETYPES: dict[str, Archetype] = {
     # The body is usually the party: few parties' bureaus have items of their
     # own, and "member of {party}" would read as party membership.
     "politburo_member": Archetype(
-        "Q115136557", description="member of the political bureau of the {body}"),
+        "Q115136557", description="member of the political bureau of the {body}",
+        unbodied="member of a party's political bureau in {jurisdiction}"),
     # A seat in a collegial organ of the state (a council of state, a
     # presidium). The only recurring class, and a weak one: prefer a sibling's.
-    "state_body_member": Archetype("Q16862850", description="member of the {body}"),
-    "party_secretary": Archetype("Q836971", description="party office in the {body}", single_seat=True),
+    "state_body_member": Archetype("Q16862850", description="member of the {body}",
+                                   unbodied="member of a state body of {jurisdiction}"),
+    "party_secretary": Archetype("Q836971", description="party office in the {body}", single_seat=True,
+                                 unbodied="party office in {jurisdiction}"),
     # "Chief of defence", a subclass of chief of staff, is what 70% of typed
     # items use; the general staff is named under `P2389`, not `P361`.
     "military_chief_of_staff": Archetype(
         "Q5097014", body_property="P2389", description="head of the {body}", single_seat=True,
+        unbodied="military command in {jurisdiction}",
     ),
     # "Chief justice", a subclass of court president, is the plurality for apex
     # courts and the one every Latin American presidency uses.
     "court_president": Archetype(
         "Q3188089", body_property="P2389", description="president of the {body}", single_seat=True,
+        unbodied="president of a court of {jurisdiction}",
     ),
     # The class follows the title word (director general, chair, president);
     # director general is the default and a sibling's or the drafted parent
@@ -113,10 +126,11 @@ ARCHETYPES: dict[str, Archetype] = {
     # typed as an occupation. A company's head governs no polity.
     "soe_head": Archetype(
         "Q1501800", body_property="P2389", description="head of the {body}", single_seat=True,
-        scoped=False,
+        scoped=False, unbodied="head of a state enterprise of {state}",
     ),
     "central_bank_governor": Archetype(
         "Q107363151", body_property="P2389", description="governor of the {body}", single_seat=True,
+        unbodied="central bank governor of {jurisdiction}",
     ),
     "prosecutor_general": Archetype(
         "Q3368517", description="prosecutor general of {jurisdiction}", single_seat=True,
@@ -246,16 +260,22 @@ def describe(spec: Spec, labels_of: dict[str, str]) -> str | None:
 
     A description reading "governor of Q12345" is worse than none, so a
     missing label, or one that is itself a QID, refuses rather than degrades.
+    A body-templated office with no body is described by its polity instead,
+    where the archetype says how (`Archetype.unbodied`): a party leadership
+    whose party has no item is still a party office in its state.
     """
     slots = {"body": spec.body_qid, "jurisdiction": spec.jurisdiction, "state": spec.state_qid}
-    wanted = {name for _text, name, _spec, _conv in string.Formatter().parse(spec.shape.description) if name}
+    template = spec.shape.description
+    if "{body}" in template and not spec.body_qid and spec.shape.unbodied:
+        template = spec.shape.unbodied
+    wanted = {name for _text, name, _spec, _conv in string.Formatter().parse(template) if name}
     values: dict[str, str] = {}
     for name in wanted:
         label = labels_of.get(slots.get(name) or "")
         if not label or QID.search(label):
             return None
         values[name] = label
-    return spec.shape.description.format(**values)
+    return template.format(**values)
 
 
 @dataclass(frozen=True)

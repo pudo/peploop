@@ -152,6 +152,17 @@ def main() -> int:
            "and gives nothing rather than a QID when a label is missing")
     expect(offices.describe(governor(), {PROVINCE: PROVINCE}), None,
            "or when the label it resolved is itself a QID")
+    party = judge(archetype="party_secretary", body_qid=None, labels={"en": "President of the Party"})
+    expect(offices.describe(party, LABELS), "party office in Aland",
+           "a party office whose party has no item is described by its state")
+    expect(offices.describe(judge(archetype="party_secretary"), LABELS),
+           "party office in the Supreme Tribunal of Aland", "and by its body when it has one")
+    expect(offices.describe(judge(archetype="minister", body_qid=None), LABELS),
+           "minister in the government of Aland", "a template naming no body is untouched")
+    expect(offices.describe(judge(archetype="politburo_member", body_qid=None), {}), None,
+           "and the fallback still refuses an unresolved polity")
+    expect(offices.describe(judge(archetype="soe_head", body_qid=None), LABELS),
+           "head of a state enterprise of Aland", "an unscoped enterprise is said of the state")
     expect(guard(judge(descriptions={})), ["description/en"], "an office with no description is refused")
     expect(guard(judge(), langs=("xx",)), ["label/xx"], "and one missing a label in a state language")
 
