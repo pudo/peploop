@@ -323,6 +323,14 @@ def _phrase(text: str) -> str:
     return f" {' '.join(re.findall(r'[a-z0-9]+', fold(text)))} "
 
 
+def without_state(text: str, state_names: Iterable[str]) -> str:
+    """A name with every one of the state's names taken out of it as a whole phrase."""
+    out = _phrase(text)
+    for name in sorted({_phrase(n) for n in state_names if _phrase(n).strip()}, key=len, reverse=True):
+        out = out.replace(name, " ")
+    return out
+
+
 def duplicate_of(found: Iterable[Found], state_names: Iterable[str] = ()) -> str | None:
     """The item this office would duplicate, judged hit by hit.
 
@@ -596,12 +604,18 @@ def _body_problems(spec: Spec, body: dict[str, Any] | None, state_names: Iterabl
         problems.append(f"body-is-position/{qid}")
     if declared & NOT_A_POSITION:
         problems.append(f"body-not-a-body/{qid}")
-    noise = _stems(state_names)
+    # The state's name comes off as a phrase, not as its words: in a state
+    # named "X and Y", the "Chief Secretary of Y" and the "Y House of
+    # Assembly" share "Y", an island and not the state -- while "Ministry of
+    # Health of X and Y" and "Government of X and Y" share nothing once the
+    # state is gone.
+    names = list(state_names)
+    mine = _stems(without_state(text, names) for text in spec.labels.values())
+    theirs = _stems(without_state(text, names) for text in _names(body))
     # "Minister of Health" sits in the "Council of Ministers" and shares only
     # role words with it; when the state's own offices already use the body,
     # that is the measured shape and not a drafting slip.
-    if qid not in known_bodies and not (
-            (_stems(_names(body)) - noise) & (_stems(spec.labels.values()) - noise)):
+    if qid not in known_bodies and not mine & theirs:
         problems.append(f"body-word/{qid}")
     states = wikidata.claim_qids(body, "P17", include_deprecated=False)
     if states and spec.state_qid not in states:

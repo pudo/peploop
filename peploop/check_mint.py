@@ -173,6 +173,13 @@ def main() -> int:
            [f"body-word/{BODY}"], "a body sharing no content word with the office is refused")
     expect(guard(judge(labels={"en": "President of Aland"}), body=entity(BODY, "Government of Aland")),
            [f"body-word/{BODY}"], "sharing only a role word and the state's name is no agreement")
+    twin = ("Alba and Bray",)
+    expect(guard(judge(labels={"en": "Chief Secretary of Bray"}), state_names=twin,
+                 body=entity(BODY, "Bray House of Assembly", p17=STATE)), [],
+           "the state's name comes off as a phrase: an island it is named after still counts")
+    expect(guard(judge(labels={"en": "Minister of Health of Alba and Bray"}), state_names=twin,
+                 body=entity(BODY, "Government of Alba and Bray")),
+           [f"body-word/{BODY}"], "while the whole name still shares nothing")
     expect(guard(judge(), body=entity(BODY, "Supreme Tribunal", p31="Q294414")),
            [f"body-is-position/{BODY}"], "a body that is itself an office is refused")
     expect(guard(judge(), body=entity(BODY, "Supreme Tribunal", p17="Q0000099")),
@@ -264,7 +271,7 @@ def main() -> int:
     expect(guard(judge(archetype="agency_head", labels={"en": "Commissioner of Police"}, body_qid=None),
                  duplicates=[bare]), ["duplicate/Q77"],
            "and an office whose own label names no state is still blocked by it")
-    expect(offices.names_state("Chief Secretary of Tobago", ["Trinidad and Tobago"]), False,
+    expect(offices.names_state("Chief Secretary of Bray", ["Alba and Bray"]), False,
            "a state's name is a phrase, not its last word")
 
     print("shape:")
