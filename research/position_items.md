@@ -706,3 +706,75 @@ politicians were also tallied (126 targets).
   military and party phrases.
 - WDQS answered every query in this run. Nothing timed out, because all were
   subquery-first or Q241-bounded.
+
+### 10l. Belarus's own offices (Q184, measured 2026-10-02)
+
+Population: the runbook's descent query (`p:P31/ps:P31/wdt:P279* Q4164871`,
+`P17`/`P1001`/`P1001→P17 = Q184`) returns **641 items**, of which 304 hold any
+`P39`. Most of the 337 unheld are honorary titles and ranks ("Заслужаны …",
+orders, militsiya ranks, academy memberships) that the descent reaches; 32 are
+ambassadorships, a handful church offices. Tallied over the 264 held items left
+once ambassadorships, church, trade-union and opposition-cabinet offices are
+removed:
+
+| property | tally |
+|---|---|
+| `P31` | **`Q4164871` 252**, `Q294414` 8, `Q114962596` 2 |
+| `P279` | `Q21814449` district-committee chair **119**; none 55; `Q140686` chairperson 9; `Q15623433` (convocation seats) 7; `Q486839` 6; `Q98556185` regional-committee chair 6; `Q104226809` presidential aide 6; `Q83307` 3 |
+| `P361` | none 227; **`Q997640` Council of Ministers 28** |
+| `P17` | `Q184` 256 |
+| `P1001` | a subdivision or town 168, `Q184` 63, none 33 |
+
+Unlike Cuba, a sibling-derived metaclass for Belarus is `Q4164871`. Ministries
+are uniformly `P361 Q997640` with `P279` mostly absent (9 of 24) or `Q83307`.
+The executive vertical is fully itemised: six oblast chairs (`P279 Q98556185`,
+`P1001` the oblast, `P2389` the oblast executive committee), Minsk City
+`Q4462174` (`P31` chairperson + position + mayor, `P1001 Q2280`), and ~120
+district chairs under `Q21814449`, each `P2389` its committee. `Q184`'s `P150`
+is the six oblasts plus Minsk.
+
+Body items:
+
+| body | QID | state |
+|---|---|---|
+| National Assembly | `Q1798607` | `P31 Q189445` |
+| House of Representatives | `Q1649622` | `P361 Q1798607`; per-convocation items `Q28381376` 5th … `Q83463673` 7th are the *Assembly's* convocations (`Q15238777`), not seats |
+| Council of the Republic | `Q1512428` | `P361 Q1798607` |
+| Council of Ministers | `Q997640` | `P31 Q35798`, `P279 Q640506` |
+| Presidential Administration | `Q3918977` | `P31 Q327333` |
+| Security Council | `Q16326568` | `P31 Q43229` only, no `P17` |
+| KGB | `Q1329608` | `P31 Q939616` |
+| National Bank | `Q431491` | central bank |
+| Prosecutor General's Office | `Q6482716` | |
+| Constitutional Court | `Q252742` | `P31 Q32766` |
+| Supreme Court | `Q3001108` | `P31 Q190752` |
+| Central Election Commission | `Q2576708` | `P749 Q4127275` |
+| All-Belarusian People's Assembly | `Q4127275` | `P31 Q625994`, `Q43229`; `Q125662609` the 7th (2024) |
+| General Staff | `Q19772403` | `P31 Q495430`, `P749` the Ministry of Defence `Q2576529`; typed so that the descent counts it as a position |
+| SOEs | Belaruskali `Q815266`, Belneftekhim `Q3917821`, Belorusneft `Q4082693`, Naftan `Q3919275`, Mozyr refinery `Q2459960`, Grodno Azot `Q4150056`, Belarusian Potash Co. `Q4082705`, Belavia `Q815314`, Belarusian Railway `Q76987`, Beltelecom `Q4082979`, Belarusbank `Q1997334`, MAZ `Q1251215` | no head-of item exists for any |
+
+Missing outright (CirrusSearch `haswbstatement:P17=Q184 haswbstatement:P31=Q4164871`
+with "старшыня"/"председатель"/"Суда", 285 hits read, plus label searches in be
+and ru): the Chairman of the House of Representatives, the chairmen of the
+Constitutional and Supreme Courts, the State Secretary of the Security Council,
+the Chairman of the Central Election Commission, the Chairman of the
+All-Belarusian People's Assembly, and every SOE head.
+
+Traps:
+- **Membership of the Council of the Republic is two conventions at once**: the
+  generic `Q15623433` (110 statements) and per-convocation seats `Q99181114` 1st
+  … `Q77927043` 7th, `Q131301762` 8th (3 statements, be label only), each `P279
+  Q15623433`. The House has only the generic `Q14335901` (717). `Q105570788`
+  (5th convocation) has no holder.
+- `Q122831383` judge of the Constitutional Court carries **no `P31`**, so the
+  descent does not reach it; `Q122920176` (Supreme Court judge) is typed.
+- `Q4436588` KGB chair has `P1001 = Q9291994`, a **person** (Lavitsky).
+- `Q14825897` is labelled as the Minsk City Council (en, ru) and as a deputy of it
+  (be), and is used as a seat 12 times.
+- Renamed offices: `Q13410734` First Deputy Chairman and `Q13410737` Deputy Chairman
+  of the Council of Ministers are the pre-1994 titles of `Q18690166` / `Q18690228`;
+  `Q100707485` Chairman of the Supreme Council and `Q14324101` its members are the
+  pre-1996 legislature.
+- `Q98556185` generic "chairman of the Regional Executive Committee" (`P1001
+  Q209325` region of Belarus, 0 holders) and `Q21814449` for districts are
+  classes, not offices.

@@ -1,0 +1,169 @@
+# Offices the state has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-02 measurement (research/position_items.md §10l),
+# read live. No `source` is given: none has been checked.
+#
+# Belarus is modelled densely, so most institution classes already have their
+# office and are not listed: the President `Q1049659`, Prime Minister
+# `Q12379704`, the (first) deputy prime ministers `Q18690166` / `Q18690228`,
+# 24 ministries (`P361 Q997640`), the Head of the Presidential Administration
+# `Q13410738`, the Chairman of the Council of the Republic `Q13411096` and its
+# deputy `Q106566565`, the Prosecutor General `Q6482723`, the KGB chair
+# `Q4436588`, the Chairman of the Board of the National Bank `Q15708806`, the
+# Chief of the General Staff `Q21029743`, the State Control Committee chair
+# `Q109657173`, the Investigative Committee chair `Q105968151`, all six oblast
+# executive-committee chairs (`P279 Q98556185`) and the Minsk City chair
+# `Q4462174`, ~120 district-committee chairs (`P279 Q21814449`), and a
+# Presidium seat of the All-Belarusian People's Assembly `Q126283139`. A judge
+# of each apex court exists too, the Constitutional Court's (`Q122831383`)
+# with no `P31` at all.
+#
+# Absent and not listed here, for want of an archetype: the Chairman of the
+# House of Representatives (a speakership; the Council of the Republic's chair
+# is `P279 Q140686`), and the Chairman of the All-Belarusian People's Assembly
+# (one holder since 2024, the President).
+
+- key: constitutional_court_president
+  class: judiciary.apex
+  archetype: court_president
+  body: Q252742            # Канстытуцыйны суд Рэспублікі Беларусь
+  labels:
+    be: Старшыня Канстытуцыйнага Суда Рэспублікі Беларусь
+    ru: Председатель Конституционного Суда Республики Беларусь
+    en: Chairman of the Constitutional Court of the Republic of Belarus
+
+- key: supreme_court_president
+  class: judiciary.apex
+  archetype: court_president
+  body: Q3001108           # Вярхоўны суд Рэспублікі Беларусь
+  labels:
+    be: Старшыня Вярхоўнага Суда Рэспублікі Беларусь
+    ru: Председатель Верховного Суда Республики Беларусь
+    en: Chairman of the Supreme Court of the Republic of Belarus
+
+- key: security_council_state_secretary
+  class: oversight.state_councils
+  archetype: agency_head
+  body: Q16326568          # Савет бяспекі Рэспублікі Беларусь (P31 organization)
+  labels:
+    be: Дзяржаўны сакратар Савета бяспекі Рэспублікі Беларусь
+    ru: Государственный секретарь Совета безопасности Республики Беларусь
+    en: State Secretary of the Security Council of Belarus
+
+- key: election_commission_chair
+  class: oversight.electoral_commission
+  archetype: agency_head
+  body: Q2576708           # Цэнтральная камісія па выбарах (P749 the People's Assembly)
+  labels:
+    be: Старшыня Цэнтральнай камісіі Рэспублікі Беларусь па выбарах і правядзенні рэспубліканскіх рэферэндумаў
+    ru: Председатель Центральной комиссии Республики Беларусь по выборам и проведению республиканских референдумов
+    en: Chairman of the Central Election Commission of Belarus
+
+# --- State enterprises: apex headships of the largest state-owned groups ---
+
+- key: belaruskali_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q815266            # Беларуськалій
+  labels:
+    be: Генеральны дырэктар ААТ «Беларуськалій»
+    ru: Генеральный директор ОАО «Беларуськалий»
+    en: Director General of Belaruskali
+
+- key: belneftekhim_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q3917821           # Белнафтахім (parent of Naftan, Belshina, Grodno Azot, Belaruskali)
+  labels:
+    be: Старшыня канцэрна «Белнафтахім»
+    ru: Председатель концерна «Белнефтехим»
+    en: Chairman of Belneftekhim
+
+- key: belorusneft_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q4082693           # Беларуснафта
+  labels:
+    be: Генеральны дырэктар ВА «Беларуснафта»
+    ru: Генеральный директор ПО «Белоруснефть»
+    en: Director General of Belorusneft
+
+- key: naftan_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q3919275           # Нафтан
+  labels:
+    be: Генеральны дырэктар ААТ «Нафтан»
+    ru: Генеральный директор ОАО «Нафтан»
+    en: Director General of Naftan
+
+- key: mozyr_refinery_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q2459960           # Мазырскі НПЗ
+  labels:
+    be: Генеральны дырэктар ААТ «Мазырскі НПЗ»
+    ru: Генеральный директор ОАО «Мозырский НПЗ»
+    en: Director General of the Mozyr Oil Refinery
+
+- key: grodno_azot_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q4150056           # Гродна Азот
+  labels:
+    be: Генеральны дырэктар ААТ «Гродна Азот»
+    ru: Генеральный директор ОАО «Гродно Азот»
+    en: Director General of Grodno Azot
+
+- key: belarusian_potash_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q4082705           # Беларуская калійная кампанія
+  labels:
+    be: Генеральны дырэктар ААТ «Беларуская калійная кампанія»
+    ru: Генеральный директор ОАО «Белорусская калийная компания»
+    en: Director General of the Belarusian Potash Company
+
+- key: belavia_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q815314            # Белавія (P749 the Council of Ministers)
+  labels:
+    be: Генеральны дырэктар ААТ «Авіякампанія «Белавія»
+    ru: Генеральный директор ОАО «Авиакомпания «Белавиа»
+    en: Director General of Belavia
+
+- key: railway_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q76987             # Беларуская чыгунка
+  labels:
+    be: Начальнік Беларускай чыгункі
+    ru: Начальник Белорусской железной дороги
+    en: Head of the Belarusian Railway
+
+- key: beltelecom_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q4082979           # Белтэлеком
+  labels:
+    be: Генеральны дырэктар РУП «Белтэлекам»
+    ru: Генеральный директор РУП «Белтелеком»
+    en: Director General of Beltelecom
+
+- key: belarusbank_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q1997334           # Беларусбанк
+  labels:
+    be: Старшыня праўлення ААТ «АСБ Беларусбанк»
+    ru: Председатель правления ОАО «АСБ Беларусбанк»
+    en: Chairman of the Board of Belarusbank
+
+- key: maz_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q1251215           # Мінскі аўтамабільны завод
+  labels:
+    be: Генеральны дырэктар ААТ «МАЗ»
+    ru: Генеральный директор ОАО «МАЗ»
+    en: Director General of the Minsk Automobile Plant
