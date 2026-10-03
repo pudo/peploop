@@ -7,6 +7,7 @@ text the model reads.
 
 import json
 import re
+import sys
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, NamedTuple
@@ -79,6 +80,12 @@ def load_seeds(path: Path) -> list[SeedEntry]:
     return seeds
 
 
+#: Set once PetScan has failed in this process, so a seed file pays for one
+#: outage rather than one per entry: a hung PetScan costs every retry of the
+#: session before it raises.
+_petscan_down = False
+
+
 def seed_category(
     category: str, lang: str, depth: int = 1, project: str = "wikipedia"
 ) -> list[tuple[str, str]]:
@@ -86,8 +93,61 @@ def seed_category(
 
     PetScan's `wikidata_prop_item_use=Q5` filter passes `Category:` items
     through, so membership here is a candidate set: the caller enforces
-    `P31 = Q5` against the item itself.
+    `P31 = Q5` against the item itself. When PetScan is down the tree is
+    walked through the wiki's own API instead, which has no `Q5` filter at
+    all -- the same candidate set with the institutions left in, which the
+    caller's check already removes.
     """
+    global _petscan_down
+    if not _petscan_down:
+        try:
+            return _petscan(category, lang, depth, project)
+        except (RuntimeError, OSError) as exc:  # requests' errors are OSErrors
+            _petscan_down = True
+            print(f"PetScan failed ({str(exc)[:120]}); walking categories through the API",
+                  file=sys.stderr)
+    return walk_category(category, lang, depth, project)
+
+
+def walk_category(
+    category: str, lang: str, depth: int = 1, project: str = "wikipedia",
+    seen: set[str] | None = None,
+) -> list[tuple[str, str]]:
+    """(title, QID) of the articles in a category tree, read from the wiki's API.
+
+    `depth` counts as PetScan's does: 0 is the category's own pages, each
+    level adds one generation of subcategories. A category reached twice is
+    read once.
+    """
+    api = f"https://{lang}.{project}.org/w/api.php"
+    seen = set() if seen is None else seen
+    title = category.replace(" ", "_").strip()
+    if title in seen:
+        return []
+    seen.add(title)
+    members: dict[str, str] = {}
+    cont: dict[str, str] = {}
+    while True:
+        data = http.get_json(api, params={
+            "action": "query", "generator": "categorymembers", "gcmtitle": f"Category:{title}",
+            "gcmtype": "page|subcat", "gcmlimit": 500, "prop": "pageprops",
+            "ppprop": "wikibase_item", "format": "json", **cont,
+        })
+        pages = sorted(data.get("query", {}).get("pages", {}).values(), key=lambda p: p["title"])
+        for page in pages:
+            if page.get("ns") == 14 and depth > 0:
+                sub = page["title"].split(":", 1)[1]
+                for t, qid in walk_category(sub, lang, depth - 1, project, seen):
+                    members.setdefault(t, qid)
+            elif page.get("ns") == 0 and page.get("pageprops", {}).get("wikibase_item"):
+                members.setdefault(page["title"], page["pageprops"]["wikibase_item"])
+        if "continue" not in data:
+            break
+        cont = data["continue"]
+    return sorted(members.items())
+
+
+def _petscan(category: str, lang: str, depth: int, project: str) -> list[tuple[str, str]]:
     params = {
         "language": lang,
         "project": project,

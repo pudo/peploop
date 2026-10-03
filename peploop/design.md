@@ -833,6 +833,7 @@ peploop/
   check_review.py     drives the review TUI headlessly and undoes itself
   check_propose.py    the position lane's three silent failures, offline
   check_scope.py      the relevance gate's date arithmetic, offline
+  check_seed.py       the category walk seeding falls back to when PetScan is down, offline
   check_policy.py     one fabricated case per rule of the policy, offline
   check_verify.py     the verifier's rendering, key, schema and prompt coverage, offline
   check_reconcile.py  pins the second turn offline: no network, no key
