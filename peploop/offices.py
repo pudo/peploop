@@ -295,9 +295,22 @@ class Found:
     #: Other offices name the hit as their `P279`: it is a kind of office
     #: ("president of the senate"), not one. Read only for a stateless hit.
     is_class: bool = False
+    #: The searched names, folded, that matched one of the hit's.
+    matched: frozenset[str] = frozenset()
 
 
-def duplicate_of(found: Iterable[Found]) -> str | None:
+def names_state(text: str, state_names: Iterable[str]) -> bool:
+    """Whether a name says which state it is: one of the state's names, as a phrase."""
+    folded = _phrase(text)
+    return any(_phrase(name).strip() and _phrase(name) in folded for name in state_names)
+
+
+def _phrase(text: str) -> str:
+    """A name as its folded words between spaces, so a phrase test matches whole words."""
+    return f" {' '.join(re.findall(r'[a-z0-9]+', fold(text)))} "
+
+
+def duplicate_of(found: Iterable[Found], state_names: Iterable[str] = ()) -> str | None:
     """The item this office would duplicate, judged hit by hit.
 
     A search's own status is not enough: two hits that both match come back
@@ -305,7 +318,14 @@ def duplicate_of(found: Iterable[Found]) -> str | None:
     matches, that is not a human, a page or a pure list, and that names the
     same state or no state at all. The same title in another state is another
     office.
+
+    `state_names` are passed when the office's own label names its state.
+    Then a stateless hit matched only by a bare title -- "Commissioner of
+    Police", the alias an article wrote -- is the generic title, not this
+    office: it would block every state's commissioner. Matched by a name that
+    says the state, it still blocks.
     """
+    state_names = list(state_names)
     for hit in found:
         if not hit.label_match or hit.types & NOT_A_POSITION:
             continue
@@ -317,6 +337,9 @@ def duplicate_of(found: Iterable[Found]) -> str | None:
         # other offices subclass it: then it is the kind, which a state's
         # own seat is a subclass of rather than a duplicate of.
         if not hit.country_qids and not hit.is_class:
+            if state_names and hit.matched and not any(
+                    names_state(text, state_names) for text in hit.matched):
+                continue
             return hit.qid
     return None
 
@@ -505,7 +528,8 @@ def guard(
     if current_holders < 1:
         problems.append(f"current/{current_holders}")
 
-    if dup := duplicate_of(duplicates):
+    state_named = any(names_state(text, state_names) for text in spec.labels.values())
+    if dup := duplicate_of(duplicates, state_names if state_named else ()):
         problems.append(f"duplicate/{dup}")
     others = {fold(text) for text in run_labels}
     if any(fold(text) in others for text in spec.labels.values()):
@@ -680,6 +704,7 @@ def found_from(entity: dict[str, Any], label: str, state_qid: str,
         qid=entity.get("id", ""),
         names=names,
         label_match=bool(_variants(label) & named),
+        matched=frozenset({_norm(label)}) if _variants(label) & named else frozenset(),
         country_match=country_match,
         country_qids=tuple(dict.fromkeys(p17 + p1001)),
         types=frozenset(_values(entity, "P31")),

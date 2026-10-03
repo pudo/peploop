@@ -252,6 +252,20 @@ def main() -> int:
            "a match that names no state at all still blocks")
     expect(offices.duplicate_of([replace(hit, label_match=False)]), None,
            "and a hit whose name does not match is just a search result")
+    commissioner = judge(archetype="agency_head", labels={"en": "Commissioner of Police of Aland"}, body_qid=None,
+                         aliases={"en": ["Commissioner of Police"]})
+    bare = replace(hit, country_match=False, country_qids=(),
+                   matched=frozenset({"commissioner of police"}))
+    expect(guard(commissioner, duplicates=[bare]), [],
+           "a stateless hit matched only by a bare title does not block a state-named office")
+    expect(guard(commissioner, duplicates=[replace(bare, matched=frozenset(
+        {"commissioner of police", "commissioner of police of aland"}))]), ["duplicate/Q77"],
+        "matched by a name that says the state, it still blocks")
+    expect(guard(judge(archetype="agency_head", labels={"en": "Commissioner of Police"}, body_qid=None),
+                 duplicates=[bare]), ["duplicate/Q77"],
+           "and an office whose own label names no state is still blocked by it")
+    expect(offices.names_state("Chief Secretary of Tobago", ["Trinidad and Tobago"]), False,
+           "a state's name is a phrase, not its last word")
 
     print("shape:")
     expect(guard(judge(parent="Q4164871")), ["untyped"], "an office that never says which kind is refused")

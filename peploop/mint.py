@@ -12,7 +12,7 @@ import hashlib
 import re
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import date
 from pathlib import Path
 from typing import Any, Callable, Iterable, Literal, Optional, Protocol, Sequence
@@ -1771,6 +1771,8 @@ def live_duplicates(spec: offices.Spec, ctx: Context) -> list[offices.Found]:
             have = out.get(hit.qid)
             if have is None or (hit.label_match and not have.label_match):
                 out[hit.qid] = hit
+            elif hit.matched:
+                out[hit.qid] = replace(have, matched=have.matched | hit.matched)
     return list(out.values())
 
 
