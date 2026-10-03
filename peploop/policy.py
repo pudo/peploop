@@ -551,6 +551,7 @@ def same_family(
     other: dict[str, Any],
     use: Counter[str] | dict[str, int],
     kind_names: dict[str, Sequence[str]],
+    orgs: frozenset[str] | set[str] = frozenset(),
 ) -> bool:
     """Whether two items of one state are the same seat, so one person holds one at a time.
 
@@ -566,19 +567,36 @@ def same_family(
 
     Ambassadorships never join one: a posting accredited to several states at
     once is the ordinary case, not a duplicate.
+
+    A `P279` that is an organisation (`orgs`) -- a ministry written where the
+    kind of office belongs -- is no kind: it is not a class of seats and two
+    offices sharing it may be a minister and their deputy. It joins through
+    its names instead: an office typed as the "Ministry of Planning", and
+    itself named after it, is one family with another named "Minister of
+    Planning", since all three clip to the same stems. A deputy typed as the
+    ministry is not named after it, and joins nothing.
     """
     if one.get("qid") == other.get("qid") or one.get("diplomatic") or other.get("diplomatic"):
         return False
-    mine, theirs = family_kinds(one, use), family_kinds(other, use)
+    mine, theirs = family_kinds(one, use) - orgs, family_kinds(other, use) - orgs
     if mine & theirs:
         return True
     for untyped, typed, kinds in ((one, other, theirs), (other, one, mine)):
-        if family_kinds(untyped, use) or not kinds:
+        if family_kinds(untyped, use) - orgs or not kinds:
             continue
         drop = {t[:positions.PREFIX] for t in positions.tokens(untyped.get("jurisdiction_text") or "")}
         names = _bare_names(untyped.get("names") or [untyped.get("label") or ""], drop)
         if any(names & _bare_names(kind_names.get(kind, ()), drop) for kind in kinds):
             return True
+    for typed, named in ((one, other), (other, one)):
+        drop = {t[:positions.PREFIX] for t in positions.tokens(
+            f"{typed.get('jurisdiction_text') or ''} {named.get('jurisdiction_text') or ''}")}
+        bare = [_bare_names(office.get("names") or [office.get("label") or ""], drop)
+                for office in (typed, named)]
+        for org in set(typed.get("kind_qids") or ()) & set(orgs):
+            org_names = _bare_names(kind_names.get(org, ()), drop)
+            if all(names & org_names for names in bare):
+                return True
     return False
 
 
@@ -586,6 +604,7 @@ def family_conflicts(
     spells: Sequence[tuple[int, dict[str, Any], dict[str, Any]]],
     use: Counter[str] | dict[str, int],
     kind_names: dict[str, Sequence[str]],
+    orgs: frozenset[str] | set[str] = frozenset(),
 ) -> dict[int, str]:
     """Judge a person's spells on different items of one office family against each other.
 
@@ -601,7 +620,7 @@ def family_conflicts(
         for other_id, other_office, other in spells:
             if other_id == pid or office.get("qid") == other_office.get("qid"):
                 continue
-            if _loses(span, other) and same_family(office, other_office, use, kind_names):
+            if _loses(span, other) and same_family(office, other_office, use, kind_names, orgs):
                 out[pid] = "contested/twin"
                 break
     return out
@@ -1143,11 +1162,16 @@ def person_cases(
     # Spells are judged against each other only among the rows every other
     # rule lets through: a spell a rule has already set aside -- a rename the
     # reconciler was unsure of, a tenure before the polity -- is not going to
-    # be written, and must not take a good sibling down with it.
+    # be written, and must not take a good sibling down with it. One rule's
+    # skips stay in: a spell `open_superseded` found ended is still the
+    # article's account of the tenure, and its twin on another item of the
+    # same office is the same tenure, ended as surely.
     spells: dict[str, list[tuple[int, dict[str, Any]]]] = {}
     by_id = {pid: case for pid, case in out}
     for pid, case in out:
-        if case.property == "P39" and decide(case).status != SKIPPED:
+        found = decide(case) if case.property == "P39" else None
+        if found is not None and (found.status != SKIPPED
+                                  or found.rule.startswith(open_superseded.__name__)):
             spells.setdefault(case.value.get("id", ""), []).append((pid, case.qualifiers))
     for group in spells.values():
         for pid, conflict in spell_conflicts(group).items():
@@ -1185,9 +1209,12 @@ def _family_conflicts_of(cases: Sequence[tuple[int, Case]], state_qid: str | Non
     offices = {office["qid"]: office for _pid, office, _span in live}
     kinds = {kind for office in offices.values() for kind in family_kinds(office, use)}
     names = positions.names_by_qid([*offices, *kinds])
+    orgs = positions.organisations(kinds)
+    for org, texts in positions.item_names(orgs).items():
+        names.setdefault(org, texts)
     for qid, office in offices.items():
         office.setdefault("names", names.get(qid, []))
-    return family_conflicts(live, use, names)
+    return family_conflicts(live, use, names, orgs)
 
 
 def record(proposal_id: int, disposition: Disposition) -> None:

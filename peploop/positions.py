@@ -1176,6 +1176,33 @@ def kind_use(state_qid: str) -> Counter[str]:
     return Counter(dict(rows))
 
 
+#: What an organisation reaches through `P31`/`P279`.
+ORGANISATION = "Q43229"
+
+
+def organisations(qids: Iterable[str]) -> set[str]:
+    """Those of these items that are organisations and not offices.
+
+    Reach for this before reading a `P279` as a kind of office: a ministry
+    written there is the body, and every office of the ministry would share it.
+    """
+    wanted = [q for q in dict.fromkeys(qids) if q]
+    if not wanted:
+        return set()
+    closure = type_closure(wanted)
+    return {q for q in wanted
+            if ORGANISATION in closure.get(q, set()) and not closure[q] & POSITION_METACLASSES}
+
+
+def item_names(qids: Iterable[str]) -> dict[str, list[str]]:
+    """Every label and alias of items the position table does not hold, read live."""
+    wanted = [q for q in dict.fromkeys(qids) if q]
+    if not wanted:
+        return {}
+    entities = wikidata.fetch_items(wanted, props="labels|aliases")
+    return {qid: [text for _lang, text, _alias in names_of(ent)] for qid, ent in entities.items()}
+
+
 def names_by_qid(qids: Sequence[str]) -> dict[str, list[str]]:
     """Every name, in every language, the position table holds for these items."""
     if not qids:

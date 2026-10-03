@@ -387,6 +387,41 @@ def main() -> int:
           policy.Disposition(policy.PENDING,
                              family((1, typed, pt_spell), (2, deputy, fr_spell))),
           policy.PENDING, "-/-")
+    # The second planning item says `P279 = the ministry`: an organisation
+    # where the kind belongs. Read as a kind it joined nothing, since nothing
+    # else declares it and the position table holds no names for it.
+    ministry = "Q0000040"
+    org_names = {**names, ministry: ["Ministry of Planning and External Cooperation",
+                                     "ministère de la Planification et de la Coopération externe"]}
+    planned = office(qid="Q0000041", label="Minister of Planning and External Cooperation",
+                     kind_qids=["Q294414", "Q83307"], jurisdiction_text=ruritania,
+                     names=["Minister of Planning and External Cooperation"])
+    by_ministry = office(qid="Q0000042",
+                         label="ministre de la Planification et de la Coopération externe",
+                         kind_qids=[ministry, "Q294414"], jurisdiction_text=ruritania,
+                         names=["ministre de la Planification et de la Coopération externe"])
+    spell = {"P580": time("2019-05")}
+
+    def via_ministry(*spells: tuple[int, dict[str, Any], dict[str, Any]],
+                     orgs: frozenset[str] = frozenset({ministry})) -> str:
+        found = policy.family_conflicts(list(spells), {**use, ministry: 1}, org_names, orgs)
+        return "/".join(found.get(pid, "-") for pid, _office, _span in spells)
+
+    check("an office typed as its ministry joins one named after the ministry",
+          policy.Disposition(policy.SKIPPED, via_ministry((1, planned, spell), (2, by_ministry, spell))),
+          policy.SKIPPED, "contested/twin/contested/twin")
+    planning_deputy = office(qid="Q0000043", label="Deputy Minister of Planning and External Cooperation",
+                             kind_qids=["Q83307"], jurisdiction_text=ruritania,
+                             names=["Deputy Minister of Planning and External Cooperation"])
+    check("but not the ministry's deputy",
+          policy.Disposition(policy.PENDING,
+                             via_ministry((1, planning_deputy, spell), (2, by_ministry, spell))),
+          policy.PENDING, "-/-")
+    check("and an organisation is never a kind two offices share",
+          policy.Disposition(policy.PENDING,
+                             via_ministry((1, {**planning_deputy, "kind_qids": [ministry]}, spell),
+                                          (2, by_ministry, spell))),
+          policy.PENDING, "-/-")
     district = [office(qid=f"Q000002{n}", label=f"chairman of district {n}",
                        kind_qids=["Q21814449"]) for n in (1, 2)]
     check("a kind most of a state's offices declare names a class, not a seat",
