@@ -137,6 +137,19 @@ ARCHETYPES: dict[str, Archetype] = {
     ),
 }
 
+#: Classes a polity reaching which (through `P31`/`P279`) is a municipality,
+#: whatever level of the state's subdivisions it sits at. Measured over eight
+#: states' `P150` lists: a borough and a city can be first-level subdivisions,
+#: and their mayors are still mayors of a town. A department, a province, a
+#: region or a county reaches none of these.
+MUNICIPAL_CLASSES = frozenset({
+    "Q15284",    # municipality
+    "Q515",      # city
+    "Q5195043",  # borough
+    "Q3957",     # town
+    "Q7930989",  # city or town
+})
+
 #: The parents an enterprise head may take by its title word: director general,
 #: chairperson, president.
 SOE_PARENTS = ("Q1501800", "Q140686", "Q1255921")
@@ -492,6 +505,7 @@ def guard(
     state_names: Iterable[str] = (),
     known_bodies: Collection[str] = (),
     regions: Collection[str] | None = None,
+    municipal: bool = False,
 ) -> list[str]:
     """Every static reason not to mint this office. Empty means it may be created.
 
@@ -504,7 +518,9 @@ def guard(
     measured rather than drafted, so the word check, which exists to catch a
     drafted QID that is the wrong thing entirely, is not asked of it.
     `regions` are the state's first-level subdivisions, against which an
-    archetype's `level` is checked; None skips that check.
+    archetype's `level` is checked; None skips that check. `municipal` says
+    the jurisdiction is typed as a town (`MUNICIPAL_CLASSES`), which makes a
+    first-level subdivision a mayor's polity all the same.
     """
     problems: list[str] = []
     for lang in ("en", *langs):
@@ -551,7 +567,7 @@ def guard(
         level, where = spec.shape.level, spec.jurisdiction
         if level == "region" and where not in regions:
             problems.append(f"jurisdiction-level/{level}")
-        if level == "municipality" and (where == spec.state_qid or where in regions):
+        if level == "municipality" and (where == spec.state_qid or (where in regions and not municipal)):
             problems.append(f"jurisdiction-level/{level}")
 
     problems.extend(shape_defects(spec, closure))

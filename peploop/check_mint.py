@@ -281,6 +281,10 @@ def main() -> int:
     expect(guard(governor(), regions={PROVINCE}), [], "a governor of a first-level subdivision passes")
     expect(guard(governor(jurisdiction_qid=None), regions={PROVINCE}), ["jurisdiction-level/region"],
            "but a governor scoped to the state does not")
+    expect(guard(mayor(), regions={PROVINCE}, municipal=True), [],
+           "a first-level subdivision typed as a borough is a town, and its mayor passes")
+    expect(guard(mayor(jurisdiction_qid=None), regions={PROVINCE}, municipal=True),
+           ["jurisdiction-level/municipality"], "but the state is never a town")
     expect(guard(mayor()), [], "without the state's subdivisions the level is not judged")
     expect(guard(judge(parent="Q12737077")), ["not-an-office/Q12737077"], "an occupation is not a kind of office")
     expect(guard(judge(parent="Q0000050")), ["unreached/Q0000050"], "nor is a class the closure never reaches")

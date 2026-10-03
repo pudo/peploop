@@ -1485,6 +1485,7 @@ class Context:
         anchors: Sequence[Anchor] | None = None,
         claims: Callable[[Sequence[str]], dict[str, dict[str, Any]]] | None = None,
         diplomatic: Callable[[str], bool] | None = None,
+        types: Callable[[str], set[str]] | None = None,
     ):
         self.country = country
         self.state_qid = state_qid or positions.country_qid(country)
@@ -1504,6 +1505,8 @@ class Context:
         self._claims = claims or (lambda qids: wikidata.fetch_items(qids, props="claims"))
         self._diplomatic = diplomatic or (
             lambda qid: positions.DIPLOMATIC_CLASS in positions.type_closure([qid]).get(qid, set()))
+        #: Every type an item reaches through `P31`/`P279`, itself included.
+        self.types = types or (lambda qid: positions.type_closure([qid]).get(qid, set()))
         self._labels: dict[str, str] = {}
         self._sources: dict[str, bool] = {}
 
@@ -2264,6 +2267,11 @@ def guard_reasons(cand: Candidate, spec: offices.Spec, ctx: Context,
     """Run `offices.guard` over a candidate with every live input it reads."""
     jurisdiction = spec.jurisdiction if spec.jurisdiction != spec.state_qid else None
     records = ctx.resolve([q for q in (spec.body_qid, jurisdiction) if q])
+    # Asked only where the level check would refuse: a mayor of a first-level
+    # subdivision, which is a town when it is typed as one.
+    municipal = bool(
+        jurisdiction and spec.shape.level == "municipality" and jurisdiction in ctx.subdivisions
+        and ctx.types(jurisdiction) & offices.MUNICIPAL_CLASSES)
     return offices.guard(
         spec,
         holders=cand.holders,
@@ -2280,6 +2288,7 @@ def guard_reasons(cand: Candidate, spec: offices.Spec, ctx: Context,
         state_names=ctx.state_names,
         known_bodies={q for q, n in ctx.siblings.bodies.items() if n >= offices.MEASURED_BODY_USES},
         regions=set(ctx.subdivisions),
+        municipal=municipal,
     )
 
 

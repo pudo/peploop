@@ -249,6 +249,16 @@ def check_offices_fixes(expect: Any) -> None:
     sspec, _p = mint.build_spec(unbodied, ctx(siblings=cabinet))
     expect(sspec.body_qid == COUNCIL,
            f"a draft with no body takes the one the state's ministers share: {sspec.body_qid}")
+    town = cand(draft={"archetype": "mayor", "body_qid": None, "jurisdiction_qid": "Q901",
+                       "labels": {"en": "Mayor of Ostra", "es": "alcalde de Ostra"}})
+    mspec, _p = mint.build_spec(town, ctx())
+    ostra = {"id": "Q901", "labels": {}, "claims": {"P17": _claim("P17", STATE)}}
+    world = dict(resolve=lambda qids: {q: ostra for q in qids if q == "Q901"})
+    plain = mint.guard_reasons(town, mspec, ctx(**world), [])
+    borough = mint.guard_reasons(town, mspec, ctx(**world, types=lambda q: {q, "Q5195043"}), [])
+    expect("jurisdiction-level/municipality" in plain
+           and "jurisdiction-level/municipality" not in borough,
+           f"a first-level subdivision typed as a borough is a mayor's town: {plain} / {borough}")
     nspec, _p = mint.build_spec(unbodied, ctx())
     expect(nspec.body_qid is None, f"and none is invented where they share none: {nspec.body_qid}")
     old = {"claims": {}}
