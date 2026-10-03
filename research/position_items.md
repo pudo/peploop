@@ -778,3 +778,64 @@ Traps:
 - `Q98556185` generic "chairman of the Regional Executive Committee" (`P1001
   Q209325` region of Belarus, 0 holders) and `Q21814449` for districts are
   classes, not offices.
+
+### 10m. The Dominican Republic's own offices (Q786, measured 2026-10-03)
+
+Population: the runbook's descent query returns **66 items**; less 34
+inbound ambassadorships, church offices and oddments (`Q3643406` Braceros,
+`Q5267880` alférez, the first lady), 31 are the state's own, plus the body
+`Q30909878` typed as a position. Tallied over those 31:
+
+| property | tally |
+|---|---|
+| `P31` | **`Q294414` 26**, `Q4164871` 5 |
+| `P279` | `Q83307` minister 23; `Q1758037` 2 (both chamber presidencies); `Q1501926` 2; one each of `Q30461`, `Q2285706`, `Q48352`, `Q7330070`, `Q15686806`, `Q486839` |
+| `P361` | **`Q3112605` Cabinet 26**; none 3; the chamber 2 |
+| `P1001` | `Q786` 29; `Q2119267` the Senate 1 (the Senate presidency, a defect) |
+| `P2389` | none 16; the ministry or chamber on the rest |
+
+The modern cabinet is one batch (`Q113992401`..`Q113992471`), uniformly
+`Q294414` + `Q83307` + `P361 Q3112605`, so a sibling-derived metaclass is
+`Q294414`, as for Cuba. Nothing below the cabinet is itemised: no apex-court
+presidency or judgeship, no electoral-body chair, no central-bank governor, no
+police or armed-forces head typed as a position, no provincial governorship
+(0 of 31), no mayoralty, no state-enterprise head. Holders on Wikidata are
+thin too: the presidency 74 statements, the Senate seat 25, the Chamber seat
+22, every minister 1-3.
+
+Body items (read in full):
+
+| body | QID | state |
+|---|---|---|
+| Congress | `Q595411` | `P31 Q189445` |
+| Senate | `Q2119267` | `P31 Q2570643`, `P361 Q595411`, `P2388 Q113992525` |
+| Chamber of Deputies | `Q320280` | `P31 Q320289`, `P2388 Q23007339` |
+| Cabinet | `Q3112605` | `P279 Q640506`, no `P31` |
+| Supreme Court of Justice | `Q6136068` | `P31 Q190752` |
+| Constitutional Tribunal | `Q9089790` | **no claims but `P571` 2010**, es label only |
+| Superior Electoral Court | `Q123166271` | `P17` only, no `P31` |
+| Junta Central Electoral | `Q5956447` | `P31 Q935741` |
+| Procuraduría General | `Q30909878` | `P31` ministry **and** position, `P279 Q1501926`; the office is `Q113992411`, whose es label is the body's name |
+| Contraloría General | `Q5785178` | `P17` only |
+| Cámara de Cuentas | **missing** | |
+| Consejo Nacional de la Magistratura | `Q5783921` | no claims |
+| Central Bank | `Q1800406` | `P31 Q66344` |
+| Armed Forces | `Q436714` | `P31 Q772547` |
+| Ministry of Defence | `Q17347140` / `Q116731341` | two ministry items; the second's en label reads "Fuerzas Armadas" |
+| Army / Navy / Air Force | `Q5290731` / `Q3124137` / `Q2669881` | `P361 Q436714`; the Army's commander `Q119848570` exists with no `P31` |
+| National Police | `Q3394185` | `P31 Q732717` |
+| Banreservas | `Q5717780` | bank + state enterprise |
+| Edesur / Edenorte / Edeeste | `Q5817651` / `Q138348776` / `Q138478738` | Edesur has no `P31` |
+| Ayuntamiento del Distrito Nacional | `Q136913293` | no claims |
+
+Traps:
+- **Two items for the Minister of Public Health**, `Q113992409` and
+  `Q113992469`, with identical claims; only the first is held.
+- `Q113992448` is "Ministro Administrativo de la Presidencia" in es and
+  "Minister of the Presidency" in en, beside `Q113992686` "Administrative
+  Minister of the Presidency": two offices, one mislabelled.
+- `Q30909878` (the Procuraduría, a body) is typed `Q4164871`, so it is loaded
+  as a position next to the office it is the body of.
+- `Q786`'s `P150` is the 31 provinces and the Distrito Nacional, which has no
+  governor. Five es province labels carry "Provincia" or a parenthetical, so a
+  label template filled from them reads badly.

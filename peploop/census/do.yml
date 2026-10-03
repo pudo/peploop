@@ -1,0 +1,166 @@
+# Offices the state has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-03 live measurement (labels, P31, P17, P1001,
+# P361 read in full); nothing below is from memory. No `source` is given: none
+# was checked live, and a source is what lets a one-seat office pass on a
+# single current holder, so it is never guessed.
+#
+# Not here because an item exists: the President `Q607982`, the Vice-President
+# `Q52229486`, the Foreign Minister `Q28662562`, about twenty portfolio
+# ministers in the `Q113992401`..`Q113992471` batch (all `P31 Q294414`,
+# `P279 Q83307`, `P361` the Cabinet `Q3112605`), the presidents of the Senate
+# `Q113992525` and of the Chamber `Q23007339` (both `P279 Q1758037`, `P2389`
+# the chamber), the membership seats `Q21295132` / `Q21328590`, and the
+# Procurador General `Q113992411` -- whose es label is the *body's* name,
+# "Procuraduría General de la República", while the body `Q30909878` is itself
+# typed `Q4164871` with `P279` attorney general, so the two read as twins.
+#
+# Twins found and not resolved here (a merge is a human gate): the Minister of
+# Public Health `Q113992409` and `Q113992469`, identical claims, both `P2389
+# Q90746249`; the Ministry of Defence bodies `Q17347140` and `Q116731341`.
+# `Q113992448` (3 holders) is labelled "Ministro Administrativo de la
+# Presidencia" in es but "Minister of the Presidency" in en, beside
+# `Q113992686` "Administrative Minister of the Presidency" (1): two offices,
+# one of them with a wrong label. The Senate presidency `Q113992525` names the
+# Senate in `P1001`.
+#
+# Absent and not listed, for want of an archetype or a resolver: the mayor of
+# the Distrito Nacional (no item; the Distrito Nacional `Q2499228` is a
+# first-level subdivision, which a mayor's level refuses, so it waits for the
+# municipality resolver), the Navy and Air Force commanders (service chiefs:
+# `military_chief_of_staff` would type them chief of defence), the Defensor
+# del Pueblo (no body item found).
+
+# --- Apex courts and the electoral bodies ---
+- key: supreme_court_president
+  class: judiciary.apex
+  archetype: court_president
+  body: Q6136068           # Suprema Corte de Justicia, P31 supreme court, P17 Q786
+  labels:
+    es: Presidente de la Suprema Corte de Justicia de la República Dominicana
+    en: President of the Supreme Court of Justice of the Dominican Republic
+
+- key: constitutional_tribunal_president
+  class: judiciary.apex
+  archetype: court_president
+  body: Q9089790           # Tribunal Constitucional (2010); no P31/P17 at all, es label only
+  labels:
+    es: Presidente del Tribunal Constitucional de la República Dominicana
+    en: President of the Constitutional Tribunal of the Dominican Republic
+
+# The TSE is an electoral court, not an apex one: `court_president` would type
+# it chief justice of a supreme court, so it takes `agency_head` as Belarus's
+# election commission did.
+- key: electoral_court_president
+  class: oversight.electoral_commission
+  archetype: agency_head
+  body: Q123166271         # Tribunal Superior Electoral, P17 Q786, no P31
+  labels:
+    es: Presidente del Tribunal Superior Electoral de la República Dominicana
+    en: President of the Superior Electoral Court of the Dominican Republic
+
+- key: jce_president
+  class: oversight.electoral_commission
+  archetype: agency_head
+  body: Q5956447           # Junta Central Electoral, P31 electoral branch, P17/P1001 Q786
+  labels:
+    es: Presidente de la Junta Central Electoral
+    en: President of the Central Electoral Board of the Dominican Republic
+
+# --- Control bodies ---
+- key: camara_de_cuentas_president
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  # No body: no item for the Cámara de Cuentas was found (searched es and en,
+  # and `haswbstatement:P17=Q786` with "Cuentas").
+  labels:
+    es: Presidente de la Cámara de Cuentas de la República Dominicana
+    en: President of the Chamber of Accounts of the Dominican Republic
+
+- key: comptroller_general
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  body: Q5785178           # Contraloría General de la República, P17 Q786, no P31
+  labels:
+    es: Contralor General de la República Dominicana
+    en: Comptroller General of the Dominican Republic
+
+# --- Central bank ---
+- key: central_bank_governor
+  class: economic.central_bank
+  archetype: central_bank_governor
+  body: Q1800406           # Banco Central de la República Dominicana, P31 central bank
+  labels:
+    es: Gobernador del Banco Central de la República Dominicana
+    en: Governor of the Central Bank of the Dominican Republic
+
+# --- Security ---
+# The Army's commander exists as `Q119848570` (P2389 the Army `Q5290731`, no
+# P31, so the descent misses it); it is listed so that mint-verify's live
+# search surfaces it as `found` and mint-feed loads it. The Minister of
+# Defence `Q113992465`, a serving general by law, is the armed forces' head.
+- key: army_commander
+  class: security.defence_command
+  archetype: military_chief_of_staff
+  body: Q5290731           # Ejército de la República Dominicana, P361 the armed forces Q436714
+  labels:
+    es: Comandante General del Ejército de la República Dominicana
+    en: Commander General of the Army of the Dominican Republic
+
+- key: police_director_general
+  class: security.police
+  archetype: agency_head
+  body: Q3394185           # Policía Nacional Dominicana, P31 law enforcement agency
+  labels:
+    es: Director General de la Policía Nacional de la República Dominicana
+    en: Director General of the National Police of the Dominican Republic
+
+# --- State enterprises: the state bank and the three distributors ---
+- key: banreservas_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q5717780           # BanReservas, P31 bank + state-owned enterprise
+  labels:
+    es: Administrador General del Banco de Reservas de la República Dominicana
+    en: Administrator General of Banreservas
+
+- key: edesur_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q5817651           # Edesur Dominicana, P17 Q786, no P31
+  labels:
+    es: Gerente General de Edesur Dominicana
+    en: General Manager of Edesur Dominicana
+
+- key: edenorte_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q138348776         # Edenorte, P31 electric utility
+  labels:
+    es: Gerente General de Edenorte Dominicana
+    en: General Manager of Edenorte Dominicana
+
+- key: edeeste_head
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q138478738         # Edeeste, P31 electric utility
+  labels:
+    es: Gerente General de Edeeste
+    en: General Manager of Edeeste
+
+# --- Provincial governors ---
+# Q786's P150 is 31 provinces and the Distrito Nacional, none ended, none
+# carrying P576; no governorship item exists for any of them. The Distrito
+# Nacional has no governor (its executive is the mayor of the Ayuntamiento del
+# Distrito Nacional). Five es province labels carry "Provincia" or a
+# disambiguator ("Provincia de Santiago (República Dominicana)"), so the es
+# template below reads badly for those; the draft's own label wins where
+# categorize gives one.
+- key: provincial_governor
+  class: subnational.executive
+  archetype: governor
+  per: subdivisions
+  exclude:
+    - Q2499228             # Distrito Nacional
+  labels:
+    es: Gobernador provincial de {name}
+    en: Governor of {name}
