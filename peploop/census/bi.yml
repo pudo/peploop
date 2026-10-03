@@ -1,0 +1,122 @@
+# Offices the state has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-02 live measurement (labels, P31, P17 read in
+# full); nothing below is from memory. No `source` is given: none was checked
+# live, and a source is what lets a one-seat office pass on a single current
+# holder, so it is never guessed.
+#
+# Not here because an item exists: President `Q19057827`, Vice-President
+# `Q3556888` (since 2020), Prime Minister `Q52728003` (carries P576 1998 though
+# the office was restored in 2020), the portfolio ministers (`Q114296xxx`, all
+# P361 the Council of Ministers `Q16952177`), the Assembly presidency
+# `Q114296520`, and the Chief of the Defence Staff `Q137441699` -- which has no
+# P17/P1001, so the descent misses it; it is in the census below so that
+# mint-verify's live search surfaces it as `found` and mint-feed loads it.
+#
+# No `rn` labels are given: none of Burundi's ~30 office items carries one,
+# and a Kirundi label is not written here unchecked.
+
+- key: senate_president
+  class: legislature.leadership
+  archetype: speaker      # as the Assembly's presidency Q114296520: P279 Q1758037, P2389 the chamber
+  body: Q3510838           # Senate (Burundi), P31 senate, P361 Parliament of Burundi
+  labels:
+    fr: président du Sénat du Burundi
+    en: President of the Senate of Burundi
+
+- key: constitutional_court_president
+  class: judiciary.apex
+  archetype: court_president
+  body: Q28024351          # Constitutional Court of Burundi, P31 constitutional court
+  labels:
+    fr: président de la Cour constitutionnelle du Burundi
+    en: President of the Constitutional Court of Burundi
+
+- key: supreme_court_president
+  class: judiciary.apex
+  archetype: court_president
+  body: Q137095            # Supreme Court of Burundi, P31 supreme court (its fr label wrongly reads "Cour constitutionnelle")
+  labels:
+    fr: président de la Cour suprême du Burundi
+    en: President of the Supreme Court of Burundi
+
+- key: prosecutor_general
+  class: judiciary.prosecution
+  archetype: prosecutor_general
+  # No body: no item for the Parquet général / Ministère public was found.
+  labels:
+    fr: procureur général de la République du Burundi
+    en: Prosecutor General of Burundi
+
+- key: chief_of_defence_staff
+  class: security.defence_command
+  archetype: military_chief_of_staff
+  body: Q852225            # Burundi National Defence Force (FDNB), P31 armed forces; no General Staff item
+  labels:
+    fr: chef d'état-major général de la Force de défense nationale du Burundi
+    en: Chief of the Defence Staff of Burundi
+
+- key: snr_administrator_general
+  class: security.intelligence
+  archetype: agency_head
+  body: Q27778932          # service national de renseignement, P31 security agency (fr label only)
+  labels:
+    fr: administrateur général du Service national de renseignement
+    en: Administrator General of the National Intelligence Service of Burundi
+
+- key: police_director_general
+  class: security.police
+  archetype: agency_head
+  body: Q27231045          # police nationale du Burundi, P31 police (Q6503214 is "law enforcement in Burundi", an aspect)
+  labels:
+    fr: directeur général de la Police nationale du Burundi
+    en: Director General of the National Police of Burundi
+
+- key: central_bank_governor
+  class: economic.central_bank
+  archetype: central_bank_governor
+  body: Q806937            # Bank of the Republic of Burundi, P31 central bank
+  labels:
+    fr: gouverneur de la Banque de la République du Burundi
+    en: Governor of the Bank of the Republic of Burundi
+
+- key: cndd_fdd_secretary_general
+  class: political.parties
+  archetype: party_secretary
+  body: Q2271402           # CNDD-FDD, P31 political party
+  labels:
+    fr: secrétaire général du CNDD-FDD
+    en: Secretary General of the CNDD-FDD
+
+# Provincial governors. Q967's P150 still lists the 17 pre-2025 provinces with
+# no end qualifier, 16 of them carrying P576 2025 on their own items; of the
+# five 2025 provinces only Gitega (`Q720843`, reused for the new province) is
+# in P150. Buhumuza `Q131844468`, Bujumbura `Q15478219`, Burunga `Q131844612`
+# and Butanyerera `Q131844755` exist but are not, and Rumonge `Q20669646`
+# (2015-2025) is in neither state. So the expansion is cut to Gitega: the
+# dissolved provinces' governorships no longer exist, and the four new ones
+# cannot be anchored until P150 is corrected on Wikidata (the guard's
+# region-level check reads the same P150).
+- key: provincial_governor
+  class: subnational.executive
+  archetype: governor
+  per: subdivisions
+  exclude:
+    - Q460538              # Bubanza (P576 2025)
+    - Q1816580             # Bujumbura Mairie (P576 2025)
+    - Q645043              # Bujumbura Rural (P576 2025)
+    - Q431385              # Bururi (P576 2025)
+    - Q645033              # Cankuzo (P576 2025)
+    - Q505596              # Cibitoke (P576 2025)
+    - Q735463              # Karuzi (P576 2025)
+    - Q720848              # Kayanza (P576 2025)
+    - Q600840              # Kirundo (P576 2025)
+    - Q823740              # Makamba (P576 2025)
+    - Q671086              # Muramvya (P576 2025)
+    - Q822571              # Muyinga (P576 2025)
+    - Q847718              # Mwaro (P576 2025)
+    - Q720852              # Ngozi (P576 2025)
+    - Q822566              # Rutana (P576 2025)
+    - Q822578              # Ruyigi (P576 2025)
+  labels:
+    fr: gouverneur de la province de {name}
+    en: Governor of {name}

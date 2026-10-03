@@ -1,0 +1,129 @@
+# Wikipedia categories seeding the Burundian run: one PetScan query per entry.
+#
+# OpenSanctions' wd_categories.yml has no Burundi entry at all, so every entry
+# below is measured here (PetScan, 2026-10-02) and nothing is inherited.
+#
+# Burundi is a small corpus on every wiki, and modern: the whole tree below is
+# 226 distinct people, of whom ~200 have no death date and were born after
+# 1936. fr.wikipedia is the main wiki but carries the thinner tree
+# (`Personnalité politique burundaise`: 19 pages, 13 subcats, and a
+# `Ministre burundais` container of 15 tiny portfolio subcats); en.wikipedia has
+# the deeper one (`Government ministers of Burundi`, 24 subcats and 132 people;
+# both chambers with their presidents; the provincial governors; the BRB
+# governors; 15 ambassadorship subcats). rn.wikipedia has one politician
+# category, `Abakuru w'igihugu ca Uburundi` (heads of state, 11, all already
+# reached by the fr/en president categories): left out.
+#
+# The current era is the 2018 constitution as it took effect at the 2020
+# transition: Ndayishimiye sworn in 18 June 2020, the prime ministership
+# restored and the two vice-presidencies folded into one, a new Senate and
+# Assembly in 2020 (the Assembly re-elected in 2025), and the 18 provinces
+# merged into five in 2025. Neither wiki has a per-period or per-century
+# category below the tier (the fr `du XXIe siècle` bag is 11 pages), so the era
+# cannot be chosen by category here: every tier is seeded whole, the scope gate
+# drops the dead at fetch, and `policy.P39_MAX_ENDED_YEARS` skips tenures that
+# ended before ~2006. The Arusha-era offices (first and second vice-president,
+# 2005-2020) stay reachable that way, which is right: their holders are
+# mostly alive and many hold office now.
+#
+# Left out: `Members_of_the_East_African_Legislative_Assembly` (42 pages, 36 of
+# them new, but the category spans all EAC states and is not Burundi's),
+# `Personnalité_politique_burundaise_assassinée` (9, 0 new),
+# `Personnalité_politique_burundaise_du_XXe_siècle` (8, 3 new, none living),
+# `20th-century_Burundian_politicians` d1 (30, 1 new),
+# `Burundian_politician_stubs` (94, 0 new), `Kings_of_Burundi` and `Roi du
+# Burundi` (monarchy, abolished 1966), and the permanent-representative
+# category (9, 0 new after the ambassadors).
+
+# --- Head of state and government, deputies ---
+- category: Président_de_la_république_du_Burundi        # 11, 5 living
+  lang: fr
+  depth: 0
+- category: Vice-président_du_Burundi                    # 15, 13 living (all three vice-presidencies)
+  lang: fr
+  depth: 0
+- category: Premier_ministre_du_Burundi                  # 10, 6 living
+  lang: fr
+  depth: 0
+- category: Presidents_of_Burundi                        # 10, 0 new
+  lang: en
+  depth: 0
+- category: Vice-presidents_of_Burundi                   # 16, 1 new
+  lang: en
+  depth: 0
+- category: Prime_ministers_of_Burundi                   # 18, 7 new
+  lang: en
+  depth: 0
+
+# --- Cabinet: fr's 15 portfolio subcats, en's 24 ---
+- category: Ministre_burundais                           # container; 48, 34 new, 36 living
+  lang: fr
+- category: Government_ministers_of_Burundi              # container; 132, 68 new, 101 living
+  lang: en
+
+# --- Parliament: both chambers with their presidents ---
+- category: Président_de_l'Assemblée_nationale_du_Burundi   # 3
+  lang: fr
+  depth: 0
+- category: Président_du_Sénat_burundais                 # 6
+  lang: fr
+  depth: 0
+- category: Members_of_the_Parliament_of_Burundi         # Assembly + Senate + presidents + life senators; 44, 16 new
+  lang: en
+  depth: 2
+- category: Members_of_the_Pan-African_Parliament_from_Burundi   # 5, 4 new
+  lang: en
+  depth: 0
+
+# --- Judiciary (no court-presidency item on Wikidata) ---
+- category: Burundian_judges                             # 7, 3 new; d1 adds one international judge
+  lang: en
+
+# --- Central bank ---
+- category: Governors_of_the_Bank_of_the_Republic_of_Burundi   # 2, 0 new
+  lang: en
+  depth: 0
+
+# --- Subnational: the governors are on en only; one mayor of Bujumbura ---
+- category: Governors_of_provinces_of_Burundi            # 5, 3 new, all living
+  lang: en
+  depth: 0
+- category: Mayors_of_places_in_Burundi                  # 1
+  lang: en
+
+# --- Diplomatic service ---
+- category: Diplomate_burundais                          # ambassadors by post at d2; 11, 3 new
+  lang: fr
+  depth: 2
+- category: Burundian_diplomats                          # 7, 3 new
+  lang: en
+- category: Ambassadors_of_Burundi                       # 15 posts; 23, 6 new
+  lang: en
+
+# --- Military (no police category on either wiki) ---
+- category: Militaire_burundais                          # with Général burundais; 8, 1 new
+  lang: fr
+- category: Burundian_military_personnel                 # 15, 4 new
+  lang: en
+  depth: 0
+
+# --- Parties: CNDD-FDD is the ruling party ---
+- category: Burundian_politicians_by_party               # 7 parties; 85, 4 new (UPRONA 51, CNDD-FDD 21)
+  lang: en
+
+# --- Catch-alls ---
+- category: Personnalité_politique_burundaise_du_XXIe_siècle   # 11, 2 new
+  lang: fr
+  depth: 0
+- category: Personnalité_politique_burundaise            # 19 pages, 8 new
+  lang: fr
+  depth: 0
+- category: Femme_politique_burundaise                   # with Ministre burundaise, Militante; 27, 11 new
+  lang: fr
+- category: 21st-century_Burundian_politicians           # 36, 1 new
+  lang: en
+- category: Burundian_women_in_politics                  # 38, 3 new
+  lang: en
+- category: Burundian_politicians                        # 10 pages, 4 new
+  lang: en
+  depth: 0
