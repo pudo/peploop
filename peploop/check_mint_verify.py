@@ -232,6 +232,17 @@ def check_offices_fixes(expect: Any) -> None:
     gspec, _p = mint.build_spec(gov, ctx())
     expect(gspec.labels == {"es": "gobernador de la provincia de Ostra", "en": "Governor of Ostra"},
            f"a census anchor fills the languages the draft lacks, never the ones it has: {gspec.labels}")
+    court = mint.Anchor("court_president", "judiciary.apex", "court_president",
+                        {"en": "President of the Health Court"}, body=BODY)
+    bare = cand(draft={"archetype": "court_president", "body_qid": None}, census_key="court_president",
+                ref="court_president")
+    bspec, _p = mint.build_spec(bare, ctx(anchors=[court]))
+    expect(bspec.body_qid == BODY and bspec.descriptions.get("en") == "president of the Ministry of Health of Alvania",
+           f"a census anchor's body fills a draft that named none: {bspec.body_qid} {bspec.descriptions}")
+    drafted = cand(draft={"archetype": "court_president", "body_qid": "Q911"}, census_key="court_president",
+                   ref="court_president")
+    dspec, _p = mint.build_spec(drafted, ctx(anchors=[court]))
+    expect(dspec.body_qid == "Q911", f"but never replaces the body a draft named: {dspec.body_qid}")
     old = {"claims": {}}
     expect(offices.historical({"claims": {"P576": _claim("P576", "Q1")}}, None, 2026),
            "a dissolved office is history")

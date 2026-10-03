@@ -1704,6 +1704,10 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
     anchor = ctx.anchors.get(cand.census_key or "") if cand.census_key else None
     for lang, text in (anchor.labels.items() if anchor else ()):
         labels.setdefault(lang, text)
+    # And its body, measured for the census, when the draft named none: a
+    # draft that took the office for an existing generic class has no body,
+    # and without one a "head of the {body}" description cannot be written.
+    body = draft.get("body_qid") or (anchor.body if anchor else None)
     if not labels:
         problems.append("labels/none")
     jurisdiction = draft.get("jurisdiction_qid") or (ctx.state_qid if shape.scoped else None)
@@ -1720,7 +1724,7 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
         ref=cand.ref, archetype=arch, labels=labels, state_qid=ctx.state_qid,
         aliases=attested_aliases(cand.attestations, labels, ctx.state_names),
         metaclass=offices.metaclass_for(sibs, parent), parent=parent,
-        jurisdiction_qid=jurisdiction, body_qid=draft.get("body_qid"),
+        jurisdiction_qid=jurisdiction, body_qid=body,
         replaces=draft.get("replaces_qid"),
     )
     text = offices.describe(spec, ctx.labels_for([spec.body_qid, spec.jurisdiction, spec.state_qid]))
