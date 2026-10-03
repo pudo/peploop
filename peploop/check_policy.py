@@ -16,7 +16,7 @@ import sys
 from datetime import date
 from typing import Any
 
-from peploop import policy, propose
+from peploop import offices, policy, propose
 
 OFFICE = "Q0000001"
 STATE = "Q0000003"
@@ -327,6 +327,77 @@ def main() -> int:
           policy.SKIPPED, "sibling_spell/False")
     check("a P39 flagged by its siblings is skipped under that name",
           policy.decide(case(spell_conflict="contested")), policy.SKIPPED, "contested")
+
+    print("one office on two items:")
+    # One interior-minister tenure accepted on both of its state's items: the
+    # pt article's dates on the one typed `P31 = interior minister`, the fr
+    # article's on the one typed only `P279 = minister`. No shared kind, no
+    # shared stem; the alias of the kind is what joins them.
+    ruritania = "Ruritania | Republic of Ruritania | République de Ruritanie"
+    use = {"Q294414": 40, "Q83307": 15, "Q17578116": 1, "Q21814449": 118, "Q21814438": 2}
+    names = {"Q17578116": ["interior minister", "Minister of Internal Affairs",
+                           "minister of home affairs", "ministre de l'Intérieur"]}
+    typed = office(qid="Q0000011", label="Interior minister of Ruritania",
+                   kind_qids=["Q17578116"], jurisdiction_text=ruritania,
+                   names=["Interior minister of Ruritania"])
+    untyped = office(qid="Q0000012", label="Minister of Internal Affairs of Ruritania",
+                     kind_qids=["Q294414", "Q83307"], jurisdiction_text=ruritania,
+                     names=["Minister of Internal Affairs of Ruritania",
+                            "ministre de l'Intérieur et de la Sécurité publique"])
+    pt_spell = {"P580": time("2006-08-13"), "P582": time("2007-02-22")}
+    fr_spell = {"P580": time("2006-03-17"), "P582": time("2007-11-14")}
+
+    def family(*spells: tuple[int, dict[str, Any], dict[str, Any]]) -> str:
+        found = policy.family_conflicts(list(spells), use, names)
+        return "/".join(found.get(pid, "-") for pid, _office, _span in spells)
+
+    check("one tenure on both interior-minister items is contested on both",
+          policy.Disposition(policy.SKIPPED,
+                             family((1, typed, pt_spell), (2, untyped, fr_spell))),
+          policy.SKIPPED, "contested/twin/contested/twin")
+    check("the open reading of it alone, where one is open",
+          policy.Disposition(policy.SKIPPED,
+                             family((1, typed, {"P580": time("2006-08-13")}),
+                                    (2, untyped, fr_spell))),
+          policy.SKIPPED, "contested/twin/-")
+    finance = office(qid="Q0000013", label="Minister of Finance of Ruritania",
+                     kind_qids=["Q294414", "Q83307"], jurisdiction_text=ruritania)
+    planning = office(qid="Q0000014", label="Minister of Planning of Ruritania",
+                      kind_qids=["Q294414", "Q83307"], jurisdiction_text=ruritania)
+    check("two concurrent portfolios typed only as minister are not one office",
+          policy.Disposition(policy.PENDING,
+                             family((1, finance, fr_spell), (2, planning, pt_spell))),
+          policy.PENDING, "-/-")
+    check("consecutive terms on the two items, touching at the year, are not in dispute",
+          policy.Disposition(policy.PENDING,
+                             family((1, typed, {"P580": time("2006"), "P582": time("2010")}),
+                                    (2, untyped, {"P580": time("2010"), "P582": time("2014")}))),
+          policy.PENDING, "-/-")
+    deputy = office(qid="Q0000015", label="Deputy Minister of Internal Affairs of Ruritania",
+                    kind_qids=["Q83307"], jurisdiction_text=ruritania,
+                    names=["Deputy Minister of Internal Affairs of Ruritania"])
+    check("a deputy's office does not borrow the minister's kind by containing its name",
+          policy.Disposition(policy.PENDING,
+                             family((1, typed, pt_spell), (2, deputy, fr_spell))),
+          policy.PENDING, "-/-")
+    district = [office(qid=f"Q000002{n}", label=f"chairman of district {n}",
+                       kind_qids=["Q21814449"]) for n in (1, 2)]
+    check("a kind most of a state's offices declare names a class, not a seat",
+          policy.Disposition(policy.PENDING,
+                             family((1, district[0], fr_spell), (2, district[1], pt_spell))),
+          policy.PENDING, "-/-")
+    envoys = [office(qid=f"Q000003{n}", label=f"ambassador to {n}", diplomatic=True,
+                     kind_qids=["Q21814438"]) for n in (1, 2)]
+    check("two ambassadorships at once are one envoy accredited twice",
+          policy.Disposition(policy.PENDING,
+                             family((1, envoys[0], fr_spell), (2, envoys[1], pt_spell))),
+          policy.PENDING, "-/-")
+    plural = {a.parent for a in offices.ARCHETYPES.values()} - policy.FAMILY_GENERIC
+    ok = plural == {"Q5097014", "Q107363151", "Q3368517"} and set(
+        offices.SOE_PARENTS) <= policy.FAMILY_GENERIC
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} every archetype parent but the one-per-state seats"
+          f" is generic {sorted(plural)}")
 
     # The era rules sit behind the recency rule and are asked about tenures the
     # recency rule would take first, so these cases are judged from a day when

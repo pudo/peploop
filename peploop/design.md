@@ -465,7 +465,14 @@ can: a single-valued value another wiki disagrees with is `contested`; among a
 person's several spells of one office, one another spell covers (the open
 reading of a closed term) is a `sibling_spell`, and two that overlap without
 merely touching -- consecutive terms share a boundary year and are not in
-dispute -- are `contested`, the open one alone where one is open. And two
+dispute -- are `contested`, the open one alone where one is open. The same
+judgement runs across two *items* of one office family (`contested/twin`):
+two of a state's offices sharing a kind no more than two of its offices
+declare, past the metaclasses and the archetype-level classes, or an item
+typed only `minister` whose name less the state's *is* an alias of the
+other's kind ("Minister of Internal Affairs of Ruritania", "interior
+minister"). Ambassadorships never form one, since an envoy accredited to
+several states at once is the ordinary case. And two
 stand in for an inception the office item lacks: a tenure that ended before
 the polity the office governs existed (`tenure_before_polity`, `P571` of the
 `P1001` or `P17` target) or a generation before the office's earliest

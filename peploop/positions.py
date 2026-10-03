@@ -521,7 +521,7 @@ def upsert_position(row: dict[str, Any], names: Sequence[tuple[str, str, bool]])
         "qid", "label", "description", "country_qid", "jurisdiction_qid",
         "jurisdiction_text", "body_qid", "kinds", "sources", "not_office",
         "inception", "abolished", "replaces", "replaced_by", "redirected_from",
-        "search_text",
+        "search_text", "kind_qids",
     ]
     # `sources` is a union, never an overwrite: a run of one discovery query,
     # or a minted item fed back in, says how *this* run found the item, and
@@ -665,6 +665,7 @@ def load_items(
                 "replaces": wikidata.claim_qids(entity, "P1365", include_deprecated=False),
                 "replaced_by": wikidata.claim_qids(entity, "P1366", include_deprecated=False),
                 "redirected_from": sorted(redirects.get(actual, ())),
+                "kind_qids": sorted(declared),
                 "_kind_qids": kind_qids,
                 "_refs": refs,
                 "_closure": closure.get(actual, set()),
@@ -1051,6 +1052,61 @@ def unfilled_first_held(qids: Sequence[str]) -> list[str]:
         (list(dict.fromkeys(qids)),),
     )
     return [row[0] for row in rows]
+
+
+def fill_kinds(qids: Sequence[str], log: Any = lambda _m: None) -> int:
+    """Record each office's own `P31` and `P279` targets, for rows loaded before the column.
+
+    A load writes them; this backfills a table loaded earlier, so the policy
+    can count how many of a state's offices share a kind. An item that is
+    gone keeps its null and is asked again next time.
+    """
+    wanted = [qid for qid in dict.fromkeys(qids) if qid]
+    if not wanted:
+        return 0
+    found = wikidata.fetch_items(wanted, props="claims")
+    with db.conn().cursor() as cur:
+        cur.executemany(
+            "UPDATE position SET kind_qids = %s WHERE qid = %s",
+            [(sorted(set(type_targets(entity))), qid) for qid, entity in found.items()],
+        )
+    log(f"kinds read for {len(found)} of {len(wanted)} offices")
+    return len(found)
+
+
+def unfilled_kinds(state_qids: Sequence[str]) -> list[str]:
+    """The offices of these states whose kinds nobody has read yet."""
+    if not state_qids:
+        return []
+    rows = db.conn().execute(
+        "SELECT qid FROM position WHERE kind_qids IS NULL"
+        " AND (country_qid = ANY(%s) OR jurisdiction_qid = ANY(%s))",
+        (list(state_qids), list(state_qids)),
+    )
+    return [row[0] for row in rows]
+
+
+def kind_use(state_qid: str) -> Counter[str]:
+    """How many of one state's offices declare each kind, by `P31` or `P279`."""
+    rows = db.conn().execute(
+        "SELECT kind, count(DISTINCT qid) FROM position, unnest(kind_qids) AS kind"
+        " WHERE country_qid = %s OR jurisdiction_qid = %s GROUP BY kind",
+        (state_qid, state_qid),
+    )
+    return Counter(dict(rows))
+
+
+def names_by_qid(qids: Sequence[str]) -> dict[str, list[str]]:
+    """Every name, in every language, the position table holds for these items."""
+    if not qids:
+        return {}
+    out: dict[str, list[str]] = {}
+    rows = db.conn().execute(
+        "SELECT qid, text FROM position_name WHERE qid = ANY(%s)", (list(dict.fromkeys(qids)),)
+    )
+    for qid, text in rows:
+        out.setdefault(qid, []).append(text)
+    return out
 
 
 def fill_diplomatic(qids: Sequence[str] | None = None,

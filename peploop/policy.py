@@ -82,6 +82,44 @@ FIRST_HELD_MARGIN = 30
 #: How many years before the polity's own inception a tenure may end. Two,
 #: because a state's first government usually predates its recognition.
 POLITY_MARGIN = 2
+#: How many of a state's offices may declare a kind before it names a class
+#: of seats rather than one seat. Measured over six states' tables: the kinds
+#: two offices share are twins and renamed successors (two communications
+#: ministries, two agriculture ministries, one mufti in two languages); at
+#: three the first concurrent class appears -- one convocation of local
+#: councils, regional, city and district, which one person sits on at once.
+FAMILY_MAX_OFFICES = 2
+#: Kinds that name a class of seats however few of a state's offices declare
+#: them: the archetype parents of `offices.ARCHETYPES` (which this module
+#: cannot import) except the three a state has one of, the deputies of them,
+#: and the plural legislative and diplomatic classes. `check_policy` pins the
+#: archetype half against `offices.py`.
+FAMILY_GENERIC = frozenset({
+    "Q83307",      # minister
+    "Q4175034",    # legislator
+    "Q16533",      # judge
+    "Q117826617",  # supreme court judge
+    "Q132050",     # governor
+    "Q30185",      # mayor
+    "Q1162163",    # director / agency head
+    "Q1758037",    # speaker: one senate president presides over the whole congress too
+    "Q115136557",  # politburo member
+    "Q16862850",   # member of a state body
+    "Q836971",     # party secretary
+    "Q3188089",    # court president
+    "Q1501800",    # director general
+    "Q140686",     # chairperson
+    "Q1255921",    # president
+    "Q486839",     # member of parliament
+    "Q1055894",    # deputy
+    "Q3250324",    # deputy
+    "Q708492",     # council member
+    "Q26204040",   # deputy minister
+    "Q90132546",   # deputy minister
+    "Q124079538",  # deputy head
+    "Q121998",     # ambassador
+    "Q29645886",   # ambassador to a country
+})
 
 
 @dataclass
@@ -393,17 +431,111 @@ def spell_conflicts(spells: Sequence[tuple[int, dict[str, Any]]]) -> dict[int, s
                 break
     live = [(pid, span) for pid, span in spells if pid not in out]
     for pid, span in live:
-        for other_id, other in live:
-            if other_id == pid or not _disputed(span, other):
+        if any(other_id != pid and _loses(span, other) for other_id, other in live):
+            out[pid] = "contested"
+    return out
+
+
+def _loses(span: dict[str, Any], other: dict[str, Any]) -> bool:
+    """Whether `span` is the one set aside when it and `other` are in dispute.
+
+    Both closed, both are; one open, the open one is, because an end the
+    article did not state is evidently before the other spell began; both
+    open, the earlier.
+    """
+    if not _disputed(span, other):
+        return False
+    mine_open = "P582" not in _endpoints(span)
+    theirs_open = "P582" not in _endpoints(other)
+    if mine_open != theirs_open:
+        return mine_open
+    return not mine_open or _year(span.get("P580")) <= _year(other.get("P580"))
+
+
+def family_kinds(position: dict[str, Any], use: Counter[str] | dict[str, int]) -> set[str]:
+    """The kinds an office declares that name one office, not a class of many.
+
+    `use` counts how many of the state's offices declare each kind. A kind
+    that is a metaclass, says the item is not an office, is one of the
+    archetype-level classes, or is declared by more than `FAMILY_MAX_OFFICES`
+    of the state's offices says nothing about which seat this is.
+    """
+    return {
+        kind for kind in position.get("kind_qids") or ()
+        if kind not in positions.POSITION_METACLASSES
+        and kind not in positions.NOT_AN_OFFICE
+        and kind not in FAMILY_GENERIC
+        and use.get(kind, 0) <= FAMILY_MAX_OFFICES
+    }
+
+
+def _bare_names(names: Sequence[str], drop: set[str]) -> set[frozenset[str]]:
+    """Names as their content tokens, clipped, without the state's own name."""
+    out = set()
+    for name in names:
+        bare = frozenset(t[:positions.PREFIX] for t in positions.tokens(name)) - drop
+        if bare:
+            out.add(bare)
+    return out
+
+
+def same_family(
+    one: dict[str, Any],
+    other: dict[str, Any],
+    use: Counter[str] | dict[str, int],
+    kind_names: dict[str, Sequence[str]],
+) -> bool:
+    """Whether two items of one state are the same seat, so one person holds one at a time.
+
+    One office is often two items -- an interior ministry typed `P31 =
+    interior minister`, and beside it one typed only `P279 = minister` and
+    labelled "Minister of Internal Affairs" -- and a tenure placed on both is
+    one tenure written twice. Two items are one family when they share a kind
+    `family_kinds` keeps. An item whose only kinds are generic borrows the
+    other's when one of its names, less the state's, *is* a name of that kind:
+    "Minister of Internal Affairs of Ruritania" is an "interior minister", which
+    lists "Minister of Internal Affairs" among its aliases; "Deputy Minister of
+    Interior" is not. `kind_names` holds those names, from the position table.
+
+    Ambassadorships never join one: a posting accredited to several states at
+    once is the ordinary case, not a duplicate.
+    """
+    if one.get("qid") == other.get("qid") or one.get("diplomatic") or other.get("diplomatic"):
+        return False
+    mine, theirs = family_kinds(one, use), family_kinds(other, use)
+    if mine & theirs:
+        return True
+    for untyped, typed, kinds in ((one, other, theirs), (other, one, mine)):
+        if family_kinds(untyped, use) or not kinds:
+            continue
+        drop = {t[:positions.PREFIX] for t in positions.tokens(untyped.get("jurisdiction_text") or "")}
+        names = _bare_names(untyped.get("names") or [untyped.get("label") or ""], drop)
+        if any(names & _bare_names(kind_names.get(kind, ()), drop) for kind in kinds):
+            return True
+    return False
+
+
+def family_conflicts(
+    spells: Sequence[tuple[int, dict[str, Any], dict[str, Any]]],
+    use: Counter[str] | dict[str, int],
+    kind_names: dict[str, Sequence[str]],
+) -> dict[int, str]:
+    """Judge a person's spells on different items of one office family against each other.
+
+    `spells` is (proposal id, office row, qualifiers) per surviving `P39`. Two
+    spells on two items of one family that overlap without merely touching are
+    one tenure on two items, or two articles disagreeing about it; either way
+    the verifier, reading one article and one item at a time, passes both. The
+    one set aside is picked as `spell_conflicts` picks within one item, and it
+    is `contested/twin`.
+    """
+    out: dict[int, str] = {}
+    for pid, office, span in spells:
+        for other_id, other_office, other in spells:
+            if other_id == pid or office.get("qid") == other_office.get("qid"):
                 continue
-            mine_open = "P582" not in _endpoints(span)
-            theirs_open = "P582" not in _endpoints(other)
-            if mine_open == theirs_open:
-                if not mine_open or _year(span.get("P580")) <= _year(other.get("P580")):
-                    out[pid] = "contested"
-            elif mine_open:
-                out[pid] = "contested"
-            if pid in out:
+            if _loses(span, other) and same_family(office, other_office, use, kind_names):
+                out[pid] = "contested/twin"
                 break
     return out
 
@@ -764,7 +896,36 @@ def person_cases(qid: str, today: date | None = None) -> list[tuple[int, Case]]:
     for group in spells.values():
         for pid, conflict in spell_conflicts(group).items():
             by_id[pid].spell_conflict = conflict
+    for pid, conflict in _family_conflicts_of(
+        [(pid, by_id[pid]) for group in spells.values() for pid, _span in group], state_qid
+    ).items():
+        by_id[pid].spell_conflict = conflict
     return out
+
+
+def _family_conflicts_of(cases: Sequence[tuple[int, Case]], state_qid: str | None) -> dict[int, str]:
+    """`family_conflicts` over the surviving spells on the state's own offices.
+
+    The names and the state's kind counts are read only when two spells on
+    two items are in dispute at all, which for most people they are not.
+    """
+    live = [
+        (pid, case.position, case.qualifiers) for pid, case in cases
+        if case.spell_conflict is None and case.position is not None
+        and state_qid is not None and case.position.get("country_qid") == state_qid
+    ]
+    if state_qid is None or not any(
+        office["qid"] != other_office["qid"] and _disputed(span, other)
+        for _pid, office, span in live for _other_id, other_office, other in live
+    ):
+        return {}
+    use = positions.kind_use(state_qid)
+    offices = {office["qid"]: office for _pid, office, _span in live}
+    kinds = {kind for office in offices.values() for kind in family_kinds(office, use)}
+    names = positions.names_by_qid([*offices, *kinds])
+    for qid, office in offices.items():
+        office.setdefault("names", names.get(qid, []))
+    return family_conflicts(live, use, names)
 
 
 def record(proposal_id: int, disposition: Disposition) -> None:
@@ -816,12 +977,24 @@ def offices_of(qids: Sequence[str]) -> list[str]:
     return [row[0] for row in rows if row[0]]
 
 
+def states_of(qids: Sequence[str]) -> list[str]:
+    """The states these people's runs are about."""
+    if not qids:
+        return []
+    rows = db.conn().execute(
+        "SELECT DISTINCT country FROM person WHERE qid = ANY(%s)", (list(qids),)
+    )
+    return [state for (cc,) in rows if (state := _state_qid(cc)) is not None]
+
+
 def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     """Decide every decidable proposal of these people, writing unless told not to.
 
     The one thing here that reaches the network: an office nobody has asked
     the first-holder question about is asked it once, so `tenure_before_record`
-    reads a filled column rather than silence.
+    reads a filled column rather than silence; and a state whose offices'
+    kinds were never read has them read once, so `family_conflicts` counts the
+    whole table rather than the part that happened to be loaded since.
     """
     offices = offices_of(qids)
     unfilled = positions.unfilled_polity_inception(offices)
@@ -830,6 +1003,9 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     unfilled = positions.unfilled_first_held(offices)
     if unfilled:
         positions.fill_first_held(unfilled)
+    unfilled = positions.unfilled_kinds(states_of(qids))
+    if unfilled:
+        positions.fill_kinds(unfilled)
     funnel = Funnel()
     for qid in qids:
         for proposal_id, case in person_cases(qid, today):

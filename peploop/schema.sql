@@ -345,6 +345,12 @@ ALTER TABLE position ADD COLUMN IF NOT EXISTS first_held_at TIMESTAMPTZ;
 ALTER TABLE position ADD COLUMN IF NOT EXISTS polity_inception_year INTEGER;
 ALTER TABLE position ADD COLUMN IF NOT EXISTS polity_inception_at TIMESTAMPTZ;
 
+-- The item's own `P31` and `P279` targets, as QIDs: what kind of office it
+-- says it is. `kinds` keeps only the labels of the `P279` half, and an office
+-- typed `P31 = interior minister` with no `P279` has its kind on the other
+-- half. Null is "not read yet"; an empty array is an item with no type.
+ALTER TABLE position ADD COLUMN IF NOT EXISTS kind_qids TEXT[];
+
 -- BEGIN mint
 -- The minting stage: offices reconciliation could not place, turned into items.
 -- `mint_call` is the LLM ledger of both passes, keyed by what was shown, so a
