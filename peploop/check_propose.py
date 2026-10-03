@@ -19,6 +19,7 @@ repository root.
 """
 
 import sys
+from datetime import date
 from typing import Any
 
 from peploop import propose
@@ -115,8 +116,28 @@ def main() -> int:
            propose.OVERLAPPING, "a spell inside a longer recorded term is agreement")
     expect(propose.tenure_status([term], span("2022-04-20", "2024-03-01")),
            propose.OVERLAPPING, "a spell straddling one boundary is the same appointment")
+    # This pin used to say a recorded open term blocks whatever is proposed
+    # against it. It blocks only a spell with another start: one with the
+    # same start is the end the record is missing, and is `refine` below.
     expect(propose.tenure_status([span("2020-10-15")], span("2022-01-01", "2024-03-01")),
-           propose.OVERLAPPING, "a recorded start with no end runs to today and blocks")
+           propose.OVERLAPPING, "a recorded open term blocks a spell starting elsewhere in it")
+
+    print("tenure_status, the end a recorded open term is missing:")
+    expect(propose.tenure_status([span("2020-10-15")], span("2020-10-15", "2024-03-01"),
+                                 today=date(2026, 6, 15)),
+           "refine", "the same start with an end by today closes it")
+    expect(propose.tenure_status([{"P580": coarse("2020", 9)}], span("2020-10-15", "2024-03-01"),
+                                 today=date(2026, 6, 15)),
+           "refine", "the same start at the precision both share is the same start")
+    expect(propose.tenure_status([span("2020-10-15")], span("2020-10-15", "2027-01-01"),
+                                 today=date(2026, 6, 15)),
+           propose.OVERLAPPING, "an end still to come is a schedule and closes nothing")
+    expect(propose.tenure_status([span("2020-10-15", "2022-06-01")], span("2020-10-15", "2024-03-01"),
+                                 today=date(2026, 6, 15)),
+           propose.OVERLAPPING, "a recorded end is not missing, and a second one is a clash")
+    expect(propose.tenure_status([span("2020-10-15")], span("2020-10-15"),
+                                 today=date(2026, 6, 15)),
+           propose.OVERLAPPING, "an open proposal adds nothing to an open record")
 
     print("tenure_status, a spell it does not:")
     # The case that read `conflict` before overlap: an earlier term of an

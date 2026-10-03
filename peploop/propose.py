@@ -14,6 +14,7 @@ import json
 import re
 from collections import Counter
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any
 
 from psycopg.types.json import Jsonb
@@ -573,7 +574,28 @@ def span_text(span: dict[str, dict[str, Any]]) -> str:
     return "..".join(bounds)
 
 
-def tenure_status(spans: list[dict[str, dict[str, Any]]], span: dict[str, Any]) -> str:
+def closes(recorded: dict[str, Any], span: dict[str, Any], today: date) -> bool:
+    """Whether a proposed spell gives the end a recorded open term is missing.
+
+    The same start at the precision both share, an end the record has none
+    of, and that end neither before the start nor after today -- a planned
+    end is a schedule, not a record.
+    """
+    start, mine, end = recorded.get("P580"), span.get("P580"), span.get("P582")
+    if "P582" in recorded or start is None or mine is None or end is None:
+        return False
+    shared = min(start.get("precision", 11), mine.get("precision", 11))
+    if at_precision(start["time"], shared) != at_precision(mine["time"], shared):
+        return False
+    shared = min(end.get("precision", 11), mine.get("precision", 11))
+    if (at_precision(end["time"], shared) or "") < (at_precision(mine["time"], shared) or ""):
+        return False
+    return end["time"][1:11] <= today.isoformat()
+
+
+def tenure_status(
+    spans: list[dict[str, dict[str, Any]]], span: dict[str, Any], today: date | None = None,
+) -> str:
     """Decide what a proposed tenure adds to the ones the item already records.
 
     An office has one holder at a time, so a proposal overlapping a spell the
@@ -590,9 +612,16 @@ def tenure_status(spans: list[dict[str, dict[str, Any]]], span: dict[str, Any]) 
     recorded statement carrying no dates blocks nothing -- it is the thing the
     proposal exists to sharpen, and yields `refine` -- while a spell no
     recorded statement covers is a further term of the office and is `new`.
+
+    One clash is not a second writing-down but the end the record is missing:
+    a recorded open term with the same start, at the precision both share,
+    and a proposal that closes it on or before today. That is `refine`, and
+    `apply` merges the `P582` into the statement that is there.
     """
     if not spans:
         return "new"
+    if any(closes(recorded, span, today or date.today()) for recorded in spans):
+        return "refine"
     if clashing(spans, span) is not None:
         return OVERLAPPING
     if any(not recorded for recorded in spans):
