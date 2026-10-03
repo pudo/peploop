@@ -203,6 +203,10 @@ def main() -> int:
     expect(offices.label_langs(Siblings(), ("en", "fr", "rn")), ["en", "fr", "rn"],
            "with no siblings to measure, every state language is required")
 
+    print("one-seat archetypes:")
+    expect(guard(judge(archetype="agency_head"), holders=1, single_seat_source_ok=True), [],
+           "an agency has one head at a time, so the census can stand in for a second holder")
+
     print("postings between states:")
     for label in ("Ambassador of Aland to Bray", "Embajador de Aland en Bray",
                   "Ambassadeur d'Aland au Bray"):

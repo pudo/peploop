@@ -74,7 +74,9 @@ ARCHETYPES: dict[str, Archetype] = {
     # existing municipal items subclass.
     "mayor": Archetype("Q30185", description="mayor of {jurisdiction}", single_seat=True,
                        level="municipality"),
-    "agency_head": Archetype("Q1162163", description="head of the {body}"),
+    # One person heads an agency at a time, so a census entry is a second
+    # channel for it like for any other one-seat office.
+    "agency_head": Archetype("Q1162163", description="head of the {body}", single_seat=True),
     # The parents below were measured across other states' items (P279 tallies
     # and the parents read in full); see research/position_items.md §10.
     # A seat in a party's standing politburo. Membership of a large organ (a
