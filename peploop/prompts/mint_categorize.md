@@ -172,6 +172,7 @@ For every office, whatever its decision:
   | `judge` | a judge or magistrate of a court that is not the apex |
   | `supreme_judge` | a judge or magistrate of an apex court |
   | `court_president` | the president of a court |
+  | `speaker` | the president or speaker of a legislative chamber |
   | `governor` | the executive head of a subdivision |
   | `mayor` | the executive head of a municipality |
   | `agency_head` | the head of a state agency, directorate, office, regulator or oversight body |
@@ -186,7 +187,8 @@ For every office, whatever its decision:
 
   The head of a police force or an intelligence service is `agency_head`. A
   deputy of any of these is the same archetype as the principal only when it
-  is a seat of its own; a vice-minister is not `minister`, it is null.
+  is a seat of its own; a vice-minister is not `minister`, it is null. A
+  vice-president or deputy speaker of a chamber is not `speaker`, it is null.
 
 - **`single_seat`** — true when one person holds the office at a time (a
   minister, a mayor, a court's president), false when each member of a body

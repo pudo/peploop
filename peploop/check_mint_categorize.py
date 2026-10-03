@@ -190,6 +190,8 @@ def check_prompt(expect: Any) -> None:
         expect(f"`{value}`" in text, f"the prompt explains decision {value}")
     for name in mint.CATEGORIZE_ARCHETYPES:
         expect(f"`{name}`" in text, f"the prompt explains archetype {name}")
+    expect("deputy speaker of a chamber is not `speaker`, it is null" in text,
+           "a chamber's deputy speaker is not a speaker: no archetype, like a vice-minister")
     expect('marked "(dissolved)"' in text, "the prompt says what a dissolved subdivision is for")
     missing = [c for c in mint.INSTITUTION_CLASSES if f"`{c}`" not in text]
     expect(not missing, f"the prompt lists every institution class {missing or ''}")

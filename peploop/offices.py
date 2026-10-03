@@ -77,6 +77,13 @@ ARCHETYPES: dict[str, Archetype] = {
     # One person heads an agency at a time, so a census entry is a second
     # channel for it like for any other one-seat office.
     "agency_head": Archetype("Q1162163", description="head of the {body}", single_seat=True),
+    # The presiding officer of a chamber: 84 of 96 speakerships measured use
+    # `Q1758037`, and a state's existing one names its chamber under `P2389`.
+    # A deputy speaker is not a speaker and has no archetype.
+    "speaker": Archetype(
+        "Q1758037", body_property="P2389", description="presiding officer of the {body}",
+        single_seat=True,
+    ),
     # The parents below were measured across other states' items (P279 tallies
     # and the parents read in full); see research/position_items.md §10.
     # A seat in a party's standing politburo. Membership of a large organ (a

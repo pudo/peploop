@@ -206,6 +206,14 @@ def main() -> int:
     print("one-seat archetypes:")
     expect(guard(judge(archetype="agency_head"), holders=1, single_seat_source_ok=True), [],
            "an agency has one head at a time, so the census can stand in for a second holder")
+    expect(guard(judge(archetype="speaker", labels={"en": "President of the Senate of Aland"},
+                       descriptions={"en": "presiding officer of the Senate"}),
+                 holders=1, single_seat_source_ok=True,
+                 body=entity(BODY, "Senate of Aland", p31="Q43229", p17=STATE)), [],
+           "as does a chamber's speaker")
+    data = offices.entity_data(judge(archetype="speaker"))
+    expect((statement(data, "P279"), statement(data, "P2389"), statement(data, "P361")),
+           (["Q1758037"], [BODY], []), "a speaker is kind speaker, naming its chamber under P2389")
 
     print("postings between states:")
     for label in ("Ambassador of Aland to Bray", "Embajador de Aland en Bray",
