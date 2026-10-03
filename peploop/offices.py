@@ -334,6 +334,9 @@ class Siblings:
     metaclasses: Counter[str] = field(default_factory=Counter)
     #: The bodies (`P361`/`P2389`) the state's offices are seats in.
     bodies: Counter[str] = field(default_factory=Counter)
+    #: Per archetype, the bodies its offices name under the archetype's own
+    #: body property: what `body_for` drafts a body from.
+    bodies_by_archetype: dict[str, Counter[str]] = field(default_factory=dict)
     #: How many current offices were tallied, and how many carry a label in
     #: each language: what `label_langs` measures the guard's languages by.
     offices: int = 0
@@ -366,6 +369,22 @@ def label_langs(siblings: Siblings, langs: Sequence[str], share: float = 0.5) ->
 def metaclass_for(siblings: Siblings, parent: str) -> str:
     """The `P31` this state's offices of the same kind use, else its usual one."""
     return _mode(siblings.metaclass_by_parent.get(parent)) or _mode(siblings.metaclasses) or PUBLIC_OFFICE
+
+
+def body_for(siblings: Siblings, archetype: str, min_agree: int | None = None) -> str | None:
+    """The body the state's offices of this kind are seats in, when they agree on one.
+
+    A draft often names no body, and an office minted without one sits in
+    nothing its siblings sit in: one state's ministers of state all name the
+    cabinet. The most common body of the archetype, when at least `min_agree`
+    offices name it (`MEASURED_BODY_USES` by default) and no other is named
+    as often; None otherwise.
+    """
+    min_agree = MEASURED_BODY_USES if min_agree is None else min_agree
+    ranked = (siblings.bodies_by_archetype.get(archetype) or Counter()).most_common(2)
+    if not ranked or ranked[0][1] < min_agree or (len(ranked) > 1 and ranked[1][1] == ranked[0][1]):
+        return None
+    return ranked[0][0]
 
 
 def parent_for(siblings: Siblings, archetype: str, min_agree: int = 2, share: float = 2 / 3) -> str:
@@ -883,6 +902,7 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
         out.label_langs.update(entity.get("labels", {}).keys())
         metas = set(_values(entity, "P31")) & POSITION_METACLASSES
         out.metaclasses.update(metas)
+        typed: set[str] = set()
         for kind in dict.fromkeys(kinds[qid]):
             out.metaclass_by_parent.setdefault(kind, Counter()).update(metas)
             matched = {a for a, s in ARCHETYPES.items()
@@ -891,8 +911,12 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
             narrow = {a for a in matched if not any(
                 b != a and ARCHETYPES[a].parent in above[ARCHETYPES[b].parent] for b in matched)}
             if len(narrow) == 1:
+                typed |= narrow
                 out.parents.setdefault(narrow.pop(), Counter())[kind] += 1
         out.bodies.update(list(dict.fromkeys(_values(entity, "P361") + _values(entity, "P2389"))))
+        for arch in typed:
+            out.bodies_by_archetype.setdefault(arch, Counter()).update(
+                dict.fromkeys(_values(entity, ARCHETYPES[arch].body_property)))
     return out
 
 

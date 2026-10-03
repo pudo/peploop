@@ -1724,12 +1724,13 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
     # And its body, measured for the census, when the draft named none: a
     # draft that took the office for an existing generic class has no body,
     # and without one a "head of the {body}" description cannot be written.
-    body = draft.get("body_qid") or (anchor.body if anchor else None)
+    # Failing both, the body the state's offices of this kind agree on.
+    sibs = ctx.siblings
+    body = draft.get("body_qid") or (anchor.body if anchor else None) or offices.body_for(sibs, arch)
     if not labels:
         problems.append("labels/none")
     jurisdiction = draft.get("jurisdiction_qid") or (ctx.state_qid if shape.scoped else None)
     drafted = draft.get("parent_qid")
-    sibs = ctx.siblings
     measured = set(sibs.parents.get(arch) or ())
     if drafted and ((arch == "soe_head" and drafted in offices.SOE_PARENTS) or drafted in measured):
         parent = drafted

@@ -243,6 +243,14 @@ def check_offices_fixes(expect: Any) -> None:
                    ref="court_president")
     dspec, _p = mint.build_spec(drafted, ctx(anchors=[court]))
     expect(dspec.body_qid == "Q911", f"but never replaces the body a draft named: {dspec.body_qid}")
+    cabinet = siblings()
+    cabinet.bodies_by_archetype = {"minister": Counter({COUNCIL: 12, BODY: 1})}
+    unbodied = cand(draft={"body_qid": None})
+    sspec, _p = mint.build_spec(unbodied, ctx(siblings=cabinet))
+    expect(sspec.body_qid == COUNCIL,
+           f"a draft with no body takes the one the state's ministers share: {sspec.body_qid}")
+    nspec, _p = mint.build_spec(unbodied, ctx())
+    expect(nspec.body_qid is None, f"and none is invented where they share none: {nspec.body_qid}")
     old = {"claims": {}}
     expect(offices.historical({"claims": {"P576": _claim("P576", "Q1")}}, None, 2026),
            "a dissolved office is history")

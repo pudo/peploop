@@ -317,6 +317,13 @@ def main() -> int:
     expect(offices.parent_for(split, "governor"), "Q132050", "below two thirds, the archetype's parent")
     lone = Siblings(parents={"governor": Counter({"Q0000060": 1})})
     expect(offices.parent_for(lone, "governor"), "Q132050", "and one sibling is not agreement")
+    shared = Siblings(bodies_by_archetype={"minister": Counter({BODY: 3, OLD: 1})})
+    expect(offices.body_for(shared, "minister"), BODY, "two or more siblings sharing a body name it")
+    expect(offices.body_for(shared, "judge"), None, "another kind's body is not this kind's")
+    expect(offices.body_for(Siblings(bodies_by_archetype={"minister": Counter({BODY: 1})}), "minister"),
+           None, "one sibling's body is not agreement")
+    expect(offices.body_for(Siblings(bodies_by_archetype={"minister": Counter({BODY: 2, OLD: 2})}),
+                            "minister"), None, "and a tie names none")
 
     print("a live search hit, judged:")
     office = entity("Q70", "President of Aland", p31="Q294414", p17=STATE,
