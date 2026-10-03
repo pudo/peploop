@@ -1704,6 +1704,12 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
     anchor = ctx.anchors.get(cand.census_key or "") if cand.census_key else None
     for lang, text in (anchor.labels.items() if anchor else ()):
         labels.setdefault(lang, text)
+    # A label is written only in a language that is checked: English, the
+    # languages the state's own offices are labelled in, or the census's own.
+    # Categorize drafts a label in every official language, and one nobody
+    # requires is one nobody reads -- a model's Kirundi would go out unseen.
+    keep = {"en", *offices.label_langs(ctx.siblings, ctx.langs), *(anchor.labels if anchor else ())}
+    labels = {lang: text for lang, text in labels.items() if lang in keep}
     # And its body, measured for the census, when the draft named none: a
     # draft that took the office for an existing generic class has no body,
     # and without one a "head of the {body}" description cannot be written.

@@ -267,6 +267,14 @@ def check_build_spec(expect: Any) -> None:
     expect("ministro de Salud de Alvania" not in es and "Minister of Health of Alvania"
            not in spec.aliases.get("en", []), "an alias never repeats a label")
     expect("Ministro" not in es, "a bare seat word is never an alias")
+    sib = siblings()
+    sib.offices, sib.label_langs = 10, Counter({"es": 10})
+    drafted = cand(draft={"labels": {"en": "Minister of Health of Alvania",
+                                     "es": "ministro de Salud de Alvania",
+                                     "rn": "Minisitiri w'amagara"}})
+    lspec, _p = mint.build_spec(drafted, ctx(langs=["es", "rn"], siblings=sib))
+    expect(sorted(lspec.labels) == ["en", "es"],
+           "a label is written only in a language the state's offices are labelled in")
     other = mint.attested_aliases(
         [mint.Attestation(person=f"Q{i}", title=t, lang="en", current=True) for i, t in enumerate(
             ["Co-Judge of the Constitutional Court", "Acting President of the Court",
