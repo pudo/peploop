@@ -1,0 +1,106 @@
+# Wikipedia categories seeding the Trinidad and Tobago run: one PetScan query per entry.
+#
+# OpenSanctions' wd_categories.yml has no Trinidad and Tobago entry, so every
+# entry below is measured here and nothing is inherited. Counts are people
+# with a Wikidata item typed Q5, walked through the MediaWiki category API on
+# 2026-10-03 because PetScan was not answering; each with its marginal over
+# the entries above it. The whole seed is ~340 distinct people.
+#
+# en.wikipedia is the country's own wiki and the only one with a tree: one
+# container per tier (`Political office-holders in Trinidad and Tobago`, 13
+# subcats), a portfolio container for the ministers, both chambers with their
+# presiding officers, the chief justices, the central-bank governors, the
+# mayors, and 25 ambassadorship subcats.
+#
+# The current era is the republic under the 1976 constitution: the President
+# replaced the Governor-General (the presidency item `Q2522739` carries P571
+# 1976-09-24), the first Republican Parliament sat that year, and every office
+# the loop records -- the presidency, the two chambers' presiding officers, the
+# Tobago House of Assembly (1980) -- dates from it or later. The Prime Minister
+# and the chambers predate it (1962) but are the same offices. No category has
+# a per-period or per-century child below the tier, so the era cannot be chosen
+# by category: the tiers are seeded whole, the scope gate drops the dead at
+# fetch, and `policy.P39_MAX_ENDED_YEARS` skips the tenures that ended long ago.
+# What is left out is what the 1976 constitution ended: `Members of the
+# Legislative Council` (24, 3 new, 1 living: colonial), `Governors of Trinidad
+# and Tobago` and `Governors-general` (colonial and pre-1976), `Members of the
+# Federal Parliament of the West Indies Federation` (19, 14 new, none living),
+# `Solicitors general` (3, 2 new, none living), `Carib Queens`, and
+# `20th-century Trinidad and Tobago politicians` (47, 10 new, 11 living).
+# Also out: `Trinidad and Tobago businesspeople` (28, 15 new: not office
+# holders), `judges of international courts and tribunals` (6, 4 new: not the
+# state's offices), `city councillors` (1, dead), `civil servants` (3, 3 new,
+# 1 living), `lawyers` (9, 1 new) and `Attorneys general of British Trinidad
+# and Tobago` (the colonial subcategory, hence depth 0 on the AGs).
+
+# --- Head of state and government ---
+- category: Presidents_of_Trinidad_and_Tobago                 # 7, 3 living; d1 is the elections
+  lang: en
+  depth: 0
+- category: Prime_ministers_of_Trinidad_and_Tobago            # 8, 7 new; d1 is Patrick Manning's eponymous category
+  lang: en
+  depth: 0
+
+# --- Cabinet: 13 portfolio subcats, the PMs and the women ministers ---
+- category: Government_ministers_of_Trinidad_and_Tobago       # 131, 122 new, 109 living
+  lang: en
+- category: Attorneys_general_of_Trinidad_and_Tobago          # 14, 7 new; d1 is the colonial AGs
+  lang: en
+  depth: 0
+
+# --- Parliament: both chambers with their presiding officers ---
+- category: Members_of_the_House_of_Representatives_(Trinidad_and_Tobago)   # with Speakers and PMs; 156, 57 new
+  lang: en
+- category: Members_of_the_Senate_(Trinidad_and_Tobago)       # with Presidents of the Senate; 125, 59 new
+  lang: en
+
+# --- Tobago: the Assembly (its Chief Secretary and Presiding Officer have no category) ---
+- category: Members_of_the_Tobago_House_of_Assembly           # 5, 2 new
+  lang: en
+  depth: 0
+
+# --- Judiciary ---
+- category: Chief_justices_of_Trinidad_and_Tobago             # 19, 19 new, 4 living
+  lang: en
+  depth: 0
+
+# --- Central bank ---
+- category: Governors_of_the_Central_Bank_of_Trinidad_and_Tobago   # 3, 2 new
+  lang: en
+  depth: 0
+
+# --- Local government: Port of Spain and the women mayors ---
+- category: Mayors_of_places_in_Trinidad_and_Tobago           # 11, 3 new
+  lang: en
+
+# --- Security: the Defence Force and the Police Service ---
+- category: Trinidad_and_Tobago_military_personnel            # with the Coast Guard; 8, 5 new
+  lang: en
+- category: Trinidad_and_Tobago_police_officers               # 9, 6 new
+  lang: en
+  depth: 0
+- category: Trinidad_and_Tobago_Police_Service                # 10, 1 new
+  lang: en
+
+# --- Diplomatic service ---
+- category: Ambassadors_of_Trinidad_and_Tobago                # 25 posts, high commissioners at d2; 20, 7 new
+  lang: en
+  depth: 2
+- category: Trinidad_and_Tobago_diplomats                     # 17, 2 new (UN representatives: 7, 0 new)
+  lang: en
+
+# --- Parties ---
+- category: Leaders_of_political_parties_in_Trinidad_and_Tobago    # 6, 1 new
+  lang: en
+  depth: 0
+- category: Trinidad_and_Tobago_politicians_by_party          # 17 parties; 237, 14 new (PNM 108, UNC 72)
+  lang: en
+
+# --- Catch-alls ---
+- category: 21st-century_Trinidad_and_Tobago_politicians      # 186, 7 new
+  lang: en
+- category: Trinidad_and_Tobago_women_in_politics             # 105, 9 new
+  lang: en
+- category: Trinidad_and_Tobago_politician_stubs              # 158, 3 new
+  lang: en
+  depth: 0

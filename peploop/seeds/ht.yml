@@ -1,0 +1,124 @@
+# Wikipedia categories seeding the Haitian run: one PetScan query per entry.
+#
+# OpenSanctions' wd_categories.yml has no Haiti entry, so every entry below is
+# measured here (2026-10-03) and nothing is inherited. PetScan did not answer
+# during the measurement, so the counts are the MediaWiki API's own category
+# walk at the same depth: distinct sitelinked items, then how many of them no
+# earlier entry reached, then how many of those are human with no P570.
+#
+# Haiti is a small corpus on every wiki, and a mostly historical one: the whole
+# tree below is ~560 items, ~255 of them living. fr.wikipedia is the main wiki
+# and carries the tiers (presidents, prime ministers, 25 portfolio
+# subcategories, Senate presidents, ambassadors by post) plus one flat bag,
+# `Personnalité politique haïtienne`, that holds four of the seven voting
+# members of the Transitional Presidential Council and nothing else does.
+# en.wikipedia adds the legislature (both chambers and their presidents, which
+# fr has as two pages), the BRH governors and the police chiefs. ht.wikipedia
+# adds ~39 living people through `Politisyen ayisyen` that neither other wiki
+# categorises (mostly ht-only stubs: deputies, a few ministers); its other trees
+# (`Prezidan Ayiti`, `Minis ayisyen`, `Premye Minis ayisyen`, `Gouvènman an
+# Ayiti`) add no one, and `Politik nan Ayiti` adds 21 non-people.
+#
+# The era. No elected president since July 2021, and no sitting parliament
+# since the last third of the Senate lapsed on 10 January 2023. The
+# Transitional Presidential Council (CPT, Q124846311) held the presidency
+# collegially from 25 April 2024 to 7 February 2026, when its mandate ended
+# and executive power passed to the Council of Ministers under Prime Minister
+# Fils-Aimé (in office since 11 November 2024), confirmed by the "Pacte
+# national" of 21-22 February 2026 and reshuffled on 2 March 2026. So the
+# current era is the Fils-Aimé government, the CPT is the executive that ended
+# eight months ago, and the 1987 constitution's offices (president, both
+# chambers, the courts) stay the frame. Neither wiki has a per-period category
+# below a tier (the fr `du XXIe siècle` bag is 7 pages), so the era cannot be
+# chosen by category: every tier is seeded whole, the scope gate drops the
+# dead at fetch (about half of every presidential and ministerial category)
+# and `policy.P39_MAX_ENDED_YEARS` skips the old tenures.
+#
+# Left out: fr `Personnalité politique haïtienne du XXe siècle` (22, 5 new, 0
+# living) and `… assassinée` (12, 7 new, all dead); en `Presidents_of_Haiti`
+# (61, 0 new), `Prime_ministers_of_Haiti` (30, 0 new),
+# `Vice_presidents_of_Haiti` (3, none living), `Haitian_judges` (9, 1 new,
+# dead), `Haitian_bankers` (0 new), `Haitian_lawyers` (32, 1 living new, not a
+# tier), `Candidates_for_President_of_Haiti` (72, 2 living new, candidacy is no
+# office), `Haitian_politician_stubs` (95, 2 new, dead); ht `Politik nan
+# Ayiti` (21 new, all non-human) and the other ht trees (0 new). There is no
+# category for the CPT's members on any wiki.
+
+# --- Head of state and government ---
+- category: Président_d'Haïti                              # 57, 5 living
+  lang: fr
+  depth: 0
+- category: Premier_ministre_d'Haïti                       # 30, 29 new, 21 living
+  lang: fr
+  depth: 0
+
+# --- Cabinet: fr's 25 portfolio subcats, en's 18 ---
+- category: Ministre_haïtien                               # container; 131, 92 new, 39 living new
+  lang: fr
+- category: Government_ministers_of_Haiti                  # container; 121, 24 new, 13 living new
+  lang: en
+
+# --- Parliament (lapsed since 2023-01-10): both chambers and their presidents ---
+- category: Président_du_Sénat_haïtien                     # 9, 5 new, all living
+  lang: fr
+  depth: 0
+- category: Député_haïtien                                 # 2
+  lang: fr
+  depth: 0
+- category: Members_of_the_Haitian_Parliament              # Senate + Chamber + presidents; 70, 34 new, 19 living new
+  lang: en
+  depth: 2
+
+# --- Central bank, police, military ---
+- category: Governors_of_the_Bank_of_the_Republic_of_Haiti # 3, 1 new
+  lang: en
+  depth: 0
+- category: Haitian_police_officers                        # with Haitian police chiefs; 4, 2 new
+  lang: en
+- category: Militaire_haïtien                              # by century + Général haïtien; 23, 11 new, 3 living
+  lang: fr
+- category: Haitian_military_personnel                     # with military leaders; 55, 29 new, 6 living
+  lang: en
+  depth: 2
+
+# --- Subnational: mayors of Port-au-Prince and Hinche ---
+- category: Maire_en_Haïti                                 # by city; 8, 7 new
+  lang: fr
+  depth: 2
+- category: Mayors_of_places_in_Haiti                      # 11, 2 new
+  lang: en
+
+# --- Diplomatic service ---
+- category: Diplomate_haïtien                              # ambassadors by post at d2; 48, 22 new, 6 living
+  lang: fr
+  depth: 2
+- category: Haitian_diplomats                              # 56, 9 new
+  lang: en
+  depth: 2
+- category: Ambassadors_of_Haiti                           # 26 posts; 46, 16 new, 5 living
+  lang: en
+
+# --- Catch-alls: the CPT members are only here ---
+- category: Personnalité_politique_haïtienne               # flat bag; 159, 77 new, 44 living new
+  lang: fr
+  depth: 0
+- category: Personnalité_politique_haïtienne_du_XXIe_siècle   # 7, 1 new
+  lang: fr
+  depth: 0
+- category: Femme_politique_haïtienne                      # with Ministre haïtienne; 49, 21 new, 15 living
+  lang: fr
+- category: Haitian_politicians_by_party                   # 18 parties; 52, 8 new
+  lang: en
+- category: 21st-century_Haitian_politicians               # 56, 3 new
+  lang: en
+- category: 20th-century_Haitian_politicians               # 48, 3 new, 2 living
+  lang: en
+- category: Haitian_women_in_politics                      # 42, 10 new
+  lang: en
+- category: Haitian_politicians                            # 24 pages, 9 new
+  lang: en
+  depth: 0
+- category: Politicians_from_Port-au-Prince                # 39, 8 new, 7 living
+  lang: en
+- category: Politisyen_ayisyen                             # 247, 54 new, 39 living new
+  lang: ht

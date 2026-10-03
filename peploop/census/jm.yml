@@ -1,0 +1,130 @@
+# Offices the state has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-03 live measurement (labels, P31, P17, P361 read
+# in full with wbgetentities); nothing below is from memory. Which offices
+# exist is read from en `Order of precedence in Jamaica` (President of the Court
+# of Appeal, Chief of Staff of the JDF, Commissioner of Police, Auditor General,
+# Director of Public Prosecutions, "Mayors and Chairmen of Parish Councils"), from
+# en `2024 Jamaican local elections` (13 municipal corporations, each with a
+# mayorship) and from the parishes' own P36. No `source` is given: none was
+# checked as an official page, and a source is what lets a one-seat office
+# pass on a single current holder, so it is never guessed.
+#
+# Not here because an item exists (all P17 Q766):
+#   Governor-General Q1472951 (P31 Q4164871 but no P279: 9 of 12 realms' GGs
+#     carry P279 Q382844, so the gap is Wikidata's, not a mint);
+#   Prime Minister Q1430943, Deputy PM Q41513836, ~25 portfolio ministers and
+#     ~10 ministers of state (Q109928xxx, Q112109xxx, Q127425177 ...: P31
+#     Q294414, P279 Q83307, P361 Cabinet of Jamaica Q5015520);
+#   Attorney General Q4818640; Speaker Q6597927 and President of the Senate
+#     Q6594879 (both P279 Q1758037 speaker, P1001 only, no P2389);
+#   Leader of the Opposition Q6508542 (P279 Q620110);
+#   Chief Justice Q90824054 (P279 Q3188089, P361 Judiciary of Jamaica);
+#   Governor of the Bank of Jamaica Q109929141 (P2389 Q3374585);
+#   Chief of Defence Staff Q85751928 (P279 Q5097014, P2389 JDF Q720038; no
+#     P1001); mayor of Kingston Q109928803 (P1001 Kingston city Q34692);
+#   Member of the House Q21290859, Member of the Senate Q21295140.
+#
+# Not here because no archetype fits, and forcing one would shape a wrong item:
+#   - Custos rotulorum of each of the 14 parishes. The office exists per parish
+#     (Ministry Paper No. 2 of 1959, gazetted 1963: appointed by the GG on the
+#     PM's advice), and the class Q3699761 "Custos rotulorum" is P31 Q4164871
+#     with no P279. `governor` would make it P279 Q132050 and require a P150
+#     region, and Q766's P150 is the three historic counties, not the parishes.
+#     Needs a `custos` archetype (parent Q3699761, level: parish).
+#   - Integrity Commission (2018; absorbed the Contractor General): commissioners
+#     are a collegial seat and its executive director's title was not measured;
+#     no body item exists on Wikidata.
+#   - NWC, PCJ, JPS heads: no article states the title; only Petrojam's
+#     "general manager" is attested (en `Petroleum Corporation of Jamaica`).
+
+- key: court_of_appeal_president
+  class: judiciary.apex
+  archetype: court_president
+  # No body: no Court of Appeal item exists; en `Court of Appeal of Jamaica`
+  # redirects to `Judiciary of Jamaica` (Q17110917, no claims), which shares no
+  # content word with the office.
+  labels:
+    en: President of the Court of Appeal of Jamaica
+
+- key: director_of_public_prosecutions
+  class: judiciary.prosecution
+  archetype: prosecutor_general
+  body: Q127607300         # Office of the Director of Public Prosecutions of Jamaica, P31 government agency, P17 Q766
+  labels:
+    en: Director of Public Prosecutions of Jamaica
+
+- key: auditor_general
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  # No body: no Auditor General's Department item was found.
+  labels:
+    en: Auditor General of Jamaica
+
+- key: commissioner_of_police
+  class: security.police
+  archetype: agency_head
+  body: Q3160777           # Jamaica Constabulary Force, P31 national police + government agency, P361 MNS
+  labels:
+    en: Commissioner of Police of Jamaica
+
+- key: petrojam_general_manager
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q127429873         # Petrojam Limited, P31 government agency, P17 Q766
+  labels:
+    en: General Manager of Petrojam
+
+# Mayors. Each of the 13 municipal corporations elects a mayor (2024 local
+# elections); KSAMC's is the existing `Q109928803`, so 12 remain. The title is
+# the parish capital's (P36 of each parish item), which is how the one existing
+# item is scoped (P1001 the city, not the parish). Portmore's directly elected
+# mayor is not in that table and is left out. Kept as twelve entries because
+# `per: subdivisions` reads Q766's P150, which is the three historic counties.
+- key: mayor_montego_bay
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of Montego Bay}          # Saint James Q1421939, capital Q637555
+- key: mayor_spanish_town
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of Spanish Town}         # Saint Catherine Q1473663
+- key: mayor_may_pen
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of May Pen}              # Clarendon Q1095557
+- key: mayor_mandeville
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of Mandeville}           # Manchester Q920496
+- key: mayor_black_river
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of Black River}          # Saint Elizabeth Q1473646
+- key: mayor_savanna_la_mar
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of Savanna-la-Mar}       # Westmoreland Q1440250
+- key: mayor_lucea
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of Lucea}                # Hanover Q1131779
+- key: mayor_falmouth
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of Falmouth}             # Trelawny Q1123340
+- key: mayor_st_anns_bay
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of St. Ann's Bay}        # Saint Ann Q1326284
+- key: mayor_port_maria
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of Port Maria}           # Saint Mary Q633565
+- key: mayor_port_antonio
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of Port Antonio}         # Portland Q125148
+- key: mayor_morant_bay
+  class: subnational.municipal
+  archetype: mayor
+  labels: {en: Mayor of Morant Bay}           # Saint Thomas Q1422332
