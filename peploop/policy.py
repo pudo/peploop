@@ -120,6 +120,65 @@ FAMILY_GENERIC = frozenset({
     "Q121998",     # ambassador
     "Q29645886",   # ambassador to a country
 })
+#: Kinds that make an office a seat in a chamber: one of many, filled together
+#: when the chamber is elected or appointed anew.
+CHAMBER_KINDS = frozenset({
+    "Q486839",     # member of parliament
+    "Q4175034",    # legislator
+    "Q15686806",   # senator
+    "Q1055894",    # deputy, the legislator
+})
+#: Kinds whose items several people hold at once, so a later start by somebody
+#: else ends nothing: the chamber seats, a bench, a council, a collegial organ,
+#: and the deputies a ministry has more than one of.
+MULTI_SEAT_KINDS = CHAMBER_KINDS | {
+    "Q16533",      # judge
+    "Q117826617",  # supreme court judge
+    "Q708492",     # council member
+    "Q115136557",  # politburo member
+    "Q16862850",   # member of a state body
+    "Q26204040",   # deputy minister
+    "Q90132546",   # deputy minister
+    "Q124079538",  # deputy head
+    "Q3250324",    # deputy, the second-in-command
+}
+#: How many people starting one office in the same year make it a chamber by
+#: measurement, for an office whose kinds were never read. A cabinet seat
+#: reshuffled twice in a year has three, a government formed with six deputy
+#: premiers has six; a chamber has dozens.
+CHAMBER_COHORT = 10
+#: The most people who may start one office in the same year for it still to
+#: be read as one seat: an incumbent replaced mid-year is two.
+SINGLE_SEAT_COHORT = 2
+#: How long two people's spells must certainly overlap before the office is
+#: read as held by several at once. A handover dated a few weeks apart is one
+#: seat changing hands.
+CONCURRENT_DAYS = 180
+#: The closed spells a chamber seat needs, and how many of them must agree on
+#: one length in whole years, before that length is taken as its term.
+TERM_MIN_SPELLS = 5
+TERM_MIN_AGREE = 3
+#: How much shorter than the measured term the gap to a newer one may be: an
+#: election held a few months early still opens the next term.
+TERM_SLACK_YEARS = 1
+#: How many people must start the seat in one year for that year to be a new
+#: term of the chamber rather than one by-election.
+NEW_TERM_COHORT = 2
+#: The proposal statuses whose spells count as on record for the office: what
+#: `propose` left and the policy has not set aside, and what `apply` wrote.
+LIVE_SPELL_STATUSES = PROPOSED + (PENDING, ACCEPTED, "applied")
+
+
+@dataclass(frozen=True)
+class OfficeSpell:
+    """One person's spell of an office, as the record or a proposal gives it."""
+
+    person: str
+    #: `P580`/`P582` as time values; either may be missing.
+    span: dict[str, Any]
+    #: Whether it is on record or still on its way there. A proposal the
+    #: policy skipped is not, and only measures the office.
+    live: bool = True
 
 
 @dataclass
@@ -157,6 +216,10 @@ class Case:
     #: What `spell_conflicts` found for a P39 among the person's other spells
     #: of the same office: `sibling_spell`, `contested`, or None.
     spell_conflict: str | None = None
+    #: Every spell of the office a P39 names, by anyone: Wikidata's live
+    #: statements and the proposals on record, as `OfficeSpell`. None when
+    #: nobody read them, which no rule reads as an empty office.
+    office_spells: list[OfficeSpell] | None = None
     today: date | None = None
 
     @property
@@ -725,6 +788,144 @@ def generic_needs_scope(case: Case) -> Disposition | None:
     return None
 
 
+def _point_years(point: scope.Point) -> float:
+    """A day as a fractional year, which is all the arithmetic below needs."""
+    year, month, day = point
+    return year + (month - 1) / 12 + (day - 1) / 365.25
+
+
+def _inner(span: dict[str, Any]) -> tuple[float | None, float | None]:
+    """The span every reading of a spell certainly covers: latest start, earliest end."""
+    return _bound(span.get("P580"), 1), _bound(span.get("P582"), 0)
+
+
+def _bound(value: dict[str, Any] | None, side: int) -> float | None:
+    """The first (0) or last (1) day a time value could mean, as a fractional year."""
+    if not isinstance(value, dict):
+        return None
+    bounds = scope.interval(value.get("time", ""), value.get("precision", 0))
+    return None if bounds is None else _point_years(bounds[side])
+
+
+def _cohorts(spells: Sequence[OfficeSpell]) -> Counter[int]:
+    """How many different people started the office in each year."""
+    seen = {(spell.person, year) for spell in spells
+            if (year := _year(spell.span.get("P580"))) is not None}
+    return Counter(year for _person, year in seen)
+
+
+def _concurrent(spells: Sequence[OfficeSpell]) -> bool:
+    """Whether two people certainly held the office at once, for longer than a handover."""
+    closed = [(spell.person, *_inner(spell.span)) for spell in spells]
+    closed = [(p, s, e) for p, s, e in closed if s is not None and e is not None and s < e]
+    margin = CONCURRENT_DAYS / 365.25
+    return any(
+        one != other and min(e1, e2) - max(s1, s2) > margin
+        for one, s1, e1 in closed for other, s2, e2 in closed
+    )
+
+
+def seat_kind(position: dict[str, Any], spells: Sequence[OfficeSpell]) -> str | None:
+    """Whether an office is one seat, a chamber's seat, or neither as far as anyone can tell.
+
+    A chamber by its declared kind, or by a year in which `CHAMBER_COHORT`
+    people took it up. One seat when nothing says otherwise: no kind of a
+    many-seat office, no year with more than `SINGLE_SEAT_COHORT` starters,
+    and no two people certainly holding it at once. Anything between --
+    three deputies appointed in a year, a deputy ministry -- is neither, and
+    neither rule below reads it.
+    """
+    kinds = set(position.get("kind_qids") or ())
+    cohorts = _cohorts(spells)
+    largest = max(cohorts.values(), default=0)
+    if kinds & CHAMBER_KINDS or largest >= CHAMBER_COHORT:
+        return "chamber"
+    if kinds & MULTI_SEAT_KINDS or largest > SINGLE_SEAT_COHORT or _concurrent(spells):
+        return None
+    return "single"
+
+
+def term_years(spells: Sequence[OfficeSpell]) -> int | None:
+    """The length of one term of a chamber seat, measured off its closed spells.
+
+    The modal length in whole years, because neither tail is a term: a member
+    re-elected twice is one statement fifteen years long, and one appointed to
+    fill a vacancy is a statement of months. Unmeasured, None, when there are
+    fewer than `TERM_MIN_SPELLS` closed spells or fewer than `TERM_MIN_AGREE`
+    of them on one length.
+    """
+    lengths: Counter[int] = Counter()
+    seen = set()
+    for spell in spells:
+        start, end = _year(spell.span.get("P580")), _year(spell.span.get("P582"))
+        if start is None or end is None or (spell.person, start, end) in seen:
+            continue
+        seen.add((spell.person, start, end))
+        span = spell.span
+        if min(span["P580"].get("precision", 0), span["P582"].get("precision", 0)) >= 10:
+            first, last = _inner(span)
+            length = round(last - first) if first is not None and last is not None else 0
+        else:
+            length = end - start
+        if length > 0:
+            lengths[length] += 1
+    if sum(lengths.values()) < TERM_MIN_SPELLS or not lengths:
+        return None
+    (length, agree), *rest = lengths.most_common()
+    if agree < TERM_MIN_AGREE or (rest and rest[0][1] == agree):
+        return None
+    return length
+
+
+def _later(one: dict[str, Any], other: dict[str, Any]) -> bool:
+    """Whether time `other` is certainly after time `one`: "2015" is not after "2015-05-03"."""
+    mine, theirs = _bound(one, 1), _bound(other, 0)
+    return mine is not None and theirs is not None and theirs > mine
+
+
+def open_superseded(case: Case) -> Disposition | None:
+    """An open tenure somebody else's later one has evidently ended.
+
+    Articles state a start and leave the end out for years after it came:
+    a minister of a cabinet two governments ago, a senator of a chamber since
+    dissolved. Written without `P582`, each says they hold the office today.
+    For an office one person holds at a time (`seat_kind`), a later start by
+    anybody else, on record or proposed, is the end the article did not give.
+    For a chamber's seat, a new term of the chamber is: at least
+    `NEW_TERM_COHORT` people taking up the seat in one year, that year at
+    least a measured term (`term_years`) less `TERM_SLACK_YEARS` after the
+    tenure began. A seat whose term cannot be measured is left alone, and so
+    is everything between one seat and a chamber.
+    """
+    if case.property != "P39" or case.position is None or case.office_spells is None:
+        return None
+    start = case.tenure("P580")
+    if start is None or case.tenure("P582") is not None:
+        return None
+    me = case.entity.get("id")
+    kind = seat_kind(case.position, case.office_spells)
+    live = [spell for spell in case.office_spells if spell.live and "P580" in spell.span]
+    if kind == "single":
+        if any(spell.person != me and _later(start, spell.span["P580"]) for spell in live):
+            return _skip("open_superseded/single")
+        return None
+    if kind != "chamber":
+        return None
+    term = term_years(case.office_spells)
+    began = _bound(start, 1)
+    if term is None or began is None:
+        return None
+    gap = max(1, term - TERM_SLACK_YEARS)
+    starters: dict[int, set[str]] = {}
+    for spell in live:
+        other = _bound(spell.span["P580"], 0)
+        if other is not None and other - began >= gap:
+            starters.setdefault(int(other), set()).add(spell.person)
+    if any(len(people) >= NEW_TERM_COHORT for people in starters.values()):
+        return _skip("open_superseded/chamber")
+    return None
+
+
 # --- the verifier ------------------------------------------------------------
 
 
@@ -766,6 +967,7 @@ RULES: tuple[Rule, ...] = (
     generic_needs_scope,
     tenure_before_polity,
     tenure_before_record,
+    open_superseded,
     sibling_spell,
     # Only then the model, and only as one more gate.
     unverified,
@@ -811,7 +1013,34 @@ def _state_qid(country: str | None) -> str | None:
         return None
 
 
-def person_cases(qid: str, today: date | None = None) -> list[tuple[int, Case]]:
+def office_spells(offices: Sequence[str]) -> dict[str, list[OfficeSpell]]:
+    """Every spell of these offices: Wikidata's, read live, and the proposals'.
+
+    A successor this run is about to write is as much a successor as one on
+    record, so the proposals count; one the policy skipped measures the office
+    -- its cohorts, its term -- and is not taken for a successor.
+    """
+    out: dict[str, list[OfficeSpell]] = {}
+    for office, spells in positions.holder_spells(offices).items():
+        out.setdefault(office, []).extend(OfficeSpell(person, span) for person, span in spells)
+    if not offices:
+        return out
+    rows = db.conn().execute(
+        "SELECT value->>'id', person_qid, qualifiers, status FROM proposal"
+        " WHERE property = 'P39' AND value->>'id' = ANY(%s) AND status = ANY(%s)",
+        (list(offices), [*LIVE_SPELL_STATUSES, SKIPPED]),
+    )
+    for office, person, qualifiers, status in rows:
+        out.setdefault(office, []).append(OfficeSpell(
+            person, _endpoints(qualifiers or {}), live=status in LIVE_SPELL_STATUSES,
+        ))
+    return out
+
+
+def person_cases(
+    qid: str, today: date | None = None,
+    spells: dict[str, list[OfficeSpell]] | None = None,
+) -> list[tuple[int, Case]]:
     """Build a case for every proposal of one person the policy may decide.
 
     A row a human ruled on is theirs and is left out; so is a row `apply` has
@@ -882,6 +1111,8 @@ def person_cases(qid: str, today: date | None = None) -> list[tuple[int, Case]]:
                 "verdict": verification.verdict, "confidence": verification.confidence,
             },
             siblings=siblings,
+            office_spells=None if spells is None or row["property"] != "P39"
+            else spells.get(row["value"].get("id"), []),
             today=today,
         )))
     # Spells are judged against each other only among the rows every other
@@ -994,7 +1225,8 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     the first-holder question about is asked it once, so `tenure_before_record`
     reads a filled column rather than silence; and a state whose offices'
     kinds were never read has them read once, so `family_conflicts` counts the
-    whole table rather than the part that happened to be loaded since.
+    whole table rather than the part that happened to be loaded since. Every
+    office's holders are read live once per run, for `open_superseded`.
     """
     offices = offices_of(qids)
     unfilled = positions.unfilled_polity_inception(offices)
@@ -1006,9 +1238,10 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     unfilled = positions.unfilled_kinds(states_of(qids))
     if unfilled:
         positions.fill_kinds(unfilled)
+    spells = office_spells(offices)
     funnel = Funnel()
     for qid in qids:
-        for proposal_id, case in person_cases(qid, today):
+        for proposal_id, case in person_cases(qid, today, spells):
             disposition = decide(case)
             funnel.add(case, disposition)
             if write:

@@ -996,6 +996,52 @@ def fill_first_held(qids: Sequence[str], log: Any = lambda _m: None) -> dict[str
     return years
 
 
+#: Every non-deprecated `P39` statement on an office, with its dates and their
+#: precision. `p:P39/ps:P39`, because a preferred statement hides the
+#: normal-rank ones, and a statement node so a second `P580` does not make it
+#: two spells.
+HOLDER_SPELLS_QUERY = """SELECT ?pos ?st ?h ?s ?sp ?e ?ep WHERE {
+  VALUES ?pos { %(values)s }
+  ?h p:P39 ?st . ?st ps:P39 ?pos ; wikibase:rank ?rank .
+  FILTER(?rank != wikibase:DeprecatedRank)
+  OPTIONAL { ?st pqv:P580 [ wikibase:timeValue ?s ; wikibase:timePrecision ?sp ] }
+  OPTIONAL { ?st pqv:P582 [ wikibase:timeValue ?e ; wikibase:timePrecision ?ep ] }
+}"""
+
+
+def _sparql_time(text: str | None, precision: str | None) -> dict[str, Any] | None:
+    """A SPARQL `timeValue` as the time value Wikidata's JSON carries."""
+    if not text or not (precision or "").isdigit():
+        return None
+    sign = "" if text.startswith("-") else "+"
+    return {"time": sign + text, "precision": int(precision or 0)}
+
+
+def holder_spells(qids: Sequence[str]) -> dict[str, list[tuple[str, dict[str, Any]]]]:
+    """Every holder's spell of each office, read live: (person, `P580`/`P582`).
+
+    Reach for this when a rule turns on who else held an office and when. It
+    is state this pipeline's own writes change, so it is never cached: a
+    spell read a week ago is missing the successor written yesterday.
+    """
+    wanted = [qid for qid in dict.fromkeys(qids) if qid]
+    seen: dict[str, tuple[str, str, dict[str, Any]]] = {}
+    for chunk in wikidata.values_chunks(wanted, size=BACKFILL_CHUNK):
+        rows = wikidata.sparql(
+            HOLDER_SPELLS_QUERY % {"values": wikidata.values_block(chunk)}, max_age=0
+        )
+        for row in rows:
+            _pos, _person, span = seen.setdefault(row["st"], (row["pos"], row["h"], {}))
+            for prop, time, precision in (("P580", "s", "sp"), ("P582", "e", "ep")):
+                value = _sparql_time(row.get(time), row.get(precision))
+                if value is not None:
+                    span.setdefault(prop, value)
+    out: dict[str, list[tuple[str, dict[str, Any]]]] = {}
+    for pos, person, span in seen.values():
+        out.setdefault(pos, []).append((person, span))
+    return out
+
+
 def fill_polity_inception(qids: Sequence[str], log: Any = lambda _m: None) -> dict[str, int]:
     """Record the year the polity each office is scoped to came into being.
 

@@ -439,6 +439,92 @@ def main() -> int:
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
           policy.PENDING, "unverified")
 
+    print("an open tenure somebody later evidently ended:")
+    me = {"id": "Q0000009", "claims": {}}
+
+    def spell(person: str, start: str, end: str | None = None,
+              live: bool = True) -> policy.OfficeSpell:
+        span = {"P580": time(start), **({"P582": time(end)} if end else {})}
+        return policy.OfficeSpell(person, span, live)
+
+    def open_from(start: str) -> dict[str, Any]:
+        return {"P580": time(start), "_sources": [{"lang": "aa", "quote": "q"}]}
+
+    # A chamber elected every five years: one spell per member and term, a
+    # vacancy filled late, a member re-elected on one statement, and the
+    # 2025 chamber's first members on record.
+    chamber = [
+        *(spell(f"Q10{n}", "2010-06-01", "2015-09-07") for n in range(4)),
+        *(spell(f"Q11{n}", "2015-09-07", "2020-08-19") for n in range(3)),
+        spell("Q120", "2013-01-10", "2015-09-07"),
+        spell("Q121", "2010-06-01", "2020-08-19"),
+        spell("Q130", "2025-05-03"), spell("Q131", "2025-05-03"),
+    ]
+    seat = office(kind_qids=["Q4164871", "Q486839"])
+    check("an open 2010 seat in a chamber re-formed in 2025 is skipped",
+          policy.decide(case(entity=me, position=seat, office_spells=chamber,
+                             qualifiers=open_from("2010-06-01"))),
+          policy.SKIPPED, "open_superseded/chamber")
+    check("a seat of the chamber's current term is kept",
+          policy.decide(case(entity=me, position=seat, office_spells=chamber,
+                             qualifiers=open_from("2025-05-03"))),
+          policy.PENDING, "unverified")
+    check("so is one filled by a by-election late in the last term",
+          policy.decide(case(entity=me, position=seat, office_spells=chamber,
+                             qualifiers=open_from("2023-02-01"))),
+          policy.PENDING, "unverified")
+    check("a chamber whose term cannot be measured is left alone",
+          policy.decide(case(entity=me, position=seat, office_spells=chamber[-3:],
+                             qualifiers=open_from("2010-06-01"))),
+          policy.PENDING, "unverified")
+    check("one later by-election is not a new term",
+          policy.decide(case(entity=me, position=seat,
+                             office_spells=[*chamber[:-2], spell("Q130", "2025-05-03")],
+                             qualifiers=open_from("2015-09-07"))),
+          policy.PENDING, "unverified")
+
+    ministry = [spell("Q200", "2015-09-09", "2020-08-19"), spell("Q201", "2020-08-19", "2025-05-01")]
+    check("a current minister whose successor isn't recorded is kept",
+          policy.decide(case(entity=me, office_spells=ministry,
+                             qualifiers=open_from("2025-05-01"))),
+          policy.PENDING, "unverified")
+    check("a minister whose successor took office later is skipped",
+          policy.decide(case(entity=me, office_spells=ministry,
+                             qualifiers=open_from("2010-05-28"))),
+          policy.SKIPPED, "open_superseded/single")
+    check("and so is one whose successor is only proposed",
+          policy.decide(case(entity=me, office_spells=[spell("Q202", "2021-01-01", live=True)],
+                             qualifiers=open_from("2018-03-01"))),
+          policy.SKIPPED, "open_superseded/single")
+    check("a successor a rule set aside succeeds nobody",
+          policy.decide(case(entity=me, office_spells=[spell("Q202", "2021-01-01", live=False)],
+                             qualifiers=open_from("2018-03-01"))),
+          policy.PENDING, "unverified")
+    check("a start in the same year at year precision is not a later one",
+          policy.decide(case(entity=me, office_spells=[spell("Q202", "2025-05-03")],
+                             qualifiers=open_from("2025"))),
+          policy.PENDING, "unverified")
+    check("the holder's own later spell is not a successor",
+          policy.decide(case(entity=me, office_spells=[spell("Q0000009", "2021-01-01")],
+                             qualifiers=open_from("2018-03-01"))),
+          policy.PENDING, "unverified")
+    shared = [spell("Q300", "2012-01-01", "2019-01-01"), spell("Q301", "2014-01-01", "2020-01-01")]
+    check("an office two held at once for years is not one seat",
+          policy.decide(case(entity=me, office_spells=[*shared, spell("Q302", "2022-01-01")],
+                             qualifiers=open_from("2018-03-01"))),
+          policy.PENDING, "unverified")
+    check("nor is one declared a deputy ministry",
+          policy.decide(case(entity=me, position=office(kind_qids=["Q26204040"]),
+                             office_spells=[spell("Q202", "2021-01-01")],
+                             qualifiers=open_from("2018-03-01"))),
+          policy.PENDING, "unverified")
+    check("an office whose holders nobody read is left alone",
+          policy.decide(case(entity=me, office_spells=None, qualifiers=open_from("2010-05-28"))),
+          policy.PENDING, "unverified")
+    check("a closed tenure is never superseded",
+          policy.decide(case(entity=me, office_spells=ministry)),
+          policy.PENDING, "unverified")
+
     print("the verifier:")
     check("nothing is accepted before the verifier has answered",
           policy.decide(case()), policy.PENDING, "unverified")
