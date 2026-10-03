@@ -892,23 +892,24 @@ def merge(drafts: Iterable[tuple[Drafted, int | None]], anchors: Sequence[Anchor
     out: dict[str, Cluster] = {}
     # Chunks are drafted apart, so one office can come back under two English
     # renderings ("Vice Minister …", "Deputy Minister …") with one Spanish
-    # label. A label in any language, under one jurisdiction, is one office.
+    # label. A label in any language, under one jurisdiction, is one office,
+    # and so is one differing only by a stopword ("at"/"in the Ministry").
     named: dict[tuple[str, str], str] = {}
 
     def where(qid: str | None) -> str:
         return "" if qid in (None, state_qid) else qid
     for anchor in anchors:
         for text in anchor.labels.values():
-            named.setdefault((positions.fold(text), where(anchor.jurisdiction)), anchor.key)
+            named.setdefault((offices.label_key(text), where(anchor.jurisdiction)), anchor.key)
     for office, call in drafts:
         ref = candidate_ref(office)
         if not office.census_key and office.decision == "office":
-            seen = [named.get((positions.fold(t), where(office.jurisdiction_qid)))
+            seen = [named.get((offices.label_key(t), where(office.jurisdiction_qid)))
                     for t in office.labels.values()]
             ref = next((r for r in seen if r), ref)
         if office.decision == "office":
             for text in office.labels.values():
-                named.setdefault((positions.fold(text), where(office.jurisdiction_qid)), ref)
+                named.setdefault((offices.label_key(text), where(office.jurisdiction_qid)), ref)
         cluster = out.setdefault(ref, Cluster(ref, [], anchor=by_key.get(office.census_key or "")))
         held = {g.key for g in cluster.groups}
         cluster.groups.extend(g for g in office.groups if g.key not in held)

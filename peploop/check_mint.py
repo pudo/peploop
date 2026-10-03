@@ -247,6 +247,11 @@ def main() -> int:
     expect(guard(judge(), duplicates=[hit]), ["duplicate/Q77"], "a live match blocks")
     expect(guard(judge(), run_labels=["president of the supreme tribunal"]), ["run-duplicate"],
            "as does another candidate of this run with the same folded label")
+    expect(guard(judge(labels={"en": "Minister of State at the Ministry of Labour"}, body_qid=None),
+                 run_labels=["Minister of State in the Ministry of Labour"]), ["run-duplicate"],
+           "and one differing from it only by a stopword")
+    expect(guard(judge(), run_labels=["President of the Supreme Tribunal of Appeal"]), [],
+           "but not one naming another seat")
     expect(offices.duplicate_of([replace(hit, types=frozenset({offices.LIST_ARTICLE}))]), None,
            "a pure list article is not a duplicate")
     expect(offices.duplicate_of([replace(hit, types=frozenset({offices.LIST_ARTICLE, "Q294414"}))]),

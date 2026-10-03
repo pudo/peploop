@@ -162,6 +162,16 @@ def check_floor(expect: Any) -> None:
                          labels={"es": "gobernador de Brena"})
     expect(set(mint.merge([(loose, 1)], [gov], state_qid="Q9")) == {"gov/Q5"},
            "and a draft that forgot its census key still joins the anchor it names")
+    at = mint.Drafted(groups=[a], decision="office",
+                      labels={"en": "Minister of State at the Ministry of Labour"})
+    in_the = mint.Drafted(groups=[b], decision="office",
+                          labels={"en": "Minister of State in the Ministry of Labour"})
+    merged = mint.merge([(at, 1), (in_the, 2)], [], state_qid="Q9")
+    expect(len(merged) == 1, "two renderings differing by a stopword are one candidate")
+    other = mint.Drafted(groups=[b], decision="office",
+                         labels={"en": "Minister of State in the Ministry of Finance"})
+    expect(len(mint.merge([(at, 1), (other, 2)], [], state_qid="Q9")) == 2,
+           "while another ministry's minister of state stays its own")
 
 
 CENSUS = """

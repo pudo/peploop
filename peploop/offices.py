@@ -323,6 +323,16 @@ def _phrase(text: str) -> str:
     return f" {' '.join(re.findall(r'[a-z0-9]+', fold(text)))} "
 
 
+#: Words two renderings of one title differ by without naming another
+#: seat: a minister of state "at" or "in" the ministry is one office.
+LABEL_STOPWORDS = frozenset({"at", "in", "of", "the"})
+
+
+def label_key(text: str) -> str:
+    """A label folded to what makes two renderings of one title the same."""
+    return " ".join(w for w in _phrase(text).split() if w not in LABEL_STOPWORDS)
+
+
 def without_state(text: str, state_names: Iterable[str]) -> str:
     """A name with every one of the state's names taken out of it as a whole phrase."""
     out = _phrase(text)
@@ -555,8 +565,8 @@ def guard(
     state_named = any(names_state(text, state_names) for text in spec.labels.values())
     if dup := duplicate_of(duplicates, state_names if state_named else ()):
         problems.append(f"duplicate/{dup}")
-    others = {fold(text) for text in run_labels}
-    if any(fold(text) in others for text in spec.labels.values()):
+    others = {label_key(text) for text in run_labels}
+    if any(label_key(text) in others for text in spec.labels.values()):
         problems.append("run-duplicate")
 
     if spec.body_qid:
