@@ -493,7 +493,7 @@ def policy_(qid: Sequence[str], country: str | None) -> None:
     Writing is the only mode, because the decisions are local and re-derived
     on every run; `report --country <cc> funnel` shows them without writing.
     """
-    for line in _funnel(run, write=True):
+    for line in _funnel(_select(qid, ("proposed",), country), write=True):
         click.echo(line)
 
 
