@@ -16,7 +16,7 @@ from dataclasses import replace
 from collections import Counter
 from typing import Any
 
-from peploop import offices
+from peploop import offices, positions
 from peploop.offices import Found, Siblings, Spec
 
 STATE = "Q0000001"
@@ -494,8 +494,38 @@ def main() -> int:
     expect(offices.is_office_class("Q74", children=lambda _q: [], items=items), False,
            "nor one nothing subclasses")
 
+    check_generic(expect)
+
     print(f"{len(failures)} failures")
     return 1 if failures else 0
+
+
+def check_generic(expect: Any) -> None:
+    """The generic-class list blocks a duplicate, never a parent."""
+    print("generic classes:")
+    parents = sorted({(name, parent) for name, shape in offices.ARCHETYPES.items()
+                      for parent in (shape.parent, *shape.parents)})
+    listed = {p for _n, p in parents if p in positions.GENERIC}
+    expect({"Q30185", "Q83307"} <= listed, True,
+           f"the list holds archetype parents ({len(listed)} of them), so this pin bites")
+    defective = [(name, parent, defects) for name, parent in parents
+                 if (defects := offices.shape_defects(
+                     Spec(ref=f"t/{name}", archetype=name, labels={"en": "An office"},
+                          state_qid=STATE, parent=parent), {parent}))]
+    expect(defective, [], f"every archetype parent, listed or not, passes the shape check"
+                          f" ({len(parents)} pairs)")
+    data = offices.entity_data(Spec(ref="t/mayor", archetype="mayor", labels={"en": "Mayor of Bray"},
+                                    state_qid=STATE, jurisdiction_qid=PROVINCE))
+    expect(statement(data, "P279"), ["Q30185"], "a minted mayoralty still subclasses mayor")
+    mayor = Found(qid="Q30185", label_match=True, country_match=True, country_qids=(STATE,),
+                  types=frozenset({"Q294414"}))
+    expect(offices.duplicate_of([mayor]), None, "a listed class is never a duplicate, even scoped")
+    expect(offices.duplicate_of([replace(mayor, country_match=False, country_qids=())]), None,
+           "nor stateless")
+    expect(offices.duplicate_of([mayor, replace(mayor, qid="Q78")]), "Q78",
+           "and it hides no real duplicate behind it")
+    expect(guard(judge(), duplicates=[replace(mayor, qid="Q14212")]), [],
+           "so the guard mints past one")
 
 
 if __name__ == "__main__":

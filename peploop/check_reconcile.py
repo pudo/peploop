@@ -497,6 +497,48 @@ def check_reopen(expect: Any) -> None:
         conn.execute("DROP TABLE IF EXISTS pg_temp.resolution")
 
 
+#: The ledger key a verdict is stored under. Leaving the generic classes out of
+#: the shortlist changed what the model is shown, not how it is asked, so
+#: neither moved, and every verdict on record still reads back.
+PROMPT_DIGEST = "0c8e514fe693abac432180896eb8dd01e6d322d5762017961741a033a37e7490"
+RENDER_VERSION = 2
+
+
+def check_generic(expect: Any) -> None:
+    """Pin that a listed generic class never reaches a shortlist, under the same ledger key."""
+    expect(reconcile.system_prompt()[1] == PROMPT_DIGEST and reconcile.RENDER_VERSION == RENDER_VERSION,
+           "the prompt hash and RENDER_VERSION are the ones every stored verdict carries")
+    try:
+        conn = db.conn()
+    except psycopg.OperationalError as exc:
+        print(f"  skip no database ({exc.__class__.__name__})")
+        return
+    conn.execute(
+        "CREATE TEMP TABLE position (LIKE public.position"
+        " INCLUDING DEFAULTS INCLUDING GENERATED)"
+    )
+    real_cached = titles.cached
+    try:
+        rows = [("Q30185", "mayor", "mayor", True),
+                ("Q99", "Mayor of Bray", "mayor bray", False),
+                ("Q98", "Mayor of Ash", "mayor ash", None)]
+        for qid, label, text, generic in rows:
+            conn.execute(
+                "INSERT INTO pg_temp.position (qid, label, search_text, generic)"
+                " VALUES (%s, %s, %s, %s)", (qid, label, text, generic))
+        expect("Q30185" in positions.GENERIC, "mayor is on the list")
+        got = [hit.qid for hit in positions.search("mayor", None, STATE)]
+        expect(got and "Q30185" not in got and set(got) == {"Q98", "Q99"},
+               f"the search leaves the flagged class out, and an unflagged row in: {got}")
+        titles.cached = lambda _title: None  # type: ignore[assignment]
+        mention = dataclasses.replace(MENTION, title="Mayor", jurisdiction=None)
+        got = [hit.qid for hit in reconcile.shortlist_hits(mention, STATE)]
+        expect("Q30185" not in got, f"so no shortlist offers it: {got}")
+    finally:
+        titles.cached = real_cached  # type: ignore[assignment]
+        conn.execute("DROP TABLE IF EXISTS pg_temp.position")
+
+
 def check_reask(expect: Any) -> None:
     """Pin the retrieval re-ask: a gained list is asked once, an unchanged one never."""
     try:
@@ -592,6 +634,7 @@ def main() -> int:
         ("search_title", check_search_title),
         ("reopen", check_reopen),
         ("reask", check_reask),
+        ("generic", check_generic),
     ):
         print(f"{name}:")
         check(expect)

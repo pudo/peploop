@@ -782,6 +782,7 @@ def position_signals(country: str) -> None:
     positions.fill_local_holders(qid, only_missing=True, log=click.echo)
     positions.fill_scope_qualifiers(log=click.echo)
     positions.fill_diplomatic(log=click.echo)
+    positions.mark_generic(log=click.echo)
 
 
 # --- report ------------------------------------------------------------------

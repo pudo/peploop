@@ -200,6 +200,9 @@ def check_rules(expect: Any) -> None:
            and mint.scoped_duplicate([replace(council, is_body=False)], bodies={"Q972"}) is None
            and mint.scoped_duplicate([council, scoped]) == "Q971",
            "a body found by its own name is never taken as the office it seats")
+    generic = offices.Found("Q48352", label_match=True, country_match=True)
+    expect(mint.scoped_duplicate([generic]) is None and mint.scoped_duplicate([generic, scoped]) == "Q971",
+           "a listed generic class (head of state) is never taken as found, even scoped")
 
 
 def check_exists_problem(expect: Any) -> None:
@@ -213,6 +216,10 @@ def check_exists_problem(expect: Any) -> None:
     expect(c.exists_problem(SIB_PARENT) == f"exists-class/{SIB_PARENT}",
            "a kind the state's own offices subclass is a class")
     expect(c.exists_problem("Q294414") == "exists-class/Q294414", "a metaclass is a class")
+    expect(c.exists_problem("Q14212") == "exists-generic/Q14212",
+           "a listed generic class (prime minister) is never found")
+    expect(c.exists_problem("Q30185") == "exists-class/Q30185",
+           "a listed archetype parent still reads as the class it is")
 
 
 def check_offices_fixes(expect: Any) -> None:

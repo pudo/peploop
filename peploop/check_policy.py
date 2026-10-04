@@ -297,6 +297,24 @@ def main() -> int:
                              qualifiers={"P580": time("2018"), "P642": {"id": "Q1"},
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),
           policy.PENDING, "unverified")
+    mayor = {"entity-type": "item", "id": "Q30185"}
+    check("a P39 onto a listed generic class is skipped as one",
+          policy.decide(case(value=mayor, position=office(qid="Q30185", country_qid=None,
+                                                          jurisdiction_qid=None))),
+          policy.SKIPPED, "office/generic")
+    check("before the tags, which call the same class abstract",
+          policy.decide(case(value=mayor, position=office(qid="Q30185", instance_count=12))),
+          policy.SKIPPED, "office/generic")
+    check("and before generic_needs_scope: no qualifier makes it one office",
+          policy.decide(case(value=mayor, position=office(qid="Q30185", scope_qualifier="P642"),
+                             qualifiers={"P580": time("2018"), "P642": {"id": "Q1"},
+                                         "_sources": [{"lang": "aa", "quote": "q"}]})),
+          policy.SKIPPED, "office/generic")
+    order = [rule.__name__ for rule in policy.RULES]
+    before = order.index("generic_office") < order.index("generic_needs_scope")
+    check("the generic rule precedes generic_needs_scope in the table",
+          policy.Disposition(policy.SKIPPED, "before" if before else "after"),
+          policy.SKIPPED, "before")
     check("a term qualifier is not a scoping one",
           policy.decide(case(position=office(scope_qualifier="P2937"))),
           policy.PENDING, "unverified")

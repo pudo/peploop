@@ -756,6 +756,19 @@ def office_tags(case: Case) -> list[str]:
     )
 
 
+def generic_office(case: Case) -> Disposition | None:
+    """The item is a class of office no `P39` should name: mayor, minister, bishop.
+
+    Read off `positions.GENERIC`, the reviewed list, and not off the ranking's
+    tags, which call the same item `abstract` in one state and a local
+    convention in the next. No qualifier repairs such a placement, which is
+    what separates it from `generic_needs_scope`.
+    """
+    if case.property == "P39" and (case.value or {}).get("id") in positions.GENERIC:
+        return _skip("office/generic")
+    return None
+
+
 def office_rejected(case: Case) -> Disposition | None:
     """What the ranking already knew about the item rules the placement out.
 
@@ -1025,6 +1038,12 @@ RULES: tuple[Rule, ...] = (
     tenure_ended,
     undated_tenure,
     start_precision,
+    # Before the tags and before `generic_needs_scope`: a listed class is
+    # skipped as the class it is, not as `abstract` in one state, and not as a
+    # placement waiting for a scoping qualifier that would never make it one
+    # office. `generic_needs_scope` stays for the items a single state's
+    # community uses with a qualifier, which this list leaves out.
+    generic_office,
     office_rejected,
     recorded_elsewhere,
     generic_needs_scope,

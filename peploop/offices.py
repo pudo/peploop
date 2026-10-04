@@ -435,6 +435,10 @@ def duplicate_of(found: Iterable[Found], state_names: Iterable[str] = ()) -> str
             continue
         if hit.types == {LIST_ARTICLE}:
             continue
+        # A listed generic class ("mayor") is never the office a state's seat
+        # duplicates, nor one to send holders to; as a `P279` parent it is fine.
+        if hit.qid in positions.GENERIC:
+            continue
         if hit.country_match:
             return hit.qid
         # A stateless hit is this office with its state left out, unless

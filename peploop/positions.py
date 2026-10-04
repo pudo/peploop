@@ -12,12 +12,14 @@ for a tenure that ended in 1960, and an item typed as an occupation is worth
 offering *labelled* as one so the pick can be refused for the right reason.
 """
 
+import csv
 import math
 import re
 import time
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 from normality import ascii_text
@@ -286,6 +288,23 @@ NOT_AN_OFFICE = {
     "Q486983",  # academic rank
     "Q4121104",  # sports title
 }
+
+GENERIC_PATH = Path(__file__).resolve().parent / "generic_positions.csv"
+
+
+def _generic() -> frozenset[str]:
+    with GENERIC_PATH.open(newline="") as handle:
+        return frozenset(row["qid"] for row in csv.DictReader(handle))
+
+
+#: Classes of office that name no jurisdiction and are held across many states:
+#: mayor, minister, bishop, head of state. A `P39` onto one says nothing about
+#: where the office was held, so none is ever a `P39` value, a shortlist row, a
+#: mint duplicate or a "found" office. Never read against a `P279` parent: most
+#: of `offices.ARCHETYPES`' parents are on this list, and a minted mayoralty
+#: subclassing `Q30185` is exactly right. The file is a copy of peptree's
+#: reviewed list; `design.md` says how to refresh it.
+GENERIC = _generic()
 
 #: Both properties at every level, matching the crawler that reads these
 #: items downstream. Reading only `P31` misses the chain a position hangs off
@@ -572,6 +591,7 @@ def upsert_position(row: dict[str, Any], names: Sequence[tuple[str, str, bool]])
         "jurisdiction_text", "body_qid", "kinds", "sources", "not_office",
         "inception", "abolished", "replaces", "replaced_by", "redirected_from",
         "search_text", "kind_qids", "diplomatic", "sender_qid", "title_en",
+        "generic",
     ]
     # `sources` is a union, never an overwrite: a run of one discovery query,
     # or a minted item fed back in, says how *this* run found the item, and
@@ -801,6 +821,7 @@ def load_items(
                 # office of the receiving state.
                 "diplomatic": diplomatic,
                 "sender_qid": sender_of(entity, senders) if diplomatic else None,
+                "generic": actual in GENERIC,
                 "_kind_qids": kind_qids,
                 "_refs": refs,
             },
@@ -1401,6 +1422,22 @@ def fill_diplomatic(qids: Sequence[str] | None = None,
     return count
 
 
+def mark_generic(log: Any = lambda _m: None) -> int:
+    """Bring `position.generic` in line with `GENERIC`, returning how many rows changed.
+
+    A load sets the flag on what it writes; this is for the rows written
+    before the column existed and after `generic_positions.csv` is refreshed.
+    A row already right is not touched, so a second call changes nothing.
+    """
+    changed = db.conn().execute(
+        "UPDATE position SET generic = (qid = ANY(%(g)s))"
+        " WHERE generic IS DISTINCT FROM (qid = ANY(%(g)s))",
+        {"g": sorted(GENERIC)},
+    ).rowcount
+    log(f"generic: {changed} rows changed, {len(GENERIC)} items listed")
+    return changed
+
+
 # --- Re-ranking ------------------------------------------------------------
 #
 # The candidate set is whatever the text index returned; re-ranking only
@@ -1779,6 +1816,10 @@ def search(
     taken in SQL is a cut taken alphabetically on `qid`, and anything it
     drops no re-ranking can recover. Retrieve deep, order in Python, cut
     last.
+
+    The one exclusion is `GENERIC`, via `position.generic`: an item that is
+    never a `P39` value is never worth a shortlist row, unlike the `abstract`
+    tag's classes, which some state's community does use on purpose.
     """
     bag = [t for t in token_bag([title, jurisdiction or ""]) if LEXEME.fullmatch(t)]
     if not bag:
@@ -1787,6 +1828,7 @@ def search(
     rows = db.conn().execute(
         f"SELECT qid, ts_rank(tsv, to_tsquery('simple', %(q)s), 0) AS score, {columns}"
         " FROM position WHERE tsv @@ to_tsquery('simple', %(q)s)"
+        " AND NOT coalesce(generic, false)"
         " ORDER BY score DESC, qid LIMIT %(k)s",
         {"q": " | ".join(bag), "k": max(pool, limit)},
     ).fetchall()

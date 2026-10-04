@@ -261,6 +261,20 @@ proposed; birthplace is not started. `positions.md` is the design and
   string through the identical transformation, OR-ed into one `to_tsquery`
   and ordered by `ts_rank(tsv, q, 0)`, which over a bag counts how much of
   the query the item accounts for. `country_qid` is not a filter.
+- **Generic classes are never a target.** `generic_positions.csv` lists 232
+  classes of office that name no jurisdiction and are held across many states:
+  mayor, minister, bishop, prime minister, head of state. A `P39` onto one says
+  nothing about where the office was held. The list is a copy of
+  `peptree/generic_positions.csv` (the evidence is
+  `research/generic_positions.md`), cut to `qid,label,reason`, because peploop
+  imports nothing from outside itself. To refresh it, re-copy those three
+  columns and run `position-signals` once, which syncs `position.generic`
+  (`positions.mark_generic`). It blocks four uses and nothing else:
+  the search leaves flagged rows out of every shortlist, the policy skips a `P39`
+  onto one as `office/generic`, and mint never takes one as a duplicate or a
+  found office. It is never read against a `P279` parent. Fourteen of
+  `offices.ARCHETYPES`' parents are on the list, and a minted mayoralty's
+  `P279 = Q30185` is exactly right.
 - Retrieval returns a deep pool and Python re-ranks it to fifteen on signals
   — how many of the asking state's citizens hold the office, whether it is
   class-like, whether its dates can span the tenure — each shown to the model
@@ -606,7 +620,7 @@ position     qid, label, description, country_qid, jurisdiction_qid,
              jurisdiction_text, body_qid, kinds[], sources[], not_office,
              inception, abolished, replaces[], replaced_by[], holders,
              first_held_year, polity_inception_year (each with an _at stamp),
-             search_text, tsv (generated from search_text), loaded_at
+             search_text, tsv (generated from search_text), generic, loaded_at
 position_name qid, lang, text, alias                 (unique on qid+lang+text)
 type_edge    qid, targets[], fetched_at              (the P31/P279 ancestry cache)
 verification proposal_key, proposal_id, person_qid, property, prompt_hash,
