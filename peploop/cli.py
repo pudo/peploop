@@ -17,7 +17,7 @@ from typing import Any
 import click
 
 from peploop import apply as applying
-from peploop import db, policy, positions, scope, verify as verifying, wikidata, wikipedia
+from peploop import db, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
 from peploop import propose as proposals
@@ -772,6 +772,34 @@ def reconcile(limit: int, threads: int, country: str | None) -> None:
     click.echo(
         f"{len(work)} mentions: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items()))
     )
+
+
+@cli.command("titles")
+@click.option("--country", required=True, help="ISO code of the run whose titles to translate.")
+@click.option("--dry-run", is_flag=True, help="Count what would be asked; ask nothing.")
+def titles_(country: str, dry_run: bool) -> None:
+    """Cache an English office name for every extracted title, and for unlabelled offices.
+
+    The second search channel `reconcile` reads. Resumable from the table: a
+    title cached under the current prompt and model is never asked again, so
+    a re-run pays only for new titles. Offices with no `en`/`mul` label get the
+    same pass's name as a local search aid, never written to Wikidata.
+    """
+    state_qid = positions.country_qid(country)
+    since = db.conn().execute("SELECT now()").fetchone()[0]
+    mentions = titles.mention_titles(state_qid, country)
+    click.echo(f"mentions: {len(mentions)}")
+    stats = titles.translate(mentions, dry_run=dry_run, log=click.echo)
+    click.echo("mentions: " + ", ".join(f"{k}={v}" for k, v in stats.items()))
+    items = titles.item_titles(state_qid=state_qid)
+    stats = titles.refresh_items(items, dry_run=dry_run, log=click.echo)
+    click.echo("offices: " + ", ".join(f"{k}={v}" for k, v in stats.items()))
+    if not dry_run:
+        spent = titles.cost(since=since)
+        click.echo(
+            f"spent: {spent['requests']} requests, {spent['titles']} titles,"
+            f" {spent['input_tokens']} input + {spent['output_tokens']} output tokens"
+        )
 
 
 @cli.command("load-positions")

@@ -443,3 +443,45 @@ CREATE TABLE IF NOT EXISTS office_unassigned (
     PRIMARY KEY (country, group_key)
 );
 -- END mint
+
+-- BEGIN title_en
+-- The English office name a small model writes for a title, as a second search
+-- channel beside the lexical one. Cached because the model is not
+-- deterministic (two runs agreed exactly on two thirds of titles), so a
+-- shortlist built from it is reproducible only if the answer is asked once and
+-- read back: `reconcile.shortlist_hits` reads this table and never calls the
+-- model. Keyed by what was sent -- the state the request names, the article
+-- language, the folded title and jurisdiction -- plus the prompt hash and the
+-- model, so a prompt edit re-asks everything and nothing else does.
+CREATE TABLE IF NOT EXISTS title_en_call (
+    id          BIGSERIAL PRIMARY KEY,
+    prompt_hash TEXT NOT NULL,
+    model       TEXT NOT NULL,
+    titles      INTEGER NOT NULL,      -- how many were sent
+    answered    INTEGER NOT NULL,      -- how many came back usable
+    usage_json  JSONB,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS title_en (
+    state_qid        TEXT NOT NULL,    -- '' when no state was given
+    lang             TEXT NOT NULL,    -- '' when unknown
+    title_key        TEXT NOT NULL,    -- titles.fold_key(title)
+    jurisdiction_key TEXT NOT NULL,    -- titles.fold_key(jurisdiction), '' for none
+    prompt_hash      TEXT NOT NULL,
+    model            TEXT NOT NULL,
+    title            TEXT NOT NULL,    -- as first sent
+    jurisdiction     TEXT,
+    english          TEXT NOT NULL,
+    call_id          BIGINT REFERENCES title_en_call (id) ON DELETE SET NULL,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (state_qid, lang, title_key, jurisdiction_key, prompt_hash, model)
+);
+
+-- The same pass's English name for a position with no `en` or `mul` label,
+-- folded into `search_text` so an English title can reach it. A local search
+-- aid only: it is not a `position_name` row, so it is never shown to the
+-- reconcile model as a name the item carries, and nothing that writes to
+-- Wikidata reads it.
+ALTER TABLE position ADD COLUMN IF NOT EXISTS title_en TEXT;
+-- END title_en
