@@ -27,6 +27,7 @@ from peploop import review as reviewing
 ITEM_MAX_AGE = "7 days"
 ARTICLE_MAX_AGE = "30 days"
 SEED_DIR = Path(__file__).resolve().parent / "seeds"
+MINT_REPORT_DIR = Path(__file__).resolve().parent.parent / "data" / "mint"
 # How many requests each stage keeps in flight: what every country run has
 # passed, now fixed. Each one stage's own, because what bounds it differs --
 # Wikimedia's rate limiter for a fetch, the model's latency for the rest.
@@ -287,19 +288,22 @@ def propose(qid: Sequence[str], country: str | None) -> None:
         return
     for person_qid in qids:
         click.echo(_propose_one(person_qid)[1])
-    _echo_property_counts(country)
+    if country:
+        _echo_property_counts(country)
 
 
-def _echo_property_counts(country: str | None = None) -> None:
-    """Print how many proposals of each property carry each status."""
+def _echo_property_counts(country: str) -> None:
+    """Print how many proposals of each property carry each status, terms folded."""
     click.echo("proposals by property and status:")
+    counts: Counter[tuple[str, str]] = Counter()
     for prop, status, count in db.conn().execute(
         "SELECT p.property, p.status, count(*) FROM proposal p"
-        " JOIN person pe ON pe.qid = p.person_qid"
-        " WHERE (%s::text IS NULL OR pe.country = %s)"
-        " GROUP BY p.property, p.status ORDER BY p.property, p.status",
-        (country, country),
+        " JOIN person pe ON pe.qid = p.person_qid WHERE pe.country = %s"
+        " GROUP BY p.property, p.status",
+        (country,),
     ):
+        counts[(policy.property_group(prop), status)] += count
+    for (prop, status), count in sorted(counts.items()):
         click.echo(f"  {prop:12s} {status:11s} {count}")
 
 
@@ -459,27 +463,31 @@ def prompt_(stage: str, qid: Sequence[str], country: str | None) -> None:
         mint.verify(country, dry_run=True, log=click.echo)
 
 
+def _funnel(people: Sequence[str], write: bool) -> list[str]:
+    """Run the policy over these people and return its funnel as report lines."""
+    if not people:
+        return ["nobody proposed"]
+    funnel = policy.run(people, write=write)
+    labels = policy.office_labels(list(funnel.offices))
+    verb = "decided" if write else "as the rules would decide them now"
+    return policy.report_lines(funnel, labels) + [f"{len(people)} people, {verb}"]
+
+
 @cli.command("policy")
 @click.option("--qid", multiple=True, help="Decide these people instead of a run's.")
-@click.option("--dry-run", is_flag=True, help="Report what the rules would decide; write nothing.")
 @country_option
-def policy_(qid: Sequence[str], dry_run: bool, country: str | None) -> None:
+def policy_(qid: Sequence[str], country: str | None) -> None:
     """Decide every proposal by rule: accepted, skipped, or pending the verifier.
 
     Reads each person's `new` and `refine` rows -- and whatever the policy
     itself decided last time, so a rule change is one re-run -- and never a
     row a human ruled on or `apply` has written. The report is the funnel:
     per property, how many rows entered and which rule took each of them.
+    Writing is the only mode, because the decisions are local and re-derived
+    on every run; `report --country <cc> funnel` shows them without writing.
     """
-    people = _select(qid, ("proposed",), country)
-    if not people:
-        click.echo("nobody proposed")
-        return
-    funnel = policy.run(people, write=not dry_run)
-    labels = policy.office_labels(list(funnel.offices))
-    for line in policy.report_lines(funnel, labels):
+    for line in _funnel(_select(qid, ("proposed",), country), write=True):
         click.echo(line)
-    click.echo(f"{len(people)} people, {'reported' if dry_run else 'decided'}")
 
 
 def _pending_people(qid: Sequence[str], country: str | None) -> list[str]:
@@ -500,18 +508,27 @@ def _pending_people(qid: Sequence[str], country: str | None) -> list[str]:
 @click.option("--qid", multiple=True, help="Verify these people instead of the whole run.")
 @country_option
 def verify_(qid: Sequence[str], country: str | None) -> None:
-    """Ask a second model about every proposal the policy holds as `pending`.
+    """Ask a second model about every proposal the policy holds as `pending`, then decide.
 
     One request per proposal against the frozen `prompts/verify.md`, shown the
     edit as it would land beside the article and the item's own claims. A
     verdict is stored by the content it was about, so a re-run asks only what
     is new; once a person's rows are answered the policy is run over them
-    again, and each row leaves as `accepted` or `skipped`.
+    again, and each row leaves as `accepted` or `skipped`. It ends with the
+    policy over the whole run and its funnel, which is what a second `policy`
+    after it used to print.
     """
     people = _pending_people(qid, country)
-    if not people:
+    if people:
+        _verify_people(people)
+    else:
         click.echo("nothing pending")
-        return
+    for line in _funnel(_select(qid, ("proposed",), country), write=True):
+        click.echo(line)
+
+
+def _verify_people(people: Sequence[str]) -> None:
+    """Verify every pending row of these people, re-deciding each person after."""
 
     def one(person_qid: str) -> tuple[list[str], Counter[str]]:
         """Verify one person's pending rows, then re-decide them.
@@ -596,9 +613,12 @@ def reconcile(country: str) -> None:
     reachable and is tagged as one.
 
     A mention already answered under this prompt and rendering is skipped
-    without a request, so a re-run costs only what is new.
+    without a request, so a re-run costs only what is new. First every
+    mention's title gets its cached English name, the second search channel
+    the shortlist reads; a title already cached is never asked again.
     """
     state_qid = positions.country_qid(country)
+    _translate_titles(state_qid, country)
     work = _mentions_for(country)
     if not work:
         click.echo("nothing to reconcile")
@@ -647,32 +667,23 @@ def reconcile(country: str) -> None:
     )
 
 
-@cli.command("titles")
-@click.option("--country", required=True, help="ISO code of the run whose titles to translate.")
-@click.option("--dry-run", is_flag=True, help="Count what would be asked; ask nothing.")
-def titles_(country: str, dry_run: bool) -> None:
-    """Cache an English office name for every extracted title, and for unlabelled offices.
+def _translate_titles(state_qid: str, country: str) -> None:
+    """Cache an English name for every mention title of the run, before it is searched.
 
-    The second search channel `reconcile` reads. Resumable from the table: a
-    title cached under the current prompt and model is never asked again, so
-    a re-run pays only for new titles. Offices with no `en`/`mul` label get the
-    same pass's name as a local search aid, never written to Wikidata.
+    A search aid, so a failed pass is a line of output and the run goes on:
+    an uncached title is searched by its own words, as before the channel.
     """
-    state_qid = positions.country_qid(country)
     since = db.conn().execute("SELECT now()").fetchone()[0]
-    mentions = titles.mention_titles(state_qid, country)
-    click.echo(f"mentions: {len(mentions)}")
-    stats = titles.translate(mentions, dry_run=dry_run, log=click.echo)
-    click.echo("mentions: " + ", ".join(f"{k}={v}" for k, v in stats.items()))
-    items = titles.item_titles(state_qid=state_qid)
-    stats = titles.refresh_items(items, dry_run=dry_run, log=click.echo)
-    click.echo("offices: " + ", ".join(f"{k}={v}" for k, v in stats.items()))
-    if not dry_run:
+    try:
+        stats = titles.translate(titles.mention_titles(state_qid, country), log=click.echo)
+    except Exception as exc:  # noqa: BLE001 — see above
+        click.echo(f"english titles skipped: {type(exc).__name__}: {str(exc)[:120]}")
+        return
+    if stats["todo"]:
         spent = titles.cost(since=since)
-        click.echo(
-            f"spent: {spent['requests']} requests, {spent['titles']} titles,"
-            f" {spent['input_tokens']} input + {spent['output_tokens']} output tokens"
-        )
+        click.echo(f"english titles: {stats['answered']} of {stats['todo']} answered in"
+                   f" {spent['requests']} requests, {spent['input_tokens']} input +"
+                   f" {spent['output_tokens']} output tokens")
 
 
 @cli.command("load-positions")
@@ -713,104 +724,84 @@ def position_signals(country: str) -> None:
     positions.fill_diplomatic(log=click.echo)
 
 
-@cli.command("position-stats")
-@click.option("--country", help="Report on one country instead of the whole table.")
-def position_stats(country: str | None) -> None:
-    """Report what the position table holds, per discovery source."""
-    where, params = "", []
-    if country:
-        where = " WHERE country_qid = %s"
-        params = [positions.country_qid(country)]
-    total = db.conn().execute(
-        f"SELECT count(*) FROM position{where}", params
-    ).fetchone()[0]
-    click.echo(f"positions:        {total}")
-    click.echo(
-        "names:            "
-        + str(db.conn().execute("SELECT count(*) FROM position_name").fetchone()[0])
-    )
-    click.echo(
-        "type edges cached: "
-        + str(db.conn().execute("SELECT count(*) FROM type_edge").fetchone()[0])
-    )
-    click.echo("\nby source set:")
-    rows = db.conn().execute(
-        f"SELECT array_to_string(sources, '+'), count(*) FROM position{where}"
-        " GROUP BY 1 ORDER BY 2 DESC",
-        params,
-    )
-    for label, count in rows:
-        click.echo(f"  {label or '(none)':<24} {count}")
-    click.echo("\nflags:")
-    rows = db.conn().execute(
-        f"SELECT count(*) FILTER (WHERE not_office),"
-        f" count(*) FILTER (WHERE abolished IS NOT NULL),"
-        f" count(*) FILTER (WHERE jurisdiction_qid IS NOT NULL),"
-        f" count(*) FILTER (WHERE holders IS NOT NULL) FROM position{where}",
-        params,
-    ).fetchone()
-    for name, count in zip(
-        ("not_office", "abolished", "has jurisdiction", "holders counted"), rows
-    ):
-        click.echo(f"  {name:<24} {count}")
+# --- report ------------------------------------------------------------------
+#
+# Every checkpoint's numbers, one section each, all scoped to one run. Reading
+# only: `funnel` runs the policy without writing, which still reads offices'
+# holders live, the way the policy's own run does.
 
 
-@cli.command()
-@country_option
-def stats(country: str | None) -> None:
-    """Print row counts per person status, per article language and per table.
-
-    With `--country` every count that hangs off a person is scoped to that
-    run; `http_cache` is not, because a cache entry belongs to no one.
-    """
+def _report_people(country: str) -> None:
+    """People per status, the seed categories, articles and the extraction's tokens."""
     conn = db.conn()
-    # One predicate, spliced into each person-shaped query. The table alias in
-    # front of `qid` differs per query, so the caller supplies it.
-    scope = " AND (%s::text IS NULL OR {alias}qid IN (SELECT qid FROM person WHERE country = %s))"
-    args = (country, country)
+    scope = " WHERE qid IN (SELECT qid FROM person WHERE country = %s)"
     click.echo("person by status:")
     for status, count in conn.execute(
-        "SELECT status, count(*) FROM person WHERE (%s::text IS NULL OR country = %s)"
+        "SELECT status, count(*) FROM person WHERE country = %s"
         " GROUP BY status ORDER BY count(*) DESC",
-        args,
+        (country,),
     ):
         click.echo(f"  {status:12s} {count}")
     for table in ("membership", "item", "article"):
-        count = conn.execute(
-            f"SELECT count(*) FROM {table} WHERE true" + scope.format(alias=""), args
-        ).fetchone()[0]
+        count = conn.execute(f"SELECT count(*) FROM {table}" + scope, (country,)).fetchone()[0]
         click.echo(f"{table:12s} {count}")
-    count = conn.execute("SELECT count(*) FROM http_cache").fetchone()[0]
-    click.echo(f"{'http_cache':12s} {count}")
     click.echo("seed categories by members (top 10):")
     for lang, category, count in conn.execute(
-        "SELECT lang, category, count(*) FROM membership WHERE true"
-        + scope.format(alias="")
+        "SELECT lang, category, count(*) FROM membership" + scope
         + " GROUP BY lang, category ORDER BY count(*) DESC LIMIT 10",
-        args,
+        (country,),
     ):
         click.echo(f"  {count:6d}  {lang}:{category}")
     extracted, tokens = conn.execute(
         "SELECT count(DISTINCT qid), coalesce(sum((usage_json->>'input_tokens')::bigint"
         " + (usage_json->>'cache_creation_input_tokens')::bigint"
         " + (usage_json->>'cache_read_input_tokens')::bigint"
-        " + (usage_json->>'output_tokens')::bigint), 0) FROM extraction WHERE true"
-        + scope.format(alias=""),
-        args,
+        " + (usage_json->>'output_tokens')::bigint), 0) FROM extraction" + scope,
+        (country,),
     ).fetchone()
     click.echo(f"extracted    {extracted} people, {tokens} tokens")
     click.echo("articles by language (top 15):")
     for lang, count in conn.execute(
-        "SELECT lang, count(*) FROM article WHERE true"
-        + scope.format(alias="")
+        "SELECT lang, count(*) FROM article" + scope
         + " GROUP BY lang ORDER BY count(*) DESC LIMIT 15",
-        args,
+        (country,),
     ):
         click.echo(f"  {lang:8s} {count}")
+
+
+def _report_positions(country: str) -> None:
+    """What the position table holds for the state, per discovery source."""
+    where, params = " WHERE country_qid = %s", [positions.country_qid(country)]
+    total = db.conn().execute(f"SELECT count(*) FROM position{where}", params).fetchone()[0]
+    click.echo(f"positions:        {total}")
+    click.echo("by source set:")
+    for label, count in db.conn().execute(
+        f"SELECT array_to_string(sources, '+'), count(*) FROM position{where}"
+        " GROUP BY 1 ORDER BY 2 DESC",
+        params,
+    ):
+        click.echo(f"  {label or '(none)':<24} {count}")
+    click.echo("flags:")
+    rows = db.conn().execute(
+        f"SELECT count(*) FILTER (WHERE not_office),"
+        f" count(*) FILTER (WHERE abolished IS NOT NULL),"
+        f" count(*) FILTER (WHERE jurisdiction_qid IS NOT NULL),"
+        f" count(*) FILTER (WHERE holders_at IS NOT NULL),"
+        f" count(*) FILTER (WHERE title_en IS NOT NULL) FROM position{where}",
+        params,
+    ).fetchone()
+    names = ("not_office", "abolished", "has jurisdiction", "holders counted", "english name")
+    for name, count in zip(names, rows):
+        click.echo(f"  {name:<24} {count}")
+
+
+def _report_proposals(country: str) -> None:
+    """Proposals per property and status, the sampler's verdicts, mint candidates."""
+    conn = db.conn()
     proposed, rows = conn.execute(
-        "SELECT count(DISTINCT person_qid), count(*) FROM proposal WHERE true"
-        + scope.format(alias="person_"),
-        args,
+        "SELECT count(DISTINCT person_qid), count(*) FROM proposal"
+        " WHERE person_qid IN (SELECT qid FROM person WHERE country = %s)",
+        (country,),
     ).fetchone()
     click.echo(f"proposal     {rows} rows for {proposed} people")
     _echo_property_counts(country)
@@ -818,11 +809,47 @@ def stats(country: str | None) -> None:
         click.echo(line)
     click.echo("mint candidates by status:")
     for status, count in conn.execute(
-        "SELECT status, count(*) FROM office_candidate WHERE (%s::text IS NULL OR country = %s)"
+        "SELECT status, count(*) FROM office_candidate WHERE country = %s"
         " GROUP BY status ORDER BY count(*) DESC, status",
-        args,
+        (country,),
     ):
         click.echo(f"  {status:12s} {count}")
+
+
+def _report_funnel(country: str) -> None:
+    """What the rules would decide now, per property and rule, writing nothing."""
+    for line in _funnel(_select((), ("proposed",), country), write=False):
+        click.echo(line)
+
+
+def _report_mint(country: str) -> None:
+    """The mint funnel by rule, what was created and found, the skips, and the cost."""
+    click.echo(minting.report(country), nl=False)
+
+
+REPORT_SECTIONS = {
+    "people": _report_people,
+    "positions": _report_positions,
+    "proposals": _report_proposals,
+    "funnel": _report_funnel,
+    "mint": _report_mint,
+}
+
+
+@cli.command("report")
+@click.argument("sections", nargs=-1, type=click.Choice(list(REPORT_SECTIONS)))
+@click.option("--country", required=True, help="The run to report on.")
+def report(sections: Sequence[str], country: str) -> None:
+    """Print a run's numbers, every section or the named ones; writes nothing.
+
+    One command for every checkpoint of the runbook: people and tokens after
+    extract, positions after the load, proposals and the policy's funnel
+    before verify spends, the mint funnel after its verify.
+    """
+    for name in sections or REPORT_SECTIONS:
+        click.echo(f"## {name}")
+        REPORT_SECTIONS[name](country)
+        click.echo("")
 
 
 # --- mint --------------------------------------------------------------------
@@ -844,12 +871,21 @@ def mint_categorize(country: str) -> None:
 @cli.command("mint-verify")
 @click.option("--country", required=True, help="ISO code of the country to verify.")
 def mint_verify(country: str) -> None:
-    """Ask the second model about each categorized office, and decide each by rule."""
+    """Ask the second model about each categorized office, and decide each by rule.
+
+    Ends by writing the mint report to `data/mint/<cc>.md`, the checkpoint
+    every run read next: the funnel by rule, every guarded row with its
+    payload's labels, every found row, the skips and the cost.
+    """
     stats = mint.verify(country, threads=VERIFY_THREADS, log=click.echo)
     for (status, rule), n in sorted((stats.get("funnel") or {}).items(), key=lambda kv: -kv[1]):
         click.echo(f"{n:5d}  {status:10s} {rule}")
     click.echo(json.dumps({k: v for k, v in stats.items() if k not in ("funnel", "decided") and _jsonable(v)},
                           sort_keys=True, default=str))
+    out = MINT_REPORT_DIR / f"{country}.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(minting.report(country))
+    click.echo(f"{out} written")
 
 
 def _jsonable(value: Any) -> bool:
@@ -912,21 +948,6 @@ def mint_(country: str, limit: int | None, write: bool) -> None:
 def mint_feed(country: str) -> None:
     """Load every created or found item and re-ask the mentions it was attested by."""
     click.echo(minting.feed(country, log=click.echo).line())
-
-
-@cli.command("mint-report")
-@click.option("--country", required=True, help="ISO code of the country to report on.")
-@click.option("--out", "out", default=None, type=click.Path(dir_okay=False, path_type=Path),
-              help="Write the markdown here instead of printing it.")
-def mint_report(country: str, out: Path | None) -> None:
-    """Report the funnel by rule, what was created and found, the skips, and the cost."""
-    text = minting.report(country)
-    if out is None:
-        click.echo(text, nl=False)
-        return
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(text)
-    click.echo(f"{out} written")
 
 
 def _read_ids(handle: Any) -> list[int]:

@@ -682,7 +682,7 @@ def _english_names(
 
     Asks the model only for names not cached yet. A failed pass is logged and
     loads the items without English names rather than failing the load: the
-    next load, or `cli titles`, fills them.
+    next load fills them.
     """
     from peploop import titles
 
