@@ -7,9 +7,8 @@ is recomputed against the live item, because a status was decided against
 `item_rev` and the item — including by our own earlier writes — may have moved
 since.
 
-QuickStatements is the other write path (`render.py`), and the two agree on the
-reference shape: `P143` the wiki it was imported from, `P4656` the permanent
-URL of the revision read, `P813` today.
+The reference shape is `P143` the wiki it was imported from, `P4656` the
+permanent URL of the revision read, `P813` today.
 """
 
 import datetime
@@ -49,7 +48,6 @@ FOLLOW_IDLE = 60.0
 # A reference built only from these says "imported from a Wikipedia article",
 # which is the one provenance a refinement may overwrite in place.
 IMPORT_PROPS = wikidata.IMPORT_PROPS
-TERM_PREFIXES = (propose.LABEL_PREFIX, propose.ALIAS_PREFIX)
 
 
 class ApiError(RuntimeError):
@@ -73,14 +71,13 @@ class Plan:
     # are here because the value alone stopped identifying a statement the day
     # two spells of one office became two statements rather than one.
     claims: list[tuple[int, str, dict[str, Any], dict[str, Any]]] = field(default_factory=list)
-    terms: list[int] = field(default_factory=list)
     skipped: list[tuple[int, str]] = field(default_factory=list)
     routes: Counter[str] = field(default_factory=Counter)
 
     @property
     def covered(self) -> int:
         """Count the proposals this edit would move to `applied`."""
-        return len(self.claims) + len(self.terms)
+        return len(self.claims)
 
 
 def credentials() -> tuple[str, str]:
@@ -463,30 +460,11 @@ def plan_tenure(
     return "new", _statement(prop, value, qualifiers, order, refs)
 
 
-def plan_term(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, str, str] | None:
-    """Decide what one label or alias proposal does, or nothing if it is there.
-
-    A label is only ever filled in, never replaced: the item having any label
-    in that language is the end of it.
-    """
-    prop, text = row["property"], row["value"]["text"]
-    lang = prop.split(":", 1)[1]
-    labels = {code: term["value"] for code, term in entity.get("labels", {}).items()}
-    if prop.startswith(propose.LABEL_PREFIX):
-        return None if lang in labels else ("labels", lang, text)
-    aliases = {term["value"] for term in entity.get("aliases", {}).get(lang, [])}
-    if text in aliases or text == labels.get(lang):
-        return None
-    return ("aliases", lang, text)
-
-
-def _summary(rows: list[dict[str, Any]], claims: int, terms: Counter[str]) -> str:
+def _summary(rows: list[dict[str, Any]], claims: int) -> str:
     """Name what the edit changes and which article revisions say so."""
     parts = []
-    for prop in dict.fromkeys(row["property"] for row in rows if row["property"][0] == "P"):
+    for prop in dict.fromkeys(row["property"] for row in rows):
         parts.append(PROPERTY_NAMES.get(prop, prop))
-    for kind, count in sorted(terms.items()):
-        parts.append(f"{count} {kind}{'es' if kind == 'alias' and count > 1 else ''}")
     sources = {}
     for row in rows:
         for source in row_sources(row):
@@ -549,29 +527,13 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
     """
     plan = Plan(qid=qid, baserevid=entity.get("lastrevid"))
     statements: dict[str, dict[str, Any]] = {}
-    seen_terms: set[tuple[str, str]] = set()
-    terms: Counter[str] = Counter()
     written: list[dict[str, Any]] = []
     for row in rows:
-        if row["property"].startswith(TERM_PREFIXES):
-            placed = plan_term(entity, row)
-            if placed is None or placed[1:] in seen_terms:
-                plan.skipped.append((row["id"], "term already on the item"))
-                continue
-            slot, lang, text = placed
-            seen_terms.add((lang, text))
-            kind = "label" if slot == "labels" else "alias"
-            entry = {"language": lang, "value": text}
-            if slot == "aliases":
-                plan.data.setdefault("aliases", {}).setdefault(lang, []).append(
-                    {**entry, "add": ""}
-                )
-            else:
-                plan.data.setdefault("labels", {})[lang] = entry
-            terms[kind] += 1
-            plan.routes[kind] += 1
-            plan.terms.append(row["id"])
-            written.append(row)
+        if row["property"].startswith(policy.TERM_PREFIXES):
+            # A label or alias a human accepted before the lane was removed:
+            # closed, never written.
+            plan.routes["lane_removed"] += 1
+            plan.skipped.append((row["id"], "lane_removed"))
             continue
         route, statement = plan_claim(entity, row)
         if statement is None:
@@ -603,7 +565,7 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
         written.append(row)
     if statements:
         plan.data["claims"] = list(statements.values())
-    plan.summary = _summary(written, len(statements), terms)
+    plan.summary = _summary(written, len(statements))
     return plan
 
 
@@ -923,12 +885,6 @@ def record(plan: Plan, body: dict[str, Any]) -> int:
                 " base_rev = %s, applied_batch = %s WHERE id = %s",
                 (rev, guid, plan.baserevid, BATCH_ID, proposal_id),
             )
-        for proposal_id in plan.terms:
-            conn.execute(
-                "UPDATE proposal SET status = 'applied', applied_rev = %s, base_rev = %s,"
-                " applied_batch = %s WHERE id = %s",
-                (rev, plan.baserevid, BATCH_ID, proposal_id),
-            )
     stored = db.conn().execute(
         "SELECT json FROM item WHERE qid = %s", (plan.qid,)
     ).fetchone()
@@ -942,7 +898,7 @@ def record(plan: Plan, body: dict[str, Any]) -> int:
 def retire(plan: Plan) -> int:
     """Close the accepted rows the edit could not carry, naming the route that said so.
 
-    A conflict, a value already there, a term already on the item: none of
+    A conflict, a value already there, a removed lane's row: none of
     these will write on a later pass either, and an accepted row that stays
     accepted is selected again every minute by `--follow`. They become
     `skipped` under `apply:<route>`, which a report counts like any other rule.

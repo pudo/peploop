@@ -239,11 +239,12 @@ def main() -> int:
     expect([reason for _id, reason in plan.skipped], ["conflict"],
            "and the row is closed, so a drainer does not select it forever")
 
-    print("a label the item already has:")
-    live = {"lastrevid": 1, "claims": {}, "labels": {"aa": {"language": "aa", "value": "X"}}}
+    print("a label accepted before the lane was removed:")
+    live = {"lastrevid": 1, "claims": {}, "labels": {}}
     plan = apply.plan_person(PERSON, live, [row("label:aa", {"text": "Y"})])
-    expect([reason for _id, reason in plan.skipped], ["term already on the item"],
-           "is left alone, because a label is filled in and never replaced")
+    expect([reason for _id, reason in plan.skipped], ["lane_removed"],
+           "is closed and never written")
+    expect(plan.data, {}, "and nothing is sent")
 
     print("a wiki Wikidata has no item for:")
     plan = apply.plan_person(PERSON, item(), [office(quals=span("2020-10-15"), source_lang="ac",

@@ -132,9 +132,7 @@ apply --country <cc> --write --limit 3         # on the user's go
 apply --country <cc> --write --follow          # the drain
 ```
 
-Three things the command list does not say. `run` is fetch, extract and
-propose in one pass and nothing else: it yields no `P39` until `reconcile` has
-run, and it never runs the policy. `fetch` and `load-positions` are network
+Two things the command list does not say. `fetch` and `load-positions` are network
 only and run side by side. `--limit` defaults are small on most commands (the
 `propose`, `reconcile` and `verify` defaults are 100, 100 and 50 *people*);
 pass the country's size. `position-signals` without `--local-holders` runs

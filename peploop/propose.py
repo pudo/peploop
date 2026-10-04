@@ -19,7 +19,6 @@ from typing import Any
 
 from psycopg.types.json import Jsonb
 from rigour.territories import get_territory_by_qid, lookup_territory
-from rigour.text.scripts import text_scripts
 
 from peploop import db, scope, wikidata
 
@@ -37,19 +36,13 @@ BAD_QUOTES = "_bad_quotes"
 # addition.
 SINGLE_VALUED = frozenset({"P569", "P570", "P21", "P19"})
 
-LABEL_PREFIX = "label:"
-ALIAS_PREFIX = "alias:"
 # A value a mechanical rule threw out before a human could see it. The rule
 # that did so is in `qualifiers._reason`, so each one's volume is countable.
 FILTERED = "filtered"
 # A tenure the item already records for the same office, dated a few days
-# differently. Inert like `FILTERED` -- in neither `review.REVIEWABLE` nor
-# `render.WRITABLE` -- and the spell it clashed with is in `qualifiers._reason`.
+# differently. Inert like `FILTERED` -- in no status the policy decides -- and
+# the spell it clashed with is in `qualifiers._reason`.
 OVERLAPPING = "overlapping"
-PUNCT_RE = re.compile(r"[^\w\s]", re.UNICODE)
-# How much of an article says which scripts its language is written in. The
-# lead is enough, and a whole article is mostly its own name in any case.
-SCRIPT_SAMPLE = 2000
 # Strongest first, for a value several articles attest on different grounds.
 BASIS_RANK = ("explicit", "demonym")
 
@@ -326,145 +319,6 @@ def _citizenships(entity: dict[str, Any], data: dict[str, Any], bad: set[str]) -
     return [_citizenship(existing, entries, bad) for entries in groups.values()]
 
 
-def normalise(text: str) -> str:
-    """Fold a name to what makes two spellings of it the same form.
-
-    Case, punctuation and runs of whitespace are what a label and an alias of
-    it differ by while naming the same person, so an academic title written
-    with and without its commas compares equal.
-    """
-    return " ".join(PUNCT_RE.sub(" ", text).casefold().split())
-
-
-def item_terms(entity: dict[str, Any]) -> dict[str, list[str]]:
-    """Map each language to the item's label there, then its aliases."""
-    terms: dict[str, list[str]] = {}
-    for lang, term in (entity.get("labels") or {}).items():
-        terms.setdefault(lang, []).append(term["value"])
-    for lang, group in (entity.get("aliases") or {}).items():
-        terms.setdefault(lang, []).extend(term["value"] for term in group)
-    return terms
-
-
-def expected_scripts(lang: str, terms: dict[str, list[str]], articles: dict[str, str]) -> set[str]:
-    """Derive the scripts a language is written in, from what the run holds.
-
-    The item's own terms in that language first, because they are what the
-    community settled on for this person; failing those, the opening of the
-    article in that language. Nothing to read from is no expectation and no
-    check, which is the honest answer for a language we hold nothing in.
-    """
-    for sample in (" ".join(terms.get(lang) or []), (articles.get(lang) or "")[:SCRIPT_SAMPLE]):
-        found = set(text_scripts(sample))
-        if found:
-            return found
-    return set()
-
-
-def wrong_script(text: str, expected: set[str]) -> str | None:
-    """Name the expected scripts when a form is not written in any of them.
-
-    Only the Latin boundary is decided, because that is the one a set derived
-    from a couple of names can carry: a language written in no Latin script
-    does not take a Latin-script name, and one written only in Latin does not
-    take a name in another script.
-    """
-    if not expected:
-        return None
-    found = set(text_scripts(text))
-    detail = "script:" + "+".join(sorted(expected))
-    if "Latin" not in expected and "Latin" in found:
-        return detail
-    if expected == {"Latin"} and found - {"Latin"}:
-        return detail
-    return None
-
-
-def is_fragment(text: str, lang: str, terms: dict[str, list[str]]) -> bool:
-    """Say whether a form is part of the person's label rather than a name for them.
-
-    A surname or a given name on its own, which is what an infobox row or a
-    later mention of the person in the article reads as. The label of the
-    language the form is proposed for answers it, falling back to the ones
-    every language can see. A one-word pen name is not in the label and passes.
-    """
-    for code in (lang, "mul", "en"):
-        label = (terms.get(code) or [""])[0]
-        if label:
-            tokens = set(normalise(text).split())
-            return bool(tokens) and tokens < set(normalise(label).split())
-    return False
-
-
-def name_status(
-    text: str,
-    lang: str,
-    prefix: str,
-    labelled: set[str],
-    terms: dict[str, list[str]],
-    recorded: set[str],
-    expected: set[str],
-) -> tuple[str, str | None]:
-    """Decide what one name form is, and name the rule that decided it.
-
-    In this order: a language already labelled takes no second label, a literal
-    the item carries in *any* language is not another language's to add, an
-    alias that is only part of the label is a fragment, and a form in a script
-    the language is not written in belongs to whichever language it is written
-    in, not to this one.
-    """
-    if lang == "und":
-        return "unresolved", None
-    if prefix == LABEL_PREFIX and lang in labelled:
-        return "exists", None
-    if normalise(text) in recorded:
-        return "exists", None
-    if prefix == ALIAS_PREFIX and is_fragment(text, lang, terms):
-        return FILTERED, "fragment"
-    reason = wrong_script(text, expected)
-    if reason is not None:
-        return FILTERED, reason
-    return "new", None
-
-
-def _names(
-    entity: dict[str, Any], data: dict[str, Any], articles: dict[str, str]
-) -> list[Proposal]:
-    """Propose labels and aliases under the pseudo-properties `label:` and `alias:`.
-
-    Wikidata terms are not statements and have no property of their own, so a
-    language code carries the slot they belong to instead.
-    """
-    terms = item_terms(entity)
-    labelled = set(entity.get("labels") or {})
-    recorded = {normalise(term) for group in terms.values() for term in group}
-    scripts: dict[str, set[str]] = {}
-    out = []
-    for entry in data.get("names") or []:
-        lang = entry.get("lang") or "und"
-        forms = [(LABEL_PREFIX, entry.get("label") or "")]
-        forms.extend((ALIAS_PREFIX, alias) for alias in entry.get("aliases") or [])
-        for prefix, raw in forms:
-            text = raw.strip()
-            if not text:
-                continue
-            if lang not in scripts:
-                scripts[lang] = expected_scripts(lang, terms, articles)
-            status, reason = name_status(
-                text, lang, prefix, labelled, terms, recorded, scripts[lang]
-            )
-            out.append(
-                Proposal(
-                    property=f"{prefix}{lang}",
-                    value={"language": lang, "text": text},
-                    status=status,
-                    qualifiers={"_reason": reason} if reason else None,
-                    lang=lang,
-                )
-            )
-    return out
-
-
 SPAN = (("start", "P580"), ("end", "P582"))
 
 
@@ -695,22 +549,20 @@ def _positions(
 
 
 def build(
-    entity: dict[str, Any], data: dict[str, Any], articles: dict[str, str] | None = None,
+    entity: dict[str, Any], data: dict[str, Any],
     resolved: dict[int, tuple[str, int]] | None = None,
 ) -> list[Proposal]:
     """Turn one extraction's answer into the proposals it implies.
 
-    Name forms carry no quotes and so are never `unquoted`: a label is read off
-    the article's own title and lead, not asserted by a sentence in it. The
-    article texts are what the script gate falls back to for a language the
-    item carries no name in; without them that gate simply does not fire.
+    The extraction still carries the names it read; they are not proposed.
+    Labels and aliases were a lane of their own until the policy threw every
+    row of it away -- 13 of the 19 a human reviewed were titles or fragments.
     """
     bad = set(data.get(BAD_QUOTES) or [])
     proposals = _dates(entity, data, "birth_date", "P569", bad)
     proposals.extend(_dates(entity, data, "death_date", "P570", bad))
     proposals.extend(_gender(entity, data, bad))
     proposals.extend(_citizenships(entity, data, bad))
-    proposals.extend(_names(entity, data, articles or {}))
     proposals.extend(_positions(entity, data, resolved or {}, bad))
     return proposals
 
@@ -719,14 +571,6 @@ def article_urls(qid: str) -> dict[str, tuple[str, int | None]]:
     """Map each language to the URL and revision of the article read in it."""
     rows = db.conn().execute("SELECT lang, url, rev_id FROM article WHERE qid = %s", (qid,))
     return {lang: (url, rev_id) for lang, url, rev_id in rows}
-
-
-def article_texts(qid: str) -> dict[str, str]:
-    """Map each language to as much of its article as the script gate reads."""
-    rows = db.conn().execute(
-        "SELECT lang, left(text, %s) FROM article WHERE qid = %s", (SCRIPT_SAMPLE, qid)
-    )
-    return dict(rows)
 
 
 def value_key(prop: str, value: dict[str, Any]) -> str:
@@ -871,7 +715,7 @@ def propose_person(qid: str) -> ProposeSummary:
     proposals = (
         []
         if summary.person_status == "not_human"
-        else build(entity, data, article_texts(qid), placements(extraction_id))
+        else build(entity, data, placements(extraction_id))
     )
     summary.counts, summary.kept = _store(qid, proposals, extraction_id, item_rev)
     db.set_person_status(qid, summary.person_status)

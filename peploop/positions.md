@@ -287,7 +287,7 @@ Four rules decide the rest:
   dated a few days apart: Wikidata ends a ministry on 2022-06-01 and the
   article on 2022-04-20, a convocation opens on 2018-06-03 and the member was
   sworn in on the 22nd. Such a proposal is `overlapping`, which is inert -- in
-  neither `review.REVIEWABLE` nor `render.WRITABLE` -- and carries the spell it
+  no status the policy decides -- and carries the spell it
   clashed with in `qualifiers._reason`. Nothing is forfeited by it: `apply`
   sees the office value already on the item, returns `exists` and drops the
   dates (see *What is not done* below), so the only `P39` that can reach
@@ -320,11 +320,10 @@ Four rules decide the rest:
   article did. Its `_reason` is `acting`, so its volume stays countable
   alongside every other rule that decided something.
 
-`render` refuses `P39` outright, whatever its status. QuickStatements matches a
-line on subject, property and *value* and folds the qualifiers into whatever
-statement it finds, so two terms of one office arrive as one statement carrying
-both starts and both ends. Positions go out through `apply`, which creates and
-never merges.
+Positions go out through `apply`, which creates and never merges, and never
+through QuickStatements: it matches a line on subject, property and *value*
+and folds the qualifiers into whatever statement it finds, so two terms of one
+office would arrive as one statement carrying both starts and both ends.
 
 ## The creation queue
 

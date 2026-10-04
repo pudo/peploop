@@ -107,19 +107,6 @@ def live_duplicate(cand: dict[str, Any]) -> str | None:
     return None
 
 
-def fallback_recheck(cand: dict[str, Any]) -> list[str]:
-    """The live re-check when `mint.reguard` is not there: the duplicate search alone."""
-    dup = live_duplicate(cand)
-    return [f"duplicate/{dup}"] if dup else []
-
-
-def default_recheck() -> Recheck:
-    """`mint.reguard` if the verify half exposes it, else the duplicate search."""
-    from peploop import mint
-
-    return getattr(mint, "reguard", None) or fallback_recheck
-
-
 def _settle_refusal(cand_id: int, reasons: Sequence[str]) -> str | None:
     """Close a row the live re-check refused: `found` on a duplicate, else `skipped`."""
     dup = next((r.split("/", 1)[1] for r in reasons if r.startswith("duplicate/")), None)

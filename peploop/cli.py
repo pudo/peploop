@@ -17,15 +17,13 @@ from typing import Any
 import click
 
 from peploop import apply as applying
-from peploop import db, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
+from peploop import db, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
 from peploop import propose as proposals
 from peploop import reconcile as reconciling
-from peploop import render as rendering
 from peploop import review as reviewing
 
-DUMP_DIR = Path("data/extract")
 ITEM_MAX_AGE = "7 days"
 ARTICLE_MAX_AGE = "30 days"
 
@@ -197,41 +195,6 @@ def fetch(limit: int, threads: int, qid: Sequence[str], country: str | None) -> 
     click.echo(f"{len(qids)} people: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
 
 
-@cli.command()
-@click.option("--qid", multiple=True, help="Check these items instead of all known ones.")
-@click.option("--articles", is_flag=True, help="Also re-fetch article text.")
-def refresh(qid: Sequence[str], articles: bool) -> None:
-    """Re-fetch the items whose revision moved, and optionally their articles."""
-    if qid:
-        qids = list(qid)
-    else:
-        qids = [row[0] for row in db.conn().execute("SELECT qid FROM item ORDER BY qid")]
-    if not qids:
-        click.echo("no items known")
-        return
-    stored = {
-        row[0]: row[1]
-        for row in db.conn().execute(
-            "SELECT qid, lastrevid FROM item WHERE qid = ANY(%s)", (qids,)
-        )
-    }
-    live = wikidata.lastrevids(qids)
-    moved = [q for q in qids if q in live and stored.get(q) != live[q]]
-    entities = _fetch_items(moved, force=True) if moved else {}
-    click.echo(f"{len(qids)} items checked, {len(moved)} moved, {len(entities)} re-fetched")
-    if articles:
-        known = _stored_items(qids)
-        requeued = 0
-        for person_qid in qids:
-            entity = entities.get(person_qid) or known.get(person_qid)
-            if entity is None:
-                continue
-            if _fetch_articles(person_qid, entity, force=True):
-                db.set_person_status(person_qid, "queued")
-                requeued += 1
-        click.echo(f"{requeued} people re-queued after re-reading their articles")
-
-
 def _extract_one(qid: str) -> tuple[str, str]:
     """Extract one person, reporting the new status and a printable line."""
     try:
@@ -335,73 +298,6 @@ def _echo_property_counts(country: str | None = None) -> None:
         (country, country),
     ):
         click.echo(f"  {prop:12s} {status:11s} {count}")
-
-
-def _run_one(qid: str, entity: dict[str, Any], force: bool) -> tuple[str, str]:
-    """Carry one person from item through articles, extraction and proposals."""
-    _, status = _process(qid, entity, force)
-    if status != "fetched":
-        return status, f"{qid} {status}"
-    status, line = _extract_one(qid)
-    if status != "extracted":
-        return status, line
-    proposed, tail = _propose_one(qid)
-    return proposed, f"{line}\n{tail}"
-
-
-@cli.command()
-@click.option("--limit", default=50, show_default=True)
-@click.option("--threads", default=4, show_default=True)
-@click.option("--qid", multiple=True, help="Run these people, ignoring the item age.")
-@country_option
-def run(limit: int, threads: int, qid: Sequence[str], country: str | None) -> None:
-    """Fetch, extract and propose in one pass per person."""
-    qids = _select(qid, ("queued",), limit, country)
-    if not qids:
-        click.echo("nothing queued")
-        return
-    force = bool(qid)
-    counts: Counter[str] = Counter()
-    with ThreadPoolExecutor(max_workers=threads) as pool:
-        chunks = [qids[i : i + 50] for i in range(0, len(qids), 50)]
-        entities: dict[str, dict[str, Any]] = {}
-        for result in pool.map(lambda c: _fetch_items(c, force), chunks):
-            entities.update(result)
-        entities.update({k: v for k, v in _stored_items(qids).items() if k not in entities})
-        for absent in [q for q in qids if q not in entities]:
-            db.set_person_status(absent, "failed", "item missing or deleted")
-            counts["failed"] += 1
-            click.echo(f"{absent} failed: item missing or deleted")
-        work = [(q, entities[q]) for q in qids if q in entities]
-        for status, line in pool.map(lambda i: _run_one(i[0], i[1], force), work):
-            counts[status] += 1
-            click.echo(line)
-    click.echo(f"{len(qids)} people: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
-    _echo_property_counts(country)
-
-
-@cli.command()
-@click.option("--status", default="new,refine", show_default=True)
-@click.option("--property", "properties", multiple=True, help="Render only these properties.")
-@country_option
-def render(status: str, properties: Sequence[str], country: str | None) -> None:
-    """Print the selected proposals as QuickStatements v1 lines.
-
-    Nothing is written to Wikidata: the output is a batch a human pastes into
-    the QuickStatements importer after reading it.
-    """
-    statuses = [part.strip() for part in status.split(",") if part.strip()]
-    try:
-        lines, problems = rendering.render(statuses, list(properties), country)
-    except ValueError as exc:
-        raise click.ClickException(str(exc)) from exc
-    if problems:
-        for problem in problems[:10]:
-            click.echo(problem, err=True)
-        raise click.ClickException(f"{len(problems)} problems; nothing rendered")
-    for line in lines:
-        click.echo(line)
-    click.echo(f"{len(lines)} lines", err=True)
 
 
 @cli.command()
@@ -539,37 +435,40 @@ def _note_state(state: str, now: str, message: str) -> str:
     return now
 
 
-@cli.command()
-@click.option("--limit", default=10, show_default=True)
-@click.option("--qid", multiple=True, help="Dump these people instead of a batch.")
+#: The model stages `prompt` can show a request for.
+PROMPT_STAGES = ("extract", "verify", "mint-categorize", "mint-verify")
+
+
+@cli.command("prompt")
+@click.argument("stage", type=click.Choice(PROMPT_STAGES))
+@click.option("--qid", multiple=True, help="The person to show (extract, verify).")
 @country_option
-def dump(limit: int, qid: Sequence[str], country: str | None) -> None:
-    """Write each person's request and parsed answer to data/extract/<qid>.md."""
-    DUMP_DIR.mkdir(parents=True, exist_ok=True)
-    rows = db.conn().execute(
-        "SELECT DISTINCT ON (e.qid) e.qid, e.request_json, e.response_json, e.bad_quotes"
-        " FROM extraction e JOIN person p ON p.qid = e.qid"
-        " WHERE (%s OR e.qid = ANY(%s)) AND (%s::text IS NULL OR p.country = %s)"
-        " ORDER BY e.qid, e.id DESC LIMIT %s",
-        (not qid, list(qid), country, country, limit),
-    )
-    count = 0
-    for person_qid, request, response, bad_quotes in rows:
-        body = request["messages"][0]["content"]
-        answer = dict(response)
-        bad = answer.pop("_bad_quotes", [])
-        parts = [f"# {person_qid}", "", body, "", "# Parsed response", "", "```json"]
-        parts.append(json.dumps(answer, indent=2, ensure_ascii=False))
-        parts.append("```")
-        parts.append("")
-        parts.append(f"# Bad quotes ({bad_quotes})")
-        parts.append("")
-        parts.extend(f"- {quote!r}" for quote in bad)
-        path = DUMP_DIR / f"{person_qid}.md"
-        path.write_text("\n".join(parts) + "\n")
-        count += 1
-        click.echo(f"{path} ({len(body)} chars sent, {bad_quotes} bad quotes)")
-    click.echo(f"{count} dumps written")
+def prompt_(stage: str, qid: Sequence[str], country: str | None) -> None:
+    """Print what a model stage would be shown, and send nothing.
+
+    How a prompt or rendering change is judged before it is run over a
+    country: `extract` and `verify` take people, the mint passes a country
+    and print their first request with the count still to ask.
+    """
+    if stage in ("extract", "verify") and not qid:
+        raise click.UsageError(f"{stage} shows people: pass --qid")
+    if stage.startswith("mint-") and not country:
+        raise click.UsageError(f"{stage} works a country: pass --country")
+    if stage == "extract":
+        for person_qid in qid:
+            entity, articles, dropped = extraction.stored_articles(person_qid)
+            click.echo(f"===== {person_qid} ({len(articles)} articles,"
+                       f" dropped {','.join(dropped) or '-'}) =====")
+            click.echo(extraction.user_message(entity, articles))
+    elif stage == "verify":
+        for person_qid in qid:
+            for row in verifying.pending_rows(person_qid):
+                click.echo(f"===== proposal {row['id']} =====")
+                click.echo(verifying.render_edit(verifying.edit_for(row)))
+    elif stage == "mint-categorize":
+        mint.categorize(country, dry_run=True, log=click.echo)
+    else:
+        mint.verify(country, dry_run=True, log=click.echo)
 
 
 @cli.command("policy")
@@ -962,14 +861,7 @@ def stats(country: str | None) -> None:
 # --- mint --------------------------------------------------------------------
 #
 # The stage between `reconcile` and `propose` that creates the offices nobody's
-# P39 had anywhere to go. `mint` is imported inside each command: the verify half
-# is still growing, and a command that does not touch it should not depend on it.
-
-
-def _mint_module() -> Any:
-    from peploop import mint
-
-    return mint
+# P39 had anywhere to go.
 
 
 @cli.command("mint-categorize")
@@ -977,7 +869,7 @@ def _mint_module() -> Any:
 @click.option("--dry-run", is_flag=True, help="Print the first request; ask and write nothing.")
 def mint_categorize(country: str, dry_run: bool) -> None:
     """Cluster a country's unplaced offices into candidates, and draft each one."""
-    stats = _mint_module().categorize(country, dry_run=dry_run, log=click.echo)
+    stats = mint.categorize(country, dry_run=dry_run, log=click.echo)
     stats.pop("clusters", None)
     stats.pop("truncated", None)
     click.echo(json.dumps(stats, sort_keys=True))
@@ -990,12 +882,7 @@ def mint_categorize(country: str, dry_run: bool) -> None:
 @click.option("--dry-run", is_flag=True, help="Print what the model would be shown; send nothing.")
 def mint_verify(country: str, limit: int | None, threads: int, dry_run: bool) -> None:
     """Ask the second model about each categorized office, and decide each by rule."""
-    verify = getattr(_mint_module(), "verify", None)
-    if verify is None:
-        raise click.ClickException("mint.verify is not implemented yet")
-    stats = verify(country, limit=limit, threads=threads, dry_run=dry_run, log=click.echo)
-    if not isinstance(stats, dict):
-        return
+    stats = mint.verify(country, limit=limit, threads=threads, dry_run=dry_run, log=click.echo)
     for (status, rule), n in sorted((stats.get("funnel") or {}).items(), key=lambda kv: -kv[1]):
         click.echo(f"{n:5d}  {status:10s} {rule}")
     click.echo(json.dumps({k: v for k, v in stats.items() if k not in ("funnel", "decided") and _jsonable(v)},
@@ -1033,9 +920,6 @@ def mint_(country: str, limit: int | None, ids: Sequence[int], write: bool) -> N
         return
     click.echo(f"logged in as {applying.login()}")
     token = applying.csrf_token()
-    recheck = minting.default_recheck()
-    if recheck is minting.fallback_recheck:
-        click.echo("mint.reguard not found: re-checking by live duplicate search only")
     counts: Counter[str] = Counter()
     with minting.writer_lock(country):
         for cid, outcome, qid in minting.recover(country, log=click.echo):
@@ -1046,7 +930,7 @@ def mint_(country: str, limit: int | None, ids: Sequence[int], write: bool) -> N
                 time.sleep(applying.THROTTLE)
             head = f"#{cand['id']} {cand['ref']}"
             try:
-                qid = minting.mint_one(cand["id"], token, recheck=recheck)
+                qid = minting.mint_one(cand["id"], token, recheck=mint.reguard)
             except Exception as exc:  # noqa: BLE001 — stop: recover resolves the row next run
                 counts["failed"] += 1
                 click.echo(f"{head} failed, left for recover: {type(exc).__name__}: {exc}")

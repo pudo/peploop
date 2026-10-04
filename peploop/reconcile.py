@@ -23,7 +23,6 @@ verdict is a row for a later increment to act on.
 """
 
 import hashlib
-import json
 import logging
 import os
 import re
@@ -533,11 +532,6 @@ def reconcile(
     )
     verdict.qid, verdict.veto = settle(verdict.kind, verdict.chosen, shortlist)
     return verdict
-
-
-def as_jsonl(verdict: Verdict) -> str:
-    """Render one verdict as the ledger line a later increment appends."""
-    return json.dumps(verdict.as_dict(), ensure_ascii=False, sort_keys=True)
 
 
 def mention_from(entry: dict[str, Any]) -> Mention:

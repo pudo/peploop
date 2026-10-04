@@ -167,9 +167,17 @@ def _seed_lang(qid: str) -> str | None:
     return None if row is None else row[0]
 
 
-def extract_person(qid: str) -> ExtractionRow:
-    """Extract one person, unless the same prompt already read the same articles."""
-    started = time.monotonic()
+def user_message(entity: dict[str, Any], articles: list[prompt.Article]) -> str:
+    """The user turn one person's request carries: the item's state, then the articles."""
+    labels = {
+        target: wikidata.best_label(item)
+        for target, item in wikidata.fetch_items(prompt.state_qids(entity), props="labels").items()
+    }
+    return prompt.render_user_message(prompt.render_state(entity, labels), articles)
+
+
+def stored_articles(qid: str) -> tuple[dict[str, Any], list[prompt.Article], list[str]]:
+    """The item and the articles a request about this person would read, and those dropped."""
     row = db.conn().execute("SELECT json FROM item WHERE qid = %s", (qid,)).fetchone()
     if row is None:
         raise LookupError(f"no item stored for {qid}")
@@ -177,6 +185,13 @@ def extract_person(qid: str) -> ExtractionRow:
     articles, dropped = prompt.select_articles(qid, _seed_lang(qid), entity)
     if not articles:
         raise LookupError(f"no articles stored for {qid}")
+    return entity, articles, dropped
+
+
+def extract_person(qid: str) -> ExtractionRow:
+    """Extract one person, unless the same prompt already read the same articles."""
+    started = time.monotonic()
+    entity, articles, dropped = stored_articles(qid)
     result = ExtractionRow(qid, wikidata.best_label(entity), len(articles), dropped)
 
     text, prompt_hash = prompt.system_prompt()
@@ -190,11 +205,7 @@ def extract_person(qid: str) -> ExtractionRow:
         result.seconds = time.monotonic() - started
         return result
 
-    labels = {
-        target: wikidata.best_label(item)
-        for target, item in wikidata.fetch_items(prompt.state_qids(entity), props="labels").items()
-    }
-    user = prompt.render_user_message(prompt.render_state(entity, labels), articles)
+    user = user_message(entity, articles)
     response = client().messages.parse(
         model=MODEL,
         max_tokens=MAX_TOKENS,

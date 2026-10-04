@@ -5,8 +5,7 @@ a review screen until somebody ruled on it, and 1,334 of them were waiting
 when this was written, against five ever written; the 158 rulings that were
 made fell into a handful of classes a rule can name. So the rules are here,
 ordered, and the first one that applies decides. The rule's name lands in
-`proposal.decided_by` as `policy:<rule>`, which is what a run's report counts
-and what a regression check compares with the human rulings it still has.
+`proposal.decided_by` as `policy:<rule>`, which is what a run's report counts.
 
 Three outcomes and no fourth. `accepted` is what `apply` writes. `skipped` is
 a decision with a reason, never a queue. `pending` means only that the
@@ -40,6 +39,10 @@ PROPOSED = ("new", "refine")
 #: Every status a row may carry that the policy owns and may re-decide.
 DECIDABLE = PROPOSED + (PENDING, SKIPPED, ACCEPTED)
 DECIDER = "policy:"
+#: The pseudo-properties of the label and alias lane `propose` no longer
+#: emits. Rows made before it stopped stay in the table until their person is
+#: re-proposed, and `lane_removed` keeps them out of the write path until then.
+TERM_PREFIXES = ("label:", "alias:")
 
 #: A P39 is written only on a reconciler verdict of one of these kinds ...
 P39_KINDS = ("same-office",)
@@ -293,7 +296,7 @@ def review_rejected(case: Case) -> Disposition | None:
 
 def lane_removed(case: Case) -> Disposition | None:
     """Labels and aliases are no longer written: 13 of the 19 reviewed were titles or fragments."""
-    if case.property.startswith((propose.LABEL_PREFIX, propose.ALIAS_PREFIX)):
+    if case.property.startswith(TERM_PREFIXES):
         return _skip("lane_removed")
     return None
 
@@ -1316,10 +1319,9 @@ class Funnel:
 
 def property_group(prop: str) -> str:
     """Fold the per-language term pseudo-properties into one row of the report."""
-    if prop.startswith(propose.LABEL_PREFIX):
-        return "label:*"
-    if prop.startswith(propose.ALIAS_PREFIX):
-        return "alias:*"
+    for prefix in TERM_PREFIXES:
+        if prop.startswith(prefix):
+            return prefix + "*"
     return prop
 
 

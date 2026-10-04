@@ -129,27 +129,23 @@ Three kinds of fetched data, three rules:
 
 | data | table | valid while | refreshed by |
 |---|---|---|---|
-| Wikidata item | `item` | `fetched_at` under 7 days **and** `lastrevid` unchanged | `refresh`, and always before `render` |
-| Wikipedia article | `article` | `fetched_at` under 30 days | `refresh --articles` |
+| Wikidata item | `item` | `fetched_at` under 7 days | `fetch --qid`, and always by `apply`'s pre-flight |
+| Wikipedia article | `article` | `fetched_at` under 30 days | `fetch --qid` |
 | everything else (PetScan, SPARQL, search) | `http_cache` | 7 days | age only |
 
 The item rule is the one that matters. `wbgetentities` is what we compare
 proposals against, and it is also what our own eventual writes change, so an
 age-based cache there would let a statement we just wrote be proposed again
 (the parent repo did exactly this: a `holders()` list cached before its batch
-went in re-admitted twenty existing statements). The check is cheap:
-`action=query&prop=info&titles=Q1|Q2|...` returns `lastrevid` for 50 items per
-call, so `refresh` over 1,500 people is 30 requests, and only items whose
-revision moved are re-fetched in full.
+went in re-admitted twenty existing statements). So nothing that writes trusts
+it: `apply` re-reads every item it is about to edit, live.
 
 Two consequences:
 
 - Every `proposal` row records `item_rev`, the revision its status was computed
   against. The stored status is a snapshot for `stats`; it is not trusted by
   anything that writes.
-- `render` prints stored `new` and `refine` proposals and nothing else; the
-  QuickStatements importer the user pastes them into is the check on that
-  batch. The pre-flight belongs to `apply`: it re-reads every item it is about
+- The pre-flight belongs to `apply`: it re-reads every item it is about
   to write with `fetch_items`, which never consults a cache, and decides each
   accepted row against what came back rather than against the stored status.
   An item whose `lastrevid` has left the row's `item_rev` behind is re-proposed
@@ -158,7 +154,7 @@ Two consequences:
   `baserevid`, which is what makes a concurrent change an `editconflict`
   instead of a silent overwrite.
 
-`run --qid Q…` bypasses the item TTL for the named items, so re-processing one
+`fetch --qid Q…` bypasses the item TTL for the named items, so re-processing one
 person after fixing something always reads live. Extraction is keyed on the
 article set (languages and revision ids), so a refreshed article re-extracts
 its person and an unchanged one does not.
@@ -344,7 +340,7 @@ script) are left behind, and nothing is imported.
 a reconciler of their own exists. A `positions` entry becomes a `P39` once
 reconciliation has placed it, carrying `P580`/`P582` and a `resolution_id` back
 to the verdict that placed it -- `positions.md` has the three rules that decide
-the rest, and the reason `render` refuses to emit a `P39` at all. Every other
+the rest. Every other
 extracted value becomes a row in `proposal`:
 
 ```
@@ -354,11 +350,11 @@ proposal
   source_rev, extraction_id, item_rev, status, decided_by, decided_at
 ```
 
-Labels and aliases are proposals too, under the pseudo-properties
-`label:<lang>` and `alias:<lang>`: a Wikidata term is not a statement and has
-no property of its own, so the language code carries the slot instead. Their
-`value` is `{"language": …, "text": …}`, and a name the model could not place
-in a language arrives under `und` and is `unresolved`.
+Labels and aliases are not proposed. They were, under the pseudo-properties
+`label:<lang>` and `alias:<lang>`, until the policy threw every row of that
+lane away (13 of the 19 a human reviewed were titles or fragments); rows made
+before it stopped stay until their person is re-proposed, and `lane_removed`
+keeps them out of the write path until then.
 
 `status` is set by a small deterministic comparison against the Wikidata claims
 already fetched, deprecated ranks ignored:
@@ -369,7 +365,7 @@ already fetched, deprecated ranks ignored:
 | same value, same/finer precision | any  | `exists`    |
 | same value, coarser precision   | finer | `refine`   |
 | different value, single-valued property (P569, P570, P21, P19) | any | `conflict` |
-| different value, multi-valued property (P27, labels, aliases) | any | `new` |
+| different value, multi-valued property (P27) | any | `new` |
 | name `rigour` cannot place | citizenship | `unresolved`|
 | all quotes failed the verbatim gate | any | `unquoted` |
 | a mechanical rule excluded it | any | `filtered` |
@@ -399,37 +395,28 @@ visible. The reasons:
 | reason | what it excludes |
 |---|---|
 | `undated_predecessor` | a citizenship of a dissolved state that no article dates. Wikidata models a citizenship that ended with `P582`, so the dated case is a real addition and stays. |
-| `fragment` | an alias whose tokens are a proper subset of the item's label in that language (`mul`, then `en`, when it has none there): a surname or a given name on its own. |
-| `script:<scripts>` | a name in a script the language is not written in. The expected scripts are derived per language from the item's own terms in it, or failing those from the opening of the article in it; nothing to derive from is no check. |
 | `acting` | a tenure the article called acting. Wikidata says so with a qualifier this pipeline does not write, and a `P39` omitting it asserts more than the article did. |
 | `overlaps <start>..<end>` | the recorded spell of the same office a proposed tenure is a second writing-down of, an open side left blank. This one sets `overlapping` rather than `filtered`. |
 
 A value is proposed once per *value*, not once per article: the citizenship
 three wikis attest, or the birth date two of them give at different precisions,
 is one row whose `qualifiers._sources` lists every `{lang, url, rev, quote}`
-behind it. Both write paths read that list — QuickStatements gets one line per
-source and merges them, the API writer one reference per source on one
-statement — and `_basis` carries the strongest grounds any of them gave. A
-literal the item already holds in *any* language, `mul` included, is `exists`
-and not a second language's to add.
+behind it. The writer reads that list, one reference per source on one
+statement, and `_basis` carries the strongest grounds any of them gave.
 
 `unquoted` comes last and overrides whatever the comparison found: a value
 whose every quote `extract` could not find in the article text has no evidence
 behind it, so it is not a candidate edit however well it agrees with Wikidata.
-Name forms carry no quotes and are never `unquoted`.
 
-Only `new` and `refine` are candidates for writing. A `conflict` is reviewed
-too — an article disputing the item is exactly what a human should see — but
-accepting one records that Wikidata looks wrong, which is a to-do about the
-item and not an edit: `apply` writes nothing for it. A reviewed proposal moves to `accepted` or `rejected`; a written one to
-`applied`, carrying `applied_rev` (the revision the edit produced) and, for a
-statement, `claim_guid` (the statement it created or sharpened; a label or an
-alias is not a statement and leaves it null). The kind of evidence behind a proposal (an infobox line, prose, a
+Only `new` and `refine` are candidates for writing; the policy decides each
+(§6a). A `conflict` can be sampled in `review` -- an article disputing the
+item is exactly what a human should see -- but that records that Wikidata
+looks wrong, which is a to-do about the item and not an edit: `apply` writes
+nothing for it. A written proposal moves to `applied`, carrying `applied_rev`
+(the revision the edit produced) and `claim_guid` (the statement it created
+or sharpened). The kind of evidence behind a proposal (an infobox line, prose, a
 demonym) is not a column: the extraction JSON keeps `basis` and the quotes, so
 it is derivable by query when the verdicts make it worth measuring.
-
-Name forms are proposals too: a label in a language where the item has none is
-`new`; an alias not present is `new`; anything already there is `exists`.
 
 ### 6a. Policy
 
@@ -442,8 +429,9 @@ has not been asked yet). The deterministic rules come first, so nothing a rule
 would skip anyway is ever sent to a model; the verifier's answer is the last
 rule, and only `supported` at better than low confidence passes it.
 
-What the rules say, in order: labels and aliases are never written (13 of the
-19 reviewed were titles or fragments); the dates the *extraction* found set a
+What the rules say, in order: a row a human rejected in the `review` sampler
+is skipped (an accept there decides nothing); labels and aliases left from the
+removed lane are never written; the dates the *extraction* found set a
 person aside the item's own dates could not; a value nobody quoted has nothing
 to verify; a date after today is a schedule, not a record (a term's planned
 end, a nominee's start), and the verifier passed two of those before the rule
@@ -575,9 +563,8 @@ and a day-precision 1 March 1950 is not someone our 1 February 1950 refines,
 though it agrees with the coarse value at the precision they share. A
 `somevalue` snak records that nobody knows and contradicts nothing.
 
-Labels and aliases ride in the same payload — a label only where the item has
-none in that language, an alias as `{language, value, add: ""}` so the ones
-already there survive.
+A label or alias row accepted before that lane was removed is closed as
+`apply:lane_removed` and never written.
 
 The rows are grouped by the statement they land on before the payload is built,
 because the API de-duplicates nothing: the same citizenship attested in two
@@ -586,7 +573,7 @@ and both rows are recorded against the one guid it produced. `propose` now
 groups the same value across articles into one row as well, so that row carries
 its `_sources` list and contributes one reference per language on its own.
 
-Every statement gets the same reference as the QuickStatements path: `P143`
+Every statement gets the same reference: `P143`
 imported from the item of the source wiki (resolved once by SPARQL over
 `wdt:P31 wd:Q10876391; wdt:P424 ?code` and cached), `P4656` the permanent URL
 of the revision that was read, `P813` today. A `maxlag` refusal is slept off
@@ -670,14 +657,11 @@ Run from the repository root as `python -m peploop.cli <command>`.
 ```
 seed    --file peploop/seeds/cz.yml [--country cc]
 fetch   [--limit N] [--threads 8] [--qid Q...]
-refresh [--qid Q...] [--articles]
 extract [--limit N] [--threads 4] [--qid Q...]
 reconcile [--limit N] [--threads 4]
 propose [--limit N] [--qid Q...]
-dump    [--limit N] [--qid Q...]
+prompt  extract|verify|mint-categorize|mint-verify [--qid Q...] [--country cc]
 stats
-run     [--limit N] [--threads 4] [--qid Q...]
-render  [--status new,refine] [--property P...] > out.qs
 policy  [--limit N] [--qid Q...] [--dry-run]
 verify  [--limit N] [--threads 4] [--qid Q...] [--dry-run]
 review  [--qid Q...] [--limit N]
@@ -699,7 +683,7 @@ The `mint*` commands take `--country` as the unit of work, since the queue is
 a country's. `mint` is a dry run unless `--write`, and feeds each item it
 creates; `mint-feed` re-runs the feed and is idempotent.
 
-Every command but the three `position*` ones and `refresh` also takes
+Every command but the three `position*` ones also takes
 `--country`, which selects the people a run seeded under that code and nothing
 else. It is a filter over `person.country` and never reaches a stage: the unit
 of work stays one person, and `--qid` overrides it, because naming someone is
@@ -729,9 +713,9 @@ skipped without a request, so a re-run costs only what is new.
 
 `extract` reads the model's answer for each `fetched` person and stores it;
 its selection is stable, and a person already answered under this prompt hash
-and these article revisions is skipped without a request. `dump` writes the
-request and the parsed answer of one person to `data/extract/<qid>.md`, which
-is how a prompt change is judged before it is run over a country.
+and these article revisions is skipped without a request. `prompt extract
+--qid Q` prints the request it would send for one person, sending nothing,
+which is how a prompt change is judged before it is run over a country.
 
 `fetch` takes `queued` people, reads the item and every sitelinked article, and
 marks each one `fetched`, `not_human` where the `P31=Q5` gate rejects it,
@@ -740,14 +724,8 @@ more, or `failed` with the exception text. Both item gates run before the first
 article is fetched, which is where a person's cost begins: `scope.py` discards
 whoever is alive and over ninety or dead more than five years, and keeps
 everyone whose dates are missing, contradictory or too coarse to place -- the
-reason it discarded on lands in `person.error`. `run` carries the same people on through
-extract and propose in one pass each and marks them `proposed`. `refresh` checks `lastrevid` for
-every known item (or the named ones) and re-fetches the ones that moved; with
-`--articles` it re-fetches article text as well, which re-queues the affected
-people. `stats` prints counts per person status, per article language and per
-table, and per proposal property once there are proposals. `render` is the
-first consumer of proposals and exists so the loop can be judged end to end on
-the pilot.
+reason it discarded on lands in `person.error`. `stats` prints counts per person status, per article language and per
+table, and per proposal property once there are proposals.
 
 ## Pilot
 
@@ -772,14 +750,11 @@ staying shallow across many categories.
 
 ## What is deliberately not here
 
-- No graduation rule, no sampling policy, no bot account: `apply` writes what a
-  human has accepted, one property switch at a time is a later round, and the
-  edits appear under the user's own name. `render` still does not collapse the
-  same (person, property, value) attested from two languages into one line:
-  QuickStatements merges them into one statement with two references, which is
-  right while their qualifiers agree and wrong the day they differ. `apply`
-  groups by statement and sends one claim with both references; the day two
-  attestations carry different qualifiers, that grouping is what has to notice.
+- No bot account: `apply` writes what the policy accepted, and the edits
+  appear under the user's own name. `apply` groups the same (person, property,
+  value) attested from two languages by statement and sends one claim with both
+  references; the day two attestations carry different qualifiers, that
+  grouping is what has to notice.
 - No roster pages, no Wikipedia lists, no non-Wikimedia sources. The prompt
   material is one person's own articles. Widening the material is round 3.
 - No per-country policy, dispositions, backtests, or coverage ledgers.
@@ -818,10 +793,8 @@ peploop/
   propose.py     compare against existing claims, write proposals
   policy.py      decide every proposal by rule: accepted, skipped or pending
   verify.py      the second reading: render the edit, ask, keep the answer by content
-  render.py      proposals → QuickStatements lines
   review.py      Textual TUI: one person per screen, verdicts on submit
   apply.py       log in, plan one wbeditentity per person, write and record
-  run.py         driver, thread pool
   cli.py
   positions.py   round 2: load a country's offices, search and rank them
   reconcile.py   round 2: the second turn, assembled but never sent
@@ -829,8 +802,8 @@ peploop/
   mint.py        mint: the queue, the floor, categorize, verify, the disposition rules
   mint_write.py  mint: create crash-safely, recover, feed back, report, audit
   check_neutral.py    fails when the code names a country it has run
-  check_regress.py    re-scores a prompt change against recorded verdicts
-  check_review.py     drives the review TUI headlessly and undoes itself
+  check_review.py     drives the review TUI headlessly over shadowed tables
+  check_audit.py      an audited proposal survives a re-propose
   check_propose.py    the position lane's three silent failures, offline
   check_scope.py      the relevance gate's date arithmetic, offline
   check_seed.py       the category walk seeding falls back to when PetScan is down, offline
