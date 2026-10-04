@@ -20,7 +20,10 @@ Four things are pinned, and each is a way the pass could go wrong silently:
 * **the reopen ledger**: a re-ask after an item is minted sits beside the
   original verdict rather than colliding with it, and is the one `propose`
   reads. This one needs the local database, and runs against a temporary
-  table that shadows the real one, so nothing stored is read or written.
+  table that shadows the real one, so nothing stored is read or written;
+* **the retrieval re-ask**: a refusal whose shortlist gained an item is asked
+  once more under its own key, a second run asks nothing, and a refusal whose
+  list did not change is never sent. Same temporary table.
 
 Run it as `python -m peploop.check_reconcile` from the repository root.
 """
@@ -494,6 +497,80 @@ def check_reopen(expect: Any) -> None:
         conn.execute("DROP TABLE IF EXISTS pg_temp.resolution")
 
 
+def check_reask(expect: Any) -> None:
+    """Pin the retrieval re-ask: a gained list is asked once, an unchanged one never."""
+    try:
+        conn = db.conn()
+    except psycopg.OperationalError as exc:
+        print(f"  skip no database ({exc.__class__.__name__})")
+        return
+    conn.execute("CREATE TEMP SEQUENCE IF NOT EXISTS check_resolution_seq")
+    conn.execute(
+        "CREATE TEMP TABLE resolution (LIKE public.resolution"
+        " INCLUDING DEFAULTS INCLUDING INDEXES)"
+    )
+    real = (reconcile.retrieve, reconcile.candidates_for, reconcile.reconcile)
+    asked: list[str] = []
+    try:
+        conn.execute(
+            "ALTER TABLE pg_temp.resolution ALTER COLUMN id"
+            " SET DEFAULT nextval('pg_temp.check_resolution_seq')"
+        )
+        _text, prompt_hash = reconcile.system_prompt()
+        gainer = dataclasses.replace(MENTION, title="gains", article="")
+        same = dataclasses.replace(MENTION, title="same", article="")
+        placed = dataclasses.replace(MENTION, title="placed", article="")
+        for idx, mention, qid in ((0, gainer, None), (1, same, None), (2, placed, "Q10")):
+            reconcile.store(1, idx, mention, STATE, reconcile.Verdict(
+                title=mention.title, qid=qid, chosen=qid,
+                kind="same-office" if qid else "none", shortlist=["Q10", "Q11"],
+                prompt_hash=prompt_hash, model="check",
+            ), retrieval="lex")
+        lists = {"gains": ["Q10", "Q12", "Q11"], "same": ["Q11", "Q10"], "placed": ["Q12"]}
+        reconcile.retrieve = lambda m, _s: (  # type: ignore[assignment]
+            [SimpleNamespace(qid=q) for q in lists[m.title]], "canon10+lex:check")
+        reconcile.candidates_for = lambda hits, _s=None, _h="local": [  # type: ignore[assignment]
+            reconcile.Candidate(qid=h.qid) for h in hits]
+
+        def fake_reconcile(mention: Any, candidates: Any, model: str = "") -> Any:
+            asked.append(mention.title)
+            shortlist = [c.qid for c in candidates]
+            return reconcile.Verdict(
+                title=mention.title, qid="Q12", chosen="Q12", kind="same-office",
+                confidence="high", shortlist=shortlist, prompt_hash=prompt_hash,
+                model="check",
+            )
+
+        reconcile.reconcile = fake_reconcile  # type: ignore[assignment]
+        mentions = {(1, 0): gainer, (1, 1): same, (1, 2): placed}
+        refused, work = reconcile.reask_work(mentions, STATE)
+        expect(refused == 2 and [(e, i) for e, i, _m in work] == [(1, 0)],
+               f"of two refusals only the one whose list gained is selected: {refused}, {work}")
+        for eid, idx, mention in work:
+            reconcile.resolve_mention(eid, idx, mention, STATE,
+                                      reopened_for=reconcile.RETRIEVAL_REASK)
+        expect(asked == ["gains"], f"the gained refusal is asked once: {asked}")
+        row = conn.execute(
+            "SELECT reopened_for, retrieval, qid FROM pg_temp.resolution"
+            " WHERE mention_idx = 0 ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+        expect(tuple(row) == (reconcile.RETRIEVAL_REASK, "canon10+lex:check", "Q12"),
+               f"the re-ask is stored beside the refusal, with its retrieval: {row}")
+        expect(propose.placements(1).get(0, (None,))[0] == "Q12",
+               "placements reads the re-ask, the newer row")
+        refused_again, work_again = reconcile.reask_work(mentions, STATE)
+        expect(not work_again and refused_again == 1,
+               f"a second run re-asks nothing: {refused_again}, {work_again}")
+        untouched = conn.execute(
+            "SELECT count(*) FROM pg_temp.resolution WHERE mention_idx = 1"
+        ).fetchone()[0]
+        expect(untouched == 1 and asked == ["gains"],
+               "the refusal whose list did not change is untouched")
+    finally:
+        reconcile.retrieve, reconcile.candidates_for, reconcile.reconcile = real
+        conn.execute("DROP TABLE IF EXISTS pg_temp.resolution")
+
+
 def main() -> int:
     """Run every pin and report, without touching the network or a key."""
     failures: list[str] = []
@@ -514,6 +591,7 @@ def main() -> int:
         ("retrievable", check_retrievable),
         ("search_title", check_search_title),
         ("reopen", check_reopen),
+        ("reask", check_reask),
     ):
         print(f"{name}:")
         check(expect)

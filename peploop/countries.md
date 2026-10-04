@@ -116,7 +116,7 @@ load-positions --country <cc>        # every discovery lane; network only, besid
 fetch --country <cc>                 # items, the scope gate, then every sitelinked article
 extract --country <cc>               # one request per person, Sonnet
 position-signals --country <cc>      # after fetch: uncounted rows, local holders, scope, diplomatic
-reconcile --country <cc>             # English titles, then one request per office mention
+reconcile --country <cc>             # English titles, one request per office mention, then the refusals whose list gained
 mint-categorize --country <cc>       # cluster the misses and the census into offices, Sonnet
 mint-verify --country <cc>           # one request per office that clears the floor, Opus; writes data/mint/<cc>.md
 mint --country <cc>                  # dry: every guarded payload with its labels

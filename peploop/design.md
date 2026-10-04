@@ -706,7 +706,12 @@ position item or refuses, one request per mention against
 holder counts rank the shortlist -- not a filter, and another state's office
 stays reachable and tagged as one. A mention already answered under this
 prompt and rendering is skipped without a request, so a re-run costs only
-what is new. `load-positions` runs every discovery lane and gives a
+what is new. Last, it re-asks each refusal whose shortlist now offers an item
+the stored one did not, under `reopened_for = 'retrieval:2'`: a retrieval
+change alters no key the ledger reads, so without this a better search would
+never reach a mention already refused. Each mention is re-asked once per tag
+(`PEPLOOP_REASK_SCOPE=stranded` limits it to people with no `P39` and nothing
+placed). `load-positions` runs every discovery lane and gives a
 label-less office its English name; `position-signals` fills the counts only
 for rows no pass has counted, and the local signals.
 

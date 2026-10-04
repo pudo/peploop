@@ -304,6 +304,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS resolution_key_idx ON resolution
     (extraction_id, mention_idx, prompt_hash, render_version, reopened_for);
 -- END resolution.reopened_for
 
+-- Which retrieval built the shortlist a verdict was asked about: `lex`, or
+-- `canon10+lex:<title_en prompt hash[:8]>` once the English-title channel
+-- fills it. Outside the key on purpose -- a retrieval change re-asks only the
+-- refusals whose list gained an item, under `reopened_for = 'retrieval:2'` --
+-- so this is how an audit tells the two lists apart. Null on rows stored
+-- before the column.
+ALTER TABLE resolution ADD COLUMN IF NOT EXISTS retrieval TEXT;
+
 -- Which verdict placed a P39 proposal on its item. The review screen reads it
 -- to show the office as the article named it and the shortlist the model was
 -- offered, because whether a match is right cannot be judged from the QID it

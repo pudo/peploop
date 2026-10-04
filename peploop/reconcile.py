@@ -27,6 +27,7 @@ import logging
 import os
 import re
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -585,15 +586,16 @@ def store(
     state_qid: str | None,
     verdict: Verdict,
     reopened_for: str = "",
+    retrieval: str | None = None,
 ) -> None:
     """Append one verdict to the ledger. Never replaces: the key is what was shown."""
     db.conn().execute(
         "INSERT INTO resolution (extraction_id, mention_idx, title, jurisdiction,"
         " start_text, end_text, lang, state_qid, prompt_hash, render_version, model,"
         " shortlist, chosen, qid, kind, confidence, evidence, reason, veto, usage_json,"
-        " reopened_for)"
+        " reopened_for, retrieval)"
         " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,"
-        " %s, %s, %s)"
+        " %s, %s, %s, %s)"
         " ON CONFLICT (extraction_id, mention_idx, prompt_hash, render_version,"
         " reopened_for) DO NOTHING",
         (
@@ -603,7 +605,7 @@ def store(
             verdict.chosen, verdict.qid, verdict.kind, verdict.confidence,
             verdict.evidence, verdict.reason, verdict.veto,
             Jsonb(verdict.usage) if verdict.usage is not None else None,
-            reopened_for,
+            reopened_for, retrieval,
         ),
     )
 
@@ -642,7 +644,14 @@ CANON_DEPTH = 100
 
 
 def shortlist_hits(mention: Mention, state_qid: str | None) -> list[positions.Hit]:
-    """Retrieve the ranked shortlist a mention is asked about.
+    """Retrieve the ranked shortlist a mention is asked about; see `retrieve`."""
+    return retrieve(mention, state_qid)[0]
+
+
+def retrieve(
+    mention: Mention, state_qid: str | None
+) -> tuple[list[positions.Hit], str]:
+    """Retrieve the ranked shortlist a mention is asked about, and name the retrieval.
 
     The one search both the live pass and `retrievable` run, so that "would the
     model be shown this item" is answered by the same call that shows it.
@@ -652,6 +661,10 @@ def shortlist_hits(mention: Mention, state_qid: str | None) -> list[positions.Hi
     search for the title as written fills the rest. With no cached name it is
     the lexical search alone, as before the channel existed. Only the cache is
     read, so the shortlist is reproducible and no model is called here.
+
+    The name is stored on the verdict (`resolution.retrieval`): the ledger's
+    key does not cover the shortlist, so an audit tells a refusal made from the
+    lexical list apart from one made from the two-channel list by this.
     """
     lexical = positions.search(
         search_title(mention.title), mention.jurisdiction, state_qid, limit=SHORTLIST,
@@ -662,7 +675,7 @@ def shortlist_hits(mention: Mention, state_qid: str | None) -> list[positions.Hi
     ))
     if not english:
         _log.debug("no English title cached for %r; lexical channel only", mention.title)
-        return lexical
+        return lexical, "lex"
     canonical = positions.promote_exact(positions.search(
         english, mention.jurisdiction, state_qid, limit=CANON_DEPTH,
         start=mention.start, end=mention.end,
@@ -677,7 +690,7 @@ def shortlist_hits(mention: Mention, state_qid: str | None) -> list[positions.Hi
             if hit.qid not in seen:
                 seen.add(hit.qid)
                 out.append(hit)
-    return out
+    return out, f"canon{CANON_TOP}+lex:{titles.system_prompt()[1][:8]}"
 
 
 def retrievable(mention: Mention, state_qid: str | None, qid: str) -> bool:
@@ -724,10 +737,11 @@ def resolve_mention(
             (mention.lang, extraction_id),
         ).fetchone()
         mention.article = None if row is None else row[0]
-    hits = shortlist_hits(mention, state_qid)
+    hits, retrieval = retrieve(mention, state_qid)
     candidates = candidates_for(hits, state_qid)
     verdict = reconcile(mention, candidates, model=model)
-    store(extraction_id, mention_idx, mention, state_qid, verdict, reopened_for)
+    store(extraction_id, mention_idx, mention, state_qid, verdict, reopened_for,
+          retrieval=retrieval)
     return verdict, True
 
 
@@ -750,3 +764,72 @@ def reopen(
         extraction_id, mention_idx, mention, state_qid, model=model,
         reopened_for=qid,
     )
+
+
+#: The `reopened_for` a re-ask after a retrieval change is stored under. A
+#: retrieval change alters neither the prompt nor the rendering, so the ledger
+#: would read every old refusal back; this key asks each refusal whose list
+#: gained an item once more, and bumping `RENDER_VERSION` instead would re-ask
+#: every placed mention too. The next retrieval change takes the next number.
+RETRIEVAL_REASK = "retrieval:2"
+
+#: The refusals a better shortlist can turn into a placement. `body-not-seat`
+#: is left out: it names the body it saw, and a longer list does not change
+#: that the office is a seat in it.
+REASKABLE = ("none", "generic-class", "wrong-office")
+
+
+def refusals(extraction_ids: Sequence[int]) -> dict[tuple[int, int], list[str]]:
+    """Map each mention whose newest verdict is a re-askable refusal to its shortlist.
+
+    Newest over every row of the mention, so a mention already placed by a mint
+    reopen is not a refusal any more. A mention already re-asked under
+    `RETRIEVAL_REASK` is left out whatever its newest row says: the ledger
+    would read that answer back, and leaving it out keeps the count honest.
+    """
+    if not extraction_ids:
+        return {}
+    _text, prompt_hash = system_prompt()
+    rows = db.conn().execute(
+        "SELECT extraction_id, mention_idx, shortlist FROM ("
+        "  SELECT DISTINCT ON (extraction_id, mention_idx) extraction_id, mention_idx,"
+        "   shortlist, qid, kind FROM resolution WHERE extraction_id = ANY(%s)"
+        "  ORDER BY extraction_id, mention_idx, id DESC"
+        ") newest WHERE qid IS NULL AND kind = ANY(%s)"
+        " AND NOT EXISTS (SELECT 1 FROM resolution done"
+        "  WHERE done.extraction_id = newest.extraction_id"
+        "  AND done.mention_idx = newest.mention_idx AND done.prompt_hash = %s"
+        "  AND done.render_version = %s AND done.reopened_for = %s)",
+        (list(extraction_ids), list(REASKABLE), prompt_hash, RENDER_VERSION,
+         RETRIEVAL_REASK),
+    ).fetchall()
+    return {(r[0], r[1]): list(r[2] or []) for r in rows}
+
+
+def gained(mention: Mention, state_qid: str | None, offered: Sequence[str]) -> list[str]:
+    """The QIDs today's shortlist offers that the stored one did not, in rank order.
+
+    A refusal is worth asking again only if the model would read something it
+    has not read: the same fifteen get the same `none`.
+    """
+    before = set(offered)
+    return [hit.qid for hit in shortlist_hits(mention, state_qid) if hit.qid not in before]
+
+
+def reask_work(
+    mentions: dict[tuple[int, int], Mention], state_qid: str | None, threads: int = 1
+) -> tuple[int, list[tuple[int, int, Mention]]]:
+    """Select the refusals among `mentions` whose shortlist gained an item.
+
+    Returns how many re-askable refusals there were and the ones to ask under
+    `RETRIEVAL_REASK`, keyed (extraction, mention index) like the ledger. The
+    searches run at `threads` because they are the cost: two per refusal.
+    """
+    refused = refusals(sorted({eid for eid, _idx in mentions}))
+    todo = [(key, offered) for key, offered in sorted(refused.items()) if key in mentions]
+    with ThreadPoolExecutor(max_workers=threads) as pool:
+        flags = list(pool.map(
+            lambda item: bool(gained(mentions[item[0]], state_qid, item[1])), todo
+        ))
+    work = [(eid, idx, mentions[(eid, idx)]) for ((eid, idx), _o), f in zip(todo, flags) if f]
+    return len(todo), work

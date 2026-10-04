@@ -7,6 +7,7 @@ item and article rows that are still inside their age tolerance.
 
 import contextlib
 import json
+import os
 import time
 from collections import Counter
 from collections.abc import Sequence
@@ -35,6 +36,12 @@ FETCH_THREADS = 8
 EXTRACT_THREADS = 4
 RECONCILE_THREADS = 8
 VERIFY_THREADS = 4
+
+#: Whose refusals `reconcile`'s retrieval re-ask covers: `all`, or `stranded`
+#: -- people with no `P39` on the item and every mention unplaced, whom a
+#: placement helps most. An environment switch rather than a flag, because it
+#: exists to stage the first, costed run and every later run wants `all`.
+REASK_SCOPE = os.environ.get("PEPLOOP_REASK_SCOPE", "all")
 
 
 def _fetch_items(qids: Sequence[str], force: bool) -> dict[str, dict[str, Any]]:
@@ -615,14 +622,24 @@ def reconcile(country: str) -> None:
     A mention already answered under this prompt and rendering is skipped
     without a request, so a re-run costs only what is new. First every
     mention's title gets its cached English name, the second search channel
-    the shortlist reads; a title already cached is never asked again.
+    the shortlist reads; a title already cached is never asked again. Last,
+    every refusal whose shortlist now offers an item it did not is asked once
+    more, because a retrieval change alters no key the ledger reads.
     """
     state_qid = positions.country_qid(country)
     _translate_titles(state_qid, country)
     work = _mentions_for(country)
-    if not work:
-        click.echo("nothing to reconcile")
-        return
+    if work:
+        _resolve_all(work, state_qid)
+    else:
+        click.echo("nothing new to reconcile")
+    _reask_gained(country, state_qid)
+
+
+def _resolve_all(
+    work: Sequence[tuple[int, int, Any]], state_qid: str, reopened_for: str = ""
+) -> None:
+    """Resolve each mention at the stage's concurrency, printing a line and a tally."""
     def one(item: tuple[int, int, Any]) -> tuple[str, tuple[str, ...]]:
         """Resolve one mention, returning its line and what it counts towards.
 
@@ -638,7 +655,9 @@ def reconcile(country: str) -> None:
         """
         extraction_id, index, mention = item
         try:
-            verdict, sent = reconciling.resolve_mention(extraction_id, index, mention, state_qid)
+            verdict, sent = reconciling.resolve_mention(
+                extraction_id, index, mention, state_qid, reopened_for=reopened_for
+            )
         except Exception as exc:  # noqa: BLE001 — see above
             return (
                 f"{extraction_id}#{index} {mention.title[:44]!r} failed:"
@@ -665,6 +684,43 @@ def reconcile(country: str) -> None:
     click.echo(
         f"{len(work)} mentions: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items()))
     )
+
+
+def _reask_gained(country: str, state_qid: str) -> None:
+    """Ask each refusal again whose shortlist now offers an item it did not offer.
+
+    Stored under `reconcile.RETRIEVAL_REASK`, so the new verdict sits beside the
+    refusal and, being newer, is the one `propose` reads; a mention is re-asked
+    once per tag, and one whose list did not change is never sent. The count
+    is printed before any request goes out.
+    """
+    rows = db.conn().execute(
+        "SELECT e.id, e.response_json->'positions' FROM ("
+        "  SELECT DISTINCT ON (qid) id, qid, response_json FROM extraction"
+        "  WHERE response_json IS NOT NULL ORDER BY qid, id DESC"
+        ") e JOIN person pe ON pe.qid = e.qid JOIN item i ON i.qid = pe.qid"
+        " WHERE pe.country = %s AND pe.status <> 'out_of_scope'"
+        + (
+            " AND pe.status = 'proposed' AND NOT (i.json->'claims' ? 'P39')"
+            " AND NOT EXISTS (SELECT 1 FROM ("
+            "  SELECT DISTINCT ON (mention_idx) qid FROM resolution r"
+            "  WHERE r.extraction_id = e.id ORDER BY mention_idx, id DESC"
+            " ) newest WHERE newest.qid IS NOT NULL)"
+            if REASK_SCOPE == "stranded" else ""
+        ),
+        (country,),
+    ).fetchall()
+    mentions = {
+        (eid, idx): reconciling.mention_from(entry)
+        for eid, entries in rows for idx, entry in enumerate(entries or [])
+    }
+    refused, work = reconciling.reask_work(mentions, state_qid, threads=RECONCILE_THREADS)
+    click.echo(
+        f"retrieval re-ask ({REASK_SCOPE}): {refused} refusals,"
+        f" {len(work)} with a shortlist that gained an item"
+    )
+    if work:
+        _resolve_all(work, state_qid, reopened_for=reconciling.RETRIEVAL_REASK)
 
 
 def _translate_titles(state_qid: str, country: str) -> None:
