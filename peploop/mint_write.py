@@ -501,13 +501,13 @@ def report(country: str) -> str:
     return "\n".join(out) + "\n"
 
 
-def guarded(country: str, ids: Sequence[int] = (), limit: int | None = None) -> list[dict[str, Any]]:
+def guarded(country: str, limit: int | None = None) -> list[dict[str, Any]]:
     """The rows `mint` would send, oldest first."""
     with db.conn().cursor(row_factory=dict_row) as cur:
         return cur.execute(
             "SELECT * FROM office_candidate WHERE country = %s AND status = 'guarded'"
-            " AND qid IS NULL AND (%s::bigint[] IS NULL OR id = ANY(%s)) ORDER BY id LIMIT %s",
-            (country, list(ids) or None, list(ids) or None, limit)).fetchall()
+            " AND qid IS NULL ORDER BY id LIMIT %s",
+            (country, limit)).fetchall()
 
 
 def labels_of(cand: dict[str, Any]) -> dict[str, str]:

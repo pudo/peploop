@@ -26,6 +26,14 @@ from peploop import review as reviewing
 
 ITEM_MAX_AGE = "7 days"
 ARTICLE_MAX_AGE = "30 days"
+SEED_DIR = Path(__file__).resolve().parent / "seeds"
+# How many requests each stage keeps in flight: what every country run has
+# passed, now fixed. Each one stage's own, because what bounds it differs --
+# Wikimedia's rate limiter for a fetch, the model's latency for the rest.
+FETCH_THREADS = 8
+EXTRACT_THREADS = 4
+RECONCILE_THREADS = 8
+VERIFY_THREADS = 4
 
 
 def _fetch_items(qids: Sequence[str], force: bool) -> dict[str, dict[str, Any]]:
@@ -113,35 +121,36 @@ country_option = click.option(
 
 
 def _select(
-    qid: Sequence[str], statuses: tuple[str, ...], limit: int, country: str | None = None
+    qid: Sequence[str], statuses: tuple[str, ...], country: str | None
 ) -> list[str]:
-    """Pick the people a command works on: the named ones, or the next batch."""
+    """Pick the people a command works on: the named ones, or all of a run's.
+
+    A stage works through everything its selection returns, so one of the two
+    is required: without them a stage would take every country's people.
+    """
     if qid:
         return list(qid)
+    if not country:
+        raise click.UsageError("name the run with --country, or the people with --qid")
     rows = db.conn().execute(
-        "SELECT qid FROM person WHERE status = ANY(%s)"
-        " AND (%s::text IS NULL OR country = %s) ORDER BY qid LIMIT %s",
-        (list(statuses), country, country, limit),
+        "SELECT qid FROM person WHERE status = ANY(%s) AND country = %s ORDER BY qid",
+        (list(statuses), country),
     )
     return [row[0] for row in rows]
 
 
 @cli.command()
-@click.option(
-    "--file",
-    "path",
-    required=True,
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="Seed file of categories, e.g. peploop/seeds/cz.yml.",
-)
-@click.option("--country", default=None, help="Stamp the people queued with this ISO code.")
-def seed(path: Path, country: str | None) -> None:
-    """Queue the members of every Wikipedia category in a seed file.
+@click.option("--country", required=True, help="Seed peploop/seeds/<country>.yml under this code.")
+def seed(country: str) -> None:
+    """Queue the members of every Wikipedia category in the country's seed file.
 
     The country is what every later command's `--country` selects on. Someone
     two runs both find keeps the first one's stamp, so re-seeding a country
     never moves people out of another.
     """
+    path = SEED_DIR / f"{country}.yml"
+    if not path.exists():
+        raise click.UsageError(f"no seed file at {path}")
     entries = wikipedia.load_seeds(path)
     members_total, new_total, failed = 0, 0, 0
     for entry in entries:
@@ -168,18 +177,16 @@ def seed(path: Path, country: str | None) -> None:
 
 
 @cli.command()
-@click.option("--limit", default=100, show_default=True)
-@click.option("--threads", default=8, show_default=True)
 @click.option("--qid", multiple=True, help="Process these people, ignoring the item age.")
 @country_option
-def fetch(limit: int, threads: int, qid: Sequence[str], country: str | None) -> None:
+def fetch(qid: Sequence[str], country: str | None) -> None:
     """Fetch the item and every Wikipedia article of queued people."""
-    qids = _select(qid, ("queued",), limit, country)
+    qids = _select(qid, ("queued",), country)
     if not qids:
         click.echo("nothing queued")
         return
     force = bool(qid)
-    with ThreadPoolExecutor(max_workers=threads) as pool:
+    with ThreadPoolExecutor(max_workers=FETCH_THREADS) as pool:
         chunks = [qids[i : i + 50] for i in range(0, len(qids), 50)]
         entities: dict[str, dict[str, Any]] = {}
         for result in pool.map(lambda c: _fetch_items(c, force), chunks):
@@ -252,33 +259,29 @@ def _propose_one(qid: str) -> tuple[str, str]:
 
 
 @cli.command()
-@click.option("--limit", default=10, show_default=True)
-@click.option("--threads", default=4, show_default=True)
-@click.option("--qid", multiple=True, help="Extract these people instead of a batch.")
+@click.option("--qid", multiple=True, help="Extract these people instead of the whole run.")
 @country_option
-def extract(limit: int, threads: int, qid: Sequence[str], country: str | None) -> None:
+def extract(qid: Sequence[str], country: str | None) -> None:
     """Ask the model about fetched people and store the structured answer.
 
-    Selection is stable, so the same `--limit` picks the same people twice: a
-    person already extracted under this prompt and these article revisions is
-    skipped without a request, and re-running costs nothing.
+    A person already extracted under this prompt and these article revisions
+    is skipped without a request, so re-running costs only what is new.
     """
-    qids = _select(qid, ("fetched", "extracted"), limit, country)
+    qids = _select(qid, ("fetched", "extracted"), country)
     if not qids:
         click.echo("nothing fetched")
         return
-    with ThreadPoolExecutor(max_workers=threads) as pool:
+    with ThreadPoolExecutor(max_workers=EXTRACT_THREADS) as pool:
         for _, line in pool.map(_extract_one, qids):
             click.echo(line)
 
 
 @cli.command()
-@click.option("--limit", default=100, show_default=True)
-@click.option("--qid", multiple=True, help="Propose for these people instead of a batch.")
+@click.option("--qid", multiple=True, help="Propose for these people instead of the whole run.")
 @country_option
-def propose(limit: int, qid: Sequence[str], country: str | None) -> None:
+def propose(qid: Sequence[str], country: str | None) -> None:
     """Turn each extracted person's answer into proposals, and status them."""
-    qids = _select(qid, ("extracted", "proposed"), limit, country)
+    qids = _select(qid, ("extracted", "proposed"), country)
     if not qids:
         click.echo("nothing extracted")
         return
@@ -301,16 +304,17 @@ def _echo_property_counts(country: str | None = None) -> None:
 
 
 @cli.command()
-@click.option("--limit", default=20, show_default=True)
+@click.option("--limit", default=20, show_default=True, help="How many people to draw.")
 @click.option("--qid", multiple=True, help="Review these people instead of a random draw.")
 @country_option
 def review(limit: int, qid: Sequence[str], country: str | None) -> None:
-    """Review people's `new`, `refine` and `conflict` proposals, recording a verdict.
+    """Sample people's proposals in a terminal UI, recording a verdict on each.
 
-    One person per screen, drawn at random from those with something left to
-    review; each person's decisions are written in one transaction when the
-    screen is submitted. An accepted conflict is a note that the item is wrong,
-    not an edit: `apply` never writes a value contradicting what is recorded.
+    A sampler, not a gate: the verdicts measure the pipeline and change no
+    status. The policy's next run skips a row rejected here; an accept decides
+    nothing. One person per screen, drawn at random from those with something
+    left to review; each person's decisions are written in one transaction
+    when the screen is submitted.
     """
     qids = reviewing.select_people(list(qid), limit, country)
     if not qids:
@@ -327,32 +331,35 @@ def review(limit: int, qid: Sequence[str], country: str | None) -> None:
 
 
 def _apply_pass(
-    qids: Sequence[str], token: str | None, write: bool, follow: bool
-) -> tuple[int, int, bool]:
-    """Write one pass over `qids`: proposals applied, failures, and whether lag stopped it.
+    qids: Sequence[str], token: str | None, write: bool
+) -> tuple[list[str], int, int, bool]:
+    """Write one pass over `qids` and say who it got through.
 
-    In follow mode a person with nothing left to write prints nothing, because
-    a row the router keeps skipping would otherwise be re-announced every pass.
+    Returns the people dealt with, the proposals applied, the failures, and
+    whether a lagged site stopped the pass. A person the lag budget ran out on
+    is not theirs to fail: they are left out of the first list, untouched, for
+    the drain to come back to once the site has caught up.
     """
+    done: list[str] = []
     applied, failed = 0, 0
     for index, person_qid in enumerate(qids):
         if write and index:
             time.sleep(applying.THROTTLE)
         try:
-            plan, note = applying.apply_person(person_qid, token, defer_lag=follow)
+            plan, note = applying.apply_person(person_qid, token, defer_lag=write)
         except applying.ApiError as exc:
-            # The site is lagged, not this person: the next pass comes back.
-            if follow and exc.code == "maxlag":
-                return applied, failed, True
+            if write and exc.code == "maxlag":
+                return done, applied, failed, True
+            done.append(person_qid)
             failed += 1
             click.echo(f"{person_qid} failed: {type(exc).__name__}: {exc}")
             continue
         except Exception as exc:  # noqa: BLE001 — a refused edit is a row, not a dead run
+            done.append(person_qid)
             failed += 1
             click.echo(f"{person_qid} failed: {type(exc).__name__}: {exc}")
             continue
-        if follow and not plan.data:
-            continue
+        done.append(person_qid)
         routes = " ".join(f"{route}={n}" for route, n in sorted(plan.routes.items()))
         head = f"{person_qid} [{routes}]{note}"
         click.echo(f"{head}: {plan.summary}" if plan.data else f"{head}: nothing to write")
@@ -363,76 +370,57 @@ def _apply_pass(
         applied += plan.covered
         if not write:
             click.echo(json.dumps(plan.data, indent=2, ensure_ascii=False))
-    return applied, failed, False
+    return done, applied, failed, False
 
 
 @cli.command("apply")
-@click.option("--limit", default=10, show_default=True)
-@click.option("--qid", multiple=True, help="Write these people instead of a batch.")
+@click.option("--limit", default=None, type=int,
+              help="Write at most this many people: the first-diffs gate. Default: all.")
+@click.option("--qid", multiple=True, help="Write these people instead of the whole run.")
 @click.option("--write", is_flag=True, help="Send the edits; without it nothing leaves here.")
-@click.option("--follow", is_flag=True, help="Keep draining what review accepts, until Ctrl-C.")
-@country_option
-def apply_(
-    limit: int, qid: Sequence[str], write: bool, follow: bool, country: str | None
-) -> None:
-    """Write each person's accepted proposals to Wikidata as one edit.
+@click.option("--country", required=True, help="The run to write; its writer lock is taken.")
+def apply_(limit: int | None, qid: Sequence[str], write: bool, country: str) -> None:
+    """Write each person's accepted proposals to Wikidata as one edit, until none are left.
 
     A dry run by default: it does the same pre-flight against the live item and
     prints the payload it would send. `--write` logs in and sends, one person
-    every ten seconds, and records what came back on each proposal.
-
-    `--follow` turns it into a drainer that selects again every minute instead
-    of exiting, so it can run detached beside `review` — `nohup` it the way
-    `run` is run — and Ctrl-C ends it with the session's totals. A person the
-    lag budget ran out on is left alone and retried next pass.
+    every ten seconds, and records what came back on each proposal. It drains
+    the run in one process, so one invocation is one EditGroups batch: a lagged
+    site is waited out and the person it stopped on retried, while a person
+    who failed for any other reason is not offered again until the next run.
     """
-    if follow and not write:
-        raise click.UsageError("--follow writes: pass --write too")
-    if write and not country:
-        raise click.UsageError("--write takes the country's writer lock: pass --country")
     token = None
     lock = contextlib.nullcontext()
     if write:
         # One writer per country: a second drain picks the same people and the
         # API writes their statements twice, and a mint beside it is no safer.
         lock = minting.writer_lock(country, "apply")
-        lock.__enter__()
-        click.echo(f"logged in as {applying.login()}")
-        token = applying.csrf_token()
-    applied, failed, seen, state = 0, 0, 0, ""
-    try:
-        while True:
-            qids = applying.people(list(qid), limit, country)
-            if not qids:
-                if not follow:
-                    click.echo("nothing accepted")
-                    return
-                state = _note_state(state, "idle", "nothing accepted: waiting")
-            else:
-                seen += len(qids)
-                count, fails, lagged = _apply_pass(qids, token, write, follow)
+    tried: set[str] = set()
+    applied, failed = 0, 0
+    with lock:
+        if write:
+            click.echo(f"logged in as {applying.login()}, batch {applying.BATCH_ID}")
+            token = applying.csrf_token()
+        try:
+            while True:
+                qids = [q for q in applying.people(list(qid), None, country) if q not in tried]
+                if limit is not None:
+                    qids = qids[: max(0, limit - len(tried))]
+                if not qids:
+                    break
+                done, count, fails, lagged = _apply_pass(qids, token, write)
+                tried.update(done)
                 applied += count
                 failed += fails
-                if not follow:
+                if not write:
                     break
                 if lagged:
-                    state = _note_state(state, "lagged", "wikidata is lagged: waiting")
-                elif count:
-                    state = "writing"
-            time.sleep(applying.FOLLOW_IDLE)
-    except KeyboardInterrupt:
-        click.echo("")
-    finally:
-        lock.__exit__(None, None, None)
+                    click.echo(f"wikidata is lagged: waiting {applying.LAG_WAIT:.0f}s")
+                    time.sleep(applying.LAG_WAIT)
+        except KeyboardInterrupt:
+            click.echo("")
     verb = "applied" if write else "would apply"
-    click.echo(f"{seen} people: {verb} {applied} proposals, {failed} failed")
-
-
-def _note_state(state: str, now: str, message: str) -> str:
-    """Print a follow-mode heartbeat only when the state it reports has changed."""
-    if state != now:
-        click.echo(message)
-    return now
+    click.echo(f"{len(tried)} people: {verb} {applied} proposals, {failed} failed")
 
 
 #: The model stages `prompt` can show a request for.
@@ -472,11 +460,10 @@ def prompt_(stage: str, qid: Sequence[str], country: str | None) -> None:
 
 
 @cli.command("policy")
-@click.option("--limit", default=100000, show_default=True)
 @click.option("--qid", multiple=True, help="Decide these people instead of a run's.")
 @click.option("--dry-run", is_flag=True, help="Report what the rules would decide; write nothing.")
 @country_option
-def policy_(limit: int, qid: Sequence[str], dry_run: bool, country: str | None) -> None:
+def policy_(qid: Sequence[str], dry_run: bool, country: str | None) -> None:
     """Decide every proposal by rule: accepted, skipped, or pending the verifier.
 
     Reads each person's `new` and `refine` rows -- and whatever the policy
@@ -484,7 +471,7 @@ def policy_(limit: int, qid: Sequence[str], dry_run: bool, country: str | None) 
     row a human ruled on or `apply` has written. The report is the funnel:
     per property, how many rows entered and which rule took each of them.
     """
-    people = _select(qid, ("proposed",), limit, country)
+    people = _select(qid, ("proposed",), country)
     if not people:
         click.echo("nobody proposed")
         return
@@ -495,28 +482,24 @@ def policy_(limit: int, qid: Sequence[str], dry_run: bool, country: str | None) 
     click.echo(f"{len(people)} people, {'reported' if dry_run else 'decided'}")
 
 
-def _pending_people(qid: Sequence[str], limit: int, country: str | None) -> list[str]:
+def _pending_people(qid: Sequence[str], country: str | None) -> list[str]:
     """The people with a proposal the policy has held for the verifier."""
     if qid:
         return list(qid)
+    if not country:
+        raise click.UsageError("name the run with --country, or the people with --qid")
     rows = db.conn().execute(
         "SELECT DISTINCT p.person_qid FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
-        " WHERE p.status = 'pending' AND (%s::text IS NULL OR pe.country = %s)"
-        " ORDER BY p.person_qid LIMIT %s",
-        (country, country, limit),
+        " WHERE p.status = 'pending' AND pe.country = %s ORDER BY p.person_qid",
+        (country,),
     )
     return [row[0] for row in rows]
 
 
 @cli.command("verify")
-@click.option("--limit", default=50, show_default=True, help="How many people to verify.")
-@click.option("--threads", default=4, show_default=True)
-@click.option("--qid", multiple=True, help="Verify these people instead of a batch.")
-@click.option("--dry-run", is_flag=True, help="Print what the model would be shown; send nothing.")
+@click.option("--qid", multiple=True, help="Verify these people instead of the whole run.")
 @country_option
-def verify_(
-    limit: int, threads: int, qid: Sequence[str], dry_run: bool, country: str | None
-) -> None:
+def verify_(qid: Sequence[str], country: str | None) -> None:
     """Ask a second model about every proposal the policy holds as `pending`.
 
     One request per proposal against the frozen `prompts/verify.md`, shown the
@@ -525,15 +508,9 @@ def verify_(
     is new; once a person's rows are answered the policy is run over them
     again, and each row leaves as `accepted` or `skipped`.
     """
-    people = _pending_people(qid, limit, country)
+    people = _pending_people(qid, country)
     if not people:
         click.echo("nothing pending")
-        return
-    if dry_run:
-        for person_qid in people:
-            for row in verifying.pending_rows(person_qid):
-                click.echo(f"===== proposal {row['id']} =====")
-                click.echo(verifying.render_edit(verifying.edit_for(row)))
         return
 
     def one(person_qid: str) -> tuple[list[str], Counter[str]]:
@@ -564,7 +541,7 @@ def verify_(
         return lines, counts
 
     totals: Counter[str] = Counter()
-    with ThreadPoolExecutor(max_workers=threads) as pool:
+    with ThreadPoolExecutor(max_workers=VERIFY_THREADS) as pool:
         for lines, counts in pool.map(one, people):
             for line in lines:
                 click.echo(line)
@@ -572,14 +549,14 @@ def verify_(
     click.echo(f"{len(people)} people: " + ", ".join(f"{k}={v}" for k, v in sorted(totals.items())))
 
 
-def _mentions_for(country: str | None, limit: int) -> list[tuple[int, int, Any]]:
+def _mentions_for(country: str) -> list[tuple[int, int, Any]]:
     """List the office mentions still unanswered under the current prompt.
 
     One row per (extraction, mention index). The extraction chosen per person
     is the newest, because an older one was answered about articles that have
     since been re-read. The ledger, not this query, is what makes the pass
     resumable -- `resolve_mention` returns a recorded verdict without asking --
-    but skipping the answered ones here keeps `--limit` meaning new work.
+    but skipping the answered ones here makes the count printed the new work.
     """
     _text, prompt_hash = reconciling.system_prompt()
     rows = db.conn().execute(
@@ -587,9 +564,8 @@ def _mentions_for(country: str | None, limit: int) -> list[tuple[int, int, Any]]
         "  SELECT DISTINCT ON (qid) id, qid, response_json FROM extraction"
         "  WHERE response_json IS NOT NULL ORDER BY qid, id DESC"
         ") e JOIN person pe ON pe.qid = e.qid"
-        " WHERE (%s::text IS NULL OR pe.country = %s)"
-        " AND pe.status <> 'out_of_scope' ORDER BY e.id",
-        (country, country),
+        " WHERE pe.country = %s AND pe.status <> 'out_of_scope' ORDER BY e.id",
+        (country,),
     )
     answered = {
         (row[0], row[1])
@@ -605,16 +581,12 @@ def _mentions_for(country: str | None, limit: int) -> list[tuple[int, int, Any]]
             if (extraction_id, index) in answered:
                 continue
             work.append((extraction_id, index, reconciling.mention_from(entry)))
-            if len(work) >= limit:
-                return work
     return work
 
 
 @cli.command()
-@click.option("--limit", default=100, show_default=True)
-@click.option("--threads", default=4, show_default=True)
-@country_option
-def reconcile(limit: int, threads: int, country: str | None) -> None:
+@click.option("--country", required=True, help="The run whose mentions to resolve.")
+def reconcile(country: str) -> None:
     """Resolve each extracted office mention to a position item, or refuse.
 
     One request per mention against the frozen `prompts/reconcile.md`, never a
@@ -626,8 +598,8 @@ def reconcile(limit: int, threads: int, country: str | None) -> None:
     A mention already answered under this prompt and rendering is skipped
     without a request, so a re-run costs only what is new.
     """
-    state_qid = positions.country_qid(country) if country else None
-    work = _mentions_for(country, limit)
+    state_qid = positions.country_qid(country)
+    work = _mentions_for(country)
     if not work:
         click.echo("nothing to reconcile")
         return
@@ -666,7 +638,7 @@ def reconcile(limit: int, threads: int, country: str | None) -> None:
         )
 
     counts: Counter[str] = Counter()
-    with ThreadPoolExecutor(max_workers=threads) as pool:
+    with ThreadPoolExecutor(max_workers=RECONCILE_THREADS) as pool:
         for line, tally in pool.map(one, work):
             counts.update(tally)
             click.echo(line)
@@ -705,19 +677,14 @@ def titles_(country: str, dry_run: bool) -> None:
 
 @cli.command("load-positions")
 @click.option("--country", required=True, help="ISO code of the country to load.")
-@click.option(
-    "--source",
-    "sources",
-    multiple=True,
-    type=click.Choice(positions.SOURCES),
-    help="Run only these discovery lanes instead of all of them.",
-)
-def load_positions(country: str, sources: Sequence[str]) -> None:
-    """Load one country's position items into the reconciliation table."""
+def load_positions(country: str) -> None:
+    """Load one country's position items into the reconciliation table, every lane.
+
+    Additive, so it is also the way to add a lane to a country already
+    loaded: what the other lanes found is updated in place, not duplicated.
+    """
     started = time.monotonic()
-    counts = positions.load_country(
-        country, sources or positions.SOURCES, log=click.echo
-    )
+    counts = positions.load_country(country, log=click.echo)
     click.echo(
         f"loaded {counts['loaded']} positions, {counts['names']} names"
         f" in {time.monotonic() - started:.0f}s"
@@ -866,10 +833,9 @@ def stats(country: str | None) -> None:
 
 @cli.command("mint-categorize")
 @click.option("--country", required=True, help="ISO code of the country to categorize.")
-@click.option("--dry-run", is_flag=True, help="Print the first request; ask and write nothing.")
-def mint_categorize(country: str, dry_run: bool) -> None:
+def mint_categorize(country: str) -> None:
     """Cluster a country's unplaced offices into candidates, and draft each one."""
-    stats = mint.categorize(country, dry_run=dry_run, log=click.echo)
+    stats = mint.categorize(country, log=click.echo)
     stats.pop("clusters", None)
     stats.pop("truncated", None)
     click.echo(json.dumps(stats, sort_keys=True))
@@ -877,12 +843,9 @@ def mint_categorize(country: str, dry_run: bool) -> None:
 
 @cli.command("mint-verify")
 @click.option("--country", required=True, help="ISO code of the country to verify.")
-@click.option("--limit", default=None, type=int, help="Verify at most this many candidates.")
-@click.option("--threads", default=4, show_default=True)
-@click.option("--dry-run", is_flag=True, help="Print what the model would be shown; send nothing.")
-def mint_verify(country: str, limit: int | None, threads: int, dry_run: bool) -> None:
+def mint_verify(country: str) -> None:
     """Ask the second model about each categorized office, and decide each by rule."""
-    stats = mint.verify(country, limit=limit, threads=threads, dry_run=dry_run, log=click.echo)
+    stats = mint.verify(country, threads=VERIFY_THREADS, log=click.echo)
     for (status, rule), n in sorted((stats.get("funnel") or {}).items(), key=lambda kv: -kv[1]):
         click.echo(f"{n:5d}  {status:10s} {rule}")
     click.echo(json.dumps({k: v for k, v in stats.items() if k not in ("funnel", "decided") and _jsonable(v)},
@@ -896,9 +859,8 @@ def _jsonable(value: Any) -> bool:
 @cli.command("mint")
 @click.option("--country", required=True, help="ISO code of the country to mint for.")
 @click.option("--limit", default=None, type=int, help="Create at most this many items.")
-@click.option("--id", "ids", multiple=True, type=int, help="Only these candidates.")
 @click.option("--write", is_flag=True, help="Create the items; without it nothing leaves here.")
-def mint_(country: str, limit: int | None, ids: Sequence[int], write: bool) -> None:
+def mint_(country: str, limit: int | None, write: bool) -> None:
     """Create each guarded office as a Wikidata item, then feed it back into the run.
 
     A dry run by default: it prints each guarded payload with the labels of
@@ -908,7 +870,7 @@ def mint_(country: str, limit: int | None, ids: Sequence[int], write: bool) -> N
     feeding it into the position table and the mentions it was attested by.
     """
     if not write:
-        rows = minting.guarded(country, ids, limit)
+        rows = minting.guarded(country, limit)
         for cand in rows:
             names = minting.labels_of(cand)
             click.echo(f"===== #{cand['id']} {cand['ref']} ({cand['holders']} holders,"
@@ -924,7 +886,7 @@ def mint_(country: str, limit: int | None, ids: Sequence[int], write: bool) -> N
     with minting.writer_lock(country):
         for cid, outcome, qid in minting.recover(country, log=click.echo):
             counts[f"recovered:{outcome}"] += 1
-        rows = minting.guarded(country, ids, limit)
+        rows = minting.guarded(country, limit)
         for index, cand in enumerate(rows):
             if index:
                 time.sleep(applying.THROTTLE)
@@ -947,10 +909,9 @@ def mint_(country: str, limit: int | None, ids: Sequence[int], write: bool) -> N
 
 @cli.command("mint-feed")
 @click.option("--country", required=True, help="ISO code of the country to feed.")
-@click.option("--id", "ids", multiple=True, type=int, help="Only these candidates.")
-def mint_feed(country: str, ids: Sequence[int]) -> None:
+def mint_feed(country: str) -> None:
     """Load every created or found item and re-ask the mentions it was attested by."""
-    click.echo(minting.feed(country, list(ids) or None, log=click.echo).line())
+    click.echo(minting.feed(country, log=click.echo).line())
 
 
 @cli.command("mint-report")

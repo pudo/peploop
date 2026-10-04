@@ -44,7 +44,8 @@ MAX_BACKOFF = 120.0
 # Lag episodes outlast a short budget; the remedy is patience, not a higher threshold.
 MAXLAG_BUDGET = 600.0
 THROTTLE = 10.0
-FOLLOW_IDLE = 60.0
+#: How long a drain waits after the lag budget ran out before trying again.
+LAG_WAIT = 60.0
 # A reference built only from these says "imported from a Wikipedia article",
 # which is the one provenance a refinement may overwrite in place.
 IMPORT_PROPS = wikidata.IMPORT_PROPS
@@ -676,8 +677,8 @@ def write_payload(plan: Plan, token: str) -> dict[str, Any]:
     `check_apply`: there is no `bot` key at all, because MediaWiki resolves a
     boolean parameter by its *presence* and `bot=0` therefore asks for the flag
     rather than declining it; `assert` fails an edit whose session has lapsed
-    instead of attributing it to the client IP, which matters because `--follow`
-    logs in once and may then run for days; and `baserevid` is the revision the
+    instead of attributing it to the client IP, which matters because a drain
+    logs in once and may then wait out lag for hours; and `baserevid` is the revision the
     decision was made against, so an item that moved underneath is a conflict
     rather than a silent overwrite.
     """
@@ -900,7 +901,7 @@ def retire(plan: Plan) -> int:
 
     A conflict, a value already there, a removed lane's row: none of
     these will write on a later pass either, and an accepted row that stays
-    accepted is selected again every minute by `--follow`. They become
+    accepted is selected again by every drain. They become
     `skipped` under `apply:<route>`, which a report counts like any other rule.
     """
     conn = db.conn()

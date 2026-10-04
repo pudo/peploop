@@ -582,12 +582,13 @@ in total for one person's write; an `editconflict` re-reads the item,
 re-proposes and retries once, and then the person gets an `error` and their
 proposals stay `accepted`.
 
-`apply --write --follow` is the drainer: it selects again every minute instead
-of exiting, so it can run detached beside `review` and write each person up
-within a minute of their being accepted. A lag episode outlasting the ten
-minutes is not that person's fault, so in follow mode it leaves them untouched
-and the next pass retries them silently, while any other API error still marks
-them `failed` — a payload the site refuses must not be offered forever.
+`apply --write` drains the run in one process, so one invocation is one
+EditGroups batch. A lag episode outlasting the ten minutes is not that
+person's fault, so the drain leaves them untouched, waits a minute and selects
+again, while any other API error marks them `failed` and keeps them out of
+the rest of the drain -- a payload the site refuses must not be offered
+forever. It takes the country's writer lock, `peploop:<cc>`, which `mint
+--write` takes too.
 
 ## Tables
 
