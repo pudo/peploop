@@ -207,3 +207,24 @@ first lane (repair or fill) before writing the tool.
   Load adds a Soviet-scope lane instead (`P17` = USSR/BSSR). The institution map
   feeds the fill step, which works from bodies.
 - **Write path:** classic QS API, parse-before-submit, QIDs recovered on re-run.
+
+## Implementation state (2026-10-04)
+
+- **Belarus written.** Batch 289589 has 297 commands: 189 `P1001`, 72 `P17` and 29
+  `P279` statements on 232 items, with 0 errors. It was pasted into the QS UI by
+  hand, because the classic API refused with "Problem generating OAuth
+  signature" even right after a fresh background batch had run.
+- **Automated submit is unsolved.** `write <cc> --submit` gets as far as QS auth
+  and then hits the OAuth error. QS3 is the next thing to try. Until it works,
+  each batch is pasted by hand and recorded with `status <id>`.
+- **Country config comes from data** (`country.py`). Languages come from rigour.
+  Predecessor states come from rigour and `P1365`/`P155`, and their federations
+  from `P17`. The gazetteer holds the `P150` units plus second-level units. Level
+  words are learned from the country's own offices. `check_neutral.py` forbids
+  country QIDs and word lists in code.
+- **P31 is held back** unless a sibling or category channel agrees
+  (`p31_weak_channel`).
+- **The load filter** drops non-offices, bodies, inbound ambassadors,
+  occupations, places, legal cases, estates and `generic_positions.csv`.
+- **Output** goes to `data/peptree/<cc>/<cc>-<date>.qs`, with an `.md` report
+  next to it.
