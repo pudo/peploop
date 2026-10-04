@@ -1117,3 +1117,75 @@ exists unconnected (`exists: Q85751924, claimless` is a comment in `tt.yml`
 today). That item belongs in the fix list, not the mint queue. Otherwise the
 mint's duplicate guard is the only thing standing between a claimless office
 and a second item for it.
+
+### 10p. Deputy, vice and junior ministers (measured 2026-10-04)
+
+For the mint's `deputy_minister` and `minister_of_state` archetypes. Live
+reads. Clusters are CirrusSearch `inlabel:"<phrase>@<lang>"` over the six
+metaclasses of §10, kept only where the label in that language *begins* with
+the phrase: "Deputy Minister of/for", "First Deputy Minister", "Vice(-)Minister
+of", "Viceministro/a de", "Заместитель министра", "Первый заместитель
+министра", "Заступник міністра" (the **deputy** cluster, 488 items, 51 states);
+"Minister of State in/at/for" (**minister of state**, 377 items, 41 states);
+"secrétaire d'État", "Secretario de Estado de", "Secretário de Estado"
+(**secretary of state**, 281); "Junior Minister" (4) and "Parliamentary
+Secretary" (25). `P31`/`P279`/bodies are read off claims, every rank but
+deprecated. The bodies were classified by their labels (a cabinet, a council
+of ministers, a government vs a ministry or department), because their types
+do not separate the two: a cabinet and a ministry both reach `Q327333`.
+
+| cluster | n | `P31` | `P279` | body | `P1001` |
+|---|---:|---|---|---|---|
+| deputy | 488 | `Q294414` 370, `Q4164871` 130 | `Q83307` minister 170 (15 states); **`Q26204040` deputy minister 107** (27 states, with its national subclasses: Bulgaria 8); `Q15735113` assistant secretary via the Greek, Cypriot and Israeli national classes 39; `Q118286354` Minister of Mozambique 28; none 92 (14 states) | `P361` 341, `P2389` 20, none 135. **The government or cabinet 284**, a ministry ~69 (Indonesia 38 of them) | 414; the state itself 302 |
+| minister of state | 377 | `Q294414` 293, `Q4164871` 89 | **`Q83307` minister 165 (35 states)**; `Q3315100` (UK) 91, `Q2325081` (Ireland) 28 and `Q2632935` itself 16, all `Q2632935` minister of state (13 states); `Q245696` (Japan) 37; none 32 | `P361` 267, `P2389` 28. **The cabinet 235**, a ministry or department ~33 | 343; the state 337 |
+| secretary of state | 281 | `Q4164871` 167, `Q294414` 134 | national classes: Portugal `Q115209702` 45, UK cabinet `Q14214` 37, Spain `Q3477289` 22; `Q83307` 34; `Q736559` 30 | cabinet/government 163, ministry ~66 | 240 |
+
+`Q26204040` **deputy minister** ("person who assists minister in management
+of ministerial financial and human resources and can act on behalf of the
+minister"): `P31 Q4164871`, `P279 Q3250324` deputy, labelled in en, es
+(viceministro), fr (vice-ministre), ru (заместитель министра), de; 7
+sitelinks. It does **not** subclass `Q83307` minister, and it reaches
+`Q4164871` only through its own `P31` -- which is the walk the consumer uses.
+`Q90132546` "deputy minister" (political function, 2 subclasses, both
+Belarusian) is a stray duplicate. `Q2632935` **minister of state** ("minister
+assigned to assist a specific cabinet minister"): `P31 Q294414`, `P279
+Q83307` minister. `Q1307214`, suggested as a candidate, is "form of
+government" and unrelated. `Q21814496` "first deputy" subclasses deputy, and
+two Belarusian first-deputy items use `Q26204040` instead.
+
+**One seat or many.** Of the 148 deputy items with a holder whose `P39`
+started in 2016 or later and records no end, 33 have two or more such holders
+at once (Russia's deputy defence minister 6, Thailand's interior 4, Georgia's
+interior 4): a deputy ministership is a seat several people hold together.
+A first deputy is a seat of its own, minted as its own item -- 20 "First
+Deputy Minister" items, none merged with the plain deputyship of the same
+ministry. Ministers of state are mostly one per ministry, but Ireland and
+Jamaica each carry ministries with two current.
+
+**Per-ministry items, not a generic item with a qualifier.** 316 people hold
+`P39 = Q26204040` itself (193 of them with a qualifier naming the ministry),
+concentrated in Hungary 106, Georgia 37, Czechia 29 and Canada 27; 139 hold
+`Q2632935` itself (Iraq 34). Against them, the 488 per-ministry deputy items
+carry 2,809 holder-item pairs, and none of the eight run countries' people
+uses the generic item. So the generic convention is a handful of states'
+practice, and a deputy ministership is minted as its own item.
+
+**The run countries' own items.**
+
+| state | items | shape |
+|---|---|---|
+| Belarus | 7 deputies, 3 of them first deputies (`Q90133244`, `Q90132622`, `Q106400254`, `Q137842286`, `Q63928477`; first `Q19849020`, `Q106400307`, `Q116947355`) | `P279 Q26204040` on 5 (two stack the stray `Q90132546`, one `Q15735113`); `P31 Q4164871` 4, `Q294414` 1, none 2; **no body**; `P1001` the state. Labels "Deputy Minister of X of the Republic of Belarus", ru "заместитель Министра …", be "намеснік Міністра …" |
+| Jamaica | 10 ministers of state (`Q112109646`…`Q115278562`) | `P31 Q294414`, `P279 Q83307`, **`P361 Q5015520` Cabinet of Jamaica**, `P1001` the state; every label "Minister of State **at** the Ministry of X" (or "at the Office of the Prime Minister"); description "cabinet position in Jamaica" |
+| Colombia | 1 (`Q140800142` Vice Minister of Defense) | `P31 Q4164871`, no `P279`, `P361` the ministry `Q3062492` |
+| cu, do, ht, bi, tt | none | Trinidad and Tobago's ministers of state and parliamentary secretaries have no items at all |
+
+So the two kinds differ in `P279` and in nothing else. **`deputy_minister`**
+takes `Q26204040`; **`minister_of_state`** takes `Q2632935`, keeping a drafted
+`Q83307` where the state's own ministers of state use it (Jamaica). Both name
+the government or cabinet under `P361` -- the body the state's ministers sit
+in, not the ministry, by about four to one in both clusters -- are scoped to
+the state, take their metaclass from the state's siblings, and are not one
+seat. The sibling label wins over the drafted one: an article's "Minister of
+State in the Ministry of X" is minted as Jamaica's "… at the Ministry of X".
+Parliamentary secretaries (Jamaica, Trinidad and Tobago) are a third kind
+with 25 items worldwide and no class of their own; they get no archetype.
