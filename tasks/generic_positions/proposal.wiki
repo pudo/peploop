@@ -1,5 +1,5 @@
 == Proposal: mark generic position classes (minister, mayor, member of parliament) as "generic type of position" ==
-{{ping|C960657}} — building on your {{Q|Q136649946}}, so your view matters most here. Also posted at [[Wikidata talk:WikiProject Politicians]].
+{{ping|C960657}} — building on your {{Q|Q136649946}}, so your view matters most here. Also posted at [[Wikidata talk:WikiProject every politician]], with a pointer on [[Property talk:P39]].
 
 '''Problem.''' 232 items such as {{Q|Q83307}}, {{Q|Q30185}} and {{Q|Q486839}} receive '''154,814''' {{P|39}} statements, which is 7.8% of all ~2.0M. They name a ''kind'' of office, not an office, so "position held: minister" says nothing about where. Only 4 of them are on P39's none-of constraint. Only 11 carry {{Q|Q136649946}}, and that class can't mean "no jurisdiction" anyway: about 40 of its 93 instances are country-scoped classes such as "mayor of a place in France".
 

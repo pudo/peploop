@@ -8,7 +8,9 @@ alternatives that were rejected.
 
 Order, each step by hand:
 
-1. Post `proposal.wiki` to WikiProject Ontology and WikiProject Politicians, which
+1. Post `proposal.wiki` to [Wikidata talk:WikiProject Ontology](https://www.wikidata.org/wiki/Wikidata_talk:WikiProject_Ontology),
+   cross-post it to [Wikidata talk:WikiProject every politician](https://www.wikidata.org/wiki/Wikidata_talk:WikiProject_every_politician),
+   and leave a one-line pointer on [Property talk:P39](https://www.wikidata.org/wiki/Property_talk:P39). The note
    pings the creator of `Q136649946`. Wait a few days for objections.
 2. Create the item: paste `new_item.qs` into QuickStatements. Note the new QID.
 3. Replace `Q_NEW` with that QID in both tag files.
