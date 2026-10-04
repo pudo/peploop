@@ -239,6 +239,35 @@ def main() -> int:
     expect(propose.OVERLAPPING in propose.STATUS_RANK, False,
            "overlapping is never ranked against a date comparison")
 
+    print("a row apply closed, on a re-propose:")
+    # A seat recorded with a district and no dates is a specific tenure the
+    # article's dates may not be about: apply closes the row as `termed`, and
+    # a re-propose used to bring it back as `accepted`.
+    districted = statement()
+    districted["qualifiers"] = {"P768": [{"property": "P768", "snaktype": "value",
+                                          "datatype": "wikibase-item", "datavalue": {
+                                              "type": "wikibase-entityid",
+                                              "value": {"entity-type": "item", "id": OTHER}}}]}
+    closed = {"property": "P39", "value": value, "qualifiers": span("2020-10-15"),
+              "decided_by": "apply:termed"}
+    expect(propose.apply_decision_holds(item(districted), closed), True,
+           "stays closed while the item still records only the undated, districted seat")
+    expect(propose.apply_decision_holds(item(districted, statement("2020-10-15")), closed), False,
+           "is re-derived once the item records a spell the row now matches")
+    expect(propose.apply_decision_holds(item(), closed), False,
+           "and once the districted seat is gone")
+    expect(propose.apply_decision_holds(None, closed), False,
+           "and is never kept with no item to plan against")
+    born = {"property": "P569", "value": day("1960-03-01"), "qualifiers": None,
+            "decided_by": "apply:conflict"}
+    recorded = {"claims": {"P569": [{"rank": "normal", "mainsnak": {
+        "property": "P569", "snaktype": "value", "datatype": "time",
+        "datavalue": {"type": "time", "value": day("1961-07-04")}}}]}}
+    expect(propose.apply_decision_holds(recorded, born), True,
+           "a conflicting birth date stays closed while the other date stands")
+    expect(propose.apply_decision_holds({"claims": {}}, born), False,
+           "and is re-derived once it is gone")
+
     print(f"{len(failures)} failures")
     return 1 if failures else 0
 

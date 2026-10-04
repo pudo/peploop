@@ -593,16 +593,44 @@ def proposal_key(prop: str, value: dict[str, Any], qualifiers: dict[str, Any] | 
 #: A row `propose` may not replace: it records something a re-run cannot
 #: reproduce -- a human's ruling, or an edit that has already reached Wikidata.
 KEPT_STATUSES = ("applied",)
+#: The provenance prefix `apply` closes an unwritable row under.
+APPLY_DECIDED = "apply:"
+
+
+def apply_decision_holds(entity: dict[str, Any] | None, row: dict[str, Any]) -> bool:
+    """Whether a row `apply` closed would be closed the same way against this item.
+
+    `apply`'s pre-flight reads things `propose` does not -- a tenure statement
+    carrying a term and no dates (`termed`), a single-valued property already
+    holding another value (`conflict`) -- so a row it closed comes back from a
+    re-propose as `accepted`, inflating the counts until the next drain closes
+    it again. The decision is kept for as long as it still holds: the item's
+    stored record is planned against again, and only a row that now routes to
+    the same non-writing route stays closed. With no record to plan against,
+    nothing is kept.
+    """
+    from peploop import apply  # apply imports propose
+
+    route = (row.get("decided_by") or "")[len(APPLY_DECIDED):]
+    if not route or entity is None:
+        return False
+    if route == "lane_removed":
+        return True
+    planned, statement = apply.plan_claim(entity, row)
+    return statement is None and planned == route
 
 
 def _store(
-    qid: str, proposals: list[Proposal], extraction_id: int, item_rev: int | None
+    qid: str, proposals: list[Proposal], extraction_id: int, item_rev: int | None,
+    entity: dict[str, Any] | None = None,
 ) -> tuple[Counter[tuple[str, str]], int]:
     """Replace this person's proposals, keeping what a re-run cannot reproduce.
 
     A human's verdict and a written edit are the two things in the table that
     are not derived from the extraction, so rows carrying either survive and
-    the proposal that would duplicate them is not inserted again. Everything
+    the proposal that would duplicate them is not inserted again. So does a
+    row `apply` closed against the live item, while `entity` -- the item as
+    last stored -- still closes it (`apply_decision_holds`). Everything
     else -- including what the policy decided last time -- is re-derived, and
     the policy runs again after; that is what makes a rule change one command.
     """
@@ -616,6 +644,17 @@ def _store(
             " SELECT 1 FROM verdict v WHERE v.proposal_id = p.id))",
             (qid, list(KEPT_STATUSES)),
         ).fetchall()
+        closed = conn.execute(
+            "SELECT p.id, p.property, p.value, p.qualifiers, p.source_lang, p.source_url,"
+            " p.source_rev, p.decided_by FROM proposal p WHERE p.person_qid = %s"
+            " AND p.status = 'skipped' AND p.decided_by LIKE %s AND NOT EXISTS ("
+            " SELECT 1 FROM verdict v WHERE v.proposal_id = p.id)",
+            (qid, APPLY_DECIDED + "%"),
+        ).fetchall()
+        columns = ("id", "property", "value", "qualifiers", "source_lang", "source_url",
+                   "source_rev", "decided_by")
+        judged += [tuple(row[:4]) for row in closed
+                   if apply_decision_holds(entity, dict(zip(columns, row)))]
         kept = {proposal_key(prop, value, quals) for _, prop, value, quals in judged}
         conn.execute(
             "DELETE FROM proposal WHERE person_qid = %s AND NOT (id = ANY(%s))",
@@ -717,6 +756,6 @@ def propose_person(qid: str) -> ProposeSummary:
         if summary.person_status == "not_human"
         else build(entity, data, placements(extraction_id))
     )
-    summary.counts, summary.kept = _store(qid, proposals, extraction_id, item_rev)
+    summary.counts, summary.kept = _store(qid, proposals, extraction_id, item_rev, entity)
     db.set_person_status(qid, summary.person_status)
     return summary
