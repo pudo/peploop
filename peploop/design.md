@@ -317,7 +317,7 @@ queue) has the mechanics; the decisions are these.
   created when all three agree; anything else is `skipped` under the rule that
   says which stage disagreed, or `found` when the item turns out to exist. No
   status means "waiting for a human": a recurring disagreement becomes a rule,
-  and `mint-audit` can only skip, after the fact.
+  and `audit candidate` can only skip, after the fact.
 - **Crash-safe by intent, not by retry.** Before the API call the row is
   re-guarded live, marked `creating` with an intent tag unique to the row and
   its payload, and committed; the tag rides in the edit summary. A row a crash
@@ -692,7 +692,7 @@ mint-verify      --country cc [--limit N] [--threads 4] [--dry-run]
 mint             --country cc [--limit N] [--id N...] [--write]
 mint-feed        --country cc [--id N...]
 mint-report      --country cc [--out data/mint/cc.md]
-mint-audit       --id N --skip --reason TEXT --by NAME
+audit            proposal|candidate [ID...] [--ids FILE] --country cc --reason TEXT --by NAME
 ```
 
 The `mint*` commands take `--country` as the unit of work, since the queue is

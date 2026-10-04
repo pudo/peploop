@@ -157,8 +157,8 @@ and the seeds still decide what gets made. `mint --write` feeds each item as soo
 for a feed a crash or a propose failure cut short, and for the rows
 `mint-verify` decided `found` -- an item that already existed -- which `mint`
 does not select. Both are idempotent.
-`mint-audit --id N --skip --reason … --by <name>` skips a row after the fact;
-there is no approve.
+`audit candidate N --country <cc> --reason … --by <name>` skips a row after
+the fact; there is no approve.
 
 Every LLM stage is ledgered on content (prompt hash, article revisions,
 rendering version), so re-running one after a prompt edit costs only what is
@@ -208,8 +208,10 @@ never a row to hand-check, never a "review later".
 
 ## 5. The audit
 
-There is no audit command yet; the audit is an observer agent over `psql` and
-the diffs. It reads `verification` joined to `proposal` for the country's
+The audit is an observer agent over `psql` and the diffs; what it doubts it
+takes out with `audit proposal --ids <file> --country <cc> --reason … --by
+<name>`, never with a raw `UPDATE` -- a skip without its verdict is wiped by
+the next `propose`. It reads `verification` joined to `proposal` for the country's
 applied rows, opens
 `https://www.wikidata.org/w/index.php?title=<qid>&diff=<applied_rev>&oldid=<base_rev>`
 for a stratified sample (per property, per policy rule, per office), and

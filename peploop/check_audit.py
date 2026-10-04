@@ -7,7 +7,8 @@ it and the policy decided the row again from scratch -- one country's fourteen
 `audit:pudo` rows went that way. So the cases are: an audit leaves a verdict
 and `audit:<by>` provenance, a re-propose keeps the row and does not insert
 its twin, the policy no longer selects it, and an audit refuses a row already
-written, a row of another country's run, and an unknown id, all or nothing.
+written, a row of another country's run, and an unknown id, all or nothing,
+through the function and through `cli audit`.
 Every case runs against temporary tables shadowing the real ones.
 
 Run it as `python -m peploop.check_audit` from the repository root.
@@ -17,9 +18,10 @@ import sys
 from typing import Any
 
 import psycopg
+from click.testing import CliRunner
 from psycopg.types.json import Jsonb
 
-from peploop import db, policy, propose
+from peploop import cli, db, policy, propose
 
 TABLES = ("proposal", "verdict", "person", "item", "article")
 SEQUENCES = ("proposal", "verdict")
@@ -131,6 +133,19 @@ def main() -> int:
         cases = [pid for pid, _case in policy.person_cases(PERSON)]
         expect(doubted not in cases and cases,
                "the policy no longer selects the audited row")
+
+        print("command:")
+        runner = CliRunner()
+        fresh = row(conn, PERSON, "Q104", "accepted", "policy:supported")
+        args = ["--country", COUNTRY, "--reason", "stale infobox", "--by", "fl"]
+        res = runner.invoke(cli.audit_, ["proposal", str(written), str(fresh), *args])
+        expect(res.exit_code != 0 and state(conn, fresh) == ("accepted", "policy:supported"),
+               f"`audit proposal` refuses an applied row and the call with it ({res.output.strip()})")
+        res = runner.invoke(cli.audit_, ["proposal", "--ids", "-", *args], input=f"{fresh}\n")
+        expect(res.exit_code == 0 and state(conn, fresh) == ("skipped", "audit:fl"),
+               f"`audit proposal --ids -` skips the listed row ({res.output.strip()})")
+        expect(not any(p.name in ("approve", "accept") for p in cli.audit_.params),
+               "the command has no approve path")
     finally:
         unshadow(conn)
     print(f"{len(failures)} failures")

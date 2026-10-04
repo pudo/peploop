@@ -1084,20 +1084,50 @@ def mint_report(country: str, out: Path | None) -> None:
     click.echo(f"{out} written")
 
 
-@cli.command("mint-audit")
-@click.option("--id", "cand_id", required=True, type=int, help="The candidate audited.")
-@click.option("--skip", is_flag=True, required=True, help="Skip it; the only ruling there is.")
-@click.option("--reason", required=True, help="Why, as the export list will show it.")
-@click.option("--by", required=True, help="Who audited it; the rule becomes audit:<by>.")
-def mint_audit(cand_id: int, skip: bool, reason: str, by: str) -> None:
-    """Skip a candidate after the fact. There is no approve: nothing waits on a human."""
-    if not skip:
-        raise click.UsageError("an audit can only skip: pass --skip")
+def _read_ids(handle: Any) -> list[int]:
+    """The integers in an id file: one or more per line, `#` starting a comment."""
+    out = []
+    for line in handle:
+        for token in line.split("#", 1)[0].replace(",", " ").split():
+            try:
+                out.append(int(token))
+            except ValueError as exc:
+                raise click.BadParameter(f"not an id: {token!r}", param_hint="--ids") from exc
+    return out
+
+
+@cli.command("audit")
+@click.argument("kind", type=click.Choice(["proposal", "candidate"]))
+@click.argument("ids", nargs=-1, type=int)
+@click.option("--ids", "ids_file", type=click.File("r"),
+              help="Read the ids from this file ('-' for stdin), e.g. an observer's SQL output.")
+@click.option("--country", required=True, help="The run the rows belong to; others are refused.")
+@click.option("--reason", required=True, help="Why, as the report and the skip export show it.")
+@click.option("--by", required=True, help="Who audited; the rows are decided by audit:<by>.")
+def audit_(
+    kind: str, ids: Sequence[int], ids_file: Any, country: str, reason: str, by: str
+) -> None:
+    """Take proposals or mint candidates out after the fact. There is no approve.
+
+    The one way to overrule the pipeline by hand, so that no audit is raw SQL
+    again: a proposal audit is a `reject` verdict as well as a skip, which a
+    re-propose keeps, and a candidate audit is a skip `write_candidates` keeps.
+    All or nothing: a row already on Wikidata (an applied proposal, a created
+    item), a row of another country's run or an unknown id refuses the call.
+    """
+    wanted = list(ids) + (_read_ids(ids_file) if ids_file else [])
+    if not wanted:
+        raise click.UsageError("name the rows: ids as arguments, or --ids FILE")
+    wanted = list(dict.fromkeys(wanted))
+    auditor = policy.audit if kind == "proposal" else minting.audit
     try:
-        cand = minting.audit_skip(cand_id, reason, by)
-    except (LookupError, ValueError) as exc:
+        rows = auditor(wanted, reason, by, country)
+    except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
-    click.echo(f"#{cand_id} {cand['ref']}: {cand['status']} -> skipped (audit:{by})")
+    for row in rows:
+        name = row.get("ref") or f"{row.get('person_qid')} {row.get('property')}"
+        click.echo(f"#{row['id']} {name}: {row['status']} -> skipped (audit:{by})")
+    click.echo(f"{len(rows)} {kind}s skipped")
 
 
 if __name__ == "__main__":

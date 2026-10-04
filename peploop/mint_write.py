@@ -369,28 +369,37 @@ def feed(
 # --- audit -------------------------------------------------------------------
 
 
-def audit_skip(cand_id: int, reason: str, by: str) -> dict[str, Any]:
-    """Skip a candidate after the fact, as a human auditing a run.
+def audit(ids: Sequence[int], reason: str, by: str, country: str) -> list[dict[str, Any]]:
+    """Skip candidates after the fact, as a human auditing a run.
 
     There is no approve: an audit can only take a row out. A row an item was
     made from is refused, because skipping it would hide a creation rather
-    than undo it; that takes a deletion or a merge on Wikidata.
+    than undo it; that takes a deletion or a merge on Wikidata. All or
+    nothing, like the proposal audit: an unknown id, another country's row or
+    an unskippable one refuses the whole call.
     """
     if not by.strip() or not reason.strip():
         raise ValueError("an audit names who skipped it and why")
     conn = db.conn()
-    with conn.transaction():
-        cand = _row(cand_id, lock=True)
-        if cand is None:
-            raise LookupError(f"no candidate #{cand_id}")
-        if cand["status"] in UNSKIPPABLE:
-            raise ValueError(f"#{cand_id} is {cand['status']}: an item exists or is being made")
-        conn.execute(
-            "UPDATE office_candidate SET status = 'skipped', rule = %s,"
-            " problems = array_append(problems, %s), decided_by = %s, decided_at = now(),"
-            " updated_at = now() WHERE id = %s",
-            (f"audit:{by}", f"audit: {reason}", by, cand_id))
-    return cand
+    with conn.transaction(), conn.cursor(row_factory=dict_row) as cur:
+        rows = cur.execute(
+            "SELECT * FROM office_candidate WHERE id = ANY(%s) ORDER BY id FOR UPDATE",
+            (list(ids),)).fetchall()
+        found = {row["id"] for row in rows}
+        problems = [f"#{ident}: no such candidate" for ident in ids if ident not in found]
+        problems += [f"#{row['id']}: of {row['country']}'s run, not {country}'s"
+                     for row in rows if row["country"] != country]
+        problems += [f"#{row['id']} is {row['status']}: an item exists or is being made"
+                     for row in rows if row["status"] in UNSKIPPABLE]
+        if problems:
+            raise ValueError("; ".join(problems))
+        for row in rows:
+            cur.execute(
+                "UPDATE office_candidate SET status = 'skipped', rule = %s,"
+                " problems = array_append(problems, %s), decided_by = %s, decided_at = now(),"
+                " updated_at = now() WHERE id = %s",
+                (f"audit:{by}", f"audit: {reason}", by, row["id"]))
+    return rows
 
 
 # --- report ------------------------------------------------------------------

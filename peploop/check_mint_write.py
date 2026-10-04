@@ -248,21 +248,24 @@ def check_audit(expect: Any, conn: psycopg.Connection) -> None:
     """The audit skips a guarded row and refuses a created one; there is no approve."""
     runner = CliRunner()
     made = candidate(conn, "audit-created", status="created", qid="Q7200", rule="mint:created")
-    res = runner.invoke(cli.mint_audit, ["--id", str(made), "--skip", "--reason", "wrong", "--by", "fl"])
-    expect(res.exit_code != 0 and state(conn, made)[0] == "created",
-           f"mint-audit refuses a created row ({res.output.strip()})")
     open_ = candidate(conn, "audit-guarded")
-    res = runner.invoke(cli.mint_audit, ["--id", str(open_), "--skip", "--reason", "a party post",
-                                          "--by", "fl"])
+    args = ["--country", COUNTRY, "--reason", "a party post", "--by", "fl"]
+    res = runner.invoke(cli.audit_, ["candidate", str(made), str(open_), *args])
+    expect(res.exit_code != 0 and state(conn, made)[0] == "created"
+           and state(conn, open_)[0] == "guarded",
+           f"audit refuses a created row, and the guarded one beside it ({res.output.strip()})")
+    res = runner.invoke(cli.audit_, ["candidate", str(open_), "--country", "zy",
+                                     "--reason", "x", "--by", "fl"])
+    expect(res.exit_code != 0 and state(conn, open_)[0] == "guarded",
+           "audit refuses a row of another country's run")
+    res = runner.invoke(cli.audit_, ["candidate", "--ids", "-", *args], input=f"{open_}  # why\n")
     problems = conn.execute("SELECT problems, decided_by FROM office_candidate WHERE id = %s",
                             (open_,)).fetchone()
     expect(res.exit_code == 0 and state(conn, open_) == ("skipped", None, "audit:fl")
            and problems == (["audit: a party post"], "fl"),
-           "mint-audit skips a guarded row under audit:<by>, keeping the reason")
-    res = runner.invoke(cli.mint_audit, ["--id", str(open_), "--reason", "x", "--by", "fl"])
-    expect(res.exit_code != 0, "without --skip there is nothing an audit can do")
-    expect(not any(p.name in ("approve", "accept") for p in cli.mint_audit.params),
-           "mint-audit has no approve path")
+           f"audit skips a guarded row from an id file under audit:<by> ({res.output.strip()})")
+    expect(not any(p.name in ("approve", "accept") for p in cli.audit_.params),
+           "audit has no approve path")
 
 
 def check_report(expect: Any, conn: psycopg.Connection) -> None:
