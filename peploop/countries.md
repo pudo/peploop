@@ -108,36 +108,44 @@ only wiki that has them.
 ## 3. The stages, in order
 
 From the repository root, key sourced (`set -a && source .envrc && set +a`),
-interpreter `.venv/bin/python -m peploop.cli`, `--country <cc>` on every
-command that takes it.
+interpreter `.venv/bin/python -m peploop.cli`.
 
 ```
-seed --file peploop/seeds/<cc>.yml --country <cc>
-load-positions --country <cc>                  # descent, usage and citizen lanes; additive
-fetch --country <cc> --limit N --threads 8     # items, the scope gate, then every sitelinked article
-extract --country <cc> --limit N --threads 4   # one request per person, Sonnet
-position-signals --country <cc> --skip-counts  # scope qualifiers read the item table: after fetch
-position-signals --country <cc> --local-holders    # this state's holder count per office
-reconcile --country <cc> --limit N --threads 8 # one request per office mention
-mint-categorize --country <cc>                 # cluster the misses and the census into offices, Sonnet
-mint-verify --country <cc>                     # one request per office that clears the floor, Opus; decides each
-mint --country <cc> [--write]                  # dry by default; --write creates and feeds each item
-mint-feed --country <cc>                       # the re-run: load, re-ask the attested mentions, re-propose
-mint-report --country <cc> --out data/mint/<cc>.md   # funnel by rule, the skip list, cost
-propose --country <cc> --limit N               # P39 rows appear only now
-policy --country <cc> --dry-run                # the funnel
-verify --country <cc> --limit N --threads 4    # one request per pending row, Opus; re-runs the policy
-policy --country <cc>
-apply --country <cc> --write --limit 3         # on the user's go
-apply --country <cc> --write --follow          # the drain
+seed --country <cc>                  # the categories of seeds/<cc>.yml
+load-positions --country <cc>        # every discovery lane; network only, beside fetch
+fetch --country <cc>                 # items, the scope gate, then every sitelinked article
+extract --country <cc>               # one request per person, Sonnet
+position-signals --country <cc>      # after fetch: uncounted rows, local holders, scope, diplomatic
+reconcile --country <cc>             # English titles, then one request per office mention
+mint-categorize --country <cc>       # cluster the misses and the census into offices, Sonnet
+mint-verify --country <cc>           # one request per office that clears the floor, Opus; writes data/mint/<cc>.md
+mint --country <cc>                  # dry: every guarded payload with its labels
+mint --country <cc> --write          # creates and feeds each item
+mint-feed --country <cc>             # feeds the `found` rows
+propose --country <cc>               # P39 rows appear only now
+policy --country <cc>                # decides every row; prints the funnel
+verify --country <cc>                # one request per pending row, Opus; ends with the policy's funnel
+apply --country <cc>                 # dry: the payloads, after a live pre-flight
+apply --country <cc> --write --limit 3   # on the user's go
+apply --country <cc> --write         # the drain: one process, one EditGroups batch
 ```
 
-Two things the command list does not say. `fetch` and `load-positions` are network
-only and run side by side. `--limit` defaults are small on most commands (the
-`propose`, `reconcile` and `verify` defaults are 100, 100 and 50 *people*);
-pass the country's size. `position-signals` without `--local-holders` runs
-`fill_counts` over the whole table unless `--skip-counts` is given, and those
-four counts are whole-corpus numbers a new country does not change.
+Beside them: `report --country <cc> [people|positions|proposals|funnel|mint]`
+prints any checkpoint's numbers and writes nothing; `audit proposal|candidate
+<ids> --country <cc> --reason … --by <name>` takes rows out (§5); `prompt
+extract|verify --qid Q` and `prompt mint-categorize|mint-verify --country
+<cc>` print what a model stage would be shown, sending nothing; `review
+--country <cc>` samples proposals in a terminal UI and records verdicts the
+policy reads (a rejection skips the row; nothing is accepted by it).
+
+Every stage works through its whole selection at a fixed concurrency, and
+takes `--qid` to run named people instead. `fetch` and `load-positions` are
+network only and run side by side. `position-signals` counts holders,
+instances and subclasses only for rows no pass has counted, so the first
+country after this rule pays once for every row loaded with the counts
+skipped (16,625 of 17,686 when it was written), and later countries pay for
+their own new rows. A `reconcile` with failed mentions is simply run again:
+the ledger asks only the failures.
 
 The mint stage sits between `reconcile` and `propose` because its input is the
 reconciler's refusals and its output is items those refusals can now land on.
@@ -150,13 +158,12 @@ channel of evidence: every office passes on one current holder, census or
 not. Its bodies come from measurement (`research/position_items.md` §10 is
 the template), never from memory; `census/cu.yml` is the first. A census
 entry nobody's article attests is skipped, so the file says what must exist
-and the seeds still decide what gets made. `mint --write` feeds each item as soon as it is created, so
-`mint-feed` is not a step of the normal run: it is the re-run and the repair,
-for a feed a crash or a propose failure cut short, and for the rows
-`mint-verify` decided `found` -- an item that already existed -- which `mint`
-does not select. Both are idempotent.
-`audit candidate N --country <cc> --reason … --by <name>` skips a row after
-the fact; there is no approve.
+and the seeds still decide what gets made. `mint --write` feeds each item as
+soon as it is created; `mint-feed` feeds the rows `mint-verify` decided
+`found` -- an item that already existed -- which `mint` does not select, and
+repairs a feed a crash or a propose failure cut short. Both are idempotent.
+`audit candidate <id> --country <cc> --reason … --by <name>` skips a row
+after the fact; there is no approve.
 
 Every LLM stage is ledgered on content (prompt hash, article revisions,
 rendering version), so re-running one after a prompt edit costs only what is
@@ -171,16 +178,16 @@ connection error or a `maxlag` wait is a retry, not a bug.
 |---|---|---|
 | `seed` | people per category, the distinct total | go on |
 | `load-positions` | items loaded per lane; the duplicate pairs from §1 and which twin is used | go on |
-| `extract` | `stats --country <cc>`: people per status (how many the scope gate discarded), token total | go on |
+| `extract` | `report people`: people per status (how many the scope gate discarded), token total | go on |
 | `reconcile` | verdicts by kind; the creation queue (`resolution` rows with a null `qid`) by office title; where the incumbents' offices landed | go on |
 | `mint-categorize` | candidates per institution class; the groups no office took (`office_unassigned`) and why | go on |
-| `mint-verify` | `mint-report`: the funnel by rule, then every `guarded` row with its payload's labels and every `found` row with the item it names | first runs: **stop and show it** |
+| `mint-verify` | `data/mint/<cc>.md` (`report mint`): the funnel by rule, then every `guarded` row with its payload's labels and every `found` row with the item it names | first runs: **stop and show it** |
 | `mint --write --limit 1` | the item on Wikidata; the feed line (attestations `retrieved`, reopened verdicts by kind); the `P39` rows `propose` made on it | first runs: **only on the user's go** |
 | `mint --write` | created, found at the re-check, failed; a re-run creates nothing | go on to `propose` |
-| `policy --dry-run` | the funnel, per property, rule by rule | **stop and show it** |
-| `verify` | verdicts by kind; every refusal class read by the observer; doubtful `supported` rows listed | go on to `policy` |
+| `policy` | the funnel, per property, rule by rule (`report funnel` reprints it) | **stop and show it**: `verify` is the next spend |
+| `verify` | verdicts by kind and the funnel it ends with; every refusal class read by the observer; doubtful `supported` rows listed | go on to `apply` |
 | `apply --write --limit 3` | the three diffs | **only on the user's go** |
-| the drain | batch ids, statements per property, people written | the audit |
+| the drain | the batch id, statements per property, people written | the audit |
 
 Nothing is written to Wikidata and nothing is pushed to git without the user
 asking. The funnel is the one place to stop unasked: a rule that fires on a
@@ -347,3 +354,94 @@ provincial assembly presidency recorded as "mayor of Havana"). Written:
 holders among them), 30 `P27`, 15 `P569`, 1 `P570` -- in EditGroups batches
 `3016bd0155` (the first three people) and `a1b09a190b` (the drain).
 
+
+**Belarus** (`seeds/by.yml`, `census/by.yml`, 2026-10-02 to 10-03). Seeded
+for the 1996 two-chamber Assembly and the 2022 amendments, 43 categories;
+1,497 people, 351 set aside by the scope gate and 2 not human, 1,145
+extracted. 5,307 office mentions reconciled: 1,995 `same-office`, 3,145
+`none`, 90 `generic-class`, 53 `wrong-office`. **Mint** ($27.58, the
+largest so far: 70 categorize requests over the district and regional
+council tiers): 7 created -- the chairs of the Constitutional Court
+`Q141627785`, the Supreme Court `Q141627790` and the Central Election
+Commission `Q141633209`, the Vitebsk Regional Council chair `Q141633207`,
+the Communist Party's First Secretary `Q141633213`, the Republican Party of
+Labour and Justice's chair `Q141633216` and the head of the state broadcaster
+`Q141633220` -- and 64 found. The verifier answered 1,235 times: 974
+`supported`, 149 `unsupported`, 70 `already-recorded`, 19 `contradicted`,
+14 `wrong-item`. Members elected in 2024 whose articles said only that were
+refused until the verify prompt let an election year date a fixed-term seat at
+year precision. Written: **867 statements on 604 items** -- 474 `P39` (159
+open), 363 `P27`, 18 `P569`, 3 `P570`, 9 `P21` -- in seven EditGroups batches
+(`24c59100d5` the first three people, then `481b6122bc`, `5b811a3dc8`,
+`93c00c32cf`, `98916ddcef`, `a9393bef92`, `ca2f4ad4e0` as the drain was cut
+short by `apply`'s default limit and restarted). 39 accepted rows closed at
+the pre-flight as `apply:termed`; 4 were audited out by the coordinator.
+
+**Burundi** (`seeds/bi.yml`, `census/bi.yml`, 2026-10-02 to 10-03). Seeded
+from the 2020 transition under the 2018 constitution, fr and en (rn adds no
+one), 28 categories; 222 people, 48 set aside by the scope gate, 174
+extracted. 656 mentions reconciled: 201 `same-office`, 407 `none`, 29
+`generic-class`. **Mint** ($4.21): 2 created, the Senate presidency
+`Q141627783` and the CNDD-FDD's Secretary General `Q141632451`, and 26
+found. The interior ministry is two items, one typed only `minister`, and one
+tenure had been accepted on both from two wikis' dates; the policy's
+`contested/twin` rule came out of it, and it fires on that pair alone across
+four countries' tables. The verifier answered 87 times, 73 `supported`.
+Written: **71 statements on 54 items** -- 39 `P39` (8 open), 9 `P27`, 19
+`P569`, 2 `P570`, 2 `P21` -- in batches `27feca64da` (the first three
+people), `18bd97946d` (the drain) and `9d666e8810`.
+
+**Dominican Republic** (`seeds/do.yml`, `census/do.yml`, 2026-10-03).
+Seeded for the 2010 constitution, every tier whole because both wikis are thin
+and flat; 33 categories, 525 people, 235 set aside by the scope gate and 33
+not human, 268 extracted. 997 mentions reconciled: 238 `same-office`, 692
+`none`. **Mint** ($6.92): 11 created -- judges of the Constitutional Court
+`Q141630292` and the Supreme Court of Justice `Q141632565`, the
+Superintendents of Banks `Q141632548` and of Insurance `Q141630789`, the
+National Police's Director General `Q141632563`, the heads of INDOTEL
+`Q141630777` and INTRANT `Q141632576`, and four party offices once party
+heads were shaped the way Wikidata models them (the PLD's President
+`Q141632556` and General Secretary `Q141632581`, the PRM's Secretary-General
+`Q141632561`, Fuerza del Pueblo's President `Q141632554`) -- and 33 found.
+The verifier answered 238 times, 216 `supported`. Written: **212 statements
+on 144 items** -- 96 `P39` (30 open), 66 `P27`, 48 `P569`, 2 `P570` -- in
+seven batches across four drains. The coordinator's audit of five rows was a
+raw `UPDATE`, and a later re-propose of those people wiped it; that is the
+hazard `audit` now closes.
+
+**Haiti** (`seeds/ht.yml`, `census/ht.yml`, 2026-10-03). Seeded for the
+Fils-Aimé government after the transitional council's mandate ended in
+February 2026; 26 categories, 546 people, 240 set aside by the scope gate and
+36 not human, 275 extracted. 1,105 mentions reconciled: 505 `same-office`,
+554 `none`. **Mint** ($2.46): nothing created, 28 found. The senate item
+carries a dissolution (2023-01-10) and four open senator spells had been
+accepted on it, so `open_superseded` now reads `P576` of an office and its
+body; 21 rows changed with it and its companion fix, 12 of them accepted. The verifier answered 149 times, 138
+`supported`. Written: **123 statements on 85 items** -- 43 `P39` (8 open), 44
+`P27`, 28 `P569`, 3 `P570`, 5 `P21` -- in batches `bb7092c2d9` (the first
+three people), `1a0b411261` (the drain) and `4a701a2fa7`.
+
+**Jamaica** (`seeds/jm.yml`, `census/jm.yml`, 2026-10-03). Seeded whole on
+the 1962 constitution, the scope gate and the recency rules cutting the past;
+22 categories, 448 people, 186 set aside and 18 not human, 253 extracted.
+802 mentions reconciled: 320 `same-office`, 430 `none`. **Mint** ($3.47): 1
+created, the People's National Party's President `Q141632374`, and 18 found.
+The verifier answered 301 times, 274 `supported`. Written: **251 statements
+on 161 items** -- 107 `P39` (26 open), 112 `P27`, 30 `P569`, 2 `P570` -- in
+seven batches, the drain taking five invocations (`a69492583f` the largest,
+167 statements).
+
+**Trinidad and Tobago** (`seeds/tt.yml`, `census/tt.yml`, 2026-10-03).
+Seeded whole on the 1976 constitution; 20 categories, 357 people, 95 set
+aside and 17 not human, 247 extracted. 769 mentions reconciled: 410
+`same-office`, 328 `none`. **Mint** ($3.13): 2 created, the Ministers in
+the Ministry of Public Utilities `Q141632178` and of Energy and Energy
+Industries `Q141632171`, and 15 found. 26 accepted open rows were for
+senators and members elected 2007-2020 and ministers of governments since
+replaced; `open_superseded` came out of them, skipping an open tenure that a
+later holder of a single seat, or a chamber's next intake, evidently ended.
+The verifier answered 324 times, 295 `supported`. Written: **247 statements
+on 159 items** -- 176 `P39` (65 open), 50 `P27`, 19 `P569`, 2 `P570` -- in
+five batches; 18 rows closed at the pre-flight as `apply:termed`. Two drains
+ran side by side and wrote 24 statements twice on 13 items, which is why
+there is one writer lock per country.

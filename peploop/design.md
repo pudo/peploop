@@ -601,7 +601,7 @@ article      qid, lang, title, rev_id, url, text, fetched_at
 extraction   id, qid, prompt_hash, model, article_langs[], request_json,
              response_json, usage_json, created_at
 proposal     (as above, plus applied_rev, claim_guid, proposed_status)
-verdict      proposal_id, decision (accept|reject), reason, note, created_at
+verdict      proposal_id, decision (accept|reject), reason, note, decided_by, created_at
 position     qid, label, description, country_qid, jurisdiction_qid,
              jurisdiction_text, body_qid, kinds[], sources[], not_office,
              inception, abolished, replaces[], replaced_by[], holders,
@@ -636,8 +636,14 @@ Eight tables plus three for round 2, and four for the mint stage:
 `office_candidate.status` is the disposition (`skipped`, `found`, `guarded`,
 then `creating`, `created`, `loaded`) and `rule` the rule that set it;
 `office_attestation` is what the floor counted and what `feed` may reopen, and
-nothing else. Migrations are a single `schema.sql`
-applied with `CREATE TABLE IF NOT EXISTS`; no Alembic.
+nothing else. Migrations are a single idempotent `schema.sql`; no Alembic.
+It is applied only when its hash differs from the one in `schema_version`,
+under an advisory lock, because its `ALTER`s take exclusive locks and two
+commands that started together used to deadlock on them.
+
+A `verdict` row is a human's: a `review` sample (`decided_by` `review:<user>`)
+or an `audit` (`audit:<name>`). `propose` keeps every proposal that has one,
+which is what makes an audit survive a re-run.
 
 `person.error` carries the exception text of a failed fetch, so one bad person
 is a row rather than a dead run. `person.country` is stamped by `seed` from its
@@ -653,70 +659,74 @@ GIN index is the only one the search reads; `position_name` is indexed on
 
 ## Commands
 
-Run from the repository root as `python -m peploop.cli <command>`.
+Run from the repository root as `python -m peploop.cli <command>`;
+`countries.md` §3 is the order they run in.
 
 ```
-seed    --file peploop/seeds/cz.yml [--country cc]
-fetch   [--limit N] [--threads 8] [--qid Q...]
-extract [--limit N] [--threads 4] [--qid Q...]
-reconcile [--limit N] [--threads 4]
-propose [--limit N] [--qid Q...]
-prompt  extract|verify|mint-categorize|mint-verify [--qid Q...] [--country cc]
-stats
-policy  [--limit N] [--qid Q...] [--dry-run]
-verify  [--limit N] [--threads 4] [--qid Q...] [--dry-run]
-review  [--qid Q...] [--limit N]
-apply   [--limit N] [--qid Q...] [--write] [--follow]
+seed             --country cc
+load-positions   --country cc
+fetch            --country cc | --qid Q...
+extract          --country cc | --qid Q...
+position-signals --country cc
+reconcile        --country cc
+mint-categorize  --country cc
+mint-verify      --country cc
+mint             --country cc [--write] [--limit N]
+mint-feed        --country cc
+propose          --country cc | --qid Q...
+policy           --country cc | --qid Q...
+verify           --country cc | --qid Q...
+apply            --country cc [--qid Q...] [--write] [--limit N]
 
-load-positions   --country cc [--source descent|usage|citizen]
-position-signals --country cc [--local-holders] [--recount]
-position-stats   [--country cc]
-
-mint-categorize  --country cc [--dry-run]
-mint-verify      --country cc [--limit N] [--threads 4] [--dry-run]
-mint             --country cc [--limit N] [--id N...] [--write]
-mint-feed        --country cc [--id N...]
-mint-report      --country cc [--out data/mint/cc.md]
+report           --country cc [people|positions|proposals|funnel|mint]
 audit            proposal|candidate [ID...] [--ids FILE] --country cc --reason TEXT --by NAME
+prompt           extract|verify|mint-categorize|mint-verify [--qid Q...] [--country cc]
+review           [--country cc] [--qid Q...] [--limit N]
 ```
 
-The `mint*` commands take `--country` as the unit of work, since the queue is
-a country's. `mint` is a dry run unless `--write`, and feeds each item it
-creates; `mint-feed` re-runs the feed and is idempotent.
+Every stage works through everything its selection returns, at a fixed
+concurrency per stage, and needs `--country` or `--qid`: without one it would
+take every country's people. `--country` is a filter over `person.country`
+and never reaches a stage -- the unit of work stays one person -- and `--qid`
+overrides it, because naming someone is the answer to "this one" rather than
+to "the whole run". The `mint*` commands and `reconcile` take the country as
+their unit, since the queue and the shortlist's ranking are a country's.
 
-Every command but the three `position*` ones also takes
-`--country`, which selects the people a run seeded under that code and nothing
-else. It is a filter over `person.country` and never reaches a stage: the unit
-of work stays one person, and `--qid` overrides it, because naming someone is
-the answer to "this one" rather than to "the next batch of these".
+Two commands write to Wikidata, `mint` and `apply`, and both are dry runs
+unless `--write`; both take the country's writer lock (`peploop:<cc>`), and
+`--limit` on either is the first-writes gate. `apply --write` drains the run
+in one process and one EditGroups batch, waiting out lag; §7 has the routing.
+`mint` feeds each item it creates; `mint-feed` feeds the `found` rows and is
+idempotent.
 
-Every command here exists. The three `position*` commands build and measure
-the round-2 lookup table and are documented in `positions.md`; the rest are
-the round-1 loop. `review` is a Textual TUI whose unit is a
-person, not a proposal: it shows the item's existing claims and links to the
-articles beside that person's `new` and `refine` proposals, drawn at random
-from those with something left to review, and writes all of one person's
-decisions in one transaction on submit. Accept is the resting state, a digit
-rejects a row with one of the eight `verdict.reason` values, and a row marked
-skipped stays reviewable later.
-`apply` writes `accepted` proposals, throttled, under the user's account, and
-prints what it would send unless `--write` is given; §7 has the routing. With
-`--write --follow` it stays up and drains whatever `review` accepts next. Once
-verdicts exist, `stats` adds acceptance per property and a tally per reason,
-and counts `applied` beside the other statuses.
+`reconcile` first caches an English name for every mention title of the run
+(`titles.py`, the second search channel), then resolves each mention to a
+position item or refuses, one request per mention against
+`prompts/reconcile.md`; `positions.md` has the whole of it. The country's
+holder counts rank the shortlist -- not a filter, and another state's office
+stays reachable and tagged as one. A mention already answered under this
+prompt and rendering is skipped without a request, so a re-run costs only
+what is new. `load-positions` runs every discovery lane and gives a
+label-less office its English name; `position-signals` fills the counts only
+for rows no pass has counted, and the local signals.
 
-`reconcile` resolves each extracted office mention to a position item or
-refuses, one request per mention against `prompts/reconcile.md`; `positions.md`
-has the whole of it. `--country` names the state whose holder counts rank the
-shortlist -- it is not a filter, and another state's office stays reachable and
-tagged as one. A mention already answered under this prompt and rendering is
-skipped without a request, so a re-run costs only what is new.
+`policy` decides every row and prints the funnel; `verify` asks about the
+`pending` rows and ends with the policy and its funnel, so the two never need
+chaining by hand. `mint-verify` writes `data/mint/<cc>.md`. `report` prints
+any checkpoint's numbers and writes nothing; `funnel` is what the rules would
+decide now. `audit` is the only way to take a row out by hand -- a proposal
+audit is a verdict as well as a skip, which a re-propose keeps -- and there
+is no approve. `prompt` prints the request a model stage would send and
+sends nothing, which is how a prompt change is judged before it is run over a
+country.
 
-`extract` reads the model's answer for each `fetched` person and stores it;
-its selection is stable, and a person already answered under this prompt hash
-and these article revisions is skipped without a request. `prompt extract
---qid Q` prints the request it would send for one person, sending nothing,
-which is how a prompt change is judged before it is run over a country.
+`review` is a Textual TUI whose unit is a person, not a proposal: it shows the
+item's existing claims and links to the articles beside that person's
+proposals on their way to Wikidata, drawn at random, and writes all of one
+person's verdicts in one transaction on submit. It is a sampler, not a gate:
+no status changes, the policy skips a row it rejected, and an accept decides
+nothing. Accept is the resting state, a digit rejects a row with one of the
+`verdict.reason` values, and a row marked skipped stays reviewable later.
 
 `fetch` takes `queued` people, reads the item and every sitelinked article, and
 marks each one `fetched`, `not_human` where the `P31=Q5` gate rejects it,
@@ -725,8 +735,9 @@ more, or `failed` with the exception text. Both item gates run before the first
 article is fetched, which is where a person's cost begins: `scope.py` discards
 whoever is alive and over ninety or dead more than five years, and keeps
 everyone whose dates are missing, contradictory or too coarse to place -- the
-reason it discarded on lands in `person.error`. `stats` prints counts per person status, per article language and per
-table, and per proposal property once there are proposals.
+reason it discarded on lands in `person.error`. `extract` stores the model's
+answer for each `fetched` person; a person already answered under this prompt
+hash and these article revisions is skipped without a request.
 
 ## Pilot
 
@@ -777,12 +788,14 @@ peploop/
   positions_discarded.md   round 2: measured and rejected, read before changing
   schema.sql
   fixtures/                the silver test set the bench scores against, and API pins
+  seeds/<cc>.yml           the categories a country's run is seeded from
   census/<cc>.yml          the offices a state has whether or not anyone named them
   prompts/extract.md
   prompts/reconcile.md
   prompts/verify.md
   prompts/mint_categorize.md   cluster unplaced offices, draft each item
   prompts/mint_verify.md       is this office real, current, missing, rightly shaped
+  prompts/title_en.md          an English name for an office title, a search aid
   __init__.py
   db.py          connection, cache get/put, upserts
   http.py        session, rate limiter, User-Agent (copied and trimmed from wd/http.py)
@@ -796,9 +809,10 @@ peploop/
   verify.py      the second reading: render the edit, ask, keep the answer by content
   review.py      Textual TUI: one person per screen, verdicts on submit
   apply.py       log in, plan one wbeditentity per person, write and record
-  cli.py
+  cli.py         the commands; every stage's selection and its concurrency
   positions.py   round 2: load a country's offices, search and rank them
-  reconcile.py   round 2: the second turn, assembled but never sent
+  reconcile.py   round 2: resolve one office mention to an item, or refuse
+  titles.py      round 2: the English name of an office title, cached per title
   offices.py     mint: the archetypes, the payload, the guard, the live duplicate reads
   mint.py        mint: the queue, the floor, categorize, verify, the disposition rules
   mint_write.py  mint: create crash-safely, recover, feed back, report, audit
@@ -815,7 +829,8 @@ peploop/
   check_mint.py       every reason not to mint, on the payload itself
   check_mint_queue.py the queue: what counts as current evidence, how mentions pool
   check_mint_categorize.py  the categorize rendering, gate and ledger, offline
-  check_mint_write.py crash, recovery, feed and audit transitions, offline
+  check_mint_write.py crash, recovery, feed, the writer lock and audit transitions, offline
+  check_titles.py     the title cache's key, batching and search channel, offline
 ```
 
 Round 1 is roughly 800 lines and anything larger is a sign the increment is
