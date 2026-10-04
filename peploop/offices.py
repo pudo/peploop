@@ -475,6 +475,10 @@ class Siblings:
     #: The English labels of the state's current offices, whatever their kind:
     #: what `sibling_form` reads a state's wording from.
     labels: list[str] = field(default_factory=list)
+    #: The `P279` values of each of those offices, by its English label: what
+    #: `seat_parent` reads when the archetype tally cannot tell a state's
+    #: ministers of state from its ministers.
+    label_kinds: dict[str, list[str]] = field(default_factory=dict)
 
 
 def _mode(tally: Counter[str] | None) -> str | None:
@@ -567,6 +571,33 @@ def sibling_form(label: str, sibling_labels: Iterable[str], min_agree: int = 2,
         if n >= min_agree and n / total >= share and prep != found["prep"].lower():
             return f"{found['head']} {prep} {found['tail']}"
     return label
+
+
+def seat_parent(label: str, siblings: Siblings, allowed: Collection[str], min_agree: int = 2,
+                share: float = 2 / 3) -> str | None:
+    """The `P279` the state's offices of the same seat agree on, when it is an allowed kind.
+
+    The same seat is read off the label, as `sibling_form` reads it: Jamaica's
+    ten "Minister of State at the Ministry of X" all subclass minister, which
+    the archetype tally files under `minister` and so cannot offer to a new
+    minister of state. None unless at least `min_agree` such offices exist and
+    `share` of them declare one kind among `allowed`.
+    """
+    found = ATTACHED.match(label.strip())
+    if not found:
+        return None
+    head = _norm(found["head"])
+    tally: Counter[str] = Counter()
+    seats = 0
+    for other, kinds in siblings.label_kinds.items():
+        match = ATTACHED.match(other.strip())
+        if match and _norm(match["head"]) == head:
+            seats += 1
+            tally.update(set(kinds))
+    for kind, n in tally.most_common(1):
+        if n >= min_agree and n / seats >= share and kind in allowed:
+            return kind
+    return None
 
 
 def parent_for(siblings: Siblings, archetype: str, min_agree: int = 2, share: float = 2 / 3) -> str:
@@ -1104,6 +1135,7 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
         out.label_langs.update(entity.get("labels", {}).keys())
         if english := entity.get("labels", {}).get("en", {}).get("value"):
             out.labels.append(english)
+            out.label_kinds[english] = kinds[qid]
         metas = set(_values(entity, "P31")) & POSITION_METACLASSES
         out.metaclasses.update(metas)
         typed: set[str] = set()

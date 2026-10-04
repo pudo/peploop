@@ -359,6 +359,9 @@ def check_build_spec(expect: Any) -> None:
     expect((jspec.labels["en"], jspec.body_qid, jspec.kind)
            == ("Minister of State at the Ministry of Health of Alvania", COUNCIL, "Q2632935"),
            f"a minister of state is worded as its siblings, in the ministers' body: {jspec.labels} {jspec.body_qid}")
+    sib.label_kinds = {label: ["Q83307"] for label in sib.labels}
+    jspec, _p = mint.build_spec(junior, ctx(siblings=sib, langs=[]))
+    expect(jspec.kind == "Q83307", f"and of the kind they are, over the draft's: {jspec.kind}")
     dspec, _p = mint.build_spec(cand(draft={"archetype": "deputy_minister", "body_qid": BODY}), ctx())
     expect(dspec.body_qid == BODY, "with nothing measured, a drafted body stands")
     expect(spec.parent == SIB_PARENT and spec.metaclass == "Q294414",

@@ -1791,7 +1791,12 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
     jurisdiction = draft.get("jurisdiction_qid") or (ctx.state_qid if shape.scoped else None)
     drafted = draft.get("parent_qid")
     measured = set(sibs.parents.get(arch) or ())
-    if drafted and (drafted in shape.parents or drafted in measured):
+    # The state's own offices of the same seat, read by label, outrank the
+    # draft among the kinds the archetype allows.
+    seat = offices.seat_parent(labels.get("en", ""), sibs, shape.parents or (shape.parent,))
+    if seat:
+        parent = seat
+    elif drafted and (drafted in shape.parents or drafted in measured):
         parent = drafted
     else:
         parent = offices.parent_for(sibs, arch)

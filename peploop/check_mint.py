@@ -433,6 +433,14 @@ def main() -> int:
            "Minister of State in the Ministry of Education", "nor is a split")
     expect(offices.sibling_form("Minister of Education", jamaica), "Minister of Education",
            "and a label that attaches to no ministry is kept as it is")
+    kinded = Siblings(label_kinds={label: ["Q83307"] for label in jamaica[:4]})
+    allowed = offices.ARCHETYPES["minister_of_state"].parents
+    expect(offices.seat_parent("Minister of State at the Ministry of Education", kinded, allowed), "Q83307",
+           "the kind the state's own ministers of state agree on is the new one's")
+    expect(offices.seat_parent("Parliamentary Secretary at the Ministry of Education", kinded, allowed), None,
+           "another seat's kind is not")
+    expect(offices.seat_parent("Minister of State at the Ministry of Education", kinded, ("Q2632935",)), None,
+           "nor one the archetype does not allow")
 
     print("a live search hit, judged:")
     office = entity("Q70", "President of Aland", p31="Q294414", p17=STATE,
