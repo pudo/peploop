@@ -29,7 +29,7 @@ import dataclasses
 import hashlib
 import sys
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Sequence
 
 import psycopg
 from pydantic import ValidationError
@@ -321,6 +321,55 @@ def check_tags(expect: Any) -> None:
     )
 
 
+#: A mission's direction, by scope and sender: (case, row, tag wanted, tags
+#: that must be absent). The second row is the one the scope alone got wrong:
+#: a post that puts its sender in `P17`, as one bilateral post in eight does.
+MISSION_CASES: tuple[tuple[str, dict[str, Any], str, tuple[str, ...]], ...] = (
+    ("another state's post to this one",
+     {"diplomatic": True, "country_qid": STATE, "sender_qid": "Q2"},
+     "inbound-diplomatic", ("diplomatic",)),
+    ("this state's post abroad, sender in P17",
+     {"diplomatic": True, "country_qid": STATE, "sender_qid": STATE},
+     "diplomatic", ("inbound-diplomatic",)),
+    ("this state's post abroad, receiver in P17",
+     {"diplomatic": True, "country_qid": "Q2", "sender_qid": STATE, "sources": ["outbound"]},
+     "diplomatic", ("inbound-diplomatic", "foreign-scoped")),
+    ("this state's post abroad, reached only through a citizen",
+     {"diplomatic": True, "country_qid": "Q2", "sender_qid": STATE, "sources": ["citizen"]},
+     "diplomatic", ("inbound-diplomatic", "foreign-scoped")),
+    ("a post naming no sender, scoped here",
+     {"diplomatic": True, "country_qid": STATE},
+     "inbound-diplomatic", ("diplomatic",)),
+)
+
+
+def _item(**claims: Sequence[str]) -> dict[str, Any]:
+    """An entity carrying item-valued claims and nothing else."""
+    return {"claims": {prop: [{"rank": "normal", "mainsnak": {
+        "datavalue": {"value": {"id": qid}}}} for qid in qids]
+        for prop, qids in claims.items()}}
+
+
+def check_missions(expect: Any) -> None:
+    """Pin that a mission is the state's own by its sender, not by its `P17`."""
+    for case, row, wanted, absent in MISSION_CASES:
+        tags = positions.tags_for(row, STATE)
+        expect(wanted in tags and not set(absent) & set(tags),
+               f"{case} is tagged {wanted} and none of {absent} (got {tags})")
+    # Where the sender is read from: the "ambassador of <state>" class before
+    # the operator, and never the item's own `P17`.
+    senders = {"Q20": STATE}
+    for case, entity, wanted in (
+        ("a post under the sender's class", _item(P279=["Q20", "Q21"], P17=["Q2"]), STATE),
+        ("the class over a disagreeing operator", _item(P279=["Q20"], P137=["Q5"]), STATE),
+        ("a post naming only its operator", _item(P279=["Q21"], P137=[STATE], P17=["Q2"]), STATE),
+        ("the sender class itself", _item(P279=[positions.SENDER_CLASS], P17=[STATE]), STATE),
+        ("a post naming only its receiver", _item(P279=["Q21"], P17=["Q2"]), None),
+    ):
+        got = positions.sender_of(entity, senders)
+        expect(got == wanted, f"{case}: sender {wanted} (got {got})")
+
+
 def check_request(expect: Any) -> None:
     """Pin the request's shape, assembled without a key and without sending it."""
     request = reconcile.request_for(MENTION, SHORTLIST)
@@ -457,6 +506,7 @@ def main() -> int:
         ("schema", check_schema),
         ("prompt", check_prompt),
         ("tags", check_tags),
+        ("missions", check_missions),
         ("request", check_request),
         ("retrievable", check_retrievable),
         ("search_title", check_search_title),

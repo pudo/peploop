@@ -29,7 +29,7 @@ from peploop import db, wikidata
 #: What discovery found an item. An item the class descent reached and nobody
 #: holds is a different kind of candidate from one only its holders reveal,
 #: and both facts survive into the ranking.
-SOURCES = ("descent", "usage", "citizen")
+SOURCES = ("descent", "usage", "citizen", "outbound")
 
 #: `P31`/`P279` into the position tree, scoped to one state. `p:P31/ps:P31`
 #: and not `wdt:P31`: one preferred value hides the normal-rank ones, and a
@@ -75,6 +75,32 @@ QUERIES = {
     "descent": DESCENT_QUERY,
     "usage": USAGE_QUERY,
 }
+
+#: "ambassador of a country": the class layer with one subclass per *sending*
+#: state ("ambassador of <state>"), whose own `P17` is that sender in 205 of
+#: 207 items. Its sibling layer, "ambassador to a country", has one subclass
+#: per receiver and says nothing about who sends.
+SENDER_CLASS = "Q29645880"
+
+#: Outbound lane, first channel: the posts filed under the state's own
+#: "ambassador of <state>" class. A mission abroad is scoped `P17` = the
+#: *receiving* state, so no query keyed on the sender's `P17`/`P1001` reaches
+#: it, and most of them are unheld, so neither usage nor citizenship does.
+#: The class has no grandchildren for any state measured, so one hop is all.
+OUTBOUND_CLASS_QUERY = """SELECT DISTINCT ?pos WHERE {
+  ?cls wdt:P279 wd:Q29645880 ; wdt:P17 wd:%(country)s .
+  { ?pos p:P279/ps:P279 ?cls } UNION { ?pos p:P31/ps:P31 ?cls }
+}"""
+
+#: Second channel: anything the state operates. `P137` names the sender on
+#: 96% of bilateral posts and is the only sender claim a multilateral seat
+#: (a permanent representative) carries -- but it also names the state as the
+#: operator of its helicopters, so an answer is kept only where its type
+#: closure reaches `DIPLOMATIC_CLASS`. That filter runs here, after the query,
+#: because a `wdt:P279*` in the query service is the shape that times out.
+OUTBOUND_OPERATOR_QUERY = """SELECT DISTINCT ?pos WHERE {
+  ?pos p:P137/ps:P137 wd:%(country)s .
+}"""
 
 
 def country_qid(cc: str) -> str:
@@ -123,6 +149,8 @@ def discover(
         started = time.monotonic()
         if source == "citizen":
             found[source] = _discover_citizen(qid, log)
+        elif source == "outbound":
+            found[source] = _discover_outbound(qid, log, page)
         else:
             inner = QUERIES[source] % {"country": qid}
             if page is None:
@@ -170,6 +198,28 @@ def _discover_citizen(qid: str, log: Any) -> set[str]:
         log(f"  citizen chunk {index}/{len(chunks)}: {len(rows)} offices,"
             f" {len(items)} total, in {time.monotonic() - started:.0f}s")
     return items
+
+
+def _discover_outbound(qid: str, log: Any, page: int | None) -> set[str]:
+    """Find the state's own missions abroad, by who sends them.
+
+    The union of the "ambassador of <state>" class's members and the
+    diplomatic posts the state operates. Neither asks `P17`, which on a
+    bilateral post names the receiver.
+    """
+    def ask(source: str, query: str) -> set[str]:
+        inner = query % {"country": qid}
+        if page is None:
+            return {row["pos"] for row in wikidata.sparql(inner)}
+        return _discover_paged(source, inner, page, log)
+
+    members = ask("outbound class", OUTBOUND_CLASS_QUERY)
+    operated = ask("outbound operator", OUTBOUND_OPERATOR_QUERY) - members
+    closure = type_closure(sorted(operated)) if operated else {}
+    posts = {q for q in operated if DIPLOMATIC_CLASS in closure.get(q, set())}
+    log(f"  outbound: {len(members)} class members; {len(operated)} other"
+        f" operated items, {len(posts)} of them diplomatic")
+    return members | posts
 
 
 def _discover_paged(
@@ -521,7 +571,7 @@ def upsert_position(row: dict[str, Any], names: Sequence[tuple[str, str, bool]])
         "qid", "label", "description", "country_qid", "jurisdiction_qid",
         "jurisdiction_text", "body_qid", "kinds", "sources", "not_office",
         "inception", "abolished", "replaces", "replaced_by", "redirected_from",
-        "search_text", "kind_qids",
+        "search_text", "kind_qids", "diplomatic", "sender_qid",
     ]
     # `sources` is a union, never an overwrite: a run of one discovery query,
     # or a minted item fed back in, says how *this* run found the item, and
@@ -548,6 +598,38 @@ def upsert_position(row: dict[str, Any], names: Sequence[tuple[str, str, bool]])
                 " VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",
                 [(row["qid"], lang, text, alias) for lang, text, alias in names],
             )
+
+
+def sender_classes(types: Iterable[str]) -> dict[str, str]:
+    """Map each "ambassador of <state>" class among `types` to its state.
+
+    The class names its sender in its own `P17`, and it is the one place a
+    post that carries no `P137` says who sends it. The classes' edges are
+    already in `type_edge` by the time a load asks, so only the handful of
+    sender classes is fetched.
+    """
+    edges = _edges_cached(types)
+    classes = sorted(q for q, targets in edges.items() if SENDER_CLASS in targets)
+    entities = wikidata.fetch_items(classes, props="claims") if classes else {}
+    return {qid: state for qid, entity in entities.items()
+            if (state := _unended_qid(entity, "P17")) is not None}
+
+
+def sender_of(entity: dict[str, Any], senders: dict[str, str]) -> str | None:
+    """Which state sends this diplomatic post, if the item says.
+
+    Its "ambassador of <state>" class first (the class's `P17` is the sender
+    in 205 of 207), then its own `P137` operator (96% of bilateral posts).
+    Never its `P17`, which names the receiver on 86% of them. The class
+    itself, a direct subclass of the sender layer, is sent by its own `P17`.
+    """
+    targets = type_targets(entity)
+    for target in targets:
+        if target in senders:
+            return senders[target]
+    if SENDER_CLASS in targets:
+        return _unended_qid(entity, "P17")
+    return _unended_qid(entity, "P137")
 
 
 def load_country(
@@ -627,10 +709,20 @@ def load_items(
         if actual != requested:
             redirects.setdefault(actual, set()).add(requested)
 
+    # The closure is keyed by the id that was asked for; a merged item answers
+    # under the id it was merged into.
+    types_of = {actual: closure.get(actual) or set().union(
+        *(closure.get(r, set()) for r in redirects.get(actual, ())))
+        for actual in canonical}
+    senders = sender_classes(
+        t for actual, entity in canonical.items()
+        if DIPLOMATIC_CLASS in types_of[actual] for t in type_targets(entity))
+
     for actual, entity in canonical.items():
         declared = set(type_targets(entity))
         kind_qids = wikidata.claim_qids(entity, "P279", include_deprecated=False)
         jurisdiction = _unended_qid(entity, "P1001")
+        diplomatic = DIPLOMATIC_CLASS in types_of[actual]
         # Every item whose names join this one's document. Read off all ranks
         # and both directions of the succession, one hop and no further: a
         # renamed office is reached by the name it used to have, while a
@@ -666,9 +758,14 @@ def load_items(
                 "replaced_by": wikidata.claim_qids(entity, "P1366", include_deprecated=False),
                 "redirected_from": sorted(redirects.get(actual, ())),
                 "kind_qids": sorted(declared),
+                # Set here as well as by `fill_diplomatic`, so that a row a
+                # load has just written is never an ambassadorship with no
+                # flag: unflagged, an outbound post reads as an ordinary
+                # office of the receiving state.
+                "diplomatic": diplomatic,
+                "sender_qid": sender_of(entity, senders) if diplomatic else None,
                 "_kind_qids": kind_qids,
                 "_refs": refs,
-                "_closure": closure.get(actual, set()),
             },
             names_of(entity),
         ))
@@ -696,7 +793,6 @@ def load_items(
         # at 3.9 points of macro recall and a fifth of the index size.
         texts.extend(row["kinds"])
         row["search_text"] = " ".join(token_bag(texts))
-        row.pop("_closure", None)
         upsert_position(row, names)
     log(f"upsert: {len(rows)} rows in {time.monotonic() - started:.0f}s")
 
@@ -1230,13 +1326,21 @@ def fill_diplomatic(qids: Sequence[str] | None = None,
         qids = [qid for (qid,) in rows]
     closure = type_closure(list(qids))
     flags = {qid: DIPLOMATIC_CLASS in closure.get(qid, set()) for qid in qids}
+    # The sender, for the flagged rows only: it is what tells a state's own
+    # post abroad from another state's post to it when both carry its `P17`.
+    posts = sorted(qid for qid, flag in flags.items() if flag)
+    entities = wikidata.fetch_items(posts, props="claims") if posts else {}
+    senders = sender_classes(t for e in entities.values() for t in type_targets(e))
+    sent = {qid: sender_of(entities[qid], senders) if qid in entities else None
+            for qid in posts}
     with db.conn().cursor() as cur:
         cur.executemany(
-            "UPDATE position SET diplomatic = %s WHERE qid = %s",
-            [(value, qid) for qid, value in flags.items()],
+            "UPDATE position SET diplomatic = %s, sender_qid = %s WHERE qid = %s",
+            [(value, sent.get(qid), qid) for qid, value in flags.items()],
         )
     count = sum(flags.values())
-    log(f"diplomatic: {count} of {len(flags)}")
+    log(f"diplomatic: {count} of {len(flags)},"
+        f" {sum(1 for s in sent.values() if s)} with a sender")
     return count
 
 
@@ -1446,16 +1550,25 @@ def tags_for(
         # scope is `P17` far more often than `P1001`: of 64 ambassadorships
         # only 9 carry a jurisdiction at all, and reading the country as the
         # fallback separates 34 inbound missions from 30 outbound ones.
+        #
+        # The scope is not the whole answer: one bilateral post in eight
+        # puts the *sender* in `P17` ("ambassador of <state> to Thailand",
+        # `P17` = the state), and read by scope alone that is the state's
+        # own post called somebody else's. A recorded sender that is the
+        # state being asked about settles it as its own.
         scope = row.get("jurisdiction_qid") or row.get("country_qid")
-        inbound = state_qid is not None and scope == state_qid
+        own = state_qid is not None and row.get("sender_qid") == state_qid
+        inbound = state_qid is not None and scope == state_qid and not own
         tags.append("inbound-diplomatic" if inbound else "diplomatic")
 
     # An office of some *other* state that only the citizen query reached.
     # A world-level class has no country at all and is not this: it is
-    # already answered by `abstract`.
+    # already answered by `abstract`. Nor is the state's own post abroad,
+    # whose `P17` is the receiver's.
     country = row.get("country_qid")
     if (state_qid is not None and row.get("sources") == ["citizen"]
-            and country is not None and country != state_qid):
+            and country is not None and country != state_qid
+            and row.get("sender_qid") != state_qid):
         tags.append("foreign-scoped")
     return tags
 
@@ -1565,7 +1678,7 @@ SIGNAL_COLUMNS = (
     "not_office", "holders", "holders_by_country", "instance_count",
     "subclass_count", "held_subclasses", "inception", "abolished",
     "diplomatic", "scope_qualifier", "country_qid", "jurisdiction_qid",
-    "sources",
+    "sources", "sender_qid",
 )
 
 

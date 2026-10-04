@@ -234,6 +234,12 @@ ALTER TABLE position ADD COLUMN IF NOT EXISTS holders_by_country JSONB;
 -- the *receiving* state's P1001, so a country's table is full of other
 -- countries' embassies to it; they are tagged and never dropped.
 ALTER TABLE position ADD COLUMN IF NOT EXISTS diplomatic BOOLEAN;
+-- Which state sends a diplomatic post: its "ambassador of <state>" class's
+-- P17, else its own P137. Kept apart from country_qid, which stays the item's
+-- P17 -- the receiver on a bilateral post -- because that is what the
+-- inbound test and every per-state listing of the table read. NULL on
+-- anything not diplomatic, and on a post that names no sender.
+ALTER TABLE position ADD COLUMN IF NOT EXISTS sender_qid TEXT;
 
 -- What the second turn made of one office mention: the model's verdict and the
 -- mechanical gate's ruling on it, keyed to the exact extraction that produced

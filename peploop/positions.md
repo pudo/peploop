@@ -45,7 +45,7 @@ reads or writes it.
 
 ## Discovery
 
-Three lanes per country, each tagged in `sources`, run by
+Four lanes per country, each tagged in `sources`, run by
 `load-positions --country <cc>`. `rigour` resolves the code to a QID.
 
 - **`descent`** — `?pos p:P31/ps:P31/wdt:P279* wd:Q4164871` with a
@@ -60,9 +60,26 @@ Three lanes per country, each tagged in `sources`, run by
   politician, diplomat or judge. The only route to an office the state's own
   people hold that is scoped to no polity of theirs: a posting abroad, a seat
   in an international body, an item with no jurisdiction claim at all.
+- **`outbound`** — the state's own missions abroad, asked by *sender*: the
+  members of its "ambassador of <state>" class (`P279 Q29645880`, `P17` =
+  the state), plus the items it operates (`P137`) whose type closure reaches
+  `Q121998` ambassador. A bilateral post is scoped `P17` = the *receiver*, so
+  descent and usage never reach it, and most are unheld, so citizen doesn't
+  either: 27 of Belarus's 84 were in no lane. The operator channel is
+  filtered after the query because `P137` also names the state as operator
+  of its helicopters.
 
 None is sufficient and the union is not redundant: **12% of the loaded table is
 reached by the citizen lane alone.**
+
+**A mission's direction is its sender, not its scope.** `P17` names the
+receiver on 86% of bilateral posts and the *sender* on 12%, so "scoped to the
+asking state" calls one post in eight an inbound embassy when it is the state's
+own. Every diplomatic row carries `sender_qid` — its "ambassador of <state>"
+class's `P17`, else its own `P137`, never its `P17` — and `tags_for` calls a
+row whose sender is the asking state `diplomatic`, never `inbound-diplomatic`
+or `foreign-scoped`. `country_qid` stays the item's `P17`: the inbound test
+for the *receiving* state and every per-state listing read it as the scope.
 
 Two shapes matter and are not interchangeable. Discovery **pages** at
 `DISCOVERY_PAGE = 2000` with a total ordering, because a large country's

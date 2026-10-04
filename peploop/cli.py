@@ -781,7 +781,7 @@ def reconcile(limit: int, threads: int, country: str | None) -> None:
     "sources",
     multiple=True,
     type=click.Choice(positions.SOURCES),
-    help="Run only these discovery queries instead of all three.",
+    help="Run only these discovery lanes instead of all of them.",
 )
 def load_positions(country: str, sources: Sequence[str]) -> None:
     """Load one country's position items into the reconciliation table."""

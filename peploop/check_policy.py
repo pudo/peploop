@@ -58,7 +58,7 @@ def office(**over: Any) -> dict[str, Any]:
         "jurisdiction_qid": STATE, "sources": ["descent", "usage"],
         "not_office": False, "holders": None, "holders_by_country": None,
         "instance_count": None, "subclass_count": None, "held_subclasses": None,
-        "inception": None, "abolished": None, "diplomatic": None,
+        "inception": None, "abolished": None, "diplomatic": None, "sender_qid": None,
         "scope_qualifier": None, "first_held_year": None, "polity_inception_year": None,
     }
     row.update(over)
@@ -263,6 +263,22 @@ def main() -> int:
     check("this state's own mission abroad passes",
           policy.decide(case(position=office(diplomatic=True, country_qid=OTHER_STATE,
                                              jurisdiction_qid=OTHER_STATE,
+                                             sources=["citizen"]))),
+          policy.PENDING, "unverified")
+    check("another state's mission that names its sender is skipped",
+          policy.decide(case(position=office(diplomatic=True, sender_qid=OTHER_STATE))),
+          policy.SKIPPED, "office/inbound-diplomatic")
+    check("this state's own mission whose P17 names the sender passes",
+          policy.decide(case(position=office(diplomatic=True, sender_qid=STATE))),
+          policy.PENDING, "unverified")
+    check("this state's own mission found by the outbound lane passes",
+          policy.decide(case(position=office(diplomatic=True, country_qid=OTHER_STATE,
+                                             jurisdiction_qid=None, sender_qid=STATE,
+                                             sources=["outbound"]))),
+          policy.PENDING, "unverified")
+    check("this state's own mission reached only through a citizen passes",
+          policy.decide(case(position=office(diplomatic=True, country_qid=OTHER_STATE,
+                                             jurisdiction_qid=None, sender_qid=STATE,
                                              sources=["citizen"]))),
           policy.PENDING, "unverified")
     check("another state's office reached only through a citizen is skipped",
