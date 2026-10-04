@@ -34,7 +34,7 @@ from typing import Any, Sequence
 import psycopg
 from pydantic import ValidationError
 
-from peploop import check_neutral, db, positions, propose, reconcile
+from peploop import check_neutral, db, positions, propose, reconcile, titles
 
 #: A state to be local to, so the holder counts below mean something.
 STATE = "Q1"
@@ -402,14 +402,17 @@ def check_retrievable(expect: Any) -> None:
         calls.append((args, kwargs))
         return [SimpleNamespace(qid="Q10"), SimpleNamespace(qid="Q11")]
 
-    real = positions.search
+    real, real_cached = positions.search, titles.cached
     positions.search = fake_search  # type: ignore[assignment]
+    # No English title cached: the lexical channel alone, and no database read.
+    titles.cached = lambda *_a, **_k: None  # type: ignore[assignment]
     try:
         found = reconcile.retrievable(MENTION, STATE, "Q11")
         missing = reconcile.retrievable(MENTION, STATE, "Q99")
         reconcile.shortlist_hits(MENTION, STATE)
     finally:
         positions.search = real  # type: ignore[assignment]
+        titles.cached = real_cached  # type: ignore[assignment]
     expect(found and not missing, "an item is retrievable exactly when the search returns it")
     expect(
         calls[0] == calls[2]

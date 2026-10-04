@@ -24,6 +24,7 @@ verdict is a row for a later increment to act on.
 
 import hashlib
 import json
+import logging
 import os
 import re
 import threading
@@ -36,7 +37,9 @@ import anthropic
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
-from peploop import db, positions, wikidata
+from peploop import db, positions, titles, wikidata
+
+_log = logging.getLogger(__name__)
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "reconcile.md"
 
@@ -632,16 +635,55 @@ def search_title(title: str) -> str:
     return CONSTITUENCY.sub(r"\1", text)
 
 
+#: How many of the fifteen the English-title channel fills before the
+#: lexical one. Measured against filling ten from the lexical channel and
+#: against fusing the two: canonical first lost no known answer and took the
+#: hard set's recall@15 from 62 to 93.
+CANON_TOP = 10
+
+#: How deep the English-title search reads before exact-name promotion. An
+#: item labelled with the title verbatim can rank below its sibling ministries
+#: on coverage alone, and promotion only helps if it was retrieved.
+CANON_DEPTH = 100
+
+
 def shortlist_hits(mention: Mention, state_qid: str | None) -> list[positions.Hit]:
     """Retrieve the ranked shortlist a mention is asked about.
 
     The one search both the live pass and `retrievable` run, so that "would the
     model be shown this item" is answered by the same call that shows it.
+
+    Two channels when the title's English name is cached (`titles`): its
+    search, with exact-name hits first, fills the first `CANON_TOP`, and the
+    search for the title as written fills the rest. With no cached name it is
+    the lexical search alone, as before the channel existed. Only the cache is
+    read, so the shortlist is reproducible and no model is called here.
     """
-    return positions.search(
+    lexical = positions.search(
         search_title(mention.title), mention.jurisdiction, state_qid, limit=SHORTLIST,
         start=mention.start, end=mention.end,
     )
+    english = titles.cached(titles.Title(
+        mention.title, mention.jurisdiction, mention.lang, state_qid
+    ))
+    if not english:
+        _log.debug("no English title cached for %r; lexical channel only", mention.title)
+        return lexical
+    canonical = positions.promote_exact(positions.search(
+        english, mention.jurisdiction, state_qid, limit=CANON_DEPTH,
+        start=mention.start, end=mention.end,
+    ), english)
+    out: list[positions.Hit] = []
+    seen: set[str] = set()
+    for hits, cap in ((canonical[:CANON_TOP], CANON_TOP), (lexical, SHORTLIST),
+                      (canonical[CANON_TOP:], SHORTLIST)):
+        for hit in hits:
+            if len(out) >= cap:
+                break
+            if hit.qid not in seen:
+                seen.add(hit.qid)
+                out.append(hit)
+    return out
 
 
 def retrievable(mention: Mention, state_qid: str | None, qid: str) -> bool:

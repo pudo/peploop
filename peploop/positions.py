@@ -1810,3 +1810,41 @@ def search(
         )
         for score, base, qid, tags in scored
     ]
+
+
+def name_sequence(text: str) -> tuple[str, ...]:
+    """An office name as its content tokens in written order.
+
+    The order is the point: "ambassador of Germany to Burundi" and "ambassador
+    of Burundi to Germany" share every token and are different offices.
+    """
+    parts = [t for t in re.split(r"[^a-z0-9]+", fold(text)) if t]
+    content = tuple(t for t in parts if t not in STOPWORDS)
+    return content or tuple(parts)
+
+
+def promote_exact(hits: Sequence[Hit], title: str) -> list[Hit]:
+    """Move the hits that carry exactly this name to the front, keeping order otherwise.
+
+    For an English title written in the house style of a Wikidata label: an
+    item labelled with it verbatim is the strongest evidence a ranking has, and
+    coverage alone cannot say so, because every sibling ministry of a state
+    covers "Minister of … of <state>" equally and a fresh item has no holders
+    to break the tie. Not for a title as an article wrote it, where generic
+    names ("Minister") match exactly and promoting them cost recall @1.
+
+    A name is an item's label or alias in any language, or the English search
+    name of an item that has no English label (`position.title_en`).
+    """
+    want = name_sequence(title)
+    if not hits or not want:
+        return list(hits)
+    qids = [hit.qid for hit in hits]
+    rows = db.conn().execute(
+        "SELECT qid, text FROM position_name WHERE qid = ANY(%s)"
+        " UNION ALL SELECT qid, title_en FROM position"
+        " WHERE qid = ANY(%s) AND title_en IS NOT NULL",
+        (qids, qids),
+    ).fetchall()
+    exact = {qid for qid, text in rows if name_sequence(text) == want}
+    return [h for h in hits if h.qid in exact] + [h for h in hits if h.qid not in exact]
