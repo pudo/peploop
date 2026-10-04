@@ -899,3 +899,221 @@ director, director general or chairperson, as for an enterprise.
 **Enterprise heads** (§10f's 90, re-read): `P31` `Q4164871` 79, `Q294414` 10;
 `P1001` absent 68, present 22 (17 of them the state). `scoped=False` and
 `P2389` stand; the metaclass is `Q4164871`.
+
+### 10o. Bodies as a discovery lane (measured 2026-10-04)
+
+The question: does reading a state's *bodies* (central bank, audit office, armed
+forces, apex courts, electoral bodies, intelligence, police, prosecution, state
+enterprises) find offices peploop's descent, usage, citizen and outbound lanes
+miss? There are two hooks. Hook 1 is the body's own `P2388` (office held by
+head), with `P1037` director and `P488` chairperson for the current head. Hook 2
+is any item naming the body under `P2389` or `P361`. The run covered eight
+countries: cu, co, by, bi, do, ht, jm and tt. Everything was read live, and the
+peploop DB was read-only.
+
+**Finding the bodies.** There were three sources. (a) Type: `p:P31/ps:P31` to a
+class, or one `P279` hop below it, with `P17`, `P1001` or `P131` naming the
+state. (b) Every `body:` in `peploop/census/*.yml`, typed by its census class.
+Colombia has no census. (c) The `body_qid` of every loaded `position` row of the
+state, typed by its `P31`. That gives 675 bodies in all, and **134 of them fall
+in a FATF class** (127 not dissolved). The rest are cabinets, ministries,
+chambers and parties.
+
+**Which classes the community uses.** Measured globally, by reading the
+`P2389`/`P361` body of every position that subclasses the kind's head class, so
+the body sample is chosen by its office and not by its own type:
+
+| kind | head class | bodies | `P31` of the body |
+|---|---|---:|---|
+| central bank | `Q107363151` | 142 | **`Q66344` central bank 127 (89%)**; business 12, bank 6 |
+| armed forces | `Q5097014` | 36 | `Q772547` armed forces 18; `Q495430` general staff 8; `Q327333` agency 5; `Q1788820` defence ministry 3 |
+| apex court | `Q3188089`, `Q16474031` | 124 | `Q190752` supreme court 46; national or sub-national subclasses 37 (ES, US, CA); `Q41487` court 9; `Q32766` constitutional court 8; untyped 7 |
+| police | `Q2855502`, `Q2101758` | 117 | `Q10387680` organisation unit 83, which are sub-national forces; `Q732717` 10, `Q35535` 6, `Q7410456` 4 |
+| prosecution | `Q3368517`, `Q1501926`, `Q16353016` | 74 | **untyped 25**; `Q327333` agency 18; two competing classes, `Q11775750` 7 and `Q1092499` 6 |
+| intelligence | `Q105695126` | 8 | `Q327333` 4, `Q47913` 3. Belarus's KGB is `Q939616` secret service, which subclasses only "government agency" |
+| audit (SAI) | none generic | — | `Q43306178` supreme audit institution is on **11 items worldwide**. Among 89 label hits ("Contraloría General", "Cour des comptes", "Court of Audit", "Rechnungshof"…), `Q10983451` Court of Audit 20 and `Q327333` 3; most are untyped or typed by the national agency class |
+| electoral | — | 296 | `Q935741` election commission is used directly (296 items) |
+| general staff | — | 56 | `Q495430` 56 |
+
+Only two kinds are typed reliably: **central banks** (`Q66344`) and
+**election commissions** (`Q935741`). General staffs are reliable where they
+exist (56 items worldwide). Armed forces split between `Q772547` and `Q8473`.
+Prosecution and audit bodies cannot be found by type at all.
+
+**Per class and country.** Each cell reads bodies / with `P2388` / with an
+unended `P1037` or `P488` / office items reached by either hook / of those, not
+in `position` today:
+
+| class | cu | co | by | bi | do | ht | jm | tt | total |
+|---|---|---|---|---|---|---|---|---|---|
+| central bank | 1/1/0/1/0 | 2/1/1/1/0 | 1/1/1/1/0 | 1/0/1/0/0 | 1/0/1/0/0 | 2/0/0/0/0 | 1/1/1/1/0 | 1/1/0/1/0 | 10/5/5/5/0 |
+| audit (SAI) | 1/0/0/0/0 | 1/0/1/1/0 | 0 | 0 | 1/0/0/0/0 | 1/0/0/0/0 | 0 | 0 | 4/0/1/1/0 |
+| defence | 6/0/0/0/0 | 4/1/0/2/0 | 4/3/1/3/0 | 1/0/0/0/0 | 2/0/0/2/1 | 5/1/0/1/0 | 2/1/0/1/0 | 2/0/0/0/0 | 26/6/1/9/1 |
+| apex court | 1/0/0/0/0 | 2/0/0/2/0 | 2/0/0/2/0 | 2/0/0/0/0 | 2/0/0/2/0 | 1/0/0/0/0 | 1/0/0/0/0 | 1/0/0/0/0 | 12/0/0/6/0 |
+| electoral | 1/0/0/0/0 | 1/0/0/0/0 | 1/0/1/1/0 | 1/0/0/0/0 | 2/0/0/0/0 | 1/0/0/0/0 | 0 | 0 | 7/0/1/1/0 |
+| intelligence | 2/0/0/0/0 | 3/1/0/1/0 | 2/0/0/1/1 | 2/0/1/0/0 | 0 | 1/0/1/0/0 | 0 | 0 | 10/1/2/2/1 |
+| police | 2/0/0/0/0 | 3/0/0/1/1 | 5/0/0/0/0 | 1/0/0/0/0 | 2/0/0/1/0 | 2/0/0/0/0 | 5/0/0/0/0 | 1/0/0/0/0 | 21/0/0/2/1 |
+| prosecution | 0 | 1/0/0/0/0 | 2/1/0/1/0 | 0 | 0 | 1/0/0/0/0 | 1/0/0/0/0 | 0 | 5/1/0/1/0 |
+| SOE | 4/0/1/0/0 | 7/0/0/0/0 | 22/0/1/0/0 | 0 | 4/0/0/0/0 | 0 | 1/0/0/0/0 | 1/0/0/0/0 | 39/0/2/0/0 |
+| **total** | | | | | | | | | **134/13/12/27/3** |
+
+The type search misses prominent bodies that exist. Belarus's KGB `Q1329608`
+(`Q939616`), its State Control Committee `Q6497506` (`Q948571` organ of state)
+and its interior ministry `Q2427674` are all missed, though each has a `P2388`
+whose target is already loaded. Ecopetrol `Q1282130` (typed business/public
+company) is missed. So is the Dominican DNI `Q10884568`, which has no `P31`.
+Several bodies have no item at all: the audit offices of jm, tt, bi, do and ht;
+Cuba's Fiscalía; Burundi's parquet général; and Jamaica's Court of Appeal and
+Supreme Court.
+
+**Hook 1, `P2388`.** Of the 134 FATF-class bodies, 13 carry it: central banks 5,
+defence 6, intelligence 1, prosecution 1. Of all 675 bodies, 421 carry it,
+nearly all of them ministries and chambers. **Every one of the 421 targets is
+already in `position`.** The reason is that the bodies careful enough to state
+`P2388` point at offices careful enough to state `P17`/`P1001`, which the
+descent finds anyway. Hook 1 adds no office in any of the eight countries.
+
+**`P1037` / `P488` are not current-head evidence.** 12 bodies carry an unended
+value (13 people), and at least 7 of the 13 are wrong:
+- GAESA's `Q108037988` died in 2022;
+- Banco de la República's `P488` names the manager whose term ended in 2021;
+- the Bank of Jamaica's names the governor who left in 2019;
+- Belarus's MoD `P1037` names the minister to 2020, and the NBRB's names a
+  chairman whose own `P39` ends in 2025;
+- Burundi's central bank names a governor who is now an MP;
+- Haiti's Service d'Intelligence National names **`Q37230` the CIA** as its
+  director.
+
+A property with no end date reads as "current" but is usually just never
+closed.
+
+**Hook 2, reverse `P2389`/`P361`.** Together with hook 1's targets it reaches
+83 items. 25 declare a position metaclass, and 24 of those are already loaded.
+2 are untyped. 56 are not offices: military units and service branches that
+name their armed forces under `P361` (by 21, co 13, cu 7), plus a library and
+an art collection under Colombia's central bank. Two of the 56 are already in
+`position`: the Dominican Army `Q5290731` and Belarus's General Staff
+`Q19772403`. Only 3 items are new to `position`, and 2 of those are real
+offices:
+- **`Q135659026`** head of Belarus's Presidential Security Service: `P31`
+  position and `P2389` the service, but no `P17`/`P1001`;
+- **`Q119848570`** the Dominican Army's general commander: `P2389` the army and
+  no other claim.
+
+The third, `Q5280641`, is an untyped Colombian police directorate, a body. No
+rank or honour was reached by either hook (nothing hit `NOT_AN_OFFICE`). But
+the units would load **unflagged**, because `not_office` tests declared types
+only and a unit declares `Q176799` military unit, not `Q43229`. The 6-hop type
+closure is no filter either. It puts Belarus's General Staff `Q19772403`,
+Colombia's Luis Ángel Arango Library `Q531927` and two Belarusian service arms
+under `Q4164871`. Only a declared position metaclass separates the offices.
+
+**People.** The hooks reach 48 current heads: live `P39` holders of the
+reached offices plus `P1037`/`P488`. 37 of them are among the run's people.
+Every one reached through an office already holds a `P39` on a loaded item.
+The only stranded run people (no `P39` at all) are 3 reached through
+`P1037`/`P488`, and none of them has an office item to place:
+- `Q108037988` GAESA, who is dead;
+- `Q20013830` Colombia's Contraloría;
+- `Q11976472` the Dominican central bank.
+
+For context, the run has 1,084 people with no `P39` across the eight countries
+(cached item JSON).
+
+**What blocks the rest.** Of the 127 live FATF bodies, 93 reach no office
+through either hook. The known gaps sort three ways.
+
+1. *An office item exists but carries nothing a lane reads.* These are real
+   offices that are invisible or unanchored for want of `P31`, `P17`/`P1001` or
+   a body link. 15 of the run's people name one of them in a mention that
+   failed to place, and 8 of those 15 have no `P39` at all. Among the 8 are
+   Tobago's current Chief Secretary (`Q126725819`) and current Presiding
+   Officer (`Q111372484`).
+
+   | item | office | lacks | unplaced run people (no `P39`) |
+   |---|---|---|---:|
+   | `Q106040759` | Chief of Defence Staff (TT) | `P17`, `P1001`, `P279`, `P2389` (only `P31`) | 1 (0) |
+   | `Q85751924` | Chief Secretary of Tobago | every claim | 2 (1) |
+   | `Q85794414` | Presiding Officer, Tobago House of Assembly | every claim | 4 (4) |
+   | `Q123054908` | Governor, Banque de la République d'Haïti | every claim | 1 (0) |
+   | `Q132736192` | member seat, Haiti's CPT | every claim (loaded via the citizen lane) | 2 (2) |
+   | `Q119848570` | General Commander, Dominican Army | `P31`, `P17`, `P1001` | 2 (1) |
+   | `Q135659026` | Head, Belarus Presidential Security Service | `P17`, `P1001` | 3 (0) |
+   | `Q85751928` | Chief of Defence Staff (JM) | `P1001` only (already loaded via `P17`) | 0 |
+
+   `scripts/body_fixes.sh` adds the missing statements: 28 additive
+   `wb add-claim` lines, each written against the revision it was read at.
+2. *The body is known, but it has no `P2388` and no office item exists.* These
+   are mint candidates with a body to name under `P2389`:
+   - **Colombia's Supreme Court of Justice president.** No item, under any
+     es/en label searched. 2 run people name it unplaced, and 3 more name the
+     magistracy.
+   - Colombia's Contralor General: the body `Q8042106` has `P488` but there is
+     no office.
+   - The Dominican central bank governor (`Q1800406`, with a current `P488`).
+   - GAESA's head.
+   - The police heads of jm (`Q3160777`), tt (`Q7842422`) and ht (`Q3394179`).
+   - Burundi's apex courts, central bank, armed forces, SNR and police.
+   - Belarus's thirteen census SOEs.
+
+   The census already lists most of these. A body lane adds only the bodies
+   the census has not named, chiefly the type-found SOEs and units, which are
+   noise.
+3. *The body itself is missing.* The audit offices of jm, tt, bi, do and ht;
+   Cuba's Fiscalía; Burundi's parquet; Jamaica's Court of Appeal.
+
+**Ambiguous, and kept out of the script:**
+- `Q125542684` "Inspector General of Colombia" (es "Procurador general de
+  Colombia", no claims) against `Q16622285` "Attorney General of Colombia" (es
+  label also "Procurador General de Colombia", `P279` public prosecutor general,
+  loaded). The enwiki article of the second is about the Fiscalía. That is a
+  label and merge question, not a missing statement.
+- `Q6448961` "Intendente Jefe de la Policía Nacional de Colombia" (`P17`
+  only) is a police **rank**. Typing it would make a rank an office.
+- `Q30909878` "Office of the Attorney General" (DO) is typed both `Q192350`
+  ministry and `Q4164871` position, with `P279` attorney general: a body
+  modelled as an office (a `wd/shape.py` defect).
+- Haiti's SIN `P1037 = Q37230` (the CIA) is wrong, but the fix is a removal.
+- The Chief Secretary of Tobago's `P279`: the measured analogues split
+  (`Q5096847` "chief minister" 30 of 53 "Chief Minister of …" items, all of
+  them Indian; `Q2285706` head of government 5). It is left without one.
+- Bodies with no `P31`: Trinidad and Tobago Police Service `Q7842422`,
+  Tribunal Constitucional (DO) `Q9089790` (no `P17` either), TSE (DO)
+  `Q123166271`, Contraloría (DO) `Q5785178`, Edesur `Q5817651` and DNI (DO)
+  `Q10884568`. Typing them helps a type-based body search, not discovery of
+  any office.
+
+#### Proposal: a body lane, if any
+
+**A generic body lane is not worth it.** Over eight countries, hook 1 (`P2388`)
+reaches nothing new, and hook 2 reaches 2 real offices among 83 items, 56 of
+which are military units that would load as unflagged rows. The offices the
+runs actually lost are invisible *to every hook*: an item with no claims has no
+`P2389`, and its body has no `P2388` to it. A discovery lane cannot read a
+link that was never written. These cases get fixed in the data, as
+`scripts/body_fixes.sh` does, or by the mint.
+
+If one is wanted anyway, the narrow version that pays is **reverse `P2389`
+only, from bodies of the two reliably typed classes plus the census bodies,
+admitting only items that declare a position metaclass or declare nothing**:
+- Drop `P361`, which is the unit channel.
+- Drop `P2388`, which is redundant with the descent.
+
+It slots into `positions.py` as a fifth default source, `"body"`, beside
+`"outbound"` and in the same shape: two phases, no new CLI flag. Phase one
+asks for the state's bodies: `P31` central bank, election commission or general
+staff, scoped `P17`/`P1001`, plus the census bodies passed in by the run.
+Phase two asks `?pos p:P2389/ps:P2389 ?body`, chunked by `values_chunks`, and
+keeps an answer only if it declares a position metaclass or declares nothing.
+That is a post-query filter, as `_discover_outbound` keeps only
+`DIPLOMATIC_CLASS`, never a `P279*` in the query. Measured here, it would have
+found `Q135659026` and `Q119848570`, and after the script nothing that descent
+does not.
+
+**The census covers the rest.** Its `body:` QIDs are the hand-checked version
+of phase one, and they already feed the mint, which is where class 2 belongs.
+What the census does not do, and should, is record the office item when one
+exists unconnected (`exists: Q85751924, claimless` is a comment in `tt.yml`
+today). That item belongs in the fix list, not the mint queue. Otherwise the
+mint's duplicate guard is the only thing standing between a claimless office
+and a second item for it.
