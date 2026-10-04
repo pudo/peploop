@@ -121,6 +121,7 @@ FAMILY_GENERIC = frozenset({
     "Q708492",     # council member
     "Q26204040",   # deputy minister
     "Q90132546",   # deputy minister
+    "Q2632935",    # minister of state
     "Q124079538",  # deputy head
     "Q121998",     # ambassador
     "Q29645886",   # ambassador to a country
@@ -144,6 +145,7 @@ MULTI_SEAT_KINDS = CHAMBER_KINDS | {
     "Q16862850",   # member of a state body
     "Q26204040",   # deputy minister
     "Q90132546",   # deputy minister
+    "Q2632935",    # minister of state
     "Q124079538",  # deputy head
     "Q3250324",    # deputy, the second-in-command
 }

@@ -391,6 +391,49 @@ def main() -> int:
     expect(offices.body_for(Siblings(bodies_by_archetype={"minister": Counter({BODY: 2, OLD: 2})}),
                             "minister"), None, "and a tie names none")
 
+    print("deputy and junior ministers (research/position_items.md §10p):")
+    deputy = offices.ARCHETYPES["deputy_minister"]
+    expect((deputy.parent, deputy.body_property, deputy.single_seat, deputy.scoped, deputy.level,
+            deputy.metaclass, deputy.body_from),
+           ("Q26204040", "P361", False, True, "state", None, "minister"),
+           "a deputy minister is kind deputy minister, many seats, of the state, in the minister's body")
+    junior = offices.ARCHETYPES["minister_of_state"]
+    expect((junior.parent, junior.parents, junior.body_property, junior.single_seat, junior.body_from),
+           ("Q2632935", ("Q2632935", "Q83307"), "P361", False, "minister"),
+           "a minister of state is kind minister of state, or minister where drafted, the same shape")
+    cabinet = Siblings(bodies_by_archetype={"minister": Counter({BODY: 5})})
+    expect(offices.measured_body(cabinet, "deputy_minister"), BODY,
+           "with no deputies to measure, a deputy sits where the state's ministers do")
+    expect(offices.measured_body(Siblings(bodies_by_archetype={
+        "minister": Counter({BODY: 5}), "deputy_minister": Counter({OLD: 2})}), "deputy_minister"), OLD,
+        "but the state's own deputies agreeing on a body outrank the ministers'")
+    expect(offices.measured_body(cabinet, "judge"), None, "and no other kind borrows a body")
+    data = offices.entity_data(judge(archetype="deputy_minister", labels={"en": "Deputy Minister of Health"}))
+    expect((statement(data, "P279"), statement(data, "P361"), statement(data, "P2389"),
+            statement(data, "P1001")), (["Q26204040"], [BODY], [], [STATE]),
+           "the payload: kind deputy minister, P361 the government, P1001 the state")
+    expect(offices.describe(judge(archetype="minister_of_state", body_qid=None), LABELS),
+           "minister of state in the government of Aland", "described by the state it serves")
+
+    print("a label worded as the state's own offices are:")
+    jamaica = [f"Minister of State at the Ministry of {x}" for x in ("Finance", "Health", "Transport")]
+    jamaica += ["Minister of State at the Office of the Prime Minister", "Minister of Finance"]
+    expect(offices.sibling_form("Minister of State in the Ministry of Education", jamaica),
+           "Minister of State at the Ministry of Education",
+           "the siblings' preposition replaces the article's")
+    expect(offices.sibling_form("Minister of State in the Office of the Prime Minister", jamaica),
+           "Minister of State at the Office of the Prime Minister", "for an office as for a ministry")
+    expect(offices.sibling_form("Parliamentary Secretary in the Ministry of Education", jamaica),
+           "Parliamentary Secretary in the Ministry of Education",
+           "another seat's siblings say nothing about this one's wording")
+    expect(offices.sibling_form("Minister of State in the Ministry of Education", jamaica[:1]),
+           "Minister of State in the Ministry of Education", "one sibling is not agreement")
+    split = jamaica[:2] + ["Minister of State in the Ministry of Labour"] * 2
+    expect(offices.sibling_form("Minister of State in the Ministry of Education", split),
+           "Minister of State in the Ministry of Education", "nor is a split")
+    expect(offices.sibling_form("Minister of Education", jamaica), "Minister of Education",
+           "and a label that attaches to no ministry is kept as it is")
+
     print("a live search hit, judged:")
     office = entity("Q70", "President of Aland", p31="Q294414", p17=STATE,
                     aliases=("Head of State of Aland",))

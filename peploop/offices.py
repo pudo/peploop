@@ -72,6 +72,11 @@ class Archetype:
     #: The office means nothing without its body: a party's leader with no
     #: party named is an item nobody can tell from any other party's.
     body_required: bool = False
+    #: Another archetype whose offices sit in the same body, and whose
+    #: measured body this one takes before a drafted one: a deputy minister is
+    #: modelled as part of the government its minister is part of, and the
+    #: state's existing deputies are too few to agree on anything themselves.
+    body_from: str | None = None
 
 
 ARCHETYPES: dict[str, Archetype] = {
@@ -163,6 +168,23 @@ ARCHETYPES: dict[str, Archetype] = {
     ),
     "prosecutor_general": Archetype(
         "Q3368517", description="prosecutor general of {jurisdiction}", single_seat=True,
+    ),
+    # A deputy or vice-minister: `Q26204040`, which 27 states' deputies use
+    # (15 batch-created cabinets use plain minister instead), and which is not
+    # a minister. Several people hold one ministry's deputyship at once; a
+    # first deputy is its own seat. Like a minister of state, it names the
+    # government or cabinet under `P361` -- not the ministry, by about four
+    # to one. research/position_items.md §10p.
+    "deputy_minister": Archetype(
+        "Q26204040", description="deputy minister in the government of {jurisdiction}",
+        body_from="minister",
+    ),
+    # A Westminster junior minister attached to a ministry: `Q2632935` is
+    # itself a minister, and the plurality (35 states) uses minister directly,
+    # which is kept where drafted.
+    "minister_of_state": Archetype(
+        "Q2632935", description="minister of state in the government of {jurisdiction}",
+        parents=("Q2632935", "Q83307"), body_from="minister",
     ),
 }
 
@@ -446,6 +468,9 @@ class Siblings:
     #: each language: what `label_langs` measures the guard's languages by.
     offices: int = 0
     label_langs: Counter[str] = field(default_factory=Counter)
+    #: The English labels of the state's current offices, whatever their kind:
+    #: what `sibling_form` reads a state's wording from.
+    labels: list[str] = field(default_factory=list)
 
 
 def _mode(tally: Counter[str] | None) -> str | None:
@@ -495,6 +520,49 @@ def body_for(siblings: Siblings, archetype: str, min_agree: int | None = None) -
     if not ranked or ranked[0][1] < min_agree or (len(ranked) > 1 and ranked[1][1] == ranked[0][1]):
         return None
     return ranked[0][0]
+
+
+def measured_body(siblings: Siblings, archetype: str) -> str | None:
+    """The body the state's offices of this kind sit in, or of its `body_from` kind."""
+    shape = ARCHETYPES[archetype]
+    return body_for(siblings, archetype) or (
+        body_for(siblings, shape.body_from) if shape.body_from else None)
+
+
+#: An office named as a seat attached to a ministry, office or department:
+#: "Minister of State at the Ministry of X", "Parliamentary Secretary in the
+#: Office of the Prime Minister". The preposition is what states differ in.
+ATTACHED = re.compile(
+    r"^(?P<head>.+?)\s+(?P<prep>at|in|within|of)\s+(?P<tail>(?:the\s+)?(?:ministry|office|department)\b.*)$",
+    re.IGNORECASE,
+)
+
+
+def sibling_form(label: str, sibling_labels: Iterable[str], min_agree: int = 2,
+                 share: float = 2 / 3) -> str:
+    """An English label rewritten to the preposition the state's own offices use.
+
+    An article writes "Minister of State in the Ministry of X" where the
+    state's ten existing items all read "Minister of State at the Ministry of
+    Y": the drafted form would make the eleventh the odd one out and miss the
+    others in a search. Only the preposition between the seat and its ministry
+    changes, only when at least `min_agree` offices with the same seat words
+    share one and `share` of them agree on it; otherwise the label is kept.
+    """
+    found = ATTACHED.match(label.strip())
+    if not found:
+        return label
+    head = _norm(found["head"])
+    preps: Counter[str] = Counter()
+    for other in sibling_labels:
+        match = ATTACHED.match(other.strip())
+        if match and _norm(match["head"]) == head:
+            preps[match["prep"].lower()] += 1
+    total = sum(preps.values())
+    for prep, n in preps.most_common(1):
+        if n >= min_agree and n / total >= share and prep != found["prep"].lower():
+            return f"{found['head']} {prep} {found['tail']}"
+    return label
 
 
 def parent_for(siblings: Siblings, archetype: str, min_agree: int = 2, share: float = 2 / 3) -> str:
@@ -1030,6 +1098,8 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
     for qid, entity in items.items():
         out.offices += 1
         out.label_langs.update(entity.get("labels", {}).keys())
+        if english := entity.get("labels", {}).get("en", {}).get("value"):
+            out.labels.append(english)
         metas = set(_values(entity, "P31")) & POSITION_METACLASSES
         out.metaclasses.update(metas)
         typed: set[str] = set()

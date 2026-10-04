@@ -325,6 +325,35 @@ def check_build_spec(expect: Any) -> None:
            and quoted.get("en") == ["Secretary General of the Unity Party"]
            and quoted.get("sw") == ["Katibu Mkuu wa Unity Party"],
            f"while a same-language variant, and a language with no label, keep theirs: {quoted}")
+    deputies = [mint.Attestation(person=f"Q{i}", title=t, lang=lang, current=True) for i, (t, lang) in enumerate([
+        ("Viceministro de Salud", "es"), ("Primer Viceministro de Salud", "es"),
+        ("Acting Deputy Minister of Health", "en"), ("Deputy Minister for Health", "en"),
+        ("исполняющий обязанности заместителя министра здравоохранения", "ru"),
+        ("Врио заместителя министра здравоохранения", "ru"),
+        ("заместитель министра здравоохранения", "ru")])]
+    labels = {"en": "Deputy Minister of Health of Alvania", "es": "viceministro de Salud de Alvania",
+              "ru": "заместитель министра здравоохранения Алвании"}
+    kept = mint.attested_aliases(deputies, labels, ["Alvania"], "deputy_minister")
+    expect(kept == {"es": ["Viceministro de Salud"], "en": ["Deputy Minister for Health"],
+                    "ru": ["заместитель министра здравоохранения"]},
+           f"a deputy's own title is its alias; an acting or a first deputy's is not: {kept}")
+    first = mint.attested_aliases(deputies, {"es": "primer viceministro de Salud de Alvania"},
+                                  ["Alvania"], "deputy_minister")
+    expect(first.get("es") == ["Primer Viceministro de Salud"],
+           f"and a first deputy keeps only first-deputy titles: {first}")
+    minister = mint.attested_aliases(deputies, {"en": "Minister of Health of Alvania"}, ["Alvania"], "minister")
+    expect(minister == {}, f"while a minister's item takes no deputy title, Cyrillic either: {minister}")
+    sib = siblings()
+    sib.bodies_by_archetype = {"minister": Counter({COUNCIL: 12})}
+    sib.labels = [f"Minister of State at the Ministry of {x} of Alvania" for x in ("Finance", "Labour")]
+    junior = cand(draft={"archetype": "minister_of_state", "single_seat": False, "body_qid": BODY,
+                         "labels": {"en": "Minister of State in the Ministry of Health of Alvania"}})
+    jspec, _p = mint.build_spec(junior, ctx(siblings=sib, langs=[]))
+    expect((jspec.labels["en"], jspec.body_qid, jspec.kind)
+           == ("Minister of State at the Ministry of Health of Alvania", COUNCIL, "Q2632935"),
+           f"a minister of state is worded as its siblings, in the ministers' body: {jspec.labels} {jspec.body_qid}")
+    dspec, _p = mint.build_spec(cand(draft={"archetype": "deputy_minister", "body_qid": BODY}), ctx())
+    expect(dspec.body_qid == BODY, "with nothing measured, a drafted body stands")
     expect(spec.parent == SIB_PARENT and spec.metaclass == "Q294414",
            f"the parent and metaclass are the siblings': {spec.parent} {spec.metaclass}")
     expect(spec.jurisdiction_qid == STATE, "a null jurisdiction on a scoped seat is the state")

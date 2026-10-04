@@ -1650,22 +1650,46 @@ def _run_labels(cand: Candidate) -> list[str]:
 #: Words that make a title another seat than the office it was clustered into:
 #: the acting holder, the substitute, the co-judge, the deputy. Such a title
 #: still attests the office's existence, but as an alias it would name a
-#: different seat and let a later search place its holders here.
-NOT_THE_SEAT = re.compile(
-    r"\b(acting|interim|interino|interina|encargad[oa]|substitute|suplente|alternate"
-    r"|co[- ]?judge|conjuez|conjueza|deputy|vice|vice-?\w+|adjunt[oa]|ad hoc|provisional)\b"
+#: different seat and let a later search place its holders here. Matched on
+#: folded text, so the Russian and Belarusian acting forms ("исполняющий
+#: обязанности", "врио", "и. о.", "выконваючы абавязкі") and deputy forms
+#: ("заместитель", "намеснік", "заступник") are matched transliterated.
+ACTING = re.compile(
+    r"\b(acting|interim|interino|interina|encargad[oa]|ad hoc|provisional"
+    r"|ispolna\w*|obazannost\w*|vrio|vykonva\w*|abavazk\w*)\b|\bi\. ?o\."
 )
+DEPUTY = re.compile(
+    r"\b(substitute|suplente|alternate|co[- ]?judge|conjuez|conjueza|deputy|vice|vice-?\w+"
+    r"|adjunt[oa]|zamestitel\w*|namesnik\w*|zastupnik\w*)\b"
+)
+#: A first deputy is another seat than the deputies of the same ministry.
+FIRST = re.compile(r"\b(first|primer[oa]?|premier|premiere|pervyj|pervaa|persy|persaa)\b")
+#: Archetypes whose seat *is* a deputy's, so a deputy word in a title is the
+#: office's own and only an acting form, or a first deputy where the label
+#: names none (or the reverse), is another seat.
+DEPUTY_ARCHETYPES = ("deputy_minister",)
+
+
+def not_the_seat(title: str, labels: dict[str, str], archetype: str | None = None) -> bool:
+    """Whether a folded title names another seat than the labelled office."""
+    if ACTING.search(title):
+        return True
+    if archetype not in DEPUTY_ARCHETYPES:
+        return bool(DEPUTY.search(title))
+    first = any(FIRST.search(_fold(text)) for text in labels.values())
+    return bool(FIRST.search(title)) != first
 
 
 def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str],
-                     state_names: Iterable[str] = ()) -> dict[str, list[str]]:
+                     state_names: Iterable[str] = (), archetype: str | None = None,
+                     ) -> dict[str, list[str]]:
     """The titles the holders' articles wrote, as aliases, per language.
 
     So the item is found by the words the next article uses. Folded and
     deduplicated, the most-held first, at most `ALIASES_PER_LANG` a language,
     never one of the labels, never a bare seat word ("Governor"), which
     names every office of its kind and would make a live search find them all,
-    and never a title that marks another seat (`NOT_THE_SEAT`), nor one written
+    and never a title that marks another seat (`not_the_seat`), nor one written
     in another language than the article's: a title whose words all sit in
     another language's label and not in its own language's label.
     """
@@ -1696,7 +1720,7 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
         folded = _fold(a.title)
         if not folded or folded in taken or offices.QID.search(a.title):
             continue
-        if not _stems(a.title, drop) or NOT_THE_SEAT.search(folded):
+        if not _stems(a.title, drop) or not_the_seat(folded, labels, archetype):
             continue
         if misfiled(a.title, a.lang):
             continue
@@ -1744,12 +1768,22 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
     # requires is one nobody reads -- a model's Kirundi would go out unseen.
     keep = {"en", *offices.label_langs(ctx.siblings, ctx.langs), *(anchor.labels if anchor else ())}
     labels = {lang: text for lang, text in labels.items() if lang in keep}
+    sibs = ctx.siblings
+    # Worded as the state's own offices of the same seat are: "at the
+    # Ministry" where they all say "at", whatever the article wrote.
+    if labels.get("en"):
+        labels["en"] = offices.sibling_form(labels["en"], sibs.labels)
     # And its body, measured for the census, when the draft named none: a
     # draft that took the office for an existing generic class has no body,
     # and without one a "head of the {body}" description cannot be written.
-    # Failing both, the body the state's offices of this kind agree on.
-    sibs = ctx.siblings
-    body = draft.get("body_qid") or (anchor.body if anchor else None) or offices.body_for(sibs, arch)
+    # Failing both, the body the state's offices of this kind agree on. An
+    # archetype that sits where another does (`body_from`) takes the measured
+    # body first: a deputy's drafted ministry is the minority shape.
+    measured = offices.measured_body(sibs, arch)
+    if shape.body_from and measured:
+        body = measured
+    else:
+        body = draft.get("body_qid") or (anchor.body if anchor else None) or measured
     if not labels:
         problems.append("labels/none")
     jurisdiction = draft.get("jurisdiction_qid") or (ctx.state_qid if shape.scoped else None)
@@ -1763,7 +1797,7 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
             problems.append(f"parent-replaced/{drafted}")
     spec = offices.Spec(
         ref=cand.ref, archetype=arch, labels=labels, state_qid=ctx.state_qid,
-        aliases=attested_aliases(cand.attestations, labels, ctx.state_names),
+        aliases=attested_aliases(cand.attestations, labels, ctx.state_names, arch),
         metaclass=offices.metaclass_for(sibs, parent, shape.metaclass), parent=parent,
         jurisdiction_qid=jurisdiction, body_qid=body,
         replaces=draft.get("replaces_qid"),

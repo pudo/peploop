@@ -175,6 +175,8 @@ For every office, whatever its decision:
   | archetype | the seat |
   |---|---|
   | `minister` | a minister of the national government |
+  | `deputy_minister` | a deputy, vice- or first deputy minister of a national ministry |
+  | `minister_of_state` | a minister of state attached to a national ministry or the prime minister's office, below its minister |
   | `legislator` | a member of a chamber or assembly |
   | `judge` | a judge or magistrate of a court that is not the apex |
   | `supreme_judge` | a judge or magistrate of an apex court |
@@ -195,12 +197,27 @@ For every office, whatever its decision:
 
   The head of a police force or an intelligence service is `agency_head`. A
   deputy of any of these is the same archetype as the principal only when it
-  is a seat of its own; a vice-minister is not `minister`, it is null. A
+  is a seat of its own. A vice-minister or deputy minister of a national
+  ministry ("Viceministro de X", "Deputy Minister of X", "заместитель
+  министра X", "намеснік міністра X") is `deputy_minister`, never `minister`;
+  a first deputy minister is `deputy_minister` too, as an office of its own
+  beside the deputies of the same ministry, never folded into them. A
+  "Minister of State in/at the Ministry of X" or "in the Office of the Prime
+  Minister", the Westminster junior minister, is `minister_of_state`. A deputy
+  or vice-minister stays null when it is not a seat of the national
+  government: a provincial or municipal deputy, a party's or a company's
+  deputy head, a ministry's permanent secretary or other civil-service post
+  (`not-state` or `occupation` as the case is), a parliamentary secretary, a
+  deputy prime minister (a minister of the government), or a "minister of
+  state" that is a full minister's title (a minister without portfolio, a
+  senior minister heading a portfolio of its own: `minister`). A
   vice-president or deputy speaker of a chamber is not `speaker`, it is null.
 
 - **`single_seat`** — true when one person holds the office at a time (a
-  minister, a mayor, a court's president), false when each member of a body
-  holds it (a legislator, a judge of a bench, a council member).
+  minister, a mayor, a court's president, a first deputy minister), false when
+  each member of a body holds it (a legislator, a judge of a bench, a council
+  member) or several people hold it together (the deputy ministers of one
+  ministry).
 
 - **`labels`** — the office's name as a Wikidata label, in each of the state's
   languages and in English (`en`), one entry per language. A label is the name
@@ -208,6 +225,12 @@ For every office, whatever its decision:
   of the Y", "President of the Z Court". Use the most official form the
   evidence shows, the jurisdiction or body spelled out, no abbreviations, no
   dates, no party.
+
+  **Wording.** Where the state's existing offices of the same kind are worded
+  one way, word the label the same way, even when the article does not: if
+  the state's ministers of state are all "Minister of State at the Ministry of
+  X", the new one is "Minister of State at the Ministry of Y", whatever
+  preposition the article used.
 
   **Capitalisation.** Wikidata has no single rule and the measured practice
   differs by office, so follow the state's own existing offices of the same
@@ -235,7 +258,10 @@ For every office, whatever its decision:
 
 - **`body_qid`** — the court, chamber, ministry, council, organ, company or
   party the seat is in. Null when the office is not a seat in a body, or the
-  body is not on the lists.
+  body is not on the lists. A deputy minister and a minister of state are
+  modelled as part of the government or cabinet the state's ministers sit in,
+  not of the ministry: name that body when it is listed, and leave it null
+  rather than name the ministry.
 
 - **`jurisdiction_qid`** — the polity the office governs, when it is the state
   or one of the listed subdivisions. **`jurisdiction_name`** — the polity's
