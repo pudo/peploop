@@ -571,7 +571,7 @@ def upsert_position(row: dict[str, Any], names: Sequence[tuple[str, str, bool]])
         "qid", "label", "description", "country_qid", "jurisdiction_qid",
         "jurisdiction_text", "body_qid", "kinds", "sources", "not_office",
         "inception", "abolished", "replaces", "replaced_by", "redirected_from",
-        "search_text", "kind_qids", "diplomatic", "sender_qid",
+        "search_text", "kind_qids", "diplomatic", "sender_qid", "title_en",
     ]
     # `sources` is a union, never an overwrite: a run of one discovery query,
     # or a minted item fed back in, says how *this* run found the item, and
@@ -673,14 +673,51 @@ def load_qids(
     return load_items({source: wanted}, log=log)
 
 
+def _english_names(
+    rows: Sequence[tuple[dict[str, Any], Sequence[tuple[str, str, bool]]]],
+    translate: bool,
+    log: Any,
+) -> dict[str, str]:
+    """The translation pass's English name for each loaded item that has no `en`/`mul` label.
+
+    Asks the model only for names not cached yet. A failed pass is logged and
+    loads the items without English names rather than failing the load: the
+    next load, or `cli titles`, fills them.
+    """
+    from peploop import titles
+
+    wanted: dict[str, Any] = {}
+    for row, names in rows:
+        labels = {lang: text for lang, text, alias in names if not alias}
+        item = titles.item_title(labels, row.get("country_qid") or row.get("jurisdiction_qid"))
+        if item is not None:
+            wanted[row["qid"]] = item
+    if not wanted:
+        return {}
+    try:
+        if translate:
+            stats = titles.translate(wanted.values(), log=log)
+            log(f"english names: {stats['todo']} asked for {len(wanted)} unlabelled items,"
+                f" {stats['missing']} unanswered")
+        cache = titles.cached_many(wanted.values())
+    except Exception as exc:  # noqa: BLE001 — a search aid must not fail a load
+        log(f"english names skipped: {type(exc).__name__}: {str(exc)[:120]}")
+        return {}
+    return {qid: cache[item.key] for qid, item in wanted.items() if item.key in cache}
+
+
 def load_items(
     found: dict[str, set[str]],
     log: Any = lambda _m: None,
+    translate: bool = True,
 ) -> dict[str, int]:
     """Fetch the items discovery found and write them, their names and types.
 
     `found` maps a source name to the QIDs it reached; an item's `sources`
     are the keys it appears under, joined to whatever it already carried.
+    An item with no English or multilingual label gets the translation pass's
+    English name as a search aid (`position.title_en`); `translate=False`
+    reads only what is cached.
     """
     union = sorted({q for qids in found.values() for q in qids})
     log(f"union: {len(union)} items")
@@ -778,6 +815,7 @@ def load_items(
               if (label := wikidata.best_label(entity)) is not None}
     log(f"referenced items: {len(items)} of {len(referenced)}"
         f" in {time.monotonic() - started:.0f}s")
+    english = _english_names(rows, translate, log)
     started = time.monotonic()
     for row, names in rows:
         row["kinds"] = [labels[q] for q in row.pop("_kind_qids") if q in labels]
@@ -792,6 +830,11 @@ def load_items(
         # up matching more queries than the office it is the class of. Measured
         # at 3.9 points of macro recall and a fifth of the index size.
         texts.extend(row["kinds"])
+        # An item with no English name is reached from an English title only
+        # through the translation pass's name for it; see `titles`.
+        row["title_en"] = english.get(row["qid"])
+        if row["title_en"]:
+            texts.append(row["title_en"])
         row["search_text"] = " ".join(token_bag(texts))
         upsert_position(row, names)
     log(f"upsert: {len(rows)} rows in {time.monotonic() - started:.0f}s")
