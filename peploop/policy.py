@@ -214,6 +214,9 @@ class Case:
     position: dict[str, Any] | None = None
     #: The verifier's answer for this content, once one has been recorded.
     verification: dict[str, Any] | None = None
+    #: The newest human verdict on the row from the review sampler, `accept`
+    #: or `reject`, or None when nobody read it.
+    review: str | None = None
     #: The person's other proposals for the same property, as (value, status).
     siblings: list[tuple[dict[str, Any], str]] = field(default_factory=list)
     #: What `spell_conflicts` found for a P39 among the person's other spells
@@ -275,6 +278,17 @@ def _year(value: dict[str, Any] | None) -> int | None:
 
 
 # --- universal gates, in the order they are asked ---------------------------
+
+
+def review_rejected(case: Case) -> Disposition | None:
+    """A human who read the row in the review sampler rejected it.
+
+    The reverse does not hold: an accept in the sampler is a measurement, not
+    a way past the rules, so it decides nothing and the row goes on to them.
+    """
+    if case.review == "reject":
+        return _skip("review_rejected")
+    return None
 
 
 def lane_removed(case: Case) -> Disposition | None:
@@ -992,6 +1006,7 @@ def verify_refused(case: Case) -> Disposition | None:
 
 RULES: tuple[Rule, ...] = (
     # Does the row belong in the write path at all.
+    review_rejected,
     lane_removed,
     extracted_out_of_scope,
     no_quote,
@@ -1103,7 +1118,9 @@ def person_cases(
         rows = cur.execute(
             "SELECT p.id, p.property, p.value, p.qualifiers, p.status, p.proposed_status,"
             " p.quote, p.source_lang, e.response_json,"
-            " r.kind, r.confidence, r.qid AS office"
+            " r.kind, r.confidence, r.qid AS office,"
+            " (SELECT v.decision FROM verdict v WHERE v.proposal_id = p.id"
+            "  ORDER BY v.id DESC LIMIT 1) AS review"
             " FROM proposal p"
             " LEFT JOIN extraction e ON e.id = p.extraction_id"
             " LEFT JOIN resolution r ON r.id = p.resolution_id"
@@ -1154,6 +1171,7 @@ def person_cases(
             verification=None if verification is None else {
                 "verdict": verification.verdict, "confidence": verification.confidence,
             },
+            review=row["review"],
             siblings=siblings,
             office_spells=None if spells is None or row["property"] != "P39"
             else spells.get(row["value"].get("id"), []),
@@ -1217,6 +1235,55 @@ def _family_conflicts_of(cases: Sequence[tuple[int, Case]], state_qid: str | Non
     for qid, office in offices.items():
         office.setdefault("names", names.get(qid, []))
     return family_conflicts(live, use, names, orgs)
+
+
+#: The prefix of `decided_by` on a row an audit took out. Not `DECIDER`, so the
+#: policy never selects the row again.
+AUDITOR = "audit:"
+#: Statuses an audit may not skip: the statement is already on Wikidata.
+UNAUDITABLE = ("applied",)
+
+
+def audit(ids: Sequence[int], reason: str, by: str, country: str) -> list[dict[str, Any]]:
+    """Take proposals out of the write path after the fact, durably.
+
+    For an observer who doubts rows the policy accepted: their SQL picks the
+    ids, this records who decided and why. The row is `skipped` under
+    `audit:<by>` and also carries a `reject` verdict, because a verdict is
+    what `propose` keeps across a re-run -- a status alone was wiped by the
+    next one. There is no approve. All or nothing: an id that is unknown,
+    of another country's run, or already written refuses the whole call.
+    """
+    if not by.strip() or not reason.strip():
+        raise ValueError("an audit names who skipped it and why")
+    conn = db.conn()
+    with conn.transaction(), conn.cursor(row_factory=dict_row) as cur:
+        rows = cur.execute(
+            "SELECT p.id, p.person_qid, p.property, p.status, p.decided_by, pe.country"
+            " FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
+            " WHERE p.id = ANY(%s) ORDER BY p.id FOR UPDATE OF p",
+            (list(ids),),
+        ).fetchall()
+        found = {row["id"] for row in rows}
+        problems = [f"#{ident}: no such proposal" for ident in ids if ident not in found]
+        problems += [f"#{row['id']}: of {row['country']}'s run, not {country}'s"
+                     for row in rows if row["country"] != country]
+        problems += [f"#{row['id']}: {row['status']}, already on Wikidata"
+                     for row in rows if row["status"] in UNAUDITABLE]
+        if problems:
+            raise ValueError("; ".join(problems))
+        for row in rows:
+            cur.execute(
+                "INSERT INTO verdict (proposal_id, decision, reason, note, decided_by)"
+                " VALUES (%s, 'reject', 'other', %s, %s)",
+                (row["id"], reason, AUDITOR + by),
+            )
+            cur.execute(
+                "UPDATE proposal SET proposed_status = coalesce(proposed_status, status),"
+                " status = %s, decided_by = %s, decided_at = now() WHERE id = %s",
+                (SKIPPED, AUDITOR + by, row["id"]),
+            )
+    return rows
 
 
 def record(proposal_id: int, disposition: Disposition) -> None:

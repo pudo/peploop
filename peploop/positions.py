@@ -1001,6 +1001,20 @@ def fill_counts(
     return timings
 
 
+def uncounted() -> list[str]:
+    """The rows `fill_counts` has never answered for.
+
+    Every load since the pilot ran with the counts skipped, so a run
+    country's own offices -- the rows its searches rank first -- had no
+    holder, instance or subclass count, and the `class` signal was silent on
+    them. Counting only these keeps a pass from re-asking the whole corpus.
+    """
+    rows = db.conn().execute(
+        "SELECT qid FROM position WHERE holders_at IS NULL ORDER BY qid"
+    ).fetchall()
+    return [qid for (qid,) in rows]
+
+
 #: Chunk size for the backfill below. Half of `VALUES_CHUNK`, and not for the
 #: URI limit: a whole-table pass over the country-holder query is the one
 #: request stage D could not get an answer to, and the query service refused

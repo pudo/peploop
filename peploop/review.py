@@ -9,8 +9,12 @@ dump and a grid. Accept is the resting state, so the common person is a glance
 and one `Enter`, and a digit rejects a single row with one reason from the
 closed set the `verdict` table allows.
 
-Nothing here writes to Wikidata. A submitted person's decisions land in one
-transaction, and a row marked skipped stays reviewable later.
+A sampler, not a gate: a verdict here never changes a proposal's status. The
+policy reads it -- a rejection skips the row on its next run, an accept decides
+nothing -- so every row still reaches Wikidata through the rules or not at
+all. That closes the path by which 31 hand-accepted rows were once written
+with no rule and no verifier ever looking at them. A submitted person's
+decisions land in one transaction, and a row marked skipped stays reviewable.
 """
 
 import os
@@ -29,10 +33,12 @@ from textual.widgets import DataTable, Footer, Input, Static
 
 from peploop import db, prompt, reconcile, wikidata
 
-# A conflict is reviewable but not writable: accepting one says the article is
-# right and Wikidata is wrong, which is a human's to-do about the item, and
-# `apply` refuses to write a value that contradicts a single-valued property.
-REVIEWABLE = ("new", "refine", "conflict")
+# What the sampler draws from: rows on their way to Wikidata -- not yet decided,
+# held for the verifier, or accepted -- and conflicts. A conflict is reviewable
+# but not writable: accepting one says the article is right and Wikidata is
+# wrong, which is a human's to-do about the item, and `apply` refuses to write a
+# value that contradicts a single-valued property.
+REVIEWABLE = ("new", "refine", "pending", "accepted", "conflict")
 # The order is the keypad: digit 1 is the first of these. It must stay a subset
 # of the `verdict.reason` check constraint in schema.sql.
 REASONS = (
@@ -386,11 +392,11 @@ def load_person(qid: str) -> Person | None:
 
 
 def write_verdicts(rows: list[Row], reviewer: str) -> tuple[int, int]:
-    """Record one person's decisions in a single transaction.
+    """Record one person's decisions in a single transaction, as verdicts only.
 
     Rows marked skipped are left alone, and so is a row someone has ruled on
     since the screen was drawn: a verdict is the one thing in the table a
-    re-run cannot reproduce.
+    re-run cannot reproduce. The status stays the policy's to set.
     """
     conn = db.conn()
     written, taken = 0, 0
@@ -405,14 +411,9 @@ def write_verdicts(rows: list[Row], reviewer: str) -> tuple[int, int]:
                 taken += 1
                 continue
             conn.execute(
-                "INSERT INTO verdict (proposal_id, decision, reason, note)"
-                " VALUES (%s, %s, %s, %s)",
-                (row.id, row.decision, row.reason, row.note or None),
-            )
-            conn.execute(
-                "UPDATE proposal SET status = %s, decided_by = %s, decided_at = now()"
-                " WHERE id = %s",
-                ("accepted" if row.decision == ACCEPT else "rejected", reviewer, row.id),
+                "INSERT INTO verdict (proposal_id, decision, reason, note, decided_by)"
+                " VALUES (%s, %s, %s, %s, %s)",
+                (row.id, row.decision, row.reason, row.note or None, f"review:{reviewer}"),
             )
             written += 1
     return written, taken

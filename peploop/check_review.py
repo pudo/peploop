@@ -1,10 +1,13 @@
-"""Drive the review app headlessly against the real database and undo the run.
+"""Drive the review app headlessly against shadowed tables and pin what it may write.
 
-Textual can be driven without a terminal, so the one thing a review command
-must get right — the keys write the verdicts they say they do — is checkable
-offline. The script picks a real person, reviews them, asserts what landed, and
-then deletes its own verdicts and restores the proposal statuses, so running it
-costs the database nothing.
+Textual can be driven without a terminal, so the two things the sampler must
+get right are checkable offline: the keys write the verdicts they say they do,
+and a verdict is all they write -- no proposal status changes, so nothing
+reaches Wikidata except through the policy, which reads a rejection and skips
+the row. `proposal` and `verdict` are shadowed by temporary copies for the
+length of the run, so a real person's screen is drawn and nothing live is
+touched: an earlier version wrote to the live rows and "restored" them by
+clearing `decided_by`, which erased the policy's provenance on every row.
 
 Run it as `python -m peploop.check_review` from the repository root.
 """
@@ -17,7 +20,7 @@ from typing import Any
 
 from textual.widgets import Static
 
-from peploop import db, review
+from peploop import db, policy, review
 
 SHOT_PATH = Path("data/review.svg")
 NARROW_SHOT_PATH = Path("data/review_narrow.svg")
@@ -39,13 +42,20 @@ class Layout:
 
 
 def _reviewable(minimum: int) -> list[tuple[str, int]]:
-    """List people with at least `minimum` proposals left to review."""
+    """List people with at least `minimum` proposals left to review, all of them decidable.
+
+    A conflict is reviewable but no policy rule reads it, so a person whose
+    rows include one could not show what the policy makes of a rejection.
+    """
     rows = db.conn().execute(
         "SELECT p.person_qid, count(*) FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
         " WHERE pe.status = 'proposed' AND p.status = ANY(%s)"
         " AND NOT EXISTS (SELECT 1 FROM verdict v WHERE v.proposal_id = p.id)"
-        " GROUP BY p.person_qid HAVING count(*) >= %s ORDER BY count(*), p.person_qid",
-        (list(review.REVIEWABLE), minimum),
+        " AND (p.decided_by IS NULL OR p.decided_by LIKE %s)"
+        " GROUP BY p.person_qid HAVING count(*) >= %s"
+        " AND count(*) FILTER (WHERE NOT p.status = ANY(%s)) = 0"
+        " ORDER BY count(*), p.person_qid",
+        (list(review.REVIEWABLE), policy.DECIDER + "%", minimum, list(policy.DECIDABLE)),
     )
     return [(qid, count) for qid, count in rows]
 
@@ -121,29 +131,50 @@ async def _layout(qids: list[str], size: tuple[int, int], path: Path) -> Layout:
     return Layout(*seen, headers)
 
 
+#: The tables the sampler writes, shadowed by full temporary copies.
+SHADOWED = ("proposal", "verdict")
+
+
+def shadow(conn: Any) -> None:
+    """Put a temporary copy of each written table in front of the real one."""
+    for table in SHADOWED:
+        conn.execute(f"CREATE TEMP TABLE {table} (LIKE public.{table} INCLUDING DEFAULTS"
+                     " INCLUDING INDEXES INCLUDING CONSTRAINTS)")
+        conn.execute(f"INSERT INTO pg_temp.{table} SELECT * FROM public.{table}")
+        top = conn.execute(f"SELECT coalesce(max(id), 0) + 1 FROM pg_temp.{table}").fetchone()[0]
+        conn.execute(f"CREATE TEMP SEQUENCE {table}_seq START {top}")
+        conn.execute(f"ALTER TABLE pg_temp.{table} ALTER COLUMN id SET DEFAULT"
+                     f" nextval('pg_temp.{table}_seq')")
+
+
+def unshadow(conn: Any) -> None:
+    for table in SHADOWED:
+        conn.execute(f"DROP TABLE IF EXISTS pg_temp.{table}")
+        conn.execute(f"DROP SEQUENCE IF EXISTS pg_temp.{table}_seq")
+
+
 def main() -> int:
-    """Run the check and report what it did, restoring the database afterwards."""
+    """Run the check against the shadowed tables and report what it found."""
     conn = db.conn()
-    people = _reviewable(2)
-    if not people:
-        print("no person has two reviewable proposals; nothing to check")
-        return 1
-    qid, count = people[0]
-    before = {
-        row[0]: row[1]
-        for row in conn.execute(
-            "SELECT id, status FROM proposal WHERE person_qid = %s", (qid,)
-        )
-    }
-    print(f"reviewing {qid} with {count} reviewable proposals")
+    live = conn.execute("SELECT count(*), max(id) FROM public.verdict").fetchone()
+    shadow(conn)
     try:
+        people = _reviewable(2)
+        if not people:
+            print("no person has two reviewable proposals; nothing to check")
+            return 1
+        qid, count = people[0]
+        print(f"reviewing {qid} with {count} reviewable proposals")
         return _check(conn, qid)
     finally:
-        _restore(conn, before)
+        unshadow(conn)
+        after = conn.execute("SELECT count(*), max(id) FROM public.verdict").fetchone()
+        print(f"live verdict table untouched: {after == live}")
 
 
 def _check(conn: Any, qid: str) -> int:
     """Review the person headlessly and report what each assertion found."""
+    before = dict(conn.execute("SELECT id, status FROM proposal WHERE person_qid = %s", (qid,)))
     app, rows, moves = asyncio.run(_drive(qid))
     # Drawn order, not load order. The table groups by property and puts the
     # term pseudo-properties last, so a person with a `label:` or `alias:`
@@ -185,8 +216,19 @@ def _check(conn: Any, qid: str) -> int:
         verdicts.get(ids[1]) == ("reject", "wrong_precision"),
         f"{ids[1]} rejected as wrong_precision",
     )
-    expect(statuses.get(ids[0]) == "accepted", f"{ids[0]} status is accepted")
-    expect(statuses.get(ids[1]) == "rejected", f"{ids[1]} status is rejected")
+    expect(
+        all(statuses.get(ident) == before[ident] for ident in ids),
+        "no proposal status changed: the sampler records verdicts and gates nothing",
+    )
+    decided = {pid: policy.decide(case) for pid, case in policy.person_cases(qid)}
+    expect(
+        decided.get(ids[1]) == policy.Disposition(policy.SKIPPED, "review_rejected"),
+        f"the policy skips {ids[1]} on the sampler's rejection",
+    )
+    expect(
+        ids[0] not in decided or decided[ids[0]].rule != "review_rejected",
+        f"an accept in the sampler decides nothing: {ids[0]} goes on to the rules",
+    )
     expect(
         all(ident not in verdicts for ident in ids[2:]),
         f"{len(ids[2:])} skipped rows kept no verdict",
@@ -229,23 +271,6 @@ def _check(conn: Any, qid: str) -> int:
     print(f"screenshots at {SHOT_PATH} and {NARROW_SHOT_PATH}")
 
     return 1 if failures else 0
-
-
-def _restore(conn: Any, before: dict[int, str]) -> None:
-    """Undo the run: drop its verdicts and put every status back as it was."""
-    ids = list(before)
-    with conn.transaction():
-        conn.execute("DELETE FROM verdict WHERE proposal_id = ANY(%s)", (ids,))
-        for ident, status in before.items():
-            conn.execute(
-                "UPDATE proposal SET status = %s, decided_by = NULL, decided_at = NULL"
-                " WHERE id = %s",
-                (status, ident),
-            )
-    left = conn.execute(
-        "SELECT count(*) FROM verdict WHERE proposal_id = ANY(%s)", (ids,)
-    ).fetchone()[0]
-    print(f"restored: {len(before)} proposal statuses, {left} verdict rows left behind")
 
 
 if __name__ == "__main__":

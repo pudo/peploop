@@ -170,8 +170,9 @@ ALTER TABLE extraction ADD COLUMN IF NOT EXISTS article_revs TEXT[] NOT NULL DEF
 
 CREATE INDEX IF NOT EXISTS extraction_key_idx ON extraction (qid, prompt_hash);
 
--- Records what a human made of a proposal. Nothing writes it yet; the table
--- exists from round 1 so the review command has no back-fill to do.
+-- Records what a human made of a proposal: a sample read in `review`, or an
+-- `audit` taking a row out. Policy reads a rejection; `propose` keeps any row
+-- that has one, which is what makes either durable.
 CREATE TABLE IF NOT EXISTS verdict (
     id          BIGSERIAL PRIMARY KEY,
     proposal_id BIGINT NOT NULL REFERENCES proposal (id) ON DELETE CASCADE,
@@ -193,6 +194,20 @@ ALTER TABLE verdict DROP CONSTRAINT IF EXISTS verdict_reason_check;
 ALTER TABLE verdict ADD CONSTRAINT verdict_reason_check CHECK (reason IN (
     'wrong_value', 'wrong_precision', 'quote_unsupported', 'wrong_person',
     'already_recorded', 'rule_missing', 'source_wrong', 'wrong_office', 'other'));
+
+-- Who recorded a verdict: `review:<user>` from the sampler, `audit:<name>`
+-- from an audit. Null on the verdicts recorded before it was kept.
+ALTER TABLE verdict ADD COLUMN IF NOT EXISTS decided_by TEXT;
+
+-- An audit is a verdict as well as a status, because `propose` re-derives every
+-- row that has neither a verdict nor `applied` -- and the raw-SQL audits made
+-- before `cli audit` existed had only the status, so a re-propose wiped them.
+-- This gives the survivors their verdict; idempotent, and a no-op once done.
+INSERT INTO verdict (proposal_id, decision, reason, note, decided_by)
+SELECT p.id, 'reject', 'other', 'raw-SQL audit, reason not recorded', p.decided_by
+FROM proposal p
+WHERE p.decided_by LIKE 'audit:%'
+  AND NOT EXISTS (SELECT 1 FROM verdict v WHERE v.proposal_id = p.id);
 
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 CREATE INDEX IF NOT EXISTS proposal_property_idx ON proposal (property, status);
@@ -485,3 +500,11 @@ CREATE TABLE IF NOT EXISTS title_en (
 -- Wikidata reads it.
 ALTER TABLE position ADD COLUMN IF NOT EXISTS title_en TEXT;
 -- END title_en
+
+-- The hash of this file as last applied, so a command start that finds it
+-- unchanged runs none of the `ALTER`s above (`db.init_schema`). One row.
+CREATE TABLE IF NOT EXISTS schema_version (
+    id         BOOLEAN PRIMARY KEY DEFAULT true CHECK (id),
+    hash       TEXT NOT NULL,
+    applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

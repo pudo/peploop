@@ -492,12 +492,14 @@ def apply_(
     """
     if follow and not write:
         raise click.UsageError("--follow writes: pass --write too")
+    if write and not country:
+        raise click.UsageError("--write takes the country's writer lock: pass --country")
     token = None
     lock = contextlib.nullcontext()
     if write:
-        # One drain per country: a second picks the same people, and the API
-        # writes their statements twice.
-        lock = minting.writer_lock(country or "qids:" + ",".join(sorted(qid)), "apply")
+        # One writer per country: a second drain picks the same people and the
+        # API writes their statements twice, and a mint beside it is no safer.
+        lock = minting.writer_lock(country, "apply")
         lock.__enter__()
         click.echo(f"logged in as {applying.login()}")
         token = applying.csrf_token()
@@ -825,39 +827,22 @@ def load_positions(country: str, sources: Sequence[str]) -> None:
 
 @cli.command("position-signals")
 @click.option("--country", required=True, help="ISO code of the country to count.")
-@click.option("--skip-counts", is_flag=True, help="Only the two local signals.")
-@click.option(
-    "--local-holders",
-    is_flag=True,
-    help="Only count this country's citizens among every position's holders,"
-         " for the rows that have no count for it yet.",
-)
-@click.option(
-    "--recount",
-    is_flag=True,
-    help="With --local-holders, re-ask for rows that already have a count.",
-)
-def position_signals(
-    country: str, skip_counts: bool, local_holders: bool, recount: bool
-) -> None:
-    """Fill the ranking signals for one country's positions.
+def position_signals(country: str) -> None:
+    """Fill the ranking signals for one country's positions, after `fetch`.
 
-    Separate from the load because the counts are grouped query-service
-    queries that take minutes and are worth re-running on their own, and
-    because a signal too expensive for a large country has to be skippable
-    without blocking the rows from existing.
+    Separate from the load because the scope qualifiers read the item table,
+    which only `fetch` fills. Every pass counts only what has no count yet:
+    the whole-corpus counts for rows no load has counted (a newly loaded
+    country's own, a minted item), and this state's citizens among the
+    holders of rows that have no number for it. A recount of rows already
+    counted is `positions.fill_counts` with no `qids`, called by hand.
     """
     qid = positions.country_qid(country)
-    if local_holders:
-        # The one signal that is a statement about the country asking, and
-        # the only one worth re-running when a *different* country's load
-        # added rows: the other four are whole-corpus counts that a new
-        # country does not change the answer to.
-        positions.fill_local_holders(qid, only_missing=not recount, log=click.echo)
-        return
-    if not skip_counts:
-        timings = positions.fill_counts(qid, log=click.echo)
-        click.echo(f"counts in {sum(timings.values()):.0f}s total")
+    uncounted = positions.uncounted()
+    if uncounted:
+        timings = positions.fill_counts(qid, uncounted, log=click.echo)
+        click.echo(f"counts for {len(uncounted)} uncounted rows in {sum(timings.values()):.0f}s")
+    positions.fill_local_holders(qid, only_missing=True, log=click.echo)
     positions.fill_scope_qualifiers(log=click.echo)
     positions.fill_diplomatic(log=click.echo)
 

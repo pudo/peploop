@@ -30,9 +30,46 @@ def conn() -> psycopg.Connection:
     return existing
 
 
+#: The advisory lock schema.sql is applied under. Every CLI start used to run
+#: the file's two dozen `ALTER`s, each an `AccessExclusiveLock`, and two
+#: commands started together deadlocked on them.
+SCHEMA_LOCK = "peploop-schema"
+
+
 def init_schema() -> None:
-    """Apply schema.sql, creating anything that does not exist yet."""
-    conn().execute(SCHEMA_PATH.read_text())
+    """Apply schema.sql once per change to it, under a lock.
+
+    Every command calls this, so the common case must take no lock at all: the
+    file's hash is compared with the one recorded when it was last applied,
+    and only a changed file is applied -- by one process, while any other
+    waits on the advisory lock and then finds the hash already recorded.
+    """
+    text = SCHEMA_PATH.read_text()
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    if _schema_hash() == digest:
+        return
+    connection = conn()
+    with connection.transaction():
+        connection.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (SCHEMA_LOCK,))
+        if _schema_hash() == digest:
+            return
+        connection.execute(text)
+        connection.execute(
+            "INSERT INTO schema_version (id, hash, applied_at) VALUES (true, %s, now())"
+            " ON CONFLICT (id) DO UPDATE SET hash = EXCLUDED.hash, applied_at = now()",
+            (digest,),
+        )
+
+
+def _schema_hash() -> str | None:
+    """The hash of the schema.sql last applied, or None on a database that has none."""
+    row = conn().execute(
+        "SELECT to_regclass('schema_version') IS NOT NULL"
+    ).fetchone()
+    if not row[0]:
+        return None
+    found = conn().execute("SELECT hash FROM schema_version").fetchone()
+    return None if found is None else found[0]
 
 
 def params_hash(params: dict[str, Any] | None) -> str:

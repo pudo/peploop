@@ -97,26 +97,23 @@ def check_crash(expect: Any, conn: psycopg.Connection) -> None:
 
 
 def check_lock(expect: Any, conn: psycopg.Connection) -> None:
-    """Two writers for one country cannot both run recover."""
+    """One lock per country, whichever writer takes it; other countries run free."""
+    def try_lock(key: str) -> bool:
+        other = psycopg.connect(db.DATABASE_URL, autocommit=True)
+        try:
+            return other.execute("SELECT pg_try_advisory_lock(hashtext(%s))", (key,)).fetchone()[0]
+        finally:
+            other.close()
+
     with mint_write.writer_lock(COUNTRY):
-        other = psycopg.connect(db.DATABASE_URL, autocommit=True)
-        try:
-            taken = other.execute("SELECT pg_try_advisory_lock(hashtext(%s))",
-                                  (f"peploop-mint:{COUNTRY}",)).fetchone()[0]
-        finally:
-            other.close()
+        taken = try_lock(f"peploop:{COUNTRY}")
+        neighbour = try_lock("peploop:zy")
     expect(not taken, "a second writer is refused the country's lock")
+    expect(neighbour, "another country's writer is not held up by it")
     with mint_write.writer_lock(COUNTRY, "apply"):
-        other = psycopg.connect(db.DATABASE_URL, autocommit=True)
-        try:
-            taken = other.execute("SELECT pg_try_advisory_lock(hashtext(%s))",
-                                  (f"peploop-apply:{COUNTRY}",)).fetchone()[0]
-            mint_free = other.execute("SELECT pg_try_advisory_lock(hashtext(%s))",
-                                      (f"peploop-mint:{COUNTRY}",)).fetchone()[0]
-        finally:
-            other.close()
-    expect(not taken, "a second drain of one country is refused: the API writes twice")
-    expect(mint_free, "and the apply lock is its own, so a mint writer is not held up by it")
+        taken = try_lock(mint_write.lock_key(COUNTRY))
+    expect(not taken, "an apply drain holds the same lock a mint writer needs: one writer per country")
+    expect(mint_write.lock_key(COUNTRY) == f"peploop:{COUNTRY}", "the key is peploop:<cc>")
 
 
 def check_resend(expect: Any, conn: psycopg.Connection) -> None:
