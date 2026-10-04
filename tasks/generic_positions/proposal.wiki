@@ -1,0 +1,49 @@
+== Proposal: mark generic position classes (minister, mayor, member of parliament) as "generic type of position" ==
+{{ping|C960657}} — building on your {{Q|Q136649946}}, so your view matters most here. Also posted at [[Wikidata talk:WikiProject Politicians]].
+
+'''Problem.''' 232 items such as {{Q|Q83307}}, {{Q|Q30185}} and {{Q|Q486839}} receive '''154,814''' {{P|39}} statements, which is 7.8% of all ~2.0M. They name a ''kind'' of office, not an office, so "position held: minister" says nothing about where. Only 4 of them are on P39's none-of constraint. Only 11 carry {{Q|Q136649946}}, and that class can't mean "no jurisdiction" anyway: about 40 of its 93 instances are country-scoped classes such as "mayor of a place in France".
+
+'''Proposal.''' Create one subclass and add it additively.
+* New item '''generic type of position''' (alias ''abstract position''). Not "abstract" as the label, because that already means {{Q|Q7048977}}.
+** {{P|31}} {{Q|Q19478619}}, {{P|279}} {{Q|Q136649946}}, {{P|8225}} {{Q|Q4164871}}. This mirrors Q136649946.
+** Description: ''type of position not tied to any single jurisdiction, such as minister, mayor or member of parliament; as a value of position held (P39) use a jurisdiction-specific subclass instead.''
+* The new class is added as an '''extra''' {{P|31}}. Existing P31 values ({{Q|Q4164871}}, {{Q|Q294414}}, {{Q|Q136649946}}) stay as they are. Nothing is removed, so every existing "is this a position?" query keeps working.
+* Country-scoped classes ({{Q|Q110516696}}, "mayor of a place in X", "state treasurer") do '''not''' get it.
+
+'''Inclusion rule''' (mechanical; a hand veto handles the rest):
+# the item is typed as a position: P31 {{Q|Q4164871}}, {{Q|Q294414}} or {{Q|Q136649946}};
+# no jurisdiction. That means no {{P|17}}/{{P|1001}}, '''or''' every such value is itself a class, i.e. it has P279 or is typed as a metaclass, and is not an instance of a territory type. Example: {{Q|Q30185}} mayor → P1001 {{Q|Q15284}} municipality;
+# holders are spread across jurisdictions. No single {{P|27}} covers 80% or more of holders, and either at least 3 subclasses carry distinct {{P|1001}} values or holders come from at least 15 countries with none above 50%;
+# a hand veto drops two kinds of item. One is offices of a single named body: ICJ judge, IOC member, UNGA president, UNICEF goodwill ambassador (15 items). The other is occupations typed as positions: founder, teacher, physician (14 items).
+
+The third test matters because {{P|27}} fragments for historical states. "Member of the 18th Parliament of Great Britain" shows holders from 9 "countries" (Kingdom of Great Britain, UK, England, …) and is still one jurisdiction. It needs P17 instead, not this marker.
+
+'''Batches.''' Batch 1 is the 100 most-used items (147,041 P39 statements, 95% of the total). Batch 2 is the other 132 (7,773 statements), one week after batch 1, so there is time to object to individual items. Each line's edit summary states that item's P39 count and holder spread. Examples:
+
+{| class="wikitable"
+! generic !! P39 uses !! holder countries !! use instead, e.g.
+|-
+| {{Q|Q30185}} || 15,676 || 271 || {{Q|Q6627774}}
+|-
+| {{Q|Q83307}} || 9,560 || 289 || {{Q|Q18176438}}
+|-
+| {{Q|Q486839}} || 7,078 || 239 || {{Q|Q1939555}}
+|-
+| {{Q|Q121998}} || 3,851 || 305 || {{Q|Q48965604}}
+|-
+| {{Q|Q708492}} || 3,658 || 275 || {{Q|Q56010470}}
+|-
+| {{Q|Q132050}} || 1,023 || 179 || {{Q|Q1528895}}
+|-
+| {{Q|Q736559}} || 1,027 || 81 || {{Q|Q14213}}
+|}
+The full list of 232 is available on request.
+
+'''Questions'''
+# '''Punning.''' {{Q|Q83307}} would be an instance both of {{Q|Q4164871}} and of a metaclass. Q136649946 already does this on 93 items, and the P39 community uses these items as values. Is the pun acceptable? The alternative would be to drop P31 position from 232 heavily used items. Note that 85 of Q136649946's 93 instances no longer have a direct P31 position. In the diffs I sampled, the type of position ''replaced'' it. That is why this proposal is strictly additive.
+# '''Church offices.''' {{Q|Q29182}} bishop and {{Q|Q45722}} cardinal qualify under the rule. {{Q|Q1144278}} diocesan bishop (19,479 uses, the conventional "P39 + {{P|708}}" model) does not, because it isn't typed as a position. Should qualifier-scoped conventions be exempted explicitly?
+# '''Labels.''' Is "generic type of position" right, or is something else better, e.g. "jurisdiction-independent type of position"?
+
+''Side note.'' The {{P|39}} none-of constraint is inconsistent. {{Q|Q83307}} and {{Q|Q1055894}} are mandatory (no {{P|2316}}), while {{Q|Q486839}}, {{Q|Q16886136}} and the 49 US-mayor classes are suggestions ({{Q|Q62026391}}). I'd suggest making minister and deputy suggestions too.
+
+Counts: WDQS, 2026-10-04, all ranks. ~~~~
