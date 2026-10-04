@@ -493,7 +493,7 @@ def policy_(qid: Sequence[str], country: str | None) -> None:
     Writing is the only mode, because the decisions are local and re-derived
     on every run; `report --country <cc> funnel` shows them without writing.
     """
-    for line in _funnel(_select(qid, ("proposed",), country), write=True):
+    for line in _funnel(run, write=True):
         click.echo(line)
 
 
@@ -523,14 +523,18 @@ def verify_(qid: Sequence[str], country: str | None) -> None:
     is new; once a person's rows are answered the policy is run over them
     again, and each row leaves as `accepted` or `skipped`. It ends with the
     policy over the whole run and its funnel, which is what a second `policy`
-    after it used to print.
+    after it used to print. It also starts with one, so rows `propose` just
+    made are decided and the ones that need the model are pending: run after a
+    fresh propose it used to find nothing pending and had to be run twice.
     """
+    run = _select(qid, ("proposed",), country)
+    policy.run(run, write=True)
     people = _pending_people(qid, country)
     if people:
         _verify_people(people)
     else:
         click.echo("nothing pending")
-    for line in _funnel(_select(qid, ("proposed",), country), write=True):
+    for line in _funnel(run, write=True):
         click.echo(line)
 
 
