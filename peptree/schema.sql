@@ -97,3 +97,6 @@ CREATE TABLE IF NOT EXISTS ptree_write (
     checked_at timestamptz,
     finished_at timestamptz
 );
+
+-- One row per holder of an item ({h, s, e, b, d, c}: tenure, life, citizenships), for the era rule.
+ALTER TABLE ptree_item ADD COLUMN IF NOT EXISTS holder_rows jsonb NOT NULL DEFAULT '[]';

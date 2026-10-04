@@ -7,6 +7,7 @@ agreeing with the model.
 """
 
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
@@ -33,14 +34,32 @@ class Slot:
     channels: list[str] = field(default_factory=list)
 
 
+ESCAPE = re.compile(r"\\(u[0-9a-fA-F]{4}|[nrt\"\\/])")
+SIMPLE_ESCAPES = {"n": "\n", "r": "\r", "t": "\t", '"': '"', "\\": "\\", "/": "/"}
+
+
+def _unescape(text: str) -> str:
+    """Undo JSON escapes a model wrote out literally ("\\u00c4kim" for "Äkim")."""
+    def one(m: re.Match) -> str:
+        code = m.group(1)
+        return chr(int(code[1:], 16)) if code[0] == "u" and len(code) == 5 else SIMPLE_ESCAPES.get(code, m.group(0))
+    return ESCAPE.sub(one, text)
+
+
 def _norm(text: str) -> str:
+    text = "".join(" " if unicodedata.category(ch) == "Cc" else ch for ch in text)
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
 def quoted(slot: Slot) -> bool:
     """The quote is non-trivial and appears verbatim in what the model was shown."""
-    quote = _norm(slot.answer.get("quote") or "").strip("\"'«»„“”. ")
+    quote = _norm(_unescape(slot.answer.get("quote") or "")).strip("\"'«»„“”. ")
     return len(quote) >= MIN_QUOTE and quote in _norm(slot.message)
+
+
+def era_mismatch(slot: Slot) -> bool:
+    """A country or jurisdiction that did not exist while the office did."""
+    return slot.prop in ("P17", "P1001") and slot.facts is not None and not signals.era_ok(slot.facts, slot.value)
 
 
 def _in_range(slot: Slot) -> bool:
@@ -76,6 +95,7 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     ("present_now", _present_now, "skip"),
     ("low_confidence", lambda s: s.answer.get("confidence") not in ("high", "medium"), "skip"),
     ("no_quote", lambda s: not quoted(s), "skip"),
+    ("era_mismatch", era_mismatch, "skip"),
     ("label_conflict", lambda s: signals.conflict(s.prop, s.value, s.facts), "skip"),
     ("p31_weak_channel", lambda s: s.prop == "P31" and not _strong_p31(s), "skip"),
     ("two_channels", lambda s: bool(s.channels), "apply"),
@@ -106,6 +126,8 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
     """Decide every slot of every answered request and store the decisions."""
     qids = [r["qid"] for r in reqs]
     live = wd.fetch_items(qids)  # max_age=0: what Wikidata holds now
+    if hasattr(run, "spans_for"):  # when each candidate state or place existed, for the era rule
+        run.spans_for([v for r in reqs for prop in ("P17", "P1001") for v in r["candidates"].get(prop, [])])
     out = []
     for r in reqs:
         answer = r.get("answer")

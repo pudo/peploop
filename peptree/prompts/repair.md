@@ -68,6 +68,18 @@ signals, and only answers that pass are written.
    and the holders' dates. An office that existed both before and after the
    change of state under one item takes the current state. If you cannot tell
    the era, decline P17 and P1001.
+   - **Dates decide the era.** A country or jurisdiction candidate shows in
+     parentheses the years it existed ("(1902–1959)"; an open end means it
+     exists today). The material gives the years the office was active and each
+     holder's tenure and life. Never choose a state that did not exist while the
+     office was active: a ministry whose holders all served before today's
+     state began belongs to the predecessor, even if the label uses the
+     country's short name.
+   - **A listed predecessor is a separate state**, whatever its description
+     says ("former name of …", "historical period of …", "the country from …
+     to …"). A candidate marked `[predecessor state]` is never the same thing
+     as the current state, and a candidate marked `[federation of a
+     predecessor]` is the union a predecessor republic belonged to.
 9. **Ambassadors.** A diplomatic post abroad follows its own convention:
    P17 is the **receiving** state (a country's ambassador to Turkey has P17 =
    Turkey), and P1001 is never asked. P279 is the sending state's

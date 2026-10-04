@@ -228,3 +228,21 @@ first lane (repair or fill) before writing the tool.
   occupations, places, legal cases, estates and `generic_positions.csv`.
 - **Output** goes to `data/peptree/<cc>/<cc>-<date>.qs`, with an `.md` report
   next to it.
+
+- **Eras** (fixed after kz/cu/ir): every office has an active span (P571/P576, else
+  holder tenures). A country candidate spans from its P571 or its predecessors'
+  P576. `era_mismatch` vetoes values that don't overlap, holders count only when
+  contemporary, and the model sees the dates. Predecessors are found by walking
+  P1365/P155 both ways (Qajar Iran, the US protectorate of Cuba).
+- **Label matching** uses whole words with bounded suffixes, aliases, and cities of
+  100k+. A name shared with a predecessor is ambiguous and counts as neither
+  channel nor conflict.
+- **Batches after the fix pass (2026-10-04):** kz 30 lines, cu 36, ir 17, all
+  audited live line by line; the only flag is one redundant cu line. Belarus
+  replays 270 of 289589's 290 lines with none contradicted.
+- **Open:**
+  - Kazakh head-last labels never name a category.
+  - The P279 candidate pool is generic (no Guardian Council class).
+  - P31 is still held back.
+  - Should party and trade-union heads carry P1001?
+  - Automated QS submission (the OAuth error).

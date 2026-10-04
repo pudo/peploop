@@ -8,9 +8,14 @@ from peptree.check_filter import ent, expect
 from peptree.check_fixture import PLACES, XX
 
 
-def item(qid: str, kind: str, e: dict, holders: int = 0, by: dict | None = None) -> dict:
+def item(qid: str, kind: str, e: dict, holders: int = 0, by: dict | None = None, rows: list | None = None) -> dict:
     return {"qid": qid, "kind": kind, "entity": e, "holders": holders, "holder_countries": by or {},
-            "lastrevid": 1}
+            "lastrevid": 1, "holder_rows": rows or []}
+
+
+def held(n: int, start: int, end: int, cit: str = "Q900001") -> list[dict]:
+    """`n` holders, citizens of `cit`, between `start` and `end`."""
+    return [{"h": f"Q95{i}", "s": start, "e": end, "b": start - 40, "d": None, "c": [cit]} for i in range(n)]
 
 
 DISTRICTS = [
@@ -21,17 +26,19 @@ DISTRICTS = [
 SIB = signals.siblings(DISTRICTS, PLACES, XX.official)
 
 
-def facts(it: dict, detected: set[str] | None = None) -> signals.Facts:
-    return signals.Facts(item=it, country=XX, places=PLACES, sib=SIB, detected=detected or set(),
-                         cat_classes={"prosecutor_general": {"Q3368517"}}, value_types={"Q3368517": {"Q3368517"}})
+def facts(it: dict, detected: set[str] | None = None, country=XX, bodies: dict | None = None) -> signals.Facts:
+    return signals.Facts(item=it, country=country, places=PLACES, sib=SIB, detected=detected or set(),
+                         cat_classes={"prosecutor_general": {"Q3368517"}}, value_types={"Q3368517": {"Q3368517"}},
+                         bodies=bodies or {}, head_seqs=[["preside"], ["prim", "minis"]])
 
 
 def slot(it: dict, prop: str, cands: list[str], choice: int | None, conf: str = "high", quote: str = "",
-         live_rev: int = 1, live: dict | None = None, detected: set[str] | None = None) -> rules.Slot:
-    message = "## Labels\n" + "\n".join(o["value"] for o in it["entity"]["labels"].values())
+         live_rev: int = 1, live: dict | None = None, detected: set[str] | None = None, country=XX,
+         bodies: dict | None = None, message: str | None = None) -> rules.Slot:
+    message = message or "## Labels\n" + "\n".join(o["value"] for o in it["entity"]["labels"].values())
     return rules.Slot(qid=it["qid"], prop=prop, gap="missing", candidates=cands,
                       answer={"choice": choice, "confidence": conf, "quote": quote},
-                      message=message, facts=facts(it, detected), load_rev=1, live_rev=live_rev,
+                      message=message, facts=facts(it, detected, country, bodies), load_rev=1, live_rev=live_rev,
                       live_entity=live if live is not None else it["entity"])
 
 
@@ -86,6 +93,79 @@ def main() -> None:
            "a predecessor republic's office: P17 the federation, P1001 the republic")
     expect(signals.channels("P17", "Q900003", facts(pred)) == ["label", "holders"],
            "holders who are the federation's citizens support the federation as P17")
+    eras()
+
+
+def eras() -> None:
+    """The era rule, contemporary holders, shared names, P131, embedded titles, quotes."""
+    from dataclasses import replace
+
+    # An office whose holders all served before the state began is not the state's.
+    works = item("Q50", "national", ent({"xa": "secretary of Public Works"}, P1001=["Q900001"]), 4, {"Q900001": 4},
+                 held(4, 1960, 1975))
+    quote = "secretary of Public Works"
+    expect(signals.office_span(works) == (1960, 1975), "the office's span comes from its holders' tenures")
+    expect(rules.decide(slot(works, "P17", ["Q900001", "Q900003"], 0, quote=quote)) == ("skip", "era_mismatch"),
+           "a state that did not exist while the office did is refused")
+    expect("holders" not in signals.channels("P17", "Q900001", facts(works)),
+           "citizens of the state count for it only when they held the office in its era")
+    expect("holders" in signals.channels("P17", "Q900003", facts(item("Q51", "national", ent({"xa": quote}), 4,
+                                                                     {"Q900003": 4}, held(4, 1960, 1975, "Q900003")))),
+           "contemporary citizens of the federation do count for it")
+    across = item("Q52", "national", ent({"en": "Minister of Culture of the Republic of Ruritania"}), 4, {"Q900001": 4},
+                  held(2, 1985, 1990) + held(2, 1992, 2000))
+    expect(rules.decide(slot(across, "P17", ["Q900001"], 0, quote="Minister of Culture of the Republic of Ruritania"))
+           == ("apply", "two_channels"), "an office whose span crosses the transition keeps the current state")
+    dated = ent({"en": "Minister of Mines"}, P571=[], P576=[])
+    dated["claims"]["P571"] = [{"rank": "normal", "mainsnak": {"datavalue": {"value": {"time": "+1952-00-00T00:00:00Z"}}}}]
+    dated["claims"]["P576"] = [{"rank": "normal", "mainsnak": {"datavalue": {"value": {"time": "+1979-00-00T00:00:00Z"}}}}]
+    expect(signals.office_span(item("Q53", "national", dated, 2, {}, held(2, 1995, 2000))) == (1952, 1979),
+           "P571/P576 win over the holders' dates")
+    # A name the state shares with a predecessor names neither, unless the era decides.
+    yy = replace(XX, predecessors={**XX.predecessors, "Q900004": "Q900004"},
+                 names={**XX.names, "Q900004": ["Republic of Ruritania", "Ruritania"]},
+                 local_names={**XX.local_names, "Q900004": ["Republic of Ruritania"]},
+                 spans={**XX.spans, "Q900004": [1920, 1950]})
+    senate = item("Q54", "national", ent({"en": "President of the Senate of the Republic of Ruritania"},
+                                         P2389=["Q810"]), 3, {"Q900001": 3})
+    body = {"Q810": {"P17": ["Q900004"], "P1001": []}}
+    sq = "President of the Senate of the Republic of Ruritania"
+    expect(signals.expected_label("P17", facts(senate, country=yy)) is None,
+           "an undated office whose label uses a shared name is ambiguous")
+    expect(rules.decide(slot(senate, "P17", ["Q900001", "Q900004"], 1, quote=sq, country=yy, bodies=body))
+           == ("apply", "two_channels"), "…so the predecessor is no label conflict, and its body carries it")
+    old = {**senate, "holder_rows": held(3, 1930, 1940)}
+    expect(signals.expected_label("P17", facts(old, country=yy)) == {"Q900004"},
+           "with the holders' dates the era decides the shared name")
+    crossing = {**senate, "holder_rows": held(2, 1930, 1940) + held(1, 1995, 2000)}
+    expect(signals.expected_label("P17", facts(crossing, country=yy)) == {"Q900001"},
+           "an office under a shared name that outlasted the predecessor keeps the current state")
+    lives = {**senate, "holder_rows": [{"h": "Q960", "s": None, "e": None, "b": 1900, "d": 1992, "c": ["Q900001"]}]}
+    expect(signals.expected_label("P17", facts(lives, country=yy)) is None,
+           "…but a holder's long life, with no tenure dates, is no evidence that it did")
+    # Where a body sits is not what it governs.
+    seated = item("Q55", "subnational", ent({"xa": "chief of the Strelsau Water Board"}, P361=["Q811"]))
+    expect("body" not in signals.channels("P1001", "R1", facts(seated, bodies={"Q811": {"P17": [], "P1001": [], "P131": ["R1"]}})),
+           "a body's P131 is no evidence for P1001")
+    # A state named inside another office's title is not the jurisdiction.
+    rector = item("Q56", "national", ent({"xa": "Rector of the Academy under the President of the Republic of Ruritania"}))
+    expect("label" not in signals.channels("P1001", "Q900001", facts(rector))
+           and "label" in signals.channels("P17", "Q900001", facts(rector)),
+           "'… under the President of X' names no jurisdiction, but still the country")
+    from peptree import country
+    expect(country.named_states(replace(XX, names={**XX.names, "Q900002": ["Ruritan"]}), "Vice President of Ruritania")
+           == {"Q900001"}, "a predecessor named 'Ruritan' is not read into 'Ruritania' when the state's name is spelled out")
+    vp = item("Q57", "national", ent({"en": "Vice President of the Republic of Ruritania"}))
+    expect("label" in signals.channels("P1001", "Q900001", facts(vp)), "a deputy-prefixed head title still leads")
+    # A quote the model wrote with JSON escapes or control characters is still verbatim.
+    from peptree.check_fixture import CITY_PLACES
+    city_facts = facts(item("Q59", "subnational", ent({"en": "Mayor of Zendaborg"})))
+    city_facts.places = signals.Places(list(PLACES.places.values()) + CITY_PLACES)
+    expect(signals.expected_label("P1001", city_facts) == {"C1"}, "a mayor's label names its city as the jurisdiction")
+    mayor = item("Q58", "subnational", ent({"en": "Mayor of Zendaborg"}))
+    msg = "## Article lead\nThe Äkim (local: әкім) of Zendaborg is the chief authority in the city."
+    escaped = "The \\u00c4kim (local: \\u04d9\\u043a\\u0456\\u043c) of Zendaborg\x07 is the chief authority"
+    expect(rules.quoted(slot(mayor, "P1001", ["C1"], 0, quote=escaped, message=msg)), "JSON escapes are decoded")
 
 
 if __name__ == "__main__":

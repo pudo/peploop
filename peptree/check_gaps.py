@@ -69,14 +69,101 @@ def learned() -> None:
     offices = [item(f"Q7{i}", "subnational", ent({"xa": f"chairman of the {name} Raionic Executive Committee"},
                                                  P1001=[r]))
                for i, (name, r) in enumerate((("Karelia", "R1"), ("Lindau", "R2"), ("Zenda", "R3")))]
+    from peptree.check_fixture import place
+    aliased = [place(r, "district", {"en": f"{n} District", "en:x": f"{n} District"}, [DISTRICT])
+               for n, r in (("Karelia", "R1"), ("Lindau", "R2"), ("Zenda", "R3"))]
+    councils = [item(f"Q6{i}", "subnational", ent({"en": f"chairman of the {n} District Council"}, P1001=[r]))
+                for i, (n, r) in enumerate((("Karelia", "R1"), ("Lindau", "R2"), ("Zenda", "R3")))]
+    expect(country.learn_level_words(replace(XX), councils, aliased) == {DISTRICT: ["district"]},
+           "a whole alias's type word is not the place's name: 'Council' after 'District' is not learned")
     words = country.learn_level_words(xx, offices, list(PLACES.places.values()))
-    expect(words == {DISTRICT: ["raion"]}, "the word after the place's name, in three offices of one type, is learned")
+    expect(words == {DISTRICT: ["raionic"]}, "the word after the place's name, in three offices of one type, is learned, whole")
     expect(country.level_types(xx, "deputy chairman of the Zenda Raionic Council") >= {DISTRICT},
            "and then names that level in another label")
     two = country.learn_level_words(replace(XX), offices[:2], list(PLACES.places.values()))
     expect(two == {}, "two offices teach nothing")
     expect(country.stems("Ruritanian PR") == {"ruritani", "pr"} and country.stems("pr of x") == set(),
            "an all-capital short word is kept whole; a short lowercase one is not")
+    matching()
+    chain()
+    discovery()
+
+
+def matching() -> None:
+    """Places and level words are whole words, inflected at most at the end."""
+    from dataclasses import replace
+
+    from peptree import signals
+    from peptree.check_fixture import place
+
+    expect(not country.word_match("zendaborg", "zendel") and not country.word_match("marine", "zendel"),
+           "a place's name is never matched by a shared prefix ('Zendel' is not 'Zendaborg')")
+    expect(country.level_types(XX, "Secretary of the Guardian Council") == set()
+           and country.level_types(XX, "governor of Strelsau County") == {"Q900012"},
+           "a level word is a whole word: 'county' is not 'Council'")
+    expect(country.word_match("турцыі", "турцыя") and country.word_match("zendaskaga", "zendaska")
+           and country.word_match("strelsaus", "strelsau"), "a case ending or a suffix is still the same name")
+    expect(country.words("شهردار شهر ری") == {"شهردار", "شهر", "ری"} and country.words("mayor of Rey") == {"mayor", "rey"},
+           "short words count in Arabic script; three letters elsewhere")
+    fa = replace(XX, type_words={**XX.type_words, "Q900013": ["شهر"]})
+    expect(country.level_types(fa, "شهردار شهر ری") == {"Q900013"}, "a two-letter-short level word works in Arabic script")
+    places = signals.Places([place("A1", "region", {"xa": "Zendasu Region"}, ["Q900010"]),
+                             place("A2", "district", {"xa": "Zendasai District"}, ["Q900011"]),
+                             place("A3", "region", {"xa": "Abai Region"}, ["Q900010"]),
+                             place("A4", "district", {"xa": "Abai District"}, ["Q900011"]),
+                             place("A5", "region", {"xa": "Strelsau", "xa:old": "Old Strelsau"}, ["Q900010"])])
+    expect(places.mentioned("akim of Zendasu Region", {"region", "district"}) == ["A1"],
+           "an inflected match yields to a whole one on the same words")
+    expect(places.of_type("akim of Abai Region", country.level_types(XX, "akim of Abai Region")) == ["A3"],
+           "the level word picks the region, not the district of the same name")
+    expect(places.mentioned("governor of Old Strelsau", {"region"}) == ["A5"], "an alias (a former name) is a name")
+    xx = replace(XX, type_words={**XX.type_words, "Q900010": ["administrative", "region"]})
+    country.prune_type_words(xx, list(places.places.values()))
+    expect(xx.type_words["Q900010"] == ["region"], "a type word none of its places is named with is dropped")
+    offices = [{"qid": f"Q8{i}", "entity": ent({"xa": f"chairman of the {n} administrative committee"}, P1001=[r])}
+               for i, (n, r) in enumerate((("Karelia", "R1"), ("Lindau", "R2"), ("Zenda", "R3")))]
+    from peptree.check_fixture import PLACES
+    expect(country.learn_level_words(replace(XX), offices, list(PLACES.places.values())) == {},
+           "an 'administrative' word is never learned as a level word")
+
+
+def chain() -> None:
+    """The predecessor chain: two steps back, exclusive, never through a federation or an umbrella."""
+    def e(p31: str = "Q3024240", start: int | None = None, end: int | None = None, **claims: list[str]) -> dict:
+        out = ent({"en": "x"}, P31=[p31], **claims)
+        for prop, y in (("P571", start), ("P576", end)):
+            if y is not None:
+                out["claims"][prop] = [{"rank": "normal", "mainsnak": {"datavalue": {"value": {"time": f"{y:+05d}-00-00T00:00:00Z"}}}}]
+        return out
+    world = {
+        "Q900001": e("Q6256", 1979, P1365=["Q900002"]),
+        "Q900002": e(start=1925, end=1979, P1365=["Q900005"], P1366=["Q900001"]),  # the last dynasty's state
+        "Q900005": e(start=1789, end=1925, P1366=["Q900002"], P1365=["Q900006"]),  # the one before it
+        "Q900006": e(start=1736, end=1796, P1366=["Q900005"]),  # gone before the PEP era
+        "Q900007": e(start=-550, end=1979, P1366=["Q900001"]),  # an umbrella over all of them
+        "Q900008": e(start=1700, end=1917, P1366=["Q900005", "Q900009"]),  # an empire two states succeeded
+    }
+    inverse = {"Q900001": ["Q900007"], "Q900005": ["Q900008"]}
+    out, how = country.walk_chain("Q900001", {}, {}, lambda qs: {q: world[q] for q in qs if q in world},
+                                  lambda q: inverse.get(q, []),
+                                  lambda ents: {q: {q, *x["claims"]["P31"][0]["mainsnak"]["datavalue"]["value"]["id"].split()}
+                                                | {"Q3024240"} for q, x in ents.items()})
+    expect(set(out) == {"Q900002", "Q900005"}, "the dynasty two steps back is a predecessor; "
+           "the pre-1900 one, the umbrella and the shared empire are not")
+    expect(how["Q900005"] == "wikidata P1365 of Q900002", "and its provenance says how it was reached")
+
+
+def discovery() -> None:
+    """A somevalue P39 binds a blank node; discovery keeps items only."""
+    from peptree import load, wd
+
+    real = wd.sparql
+    wd.sparql = lambda q, max_age=0: [{"pos": "Q1"}, {"pos": "http://www.wikidata.org/.well-known/genid/abc"}]
+    try:
+        found = load.discover(XX, lambda m: None)
+    finally:
+        wd.sparql = real
+    expect(set(found) == {"Q1"}, "discover keeps only Q-ids")
 
 
 if __name__ == "__main__":

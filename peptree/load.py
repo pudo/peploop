@@ -15,6 +15,7 @@ decides that something is an office.
 """
 
 import csv
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any, Callable
@@ -63,12 +64,32 @@ NOT_A_SEAT: list[tuple[str, set[str]]] = [
     ("estate", {"Q12292478"}),
     ("non_office", {"Q1656682", "Q47461344", "Q49848", "Q14660", "Q14659"}),  # event, written work, document, flag, arms
 ]
+#: Occurrence (coups, accidents, trials, crafts and techniques), time interval
+#: (historical periods), product. Read over a closure that stops at
+#: occupation and position (`event_closure`): "occupation" is itself a
+#: characterization, an action and so an occurrence, so every mufti and dean
+#: reaches it, while a handicraft reaches "position" by its own route.
+EVENT_LIKE = {"Q1190554", "Q186081", "Q2424752"}
+EVENT_STOP = {"Q12737077", "Q28640", "Q4164871", "Q294414", "Q17279032", "Q136649946"}
 #: Generic position classes (`generic_positions.csv`, one never-use class per row).
 GENERIC_PATH = Path(__file__).resolve().parent / "generic_positions.csv"
 #: Reached through a declared P31 (not a metaclass), these mean "a body".
 BODY_ROOTS = {"Q43229", "Q495430", "Q6813432"}  # organization, general staff, military staff
 DIPLOMATIC = "Q121998"
 SENDER_CLASS = "Q29645880"
+CONSULAR = {"Q207978", "Q1075179", "Q107427486"}  # consul, honorary consul, honorary consul to a country
+#: A body of one of these kinds is private unless it is also one of `STATE_BODY`
+#: or owned (`P127`) by the state: its offices are no one's public office.
+#: Not companies: a state bank or a pension fund's holding is typed "public
+#: company" or "business" and rarely says who owns it, and its head is a PEP.
+PRIVATE_BODY = {"Q988108", "Q79913"}  # club, NGO
+#: SOE, party, agency, government organisation, central bank, university, academy of sciences
+#: (an academy is a "learned society", hence a club, by the hierarchy).
+STATE_BODY = {"Q270791", "Q7278", "Q327333", "Q2659904", "Q66344", "Q3918", "Q414147"}
+#: A `P1001` value of one of these kinds is a territory: anything else (a
+#: ministry, a corps, a party) says nothing about the office's level.
+TERRITORY = {"Q56061", "Q486972", "Q515", "Q7275", "Q6256", "Q3024240", "Q82794", "Q1048835"}
+CITY = "Q515"
 
 
 def generic_positions() -> dict[str, str]:
@@ -121,6 +142,9 @@ PREDECESSOR_UNION = """SELECT DISTINCT ?pos WHERE { ?pos p:P17/ps:P17 wd:%(u)s .
   ?pos p:P31/ps:P31/wdt:P279* wd:Q4164871 . ?pos rdfs:label ?l . FILTER(REGEX(?l, "%(re)s", "i")) }"""
 
 
+ITEM = re.compile(r"Q\d+")
+
+
 def discover(c: countries.Country, log: Callable[[str], None]) -> dict[str, list[str]]:
     """Run the lanes; return each item with the lanes that found it."""
     queries = [("descent", DESCENT, {}), ("usage", USAGE, {}), ("orphan", ORPHAN, {}), ("outbound", OUTBOUND, {})]
@@ -133,7 +157,12 @@ def discover(c: countries.Country, log: Callable[[str], None]) -> dict[str, list
     found: dict[str, list[str]] = {}
     for lane, query, extra in queries:
         rows = wd.sparql(query % {"c": c.qid, **extra})
+        skipped = [r["pos"] for r in rows if not ITEM.fullmatch(r["pos"])]
+        if skipped:  # a somevalue P39 binds a blank node, which no query can pin
+            log(f"lane {lane}: skipped {len(skipped)} non-item values")
         for row in rows:
+            if not ITEM.fullmatch(row["pos"]):
+                continue
             lanes = found.setdefault(row["pos"], [])
             if lane.split("_")[0] not in lanes:
                 lanes.append(lane.split("_")[0])
@@ -145,6 +174,13 @@ HOLDERS = """SELECT ?pos (COUNT(DISTINCT ?h) AS ?n) WHERE { VALUES ?pos { %s }
   ?h p:P39/ps:P39 ?pos ; wdt:P31 wd:Q5 } GROUP BY ?pos"""
 HOLDER_COUNTRIES = """SELECT ?pos ?c (COUNT(DISTINCT ?h) AS ?n) WHERE { VALUES ?pos { %s }
   ?h p:P39/ps:P39 ?pos ; wdt:P31 wd:Q5 ; wdt:P27 ?c } GROUP BY ?pos ?c"""
+#: One row per holder: the tenure's bounds and the life's, for the era rule.
+HOLDER_DATES = """SELECT ?pos ?h (MIN(?s) AS ?s0) (MAX(?e) AS ?e0) (MIN(?b) AS ?b0) (MAX(?d) AS ?d0) WHERE {
+  VALUES ?pos { %s } ?h p:P39 ?st . ?st ps:P39 ?pos . ?h wdt:P31 wd:Q5 .
+  OPTIONAL { ?st pq:P580 ?s } OPTIONAL { ?st pq:P582 ?e } OPTIONAL { ?h wdt:P569 ?b } OPTIONAL { ?h wdt:P570 ?d }
+  } GROUP BY ?pos ?h"""
+HOLDER_CITIZENSHIP = """SELECT DISTINCT ?pos ?h ?c WHERE { VALUES ?pos { %s }
+  ?h p:P39/ps:P39 ?pos ; wdt:P31 wd:Q5 ; wdt:P27 ?c }"""
 
 
 def _grouped(query: str, qids: list[str], size: int = 60) -> list[dict[str, str]]:
@@ -160,12 +196,30 @@ def _grouped(query: str, qids: list[str], size: int = 60) -> list[dict[str, str]
     return out
 
 
-def holders(qids: list[str]) -> tuple[dict[str, int], dict[str, dict[str, int]]]:
+def holders(qids: list[str]) -> tuple[dict[str, int], dict[str, dict[str, int]], dict[str, list[dict[str, Any]]]]:
+    """(holder count, holders per citizenship, one row per holder) of each office.
+
+    A row is `{"h", "s", "e", "b", "d", "c"}`: the first tenure start and last
+    tenure end, birth and death years, and the citizenships.
+    """
     total = {r["pos"]: int(r["n"]) for r in _grouped(HOLDERS, qids)}
     by: dict[str, dict[str, int]] = {}
     for r in _grouped(HOLDER_COUNTRIES, qids):
         by.setdefault(r["pos"], {})[r["c"]] = int(r["n"])
-    return total, by
+    cit: dict[tuple[str, str], list[str]] = {}
+    for r in _grouped(HOLDER_CITIZENSHIP, qids):
+        cit.setdefault((r["pos"], r["h"]), []).append(r["c"])
+    rows: dict[str, list[dict[str, Any]]] = {}
+    for r in _grouped(HOLDER_DATES, qids):
+        if not ITEM.fullmatch(r["h"]):
+            continue
+        y = countries.time_year
+        rows.setdefault(r["pos"], []).append({
+            "h": r["h"], "s": y(r.get("s0")), "e": y(r.get("e0")), "b": y(r.get("b0")), "d": y(r.get("d0")),
+            "c": sorted(cit.get((r["pos"], r["h"]), []))})
+    for v in rows.values():
+        v.sort(key=lambda x: x["h"])
+    return total, by, rows
 
 
 # --- the filter -------------------------------------------------------------------
@@ -179,16 +233,18 @@ def outbound_post(c: countries.Country, entity: dict[str, Any], lanes: list[str]
     """Whether the item is the state's own post abroad.
 
     The outbound lane says so by class. An unclassed post ("Ambassador of X
-    to Turkey", no P31 or P279 at all) says so by its label: a diplomatic word
-    and the state's name, no `P17` of the state (an inbound post carries the
-    receiving state there), and holders, if any, mostly the state's citizens.
+    to Turkey", no P31 or P279 at all) says so by its label: a diplomatic or
+    consular word and the state's name, no `P17` of the state (an inbound
+    post carries the receiving state there), and holders, if any, mostly the
+    state's citizens.
     """
     if "outbound" in lanes:
         return True
     if SENDER_CLASS in values(entity, "P279") and c.qid in values(entity, "P17"):
         return True  # the state's own "ambassador of <state>" class
     labels = all_labels(entity)
-    if not countries.says(c.words.get("diplomatic", []), labels) or not countries.names_country(c, labels):
+    if not (countries.says(c.words.get("diplomatic", []), labels) or consular_label(c, labels)) \
+            or not countries.names_country(c, labels):
         return False
     if c.qid in values(entity, "P17"):
         return False
@@ -196,18 +252,55 @@ def outbound_post(c: countries.Country, entity: dict[str, Any], lanes: list[str]
     return total == 0 or sum(n for k, n in by.items() if k in c.home) / total >= 2 / 3
 
 
+def consular_label(c: countries.Country, labels: str) -> bool:
+    """Whether a label leads with a consul's title ("Consul General of X in Y", "honorary consul to X")."""
+    return any(countries.leads_with(c.words.get("consular", []), part) for part in labels.split(" | "))
+
+
+def body_label(c: countries.Country, entity: dict[str, Any]) -> str | None:
+    """The label, in English or the country's languages, that leads with a body's name ("Office of …")."""
+    for lg in dict.fromkeys(("en", *c.langs)):
+        text = entity.get("labels", {}).get(lg, {}).get("value")
+        if text and countries.leads_with(c.words.get("body", []), text):
+            return text
+    return None
+
+
+def private_body(entity: dict[str, Any], bodies: dict[str, dict[str, Any]], home: set[str]) -> str | None:
+    """The body (`P361`/`P2389`) that makes the office a private one: a club, a
+    company or an NGO that is neither a state body nor owned by the state."""
+    for b in values(entity, "P361") + values(entity, "P2389"):
+        info = bodies.get(b)
+        if not info:
+            continue
+        types = set(info["types"])
+        if types & PRIVATE_BODY and not types & STATE_BODY and not set(info.get("owners", [])) & home:
+            return b
+    return None
+
+
 def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list[str],
              types: set[str], p31_types: set[str], by: dict[str, int],
-             generic: dict[str, str] | None = None) -> tuple[str | None, str, str]:
+             generic: dict[str, str] | None = None, holders: int | None = None,
+             bodies: dict[str, dict[str, Any]] | None = None, territorial: set[str] | None = None,
+             cities: list[dict[str, Any]] | None = None,
+             event_types: set[str] | None = None) -> tuple[str | None, str, str]:
     """Return (drop reason or None, detail, kind) for one item.
 
     `types` is the item's whole closure; `p31_types` the closure of its
     declared non-metaclass `P31` values (any rank) only. `generic` is the
-    generic-class list (`generic_positions()`).
+    generic-class list (`generic_positions()`). `holders` is the item's holder
+    count (from `by` when not given); `bodies` maps the body QIDs it names to
+    their types and owners; `territorial` is the set of its `P1001` values
+    that are territories (all of them when not given); `cities` the
+    gazetteer's city places; `event_types` the closure of the declared
+    non-metaclass `P31` that stops at occupation and position (`p31_types`
+    when not given).
     """
     p31_any = set(values(entity, "P31", any_rank=True))
     p279 = set(values(entity, "P279"))
     labels = all_labels(entity)
+    held = sum(by.values()) if holders is None else holders
     hit = (p31_any | p279) & NOT_OFFICE
     if hit:
         return "non_office", "declared " + ",".join(sorted(hit)), ""
@@ -221,30 +314,62 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     hit = p31_types & {"Q618779", "Q3320743", "Q4189293", "Q13406463"}
     if hit:
         return "non_office", "P31 reaches " + ",".join(sorted(hit)), ""
+    hit = (p31_types if event_types is None else event_types) & EVENT_LIKE
+    if hit:
+        return "non_office", "P31 reaches " + ",".join(sorted(hit)) + " (not through occupation)", ""
+    # A label naming the state or a predecessor is a country-scoped office,
+    # whatever its holders' spread or a list says.
+    scoped_label = countries.names_country(c, labels) or bool(countries.named_states(c, labels))
     if GENERIC_META in p31_any:
         return "generic_class", "P31 Q136649946", ""
-    if generic and qid in generic:
+    if generic and qid in generic and not scoped_label:
         return "generic_class", f"listed in generic_positions.csv ({generic[qid]})", ""
-    if not has(entity, "P17") and not has(entity, "P1001") and home_countries(c, by) >= 3:
+    if not has(entity, "P17") and not has(entity, "P1001") and home_countries(c, by) >= 3 and not scoped_label:
         return "generic_class", f"unscoped, holders from {home_countries(c, by)} countries", ""
     hit = p31_types & BODY_ROOTS
     if hit:
         return "body", "P31 reaches " + ",".join(sorted(hit)), ""
+    lead = body_label(c, entity)
+    if lead:
+        return "body", f"label leads with a body's name: {lead}", ""
+    private = private_body(entity, bodies or {}, c.home)
+    if private:
+        return "private_body", f"office of {private}, a private body", ""
+    if set(lanes) <= {"predecessor"} and not held and not (types | p31_any) & POSITION_METAS:
+        return "non_office", "predecessor scope only, held by no one and not typed a position", ""
     diplomatic = DIPLOMATIC in types or SENDER_CLASS in types
+    consular = bool(CONSULAR & types) or consular_label(c, labels)
     outbound = outbound_post(c, entity, lanes, by)
     if diplomatic and not outbound:
         return "inbound_ambassador", "diplomatic, sender is not the state", ""
+    if consular and not outbound:
+        return "inbound_consul", "consular, sender is not the state", ""
     scope = set(values(entity, "P17")) | set(values(entity, "P1001"))
+    p1001 = set(values(entity, "P1001"))
+    local = p1001 - {c.qid} if territorial is None else (p1001 & territorial) - {c.qid}
     if outbound:
         kind = "ambassador"
     elif scope & (set(c.predecessors) | c.unions) or (
             c.qid not in scope and countries.named_predecessor(c, labels)):  # the state's own scope wins
         kind = "predecessor"
-    elif set(values(entity, "P1001")) - {c.qid} or countries.label_level(c, labels):
+    elif local - c.home or countries.label_level(c, labels) or countries.is_mayor(c, labels) \
+            or names_city(c, own_labels(c, entity), cities or []):
         kind = "subnational"
     else:
         kind = "national"
     return None, "", kind
+
+
+def own_labels(c: countries.Country, entity: dict[str, Any]) -> str:
+    """The labels in English and the country's languages (a city's name is read in these only)."""
+    return " | ".join(o["value"] for lg, o in entity.get("labels", {}).items() if lg in ("en", *c.langs))
+
+
+def names_city(c: countries.Country, labels: str, cities: list[dict[str, Any]]) -> bool:
+    """Whether a label names one of the country's cities and not the state ("äkim of <city>")."""
+    if countries.names_country(c, labels):
+        return False
+    return any(countries.mentions(p, labels) for p in cities)
 
 
 def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
@@ -255,17 +380,18 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     qids = sorted(found)
     log(f"union: {len(qids)} items; fetching live")
     items = wd.fetch_items(qids)
-    total, by = holders(qids)
+    total, by, dated = holders(qids)
     log(f"holders read for {len(total)} items")
-    rows = [(cc, q, found[q], items[q].get("lastrevid"), Jsonb(items[q]), total.get(q, 0), Jsonb(by.get(q, {})))
+    rows = [(cc, q, found[q], items[q].get("lastrevid"), Jsonb(items[q]), total.get(q, 0), Jsonb(by.get(q, {})),
+             Jsonb(dated.get(q, [])))
             for q in qids if q in items]
     con = wd.conn()
     with con.transaction():
         con.execute("DELETE FROM ptree_item WHERE country = %s", (cc,))
         with con.cursor() as cur:
             cur.executemany(
-                "INSERT INTO ptree_item (country, qid, lanes, lastrevid, entity, holders, holder_countries)"
-                " VALUES (%s,%s,%s,%s,%s,%s,%s)", rows)
+                "INSERT INTO ptree_item (country, qid, lanes, lastrevid, entity, holders, holder_countries, holder_rows)"
+                " VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", rows)
     log(f"stored {len(rows)} ({len(qids) - len(rows)} missing or deleted)")
     return refilter(cc, log)
 
@@ -276,17 +402,26 @@ def refilter(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     stored = items(cc, kept_only=False)
     seeds = {it["qid"]: _seed_edges(it["entity"]) for it in stored}
     types = wd.closure(seeds)
-    p31_types = wd.closure({f"p31:{it['qid']}": [t for t in values(it["entity"], "P31", any_rank=True)
-                                                  if t not in POSITION_METAS] for it in stored})
+    p31_seeds = {f"p31:{it['qid']}": [t for t in values(it["entity"], "P31", any_rank=True)
+                                      if t not in POSITION_METAS] for it in stored}
+    p31_types = wd.closure(p31_seeds)
+    events = event_closure(p31_seeds)
     generic = generic_positions()
     log(f"generic classes listed: {len(generic)}")
-    learn(c, stored)
+    places = learn(c, stored)
+    cities = [p for p in places if CITY in p.get("classes", []) and set(p["levels"]) & countries.SUBNATIONAL]
+    bodies = body_info(stored)
+    scopes = sorted({v for it in stored for v in values(it["entity"], "P1001")})
+    scope_types = wd.closure(_cached_edges(scopes)) if scopes else {}
+    territorial = {q for q, ts in scope_types.items() if ts & TERRITORY} | c.home
     tally: Counter[str] = Counter()
     rows = []
     for it in stored:
         q = it["qid"]
         drop, detail, kind = classify(c, q, it["entity"], it["lanes"], types[q],
-                                      p31_types[f"p31:{q}"] - {f"p31:{q}"}, it["holder_countries"], generic)
+                                      p31_types[f"p31:{q}"] - {f"p31:{q}"}, it["holder_countries"], generic,
+                                      holders=it["holders"], bodies=bodies, territorial=territorial, cities=cities,
+                                      event_types=events[f"p31:{q}"])
         tally[drop or "kept"] += 1
         rows.append((kind or None, drop, detail or None, cc, q))
     with wd.conn().cursor() as cur:
@@ -296,10 +431,47 @@ def refilter(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     return dict(tally)
 
 
-def learn(c: countries.Country, stored: list[dict[str, Any]]) -> None:
-    """Learn the level words from the offices that already name their place."""
+def event_closure(seeds: dict[str, list[str]], depth: int = 8) -> dict[str, set[str]]:
+    """Each seed's types over `P31`/`P279`, never walking on from occupation or position."""
+    edges: dict[str, list[str]] = {}
+    out = {}
+    for key, start in seeds.items():
+        seen, level = set(start), list(start)
+        for _ in range(depth):
+            todo = sorted({t for t in level if t not in edges and t not in EVENT_STOP})
+            if todo:
+                edges.update(wd._edges(todo))
+            level = [y for x in level if x not in EVENT_STOP for y in edges.get(x, []) if y not in seen]
+            seen.update(level)
+            if not level:
+                break
+        out[key] = seen
+    return out
+
+
+def _cached_edges(qids: list[str]) -> dict[str, list[str]]:
+    """`P31`/`P279` edges of referenced items (bodies, jurisdictions), cached like class edges."""
+    return wd._edges(qids)
+
+
+def body_info(stored: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Body QID → its type closure and owners (`P127`), for the private-body rule (cached a month)."""
+    bodies = sorted({b for it in stored for b in values(it["entity"], "P361") + values(it["entity"], "P2389")})
+    if not bodies:
+        return {}
+    owners: dict[str, list[str]] = {}
+    for chunk in wd.values_chunks(bodies, 50):
+        owners.update(wd.cached("owners:" + "|".join(chunk), lambda chunk=chunk: {
+            q: values(e, "P127") for q, e in wd.fetch_items(chunk, props="claims").items()}))
+    closure = wd.closure(_cached_edges(bodies))
+    return {b: {"types": sorted(closure.get(b, {b})), "owners": owners.get(b, [])} for b in bodies}
+
+
+def learn(c: countries.Country, stored: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Learn the level words from the offices that already name their place; return the gazetteer."""
     places = countries.gazetteer(c, place_refs(stored))
     countries.learn_level_words(c, stored, places)
+    return places
 
 
 def place_refs(items: list[dict[str, Any]]) -> list[str]:
@@ -315,7 +487,7 @@ def items(cc: str, kept_only: bool = True) -> list[dict[str, Any]]:
     """The stored items of a country, as dicts."""
     wd.init()
     cur = wd.conn().execute(
-        "SELECT qid, lanes, lastrevid, entity, holders, holder_countries, kind, dropped, drop_detail"
+        "SELECT qid, lanes, lastrevid, entity, holders, holder_countries, holder_rows, kind, dropped, drop_detail"
         " FROM ptree_item WHERE country = %s" + (" AND dropped IS NULL" if kept_only else "") + " ORDER BY qid",
         (cc,))
     cols = [d.name for d in cur.description]

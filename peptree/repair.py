@@ -111,13 +111,27 @@ class Run:
                           if q not in POSITION_METAS and q not in LIST_ARTICLES and q != GENERIC_META]
         bodies = sorted({b for it in self.items for b in values(it["entity"], "P361") + values(it["entity"], "P2389")})
         found = wd.fetch_items(bodies, props="claims")
-        self.bodies = {b: {p: values(e, p) for p in ("P17", "P1001", "P131")} for b, e in found.items()}
+        self.bodies = {b: {p: values(e, p) for p in ("P17", "P1001")} for b, e in found.items()}
+        heads = [q for c in self.ctx.cats if c["key"] in ("head_of_state", "head_of_government") for q in c["class_qids"]]
+        # Every language's name, for a label in any language; a one-stem name
+        # must be a real word ("cap d'Estat" leaves only "esta").
+        seqs = {tuple(countries.seq(n)) for ns in wd.names_of(heads).values() for n in ns}
+        self.head_seqs = sorted(x for x in seqs if len(x) > 1 or (x and len(x[0]) >= 6))
+        self.value_spans: dict[str, list[int | None]] = {}
+
+    def spans_for(self, qids: list[str]) -> None:
+        """Read (and cache a month) when each candidate value existed."""
+        wanted = sorted(set(qids) - set(self.value_spans) - set(self.country.spans))
+        for chunk in wd.values_chunks(wanted, 50):
+            self.value_spans.update(wd.cached("spans:" + "|".join(chunk), lambda chunk=chunk: {
+                q: countries.entity_span(e) for q, e in wd.fetch_items(chunk, props="claims").items()}))
 
     def facts(self, item: dict[str, Any]) -> signals.Facts:
         return signals.Facts(item=item, country=self.country, places=self.places, sib=self.sib,
                              detected=self.ctx.detected(item), bodies=self.bodies,
                              cat_classes=self.cat_classes, value_types=self.value_types,
-                             sender_class=self.sender_class)
+                             sender_class=self.sender_class, value_spans=self.value_spans,
+                             head_seqs=[list(x) for x in self.head_seqs])
 
     def candidates(self, item: dict[str, Any]) -> dict[str, list[str]]:
         """Indexed candidate QIDs per asked property."""
@@ -137,12 +151,12 @@ class Run:
         if "P279" in asked:
             gap, cat = asked["P279"]
             if gap == "classfix":
-                pool = list(self.cat_classes[cat])
+                pool = list(self.ctx.by_key[cat]["class_qids"])  # the file's order: a set's varies by process
                 if cat == "ambassador" and self.sender_class:
                     pool = [self.sender_class] + pool
             else:
                 conv = signals.convention(self.sib, item["qid"], "p279")
-                first = ([conv] if conv else []) + (list(self.cat_classes.get(cat, [])) if cat else [])
+                first = ([conv] if conv else []) + (list(self.ctx.by_key[cat]["class_qids"]) if cat else [])
                 pool = first + self.p279_pool
             out["P279"] = [q for q in dict.fromkeys(pool) if q != item["qid"]]
         if "P31" in asked:
@@ -202,9 +216,17 @@ def leads(entity: dict[str, Any], langs: tuple[str, ...]) -> list[tuple[str, str
     return out
 
 
+def years_text(span: list[int | None] | tuple[int | None, int | None] | None) -> str:
+    """"1902–1959", "1959–", "–1925"; empty when nothing is known."""
+    if not span or (span[0] is None and span[1] is None):
+        return ""
+    return f"{'' if span[0] is None else span[0]}–{'' if span[1] is None else span[1]}"
+
+
 def render(run: Run, item: dict[str, Any], cands: dict[str, list[str]], held: list[dict[str, str]],
            articles: list[tuple[str, str, str]]) -> str:
     ent = item["entity"]
+    run.spans_for([q for prop in ("P17", "P1001") for q in cands.get(prop, [])])
     refs = {v for p in SHOWN_PROPS for v in values(ent, p)} | {v for vs in cands.values() for v in vs}
     info = {**wd.labels_of(refs), **run.info}
     label_langs = (*[lg for lg in run.country.langs if lg not in ("en", "mul")], "en", "mul")
@@ -244,10 +266,16 @@ def render(run: Run, item: dict[str, Any], cands: dict[str, list[str]], held: li
             p.append(f"- {prop}: missing")
     p.append("For every property not listed here, answer \"not asked\".")
     p += ["", f"## Holders ({item['holders']} in total; up to 10 shown, latest first)"]
+    active = years_text(signals.office_span(item))
+    if active:
+        p.append(f"Office active (from its inception/abolition, else its holders' dates): {active}")
     if not held:
         p.append("(none)")
+    life = {r["h"]: r for r in item.get("holder_rows") or []}
     for h in held:
-        p.append(f"- {h['name']} ({h['qid']}) {h['start'] or '?'} – {h['end'] or '?'}; citizenship: {h['cit'] or '?'}")
+        r = life.get(h["qid"], {})
+        lived = f"; lived {r.get('b') or '?'}–{r.get('d') or ''}" if r.get("b") or r.get("d") else ""
+        p.append(f"- {h['name']} ({h['qid']}) {h['start'] or '?'} – {h['end'] or '?'}{lived}; citizenship: {h['cit'] or '?'}")
     for lang, url, text in articles:
         p += ["", f"## Article lead ({lang}: {url})", text or "(empty)"]
     if not articles:
@@ -259,7 +287,13 @@ def render(run: Run, item: dict[str, Any], cands: dict[str, list[str]], held: li
         p.append(f"### {prop}")
         for i, q in enumerate(cands[prop]):
             d = (info.get(q) or {}).get("description")
-            p.append(f"[{i}] {q} {wd.name(info.get(q))}" + (f" — {d}" if d else ""))
+            when = ""
+            if prop in ("P17", "P1001"):
+                span = run.country.spans.get(q) or run.value_spans.get(q)
+                when = f" ({years_text(span)})" if years_text(span) else ""
+                if q in run.country.predecessors or q in run.country.unions:
+                    when += " [predecessor state]" if q in run.country.predecessors else " [federation of a predecessor]"
+            p.append(f"[{i}] {q} {wd.name(info.get(q))}{when}" + (f" — {d}" if d else ""))
     return "\n".join(p)
 
 

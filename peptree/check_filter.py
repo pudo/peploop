@@ -20,8 +20,10 @@ def expect(cond: bool, what: str) -> None:
 
 
 def drop(e: dict, p31_types: set[str] = frozenset(), lanes: tuple = ("descent",), types: set[str] = frozenset(),
-         by: dict | None = None, generic: dict | None = None) -> tuple:
-    return classify(XX, "Q1", e, list(lanes), set(types), set(p31_types), by or {}, generic)
+         by: dict | None = None, generic: dict | None = None, holders: int | None = None, bodies: dict | None = None,
+         territorial: set[str] | None = None, cities: list | None = None) -> tuple:
+    return classify(XX, "Q1", e, list(lanes), set(types), set(p31_types), by or {}, generic, holders=holders,
+                    bodies=bodies, territorial=territorial, cities=cities)
 
 
 def main() -> None:
@@ -80,6 +82,75 @@ def main() -> None:
            "an office scoped to the federation is a predecessor office")
     raion = ent({"en": "chairman of the Zenda District Executive Committee"}, P17=["Q900001"])
     expect(drop(raion)[2] == "subnational", "a district office is subnational by its label's level word")
+    fixes()
+
+
+def fixes() -> None:
+    """The defects the first country runs found, one case each."""
+    from peptree.check_fixture import CITY_PLACES
+
+    # Consular posts of another state are inbound, like its ambassadors.
+    cg = ent({"en": "Consul General of Turkey in Strelsau"}, P31=["Q4164871"], P17=["Q900001"])
+    expect(drop(cg, by={"Q43": 5})[0] == "inbound_consul", "a foreign consul general in the state is dropped")
+    hon = ent({"en": "honorary consul to Ruritania"}, P31=["Q4164871"], P279=["Q107427486"], P17=["Q900001"])
+    expect(drop(hon, types={"Q107427486"})[0] == "inbound_consul", "an honorary consul to the state is dropped")
+    own = ent({"en": "Consul General of Ruritania in Istanbul"}, P31=["Q4164871"])
+    expect(drop(own, by={"Q900001": 4})[:3] == (None, "", "ambassador"), "the state's own consul abroad is its post")
+    # Offices of private bodies.
+    club = {"Q800": {"types": ["Q800", "Q988108", "Q43229"], "owners": []}}
+    yacht = ent({"xa": "presidente del Strelsau Yacht Club"}, P31=["Q4164871"], P2389=["Q800"])
+    expect(drop(yacht, by={"Q900001": 3}, bodies=club)[0] == "private_body", "a club's president is a private office")
+    party = {"Q801": {"types": ["Q801", "Q7278", "Q163740", "Q43229"], "owners": []}}
+    leader = ent({"en": "Chairman of the Ruritanian Patriotic Party"}, P31=["Q4164871"], P361=["Q801"])
+    expect(drop(leader, bodies=party)[0] is None, "a party is not a private body, whatever else it is")
+    soe = {"Q802": {"types": ["Q802", "Q783794", "Q43229"], "owners": ["Q900001"]}}
+    expect(drop(ent({"en": "CEO of Ruritanian Rail"}, P31=["Q4164871"], P2389=["Q802"]), bodies=soe)[0] is None,
+           "a company the state owns is not private")
+    academy = {"Q804": {"types": ["Q804", "Q414147", "Q955824", "Q48204", "Q988108", "Q79913"], "owners": []}}
+    expect(drop(ent({"en": "President of the Academy of Sciences of Ruritania"}, P31=["Q4164871"], P2389=["Q804"]),
+                bodies=academy)[0] is None, "an academy of sciences is not a club, whatever its class chain says")
+    bank = {"Q803": {"types": ["Q803", "Q891723", "Q783794", "Q43229"], "owners": []}}
+    expect(drop(ent({"en": "Managing Director of the Export Bank"}, P31=["Q4164871"], P2389=["Q803"]), bodies=bank)[0]
+           is None, "a company that does not say who owns it is not judged private")
+    # Bodies typed as offices.
+    office = ent({"en": "Office of the President of Ruritania"})
+    expect(drop(office, by={"Q900001": 1})[0] == "body", "an 'Office of …' is a body, typed or not")
+    staff = ent({"en": "Staff of the President of Ruritania"}, P31=["Q4164871"])
+    expect(drop(staff, by={"Q900001": 5})[0] == "body", "the president's staff is a body even with holders")
+    expect(drop(ent({"en": "Chief of Staff of the President"}, P31=["Q4164871"]))[0] is None,
+           "a chief of staff is a seat")
+    # Things that are not offices.
+    period = ent({"en": "Dictatorship of General Zenda"}, P31=["Q11514315"], P17=["Q900002"])
+    expect(drop(period, {"Q11514315", "Q186081"}, lanes=("predecessor",))[0] == "non_office", "a historical period")
+    coup = ent({"en": "Coup d'état in Ruritania in 1934"}, P31=["Q45382"], P17=["Q900002"])
+    expect(drop(coup, {"Q45382", "Q1190554"}, lanes=("predecessor",))[0] == "non_office", "a coup")
+    mufti = ent({"en": "Grand Mufti of Ruritania"}, P31=["Q900090"], P17=["Q900001"])
+    expect(classify(XX, "Q1", mufti, ["descent"], set(), {"Q900090", "Q12737077", "Q1190554"}, {}, None, holders=5,
+                        event_types={"Q900090", "Q12737077"})[0] is None,
+           "an office whose class reaches 'occurrence' only through 'occupation' is still an office")
+    craft = ent({"en": "Strelsau inlay"}, P31=["Q877729"], P17=["Q900001"])
+    expect(drop(craft, {"Q877729", "Q1190554", "Q4164871"})[0] == "non_office",
+           "a handicraft, even one whose class reaches 'position'")
+    crash = ent({"en": "Grand Federation Airlines Flight 9"}, P31=["Q744913"], P17=["Q900003"])
+    expect(drop(crash, {"Q744913"}, lanes=("predecessor",), holders=0)[0] == "non_office",
+           "a predecessor-scoped item held by no one and typed no position")
+    held = ent({"en": "Chamberlain of the RPR"}, P17=["Q900002"])
+    expect(drop(held, lanes=("predecessor",), holders=2, by={"Q900003": 2})[0] is None,
+           "a predecessor-scoped item someone held stays")
+    # Never a generic class when the label names the state or a predecessor.
+    speaker = ent({"xa": "speaker of the House of Representatives of Ruritania"}, P31=["Q4164871"])
+    expect(drop(speaker, lanes=("orphan",), by={"Q900001": 1, "Q43": 1, "Q159": 1})[0] is None,
+           "an unscoped office held by three citizenships that names the state is not generic")
+    # Kinds.
+    irgc = ent({"en": "Commander of the Ruritanian Guard"}, P31=["Q4164871"], P1001=["Q900070"])
+    expect(drop(irgc, territorial=set())[2] == "national", "a P1001 naming a body does not make an office subnational")
+    expect(drop(ent({"en": "Mayor of Zendaborg"}, P31=["Q4164871"], P17=["Q900001"]))[2] == "subnational",
+           "a mayor is subnational")
+    akim = ent({"en": "chief of Zendaborg"}, P31=["Q4164871"], P17=["Q900001"])
+    expect(drop(akim, cities=CITY_PLACES)[2] == "subnational", "an office naming one of the state's cities is subnational")
+    guard = ent({"en": "Commander of the Faith Guard"}, P31=["Q4164871"], P1001=["Q900001"])
+    expect(drop(guard, cities=CITY_PLACES)[2] == "national",
+           "an alias keeps its type word: 'Faith City' does not name the 'Faith Guard'")
 
 
 if __name__ == "__main__":
