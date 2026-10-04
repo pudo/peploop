@@ -1,0 +1,263 @@
+# FATF PEP categories and the Wikidata classes that identify them.
+#
+# Wikidata's type hierarchy is polluted and will stay that way: mayor sits under
+# head of government (98% of its subtree), community councillor under member of
+# parliament, counselor under minister. So a category is never "everything below
+# class X". It is a set of class handles, the subtrees known to pollute them
+# (`exclude`), and the bodies an office of the category sits in. The level
+# (national vs subnational) comes from the office's jurisdiction or its body,
+# never from the class.
+#
+# This file is meant to be edited as runs teach us: add an exclude when a run
+# finds a polluting subtree, and add a class when one turns out to be in use.
+# `unsettled: true` marks a category with no usable class yet; its offices are
+# found from the bodies (`body_classes`) instead.
+#
+# Counts were measured on WDQS on 2026-10-04 and are only evidence for the
+# choice of class; they drift.
+#   direct / transitive: position items with the class in P279 directly / via P279+
+#   *_cc: distinct P17 values on those items (historical states included, so >195 is normal)
+#   national: subtree items whose P1001 is a country, sovereign state or historical country
+#   bodies / with_p17 / with_head: items of the body class / with P17 / carrying P2388
+- key: head_of_state
+  label: head of state
+  level: national
+  classes:
+    - {qid: Q48352, label: head of state, direct: 353, direct_cc: 214, transitive: 1868, transitive_cc: 548, national: 610}
+    - {qid: Q30461, label: president, direct: 186, direct_cc: 109, transitive: 581, transitive_cc: 199}
+    - {qid: Q116, label: monarch, direct: 259, direct_cc: 176, transitive: 827, transitive_cc: 325}
+    - {qid: Q2304859, label: sovereign, direct: 43, direct_cc: 34, transitive: 902, transitive_cc: 342}
+  exclude:
+    - {qid: Q1540324, label: head of the region (Russia), transitive: 38}
+    - {qid: Q3537705, label: Indian state governor, transitive: 30}
+  body_classes: []   # the state itself (P1001); no body
+  notes: >
+    Q48352 subtree mixes national with subnational heads (Russian regions, Indian
+    governors) and medieval monarchies; only 610/1868 have a national P1001.
+    Q112119463 civil chief of staff (head of presidential administration, e.g. White
+    House Chief of Staff) is adjacent, not this category — see `notes` on military.
+
+- key: head_of_government
+  label: head of government
+  level: national
+  classes:
+    - {qid: Q2285706, label: head of government, direct: 344, direct_cc: 137, transitive: 58512, transitive_cc: 312}
+    - {qid: Q14212, label: prime minister, direct: 237, direct_cc: 197, transitive: 245, transitive_cc: 198, national: 195}
+    - {qid: Q959664, label: premier, transitive: 37}
+  exclude:
+    - {qid: Q30185, label: mayor, transitive: 57431}
+    - {qid: Q59512604, label: chair of local government, transitive: 137}
+    - {qid: Q6508517, label: leader of the council, transitive: 56}
+  body_classes:
+    - {qid: Q640506, label: cabinet, bodies: 6915, with_p17: 4656, cc: 235, with_head: 48}
+  notes: >
+    Never walk Q2285706 transitively without excluding mayor: 98% of its subtree is
+    mayoralties. Also under it: chief minister, state/province governors (Nigeria,
+    Mexico, Brazil, Argentina), minister-president — subnational. Q14212 is the clean
+    national handle.
+
+- key: minister
+  label: minister (incl. deputy)
+  level: national
+  classes:
+    - {qid: Q83307, label: minister, direct: 5230, direct_cc: 230, transitive: 9134, transitive_cc: 294, national: 7241}
+    - {qid: Q26204040, label: deputy minister, direct: 149, direct_cc: 36, transitive: 162, transitive_cc: 36, national: 115}
+    - {qid: Q2632935, label: minister of state, direct: 39, direct_cc: 24, transitive: 196, transitive_cc: 25}
+    - {qid: Q877955, label: deputy prime minister, direct: 114, direct_cc: 83, transitive: 125, transitive_cc: 83}
+  exclude:
+    - {qid: Q15966511, label: State Minister (German Länder), direct: 13, transitive: 16}
+  body_classes:
+    - {qid: Q192350, label: ministry, bodies: 8310, with_p17: 7790, cc: 307, with_head: 3500}
+  notes: >
+    The best-populated category. Portfolio classes sit under Q83307 (foreign 264,
+    finance 236, education 208, defence 149 ...). Q14212 prime minister is ALSO under
+    Q83307, and Q5783638 "counselor" (364) is too — check it before trusting the
+    subtree. Q15966511 (hint) is German *Land* ministers: subnational, not a minister
+    class to scope on. ~1,300 subtree items are subnational by P1001.
+
+- key: legislator
+  label: member of national legislature
+  level: national
+  classes:
+    - {qid: Q486839, label: member of parliament, direct: 567, direct_cc: 250, transitive: 3722, transitive_cc: 293, national: 875}
+    - {qid: Q4175034, label: legislator, direct: 306, direct_cc: 65, transitive: 4929, transitive_cc: 306, national: 930}
+    - {qid: Q15686806, label: senator, direct: 96, direct_cc: 64, transitive: 298, transitive_cc: 68}
+    - {qid: Q1055894, label: deputy, direct: 198, direct_cc: 57, transitive: 461, transitive_cc: 62}
+  exclude:
+    - {qid: Q55400987, label: community councillor, transitive: 1290}
+    - {qid: Q5230427, label: member of legislative assembly, transitive: 698, note: mostly Indian/Malaysian/Australian state assemblies}
+    - {qid: Q106088317, label: state legislator of the United States, transitive: 117}
+  body_classes:
+    - {qid: Q11204, label: legislature, bodies: 15604, with_p17: 13027, cc: 425, with_head: 423}
+    - {qid: Q35749, label: parliament, bodies: 2664, with_p17: 2480, cc: 360, with_head: 218}
+    - {qid: Q375928, label: lower house, bodies: 258, with_p17: 236, cc: 113, with_head: 103}
+    - {qid: Q637846, label: upper house, bodies: 266, with_p17: 232, cc: 131, with_head: 64}
+  notes: >
+    Class alone cannot tell national from subnational: only ~24% of the MP subtree has a
+    national P1001. National level must come from the body (P361 -> a national
+    legislature / chamber with P1001 = the state), not from P279. Q486839 is the
+    canonical parent (250 countries direct). Q4175034 is its parent.
+
+- key: apex_judge
+  label: supreme / constitutional court judge
+  level: national
+  classes:
+    - {qid: Q117826617, label: supreme court judge, direct: 63, direct_cc: 16, transitive: 218, transitive_cc: 62, national: 83}
+    - {qid: Q55736868, label: national supreme court judge, direct: 14, direct_cc: 11, transitive: 154, transitive_cc: 57, note: subclass of Q117826617}
+    - {qid: Q135398920, label: constitutional court judge, direct: 13, direct_cc: 10, transitive: 15, transitive_cc: 10}
+    - {qid: Q3188089, label: chief justice, direct: 136, direct_cc: 53, transitive: 136, transitive_cc: 53}
+  body_classes:
+    - {qid: Q190752, label: supreme court, bodies: 452, with_p17: 438, cc: 211, with_head: 88}
+    - {qid: Q32766, label: constitutional court, bodies: 119, with_p17: 116, cc: 88, with_head: 14}
+  notes: >
+    Offices linked to supreme-court bodies use chief justice (57) more than supreme
+    court judge (27) or national supreme court judge (13); 10 use bare Q16533 judge and 3
+    use Q1255921 president. US state supreme courts sit under Q117826617 — use
+    Q55736868 or the body's P1001 for national. Q135398920 is new and thin
+    (Q135399028, its sibling, 6 items, unlabelled in en).
+
+- key: prosecutor_general
+  label: prosecutor general
+  level: national
+  classes:
+    - {qid: Q3368517, label: public prosecutor general, direct: 32, direct_cc: 26, transitive: 197, transitive_cc: 79, national: 73}
+    - {qid: Q1501926, label: attorney general, direct: 109, direct_cc: 53, transitive: 159, transitive_cc: 53, note: subclass of Q3368517}
+  body_classes:
+    - {qid: Q1092499, label: public prosecutor's office, bodies: 1412, with_p17: 1322, cc: 229, with_head: 160}
+    - {qid: Q11775750, label: public prosecutor's office (type of government org), bodies: 1203, with_p17: 1129, cc: 226, with_head: 136}
+  notes: >
+    Attorney general is modelled under prosecutor general, though in common-law states
+    it is the government's legal adviser (often a minister) — acceptable for PEP
+    purposes. Includes US state AGs (subnational). Two near-duplicate body classes.
+
+- key: central_bank
+  label: central bank governor / board
+  level: national
+  classes:
+    - {qid: Q107363151, label: central bank governor, direct: 134, direct_cc: 130, transitive: 134, transitive_cc: 130, national: 22}
+  body_classes:
+    - {qid: Q66344, label: central bank, bodies: 265, with_p17: 264, cc: 244, with_head: 143}
+  notes: >
+    The cleanest category: one class, one item per country, and 129 of the offices
+    linked to central-bank bodies use it. But only 26/134 carry P1001 at all — a repair
+    lane, not a fill lane. No class exists for deputy governor / board member
+    (Q5261033 deputy governor is generic, 14 items, 5 countries) — board is unsettled.
+  unsettled_board: true
+
+- key: supreme_audit
+  label: supreme audit institution head
+  level: national
+  unsettled: true
+  classes: []
+  candidates:
+    - {qid: Q5785176, label: auditor general, direct: 1, transitive: 1}
+    - {qid: Q673633, label: comptroller, direct: 6, direct_cc: 2, transitive: 6}
+    - {qid: Q10949665, label: auditor, direct: 13, direct_cc: 3, transitive: 58, transitive_cc: 6}
+    - {qid: Q7603657, label: state auditor, direct: 29, direct_cc: 1, note: US states only}
+  body_classes:
+    - {qid: Q43306178, label: supreme audit institution, bodies: 13, with_p17: 13, cc: 11, with_head: 4}
+    - {qid: Q10983451, label: court of audit, bodies: 43, with_p17: 42, cc: 23, with_head: 4}
+    - {qid: Q43306197, label: audit institution, bodies: 23, with_p17: 23, cc: 12, with_head: 5}
+  notes: >
+    No class. Text search for "auditor general" finds 21 P31=Q4164871 items, 15 with no
+    P279 at all. SAI bodies are mostly typed as generic government agency; only ~80
+    bodies across three classes. INTOSAI (Q29774) membership: 4 items. Both the office
+    and body sides need minting/typing.
+
+- key: military_chief
+  label: chief of defence / armed forces commanders
+  level: national
+  classes:
+    - {qid: Q5097014, label: chief of defence, direct: 55, direct_cc: 42, transitive: 55, transitive_cc: 42, national: 26}
+    - {qid: Q707492, label: Chief of Staff (military position), direct: 41, direct_cc: 20, transitive: 104, transitive_cc: 57, national: 48}
+    - {qid: Q380782, label: commander-in-chief, direct: 63, direct_cc: 32, transitive: 72, transitive_cc: 40}
+    - {qid: Q2257775, label: chief of army staff position, direct: 7, direct_cc: 7}
+  never_walk_up_to:
+    - {qid: Q112119463, label: chief of staff (civil), direct: 10, direct_cc: 4, transitive: 114, transitive_cc: 58}
+  body_classes:
+    - {qid: Q772547, label: armed forces, bodies: 5570, with_p17: 1680, cc: 289, with_head: 39}
+    - {qid: Q8473, label: military, bodies: 7278, with_p17: 2992, cc: 456, with_head: 87}
+  notes: >
+    Canonical is Q5097014 chief of defence, which is P279 of Q707492 (military chief of
+    staff); Q707492 adds service chiefs (army/navy/air force). Q707492 is itself P279 of
+    Q112119463 (civil chief of staff), so a P279* walk from Q112119463 pulls in every
+    military chief, and one from the military side must stop at Q707492. Q112119463's
+    own direct children are presidential/PM/ministerial chiefs of staff — senior
+    executive staff, adjacent to head_of_state/government, not a FATF category.
+    Service commanders ("Commander of the Navy" etc.) are mostly unclassed.
+
+- key: security_chief
+  label: police / intelligence chief
+  level: national
+  unsettled: true
+  classes: []
+  candidates:
+    - {qid: Q2855502, label: chief of police, direct: 117, direct_cc: 12, transitive: 122, transitive_cc: 15, note: mostly US municipal}
+    - {qid: Q2101758, label: police commissioner, direct: 21, direct_cc: 13, transitive: 23, transitive_cc: 14}
+    - {qid: Q683462, label: chief police officer, direct: 4, direct_cc: 3}
+    - {qid: Q105695126, label: director of intelligence agency, direct: 3, direct_cc: 3}
+  body_classes:
+    - {qid: Q35535, label: police, bodies: 2011, with_p17: 1835, cc: 230, with_head: 67}
+    - {qid: Q7410456, label: national police, bodies: 77, with_p17: 76, cc: 60, with_head: 13}
+    - {qid: Q47913, label: intelligence agency, bodies: 590, with_p17: 545, cc: 164, with_head: 88}
+  notes: >
+    Offices linked to intelligence agencies use generic parents (director 11, minister
+    7, director general 7, senior government official 6); only 3 use Q105695126.
+    Police: national/municipal not separable by class. Probably two categories once
+    settled; bodies are the better handle (P2388 from the agency).
+
+- key: ambassador
+  label: ambassador
+  level: national
+  classes:
+    - {qid: Q29645880, label: ambassador of a country, direct: 207, direct_cc: 202, transitive: 6058, transitive_cc: 290}
+    - {qid: Q121998, label: ambassador, direct: 70, direct_cc: 18, transitive: 6669, transitive_cc: 297}
+    - {qid: Q29645886, label: ambassador to a country, transitive: 6000}
+    - {qid: Q7888495, label: Permanent Representative to the United Nations, transitive: 135}
+    - {qid: Q123695, label: high commissioner, transitive: 121}
+  exclude:
+    - {qid: Q740369, label: papal legate, transitive: 229}
+    - {qid: Q5583669, label: goodwill ambassador, transitive: 17}
+  body_classes:
+    - {qid: Q3917681, label: embassy, bodies: 9331, with_p17: 9330, cc: 243, with_head: 4225}
+  notes: >
+    Shape: per-sender "ambassador of X" item (P279 Q29645880, one per country) is the
+    parent of per-pair "ambassador of X to Y" items. The sending state is the PEP's
+    country; P1001/P17 on pair items often point at the receiving state, so scope by
+    the "ambassador of X" parent, not by P17. Embassies are well linked (45% have P2388).
+
+- key: soe_executive
+  label: SOE executive
+  level: national
+  unsettled: true
+  classes: []
+  candidates:
+    - {qid: Q484876, label: chief executive officer, direct: 57, direct_cc: 19, transitive: 139, transitive_cc: 27}
+    - {qid: Q1501800, label: director general, direct: 252, direct_cc: 19, transitive: 306, transitive_cc: 20}
+    - {qid: Q1162163, label: director, direct: 251, direct_cc: 40, transitive: 8870, transitive_cc: 309}
+    - {qid: Q25713832, label: leader of organization, direct: 47, direct_cc: 7, transitive: 17210, transitive_cc: 421}
+  body_classes:
+    - {qid: Q270791, label: state-owned enterprise, bodies: 2406, with_p17: 2262, cc: 155, with_head: 38}
+  notes: >
+    No class; offices linked to SOE bodies are a handful with scattered parents
+    (chairperson 4, CEO 2, president 2 ...). Only 38 of 2,406 SOEs carry P2388. The
+    body list is the only usable handle; most SOE executives probably have no office item (not measured).
+    Q1255921 president (direct 244/37, transitive 416/83) recurs here and on courts,
+    academies and institutions — a generic parent that says nothing about category.
+
+- key: party_leader
+  label: party leader
+  level: national
+  classes:
+    - {qid: Q1553195, label: party leader, direct: 166, direct_cc: 48, transitive: 257, transitive_cc: 68, national: 75}
+    - {qid: Q6501749, label: general secretary, direct: 254, direct_cc: 41, transitive: 318, transitive_cc: 48, note: also non-party orgs}
+    - {qid: Q836971, label: party secretary, direct: 15, direct_cc: 7, transitive: 65, transitive_cc: 10}
+    - {qid: Q2746259, label: party chair, direct: 5, direct_cc: 3, transitive: 7, transitive_cc: 4}
+  exclude:
+    - {qid: Q620110, label: leader of the opposition, transitive: 72, note: parliamentary office, under Q1553195}
+  body_classes:
+    - {qid: Q7278, label: political party, bodies: 29061, with_p17: 26150, cc: 460, with_head: 209}
+  notes: >
+    Weakly populated: 257 items for 29k parties; only 209 parties carry P2388. Leader
+    of the opposition is modelled under party leader. Fill lane would be driven from
+    the party body, restricted to parties with seats.
