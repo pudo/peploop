@@ -136,7 +136,7 @@ class Context:
         types = self.types[item["qid"]] if types is None else types
         out: list[tuple[str, str, str | None]] = []
         detected = self.detected(item)
-        if not has(ent, "P17"):
+        if not has(ent, "P17") and wants_p17(self.country, item):
             out.append(("P17", "missing", None))
         if not has(ent, "P1001") and item["kind"] != "ambassador":
             out.append(("P1001", "missing", None))
@@ -166,8 +166,13 @@ def store_gaps(cc: str, ctx: Context) -> int:
 
 # --- the matrix -----------------------------------------------------------------
 
-def well_formed(item: dict[str, Any], ent: dict[str, Any]) -> bool:
-    return (has(ent, "P17") and (has(ent, "P1001") or item["kind"] == "ambassador") and has(ent, "P279")
+def wants_p17(c: countries.Country, item: dict[str, Any]) -> bool:
+    """A territory's own offices carry no `P17`; a predecessor's or an embassy's still do."""
+    return c.is_state or item["kind"] in ("predecessor", "ambassador")
+
+
+def well_formed(item: dict[str, Any], ent: dict[str, Any], c: countries.Country) -> bool:
+    return ((has(ent, "P17") or not wants_p17(c, item)) and (has(ent, "P1001") or item["kind"] == "ambassador") and has(ent, "P279")
             and bool(set(values(ent, "P31")) & POSITION_METAS) and item["holders"] > 0)
 
 
@@ -200,7 +205,7 @@ def matrix(ctx: Context, added: dict[str, dict[str, list[str]]] | None = None) -
                 continue
             members.append(it["qid"])
             # Unsettled categories have no class: well-formed is all they can ask.
-            if (in_class or not cat["class_qids"]) and well_formed(it, ent):
+            if (in_class or not cat["class_qids"]) and well_formed(it, ent, ctx.country):
                 ok.append(it["qid"])
         state = "ok" if ok else ("repair" if members else "absent")
         out[cat["key"]] = {"state": state, "members": len(members), "ok": len(ok),

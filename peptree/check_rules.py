@@ -80,15 +80,7 @@ def main() -> None:
     expect(sorted(signals.channels("P17", "Q900001", facts(nat))) == ["holders", "label"],
            "label and holders agree on P17")
     expect(signals.channels("P31", "Q294414", facts(nat)) == ["state_office"], "a state office is a public office")
-    # A dependent territory's offices carry its sovereign in P17 and the territory only in P1001.
-    from dataclasses import replace
-    terr = replace(XX, state="Q900099")
-    expect(terr.p17_values[0] == "Q900099" and terr.p1001_values[0] == "Q900001",
-           "a territory's P17 candidate is its sovereign, its P1001 candidate itself")
-    held_terr = item("Q41", "national", ent({"en": "Minister of Culture of the Republic of Ruritania"}), 4, {"Q900099": 4})
-    expect(signals.expected_label("P17", facts(held_terr, country=terr)) == {"Q900099"},
-           "a label naming a territory reads as its sovereign for P17")
-    s = slot(held_terr, "P17", ["Q900001"], 0, quote="Minister of Culture of the Republic of Ruritania", country=terr)
+    s = slot(nat, "P17", ["Q900001"], 0, quote="Minister of Culture of the Republic of Ruritania")
     s.facts.non_states = {"Q900001"}
     expect(rules.decide(s) == ("skip", "p17_not_a_state"), "a value not typed a state is never a P17")
     nat_quote = "Minister of Culture of the Republic of Ruritania"

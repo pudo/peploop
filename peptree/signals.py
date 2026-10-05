@@ -319,7 +319,7 @@ def expected_label(prop: str, f: Facts) -> set[str] | None:
     pred = countries.named_predecessor(c, joined) if f.item["kind"] == "predecessor" else None
 
     def state_of(q: str) -> str:  # the P17 a home state's office carries
-        return c.p17_values[0] if q == c.qid else c.predecessors.get(q, q)
+        return c.predecessors.get(q, q)
 
     if prop == "P17":
         if pred:
@@ -328,7 +328,7 @@ def expected_label(prop: str, f: Facts) -> set[str] | None:
         if named is None or named:
             return named or None  # one state named, or a shared name the era cannot settle
         if f.places.mentioned(joined, SUBNATIONAL) and era_ok(f, c.qid):
-            return {c.p17_values[0]}
+            return {c.qid}
         return None
     types: set[str] = set()
     for t in texts:

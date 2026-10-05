@@ -35,6 +35,17 @@ def main() -> None:
     amb = item("Q1", "ambassador", ent({"xa": "посол Рурытаніі ў Турцыі"}, P31=["Q294414"], P279=["Q900050"]))
     expect(ctx.gaps(amb, {"Q29645880"}) == [("P17", "missing", None)],
            "an ambassador post misses P17 only: no P1001 is asked")
+    # A dependent territory's own offices take it in P1001 and no P17; a predecessor's keep P17.
+    from dataclasses import replace
+    terr = context()
+    terr.country = replace(XX, is_state=False)
+    bare = ent({"en": "Speaker of the House of Assembly of Ruritania"}, P31=["Q294414"], P279=["Q83307"])
+    expect(terr.gaps(item("Q4", "national", bare), {"Q83307"}) == [("P1001", "missing", None)],
+           "a territory's office is asked P1001 and never P17")
+    expect(("P17", "missing", None) in terr.gaps(item("Q5", "predecessor", bare), {"Q83307"}),
+           "a predecessor's office in a territory is still asked P17")
+    expect(("P17", "missing", None) in ctx.gaps(item("Q6", "national", bare), {"Q83307"}),
+           "a state's office is asked P17")
     meta = item("Q2", "national", ent({"en": "x"}, P31=["Q17279032"], P17=["Q900001"], P1001=["Q900001"], P279=["Q83307"]))
     expect(ctx.gaps(meta, {"Q83307"}) == [], "elective office counts as a position metaclass")
     judge = item("Q3", "national", ent({"xa": "judge of the Supreme Court of Ruritania"}, P31=["Q4164871"],

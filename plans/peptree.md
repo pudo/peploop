@@ -241,10 +241,13 @@ first lane (repair or fill) before writing the tool.
   audited live line by line; the only flag is one redundant cu line. Belarus
   replays 270 of 289589's 290 lines with none contradicted.
 - **P17 holds only a state** (after the Caribbean runs). A dependent territory
-  (Puerto Rico, Cayman, Guadeloupe) is not typed a state, so its offices take its
-  sovereign in `P17` (`country.sovereign`) and the territory in `P1001` only;
-  `p17_not_a_state` vetoes any other non-state value (British Empire). "A state" is
-  a direct `P31` in `STATE_CLASSES`, not "its own `P17` is itself": Denmark's and the
+  (Puerto Rico, Cayman, Guadeloupe) is not typed a state, so its own offices get the
+  territory in `P1001` and no `P17` at all: the sovereign is not where an overseas
+  territory is, and the community is split between the two (Cayman, BVI and
+  Montserrat put the territory, Turks and Caicos and Puerto Rico the sovereign).
+  Predecessor offices still take `P17` (Netherlands Antilles → the Kingdom).
+  `p17_not_a_state` vetoes any non-state value (British Empire). "A state" is a
+  direct `P31` in `STATE_CLASSES`, not "its own `P17` is itself": Denmark's and the
   Netherlands' own `P17` name the Realm and the Kingdom.
 - **Open:**
   - Kazakh head-last labels never name a category.

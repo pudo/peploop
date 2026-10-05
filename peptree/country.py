@@ -92,8 +92,8 @@ class Country:
     spans: dict[str, list[int | None]] = field(default_factory=dict)
     #: The "administrative" words of the country's languages (never a level word).
     admin_words: list[str] = field(default_factory=list)
-    #: The state its offices put in `P17`: itself, or a dependent territory's sovereign.
-    state: str = ""
+    #: False for a dependent territory: its own offices take it in `P1001` and no `P17`.
+    is_state: bool = True
 
     @property
     def unions(self) -> set[str]:
@@ -107,7 +107,7 @@ class Country:
     @property
     def p17_values(self) -> list[str]:
         """What `P17` may say for an office of this country, the state first."""
-        return list(dict.fromkeys([self.state or self.qid, *sorted(set(self.predecessors.values()))]))
+        return list(dict.fromkeys([self.qid, *sorted(set(self.predecessors.values()))]))
 
     @property
     def p1001_values(self) -> list[str]:
@@ -633,28 +633,14 @@ def is_state(entity: dict[str, Any]) -> bool:
     return bool(set(_qids(entity, "P31")) & STATE_CLASSES)
 
 
-def sovereign(qid: str) -> str:
-    """The state a country's offices put in `P17`: itself, or a dependent territory's sovereign.
+def typed_state(qid: str) -> bool:
+    """Whether the country itself is typed a state, rather than a dependent territory.
 
-    Puerto Rico, the Cayman Islands and Guadeloupe are not typed states, and
-    their offices carry the sovereign in `P17` and the territory in `P1001`.
-    The sovereign is the territory's own best-rank `P17` that is a state.
+    An overseas territory is not part of its sovereign, so neither the sovereign
+    nor the territory belongs in its offices' `P17`.
     """
-    def fetch() -> str:
-        ent = wd.fetch_items([qid], props="claims").get(qid, {})
-        if is_state(ent):
-            return qid
-        claims = [c for c in ent.get("claims", {}).get("P17", []) if c.get("rank") != "deprecated"]
-        best = [c for c in claims if c.get("rank") == "preferred"] or claims
-        ups = []
-        for c in best:
-            v = c.get("mainsnak", {}).get("datavalue", {}).get("value")
-            if isinstance(v, dict) and v.get("id") and v["id"] != qid and v["id"] not in ups:
-                ups.append(v["id"])
-        found = wd.fetch_items(ups, props="claims") if ups else {}
-        return next((u for u in ups if is_state(found.get(u, {}))), qid)
-
-    return wd.cached(f"sovereign:{qid}", fetch)
+    return wd.cached(f"typed_state:{qid}",
+                     lambda: is_state(wd.fetch_items([qid], props="claims").get(qid, {})))
 
 
 def get(cc: str) -> Country:
@@ -668,7 +654,7 @@ def get(cc: str) -> Country:
                               local_names=cfg["local_names"], words=cfg["words"],
                               type_words=cfg["type_words"], type_terms=cfg["type_terms"],
                               provenance=cfg["provenance"], spans=cfg["spans"], admin_words=cfg["admin_words"],
-                              state=sovereign(cfg["qid"]))
+                              is_state=typed_state(cfg["qid"]))
     c = _loaded[cc]
     wd.set_langs(("en", *[lg for lg in c.langs if lg not in ("en", "mul")], "mul"))
     return c
