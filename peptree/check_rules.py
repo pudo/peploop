@@ -80,6 +80,9 @@ def main() -> None:
     expect(sorted(signals.channels("P17", "Q900001", facts(nat))) == ["holders", "label"],
            "label and holders agree on P17")
     expect(signals.channels("P31", "Q294414", facts(nat)) == ["state_office"], "a state office is a public office")
+    cls = slot(nat, "P31", ["Q294414", "Q4164871"], 0, quote="Minister of Culture of the Republic of Ruritania")
+    cls.facts.classes = {nat["qid"]}
+    expect(rules.decide(cls) == ("skip", "p31_on_a_class"), "a class of office is never typed a public office")
     s = slot(nat, "P17", ["Q900001"], 0, quote="Minister of Culture of the Republic of Ruritania")
     s.facts.non_states = {"Q900001"}
     expect(rules.decide(s) == ("skip", "p17_not_a_state"), "a value not typed a state is never a P17")

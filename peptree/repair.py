@@ -119,6 +119,7 @@ class Run:
         self.head_seqs = sorted(x for x in seqs if len(x) > 1 or (x and len(x[0]) >= 6))
         self.value_spans: dict[str, list[int | None]] = {}
         self.non_states: set[str] = set()
+        self.classes: set[str] = set()
         self._typed: set[str] = set()
 
     def spans_for(self, qids: list[str]) -> None:
@@ -133,12 +134,23 @@ class Run:
                 q for q, e in wd.fetch_items(chunk, props="claims").items() if not countries.is_state(e))))
         self._typed |= set(unread)
 
+    def classes_for(self, qids: list[str]) -> None:
+        """Note which items are some other item's `P279` (cached a day): a class, not an office.
+
+        `FILTER EXISTS`, not a join: WDQS answers `VALUES ?c {…} ?x wdt:P279 ?c` with nothing.
+        """
+        for chunk in wd.values_chunks(sorted(set(qids)), 100):
+            found = wd.cached("subclassed:" + "|".join(chunk), lambda chunk=chunk: sorted({
+                r["c"] for r in wd.sparql(f"SELECT ?c WHERE {{ VALUES ?c {{ {wd.values_block(chunk)} }} FILTER EXISTS {{ ?x wdt:P279 ?c }} }}")}),
+                max_age=wd.DAY)
+            self.classes.update(found)
+
     def facts(self, item: dict[str, Any]) -> signals.Facts:
         return signals.Facts(item=item, country=self.country, places=self.places, sib=self.sib,
                              detected=self.ctx.detected(item), bodies=self.bodies,
                              cat_classes=self.cat_classes, value_types=self.value_types,
                              sender_class=self.sender_class, value_spans=self.value_spans,
-                             non_states=self.non_states,
+                             non_states=self.non_states, classes=self.classes,
                              head_seqs=[list(x) for x in self.head_seqs])
 
     def candidates(self, item: dict[str, Any]) -> dict[str, list[str]]:

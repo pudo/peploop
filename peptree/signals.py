@@ -220,6 +220,8 @@ class Facts:
     value_spans: dict[str, list[int | None]] = field(default_factory=dict)
     #: Candidate values read and found not to be typed a state: never a `P17`.
     non_states: set[str] = field(default_factory=set)
+    #: Items other items name in `P279`: classes of office, never typed an office themselves.
+    classes: set[str] = field(default_factory=set)
     #: Stem sequences of the head-of-state and head-of-government class names, every language.
     head_seqs: list[list[str]] = field(default_factory=list)
 

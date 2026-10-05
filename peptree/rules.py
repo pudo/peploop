@@ -99,6 +99,9 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     # A territory or a region is a jurisdiction, never a country: it goes in P1001.
     ("p17_not_a_state", lambda s: s.prop == "P17" and s.facts is not None and s.value in s.facts.non_states, "skip"),
     ("label_conflict", lambda s: signals.conflict(s.prop, s.value, s.facts), "skip"),
+    # A class of office ("mayor of a place in X", which seven offices name in P279)
+    # is a type of position, not a public office: typing it one makes it an instance.
+    ("p31_on_a_class", lambda s: s.prop == "P31" and s.facts is not None and s.qid in s.facts.classes, "skip"),
     ("p31_weak_channel", lambda s: s.prop == "P31" and not _strong_p31(s), "skip"),
     ("two_channels", lambda s: bool(s.channels), "apply"),
     ("one_channel", lambda s: True, "skip"),
@@ -130,6 +133,8 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
     live = wd.fetch_items(qids)  # max_age=0: what Wikidata holds now
     if hasattr(run, "spans_for"):  # when each candidate state or place existed, for the era rule
         run.spans_for([v for r in reqs for prop in ("P17", "P1001") for v in r["candidates"].get(prop, [])])
+    if hasattr(run, "classes_for"):  # which items asked a P31 are classes of office
+        run.classes_for([r["qid"] for r in reqs if "P31" in r["candidates"]])
     out = []
     for r in reqs:
         answer = r.get("answer")
