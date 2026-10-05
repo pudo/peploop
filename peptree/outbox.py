@@ -6,6 +6,7 @@ countries therefore costs only its new statements, in the next chunk, and a
 chunk never exceeds what one paste into the importer takes (300 commands).
 
     python -m peptree.cli outbox            # reconcile, then write new chunks
+    python -m peptree.cli outbox --batch 7  # the same, for one reviewed sweep batch only
     python -m peptree.cli outbox --status   # chunks by status, and revert candidates
 
 `ptree_emitted` holds one row per statement written to a chunk, keyed on the
@@ -145,8 +146,12 @@ def path_of(chunk: int) -> Path:
     return DIR / f"chunk-{chunk:03d}.qs"
 
 
-def run(log: Callable[[str], None] = print) -> list[Path]:
-    """Reconcile the ledger against live state, retire stale chunks, write the pending lines."""
+def run(log: Callable[[str], None] = print, batch: int | None = None) -> list[Path]:
+    """Reconcile the ledger against live state, retire stale chunks, write the pending lines.
+
+    With `batch`, only that sweep batch's places are emitted, so a chunk (or the
+    few a large batch needs) maps to one reviewed batch.
+    """
     con = wd.conn()
     props = proposals()
     have = rows()
@@ -162,8 +167,11 @@ def run(log: Callable[[str], None] = print) -> list[Path]:
         con.execute("DELETE FROM ptree_emitted WHERE chunk = %s AND status = 'emitted'", (c,))
         log(f"retired chunk {c:03d}: a line was withdrawn before it was pasted")
     taken = {k for k, *_ in rows()}
-    cleared = {cc for cc, r in sweep.read().items() if r["status"] in CLEARED}
+    ledger = sweep.read()
+    cleared = {cc for cc, r in ledger.items() if r["status"] in CLEARED}
     held = {v[0] for k, v in props.items() if k not in taken and v[0] not in cleared}
+    if batch is not None:
+        cleared &= set(sweep.members(batch))
     if held:
         log(f"held back, not yet reviewed: {', '.join(sorted(held))}")
     pending = {k: v for k, v in props.items() if k not in taken and v[0] in cleared}
@@ -215,9 +223,9 @@ def status() -> str:
 def main(args: list[str]) -> None:
     if args == ["--status"]:
         print(status())
-    elif not args:
+    elif not args or (len(args) == 2 and args[0] == "--batch" and args[1].isdigit()):
         log = lambda m: print(m, file=sys.stderr, flush=True)  # noqa: E731
-        paths = run(log)
+        paths = run(log, int(args[1]) if args else None)
         print("\n".join(str(p) for p in paths) or "nothing pending")
     else:
-        sys.exit("usage: outbox [--status]")
+        sys.exit("usage: outbox [--status | --batch <n>]")
