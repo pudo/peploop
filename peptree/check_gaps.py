@@ -51,6 +51,11 @@ def main() -> None:
            "a predecessor's office in a territory is still asked P17")
     expect(("P17", "missing", None) in ctx.gaps(item("Q6", "national", bare), {"Q83307"}),
            "a state's office is asked P17")
+    swapped = item("Q7", "subnational", ent({"en": "mayor of Zenda"}, P31=["Q30185"], P279=["Q17279032", "Q294414"]))
+    expect(ctx.gaps(swapped, {"Q30185"}) == [("P17", "missing", None), ("P1001", "missing", None)],
+           "an item with a position type in P279 is asked P17/P1001 and never P31/P279")
+    expect(not gaps.inverted(ent({"en": "Minister of Health"}, P31=["Q4164871"], P279=["Q294414"])),
+           "a stray metaclass in P279 beside a position type in P31 is not the swap: its class is still repaired")
     meta = item("Q2", "national", ent({"en": "x"}, P31=["Q17279032"], P17=["Q900001"], P1001=["Q900001"], P279=["Q83307"]))
     expect(ctx.gaps(meta, {"Q83307"}) == [], "elective office counts as a position metaclass")
     judge = item("Q3", "national", ent({"xa": "judge of the Supreme Court of Ruritania"}, P31=["Q4164871"],

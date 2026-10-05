@@ -27,6 +27,10 @@ def funnel(cc: str) -> list[str]:
     kinds = con.execute("SELECT kind, count(*) FROM ptree_item WHERE country = %s AND dropped IS NULL GROUP BY 1 ORDER BY 2 DESC",
                         (cc,)).fetchall()
     out.append("- kept: " + ", ".join(f"{k} {n}" for k, n in kinds))
+    kept = con.execute("SELECT entity FROM ptree_item WHERE country = %s AND dropped IS NULL", (cc,)).fetchall()
+    swapped = sum(1 for (e,) in kept if gapmod.inverted(e))
+    if swapped:
+        out.append(f"- inverted (a position type in P279; P31/P279 not repaired): {swapped}")
     g = con.execute("SELECT prop, gap, count(*) FROM ptree_gap WHERE country = %s GROUP BY 1,2 ORDER BY 1,2", (cc,)).fetchall()
     items_with = con.execute("SELECT count(DISTINCT qid) FROM ptree_gap WHERE country = %s", (cc,)).fetchone()[0]
     out.append(f"- items with a gap: {items_with}; slots: " + ", ".join(f"{p} {gp} {n}" for p, gp, n in g))

@@ -86,6 +86,18 @@ def name_categories(c: countries.Country, names: dict[str, list[list[str]]], ent
     return out
 
 
+def inverted(entity: dict[str, Any]) -> bool:
+    """Whether an item has its type and class swapped: a position type in `P279`, none in `P31`.
+
+    About 4,900 Brazilian mayoralties read `P31` mayor, `P279` elective office
+    and public office. Adding a position type to `P31` would leave the swap in
+    place and assert the same shape thousands of times; the real fix removes
+    statements, which is a human gate. Such an item is reported, never repaired
+    in `P31` or `P279`; its `P17` and `P1001` gaps still are.
+    """
+    return bool(set(values(entity, "P279")) & POSITION_METAS) and not set(values(entity, "P31")) & POSITION_METAS
+
+
 def reaches(cat: dict[str, Any], types: set[str]) -> bool:
     return bool(types & set(cat["class_qids"])) and not types & set(cat["exclude_qids"])
 
@@ -137,6 +149,8 @@ class Context:
             out.append(("P17", "missing", None))
         if not has(ent, "P1001") and item["kind"] != "ambassador":
             out.append(("P1001", "missing", None))
+        if inverted(ent):
+            return out
         if not has(ent, "P279"):
             cat = next(iter(sorted(detected)), None) if len(detected) == 1 else None
             out.append(("P279", "missing", cat))

@@ -2,7 +2,7 @@
 
 Every non-OECD country and territory, in batches of five by region. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
 
-Progress: pending 107, reviewed 60, submitted 43
+Progress: pending 96, reviewed 71, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | chunks | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -66,7 +66,7 @@ Progress: pending 107, reviewed 60, submitted 43
 | sn | Senegal | Africa / Western Africa | 12 | reviewed | 2026-10-05 | 93 | 18 | P1001 14 P17 3 P279 1 | $0.37 | 002 |  |
 | sl | Sierra Leone | Africa / Western Africa | 12 | reviewed | 2026-10-05 | 46 | 15 | P1001 5 P17 10 | $0.37 | 002 |  |
 | tg | Togo | Africa / Western Africa | 12 | reviewed | 2026-10-05 | 57 | 11 | P1001 6 P17 4 P279 1 | $0.20 | 002 |  |
-| ta | Tristan da Cunha | Africa / Western Africa | 13 | pending |  |  |  |  |  |  |  |
+| ta | Tristan da Cunha | Africa / Western Africa | 13 | reviewed | 2026-10-05 | 0 | 0 |  | $0.00 |  | no offices to repair |
 | ai | Anguilla | Americas / Caribbean | 0 | submitted | 2026-10-05 | 11 | 0 |  | $0.12 |  | QS 289612; 289612 added Q112973320 P279 minister (deputy-phrase bug); removed 2026-10-05 |
 | ag | Antigua and Barbuda | Americas / Caribbean | 0 | submitted | 2026-10-05 | 27 | 0 |  | $0.18 |  | QS 289612 |
 | aw | Aruba | Americas / Caribbean | 0 | submitted | 2026-10-05 | 23 | 0 |  | $0.22 |  | QS 289612 |
@@ -96,16 +96,16 @@ Progress: pending 107, reviewed 60, submitted 43
 | tc | Turks and Caicos Islands | Americas / Caribbean | 0 | submitted | 2026-10-05 | 15 | 0 |  | $0.16 |  | QS 289612 |
 | vi | U.S. Virgin Islands | Americas / Caribbean | 0 | submitted | 2026-10-05 | 4 | 0 |  | $0.06 |  | QS 289612 |
 | bz | Belize | Americas / Central America | 0 | submitted | 2026-10-05 | 60 | 0 |  | $0.29 |  | QS 289612 |
-| sv | El Salvador | Americas / Central America | 14 | pending |  |  |  |  |  |  |  |
-| gt | Guatemala | Americas / Central America | 14 | pending |  |  |  |  |  |  |  |
-| hn | Honduras | Americas / Central America | 14 | pending |  |  |  |  |  |  |  |
-| ni | Nicaragua | Americas / Central America | 14 | pending |  |  |  |  |  |  |  |
-| pa | Panama | Americas / Central America | 14 | pending |  |  |  |  |  |  |  |
-| bm | Bermuda | Americas / Northern America | 15 | pending |  |  |  |  |  |  |  |
-| gl | Greenland | Americas / Northern America | 15 | pending |  |  |  |  |  |  |  |
-| pm | Saint Pierre and Miquelon | Americas / Northern America | 15 | pending |  |  |  |  |  |  |  |
-| ar | Argentina | Americas / South America | 15 | pending |  |  |  |  |  |  |  |
-| bo | Bolivia | Americas / South America | 15 | pending |  |  |  |  |  |  |  |
+| sv | El Salvador | Americas / Central America | 14 | reviewed | 2026-10-05 | 172 | 46 | P1001 27 P17 17 P279 2 | $2.35 |  |  |
+| gt | Guatemala | Americas / Central America | 14 | reviewed | 2026-10-05 | 40 | 17 | P1001 6 P17 10 P279 1 | $0.38 |  |  |
+| hn | Honduras | Americas / Central America | 14 | reviewed | 2026-10-05 | 40 | 11 | P1001 3 P17 7 P279 1 | $0.33 |  |  |
+| ni | Nicaragua | Americas / Central America | 14 | reviewed | 2026-10-05 | 33 | 6 | P17 5 P279 1 | $0.24 |  |  |
+| pa | Panama | Americas / Central America | 14 | reviewed | 2026-10-05 | 35 | 7 | P1001 1 P17 5 P279 1 | $0.12 |  |  |
+| bm | Bermuda | Americas / Northern America | 15 | reviewed | 2026-10-05 | 35 | 1 | P279 1 | $0.04 |  |  |
+| gl | Greenland | Americas / Northern America | 15 | reviewed | 2026-10-05 | 25 | 5 | P17 5 | $0.18 |  | P17 Greenland: treated as a country (user, 2026-10-05) |
+| pm | Saint Pierre and Miquelon | Americas / Northern America | 15 | reviewed | 2026-10-05 | 3 | 0 |  | $0.00 |  | no offices to repair |
+| ar | Argentina | Americas / South America | 15 | reviewed | 2026-10-05 | 261 | 16 | P1001 4 P17 6 P279 5 P31 1 | $1.28 |  |  |
+| bo | Bolivia | Americas / South America | 15 | reviewed | 2026-10-05 | 58 | 22 | P1001 3 P17 18 P279 1 | $0.62 |  |  |
 | br | Brazil | Americas / South America | 16 | pending |  |  |  |  |  |  |  |
 | ec | Ecuador | Americas / South America | 16 | pending |  |  |  |  |  |  |  |
 | fk | Falkland Islands | Americas / South America | 16 | pending |  |  |  |  |  |  |  |
