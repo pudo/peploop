@@ -2,20 +2,20 @@
 
 Every non-OECD country and territory, in batches of five by region. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status`, `qs batch` and `notes` are written by hand and survive `sweep table`.
 
-Progress: pending 167, submitted 43
+Progress: pending 157, reviewed 10, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | qs batch | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| io | British Indian Ocean Territory | Africa / Eastern Africa | 1 | pending |  |  |  |  |  |  |  |
-| bi | Burundi | Africa / Eastern Africa | 1 | pending |  |  |  |  |  |  |  |
-| km | Comoros | Africa / Eastern Africa | 1 | pending |  |  |  |  |  |  |  |
-| dj | Djibouti | Africa / Eastern Africa | 1 | pending |  |  |  |  |  |  |  |
-| er | Eritrea | Africa / Eastern Africa | 1 | pending |  |  |  |  |  |  |  |
-| et | Ethiopia | Africa / Eastern Africa | 2 | pending |  |  |  |  |  |  |  |
-| ke | Kenya | Africa / Eastern Africa | 2 | pending |  |  |  |  |  |  |  |
-| mg | Madagascar | Africa / Eastern Africa | 2 | pending |  |  |  |  |  |  |  |
-| mw | Malawi | Africa / Eastern Africa | 2 | pending |  |  |  |  |  |  |  |
-| mu | Mauritius | Africa / Eastern Africa | 2 | pending |  |  |  |  |  |  |  |
+| io | British Indian Ocean Territory | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 0 | 0 |  | $0.00 |  | no offices kept: a base territory |
+| bi | Burundi | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 40 | 2 | P1001 1 P17 1 | $0.28 |  |  |
+| km | Comoros | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 32 | 4 | P1001 1 P17 3 | $0.10 |  |  |
+| dj | Djibouti | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 43 | 3 | P1001 3 | $0.07 |  |  |
+| er | Eritrea | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 29 | 2 | P1001 1 P279 1 | $0.11 |  |  |
+| et | Ethiopia | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 56 | 10 | P1001 1 P17 8 P279 1 | $0.32 |  |  |
+| ke | Kenya | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 97 | 9 | P1001 2 P17 5 P279 2 | $0.57 |  | Q124397832 bishop of Mombasa kept as an office: church-office scope is open |
+| mg | Madagascar | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 59 | 13 | P1001 2 P17 9 P279 2 | $0.29 |  |  |
+| mw | Malawi | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 60 | 3 | P1001 2 P279 1 | $0.12 |  |  |
+| mu | Mauritius | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 47 | 7 | P1001 2 P17 3 P279 2 | $0.31 |  |  |
 | yt | Mayotte | Africa / Eastern Africa | 3 | pending |  |  |  |  |  |  |  |
 | mz | Mozambique | Africa / Eastern Africa | 3 | pending |  |  |  |  |  |  |  |
 | rw | Rwanda | Africa / Eastern Africa | 3 | pending |  |  |  |  |  |  |  |
@@ -67,7 +67,7 @@ Progress: pending 167, submitted 43
 | sl | Sierra Leone | Africa / Western Africa | 12 | pending |  |  |  |  |  |  |  |
 | tg | Togo | Africa / Western Africa | 12 | pending |  |  |  |  |  |  |  |
 | ta | Tristan da Cunha | Africa / Western Africa | 13 | pending |  |  |  |  |  |  |  |
-| ai | Anguilla | Americas / Caribbean | 0 | submitted | 2026-10-05 | 11 | 0 |  | $0.12 | 289612 | 289612 added Q112973320 P279 minister: wrong (deputy-phrase bug, fixed); removal pending |
+| ai | Anguilla | Americas / Caribbean | 0 | submitted | 2026-10-05 | 11 | 0 |  | $0.12 | 289612 | 289612 added Q112973320 P279 minister (deputy-phrase bug); removed 2026-10-05 |
 | ag | Antigua and Barbuda | Americas / Caribbean | 0 | submitted | 2026-10-05 | 27 | 0 |  | $0.18 | 289612 |  |
 | aw | Aruba | Americas / Caribbean | 0 | submitted | 2026-10-05 | 23 | 0 |  | $0.22 | 289612 |  |
 | bs | Bahamas | Americas / Caribbean | 0 | submitted | 2026-10-05 | 45 | 0 |  | $0.13 | 289612 |  |

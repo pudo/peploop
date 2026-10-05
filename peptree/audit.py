@@ -15,7 +15,7 @@ from collections import defaultdict
 from typing import Any
 
 from peptree import country as countries
-from peptree import qs, sweep, wd
+from peptree import gaps, qs, sweep, wd
 from peptree.load import values
 
 #: Categories every state has an office for: absent after the run means the load missed it.
@@ -52,6 +52,9 @@ def audit(batch: int) -> str:
     for cc, sts in per.items():
         for s, p, v in sts:
             seen[(s, p)][cc] = v
+    # A category's own classes are its generic handles (minister, prime minister):
+    # one added beside a specific class is how "Chief Minister" became a minister.
+    handles = {q for cat in gaps.categories() for q in cat["class_qids"]}
     out = [f"# audit: batch {batch} ({', '.join(ccs)})", ""]
     total = 0
     for cc in ccs:
@@ -80,8 +83,9 @@ def audit(batch: int) -> str:
                     flags.append("P17 is not the country or a predecessor's state")
                 if p == "P1001" and v not in known:
                     flags.append("P1001 is no known place of the country")
-                if p == "P279" and (old := values(it["entity"], "P279")):
-                    flags.append("beside " + ", ".join(f"{q} {name(q)}" for q in old))
+                old = values(it["entity"], "P279")
+                if p == "P279" and old and v in handles and not set(old) & handles:
+                    flags.append("generic class beside " + ", ".join(f"{q} {name(q)}" for q in old))
                 others = {o: ov for o, ov in seen[(s, p)].items() if o != cc}
                 differ = sorted(o for o, ov in others.items() if ov.split()[0] != v)
                 if differ:
