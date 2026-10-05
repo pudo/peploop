@@ -10,6 +10,8 @@ holding every lane's statements, with its report as `<cc>-<date>.md` beside it.
     python -m peptree.cli write <cc>    # pre-flight and parse-check the latest .qs (dry)
     python -m peptree.cli write <cc> --submit   # ...then upload it once and poll to the end
     python -m peptree.cli status <batch_id> [--wait]
+    python -m peptree.cli sweep plan|table|run <n>   # the batched sweep, ledger in peptree/sweep.md
+    python -m peptree.cli audit <n>                  # every line of batch n with labels, and what to look at
 
 Only `write --submit` edits Wikidata, through QuickStatements under the
 account in QS_USERNAME / QS_TOKEN.
@@ -134,6 +136,11 @@ def cmd_status(batch_id: int, wait: bool) -> None:
 
 
 def main() -> None:
+    if sys.argv[1:2] in (["sweep"], ["audit"]):
+        wd.init()
+        from peptree import audit, sweep
+        (sweep if sys.argv[1] == "sweep" else audit).main(sys.argv[2:])
+        return
     parser = argparse.ArgumentParser(prog="peptree")
     parser.add_argument("command", choices=["country", "load", "repair", "report", "write", "status"])
     parser.add_argument("cc", help="country code, or the batch id for `status`")
