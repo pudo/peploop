@@ -25,6 +25,9 @@ statement itself (the line without its edit summary or retrieval date):
   Anguilla made a minister) stays invisible to this list.
 - A line of a pasted chunk that never lands (QS refused it) stays `emitted` and
   is listed by `--status`. It is not re-emitted on its own.
+- Only a place the sweep ledger marks reviewed (or submitted) is emitted: a batch
+  is audited before any of it goes out. Every place's proposals still count
+  toward withdrawal, so a place being re-run never retracts what it already sent.
 """
 
 import re
@@ -38,6 +41,8 @@ from peptree import qs, sweep, wd
 DIR = qs.OUT_DIR / "outbox"
 #: Commands one paste into the QuickStatements importer takes.
 CAP = 300
+#: Ledger statuses whose proposals may go out.
+CLEARED = ("reviewed", "submitted")
 RETRIEVED = re.compile(r"\tS813\t\+\S+")
 
 
@@ -157,7 +162,11 @@ def run(log: Callable[[str], None] = print) -> list[Path]:
         con.execute("DELETE FROM ptree_emitted WHERE chunk = %s AND status = 'emitted'", (c,))
         log(f"retired chunk {c:03d}: a line was withdrawn before it was pasted")
     taken = {k for k, *_ in rows()}
-    pending = {k: v for k, v in props.items() if k not in taken}
+    cleared = {cc for cc, r in sweep.read().items() if r["status"] in CLEARED}
+    held = {v[0] for k, v in props.items() if k not in taken and v[0] not in cleared}
+    if held:
+        log(f"held back, not yet reviewed: {', '.join(sorted(held))}")
+    pending = {k: v for k, v in props.items() if k not in taken and v[0] in cleared}
     live_now = live_keys([line for _, line in pending.values()])
     pending = {k: v for k, v in pending.items() if k not in live_now}
     log(f"proposed {len(props)}, already out {len(taken & set(props))}, live {len(live_now)}, pending {len(pending)}")

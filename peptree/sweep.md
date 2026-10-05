@@ -2,7 +2,7 @@
 
 Every non-OECD country and territory, in batches of five by region. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
 
-Progress: pending 116, reviewed 40, run 11, submitted 43
+Progress: pending 116, reviewed 50, run 1, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | chunks | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -46,16 +46,16 @@ Progress: pending 116, reviewed 40, run 11, submitted 43
 | bw | Botswana | Africa / Southern Africa | 8 | reviewed | 2026-10-05 | 45 | 6 | P1001 2 P17 4 | $0.18 |  |  |
 | sz | Eswatini | Africa / Southern Africa | 8 | reviewed | 2026-10-05 | 25 | 3 | P1001 2 P17 1 | $0.03 |  |  |
 | ls | Lesotho | Africa / Southern Africa | 8 | reviewed | 2026-10-05 | 52 | 7 | P1001 3 P17 3 P279 1 | $0.10 |  |  |
-| na | Namibia | Africa / Southern Africa | 9 | run | 2026-10-05 | 46 | 26 | P1001 4 P17 22 | $0.44 | 001 |  |
-| za | South Africa | Africa / Southern Africa | 9 | run | 2026-10-05 | 171 | 17 | P1001 6 P17 5 P279 6 | $1.12 | 001 |  |
-| ac | Ascension Island | Africa / Western Africa | 9 | run | 2026-10-05 | 1 | 0 |  | $0.02 |  |  |
-| bj | Benin | Africa / Western Africa | 9 | run | 2026-10-05 | 46 | 13 | P1001 1 P17 11 P279 1 | $0.31 | 001 |  |
-| bf | Burkina Faso | Africa / Western Africa | 9 | run | 2026-10-05 | 52 | 17 | P1001 1 P17 16 | $0.34 | 001 |  |
-| cv | Cape Verde | Africa / Western Africa | 10 | run | 2026-10-05 | 50 | 5 | P1001 2 P17 3 | $0.62 | 001 |  |
-| ci | Côte d'Ivoire | Africa / Western Africa | 10 | run | 2026-10-05 | 85 | 24 | P1001 8 P17 14 P279 2 | $0.71 | 001 |  |
-| gm | Gambia | Africa / Western Africa | 10 | run | 2026-10-05 | 48 | 16 | P1001 6 P17 6 P279 4 | $0.38 | 001 |  |
-| gh | Ghana | Africa / Western Africa | 10 | run | 2026-10-05 | 129 | 33 | P1001 12 P17 16 P279 5 | $1.12 | 001 |  |
-| gn | Guinea | Africa / Western Africa | 10 | run | 2026-10-05 | 120 | 70 | P1001 19 P17 19 P279 32 | $1.51 | 001 |  |
+| na | Namibia | Africa / Southern Africa | 9 | reviewed | 2026-10-05 | 46 | 26 | P1001 4 P17 22 | $0.44 | 001 |  |
+| za | South Africa | Africa / Southern Africa | 9 | reviewed | 2026-10-05 | 171 | 17 | P1001 6 P17 5 P279 6 | $1.12 | 001 |  |
+| ac | Ascension Island | Africa / Western Africa | 9 | reviewed | 2026-10-05 | 1 | 0 |  | $0.02 |  |  |
+| bj | Benin | Africa / Western Africa | 9 | reviewed | 2026-10-05 | 46 | 13 | P1001 1 P17 11 P279 1 | $0.31 | 001 |  |
+| bf | Burkina Faso | Africa / Western Africa | 9 | reviewed | 2026-10-05 | 52 | 17 | P1001 1 P17 16 | $0.34 | 001 |  |
+| cv | Cape Verde | Africa / Western Africa | 10 | reviewed | 2026-10-05 | 50 | 5 | P1001 2 P17 3 | $0.62 | 001 |  |
+| ci | Côte d'Ivoire | Africa / Western Africa | 10 | reviewed | 2026-10-05 | 85 | 24 | P1001 8 P17 14 P279 2 | $0.71 | 001 |  |
+| gm | Gambia | Africa / Western Africa | 10 | reviewed | 2026-10-05 | 48 | 16 | P1001 6 P17 6 P279 4 | $0.38 | 001 |  |
+| gh | Ghana | Africa / Western Africa | 10 | reviewed | 2026-10-05 | 129 | 33 | P1001 12 P17 16 P279 5 | $1.12 | 001 |  |
+| gn | Guinea | Africa / Western Africa | 10 | reviewed | 2026-10-05 | 120 | 70 | P1001 19 P17 19 P279 32 | $1.51 | 001 |  |
 | gw | Guinea-Bissau | Africa / Western Africa | 11 | run | 2026-10-05 | 36 | 5 | P1001 1 P17 4 | $0.08 | 001 |  |
 | lr | Liberia | Africa / Western Africa | 11 | pending |  |  |  |  |  |  |  |
 | ml | Mali | Africa / Western Africa | 11 | pending |  |  |  |  |  |  |  |
