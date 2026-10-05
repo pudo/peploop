@@ -52,10 +52,14 @@ NOT_OFFICE = {
     "Q2625729",  # corresponding member
     *LIST_ARTICLES,
 }
-#: A seat whose class reaches head of state is an office whatever its `P31`
-#: reaches: a monarchy's throne is typed "noble title", which the tree files
-#: under rank, and the rank rule took every king and monarch with it.
+#: A seat whose class reaches head of state, or that is declared a public office,
+#: is an office whatever else its `P31` reaches: a throne is typed "noble title"
+#: (→ rank), a presidency "President of the Republic" (→ organization), a vice
+#: presidency carries a stray "Wikimedia list" (→ written work). The closure
+#: drops took the King of Jordan, the President of Namibia and the Prime
+#: Minister of Seychelles; what an item declares directly still drops it.
 HEAD_OF_STATE = "Q48352"
+PUBLIC_OFFICE = "Q294414"
 #: Declared directly (`p:P31/ps:P31`, any rank): the item is an occupation,
 #: not a seat. Not through the closure: "member of parliament" is itself typed
 #: an occupation, so every MP seat reaches it.
@@ -311,15 +315,16 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     hit = p31_any & OCCUPATION
     if hit:
         return "occupation", "P31 " + ",".join(sorted(hit)), ""
+    seat = HEAD_OF_STATE in types or PUBLIC_OFFICE in p31_any
     for reason, roots in NOT_A_SEAT:
         hit = p31_types & roots
-        if hit:
+        if hit and not seat:
             return reason, "P31 reaches " + ",".join(sorted(hit)), ""
     hit = p31_types & {"Q618779", "Q3320743", "Q4189293", "Q13406463"}
-    if hit and not (hit == {"Q4189293"} and HEAD_OF_STATE in types):
+    if hit and not seat:
         return "non_office", "P31 reaches " + ",".join(sorted(hit)), ""
     hit = (p31_types if event_types is None else event_types) & EVENT_LIKE
-    if hit:
+    if hit and not seat:
         return "non_office", "P31 reaches " + ",".join(sorted(hit)) + " (not through occupation)", ""
     # A label naming the state or a predecessor is a country-scoped office,
     # whatever its holders' spread or a list says.
@@ -331,7 +336,7 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     if not has(entity, "P17") and not has(entity, "P1001") and home_countries(c, by) >= 3 and not scoped_label:
         return "generic_class", f"unscoped, holders from {home_countries(c, by)} countries", ""
     hit = p31_types & BODY_ROOTS
-    if hit:
+    if hit and not seat:
         return "body", "P31 reaches " + ",".join(sorted(hit)), ""
     lead = body_label(c, entity)
     if lead:

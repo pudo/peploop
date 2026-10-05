@@ -32,6 +32,14 @@ def main() -> None:
            "a throne typed noble title (→ rank) is kept when its class reaches head of state")
     expect(drop(ent({"en": "Baron of Ruritania"}, P31=["Q355567"], P17=["Q900001"]), {"Q355567", "Q4189293"})[0]
            == "non_office", "a noble title that heads nothing is still a rank")
+    potus = ent({"en": "President of the Republic of Ruritania"}, P31=["Q248577"], P17=["Q900001"])
+    expect(drop(potus, {"Q248577", "Q43229"}, types={"Q248577", "Q43229", "Q48352"})[0] is None,
+           "a presidency typed by a title class that reaches organization is still an office")
+    vp = ent({"en": "Vice President of Ruritania"}, P31=["Q294414", "Q80096233"], P17=["Q900001"])
+    expect(drop(vp, {"Q80096233", "Q47461344"})[0] is None,
+           "a declared public office with a stray list type is still an office")
+    expect(drop(ent({"en": "Constitution of Ruritania"}, P31=["Q7755"], P17=["Q900001"]), {"Q7755", "Q47461344"})[0]
+           == "non_office", "a written work that declares no office still drops")
     expect(drop(ent({"en": "Hero of Ruritania"}, P31=["Q3320743"], P17=["Q900001"]), {"Q3320743"})[0] == "non_office",
            "a title of honour is dropped as non_office")
     expect(drop(ent({"en": "list of ministers"}, P31=["Q4164871"], P279=["Q13406463"]))[0] == "non_office",
