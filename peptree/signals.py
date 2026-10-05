@@ -246,13 +246,10 @@ def embedded_head(f: Facts, text: str) -> bool:
     (deputy words aside) and comes before the state's name makes that name
     the title's, not the office's jurisdiction.
     """
-    deputy = {s for p in f.country.words.get("deputy", []) for s in countries.stems(p)}
     raw = TOKEN.findall(text)
     stem_at = [next(iter(countries.stems(t)), None) for t in raw]
     idx = [i for i, st in enumerate(stem_at) if st]
-    k = 0
-    while k < len(idx) and any(stem_at[idx[k]].startswith(d) or d.startswith(stem_at[idx[k]]) for d in deputy):
-        k += 1
+    k = countries.deputy_lead(f.country, [stem_at[i] for i in idx])
     own = [w for w in (countries.words(n) for n in f.country.names.get(f.country.qid, [])) if w]
     for j in range(k + 1, len(idx)):
         for need in f.head_seqs:

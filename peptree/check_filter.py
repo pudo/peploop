@@ -27,6 +27,11 @@ def drop(e: dict, p31_types: set[str] = frozenset(), lanes: tuple = ("descent",)
 
 
 def main() -> None:
+    king = ent({"en": "King of Ruritania"}, P31=["Q355567"], P279=["Q116"], P17=["Q900001"])
+    expect(drop(king, {"Q355567", "Q4189293"}, types={"Q116", "Q48352"})[0] is None,
+           "a throne typed noble title (→ rank) is kept when its class reaches head of state")
+    expect(drop(ent({"en": "Baron of Ruritania"}, P31=["Q355567"], P17=["Q900001"]), {"Q355567", "Q4189293"})[0]
+           == "non_office", "a noble title that heads nothing is still a rank")
     expect(drop(ent({"en": "Hero of Ruritania"}, P31=["Q3320743"], P17=["Q900001"]), {"Q3320743"})[0] == "non_office",
            "a title of honour is dropped as non_office")
     expect(drop(ent({"en": "list of ministers"}, P31=["Q4164871"], P279=["Q13406463"]))[0] == "non_office",

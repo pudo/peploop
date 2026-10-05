@@ -52,6 +52,10 @@ NOT_OFFICE = {
     "Q2625729",  # corresponding member
     *LIST_ARTICLES,
 }
+#: A seat whose class reaches head of state is an office whatever its `P31`
+#: reaches: a monarchy's throne is typed "noble title", which the tree files
+#: under rank, and the rank rule took every king and monarch with it.
+HEAD_OF_STATE = "Q48352"
 #: Declared directly (`p:P31/ps:P31`, any rank): the item is an occupation,
 #: not a seat. Not through the closure: "member of parliament" is itself typed
 #: an occupation, so every MP seat reaches it.
@@ -312,7 +316,7 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
         if hit:
             return reason, "P31 reaches " + ",".join(sorted(hit)), ""
     hit = p31_types & {"Q618779", "Q3320743", "Q4189293", "Q13406463"}
-    if hit:
+    if hit and not (hit == {"Q4189293"} and HEAD_OF_STATE in types):
         return "non_office", "P31 reaches " + ",".join(sorted(hit)), ""
     hit = (p31_types if event_types is None else event_types) & EVENT_LIKE
     if hit:

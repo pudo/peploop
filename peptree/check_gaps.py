@@ -60,6 +60,13 @@ def main() -> None:
            "the president of a court is not a head of state")
     deputy = ent({"en": "Deputy Prosecutor General of the Republic of Ruritania"})
     expect(gaps.name_categories(XX, NAMES, deputy) == set(), "a deputy is never put in a head category")
+    # A deputy phrase is stripped whole: "deputy chief" does not make "chief" a deputy word.
+    from dataclasses import replace as _replace
+    chiefs = _replace(XX, words={**XX.words, "deputy": [*XX.words["deputy"], "deputy chief"]})
+    expect(gaps.name_categories(chiefs, NAMES, ent({"en": "Chief Minister of Ruritania"})) == set(),
+           "a chief minister is not read as a minister when 'deputy chief' is a deputy phrase")
+    expect(gaps.name_categories(chiefs, NAMES, ent({"en": "First Deputy Minister of Health"})) == {"minister"},
+           "a two-word deputy phrase is still stripped")
     expect(gaps.name_categories(XX, NAMES, ent({"en": "Deputy Minister of Health"})) == {"minister"},
            "a deputy minister is in the minister category, and 'deputy' alone names no legislator")
     expect(gaps.name_categories(XX, NAMES, ent({"en": "Head of the Culture Department"})) == set(),

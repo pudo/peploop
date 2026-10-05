@@ -62,10 +62,9 @@ def name_categories(c: countries.Country, names: dict[str, list[list[str]]], ent
     and nothing after the class name but the state's own name ("President of
     the Republic of X", never "President of the Supreme Court").
     """
-    deputy_stems = {s for p in c.words.get("deputy", []) for s in countries.stems(p)}
     # "deputy" names a legislator in English and an assistant too: a class name
     # made only of deputy words says nothing.
-    names = {k: [n for n in seqs if not all(s in deputy_stems for s in n)] for k, seqs in names.items()}
+    names = {k: [n for n in seqs if countries.deputy_lead(c, n) < len(n)] for k, seqs in names.items()}
     own = {s for q in c.home for n in c.names.get(q, []) for s in countries.stems(n)}
     out = set()
     for lg in ("en", *c.langs):
@@ -73,9 +72,7 @@ def name_categories(c: countries.Country, names: dict[str, list[list[str]]], ent
         if not text:
             continue
         toks = countries.seq(text)
-        bare = list(toks)
-        while bare and any(bare[0].startswith(d) or d.startswith(bare[0]) for d in deputy_stems):
-            bare = bare[1:]
+        bare = toks[countries.deputy_lead(c, toks):]
         for key, seqs in names.items():
             head = key in HEAD_CATEGORIES
             for need in seqs:

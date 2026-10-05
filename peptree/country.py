@@ -157,6 +157,24 @@ def seq(text: str) -> list[str]:
     return out
 
 
+def deputy_lead(c: "Country", stems_: list[str]) -> int:
+    """How many leading stems are deputy phrases ("First Deputy Minister" → 2).
+
+    Whole phrases only: "deputy chief" is a deputy phrase, and "chief" on its
+    own is not, so "Chief Minister" keeps its first word.
+    """
+    phrases = [p for p in (seq(w) for w in c.words.get("deputy", [])) if p]
+    k, moved = 0, True
+    while moved:
+        moved = False
+        for p in sorted(phrases, key=len, reverse=True):
+            here = stems_[k:k + len(p)]
+            if len(here) == len(p) and all(t.startswith(n) or n.startswith(t) for t, n in zip(here, p)):
+                k, moved = k + len(p), True
+                break
+    return k
+
+
 def tokens(text: str) -> list[str]:
     return TOKEN.findall(fold(text))
 
