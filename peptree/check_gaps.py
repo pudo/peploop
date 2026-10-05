@@ -63,6 +63,10 @@ def main() -> None:
     expect(ctx.gaps(judge, {"Q16533"}) == [("P279", "classfix", "apex_judge")],
            "a Supreme Court judge typed plain 'judge' gets a class fix (body route)")
     expect(ctx.gaps(judge, {"Q16533", "Q117826617"}) == [], "once it reaches the class, no fix")
+    chief = item("Q9", "national", ent({"en": "Minister of Health"}, P31=["Q4164871"], P17=["Q900001"],
+                                       P1001=["Q900001"], P279=["Q900099"]))
+    expect(ctx.gaps(chief, {"Q900099", "Q14212"}) == [],
+           "a title read as minister whose class is already a head of government gets no minister class fix")
     head = ent({"en": "President of the Republic of Ruritania"})
     expect(gaps.name_categories(XX, NAMES, head) == {"head_of_state"},
            "a head category: the class name, then nothing but the state's name")

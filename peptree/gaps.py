@@ -36,6 +36,10 @@ def categories() -> list[dict[str, Any]]:
 BODY_ROUTE = {"apex_judge"}
 HEAD_CATEGORIES = {"head_of_state", "head_of_government", "prosecutor_general", "central_bank",
                    "supreme_audit", "military_chief", "security_chief", "party_leader"}
+#: Categories whose class names are words other offices' titles lead with ("minister",
+#: "president"): a name match into one is weak beside an existing class elsewhere.
+TITLE_PRONE = {"head_of_state", "head_of_government", "minister", "party_leader"}
+STATE_HEADS = {"head_of_state", "head_of_government"}
 
 
 def class_names(c: countries.Country, cats: list[dict[str, Any]]) -> dict[str, list[list[str]]]:
@@ -155,8 +159,17 @@ class Context:
             cat = next(iter(sorted(detected)), None) if len(detected) == 1 else None
             out.append(("P279", "missing", cat))
         else:
+            # A class already in another category wins over a title-prone name:
+            # "Chief Minister" and "Menteri Besar" lead with the word for minister but
+            # are heads of government, and every "President of X" also names a party
+            # president. An Attorney General classed as minister still gets its
+            # prosecutor class: that name is not ambiguous.
+            placed = {c["key"] for c in self.cats if c["class_qids"] and reaches(c, types)}
             for key in sorted(detected):
                 cat = self.by_key[key]
+                elsewhere = placed - {key}
+                if elsewhere and (key in TITLE_PRONE or elsewhere & STATE_HEADS):
+                    continue
                 if cat["class_qids"] and not reaches(cat, types):
                     out.append(("P279", "classfix", key))
                     break
