@@ -32,6 +32,9 @@ OECD = frozenset("at au be ca ch cl co cr cz de dk ee es fi fr gb gr hu ie il is
 #: uninhabited, a military base, a region of an OECD state, and the non-places.
 NO_OFFICES = frozenset("aq bv cp dg hm ic ip tf um zz eu un".split())
 STEPS = ("country", "load", "repair")
+#: Items with a gap above which a place's repair waits for a decision: Brazil's
+#: 5,056 would have cost $100-200 before the type/class swap was understood.
+LARGE = 300
 COLUMNS = ("cc", "name", "region", "batch", "status", "run", "kept", "lines", "by property", "cost", "chunks", "notes")
 #: Columns a person writes; `table` and `plan` keep them as found.
 HAND = ("status", "notes")
@@ -132,6 +135,11 @@ def members(batch: int) -> list[str]:
     return [cc for cc, r in read().items() if r["batch"] == str(batch)]
 
 
+def asked(cc: str) -> int:
+    """How many items the repair would ask the model about."""
+    return wd.conn().execute("SELECT count(DISTINCT qid) FROM ptree_gap WHERE country = %s", (cc,)).fetchone()[0]
+
+
 def run(batch: int, log: Any = print) -> list[str]:
     """Run every pending place of a batch in sequence; return the places run."""
     ccs = members(batch)
@@ -139,20 +147,25 @@ def run(batch: int, log: Any = print) -> list[str]:
         sys.exit(f"batch {batch} has no places; run `sweep plan` first")
     rows, done = read(), []
     for cc in ccs:
-        if rows[cc]["status"] not in ("pending", "blocked: crash"):
+        if rows[cc]["status"] != "pending" and not rows[cc]["status"].startswith("blocked: crash"):
             log(f"{cc}: {rows[cc]['status']}, not re-run")
             continue
         out = qs.OUT_DIR / cc
         out.mkdir(parents=True, exist_ok=True)
-        failed = None
+        failed, large = None, 0
         for step in STEPS:
+            if step == "repair":
+                large = asked(cc)
+                if large > LARGE:
+                    break
             with open(out / f"{step}-{cc}.log", "w") as fh:
                 code = subprocess.call([sys.executable, "-m", "peptree.cli", step, cc], stdout=fh, stderr=subprocess.STDOUT)
             if code:
                 failed = step
                 break
         rows = read()  # the ledger may have been edited by hand while this place ran
-        rows[cc]["status"] = f"blocked: crash in {failed}" if failed else "run"
+        rows[cc]["status"] = (f"blocked: crash in {failed}" if failed else
+                              f"blocked: large ({large} items to ask)" if large > LARGE else "run")
         log(f"{cc}: {rows[cc]['status']}")
         write(fill([rows[p["cc"]] for p in universe() if p["cc"] in rows]))
         done.append(cc)
