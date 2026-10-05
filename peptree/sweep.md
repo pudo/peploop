@@ -2,7 +2,7 @@
 
 Every non-OECD country and territory, in batches of five by region. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status`, `qs batch` and `notes` are written by hand and survive `sweep table`.
 
-Progress: pending 157, reviewed 10, submitted 43
+Progress: pending 137, reviewed 30, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | qs batch | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -12,30 +12,30 @@ Progress: pending 157, reviewed 10, submitted 43
 | dj | Djibouti | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 43 | 3 | P1001 3 | $0.07 |  |  |
 | er | Eritrea | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 29 | 2 | P1001 1 P279 1 | $0.11 |  |  |
 | et | Ethiopia | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 56 | 10 | P1001 1 P17 8 P279 1 | $0.32 |  |  |
-| ke | Kenya | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 97 | 9 | P1001 2 P17 5 P279 2 | $0.57 |  | Q124397832 bishop of Mombasa kept as an office: church-office scope is open |
+| ke | Kenya | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 97 | 9 | P1001 2 P17 5 P279 2 | $0.57 |  |  |
 | mg | Madagascar | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 59 | 13 | P1001 2 P17 9 P279 2 | $0.29 |  |  |
 | mw | Malawi | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 60 | 3 | P1001 2 P279 1 | $0.12 |  |  |
 | mu | Mauritius | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 47 | 7 | P1001 2 P17 3 P279 2 | $0.31 |  |  |
-| yt | Mayotte | Africa / Eastern Africa | 3 | pending |  |  |  |  |  |  |  |
-| mz | Mozambique | Africa / Eastern Africa | 3 | pending |  |  |  |  |  |  |  |
-| rw | Rwanda | Africa / Eastern Africa | 3 | pending |  |  |  |  |  |  |  |
-| re | Réunion | Africa / Eastern Africa | 3 | pending |  |  |  |  |  |  |  |
-| sc | Seychelles | Africa / Eastern Africa | 3 | pending |  |  |  |  |  |  |  |
-| so | Somalia | Africa / Eastern Africa | 4 | pending |  |  |  |  |  |  |  |
-| ss | South Sudan | Africa / Eastern Africa | 4 | pending |  |  |  |  |  |  |  |
-| tz | Tanzania | Africa / Eastern Africa | 4 | pending |  |  |  |  |  |  |  |
-| ug | Uganda | Africa / Eastern Africa | 4 | pending |  |  |  |  |  |  |  |
-| zm | Zambia | Africa / Eastern Africa | 4 | pending |  |  |  |  |  |  |  |
-| zw | Zimbabwe | Africa / Eastern Africa | 5 | pending |  |  |  |  |  |  |  |
-| ao | Angola | Africa / Middle Africa | 5 | pending |  |  |  |  |  |  |  |
-| cm | Cameroon | Africa / Middle Africa | 5 | pending |  |  |  |  |  |  |  |
-| cf | Central African Republic | Africa / Middle Africa | 5 | pending |  |  |  |  |  |  |  |
-| td | Chad | Africa / Middle Africa | 5 | pending |  |  |  |  |  |  |  |
-| cg | Congo-Brazzaville | Africa / Middle Africa | 6 | pending |  |  |  |  |  |  |  |
-| cd | DR Congo | Africa / Middle Africa | 6 | pending |  |  |  |  |  |  |  |
-| gq | Equatorial Guinea | Africa / Middle Africa | 6 | pending |  |  |  |  |  |  |  |
-| ga | Gabon | Africa / Middle Africa | 6 | pending |  |  |  |  |  |  |  |
-| st | São Tomé and Príncipe | Africa / Middle Africa | 6 | pending |  |  |  |  |  |  |  |
+| yt | Mayotte | Africa / Eastern Africa | 3 | reviewed | 2026-10-05 | 4 | 0 |  | $0.02 |  | French overseas department: nothing to add |
+| mz | Mozambique | Africa / Eastern Africa | 3 | reviewed | 2026-10-05 | 207 | 4 | P1001 4 | $0.29 |  |  |
+| rw | Rwanda | Africa / Eastern Africa | 3 | reviewed | 2026-10-05 | 71 | 14 | P1001 5 P17 5 P279 4 | $0.43 |  |  |
+| re | Réunion | Africa / Eastern Africa | 3 | reviewed | 2026-10-05 | 9 | 0 |  | $0.03 |  | French overseas department: nothing to add |
+| sc | Seychelles | Africa / Eastern Africa | 3 | reviewed | 2026-10-05 | 33 | 6 | P1001 2 P17 3 P279 1 | $0.16 |  |  |
+| so | Somalia | Africa / Eastern Africa | 4 | reviewed | 2026-10-05 | 67 | 9 | P1001 6 P17 2 P279 1 | $0.40 |  |  |
+| ss | South Sudan | Africa / Eastern Africa | 4 | reviewed | 2026-10-05 | 80 | 24 | P1001 1 P17 23 | $0.28 |  |  |
+| tz | Tanzania | Africa / Eastern Africa | 4 | reviewed | 2026-10-05 | 89 | 29 | P1001 3 P17 10 P279 16 | $1.52 |  |  |
+| ug | Uganda | Africa / Eastern Africa | 4 | reviewed | 2026-10-05 | 168 | 38 | P1001 33 P17 3 P279 2 | $2.61 |  |  |
+| zm | Zambia | Africa / Eastern Africa | 4 | reviewed | 2026-10-05 | 66 | 11 | P1001 6 P17 4 P279 1 | $0.24 |  |  |
+| zw | Zimbabwe | Africa / Eastern Africa | 5 | reviewed | 2026-10-05 | 97 | 36 | P1001 8 P17 25 P279 3 | $0.58 |  | no predecessors found (Southern Rhodesia, Rhodesia, Zimbabwe Rhodesia): P1365/P155 chain gap |
+| ao | Angola | Africa / Middle Africa | 5 | reviewed | 2026-10-05 | 163 | 8 | P1001 3 P17 1 P279 4 | $0.57 |  |  |
+| cm | Cameroon | Africa / Middle Africa | 5 | reviewed | 2026-10-05 | 135 | 6 | P1001 3 P17 2 P279 1 | $0.41 |  |  |
+| cf | Central African Republic | Africa / Middle Africa | 5 | reviewed | 2026-10-05 | 142 | 4 | P1001 1 P17 2 P279 1 | $0.10 |  |  |
+| td | Chad | Africa / Middle Africa | 5 | reviewed | 2026-10-05 | 70 | 3 | P1001 1 P17 2 | $0.27 |  |  |
+| cg | Congo-Brazzaville | Africa / Middle Africa | 6 | reviewed | 2026-10-05 | 86 | 3 | P1001 1 P17 2 | $0.18 |  |  |
+| cd | DR Congo | Africa / Middle Africa | 6 | reviewed | 2026-10-05 | 168 | 4 | P1001 2 P17 1 P279 1 | $0.59 |  |  |
+| gq | Equatorial Guinea | Africa / Middle Africa | 6 | reviewed | 2026-10-05 | 216 | 6 | P1001 1 P17 1 P279 4 | $0.62 |  |  |
+| ga | Gabon | Africa / Middle Africa | 6 | reviewed | 2026-10-05 | 53 | 3 | P17 2 P279 1 | $0.17 |  |  |
+| st | São Tomé and Príncipe | Africa / Middle Africa | 6 | reviewed | 2026-10-05 | 24 | 2 | P17 2 | $0.04 |  |  |
 | dz | Algeria | Africa / Northern Africa | 7 | pending |  |  |  |  |  |  |  |
 | eg | Egypt | Africa / Northern Africa | 7 | pending |  |  |  |  |  |  |  |
 | ly | Libya | Africa / Northern Africa | 7 | pending |  |  |  |  |  |  |  |
