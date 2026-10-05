@@ -7,20 +7,18 @@
 
 Every run writes one file per country and day, `data/peptree/<cc>/<cc>-<date>.qs`,
 holding every lane's statements, with its report as `<cc>-<date>.md` beside it.
-    python -m peptree.cli write <cc>    # pre-flight and parse-check the latest .qs (dry)
-    python -m peptree.cli write <cc> --submit   # ...then upload it once and poll to the end
-    python -m peptree.cli status <batch_id> [--wait]
+That file is what the country would add now; it is never pasted itself.
     python -m peptree.cli sweep plan|table|run <n>   # the batched sweep, ledger in peptree/sweep.md
     python -m peptree.cli audit <n>                  # every line of batch n with labels, and what to look at
+    python -m peptree.cli outbox [--status]          # what has not gone out yet, as ≤300-command chunks
+    python -m peptree.cli status <batch_id>          # read a pasted QS batch back: status and errors
 
-Only `write --submit` edits Wikidata, through QuickStatements under the
-account in QS_USERNAME / QS_TOKEN.
+Nothing here edits Wikidata. The outbox's chunks in `data/peptree/outbox/` are
+pasted into the QuickStatements importer by hand.
 """
 
 import argparse
 import sys
-from collections import Counter
-from pathlib import Path
 
 from peptree import country as countries
 from peptree import gaps, load, qs, repair, report, rules, wd
@@ -75,77 +73,27 @@ def cmd_country(cc: str) -> None:
     print(f"  union-lane name regex: {countries.sparql_name_regex(c) or '(none)'}")
 
 
-def cmd_write(cc: str, submit: bool) -> None:
-    path = qs.latest(cc)
-    if path is None:
-        sys.exit(f"no run file for {cc}; run `repair {cc}` first")
-    row = wd.conn().execute("SELECT parse_ok FROM ptree_run WHERE qs_path = %s ORDER BY id DESC LIMIT 1",
-                            (str(path),)).fetchone()
-    if row is None or not row[0]:
-        sys.exit(f"{path} was not parse-checked OK; re-run `repair {cc}`")
-    text = path.read_text()
-    lines = text.splitlines()
-    if not lines:
-        sys.exit(f"{path} is empty: nothing to write")
-    day = __import__("datetime").date.fromisoformat(path.stem[len(cc) + 1:])
-    names = {m.group(0)[4:-3] for line in lines if (m := qs.SUMMARY_RE.search(line))}
-    if len(names) != 1:
-        sys.exit(f"{path}: lines carry {len(names)} batch names, expected one")
-    name = names.pop()
-    if not name.startswith("peptree ") or not name.endswith(f" {cc} {day.isoformat()}"):
-        sys.exit(f"{path}: batch name {name!r} does not match the file")
-    by_prop = Counter(p for _, p, _ in qs.statements(lines))
-    log(f"{path}: {len(lines)} lines on {len({q for q, _, _ in qs.statements(lines)})} items; {dict(by_prop)}")
-    errors = qs.validate(lines)
-    if errors:
-        sys.exit("local validation failed:\n  " + "\n  ".join(errors[:20]))
-    problems = qs.preflight(cc, lines)
-    if problems:
-        sys.exit(f"pre-flight against live state failed ({len(problems)}):\n  " + "\n  ".join(problems[:30]))
-    ok, detail, _ = qs.parse_commands(text)
-    log(f"QS parse {'OK' if ok else 'FAILED'}: {detail}")
-    if not ok:
-        sys.exit(1)
-    previous = qs.submitted(name)
-    if previous is not None:
-        sys.exit(f"{name!r} was already submitted as batch {previous}; see `status {previous}`")
-    if not submit:
-        log(f"dry run: would submit {name!r}; credentials {'present' if qs.credentials() else 'MISSING'}")
-        return
-    if qs.credentials() is None:
-        sys.exit("QS_USERNAME / QS_TOKEN are not set")
-    batch_id = qs.submit(cc, path, text, name)
-    log(f"submitted batch {batch_id}: {qs.EDITGROUPS.format(batch_id)}")
-    show(qs.poll(batch_id, log=log))
-
-
 def show(result: dict) -> None:
     print(f"status: {result['status']}  counts: {result['counts']}  {result['editgroup']}")
     for e in result["errors"]:
         print(f"  ERROR #{e.get('num')}: {e.get('message')}  {e.get('json')}")
 
 
-def cmd_status(batch_id: int, wait: bool) -> None:
-    if wait:
-        show(qs.poll(batch_id, log=log))
-        return
+def cmd_status(batch_id: int) -> None:
     status, counts, _ = qs.batch_info(batch_id)
     errs = qs.errors(batch_id)
-    qs.record(batch_id, status, counts, errs)
     show({"status": status, "counts": counts, "errors": errs, "editgroup": qs.EDITGROUPS.format(batch_id)})
 
 
 def main() -> None:
-    if sys.argv[1:2] in (["sweep"], ["audit"]):
+    if sys.argv[1:2] in (["sweep"], ["audit"], ["outbox"]):
         wd.init()
-        from peptree import audit, sweep
-        (sweep if sys.argv[1] == "sweep" else audit).main(sys.argv[2:])
+        from peptree import audit, outbox, sweep
+        {"sweep": sweep, "audit": audit, "outbox": outbox}[sys.argv[1]].main(sys.argv[2:])
         return
     parser = argparse.ArgumentParser(prog="peptree")
-    parser.add_argument("command", choices=["country", "load", "repair", "report", "write", "status"])
+    parser.add_argument("command", choices=["country", "load", "repair", "report", "status"])
     parser.add_argument("cc", help="country code, or the batch id for `status`")
-    parser.add_argument("--submit", action="store_true", help="write: actually upload (default is dry)")
-    parser.add_argument("--wait", action="store_true", help="status: poll until the batch finishes")
     parser.add_argument("--no-ask", action="store_true", help="repair: re-decide from the ledger, no model calls")
     parser.add_argument("--limit", type=int, default=None, help="repair: ask about the first N items only")
     args = parser.parse_args()
@@ -156,10 +104,8 @@ def main() -> None:
         cmd_load(args.cc)
     elif args.command == "repair":
         cmd_repair(args.cc, args.limit, args.no_ask)
-    elif args.command == "write":
-        cmd_write(args.cc, args.submit)
     elif args.command == "status":
-        cmd_status(int(args.cc), args.wait)
+        cmd_status(int(args.cc))
     else:
         print(report.report(args.cc))
         log(f"{report.write(args.cc)}: report")

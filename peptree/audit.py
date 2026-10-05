@@ -110,7 +110,7 @@ def main(args: list[str]) -> None:
     if len(args) != 1 or not args[0].isdigit():
         sys.exit("usage: audit <batch>")
     text = audit(int(args[0]))
-    path = sweep.BATCH_DIR / f"batch-{int(args[0]):02d}-audit.md"
+    path = qs.OUT_DIR / "audit" / f"batch-{int(args[0]):02d}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text + "\n")
     print(text)

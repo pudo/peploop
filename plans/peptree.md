@@ -76,31 +76,30 @@ load <cc> ─► gaps + matrix ─► LLM: propose & verify ─► rules ─► 
   the QuickStatements API under the user's account. New offices use `CREATE`/`LAST`.
   The batch ID and result go in Postgres.
 
-## Write path (classic QuickStatements)
+## Write path: the outbox
 
-- **Submit**: `POST quickstatements.toolforge.org/api.php` with `action=import`,
-  `submit=1`, `format=v1`, `compress=1`, `batchname`, `data`, `username` and `token`
-  (`QS_USERNAME`/`QS_TOKEN`). The batch runs at once, as the user through OAuth.
-  Success is `{"status":"OK","batch_id":N}`. Errors arrive as HTTP 200 with a
-  `status` string.
-- **Parse first**: send the same call without `submit`. It needs no auth and returns
-  the parsed commands. Refuse to submit if any command carries `error`, because a
-  submit stores bad lines instead of failing on them.
-- **Poll**: `get_batch_info` returns status and counts. `get_commands_from_batch`
-  with `filter=ERROR` returns the failed lines (always pass `limit`). `DONE` can
-  still contain errors.
-- **Retry**: resubmit the failed statement lines as a new batch; QS skips any that
-  already landed. Never resubmit a `CREATE`.
+- **One export path.** `outbox` (`peptree/outbox.py`) reads every place's latest
+  run file, subtracts what Wikidata holds now (live, any rank) and what was already
+  emitted, and writes the rest into `data/peptree/outbox/chunk-NNN.qs`, at most 300
+  QS commands each (a referenced line is two). The user pastes chunks into the QS
+  importer by hand. Run files, batches and days are never pasted themselves, so a
+  fix that re-renders twenty countries costs only its new statements.
+- **Ledger** `ptree_emitted`: one row per emitted statement, keyed on the line
+  without its summary and retrieval date. `emitted → landed` when live,
+  `→ withdrawn` when neither proposed nor live. An unpasted chunk (nothing landed)
+  with a withdrawn line is retired and its other lines re-emitted in a new chunk.
+  Landed lines on items the load now drops are listed as revert candidates; a
+  wrong class on a kept item is not caught (a landed line closes its own gap).
+- **Checks before writing a chunk**: `qs.validate` and the QS parse API (no auth),
+  both with 0 errors and ≤300 commands. `status <id>` reads a pasted batch back.
 - **Encoding**: give every time value an explicit precision, and pad year and month
   dates with `-00` (`+1990-00-00T00:00:00Z/9`). One reference per line, with
   `!S` to start another. Use TAB and LF separators.
-- **EditGroups** tracks each batch automatically
-  (`editgroups.toolforge.org/b/QSv2/<id>/`), and that is the revert path.
-- **One-time setup by the user**: log into QS through OAuth and run one batch by
-  hand, because the API borrows that batch's OAuth grant. Then copy the token from
-  `/#/user`.
-- **Fallback**: QS3 (`qs-dev`) sits behind the same `upload`/`poll` interface.
-  It returns created QIDs directly, but it is still a dev deployment.
+- **EditGroups** tracks each pasted chunk (one summary per chunk), and that is the
+  revert path.
+- **API submit was removed.** The classic `api.php` submit refused with "Problem
+  generating OAuth signature" on every try; QS3 (`qs-dev`) is the one untried
+  route if pasting ever becomes the bottleneck.
 
 ## Finding created QIDs on a re-run
 
@@ -214,9 +213,7 @@ first lane (repair or fill) before writing the tool.
   `P279` statements on 232 items, with 0 errors. It was pasted into the QS UI by
   hand, because the classic API refused with "Problem generating OAuth
   signature" even right after a fresh background batch had run.
-- **Automated submit is unsolved.** `write <cc> --submit` gets as far as QS auth
-  and then hits the OAuth error. QS3 is the next thing to try. Until it works,
-  each batch is pasted by hand and recorded with `status <id>`.
+- **Writes are pasted by hand**, as outbox chunks (see the write path above).
 - **Country config comes from data** (`country.py`). Languages come from rigour.
   Predecessor states come from rigour and `P1365`/`P155`, and their federations
   from `P17`. The gazetteer holds the `P150` units plus second-level units. Level
@@ -226,8 +223,9 @@ first lane (repair or fill) before writing the tool.
   (`p31_weak_channel`).
 - **The load filter** drops non-offices, bodies, inbound ambassadors,
   occupations, places, legal cases, estates and `generic_positions.csv`.
-- **Output** goes to `data/peptree/<cc>/<cc>-<date>.qs`, with an `.md` report
-  next to it.
+- **Output**: each run writes `data/peptree/<cc>/<cc>-<date>.qs` (what the place
+  would add now) with an `.md` report beside it; only `outbox` turns those into
+  paste files.
 
 - **Eras** (fixed after kz/cu/ir): every office has an active span (P571/P576, else
   holder tenures). A country candidate spans from its P571 or its predecessors'

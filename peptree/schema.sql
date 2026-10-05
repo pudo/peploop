@@ -81,22 +81,16 @@ CREATE TABLE IF NOT EXISTS ptree_run (
     created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- One row per QuickStatements submission, written the moment QS returns its id.
-CREATE TABLE IF NOT EXISTS ptree_write (
-    batch_id bigint PRIMARY KEY,
-    country text NOT NULL,
-    batch_name text NOT NULL UNIQUE,
-    qs_path text NOT NULL,
-    lines integer NOT NULL,
-    username text NOT NULL,
-    submitted_at timestamptz NOT NULL,
-    status text NOT NULL,
-    counts jsonb,
-    errors jsonb,
-    editgroup text NOT NULL,
-    checked_at timestamptz,
-    finished_at timestamptz
-);
-
 -- One row per holder of an item ({h, s, e, b, d, c}: tenure, life, citizenships), for the era rule.
 ALTER TABLE ptree_item ADD COLUMN IF NOT EXISTS holder_rows jsonb NOT NULL DEFAULT '[]';
+
+-- One row per statement the outbox wrote to a chunk, keyed on the statement itself.
+CREATE TABLE IF NOT EXISTS ptree_emitted (
+    key text PRIMARY KEY,
+    country text NOT NULL,
+    line text NOT NULL,
+    chunk integer NOT NULL,
+    emitted_at timestamptz NOT NULL DEFAULT now(),
+    status text NOT NULL DEFAULT 'emitted',
+    status_at timestamptz NOT NULL DEFAULT now()
+);
