@@ -444,7 +444,11 @@ def walk_chain(qid: str, seeds: dict[str, str], parents: dict[str, str],
             if e is None:
                 continue
             dissolved = _year(e, "P576")
-            if not types.get(q, set()) & STATE_CLASSES or (dissolved is not None and dissolved < PEP_ERA):
+            # With no end recorded, the inception dates it: "Medieval Egypt" (641, no
+            # end) is a period of the country's history, not a state its offices had.
+            founded = _year(e, "P571")
+            if not types.get(q, set()) & STATE_CLASSES or (dissolved is not None and dissolved < PEP_ERA) \
+                    or (dissolved is None and founded is not None and founded < PEP_ERA):
                 continue
             if q in exclusive and not set(_qids(e, "P1366") + _qids(e, "P156")) <= set(accepted) | {qid} | set(level):
                 continue

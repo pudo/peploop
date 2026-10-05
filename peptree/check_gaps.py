@@ -165,14 +165,15 @@ def chain() -> None:
         "Q900006": e(start=1736, end=1796, P1366=["Q900005"]),  # gone before the PEP era
         "Q900007": e(start=-550, end=1979, P1366=["Q900001"]),  # an umbrella over all of them
         "Q900008": e(start=1700, end=1917, P1366=["Q900005", "Q900009"]),  # an empire two states succeeded
+        "Q900010": e(start=641, P1366=["Q900001"]),  # a medieval period, typed a historical country, no end
     }
-    inverse = {"Q900001": ["Q900007"], "Q900005": ["Q900008"]}
+    inverse = {"Q900001": ["Q900007", "Q900010"], "Q900005": ["Q900008"]}
     out, how = country.walk_chain("Q900001", {}, {}, lambda qs: {q: world[q] for q in qs if q in world},
                                   lambda q: inverse.get(q, []),
                                   lambda ents: {q: {q, *x["claims"]["P31"][0]["mainsnak"]["datavalue"]["value"]["id"].split()}
                                                 | {"Q3024240"} for q, x in ents.items()})
     expect(set(out) == {"Q900002", "Q900005"}, "the dynasty two steps back is a predecessor; "
-           "the pre-1900 one, the umbrella and the shared empire are not")
+           "the pre-1900 one, the undated medieval period, the umbrella and the shared empire are not")
     expect(how["Q900005"] == "wikidata P1365 of Q900002", "and its provenance says how it was reached")
 
 
