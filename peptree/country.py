@@ -485,19 +485,61 @@ def walk_chain(qid: str, seeds: dict[str, str], parents: dict[str, str],
     return out, {q: found[q] for q in out}
 
 
+#: Typed a sovereign state in its own right: a regime that replaced the state, not a period of it.
+SOVEREIGN = "Q3624078"
+
+
+def pushes(qid: str, pred: str, ents: dict[str, dict[str, Any]], preds: dict[str, str]) -> bool:
+    """Whether a predecessor's end moves the state's start: did today's state begin there?
+
+    Three things look like a predecessor in the chain and are not the state's
+    previous form, so their end says nothing about when the state began:
+
+    - a federation or empire (a colony's `P17`): the British Empire ends in
+      1997 with Hong Kong, which had dated Kenya and Tanzania from 1997;
+    - a polity whose successors are recorded and none is this state, one of
+      its predecessors, or within it (`P17`): the Portuguese Empire, which Cape
+      Verde "follows", is succeeded by Portugal, while the Jamahiriya's
+      successor, the interim "State of Libya", is in Libya;
+    - a period of the state itself: a polity that began on or after the
+      state's own recorded inception (in the PEP era) is a form the state
+      already had -- a Commonwealth realm before the republic, Sudan's
+      "Republic (1985-2019)", or a sideline such as the Egyptian-administered
+      All-Palestine Government -- unless it is typed a sovereign state in its
+      own right (Zaire, the Central African Empire), which is a regime change.
+    """
+    if pred not in preds:
+        return False
+    e = ents.get(pred, {})
+    succ = set(_qids(e, "P1366") + _qids(e, "P156"))
+    ours = {qid} | set(preds)
+    if succ and not succ & ours and not any(qid in _qids(ents.get(x, {}), "P17") for x in succ):
+        return False
+    own = years(ents.get(qid, {}), "P571")
+    began = min(years(e, "P571"), default=None)
+    if own and min(own) >= PEP_ERA and began is not None and began >= min(own) \
+            and SOVEREIGN not in _qids(e, "P31"):
+        return False
+    return True
+
+
 def state_spans(qid: str, preds: dict[str, str]) -> dict[str, list[int | None]]:
     """When the state, its predecessors and their federations existed.
 
-    A predecessor or federation spans its `P571`–`P576`. The state begins at
-    the latest of its own best-rank `P571` and every predecessor's `P576`:
-    an item may date its inception to an earlier polity of the same name
-    (a state "since" a date decades before its predecessor republic ended),
-    and an office of that earlier polity is not an office of today's state.
+    A predecessor or federation spans its `P571`-`P576`. The state begins at
+    the latest of its own best-rank `P571` and the `P576` of every predecessor
+    it actually replaced (`pushes`): an item may date its inception to an
+    earlier polity of the same name (a state "since" a date decades before its
+    predecessor republic ended), and an office of that earlier polity is not
+    an office of today's state.
     """
     home = [qid, *preds, *{u for p, u in preds.items() if u != p}]
     ents = wd.fetch_items(home, props="claims")
     spans = {q: entity_span(e) for q, e in ents.items()}
-    ends = [spans[q][1] for q in home if q != qid and q in spans and spans[q][1] is not None]
+    succ = {x for p in preds for x in _qids(ents.get(p, {}), "P1366") + _qids(ents.get(p, {}), "P156")} - set(ents)
+    found = {**ents, **(wd.fetch_items(sorted(succ), props="claims") if succ else {})}
+    ends = [spans[q][1] for q in home if q != qid and q in spans and spans[q][1] is not None
+            and pushes(qid, q, found, preds)]
     own = years(ents.get(qid, {}), "P571")
     start = max([*own, *ends]) if own or ends else None
     spans[qid] = [start, None]
@@ -682,7 +724,8 @@ def get(cc: str) -> Country:
                               predecessors=dict(cfg["predecessors"]), names=cfg["names"],
                               local_names=cfg["local_names"], words=cfg["words"],
                               type_words=cfg["type_words"], type_terms=cfg["type_terms"],
-                              provenance=cfg["provenance"], spans=cfg["spans"], admin_words=cfg["admin_words"],
+                              provenance=cfg["provenance"], admin_words=cfg["admin_words"],
+                              spans=wd.cached(f"spans2:{cc}", lambda: state_spans(cfg["qid"], dict(cfg["predecessors"]))),
                               is_state=typed_state(cfg["qid"]))
     c = _loaded[cc]
     wd.set_langs(("en", *[lg for lg in c.langs if lg not in ("en", "mul")], "mul"))

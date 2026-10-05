@@ -114,6 +114,7 @@ def learned() -> None:
            "an all-capital short word is kept whole; a short lowercase one is not")
     matching()
     chain()
+    spans()
     discovery()
 
 
@@ -180,6 +181,39 @@ def chain() -> None:
     expect(set(out) == {"Q900002", "Q900005"}, "the dynasty two steps back is a predecessor; "
            "the pre-1900 one, the undated medieval period, the umbrella and the shared empire are not")
     expect(how["Q900005"] == "wikidata P1365 of Q900002", "and its provenance says how it was reached")
+
+
+def spans() -> None:
+    """Which predecessors' ends move the state's start: only a form the state replaced."""
+    def e(p31: str = "Q3024240", start: int | None = None, end: int | None = None, **claims: list[str]) -> dict:
+        out = ent({"en": "x"}, P31=[p31], **claims)
+        for prop, y in (("P571", start), ("P576", end)):
+            if y is not None:
+                out["claims"][prop] = [{"rank": "normal", "mainsnak": {"datavalue": {"value": {"time": f"{y:+05d}-00-00T00:00:00Z"}}}}]
+        return out
+    state = "Q900001"
+    ents = {
+        state: e("Q6256", 1960),
+        "Q900020": e(start=1890, end=1960, P1366=[state]),  # the colony it replaced
+        "Q900021": e(start=1970, end=1997, P1366=[state]),  # a regime period of the state itself
+        "Q900022": e("Q3624078", 1971, 1997, P1366=[state]),  # a sovereign regime that replaced it
+        "Q900023": e("Q1790360", 1583, 1997),  # the colony's empire, ending elsewhere
+        "Q900024": e(start=1415, end=1999, P156=["Q900029"]),  # an empire succeeded by another state
+        "Q900025": e(start=1962, end=1999, P1366=[state]),  # a sideline it administered
+        "Q900026": e(start=1890, end=1958, P156=["Q900027"]),  # succeeded by a regime item within the state
+        "Q900027": e("Q1307214", P17=[state]),
+    }
+    preds = {q: q for q in ("Q900020", "Q900021", "Q900022", "Q900024", "Q900025", "Q900026")} | {"Q900020": "Q900023"}
+    push = lambda q: country.pushes(state, q, ents, preds)  # noqa: E731
+    expect(push("Q900020") and push("Q900022") and push("Q900026"),
+           "a replaced colony, a sovereign successor regime, and one succeeded within the state push the start")
+    expect(not push("Q900023"), "a federation's end (the British Empire's 1997) never dates the state")
+    expect(not push("Q900024"), "an empire whose successor is another state does not date this one")
+    expect(not push("Q900021") and not push("Q900025"),
+           "a period of the state, or a sideline it ran, begun after its own inception, does not push")
+    old = {**ents, state: e("Q6256", 1727)}
+    expect(country.pushes(state, "Q900021", old, preds),
+           "a state whose recorded inception predates the PEP era keeps every predecessor's push")
 
 
 def discovery() -> None:

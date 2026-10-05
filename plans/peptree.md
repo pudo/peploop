@@ -231,7 +231,13 @@ first lane (repair or fill) before writing the tool.
   holder tenures). A country candidate spans from its P571 or its predecessors'
   P576. `era_mismatch` vetoes values that don't overlap, holders count only when
   contemporary, and the model sees the dates. Predecessors are found by walking
-  P1365/P155 both ways (Qajar Iran, the US protectorate of Cuba).
+  P1365/P155 both ways (Qajar Iran, the US protectorate of Cuba). Only a form
+  the state replaced moves its start (`country.pushes`): never a federation (the
+  British Empire's 1997 had dated Kenya and Tanzania), never a polity whose
+  successors lie elsewhere, and never a period or sideline begun after the
+  state's own post-1900 inception unless typed a sovereign state (Zaire, the
+  Central African Empire push; Sudan 1985-2019 and the realms do not). Spans
+  are cached as `spans2:<cc>`.
 - **Label matching** uses whole words with bounded suffixes, aliases, and cities of
   100k+. A name shared with a predecessor is ambiguous and counts as neither
   channel nor conflict.
