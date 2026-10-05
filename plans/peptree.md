@@ -240,6 +240,12 @@ first lane (repair or fill) before writing the tool.
 - **Batches after the fix pass (2026-10-04):** kz 30 lines, cu 36, ir 17, all
   audited live line by line; the only flag is one redundant cu line. Belarus
   replays 270 of 289589's 290 lines with none contradicted.
+- **P17 holds only a state** (after the Caribbean runs). A dependent territory
+  (Puerto Rico, Cayman, Guadeloupe) is not typed a state, so its offices take its
+  sovereign in `P17` (`country.sovereign`) and the territory in `P1001` only;
+  `p17_not_a_state` vetoes any other non-state value (British Empire). "A state" is
+  a direct `P31` in `STATE_CLASSES`, not "its own `P17` is itself": Denmark's and the
+  Netherlands' own `P17` name the Realm and the Kingdom.
 - **Open:**
   - Kazakh head-last labels never name a category.
   - The P279 candidate pool is generic (no Guardian Council class).

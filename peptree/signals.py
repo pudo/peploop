@@ -218,6 +218,8 @@ class Facts:
     sender_class: str | None = None
     #: Candidate value → (first, last year), beyond the country's own states.
     value_spans: dict[str, list[int | None]] = field(default_factory=dict)
+    #: Candidate values read and found not to be typed a state: never a `P17`.
+    non_states: set[str] = field(default_factory=set)
     #: Stem sequences of the head-of-state and head-of-government class names, every language.
     head_seqs: list[list[str]] = field(default_factory=list)
 
@@ -317,7 +319,7 @@ def expected_label(prop: str, f: Facts) -> set[str] | None:
     pred = countries.named_predecessor(c, joined) if f.item["kind"] == "predecessor" else None
 
     def state_of(q: str) -> str:  # the P17 a home state's office carries
-        return c.predecessors.get(q, q)
+        return c.p17_values[0] if q == c.qid else c.predecessors.get(q, q)
 
     if prop == "P17":
         if pred:
@@ -326,7 +328,7 @@ def expected_label(prop: str, f: Facts) -> set[str] | None:
         if named is None or named:
             return named or None  # one state named, or a shared name the era cannot settle
         if f.places.mentioned(joined, SUBNATIONAL) and era_ok(f, c.qid):
-            return {c.qid}
+            return {c.p17_values[0]}
         return None
     types: set[str] = set()
     for t in texts:

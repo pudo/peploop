@@ -230,6 +230,28 @@ def write(cc: str, lines: list[str]) -> Path:
     path = run_path(cc)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n" if lines else "")
+    combine()
+    return path
+
+
+def combine(day: dt.date | None = None) -> Path:
+    """Rebuild `data/peptree/peptree_<day>.qs` from every country's file of that day.
+
+    One paste into the QuickStatements importer covers a multi-country sweep. It is
+    rebuilt rather than appended to, so re-running a country never doubles its lines,
+    and a statement two countries share (an office of a common predecessor) appears once.
+    """
+    iso = (day or dt.date.today()).isoformat()
+    seen: set[str] = set()
+    out = []
+    for part in sorted(OUT_DIR.glob(f"*/*-{iso}.qs")):
+        for line in part.read_text().splitlines():
+            key = SUMMARY_RE.sub("", line)
+            if line and key not in seen:
+                seen.add(key)
+                out.append(line)
+    path = OUT_DIR / f"peptree_{iso}.qs"
+    path.write_text("\n".join(out) + "\n" if out else "")
     return path
 
 

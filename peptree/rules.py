@@ -96,6 +96,8 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     ("low_confidence", lambda s: s.answer.get("confidence") not in ("high", "medium"), "skip"),
     ("no_quote", lambda s: not quoted(s), "skip"),
     ("era_mismatch", era_mismatch, "skip"),
+    # A territory or a region is a jurisdiction, never a country: it goes in P1001.
+    ("p17_not_a_state", lambda s: s.prop == "P17" and s.facts is not None and s.value in s.facts.non_states, "skip"),
     ("label_conflict", lambda s: signals.conflict(s.prop, s.value, s.facts), "skip"),
     ("p31_weak_channel", lambda s: s.prop == "P31" and not _strong_p31(s), "skip"),
     ("two_channels", lambda s: bool(s.channels), "apply"),

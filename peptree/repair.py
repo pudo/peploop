@@ -118,6 +118,8 @@ class Run:
         seqs = {tuple(countries.seq(n)) for ns in wd.names_of(heads).values() for n in ns}
         self.head_seqs = sorted(x for x in seqs if len(x) > 1 or (x and len(x[0]) >= 6))
         self.value_spans: dict[str, list[int | None]] = {}
+        self.non_states: set[str] = set()
+        self._typed: set[str] = set()
 
     def spans_for(self, qids: list[str]) -> None:
         """Read (and cache a month) when each candidate value existed."""
@@ -125,12 +127,18 @@ class Run:
         for chunk in wd.values_chunks(wanted, 50):
             self.value_spans.update(wd.cached("spans:" + "|".join(chunk), lambda chunk=chunk: {
                 q: countries.entity_span(e) for q, e in wd.fetch_items(chunk, props="claims").items()}))
+        unread = sorted(set(qids) - self._typed)
+        for chunk in wd.values_chunks(unread, 50):
+            self.non_states.update(wd.cached("non_states:" + "|".join(chunk), lambda chunk=chunk: sorted(
+                q for q, e in wd.fetch_items(chunk, props="claims").items() if not countries.is_state(e))))
+        self._typed |= set(unread)
 
     def facts(self, item: dict[str, Any]) -> signals.Facts:
         return signals.Facts(item=item, country=self.country, places=self.places, sib=self.sib,
                              detected=self.ctx.detected(item), bodies=self.bodies,
                              cat_classes=self.cat_classes, value_types=self.value_types,
                              sender_class=self.sender_class, value_spans=self.value_spans,
+                             non_states=self.non_states,
                              head_seqs=[list(x) for x in self.head_seqs])
 
     def candidates(self, item: dict[str, Any]) -> dict[str, list[str]]:
