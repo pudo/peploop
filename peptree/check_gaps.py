@@ -31,6 +31,11 @@ def context() -> gaps.Context:
 
 
 def main() -> None:
+    up = {"Q900010": {"Q900010", "Q56061"}, "Q900070": {"Q900070", "Q56061", "Q473972"}, "Q515": {"Q515"}}
+    expect(country.dominant({"Q900010": 6, "Q900070": 4}, 10, up) == ["Q900010"],
+           "a park is never a level, though the tree files it under administrative units")
+    expect(country.dominant({"Q900010": 8, "Q515": 1}, 9, up) == ["Q900010"] and
+           country.dominant({"Q515": 1}, 2, up) == [], "one place cannot make its type a level")
     ctx = context()
     amb = item("Q1", "ambassador", ent({"xa": "посол Рурытаніі ў Турцыі"}, P31=["Q294414"], P279=["Q900050"]))
     expect(ctx.gaps(amb, {"Q29645880"}) == [("P17", "missing", None)],

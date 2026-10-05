@@ -27,6 +27,13 @@ ADMIN_ENTITY, SETTLEMENT, CITY = "Q56061", "Q486972", "Q515"
 TYPE_SHARE = 0.2
 FORMER = "Q19953632"  # former administrative territorial entity
 ELECTORAL = "Q192611"  # electoral unit: its words ("Assembly", "district") name the legislature, not a level
+#: Places a gazetteer meets that are never a level of government, though the class
+#: tree files both under administrative units: a fort's words include "military"
+#: and a national park's "national", which made a military chief and a national
+#: assembly read as subnational.
+NOT_A_LEVEL = {FORMER, ELECTORAL, "Q57821", "Q473972"}  # fortification, protected area
+#: A level's type needs this many places: one stray place cannot speak for a level.
+TYPE_MIN = 2
 #: City and town: the words every country's city offices use, whatever its own city classes.
 GENERIC_PLACE_TYPES = ("Q515", "Q3957")
 LIST_CLASS = "Q13406463"  # Wikimedia list article: "list of districts of X" is an alias, not a word
@@ -556,15 +563,15 @@ def _subdivisions(qid: str) -> dict[str, Any]:
 
 
 def dominant(counts: dict[str, int], total: int, up: dict[str, set[str]]) -> list[str]:
-    """The types that make up a level: a fifth of its places or more, and an
-    administrative unit or a city (never a street, a building, a former unit or
-    an electoral district)."""
+    """The types that make up a level: a fifth of its places and at least
+    `TYPE_MIN` of them, each an administrative unit or a city (never a street,
+    a building, a former unit, an electoral district, a fort or a park)."""
     out = []
     for t, n in sorted(counts.items(), key=lambda kv: -kv[1]):
         closure = up.get(t, {t})
-        if closure & {FORMER, ELECTORAL} or not (ADMIN_ENTITY in closure or CITY in closure):
+        if closure & NOT_A_LEVEL or not (ADMIN_ENTITY in closure or CITY in closure):
             continue
-        if n / max(total, 1) >= TYPE_SHARE:
+        if n >= TYPE_MIN and n / max(total, 1) >= TYPE_SHARE:
             out.append(t)
     return out
 
@@ -640,7 +647,7 @@ def config(cc: str) -> dict[str, Any]:
                 "type_words": type_words, "type_terms": type_terms, "subdivisions": sub,
                 "spans": state_spans(qid, preds), "admin_words": admin}
 
-    return wd.cached(f"country2:{cc}", fetch)
+    return wd.cached(f"country3:{cc}", fetch)
 
 
 _loaded: dict[str, Country] = {}

@@ -148,6 +148,7 @@ def run(batch: int, log: Any = print) -> Path:
             if code:
                 failed = step
                 break
+        rows = read()  # the ledger may have been edited by hand while this place ran
         rows[cc]["status"] = f"blocked: crash in {failed}" if failed else "run"
         log(f"{cc}: {rows[cc]['status']}")
         write(fill([rows[p["cc"]] for p in universe() if p["cc"] in rows]))
