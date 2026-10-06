@@ -2,7 +2,7 @@
 
 Every non-OECD country and territory, in batches of five by region. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
 
-Progress: blocked 1, pending 27, reviewed 139, submitted 43
+Progress: pending 13, reviewed 152, run 2, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | chunks | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -130,7 +130,7 @@ Progress: blocked 1, pending 27, reviewed 139, submitted 43
 | tw | Taiwan | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 235 | 51 | P1001 16 P17 31 P279 4 | $2.65 | 010 |  |
 | bn | Brunei | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 36 | 9 | P17 9 | $0.27 | 011 |  |
 | kh | Cambodia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 53 | 24 | P1001 2 P17 21 P279 1 | $0.60 | 011 |  |
-| id | Indonesia | Asia / South-eastern Asia | 20 | blocked: large (repair re-running after a read timeout) |  |  |  |  |  |  | 15,797 kept, 11,460 unheld; mostly a civil-service org chart (Head of/Kepala Seksi/Resort Police): awaiting scope decision |
+| id | Indonesia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-06 | 15797 | 1450 | P1001 1344 P17 40 P279 63 P31 3 | $165.22 |  | large place: 4,032 held or categorised items asked ($165), 9,795 unheld skipped; 405 Kota/Kabupaten P1001s all matched |
 | la | Laos | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 38 | 15 | P1001 5 P17 10 | $0.37 | 011 |  |
 | my | Malaysia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 415 | 108 | P1001 68 P17 20 P279 20 | $6.43 | 011 |  |
 | mm | Myanmar | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 98 | 48 | P1001 7 P17 40 P279 1 | $1.37 | 012 |  |
@@ -161,12 +161,12 @@ Progress: blocked 1, pending 27, reviewed 139, submitted 43
 | ps | Palestine | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 302 | 68 | P1001 21 P17 23 P279 24 | $3.09 | 016 |  |
 | qa | Qatar | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 64 | 2 | P1001 1 P279 1 | $0.03 | 016 |  |
 | sa | Saudi Arabia | Asia / Western Asia | 0 | submitted | 2026-10-05 | 155 | 0 |  | $1.48 |  | QS 289594 |
-| sy | Syria | Asia / Western Asia | 25 | pending |  |  |  |  |  |  |  |
+| sy | Syria | Asia / Western Asia | 25 | reviewed | 2026-10-06 | 84 | 26 | P1001 6 P17 19 P279 1 | $0.77 | 023 |  |
 | ae | United Arab Emirates | Asia / Western Asia | 0 | submitted | 2026-10-05 | 68 | 0 |  | $0.24 |  | QS 289594 |
 | ye | Yemen | Asia / Western Asia | 0 | submitted | 2026-10-04 | 152 | 0 |  | $2.03 |  | QS 289594 |
 | by | Belarus | Europe / Eastern Europe | 0 | submitted | 2026-10-04 | 704 | 0 |  | $14.88 |  | QS 289589 |
-| bg | Bulgaria | Europe / Eastern Europe | 26 | pending |  |  |  |  |  |  |  |
-| md | Moldova | Europe / Eastern Europe | 26 | pending |  |  |  |  |  |  |  |
+| bg | Bulgaria | Europe / Eastern Europe | 26 | run | 2026-10-06 | 429 | 61 | P1001 11 P17 43 P279 7 | $1.86 |  |  |
+| md | Moldova | Europe / Eastern Europe | 26 | run | 2026-10-06 | 44 | 10 | P1001 5 P17 3 P279 2 | $0.26 |  |  |
 | ro | Romania | Europe / Eastern Europe | 26 | pending |  |  |  |  |  |  |  |
 | ru | Russia | Europe / Eastern Europe | 26 | pending |  |  |  |  |  |  |  |
 | ua | Ukraine | Europe / Eastern Europe | 26 | pending |  |  |  |  |  |  |  |
@@ -180,17 +180,17 @@ Progress: blocked 1, pending 27, reviewed 139, submitted 43
 | al | Albania | Europe / Southern Europe | 28 | pending |  |  |  |  |  |  |  |
 | ad | Andorra | Europe / Southern Europe | 28 | pending |  |  |  |  |  |  |  |
 | ba | Bosnia and Herzegovina | Europe / Southern Europe | 28 | pending |  |  |  |  |  |  |  |
-| hr | Croatia | Europe / Southern Europe | 29 | pending |  |  |  |  |  |  |  |
-| gi | Gibraltar | Europe / Southern Europe | 29 | pending |  |  |  |  |  |  |  |
-| va | Holy See | Europe / Southern Europe | 29 | pending |  |  |  |  |  |  |  |
-| xk | Kosovo | Europe / Southern Europe | 29 | pending |  |  |  |  |  |  |  |
-| mt | Malta | Europe / Southern Europe | 29 | pending |  |  |  |  |  |  |  |
-| me | Montenegro | Europe / Southern Europe | 30 | pending |  |  |  |  |  |  |  |
-| mk | North Macedonia | Europe / Southern Europe | 30 | pending |  |  |  |  |  |  |  |
-| sm | San Marino | Europe / Southern Europe | 30 | pending |  |  |  |  |  |  |  |
-| rs | Serbia | Europe / Southern Europe | 30 | pending |  |  |  |  |  |  |  |
-| li | Liechtenstein | Europe / Western Europe | 30 | pending |  |  |  |  |  |  |  |
-| mc | Monaco | Europe / Western Europe | 31 | pending |  |  |  |  |  |  |  |
+| hr | Croatia | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 67 | 7 | P1001 2 P17 3 P279 2 | $0.46 | 024 |  |
+| gi | Gibraltar | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 18 | 0 |  | $0.04 |  |  |
+| va | Holy See | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 217 | 7 | P1001 1 P17 6 | $5.56 | 024 |  |
+| xk | Kosovo | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 44 | 4 | P1001 2 P17 2 | $0.40 | 024 |  |
+| mt | Malta | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 63 | 7 | P1001 1 P17 4 P279 2 | $0.41 | 024 |  |
+| me | Montenegro | Europe / Southern Europe | 30 | reviewed | 2026-10-06 | 51 | 9 | P1001 2 P17 5 P279 2 | $0.32 | 025 |  |
+| mk | North Macedonia | Europe / Southern Europe | 30 | reviewed | 2026-10-06 | 38 | 6 | P1001 2 P17 3 P279 1 | $0.13 | 025 |  |
+| sm | San Marino | Europe / Southern Europe | 30 | reviewed | 2026-10-06 | 20 | 9 | P1001 8 P17 1 | $0.22 | 025 |  |
+| rs | Serbia | Europe / Southern Europe | 30 | reviewed | 2026-10-06 | 77 | 7 | P17 5 P279 2 | $0.45 | 025 |  |
+| li | Liechtenstein | Europe / Western Europe | 30 | reviewed | 2026-10-06 | 26 | 3 | P1001 2 P17 1 | $0.12 | 025 |  |
+| mc | Monaco | Europe / Western Europe | 31 | reviewed | 2026-10-06 | 24 | 10 | P1001 4 P17 4 P279 2 | $0.27 | 026 |  |
 | cx | Christmas Island | Oceania / Australia and New Zealand | 32 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | cc | Cocos (Keeling) Islands | Oceania / Australia and New Zealand | 37 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | nf | Norfolk Island | Oceania / Australia and New Zealand | 32 | reviewed | 2026-10-06 | 2 | 0 |  | $0.04 |  |  |
