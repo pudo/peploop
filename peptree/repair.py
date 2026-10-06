@@ -159,20 +159,6 @@ class Run:
         up = wd.class_closure({v for vs in p31.values() for v in vs})
         self.positioned.update(q for q, vs in p31.items() if any(POSITION in up.get(v, {v}) for v in vs))
 
-    def classes_typed_office(self) -> list[str]:
-        """Classes of office the country scopes that are typed an office themselves (cached a day).
-
-        The caller keeps those held by no one: a subclassed seat people hold ("member
-        of the Senate") is rightly a public office.
-
-        A byproduct for a human: the wrong `P31` is a removal, never ours to make.
-        """
-        c = self.country.qid
-        rows = wd.cached(f"class_typed_office:{c}", lambda: sorted({r["c"] for r in wd.sparql(
-            f"SELECT DISTINCT ?c WHERE {{ VALUES ?t {{ wd:{PUBLIC_OFFICE} wd:{POSITION} }} ?c p:P31/ps:P31 ?t ; "
-            f"(wdt:P17|wdt:P1001) wd:{c} . FILTER EXISTS {{ ?x wdt:P279 ?c }} }}")}), max_age=wd.DAY)
-        return [q for q in rows if q in self.by_qid]
-
     def facts(self, item: dict[str, Any]) -> signals.Facts:
         return signals.Facts(item=item, country=self.country, places=self.places, sib=self.sib,
                              detected=self.ctx.detected(item), bodies=self.bodies,
@@ -208,9 +194,7 @@ class Run:
                 pool = first + self.p279_pool
             out["P279"] = [q for q in dict.fromkeys(pool) if q != item["qid"]]
         if "P31" in asked:
-            # A class of office (subclassed, held by no one directly) is a type of position.
-            klass = item["qid"] in self.classes and not item.get("holders")
-            out["P31"] = list(META_CANDIDATES) + ([GENERIC_META] if klass else [])
+            out["P31"] = list(META_CANDIDATES)
         return {k: v for k, v in out.items() if v}
 
 

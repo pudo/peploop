@@ -110,11 +110,11 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     ("label_conflict", lambda s: signals.conflict(s.prop, s.value, s.facts), "skip"),
     # A class of office ("mayor of a place in X", which seven offices name in P279)
     # is a type of position, not a public office: typing it one makes it an instance.
-    # The class signal is mechanical (other items name it in P279), so with the
-    # model's choice it carries the type-of-position metaclass on its own.
+    # Typing it "type of position" waits for a better class signal: "has subclasses"
+    # also holds for seats people hold ("member of the Senate"), and holders list
+    # classes in P39 too, so neither test separates a class from an office.
     ("type_of_position_on_an_office", lambda s: s.prop == "P31" and s.value == TYPE_OF_POSITION
      and not _is_class(s), "skip"),
-    ("class_type", lambda s: s.prop == "P31" and s.value == TYPE_OF_POSITION and _is_class(s), "apply"),
     ("p31_on_a_class", lambda s: s.prop == "P31" and _is_class(s), "skip"),
     # A second type beside one a P31/P279* walk already finds as a position adds
     # nothing and repeats the Brazil swap; an untyped office, or one typed only
@@ -176,13 +176,6 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
                         "confidence": slot.answer.get("confidence"), "quote": slot.answer.get("quote"),
                         "source": source_of(slot.answer), "decline_reason": slot.answer.get("decline_reason"),
                         "key": r["key"], "articles": dict(r.get("articles") or [])})
-    # Byproduct: classes of office typed an office. Removing that P31 is a human's edit.
-    decided = {(d["qid"], d["prop"]) for d in out}
-    for q in (run.classes_typed_office() if hasattr(run, "classes_typed_office") else []):
-        if (q, "P31") not in decided and not run.by_qid[q].get("holders"):
-            out.append({"qid": q, "prop": "P31", "gap": "byproduct", "value": None, "disposition": "skip",
-                        "rule": "class_typed_office", "channels": [], "confidence": None, "quote": None,
-                        "source": None, "key": None, "articles": {}})
     con = wd.conn()
     with con.transaction():
         con.execute("DELETE FROM ptree_decision WHERE country = %s", (cc,))

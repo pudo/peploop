@@ -107,7 +107,8 @@ def main() -> None:
            "plain position for a state office has no channel and is skipped")
     klass = slot(unheld, "P31", meta, 2, quote=nat_quote)
     klass.facts.classes = {unheld["qid"]}
-    expect(rules.decide(klass) == ("apply", "class_type"), "a class of office takes type of position")
+    expect(rules.decide(klass) == ("skip", "p31_on_a_class"),
+           "a class of office is not typed by the repair: no class signal separates it from an office yet")
     seat = item("Q43", "national", ent({"en": "Minister of Culture of the Republic of Ruritania"}), 4, {"Q900001": 4})
     held = slot(seat, "P31", meta[:2], 0, quote=nat_quote)
     held.facts.classes = {seat["qid"]}
