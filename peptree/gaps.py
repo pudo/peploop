@@ -95,10 +95,10 @@ def inverted(entity: dict[str, Any]) -> bool:
     """Whether an item has its type and class swapped: a position type in `P279`, none in `P31`.
 
     About 4,300 Brazilian mayoralties read `P31` mayor, `P279` elective office
-    and public office. The repair adds the correct half (a position type in `P31`,
-    the office class in `P279`) and leaves the swapped claims for a human to
-    remove. Its `P279` gap is "swapped", not "missing": a `P279` is present, so a
-    rule asking only "is there one?" would skip it.
+    and public office. They are already usable (mayor is under position, and each
+    has `P17` and `P1001`), and the additive half of a fix would leave both shapes
+    on every item, so such an item gets no `P31`/`P279` gap. Undoing the swap
+    removes statements: a job for a bot operator, not this repair.
     """
     return bool(set(values(entity, "P279")) & POSITION_METAS) and not set(values(entity, "P31")) & POSITION_METAS
 
@@ -188,9 +188,8 @@ class Context:
         if not has(ent, "P1001") and item["kind"] != "ambassador":
             out.append(("P1001", "missing", None))
         if inverted(ent):
-            cat = next(iter(sorted(detected)), None) if len(detected) == 1 else None
-            out.append(("P279", "swapped", cat))
-        elif not has(ent, "P279"):
+            return out
+        if not has(ent, "P279"):
             cat = next(iter(sorted(detected)), None) if len(detected) == 1 else None
             out.append(("P279", "missing", cat))
         else:
