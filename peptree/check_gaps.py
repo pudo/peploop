@@ -65,6 +65,10 @@ def main() -> None:
     expect(ctx.gaps(judge, {"Q16533", "Q117826617"}) == [], "once it reaches the class, no fix")
     chief = item("Q9", "national", ent({"en": "Minister of Health"}, P31=["Q4164871"], P17=["Q900001"],
                                        P1001=["Q900001"], P279=["Q900099"]))
+    nuncio = item("Q10", "ambassador", ent({"en": "apostolic nuncio to Ruritania"}, P31=["Q4164871"], P17=["Q900001"],
+                                          P279=["Q157037"]))
+    expect(ctx.gaps(nuncio, {"Q157037", "Q740369"}) == [],
+           "an office in a category's excluded subtree (nuncio under papal legate) gets no class fix into it")
     expect(ctx.gaps(chief, {"Q900099", "Q14212"}) == [],
            "a title read as minister whose class is already a head of government gets no minister class fix")
     head = ent({"en": "President of the Republic of Ruritania"})

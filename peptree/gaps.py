@@ -170,6 +170,10 @@ class Context:
                 elsewhere = placed - {key}
                 if elsewhere and (key in TITLE_PRONE or elsewhere & STATE_HEADS):
                     continue
+                # A subtree the category excludes stays out of it: nuncios sit under
+                # papal legate, and 170 of them were about to be filed as "ambassador".
+                if types & set(cat["exclude_qids"]):
+                    continue
                 if cat["class_qids"] and not reaches(cat, types):
                     out.append(("P279", "classfix", key))
                     break
