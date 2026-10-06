@@ -2,7 +2,7 @@
 
 Every non-OECD country and territory, in batches of five by region. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
 
-Progress: pending 83, reviewed 80, run 4, submitted 43
+Progress: blocked 2, pending 52, reviewed 113, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | chunks | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -118,48 +118,48 @@ Progress: pending 83, reviewed 80, run 4, submitted 43
 | uy | Uruguay | Americas / South America | 17 | reviewed | 2026-10-05 | 121 | 26 | P1001 10 P17 12 P279 4 | $1.74 | 007 |  |
 | ve | Venezuela | Americas / South America | 17 | reviewed | 2026-10-05 | 138 | 49 | P1001 4 P17 39 P279 6 | $2.07 | 007 |  |
 | kz | Kazakhstan | Asia / Central Asia | 0 | submitted | 2026-10-05 | 102 | 0 |  | $3.23 |  | QS 289594 |
-| kg | Kyrgyzstan | Asia / Central Asia | 18 | run | 2026-10-05 | 58 | 17 | P1001 5 P17 11 P279 1 | $0.48 |  |  |
-| tj | Tajikistan | Asia / Central Asia | 18 | run | 2026-10-05 | 40 | 24 | P1001 6 P17 15 P279 3 | $0.47 |  |  |
-| tm | Turkmenistan | Asia / Central Asia | 18 | run | 2026-10-05 | 38 | 25 | P1001 3 P17 20 P279 2 | $0.43 |  |  |
-| uz | Uzbekistan | Asia / Central Asia | 18 | run | 2026-10-05 | 56 | 28 | P1001 2 P17 22 P279 4 | $0.51 |  |  |
-| cn | China | Asia / Eastern Asia | 18 | pending |  |  |  |  |  |  |  |
-| hk | Hong Kong SAR | Asia / Eastern Asia | 19 | pending |  |  |  |  |  |  |  |
-| mo | Macao SAR | Asia / Eastern Asia | 19 | pending |  |  |  |  |  |  |  |
-| mn | Mongolia | Asia / Eastern Asia | 19 | pending |  |  |  |  |  |  |  |
-| kp | North Korea | Asia / Eastern Asia | 19 | pending |  |  |  |  |  |  |  |
-| tw | Taiwan | Asia / Eastern Asia | 19 | pending |  |  |  |  |  |  |  |
-| bn | Brunei | Asia / South-eastern Asia | 20 | pending |  |  |  |  |  |  |  |
-| kh | Cambodia | Asia / South-eastern Asia | 20 | pending |  |  |  |  |  |  |  |
-| id | Indonesia | Asia / South-eastern Asia | 20 | pending |  |  |  |  |  |  |  |
-| la | Laos | Asia / South-eastern Asia | 20 | pending |  |  |  |  |  |  |  |
-| my | Malaysia | Asia / South-eastern Asia | 20 | pending |  |  |  |  |  |  |  |
-| mm | Myanmar | Asia / South-eastern Asia | 21 | pending |  |  |  |  |  |  |  |
-| ph | Philippines | Asia / South-eastern Asia | 21 | pending |  |  |  |  |  |  |  |
-| sg | Singapore | Asia / South-eastern Asia | 21 | pending |  |  |  |  |  |  |  |
-| th | Thailand | Asia / South-eastern Asia | 21 | pending |  |  |  |  |  |  |  |
-| tl | Timor-Leste | Asia / South-eastern Asia | 21 | pending |  |  |  |  |  |  |  |
-| vn | Vietnam | Asia / South-eastern Asia | 22 | pending |  |  |  |  |  |  |  |
-| af | Afghanistan | Asia / Southern Asia | 22 | pending |  |  |  |  |  |  |  |
-| bd | Bangladesh | Asia / Southern Asia | 22 | pending |  |  |  |  |  |  |  |
-| bt | Bhutan | Asia / Southern Asia | 22 | pending |  |  |  |  |  |  |  |
-| in | India | Asia / Southern Asia | 22 | pending |  |  |  |  |  |  |  |
+| kg | Kyrgyzstan | Asia / Central Asia | 18 | reviewed | 2026-10-05 | 58 | 17 | P1001 5 P17 11 P279 1 | $0.48 | 008 |  |
+| tj | Tajikistan | Asia / Central Asia | 18 | reviewed | 2026-10-05 | 40 | 24 | P1001 6 P17 15 P279 3 | $0.47 | 008 |  |
+| tm | Turkmenistan | Asia / Central Asia | 18 | reviewed | 2026-10-05 | 38 | 25 | P1001 3 P17 20 P279 2 | $0.43 | 008 |  |
+| uz | Uzbekistan | Asia / Central Asia | 18 | reviewed | 2026-10-05 | 56 | 28 | P1001 2 P17 22 P279 4 | $0.51 | 008 009 |  |
+| cn | China | Asia / Eastern Asia | 18 | reviewed | 2026-10-05 | 499 | 171 | P1001 45 P17 106 P279 11 P31 9 | $8.42 | 008 |  |
+| hk | Hong Kong SAR | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 84 | 0 |  | $1.35 |  |  |
+| mo | Macao SAR | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 19 | 1 | P1001 1 | $0.32 |  |  |
+| mn | Mongolia | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 76 | 9 | P1001 3 P17 4 P279 2 | $1.08 | 010 |  |
+| kp | North Korea | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 104 | 51 | P1001 14 P17 36 P279 1 | $1.22 | 010 |  |
+| tw | Taiwan | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 235 | 51 | P1001 16 P17 31 P279 4 | $2.65 | 010 |  |
+| bn | Brunei | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 36 | 9 | P17 9 | $0.27 | 011 |  |
+| kh | Cambodia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 53 | 24 | P1001 2 P17 21 P279 1 | $0.60 | 011 |  |
+| id | Indonesia | Asia / South-eastern Asia | 20 | blocked: large (13828 items to ask) |  |  |  |  |  |  | 15,797 kept, 11,460 unheld; mostly a civil-service org chart (Head of/Kepala Seksi/Resort Police): awaiting scope decision |
+| la | Laos | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 38 | 15 | P1001 5 P17 10 | $0.37 | 011 |  |
+| my | Malaysia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 415 | 108 | P1001 68 P17 20 P279 20 | $6.43 | 011 |  |
+| mm | Myanmar | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 98 | 48 | P1001 7 P17 40 P279 1 | $1.37 | 012 |  |
+| ph | Philippines | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 1371 | 25 | P1001 8 P17 13 P279 4 | $1.18 | 012 |  |
+| sg | Singapore | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 65 | 26 | P1001 8 P17 15 P279 3 | $0.66 | 012 |  |
+| th | Thailand | Asia / South-eastern Asia | 21 | blocked: large (1862 items to ask) |  |  |  |  |  |  | 1,862 to ask, 221 held; district chiefs (926) and provincial officers: same scope decision as Indonesia |
+| tl | Timor-Leste | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 55 | 8 | P1001 4 P17 3 P279 1 | $0.25 | 012 |  |
+| vn | Vietnam | Asia / South-eastern Asia | 22 | reviewed | 2026-10-05 | 177 | 48 | P1001 16 P17 21 P279 11 | $4.47 | 013 014 | predecessor list includes Kingdom of Kampuchea (inverse P156 via Q185682): no lines from it |
+| af | Afghanistan | Asia / Southern Asia | 22 | reviewed | 2026-10-05 | 136 | 38 | P1001 1 P17 36 P279 1 | $0.94 | 013 |  |
+| bd | Bangladesh | Asia / Southern Asia | 22 | reviewed | 2026-10-05 | 104 | 25 | P1001 15 P17 2 P279 8 | $1.50 | 013 |  |
+| bt | Bhutan | Asia / Southern Asia | 22 | reviewed | 2026-10-05 | 24 | 18 | P1001 3 P17 13 P279 2 | $0.25 | 013 |  |
+| in | India | Asia / Southern Asia | 22 | reviewed | 2026-10-05 | 914 | 146 | P1001 101 P17 26 P279 17 P31 2 | $8.45 | 013 |  |
 | ir | Iran | Asia / Southern Asia | 0 | submitted | 2026-10-05 | 250 | 0 |  | $4.54 |  | QS 289594 |
-| mv | Maldives | Asia / Southern Asia | 23 | pending |  |  |  |  |  |  |  |
-| np | Nepal | Asia / Southern Asia | 23 | pending |  |  |  |  |  |  |  |
-| pk | Pakistan | Asia / Southern Asia | 23 | pending |  |  |  |  |  |  |  |
-| lk | Sri Lanka | Asia / Southern Asia | 23 | pending |  |  |  |  |  |  |  |
-| am | Armenia | Asia / Western Asia | 23 | pending |  |  |  |  |  |  |  |
-| az | Azerbaijan | Asia / Western Asia | 24 | pending |  |  |  |  |  |  |  |
+| mv | Maldives | Asia / Southern Asia | 23 | reviewed | 2026-10-05 | 61 | 23 | P1001 7 P17 13 P279 3 | $0.60 | 015 |  |
+| np | Nepal | Asia / Southern Asia | 23 | reviewed | 2026-10-05 | 82 | 15 | P1001 5 P17 6 P279 4 | $0.64 | 015 |  |
+| pk | Pakistan | Asia / Southern Asia | 23 | reviewed | 2026-10-05 | 289 | 52 | P1001 32 P17 9 P279 11 | $2.24 | 015 |  |
+| lk | Sri Lanka | Asia / Southern Asia | 23 | reviewed | 2026-10-05 | 97 | 20 | P1001 7 P17 12 P279 1 | $0.96 | 015 |  |
+| am | Armenia | Asia / Western Asia | 23 | reviewed | 2026-10-06 | 63 | 9 | P1001 1 P17 5 P279 3 | $0.45 | 015 |  |
+| az | Azerbaijan | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 232 | 64 | P1001 53 P17 5 P279 6 | $2.95 | 016 |  |
 | bh | Bahrain | Asia / Western Asia | 0 | submitted | 2026-10-05 | 43 | 0 |  | $0.13 |  | QS 289594; re-run after the monarch fix: King of Bahrain now kept |
-| cy | Cyprus | Asia / Western Asia | 24 | pending |  |  |  |  |  |  |  |
-| ge | Georgia | Asia / Western Asia | 24 | pending |  |  |  |  |  |  |  |
+| cy | Cyprus | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 430 | 31 | P1001 4 P17 15 P279 12 | $0.92 | 016 | 9 deputy ministers get generic deputy minister beside Cypriot deputy minister: one P279 on Q66126505 would do |
+| ge | Georgia | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 399 | 7 | P1001 3 P17 2 P279 2 | $1.75 | 016 |  |
 | iq | Iraq | Asia / Western Asia | 0 | submitted | 2026-10-05 | 130 | 21 | P1001 21 | $3.38 | 002 006 | QS 289594 |
 | jo | Jordan | Asia / Western Asia | 0 | submitted | 2026-10-05 | 95 | 1 | P17 1 | $1.08 | 006 | QS 289594 |
 | kw | Kuwait | Asia / Western Asia | 0 | submitted | 2026-10-05 | 51 | 0 |  | $0.33 |  | QS 289594 |
 | lb | Lebanon | Asia / Western Asia | 0 | submitted | 2026-10-04 | 74 | 0 |  | $0.63 |  | QS 289594 |
 | om | Oman | Asia / Western Asia | 0 | submitted | 2026-10-04 | 44 | 0 |  | $0.29 |  | QS 289594 |
-| ps | Palestine | Asia / Western Asia | 24 | pending |  |  |  |  |  |  |  |
-| qa | Qatar | Asia / Western Asia | 24 | pending |  |  |  |  |  |  |  |
+| ps | Palestine | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 302 | 68 | P1001 21 P17 23 P279 24 | $3.09 | 016 |  |
+| qa | Qatar | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 64 | 2 | P1001 1 P279 1 | $0.03 | 016 |  |
 | sa | Saudi Arabia | Asia / Western Asia | 0 | submitted | 2026-10-05 | 155 | 0 |  | $1.48 |  | QS 289594 |
 | sy | Syria | Asia / Western Asia | 25 | pending |  |  |  |  |  |  |  |
 | ae | United Arab Emirates | Asia / Western Asia | 0 | submitted | 2026-10-05 | 68 | 0 |  | $0.24 |  | QS 289594 |
