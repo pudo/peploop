@@ -714,6 +714,22 @@ def typed_state(qid: str) -> bool:
                      lambda: is_state(wd.fetch_items([qid], props="claims").get(qid, {})))
 
 
+def is_name(name: str) -> bool:
+    """Whether a name may be read for in a label: not a two-letter code.
+
+    Wikidata gives every state its ISO codes as aliases, and many are words:
+    "to" named Tonga in "Ambassador of the Czech Republic to Australia", and
+    "in", "my" and "do" name three more states the same way. A short
+    CJK name (中, 台) is a real name and stays.
+    """
+    n = name.strip()
+    return not (len(n) <= 2 and all(ch.isalpha() and ord(ch) < 0x500 for ch in n))
+
+
+def _names(by_qid: dict[str, list[str]]) -> dict[str, list[str]]:
+    return {q: [n for n in ns if is_name(n)] for q, ns in by_qid.items()}
+
+
 def get(cc: str) -> Country:
     """The country for a run; also makes its languages the label languages."""
     cc = cc.lower()
@@ -721,8 +737,8 @@ def get(cc: str) -> Country:
         wd.init()
         cfg = config(cc)
         _loaded[cc] = Country(cc=cc, qid=cfg["qid"], official=tuple(cfg["official"]), langs=tuple(cfg["langs"]),
-                              predecessors=dict(cfg["predecessors"]), names=cfg["names"],
-                              local_names=cfg["local_names"], words=cfg["words"],
+                              predecessors=dict(cfg["predecessors"]), names=_names(cfg["names"]),
+                              local_names=_names(cfg["local_names"]), words=cfg["words"],
                               type_words=cfg["type_words"], type_terms=cfg["type_terms"],
                               provenance=cfg["provenance"], admin_words=cfg["admin_words"],
                               spans=wd.cached(f"spans2:{cc}", lambda: state_spans(cfg["qid"], dict(cfg["predecessors"]))),
@@ -969,6 +985,7 @@ def gazetteer(c: Country, extra: list[str] | None = None) -> list[dict[str, Any]
             drop = set()
         # A label loses its type word ("Strelsau Region" → "Strelsau"); an alias
         # is kept whole, or "<Islam> City" would name every "Islamic" office.
-        p["words"] = [sorted(w) for w in (words(n, set() if ":" in key else drop) for key, n in p["names"].items()) if w]
+        p["words"] = [sorted(w) for w in (words(n, set() if ":" in key else drop) for key, n in p["names"].items()
+                                          if is_name(n)) if w]
         out.append(p)
     return sorted(out, key=lambda p: p["qid"])

@@ -31,6 +31,9 @@ def context() -> gaps.Context:
 
 
 def main() -> None:
+    expect(not country.is_name("to") and not country.is_name("IN") and not country.is_name("РФ")
+           and country.is_name("中") and country.is_name("UAE"),
+           "a two-letter code is never read as a state's name; a CJK character or a three-letter name is")
     up = {"Q900010": {"Q900010", "Q56061"}, "Q900070": {"Q900070", "Q56061", "Q473972"}, "Q515": {"Q515"}}
     expect(country.dominant({"Q900010": 6, "Q900070": 4}, 10, up) == ["Q900010"],
            "a park is never a level, though the tree files it under administrative units")
