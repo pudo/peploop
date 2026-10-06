@@ -2,7 +2,7 @@
 
 Every non-OECD country and territory, in batches of five by region. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
 
-Progress: blocked 2, pending 52, reviewed 113, submitted 43
+Progress: blocked 1, pending 27, reviewed 139, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | chunks | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -130,13 +130,13 @@ Progress: blocked 2, pending 52, reviewed 113, submitted 43
 | tw | Taiwan | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 235 | 51 | P1001 16 P17 31 P279 4 | $2.65 | 010 |  |
 | bn | Brunei | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 36 | 9 | P17 9 | $0.27 | 011 |  |
 | kh | Cambodia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 53 | 24 | P1001 2 P17 21 P279 1 | $0.60 | 011 |  |
-| id | Indonesia | Asia / South-eastern Asia | 20 | blocked: large (13828 items to ask) |  |  |  |  |  |  | 15,797 kept, 11,460 unheld; mostly a civil-service org chart (Head of/Kepala Seksi/Resort Police): awaiting scope decision |
+| id | Indonesia | Asia / South-eastern Asia | 20 | blocked: large (repair re-running after a read timeout) |  |  |  |  |  |  | 15,797 kept, 11,460 unheld; mostly a civil-service org chart (Head of/Kepala Seksi/Resort Police): awaiting scope decision |
 | la | Laos | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 38 | 15 | P1001 5 P17 10 | $0.37 | 011 |  |
 | my | Malaysia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 415 | 108 | P1001 68 P17 20 P279 20 | $6.43 | 011 |  |
 | mm | Myanmar | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 98 | 48 | P1001 7 P17 40 P279 1 | $1.37 | 012 |  |
 | ph | Philippines | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 1371 | 25 | P1001 8 P17 13 P279 4 | $1.18 | 012 |  |
 | sg | Singapore | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 65 | 26 | P1001 8 P17 15 P279 3 | $0.66 | 012 |  |
-| th | Thailand | Asia / South-eastern Asia | 21 | blocked: large (1862 items to ask) |  |  |  |  |  |  | 1,862 to ask, 221 held; district chiefs (926) and provincial officers: same scope decision as Indonesia |
+| th | Thailand | Asia / South-eastern Asia | 21 | reviewed | 2026-10-06 | 1924 | 102 | P1001 74 P17 17 P279 11 | $7.17 | 017 | large place: 221 held or categorised items asked, 1,641 unheld skipped |
 | tl | Timor-Leste | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 55 | 8 | P1001 4 P17 3 P279 1 | $0.25 | 012 |  |
 | vn | Vietnam | Asia / South-eastern Asia | 22 | reviewed | 2026-10-05 | 177 | 48 | P1001 16 P17 21 P279 11 | $4.47 | 013 014 | predecessor list includes Kingdom of Kampuchea (inverse P156 via Q185682): no lines from it |
 | af | Afghanistan | Asia / Southern Asia | 22 | reviewed | 2026-10-05 | 136 | 38 | P1001 1 P17 36 P279 1 | $0.94 | 013 |  |
@@ -191,28 +191,28 @@ Progress: blocked 2, pending 52, reviewed 113, submitted 43
 | rs | Serbia | Europe / Southern Europe | 30 | pending |  |  |  |  |  |  |  |
 | li | Liechtenstein | Europe / Western Europe | 30 | pending |  |  |  |  |  |  |  |
 | mc | Monaco | Europe / Western Europe | 31 | pending |  |  |  |  |  |  |  |
-| cx | Christmas Island | Oceania / Australia and New Zealand | 32 | pending |  |  |  |  |  |  |  |
-| cc | Cocos (Keeling) Islands | Oceania / Australia and New Zealand | 37 | pending |  |  |  |  |  |  |  |
-| nf | Norfolk Island | Oceania / Australia and New Zealand | 32 | pending |  |  |  |  |  |  |  |
-| fj | Fiji | Oceania / Melanesia | 32 | pending |  |  |  |  |  |  |  |
-| nc | New Caledonia | Oceania / Melanesia | 32 | pending |  |  |  |  |  |  |  |
-| pg | Papua New Guinea | Oceania / Melanesia | 33 | pending |  |  |  |  |  |  |  |
-| sb | Solomon Islands | Oceania / Melanesia | 33 | pending |  |  |  |  |  |  |  |
-| vu | Vanuatu | Oceania / Melanesia | 33 | pending |  |  |  |  |  |  |  |
-| gu | Guam | Oceania / Micronesia | 33 | pending |  |  |  |  |  |  |  |
-| ki | Kiribati | Oceania / Micronesia | 33 | pending |  |  |  |  |  |  |  |
-| mh | Marshall Islands | Oceania / Micronesia | 34 | pending |  |  |  |  |  |  |  |
-| fm | Micronesia | Oceania / Micronesia | 34 | pending |  |  |  |  |  |  |  |
-| nr | Naoero | Oceania / Micronesia | 34 | pending |  |  |  |  |  |  |  |
-| mp | Northern Mariana Islands | Oceania / Micronesia | 34 | pending |  |  |  |  |  |  |  |
-| pw | Palau | Oceania / Micronesia | 34 | pending |  |  |  |  |  |  |  |
-| as | American Samoa | Oceania / Polynesia | 35 | pending |  |  |  |  |  |  |  |
-| ck | Cook Islands | Oceania / Polynesia | 35 | pending |  |  |  |  |  |  |  |
-| pf | French Polynesia | Oceania / Polynesia | 35 | pending |  |  |  |  |  |  |  |
-| nu | Niue | Oceania / Polynesia | 35 | pending |  |  |  |  |  |  |  |
-| pn | Pitcairn | Oceania / Polynesia | 35 | pending |  |  |  |  |  |  |  |
-| ws | Samoa | Oceania / Polynesia | 36 | pending |  |  |  |  |  |  |  |
-| tk | Tokelau | Oceania / Polynesia | 36 | pending |  |  |  |  |  |  |  |
-| to | Tonga | Oceania / Polynesia | 36 | pending |  |  |  |  |  |  |  |
-| tv | Tuvalu | Oceania / Polynesia | 36 | pending |  |  |  |  |  |  |  |
-| wf | Wallis and Futuna | Oceania / Polynesia | 36 | pending |  |  |  |  |  |  |  |
+| cx | Christmas Island | Oceania / Australia and New Zealand | 32 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
+| cc | Cocos (Keeling) Islands | Oceania / Australia and New Zealand | 37 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
+| nf | Norfolk Island | Oceania / Australia and New Zealand | 32 | reviewed | 2026-10-06 | 2 | 0 |  | $0.04 |  |  |
+| fj | Fiji | Oceania / Melanesia | 32 | reviewed | 2026-10-06 | 48 | 9 | P1001 5 P17 4 | $0.20 | 018 |  |
+| nc | New Caledonia | Oceania / Melanesia | 32 | reviewed | 2026-10-06 | 5 | 1 | P279 1 | $0.08 | 018 |  |
+| pg | Papua New Guinea | Oceania / Melanesia | 33 | reviewed | 2026-10-06 | 88 | 2 | P1001 2 | $0.26 | 019 |  |
+| sb | Solomon Islands | Oceania / Melanesia | 33 | reviewed | 2026-10-06 | 39 | 5 | P1001 3 P17 2 | $0.21 | 019 |  |
+| vu | Vanuatu | Oceania / Melanesia | 33 | reviewed | 2026-10-06 | 21 | 3 | P1001 1 P17 1 P279 1 | $0.06 | 019 |  |
+| gu | Guam | Oceania / Micronesia | 33 | reviewed | 2026-10-06 | 4 | 0 |  | $0.04 |  |  |
+| ki | Kiribati | Oceania / Micronesia | 33 | reviewed | 2026-10-06 | 21 | 5 | P1001 1 P17 4 | $0.05 | 019 |  |
+| mh | Marshall Islands | Oceania / Micronesia | 34 | reviewed | 2026-10-06 | 15 | 3 | P17 2 P279 1 | $0.06 | 020 |  |
+| fm | Micronesia | Oceania / Micronesia | 34 | reviewed | 2026-10-06 | 22 | 6 | P1001 1 P17 5 | $0.16 | 020 |  |
+| nr | Naoero | Oceania / Micronesia | 34 | reviewed | 2026-10-06 | 64 | 8 | P1001 2 P17 3 P279 3 | $0.11 | 020 |  |
+| mp | Northern Mariana Islands | Oceania / Micronesia | 34 | reviewed | 2026-10-06 | 2 | 0 |  | $0.00 |  |  |
+| pw | Palau | Oceania / Micronesia | 34 | reviewed | 2026-10-06 | 20 | 6 | P1001 4 P17 2 | $0.07 | 020 |  |
+| as | American Samoa | Oceania / Polynesia | 35 | reviewed | 2026-10-06 | 3 | 0 |  | $0.00 |  |  |
+| ck | Cook Islands | Oceania / Polynesia | 35 | reviewed | 2026-10-06 | 6 | 0 |  | $0.05 |  |  |
+| pf | French Polynesia | Oceania / Polynesia | 35 | reviewed | 2026-10-06 | 10 | 0 |  | $0.04 |  |  |
+| nu | Niue | Oceania / Polynesia | 35 | reviewed | 2026-10-06 | 9 | 2 | P17 2 | $0.06 | 021 |  |
+| pn | Pitcairn | Oceania / Polynesia | 35 | reviewed | 2026-10-06 | 6 | 1 | P1001 1 | $0.05 | 021 |  |
+| ws | Samoa | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 26 | 7 | P1001 3 P17 3 P279 1 | $0.14 | 022 |  |
+| tk | Tokelau | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 2 | 0 |  | $0.00 |  |  |
+| to | Tonga | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 34 | 8 | P1001 2 P17 6 | $0.11 | 022 |  |
+| tv | Tuvalu | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 26 | 4 | P1001 2 P17 1 P279 1 | $0.12 | 022 |  |
+| wf | Wallis and Futuna | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 3 | 0 |  | $0.00 |  |  |
