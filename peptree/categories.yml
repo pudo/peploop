@@ -13,6 +13,12 @@
 # `unsettled: true` marks a category with no usable class yet; its offices are
 # found from the bodies (`body_classes`) instead.
 #
+# An exclude is hard by default: anything below it is out, whatever else it
+# reaches (a mayor is no head of government, a state legislator no national one,
+# though both also reach the handle another way). `soft: true` keeps out only
+# what reaches a handle *through* it: papal legate is soft, so a legate is out
+# but a nuncio, which is also "ambassador of a country", is in.
+#
 # Counts were measured on WDQS on 2026-10-04 and are only evidence for the
 # choice of class; they drift.
 #   direct / transitive: position items with the class in P279 directly / via P279+
@@ -216,7 +222,7 @@
     - {qid: Q7888495, label: Permanent Representative to the United Nations, transitive: 135}
     - {qid: Q123695, label: high commissioner, transitive: 121}
   exclude:
-    - {qid: Q740369, label: papal legate, transitive: 229}
+    - {qid: Q740369, label: papal legate, transitive: 229, soft: true}
     - {qid: Q5583669, label: goodwill ambassador, transitive: 17}
   body_classes:
     - {qid: Q3917681, label: embassy, bodies: 9331, with_p17: 9330, cc: 243, with_head: 4225}

@@ -11,7 +11,7 @@ unsettled category, only through names and bodies.
 """
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 import yaml
 
@@ -27,6 +27,7 @@ def categories() -> list[dict[str, Any]]:
     for cat in cats:
         cat["class_qids"] = [c["qid"] for c in cat.get("classes") or []]
         cat["exclude_qids"] = [c["qid"] for c in cat.get("exclude") or []]
+        cat["soft_exclude_qids"] = [c["qid"] for c in cat.get("exclude") or [] if c.get("soft")]
         cat["body_qids"] = [c["qid"] for c in cat.get("body_classes") or []]
     return cats
 
@@ -93,17 +94,49 @@ def name_categories(c: countries.Country, names: dict[str, list[list[str]]], ent
 def inverted(entity: dict[str, Any]) -> bool:
     """Whether an item has its type and class swapped: a position type in `P279`, none in `P31`.
 
-    About 4,900 Brazilian mayoralties read `P31` mayor, `P279` elective office
-    and public office. Adding a position type to `P31` would leave the swap in
-    place and assert the same shape thousands of times; the real fix removes
-    statements, which is a human gate. Such an item is reported, never repaired
-    in `P31` or `P279`; its `P17` and `P1001` gaps still are.
+    About 4,300 Brazilian mayoralties read `P31` mayor, `P279` elective office
+    and public office. The repair adds the correct half (a position type in `P31`,
+    the office class in `P279`) and leaves the swapped claims for a human to
+    remove. Its `P279` gap is "swapped", not "missing": a `P279` is present, so a
+    rule asking only "is there one?" would skip it.
     """
     return bool(set(values(entity, "P279")) & POSITION_METAS) and not set(values(entity, "P31")) & POSITION_METAS
 
 
-def reaches(cat: dict[str, Any], types: set[str]) -> bool:
-    return bool(types & set(cat["class_qids"])) and not types & set(cat["exclude_qids"])
+def clean_reach(seeds: Iterable[str], stop: set[str]) -> set[str]:
+    """Every class the seeds reach over `P31`/`P279` without expanding through `stop`.
+
+    A stop class is reached but not walked past, so what lies only above it
+    stays out: the excluded subtree's own ancestors.
+    """
+    seen, level = set(seeds), list(dict.fromkeys(seeds))
+    for _ in range(wd.CLOSURE_DEPTH):
+        walk = [q for q in level if q not in stop]
+        if not walk:
+            break
+        edges = wd._edges(walk)
+        level = [t for q in walk for t in edges.get(q, []) if t not in seen]
+        seen.update(level)
+    return seen
+
+
+def reaches(cat: dict[str, Any], types: set[str], seeds: Iterable[str] | None = None) -> bool:
+    """Whether an item is in a category by class: it reaches a handle, and no exclusion holds it.
+
+    A hard exclusion keeps out everything below it ("mayor" also reaches head of
+    government). A soft one (`soft: true` in categories.yml) keeps out only what
+    reaches a handle through it: "nuncio" is under papal legate and also under
+    "ambassador of a country". `types` is the item's whole closure; `seeds` its own
+    `P31`/`P279` values, walked again with the soft exclusions as stops when one is
+    in `types`. Without seeds, a soft exclusion keeps the item out too.
+    """
+    handles, excluded = set(cat["class_qids"]), set(cat["exclude_qids"])
+    soft = set(cat.get("soft_exclude_qids", []))
+    if not types & handles or types & (excluded - soft):
+        return False
+    if not types & soft:
+        return True
+    return seeds is not None and bool(clean_reach(seeds, soft) & handles)
 
 
 class Context:
@@ -147,6 +180,7 @@ class Context:
         """(prop, gap, category) for one kept item."""
         ent = item["entity"]
         types = self.types[item["qid"]] if types is None else types
+        seeds = values(ent, "P31") + values(ent, "P279")
         out: list[tuple[str, str, str | None]] = []
         detected = self.detected(item)
         if not has(ent, "P17") and wants_p17(self.country, item):
@@ -154,8 +188,9 @@ class Context:
         if not has(ent, "P1001") and item["kind"] != "ambassador":
             out.append(("P1001", "missing", None))
         if inverted(ent):
-            return out
-        if not has(ent, "P279"):
+            cat = next(iter(sorted(detected)), None) if len(detected) == 1 else None
+            out.append(("P279", "swapped", cat))
+        elif not has(ent, "P279"):
             cat = next(iter(sorted(detected)), None) if len(detected) == 1 else None
             out.append(("P279", "missing", cat))
         else:
@@ -164,7 +199,7 @@ class Context:
             # are heads of government, and every "President of X" also names a party
             # president. An Attorney General classed as minister still gets its
             # prosecutor class: that name is not ambiguous.
-            placed = {c["key"] for c in self.cats if c["class_qids"] and reaches(c, types)}
+            placed = {c["key"] for c in self.cats if c["class_qids"] and reaches(c, types, seeds)}
             for key in sorted(detected):
                 cat = self.by_key[key]
                 elsewhere = placed - {key}
@@ -174,7 +209,7 @@ class Context:
                 # papal legate, and 170 of them were about to be filed as "ambassador".
                 if types & set(cat["exclude_qids"]):
                     continue
-                if cat["class_qids"] and not reaches(cat, types):
+                if cat["class_qids"] and not reaches(cat, types, seeds):
                     out.append(("P279", "classfix", key))
                     break
         if not set(values(ent, "P31")) & POSITION_METAS:
@@ -226,7 +261,7 @@ def matrix(ctx: Context, added: dict[str, dict[str, list[str]]] | None = None) -
             types = set(ctx.types[it["qid"]])
             for v in added.get(it["qid"], {}).get("P279", []):
                 types |= up.get(v, {v})
-            in_class = reaches(cat, types)
+            in_class = reaches(cat, types, values(ent, "P31") + values(ent, "P279"))
             if cat["key"] in HEAD_CATEGORIES and is_deputy(ctx.country, wd.label(ent)):
                 continue  # a deputy prosecutor reaching the class is not the office
             if not in_class and cat["key"] not in ctx.detected({**it, "entity": ent}):

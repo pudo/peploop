@@ -52,8 +52,9 @@ def main() -> None:
     expect(("P17", "missing", None) in ctx.gaps(item("Q6", "national", bare), {"Q83307"}),
            "a state's office is asked P17")
     swapped = item("Q7", "subnational", ent({"en": "mayor of Zenda"}, P31=["Q30185"], P279=["Q17279032", "Q294414"]))
-    expect(ctx.gaps(swapped, {"Q30185"}) == [("P17", "missing", None), ("P1001", "missing", None)],
-           "an item with a position type in P279 is asked P17/P1001 and never P31/P279")
+    expect(ctx.gaps(swapped, {"Q30185"}) == [("P17", "missing", None), ("P1001", "missing", None),
+                                              ("P279", "swapped", None), ("P31", "missing", None)],
+           "a type/class-swapped item is asked its office class (gap 'swapped': a P279 is present) and a P31")
     expect(not gaps.inverted(ent({"en": "Minister of Health"}, P31=["Q4164871"], P279=["Q294414"])),
            "a stray metaclass in P279 beside a position type in P31 is not the swap: its class is still repaired")
     meta = item("Q2", "national", ent({"en": "x"}, P31=["Q17279032"], P17=["Q900001"], P1001=["Q900001"], P279=["Q83307"]))
@@ -69,6 +70,24 @@ def main() -> None:
                                           P279=["Q157037"]))
     expect(ctx.gaps(nuncio, {"Q157037", "Q740369"}) == [],
            "an office in a category's excluded subtree (nuncio under papal legate) gets no class fix into it")
+    # Soft exclusion: a class under papal legate (soft) and also "ambassador of a country" is in;
+    # one only under papal legate is out; a hard exclusion (mayor) keeps out whatever else is reached.
+    edges = {"Q900081": ["Q740369", "Q29645880"], "Q900082": ["Q740369"], "Q740369": ["Q121998"],
+             "Q900083": ["Q30185", "Q14212"], "Q30185": ["Q2285706"]}
+    real = gaps.wd._edges
+    gaps.wd._edges = lambda qs: {q: edges.get(q, []) for q in qs}
+    try:
+        amb, hog = ctx.by_key["ambassador"], ctx.by_key["head_of_government"]
+        expect(gaps.reaches(amb, {"Q900081", "Q740369", "Q29645880", "Q121998"}, ["Q900081"]),
+               "a nuncio-like class (soft-excluded legate, also ambassador of a country) is an ambassador")
+        expect(not gaps.reaches(amb, {"Q900082", "Q740369", "Q121998"}, ["Q900082"]),
+               "a class reaching ambassador only through the soft-excluded legate is not")
+        expect(not gaps.reaches(amb, {"Q900081", "Q740369", "Q29645880", "Q121998"}),
+               "without seeds a soft exclusion still keeps the item out")
+        expect(not gaps.reaches(hog, {"Q900083", "Q30185", "Q14212", "Q2285706"}, ["Q900083"]),
+               "a hard exclusion (mayor) keeps out an item that also reaches prime minister")
+    finally:
+        gaps.wd._edges = real
     expect(ctx.gaps(chief, {"Q900099", "Q14212"}) == [],
            "a title read as minister whose class is already a head of government gets no minister class fix")
     head = ent({"en": "President of the Republic of Ruritania"})
