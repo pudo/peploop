@@ -2,7 +2,7 @@
 
 Every non-OECD country and territory, in batches of five by region. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
 
-Progress: pending 13, reviewed 152, run 2, submitted 43
+Progress: reviewed 166, skipped 1, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | chunks | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -130,7 +130,7 @@ Progress: pending 13, reviewed 152, run 2, submitted 43
 | tw | Taiwan | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 235 | 51 | P1001 16 P17 31 P279 4 | $2.65 | 010 |  |
 | bn | Brunei | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 36 | 9 | P17 9 | $0.27 | 011 |  |
 | kh | Cambodia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 53 | 24 | P1001 2 P17 21 P279 1 | $0.60 | 011 |  |
-| id | Indonesia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-06 | 15797 | 1450 | P1001 1344 P17 40 P279 63 P31 3 | $165.22 |  | large place: 4,032 held or categorised items asked ($165), 9,795 unheld skipped; 405 Kota/Kabupaten P1001s all matched |
+| id | Indonesia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-06 | 15797 | 1450 | P1001 1344 P17 40 P279 63 P31 3 | $165.22 | 027 028 029 030 031 | large place: 4,032 held or categorised items asked ($165), 9,795 unheld skipped; 405 Kota/Kabupaten P1001s all matched |
 | la | Laos | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 38 | 15 | P1001 5 P17 10 | $0.37 | 011 |  |
 | my | Malaysia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 415 | 108 | P1001 68 P17 20 P279 20 | $6.43 | 011 |  |
 | mm | Myanmar | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 98 | 48 | P1001 7 P17 40 P279 1 | $1.37 | 012 |  |
@@ -165,21 +165,21 @@ Progress: pending 13, reviewed 152, run 2, submitted 43
 | ae | United Arab Emirates | Asia / Western Asia | 0 | submitted | 2026-10-05 | 68 | 0 |  | $0.24 |  | QS 289594 |
 | ye | Yemen | Asia / Western Asia | 0 | submitted | 2026-10-04 | 152 | 0 |  | $2.03 |  | QS 289594 |
 | by | Belarus | Europe / Eastern Europe | 0 | submitted | 2026-10-04 | 704 | 0 |  | $14.88 |  | QS 289589 |
-| bg | Bulgaria | Europe / Eastern Europe | 26 | run | 2026-10-06 | 429 | 61 | P1001 11 P17 43 P279 7 | $1.86 |  |  |
-| md | Moldova | Europe / Eastern Europe | 26 | run | 2026-10-06 | 44 | 10 | P1001 5 P17 3 P279 2 | $0.26 |  |  |
-| ro | Romania | Europe / Eastern Europe | 26 | pending |  |  |  |  |  |  |  |
-| ru | Russia | Europe / Eastern Europe | 26 | pending |  |  |  |  |  |  |  |
-| ua | Ukraine | Europe / Eastern Europe | 26 | pending |  |  |  |  |  |  |  |
-| fo | Faroe Islands | Europe / Northern Europe | 27 | pending |  |  |  |  |  |  |  |
-| gg | Guernsey | Europe / Northern Europe | 27 | pending |  |  |  |  |  |  |  |
-| im | Isle of Man | Europe / Northern Europe | 27 | pending |  |  |  |  |  |  |  |
-| je | Jersey | Europe / Northern Europe | 27 | pending |  |  |  |  |  |  |  |
-| cq | Sark | Europe / Northern Europe | 27 | pending |  |  |  |  |  |  |  |
-| sj | Svalbard and Jan Mayen | Europe / Northern Europe | 28 | pending |  |  |  |  |  |  |  |
-| ax | Åland Islands | Europe / Northern Europe | 28 | pending |  |  |  |  |  |  |  |
-| al | Albania | Europe / Southern Europe | 28 | pending |  |  |  |  |  |  |  |
-| ad | Andorra | Europe / Southern Europe | 28 | pending |  |  |  |  |  |  |  |
-| ba | Bosnia and Herzegovina | Europe / Southern Europe | 28 | pending |  |  |  |  |  |  |  |
+| bg | Bulgaria | Europe / Eastern Europe | 26 | reviewed | 2026-10-06 | 429 | 61 | P1001 11 P17 43 P279 7 | $1.86 | 032 |  |
+| md | Moldova | Europe / Eastern Europe | 26 | reviewed | 2026-10-06 | 44 | 10 | P1001 5 P17 3 P279 2 | $0.26 | 032 |  |
+| ro | Romania | Europe / Eastern Europe | 26 | reviewed | 2026-10-06 | 3605 | 37 | P1001 11 P17 10 P279 16 | $3.44 | 032 |  |
+| ru | Russia | Europe / Eastern Europe | 26 | skipped: curated by WikiProject EP |  |  |  |  |  |  | 1,778 items to ask (1,195 regional ministers missing P279); left to the WikiProject EP team (user, 2026-10-06) |
+| ua | Ukraine | Europe / Eastern Europe | 26 | reviewed | 2026-10-06 | 234 | 41 | P1001 21 P17 19 P279 1 | $2.07 | 032 |  |
+| fo | Faroe Islands | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 20 | 0 |  | $0.02 |  |  |
+| gg | Guernsey | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 10 | 1 | P1001 1 | $0.16 | 033 |  |
+| im | Isle of Man | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 22 | 1 | P1001 1 | $0.15 | 033 |  |
+| je | Jersey | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 23 | 0 |  | $0.18 |  |  |
+| cq | Sark | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
+| sj | Svalbard and Jan Mayen | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
+| ax | Åland Islands | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 10 | 0 |  | $0.00 |  |  |
+| al | Albania | Europe / Southern Europe | 28 | reviewed | 2026-10-06 | 93 | 16 | P1001 8 P17 6 P279 2 | $0.64 | 034 |  |
+| ad | Andorra | Europe / Southern Europe | 28 | reviewed | 2026-10-06 | 59 | 12 | P1001 5 P17 3 P279 4 | $0.37 | 034 |  |
+| ba | Bosnia and Herzegovina | Europe / Southern Europe | 28 | reviewed | 2026-10-06 | 61 | 14 | P1001 2 P17 10 P279 2 | $1.07 | 034 |  |
 | hr | Croatia | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 67 | 7 | P1001 2 P17 3 P279 2 | $0.46 | 024 |  |
 | gi | Gibraltar | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 18 | 0 |  | $0.04 |  |  |
 | va | Holy See | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 217 | 7 | P1001 1 P17 6 | $5.56 | 024 |  |
