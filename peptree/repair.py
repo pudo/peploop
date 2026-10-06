@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Literal, Optional
 
 import anthropic
+import requests
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
@@ -363,15 +364,22 @@ def prepare(run: Run, log: Any = print) -> list[dict[str, Any]]:
         log(f"large place: asking about {len(kept)} held or categorised items, not {len(todo) - len(kept)} others")
     todo = kept
     held = holders([it["qid"] for it in todo])
-    reqs = []
+    reqs, failed = [], 0
     for it in todo:
-        cands = run.candidates(it)
-        if not cands:
+        try:
+            cands = run.candidates(it)
+            if not cands:
+                continue
+            articles = leads(it["entity"], run.country.official)
+            message = render(run, it, cands, held.get(it["qid"], []), articles)
+        except requests.RequestException as exc:  # one timed-out read must not lose hours of others
+            failed += 1
+            log(f"  {it['qid']}: not prepared ({exc.__class__.__name__}); the next run asks it")
             continue
-        articles = leads(it["entity"], run.country.official)
-        message = render(run, it, cands, held.get(it["qid"], []), articles)
         reqs.append({"qid": it["qid"], "candidates": cands, "message": message,
                      "articles": [(lg, url) for lg, url, _ in articles]})
+    if failed:
+        log(f"{failed} items not prepared after read errors")
     return reqs
 
 
