@@ -342,9 +342,26 @@ def ask(message: str, model: str = MODEL) -> tuple[Answer, dict[str, int]]:
                                     "cache_creation_input_tokens": u.cache_creation_input_tokens or 0}
 
 
-def prepare(run: Run) -> list[dict[str, Any]]:
+#: Items with a gap above which only held offices and offices in a FATF category are
+#: asked about. Indonesia's 13,828 were mostly an imported civil-service org chart
+#: ("Kepala Seksi …", district chiefs), 11,460 of them held by no one.
+LARGE = 300
+
+
+def focus(run: Run, todo: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """In a large place, the items worth a model call: held by someone, or in a category."""
+    if len(todo) <= LARGE:
+        return todo
+    return [it for it in todo if it.get("holders") or run.ctx.detected(it)]
+
+
+def prepare(run: Run, log: Any = print) -> list[dict[str, Any]]:
     """Build every request for the country's gaps (no model calls)."""
     todo = [run.by_qid[q] for q in sorted(run.gaps) if q in run.by_qid]
+    kept = focus(run, todo)
+    if len(kept) < len(todo):
+        log(f"large place: asking about {len(kept)} held or categorised items, not {len(todo) - len(kept)} others")
+    todo = kept
     held = holders([it["qid"] for it in todo])
     reqs = []
     for it in todo:
@@ -361,7 +378,7 @@ def prepare(run: Run) -> list[dict[str, Any]]:
 def repair(cc: str, model: str = MODEL, limit: int | None = None, log: Any = print) -> list[dict[str, Any]]:
     """Ask the model about every gap of a country; return (request, answer, key) records."""
     run = Run(cc)
-    reqs = prepare(run)
+    reqs = prepare(run, log)
     if limit:
         reqs = reqs[:limit]
     _, prompt_hash = system_prompt()

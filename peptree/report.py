@@ -31,6 +31,9 @@ def funnel(cc: str) -> list[str]:
     swapped = sum(1 for (e,) in kept if gapmod.inverted(e))
     if swapped:
         out.append(f"- inverted (a position type in P279; P31/P279 not repaired): {swapped}")
+    with_gap = con.execute("SELECT count(DISTINCT qid) FROM ptree_gap WHERE country = %s", (cc,)).fetchone()[0]
+    if with_gap > repair.LARGE:
+        out.append(f"- large place: only held or categorised items asked ({with_gap} with a gap)")
     g = con.execute("SELECT prop, gap, count(*) FROM ptree_gap WHERE country = %s GROUP BY 1,2 ORDER BY 1,2", (cc,)).fetchall()
     items_with = con.execute("SELECT count(DISTINCT qid) FROM ptree_gap WHERE country = %s", (cc,)).fetchone()[0]
     out.append(f"- items with a gap: {items_with}; slots: " + ", ".join(f"{p} {gp} {n}" for p, gp, n in g))

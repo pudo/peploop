@@ -33,8 +33,9 @@ OECD = frozenset("at au be ca ch cl co cr cz de dk ee es fi fr gb gr hu ie il is
 NO_OFFICES = frozenset("aq bv cp dg hm ic ip tf um zz eu un".split())
 STEPS = ("country", "load", "repair")
 #: Items with a gap above which a place's repair waits for a decision: Brazil's
-#: 5,056 would have cost $100-200 before the type/class swap was understood.
-LARGE = 300
+#: 5,056 would have cost $100-200 before the type/class swap was understood. The
+#: repair itself then asks only about held or categorised items (`repair.focus`).
+LARGE = repair.LARGE
 COLUMNS = ("cc", "name", "region", "batch", "status", "run", "kept", "lines", "by property", "cost", "chunks", "notes")
 #: Columns a person writes; `table` and `plan` keep them as found.
 HAND = ("status", "notes")
