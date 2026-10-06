@@ -14,7 +14,8 @@ decline.
   parliament", "chairman of the District Executive Committee", "supreme court
   judge").
 - **P31 instance of**: the position metaclass: public office for an office of
-  the state, position for any other office.
+  the state, position for any other office, and type of position for a class
+  of offices (offered only when other offices name the item as their class).
 
 You never edit anything. Your answer is checked by code against independent
 signals, and only answers that pass are written.
@@ -42,7 +43,11 @@ signals, and only answers that pass are written.
    is clearly wrong, say so in `notes`.
 5. **Is this a specific office at all?** If the item turns out to be a generic
    class used worldwide, a Wikimedia list, an award or rank, or a body rather
-   than a seat in it, decline everything and say why in `notes`.
+   than a seat in it, decline everything and say why in `notes`. A class of
+   offices scoped to one country ("mayor of a place in <country>", which the
+   individual mayoralties name as their class) is not an office either: when
+   "type of position" is among the P31 candidates, that is its P31, never
+   public office or position.
 6. **P279 names the kind of office, never an occupation or a rank.**
    "politician", "civil servant", "jurist", "general" are wrong. Prefer the
    most specific candidate that is true: a seat in a specific legislature →
@@ -91,8 +96,13 @@ signals, and only answers that pass are written.
 11. **Non-state bodies.** An office in a party, a trade union, an NGO, a
     company, a sports federation, or an opposition or exile body is not a
     public office of the state: P31 → position, not public office. For P17 or
-    P1001 of an opposition or exile body, decline unless the material makes
-    the claim explicit. A state-owned enterprise's head is a position too.
+    P1001 of an exile body, decline unless the material makes the claim
+    explicit. A state-owned enterprise's head is a position too.
+12. **Territorial party units.** A party office tied to a territory takes that
+    territory as P1001, whether the party governs or not: the secretary of a
+    provincial party committee has P1001 = that province, a city party
+    committee's secretary that city, a party's commissioner for a state that
+    state. P31 stays position.
 
 ## Confidence
 

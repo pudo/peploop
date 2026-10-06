@@ -88,15 +88,33 @@ def main() -> None:
     expect([it["qid"] for it in repair.focus(fake, many)] == ["Q0", "Q1"],
            "a large place asks only about held or categorised items")
     expect(len(repair.focus(fake, many[:repair.LARGE])) == repair.LARGE, "a place under the gate asks about all")
-    cls = slot(nat, "P31", ["Q294414", "Q4164871"], 0, quote="Minister of Culture of the Republic of Ruritania")
-    cls.facts.classes = {nat["qid"]}
+    unheld = item("Q44", "national", ent({"en": "Minister of Culture of the Republic of Ruritania"}))
+    cls = slot(unheld, "P31", ["Q294414", "Q4164871"], 0, quote="Minister of Culture of the Republic of Ruritania")
+    cls.facts.classes = {unheld["qid"]}
     expect(rules.decide(cls) == ("skip", "p31_on_a_class"), "a class of office is never typed a public office")
     s = slot(nat, "P17", ["Q900001"], 0, quote="Minister of Culture of the Republic of Ruritania")
     s.facts.non_states = {"Q900001"}
     expect(rules.decide(s) == ("skip", "p17_not_a_state"), "a value not typed a state is never a P17")
     nat_quote = "Minister of Culture of the Republic of Ruritania"
-    expect(rules.decide(slot(nat, "P31", ["Q294414", "Q4164871"], 0, quote=nat_quote)) == ("skip", "p31_weak_channel"),
-           "a P31 backed only by state_office is skipped")
+    meta = ["Q294414", "Q4164871", "Q136649946"]
+    expect(rules.decide(slot(nat, "P31", meta[:2], 0, quote=nat_quote)) == ("apply", "two_channels"),
+           "an untyped state office takes public office on the state_office channel")
+    typed = slot(nat, "P31", meta[:2], 0, quote=nat_quote)
+    typed.facts.positioned = {nat["qid"]}
+    expect(rules.decide(typed) == ("skip", "p31_typed_elsewhere"),
+           "an office whose P31 already reaches position gets no second type")
+    expect(rules.decide(slot(nat, "P31", meta[:2], 1, quote=nat_quote)) == ("skip", "p31_weak_channel"),
+           "plain position for a state office has no channel and is skipped")
+    klass = slot(unheld, "P31", meta, 2, quote=nat_quote)
+    klass.facts.classes = {unheld["qid"]}
+    expect(rules.decide(klass) == ("apply", "class_type"), "a class of office takes type of position")
+    seat = item("Q43", "national", ent({"en": "Minister of Culture of the Republic of Ruritania"}), 4, {"Q900001": 4})
+    held = slot(seat, "P31", meta[:2], 0, quote=nat_quote)
+    held.facts.classes = {seat["qid"]}
+    expect(rules.decide(held)[1] != "p31_on_a_class",
+           "a subclassed seat people hold directly is an office, not only a class")
+    expect(rules.decide(slot(nat, "P31", meta, 2, quote=nat_quote)) == ("skip", "type_of_position_on_an_office"),
+           "an office that is no class is never typed a type of position")
     expect(rules.decide(slot(raion, "P31", ["Q294414", "Q4164871"], 0, quote=quote)) == ("apply", "two_channels"),
            "a P31 the siblings agree on still applies")
     party = item("Q41", "national", ent({"en": "Chairman of the Ruritanian Patriotic Party"}))

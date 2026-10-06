@@ -222,6 +222,8 @@ class Facts:
     non_states: set[str] = field(default_factory=set)
     #: Items other items name in `P279`: classes of office, never typed an office themselves.
     classes: set[str] = field(default_factory=set)
+    #: Items whose existing `P31` (any rank) already reaches position through the class tree.
+    positioned: set[str] = field(default_factory=set)
     #: Stem sequences of the head-of-state and head-of-government class names, every language.
     head_seqs: list[list[str]] = field(default_factory=list)
 

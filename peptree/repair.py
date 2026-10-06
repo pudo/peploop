@@ -37,6 +37,7 @@ BASE_P279 = """Q83307 Q26204040 Q877955 Q14212 Q2285706 Q121998 Q19356884 Q48683
 Q132050 Q16533 Q117826617 Q55736868 Q3188089 Q135398920 Q3368517 Q107363151 Q5097014 Q707492 Q112119463
 Q484876 Q1501800 Q140686 Q1255921 Q5089507 Q1758037 Q1553195 Q6501749 Q2632935""".split()
 META_CANDIDATES = ["Q294414", "Q4164871"]
+PUBLIC_OFFICE, POSITION = META_CANDIDATES
 
 
 class Strict(BaseModel):
@@ -105,7 +106,7 @@ class Run:
         self.cat_classes = {c["key"]: set(c["class_qids"]) for c in self.ctx.cats}
         all_classes = [q for c in self.ctx.cats for q in c["class_qids"]]
         pool = BASE_P279 + all_classes + self.country_p279 + ([self.sender_class] if self.sender_class else [])
-        self.info = wd.labels_of(pool + META_CANDIDATES + sorted(self.country.home))
+        self.info = wd.labels_of(pool + META_CANDIDATES + [GENERIC_META] + sorted(self.country.home))
         self.value_types = wd.class_closure(pool)
         # Classes that must never be offered: lists and the metaclasses.
         self.p279_pool = [q for q in dict.fromkeys(pool)
@@ -121,6 +122,7 @@ class Run:
         self.value_spans: dict[str, list[int | None]] = {}
         self.non_states: set[str] = set()
         self.classes: set[str] = set()
+        self.positioned: set[str] = set()
         self._typed: set[str] = set()
 
     def spans_for(self, qids: list[str]) -> None:
@@ -146,12 +148,37 @@ class Run:
                 max_age=wd.DAY)
             self.classes.update(found)
 
+    def positioned_for(self, qids: list[str]) -> None:
+        """Note which items' existing `P31` already reaches position (any rank).
+
+        The tree is polluted ("noble title", even "politician" reach position), so
+        this is the consumer's view rather than a judgement: an item a
+        `P31/P279*` walk already finds as a position gains nothing from a second type.
+        """
+        p31 = {q: values(self.by_qid[q]["entity"], "P31", any_rank=True) for q in qids if q in self.by_qid}
+        up = wd.class_closure({v for vs in p31.values() for v in vs})
+        self.positioned.update(q for q, vs in p31.items() if any(POSITION in up.get(v, {v}) for v in vs))
+
+    def classes_typed_office(self) -> list[str]:
+        """Classes of office the country scopes that are typed an office themselves (cached a day).
+
+        The caller keeps those held by no one: a subclassed seat people hold ("member
+        of the Senate") is rightly a public office.
+
+        A byproduct for a human: the wrong `P31` is a removal, never ours to make.
+        """
+        c = self.country.qid
+        rows = wd.cached(f"class_typed_office:{c}", lambda: sorted({r["c"] for r in wd.sparql(
+            f"SELECT DISTINCT ?c WHERE {{ VALUES ?t {{ wd:{PUBLIC_OFFICE} wd:{POSITION} }} ?c p:P31/ps:P31 ?t ; "
+            f"(wdt:P17|wdt:P1001) wd:{c} . FILTER EXISTS {{ ?x wdt:P279 ?c }} }}")}), max_age=wd.DAY)
+        return [q for q in rows if q in self.by_qid]
+
     def facts(self, item: dict[str, Any]) -> signals.Facts:
         return signals.Facts(item=item, country=self.country, places=self.places, sib=self.sib,
                              detected=self.ctx.detected(item), bodies=self.bodies,
                              cat_classes=self.cat_classes, value_types=self.value_types,
                              sender_class=self.sender_class, value_spans=self.value_spans,
-                             non_states=self.non_states, classes=self.classes,
+                             non_states=self.non_states, classes=self.classes, positioned=self.positioned,
                              head_seqs=[list(x) for x in self.head_seqs])
 
     def candidates(self, item: dict[str, Any]) -> dict[str, list[str]]:
@@ -181,7 +208,9 @@ class Run:
                 pool = first + self.p279_pool
             out["P279"] = [q for q in dict.fromkeys(pool) if q != item["qid"]]
         if "P31" in asked:
-            out["P31"] = list(META_CANDIDATES)
+            # A class of office (subclassed, held by no one directly) is a type of position.
+            klass = item["qid"] in self.classes and not item.get("holders")
+            out["P31"] = list(META_CANDIDATES) + ([GENERIC_META] if klass else [])
         return {k: v for k, v in out.items() if v}
 
 
@@ -364,6 +393,7 @@ def prepare(run: Run, log: Any = print) -> list[dict[str, Any]]:
         log(f"large place: asking about {len(kept)} held or categorised items, not {len(todo) - len(kept)} others")
     todo = kept
     held = holders([it["qid"] for it in todo])
+    run.classes_for([it["qid"] for it in todo if "P31" in run.gaps.get(it["qid"], {})])  # classes get a type-of-position candidate
     reqs, failed = [], 0
     for it in todo:
         try:

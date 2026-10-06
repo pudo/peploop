@@ -86,6 +86,15 @@ def _strong_p31(slot: Slot) -> bool:
     return bool(STRONG_P31 & set(slot.channels))
 
 
+TYPE_OF_POSITION = "Q136649946"
+
+
+def _is_class(slot: Slot) -> bool:
+    """Subclassed and held by no one directly: "member of the Senate" has term seats
+    beneath it yet is held itself, so it is an office as well as a class."""
+    return slot.facts is not None and slot.qid in slot.facts.classes and not slot.facts.item.get("holders")
+
+
 #: (rule, predicate, disposition). First match wins.
 RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     ("item_gone", lambda s: s.live_entity is None, "skip"),
@@ -101,8 +110,18 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     ("label_conflict", lambda s: signals.conflict(s.prop, s.value, s.facts), "skip"),
     # A class of office ("mayor of a place in X", which seven offices name in P279)
     # is a type of position, not a public office: typing it one makes it an instance.
-    ("p31_on_a_class", lambda s: s.prop == "P31" and s.facts is not None and s.qid in s.facts.classes, "skip"),
-    ("p31_weak_channel", lambda s: s.prop == "P31" and not _strong_p31(s), "skip"),
+    # The class signal is mechanical (other items name it in P279), so with the
+    # model's choice it carries the type-of-position metaclass on its own.
+    ("type_of_position_on_an_office", lambda s: s.prop == "P31" and s.value == TYPE_OF_POSITION
+     and not _is_class(s), "skip"),
+    ("class_type", lambda s: s.prop == "P31" and s.value == TYPE_OF_POSITION and _is_class(s), "apply"),
+    ("p31_on_a_class", lambda s: s.prop == "P31" and _is_class(s), "skip"),
+    # A second type beside one a P31/P279* walk already finds as a position adds
+    # nothing and repeats the Brazil swap; an untyped office, or one typed only
+    # outside the position tree, takes the model's metaclass on the state-office channel.
+    ("p31_typed_elsewhere", lambda s: s.prop == "P31" and not _strong_p31(s) and s.facts is not None
+     and s.qid in s.facts.positioned, "skip"),
+    ("p31_weak_channel", lambda s: s.prop == "P31" and not _strong_p31(s) and "state_office" not in s.channels, "skip"),
     ("two_channels", lambda s: bool(s.channels), "apply"),
     ("one_channel", lambda s: True, "skip"),
 ]
@@ -133,8 +152,11 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
     live = wd.fetch_items(qids)  # max_age=0: what Wikidata holds now
     if hasattr(run, "spans_for"):  # when each candidate state or place existed, for the era rule
         run.spans_for([v for r in reqs for prop in ("P17", "P1001") for v in r["candidates"].get(prop, [])])
+    p31_asked = [r["qid"] for r in reqs if "P31" in r["candidates"]]
     if hasattr(run, "classes_for"):  # which items asked a P31 are classes of office
-        run.classes_for([r["qid"] for r in reqs if "P31" in r["candidates"]])
+        run.classes_for(p31_asked)
+    if hasattr(run, "positioned_for"):  # which already reach position through their own P31
+        run.positioned_for(p31_asked)
     out = []
     for r in reqs:
         answer = r.get("answer")
@@ -154,6 +176,13 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
                         "confidence": slot.answer.get("confidence"), "quote": slot.answer.get("quote"),
                         "source": source_of(slot.answer), "decline_reason": slot.answer.get("decline_reason"),
                         "key": r["key"], "articles": dict(r.get("articles") or [])})
+    # Byproduct: classes of office typed an office. Removing that P31 is a human's edit.
+    decided = {(d["qid"], d["prop"]) for d in out}
+    for q in (run.classes_typed_office() if hasattr(run, "classes_typed_office") else []):
+        if (q, "P31") not in decided and not run.by_qid[q].get("holders"):
+            out.append({"qid": q, "prop": "P31", "gap": "byproduct", "value": None, "disposition": "skip",
+                        "rule": "class_typed_office", "channels": [], "confidence": None, "quote": None,
+                        "source": None, "key": None, "articles": {}})
     con = wd.conn()
     with con.transaction():
         con.execute("DELETE FROM ptree_decision WHERE country = %s", (cc,))
