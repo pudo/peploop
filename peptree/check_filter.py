@@ -21,12 +21,26 @@ def expect(cond: bool, what: str) -> None:
 
 def drop(e: dict, p31_types: set[str] = frozenset(), lanes: tuple = ("descent",), types: set[str] = frozenset(),
          by: dict | None = None, generic: dict | None = None, holders: int | None = None, bodies: dict | None = None,
-         territorial: set[str] | None = None, cities: list | None = None) -> tuple:
+         territorial: set[str] | None = None, cities: list | None = None, inside: set[str] | None = None) -> tuple:
     return classify(XX, "Q1", e, list(lanes), set(types), set(p31_types), by or {}, generic, holders=holders,
-                    bodies=bodies, territorial=territorial, cities=cities)
+                    bodies=bodies, territorial=territorial, cities=cities, inside=inside)
 
 
 def main() -> None:
+    # Another country's office comes in through its holders' citizenship; its own scope says whose it is.
+    ours = {"Q900001", "Q900002", "Q900003", "Q900020"}  # the state, its predecessor and federation, a region
+    abroad = ent({"en": "Mayor of Zendaburg"}, P31=["Q4164871"], P17=["Q900099"], P1001=["Q900098"])
+    expect(drop(abroad, inside=ours)[0] == "scoped_elsewhere", "an office scoped only to another state is dropped")
+    expect(drop(abroad)[0] is None, "without an inside set nothing is dropped as scoped elsewhere")
+    expect(drop(ent({"en": "Minister of the Grand Federation"}, P31=["Q4164871"], P17=["Q900003"]), inside=ours)[0]
+           is None, "a federation's office is the country's predecessor, not another state's")
+    expect(drop(ent({"en": "Governor of Strelsau Region"}, P31=["Q4164871"], P1001=["Q900020"]), inside=ours)[0]
+           is None, "an office scoped to one of the country's places stays")
+    expect(drop(ent({"en": "Chief Rabbi"}, P31=["Q4164871"]), inside=ours)[0] is None,
+           "an unscoped office still loads by its holders")
+    post = ent({"en": "Ambassador of Ruritania to Turkey"}, P31=["Q4164871"], P17=["Q43"])
+    expect(drop(post, lanes=("outbound",), inside=ours) == (None, "", "ambassador"),
+           "an outbound post names the receiving state and stays")
     king = ent({"en": "King of Ruritania"}, P31=["Q355567"], P279=["Q116"], P17=["Q900001"])
     expect(drop(king, {"Q355567", "Q4189293"}, types={"Q116", "Q48352"})[0] is None,
            "a throne typed noble title (→ rank) is kept when its class reaches head of state")

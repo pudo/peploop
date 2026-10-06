@@ -292,7 +292,7 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
              generic: dict[str, str] | None = None, holders: int | None = None,
              bodies: dict[str, dict[str, Any]] | None = None, territorial: set[str] | None = None,
              cities: list[dict[str, Any]] | None = None,
-             event_types: set[str] | None = None) -> tuple[str | None, str, str]:
+             event_types: set[str] | None = None, inside: set[str] | None = None) -> tuple[str | None, str, str]:
     """Return (drop reason or None, detail, kind) for one item.
 
     `types` is the item's whole closure; `p31_types` the closure of its
@@ -303,7 +303,8 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     that are territories (all of them when not given); `cities` the
     gazetteer's city places; `event_types` the closure of the declared
     non-metaclass `P31` that stops at occupation and position (`p31_types`
-    when not given).
+    when not given); `inside` the states and places that are the country's
+    (`inside_places()`), without which no item is dropped as scoped elsewhere.
     """
     p31_any = set(values(entity, "P31", any_rank=True))
     p279 = set(values(entity, "P279"))
@@ -354,6 +355,11 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     if consular and not outbound:
         return "inbound_consul", "consular, sender is not the state", ""
     scope = set(values(entity, "P17")) | set(values(entity, "P1001"))
+    # The citizenship lane brings in another country's offices: "Mayor of Peshawar"
+    # under India, a Venezuelan ministry under Argentina. An office whose own scope
+    # names only other states and their places is theirs; an unscoped one stays.
+    if inside is not None and scope and not outbound and not scope & inside:
+        return "scoped_elsewhere", "P17/P1001 " + ",".join(sorted(scope)), ""
     p1001 = set(values(entity, "P1001"))
     local = p1001 - {c.qid} if territorial is None else (p1001 & territorial) - {c.qid}
     if outbound:
@@ -423,6 +429,7 @@ def refilter(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     scopes = sorted({v for it in stored for v in values(it["entity"], "P1001")})
     scope_types = wd.closure(_cached_edges(scopes)) if scopes else {}
     territorial = {q for q, ts in scope_types.items() if ts & TERRITORY} | c.home
+    inside = inside_places(c, stored)
     tally: Counter[str] = Counter()
     rows = []
     for it in stored:
@@ -430,7 +437,7 @@ def refilter(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
         drop, detail, kind = classify(c, q, it["entity"], it["lanes"], types[q],
                                       p31_types[f"p31:{q}"] - {f"p31:{q}"}, it["holder_countries"], generic,
                                       holders=it["holders"], bodies=bodies, territorial=territorial, cities=cities,
-                                      event_types=events[f"p31:{q}"])
+                                      event_types=events[f"p31:{q}"], inside=inside)
         tally[drop or "kept"] += 1
         rows.append((kind or None, drop, detail or None, cc, q))
     with wd.conn().cursor() as cur:
@@ -456,6 +463,26 @@ def event_closure(seeds: dict[str, list[str]], depth: int = 8) -> dict[str, set[
                 break
         out[key] = seen
     return out
+
+
+def inside_places(c: countries.Country, stored: list[dict[str, Any]]) -> set[str]:
+    """The states and places that are this country's, for the `scoped_elsewhere` drop.
+
+    The home states, the fixed gazetteer's subdivisions and cities (not the
+    sovereign states it also lists), and any `P17`/`P1001` value the stored
+    offices name whose own `P17` is a home state or whose `P131` is one of
+    those places. The gazetteer's own extras cannot answer this: it adds every
+    place an office points at, Peshawar included.
+    """
+    fixed = {p["qid"] for p in countries.gazetteer(c) if p["levels"] != ["country"]}
+    inside = set(c.home) | fixed
+    scopes = sorted({v for it in stored for p in ("P17", "P1001") for v in values(it["entity"], p)} - inside)
+    for chunk in wd.values_chunks(scopes, 50):
+        found = wd.cached("scope_up:" + "|".join(chunk), lambda chunk=chunk: {
+            q: {"P17": values(e, "P17"), "P131": values(e, "P131")}
+            for q, e in wd.fetch_items(chunk, props="claims").items()})
+        inside |= {q for q, up in found.items() if set(up["P17"]) & c.home or set(up["P131"]) & inside}
+    return inside
 
 
 def _cached_edges(qids: list[str]) -> dict[str, list[str]]:
