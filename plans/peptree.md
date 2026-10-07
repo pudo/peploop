@@ -256,6 +256,51 @@ first lane (repair or fill) before writing the tool.
 - **Open:**
   - Kazakh head-last labels never name a category.
   - The P279 candidate pool is generic (no Guardian Council class).
-  - P31 is still held back.
-  - Should party and trade-union heads carry P1001?
   - Automated QS submission (the OAuth error).
+
+## Non-OECD sweep: outcome and handover (2026-10-07)
+
+- **Done:** 209 of 210 non-OECD places (Russia left to WikiProject EP). Chunks
+  001–036, 3,916 statements landed (036 still pending), about $370 of model calls. Ledger is
+  `peptree/sweep.md`; modelling decisions and their outcomes are in
+  `plans/peptree_backlog.md`.
+- **Loop that worked:** `sweep run <n>` → `audit <n>` → fix in code + check →
+  `repair --no-ask` on affected countries → mark `reviewed` → `outbox --batch <n>`
+  → user pastes → `outbox --status`. Taxonomy fixes are normal execution, not a
+  stop.
+- **P31 is no longer held back:** it applies when the item has no `P31` or none
+  reaches the position hierarchy. A slot is stale only when its own properties
+  moved since load (`revision_moved`), not on any revision bump. Party units take
+  `P1001`.
+- **Cost gate:** more than `repair.LARGE` (300) items to ask makes a place
+  `blocked: large`; it is then run with `focus` (only held or categorised items).
+  Changing `prompts/repair.md` re-keys the cache: re-decide old countries with
+  `--no-ask`, never an asking run.
+- **Loose ends:**
+  - Chunk-034: 40 pasted lines never went live (Andorra, Bosnia); check the QS
+    batch's errors, then re-emit.
+  - Revert candidate: chunk-022 `Q141214105 P17 Q408`, from the "to" = Tonga bug.
+  - `data/peptree/byproducts/held_non_position_p31.md`: 63 held offices with a
+    wrong `P31` (family name, human, title), for human removal.
+  - `plans/generic_positions_note.md`: community note, not posted.
+- **OpenSanctions reading:** zavod's position filter follows `P31` on
+  superclasses, so class-level `P31`s (consultant → title of honor, jurist →
+  academic degree) exclude real offices: 193 of our 24,546 held offices,
+  including all seven UAE Rulers. Filed as opensanctions/opensanctions#5854.
+  When measuring discoverability, use zavod's real rule: `ALLOW_TYPES`
+  includes every `SUB_TYPES` key, and the closure is depth 6.
+
+### Going to OECD
+
+- **Universe:** `sweep.OECD` excludes the 38 members; flip it (or add a
+  second ledger section) rather than forking `sweep.py`. peploop has already
+  written Slovenia and Colombia's current holders.
+- **Expect scale:** Spain has 13,198 position items, mostly per-municipality
+  mayoralties, plus bishoprics and nobility. Most OECD states are in zavod's
+  `MUNI_COUNTRIES`, so mayors do matter downstream there. The `LARGE` gate and
+  `focus` will trip for most; measure per country first.
+- **Type/class swaps** (Brazil's 4,300 mayoralties) are bot-made and likely
+  recur in other big municipal sets. They are skipped (`inverted`); leave them to
+  a bot operator.
+- **Territories:** OECD overseas territories (French, Dutch, Danish, US) follow
+  the territory rule: `P1001` only, no `P17`.
