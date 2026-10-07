@@ -1,218 +1,256 @@
 # peptree sweep
 
-Every non-OECD country and territory, in batches of five by region. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
+Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
 
-Progress: reviewed 166, skipped 1, submitted 43
+Progress: pending 37, reviewed 167, skipped 1, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | chunks | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| io | British Indian Ocean Territory | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 0 | 0 |  | $0.00 |  | no offices kept: a base territory |
-| bi | Burundi | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 40 | 2 | P1001 1 P17 1 | $0.28 |  |  |
-| km | Comoros | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 32 | 0 |  | $0.15 |  |  |
-| dj | Djibouti | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 43 | 3 | P1001 3 | $0.07 |  |  |
-| er | Eritrea | Africa / Eastern Africa | 1 | reviewed | 2026-10-05 | 29 | 2 | P1001 1 P279 1 | $0.11 |  |  |
-| et | Ethiopia | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 56 | 0 |  | $0.32 |  |  |
-| ke | Kenya | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 97 | 0 |  | $1.05 |  |  |
-| mg | Madagascar | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 59 | 13 | P1001 2 P17 9 P279 2 | $0.29 |  |  |
-| mw | Malawi | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 61 | 0 |  | $0.20 |  |  |
-| mu | Mauritius | Africa / Eastern Africa | 2 | reviewed | 2026-10-05 | 47 | 0 |  | $0.42 |  |  |
-| yt | Mayotte | Africa / Eastern Africa | 3 | reviewed | 2026-10-05 | 4 | 0 |  | $0.02 |  | French overseas department: nothing to add |
-| mz | Mozambique | Africa / Eastern Africa | 3 | reviewed | 2026-10-05 | 207 | 0 |  | $0.43 |  |  |
-| rw | Rwanda | Africa / Eastern Africa | 3 | reviewed | 2026-10-05 | 71 | 14 | P1001 5 P17 5 P279 4 | $0.43 |  |  |
-| re | Réunion | Africa / Eastern Africa | 3 | reviewed | 2026-10-05 | 9 | 0 |  | $0.03 |  | French overseas department: nothing to add |
-| sc | Seychelles | Africa / Eastern Africa | 3 | reviewed | 2026-10-05 | 34 | 0 |  | $0.18 |  |  |
-| so | Somalia | Africa / Eastern Africa | 4 | reviewed | 2026-10-05 | 68 | 0 |  | $0.79 |  |  |
-| ss | South Sudan | Africa / Eastern Africa | 4 | reviewed | 2026-10-05 | 80 | 24 | P1001 1 P17 23 | $0.28 |  |  |
-| tz | Tanzania | Africa / Eastern Africa | 4 | reviewed | 2026-10-05 | 90 | 0 |  | $2.04 |  |  |
-| ug | Uganda | Africa / Eastern Africa | 4 | reviewed | 2026-10-05 | 168 | 0 |  | $4.68 |  |  |
-| zm | Zambia | Africa / Eastern Africa | 4 | reviewed | 2026-10-05 | 66 | 11 | P1001 6 P17 4 P279 1 | $0.24 |  |  |
-| zw | Zimbabwe | Africa / Eastern Africa | 5 | reviewed | 2026-10-05 | 97 | 36 | P1001 8 P17 25 P279 3 | $0.58 |  | no predecessors found (Southern Rhodesia, Rhodesia, Zimbabwe Rhodesia): P1365/P155 chain gap |
-| ao | Angola | Africa / Middle Africa | 5 | reviewed | 2026-10-05 | 163 | 8 | P1001 3 P17 1 P279 4 | $0.57 |  |  |
-| cm | Cameroon | Africa / Middle Africa | 5 | reviewed | 2026-10-05 | 137 | 0 |  | $0.70 |  |  |
-| cf | Central African Republic | Africa / Middle Africa | 5 | reviewed | 2026-10-05 | 142 | 4 | P1001 1 P17 2 P279 1 | $0.10 |  |  |
-| td | Chad | Africa / Middle Africa | 5 | reviewed | 2026-10-05 | 70 | 0 |  | $0.27 |  |  |
-| cg | Congo-Brazzaville | Africa / Middle Africa | 6 | reviewed | 2026-10-05 | 86 | 3 | P1001 1 P17 2 | $0.18 |  |  |
-| cd | DR Congo | Africa / Middle Africa | 6 | reviewed | 2026-10-05 | 168 | 4 | P1001 2 P17 1 P279 1 | $0.59 |  |  |
-| gq | Equatorial Guinea | Africa / Middle Africa | 6 | reviewed | 2026-10-05 | 218 | 0 |  | $0.62 |  |  |
-| ga | Gabon | Africa / Middle Africa | 6 | reviewed | 2026-10-05 | 53 | 3 | P17 2 P279 1 | $0.17 |  |  |
-| st | São Tomé and Príncipe | Africa / Middle Africa | 6 | reviewed | 2026-10-05 | 24 | 2 | P17 2 | $0.04 |  |  |
-| dz | Algeria | Africa / Northern Africa | 7 | reviewed | 2026-10-05 | 108 | 0 |  | $0.81 |  |  |
-| eg | Egypt | Africa / Northern Africa | 7 | reviewed | 2026-10-05 | 136 | 0 |  | $3.66 |  | Medieval Egypt dropped as predecessor (6ceed23); state start 1959 via All-Palestine Government |
-| ly | Libya | Africa / Northern Africa | 7 | reviewed | 2026-10-05 | 60 | 8 | P1001 1 P17 7 | $0.22 |  |  |
-| ma | Morocco | Africa / Northern Africa | 7 | reviewed | 2026-10-05 | 136 | 2 | P17 1 P279 1 | $1.87 | 002 |  |
-| sd | Sudan | Africa / Northern Africa | 7 | reviewed | 2026-10-05 | 130 | 3 | P1001 1 P17 2 | $0.85 | 006 |  |
-| tn | Tunisia | Africa / Northern Africa | 8 | reviewed | 2026-10-05 | 82 | 1 | P1001 1 | $1.51 | 006 |  |
-| eh | Western Sahara | Africa / Northern Africa | 8 | reviewed | 2026-10-05 | 4 | 1 | P17 1 | $0.04 |  |  |
-| bw | Botswana | Africa / Southern Africa | 8 | reviewed | 2026-10-05 | 45 | 6 | P1001 2 P17 4 | $0.18 |  |  |
-| sz | Eswatini | Africa / Southern Africa | 8 | reviewed | 2026-10-05 | 25 | 3 | P1001 2 P17 1 | $0.03 |  |  |
-| ls | Lesotho | Africa / Southern Africa | 8 | reviewed | 2026-10-05 | 52 | 0 |  | $0.18 |  |  |
-| na | Namibia | Africa / Southern Africa | 9 | reviewed | 2026-10-05 | 48 | 1 | P279 1 | $0.56 | 001 002 |  |
-| za | South Africa | Africa / Southern Africa | 9 | reviewed | 2026-10-05 | 171 | 1 | P1001 1 | $1.99 | 001 006 |  |
-| ac | Ascension Island | Africa / Western Africa | 9 | reviewed | 2026-10-05 | 1 | 0 |  | $0.02 |  |  |
-| bj | Benin | Africa / Western Africa | 9 | reviewed | 2026-10-05 | 46 | 13 | P1001 1 P17 11 P279 1 | $0.31 | 001 |  |
-| bf | Burkina Faso | Africa / Western Africa | 9 | reviewed | 2026-10-05 | 52 | 17 | P1001 1 P17 16 | $0.34 | 001 |  |
-| cv | Cape Verde | Africa / Western Africa | 10 | reviewed | 2026-10-05 | 50 | 0 |  | $1.05 | 001 |  |
-| ci | Côte d'Ivoire | Africa / Western Africa | 10 | reviewed | 2026-10-05 | 85 | 24 | P1001 8 P17 14 P279 2 | $0.71 | 001 |  |
-| gm | Gambia | Africa / Western Africa | 10 | reviewed | 2026-10-05 | 48 | 0 |  | $0.76 | 001 |  |
-| gh | Ghana | Africa / Western Africa | 10 | reviewed | 2026-10-05 | 129 | 0 |  | $2.08 | 001 |  |
-| gn | Guinea | Africa / Western Africa | 10 | reviewed | 2026-10-05 | 120 | 0 |  | $2.85 | 001 |  |
-| gw | Guinea-Bissau | Africa / Western Africa | 11 | reviewed | 2026-10-05 | 36 | 5 | P1001 1 P17 4 | $0.08 | 001 |  |
-| lr | Liberia | Africa / Western Africa | 11 | reviewed | 2026-10-05 | 34 | 12 | P1001 3 P17 8 P279 1 | $0.18 | 002 |  |
-| ml | Mali | Africa / Western Africa | 11 | reviewed | 2026-10-05 | 54 | 9 | P1001 5 P17 2 P279 2 | $0.23 | 002 |  |
-| mr | Mauritania | Africa / Western Africa | 11 | reviewed | 2026-10-05 | 53 | 6 | P1001 3 P17 2 P279 1 | $0.21 | 002 |  |
-| ne | Niger | Africa / Western Africa | 11 | reviewed | 2026-10-05 | 68 | 8 | P1001 4 P17 2 P279 2 | $0.29 | 002 |  |
-| ng | Nigeria | Africa / Western Africa | 12 | reviewed | 2026-10-05 | 567 | 0 |  | $6.75 | 002 |  |
-| sh | Saint Helena, Ascension and Tristan da Cunha | Africa / Western Africa | 12 | reviewed | 2026-10-05 | 3 | 0 |  | $0.00 |  |  |
-| sn | Senegal | Africa / Western Africa | 12 | reviewed | 2026-10-05 | 93 | 18 | P1001 14 P17 3 P279 1 | $0.37 | 002 |  |
-| sl | Sierra Leone | Africa / Western Africa | 12 | reviewed | 2026-10-05 | 46 | 1 | P1001 1 | $0.74 | 002 006 |  |
-| tg | Togo | Africa / Western Africa | 12 | reviewed | 2026-10-05 | 57 | 11 | P1001 6 P17 4 P279 1 | $0.20 | 002 |  |
-| ta | Tristan da Cunha | Africa / Western Africa | 13 | reviewed | 2026-10-05 | 0 | 0 |  | $0.00 |  | no offices to repair |
-| ai | Anguilla | Americas / Caribbean | 0 | submitted | 2026-10-05 | 11 | 0 |  | $0.12 |  | QS 289612; 289612 added Q112973320 P279 minister (deputy-phrase bug); removed 2026-10-05 |
-| ag | Antigua and Barbuda | Americas / Caribbean | 0 | submitted | 2026-10-05 | 27 | 0 |  | $0.18 |  | QS 289612 |
-| aw | Aruba | Americas / Caribbean | 0 | submitted | 2026-10-05 | 23 | 0 |  | $0.22 |  | QS 289612 |
-| bs | Bahamas | Americas / Caribbean | 0 | submitted | 2026-10-05 | 45 | 0 |  | $0.13 |  | QS 289612 |
-| bb | Barbados | Americas / Caribbean | 0 | submitted | 2026-10-05 | 60 | 0 |  | $0.44 |  | QS 289612 |
-| bq | Bonaire, Sint Eustatius and Saba | Americas / Caribbean | 0 | submitted | 2026-10-05 | 7 | 0 |  | $0.20 |  | QS 289612 |
-| vg | British Virgin Islands | Americas / Caribbean | 0 | submitted | 2026-10-05 | 16 | 0 |  | $0.18 |  | QS 289612 |
-| ky | Cayman Islands | Americas / Caribbean | 0 | submitted | 2026-10-05 | 22 | 0 |  | $0.30 |  | QS 289612 |
-| cu | Cuba | Americas / Caribbean | 0 | submitted | 2026-10-04 | 87 | 0 |  | $1.97 |  | QS 289594 |
-| cw | Curaçao | Americas / Caribbean | 0 | submitted | 2026-10-05 | 13 | 0 |  | $0.24 |  | QS 289612 |
-| dm | Dominica | Americas / Caribbean | 0 | submitted | 2026-10-05 | 29 | 0 |  | $0.09 |  | QS 289612 |
-| do | Dominican Republic | Americas / Caribbean | 0 | submitted | 2026-10-05 | 55 | 0 |  | $0.48 |  | QS 289612 |
-| gd | Grenada | Americas / Caribbean | 0 | submitted | 2026-10-05 | 32 | 0 |  | $0.20 |  | QS 289612 |
-| gp | Guadeloupe | Americas / Caribbean | 0 | submitted | 2026-10-05 | 6 | 0 |  | $0.13 |  | QS 289612 |
-| ht | Haiti | Americas / Caribbean | 0 | submitted | 2026-10-05 | 48 | 1 | P17 1 | $0.67 | 002 | QS 289612 |
-| jm | Jamaica | Americas / Caribbean | 0 | submitted | 2026-10-05 | 61 | 0 |  | $0.41 |  | QS 289612 |
-| mq | Martinique | Americas / Caribbean | 0 | submitted | 2026-10-05 | 8 | 0 |  | $0.13 |  | QS 289612 |
-| ms | Montserrat | Americas / Caribbean | 0 | submitted | 2026-10-05 | 9 | 0 |  | $0.09 |  | QS 289612 |
-| pr | Puerto Rico | Americas / Caribbean | 0 | submitted | 2026-10-05 | 21 | 0 |  | $0.69 |  | QS 289612 |
-| bl | Saint Barthélemy | Americas / Caribbean | 0 | submitted | 2026-10-05 | 4 | 0 |  | $0.06 |  | QS 289612 |
-| kn | Saint Kitts and Nevis | Americas / Caribbean | 0 | submitted | 2026-10-05 | 22 | 0 |  | $0.05 |  | QS 289612 |
-| lc | Saint Lucia | Americas / Caribbean | 0 | submitted | 2026-10-05 | 37 | 0 |  | $0.09 |  | QS 289612 |
-| mf | Saint Martin | Americas / Caribbean | 0 | submitted | 2026-10-05 | 2 | 0 |  | $0.04 |  | QS 289612 |
-| vc | Saint Vincent and the Grenadines | Americas / Caribbean | 0 | submitted | 2026-10-05 | 23 | 0 |  | $0.10 |  | QS 289612 |
-| sx | Sint Maarten | Americas / Caribbean | 0 | submitted | 2026-10-05 | 12 | 0 |  | $0.24 |  | QS 289612 |
-| tt | Trinidad and Tobago | Americas / Caribbean | 0 | submitted | 2026-10-05 | 69 | 0 |  | $0.25 |  | QS 289612 |
-| tc | Turks and Caicos Islands | Americas / Caribbean | 0 | submitted | 2026-10-05 | 15 | 0 |  | $0.16 |  | QS 289612 |
-| vi | U.S. Virgin Islands | Americas / Caribbean | 0 | submitted | 2026-10-05 | 4 | 0 |  | $0.06 |  | QS 289612 |
-| bz | Belize | Americas / Central America | 0 | submitted | 2026-10-05 | 60 | 0 |  | $0.29 |  | QS 289612 |
-| sv | El Salvador | Americas / Central America | 14 | reviewed | 2026-10-05 | 172 | 46 | P1001 27 P17 17 P279 2 | $2.35 | 003 |  |
-| gt | Guatemala | Americas / Central America | 14 | reviewed | 2026-10-05 | 40 | 17 | P1001 6 P17 10 P279 1 | $0.38 | 003 |  |
-| hn | Honduras | Americas / Central America | 14 | reviewed | 2026-10-05 | 40 | 11 | P1001 3 P17 7 P279 1 | $0.33 | 003 |  |
-| ni | Nicaragua | Americas / Central America | 14 | reviewed | 2026-10-05 | 33 | 6 | P17 5 P279 1 | $0.24 | 003 |  |
-| pa | Panama | Americas / Central America | 14 | reviewed | 2026-10-05 | 35 | 7 | P1001 1 P17 5 P279 1 | $0.12 | 003 |  |
-| bm | Bermuda | Americas / Northern America | 15 | reviewed | 2026-10-05 | 35 | 1 | P279 1 | $0.04 | 004 |  |
-| gl | Greenland | Americas / Northern America | 15 | reviewed | 2026-10-05 | 25 | 5 | P17 5 | $0.18 | 004 | P17 Greenland: treated as a country (user, 2026-10-05) |
-| pm | Saint Pierre and Miquelon | Americas / Northern America | 15 | reviewed | 2026-10-05 | 3 | 0 |  | $0.00 |  | no offices to repair |
-| ar | Argentina | Americas / South America | 15 | reviewed | 2026-10-05 | 261 | 16 | P1001 4 P17 6 P279 5 P31 1 | $1.28 | 004 |  |
-| bo | Bolivia | Americas / South America | 15 | reviewed | 2026-10-05 | 58 | 22 | P1001 3 P17 18 P279 1 | $0.62 | 004 |  |
-| br | Brazil | Americas / South America | 16 | reviewed | 2026-10-05 | 5812 | 46 | P1001 8 P17 13 P279 9 P31 16 | $22.24 | 005 | 4271 type/class-swapped mayoralties left alone (inverted); $22 for 46 lines |
-| ec | Ecuador | Americas / South America | 16 | reviewed | 2026-10-05 | 64 | 21 | P1001 3 P17 15 P279 3 | $0.58 | 005 |  |
-| fk | Falkland Islands | Americas / South America | 16 | reviewed | 2026-10-05 | 4 | 0 |  | $0.02 |  |  |
-| gf | French Guiana | Americas / South America | 16 | reviewed | 2026-10-05 | 4 | 0 |  | $0.02 |  |  |
-| gy | Guyana | Americas / South America | 0 | submitted | 2026-10-05 | 35 | 0 |  | $0.15 |  | QS 289612 |
-| py | Paraguay | Americas / South America | 16 | reviewed | 2026-10-05 | 82 | 17 | P1001 2 P17 15 | $0.30 | 005 |  |
-| pe | Peru | Americas / South America | 17 | reviewed | 2026-10-05 | 129 | 14 | P1001 7 P17 2 P279 5 | $0.79 | 007 |  |
-| gs | South Georgia and the South Sandwich Islands | Americas / South America | 17 | reviewed | 2026-10-05 | 1 | 0 |  | $0.00 |  |  |
-| sr | Suriname | Americas / South America | 0 | submitted | 2026-10-05 | 42 | 0 |  | $0.60 |  | QS 289612 |
-| uy | Uruguay | Americas / South America | 17 | reviewed | 2026-10-05 | 121 | 26 | P1001 10 P17 12 P279 4 | $1.74 | 007 |  |
-| ve | Venezuela | Americas / South America | 17 | reviewed | 2026-10-05 | 138 | 49 | P1001 4 P17 39 P279 6 | $2.07 | 007 |  |
-| kz | Kazakhstan | Asia / Central Asia | 0 | submitted | 2026-10-05 | 102 | 0 |  | $3.23 |  | QS 289594 |
-| kg | Kyrgyzstan | Asia / Central Asia | 18 | reviewed | 2026-10-05 | 58 | 17 | P1001 5 P17 11 P279 1 | $0.48 | 008 |  |
-| tj | Tajikistan | Asia / Central Asia | 18 | reviewed | 2026-10-05 | 40 | 24 | P1001 6 P17 15 P279 3 | $0.47 | 008 |  |
-| tm | Turkmenistan | Asia / Central Asia | 18 | reviewed | 2026-10-05 | 38 | 25 | P1001 3 P17 20 P279 2 | $0.43 | 008 |  |
-| uz | Uzbekistan | Asia / Central Asia | 18 | reviewed | 2026-10-05 | 56 | 28 | P1001 2 P17 22 P279 4 | $0.51 | 008 009 |  |
-| cn | China | Asia / Eastern Asia | 18 | reviewed | 2026-10-05 | 499 | 171 | P1001 45 P17 106 P279 11 P31 9 | $8.42 | 008 |  |
-| hk | Hong Kong SAR | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 84 | 0 |  | $1.35 |  |  |
-| mo | Macao SAR | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 19 | 1 | P1001 1 | $0.32 |  |  |
-| mn | Mongolia | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 76 | 9 | P1001 3 P17 4 P279 2 | $1.08 | 010 |  |
-| kp | North Korea | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 104 | 51 | P1001 14 P17 36 P279 1 | $1.22 | 010 |  |
-| tw | Taiwan | Asia / Eastern Asia | 19 | reviewed | 2026-10-05 | 235 | 51 | P1001 16 P17 31 P279 4 | $2.65 | 010 |  |
-| bn | Brunei | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 36 | 9 | P17 9 | $0.27 | 011 |  |
-| kh | Cambodia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 53 | 24 | P1001 2 P17 21 P279 1 | $0.60 | 011 |  |
-| id | Indonesia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-06 | 15797 | 1450 | P1001 1344 P17 40 P279 63 P31 3 | $165.22 | 027 028 029 030 031 | large place: 4,032 held or categorised items asked ($165), 9,795 unheld skipped; 405 Kota/Kabupaten P1001s all matched |
-| la | Laos | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 38 | 15 | P1001 5 P17 10 | $0.37 | 011 |  |
-| my | Malaysia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-05 | 415 | 108 | P1001 68 P17 20 P279 20 | $6.43 | 011 |  |
-| mm | Myanmar | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 98 | 48 | P1001 7 P17 40 P279 1 | $1.37 | 012 |  |
-| ph | Philippines | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 1371 | 25 | P1001 8 P17 13 P279 4 | $1.18 | 012 |  |
-| sg | Singapore | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 65 | 26 | P1001 8 P17 15 P279 3 | $0.66 | 012 |  |
-| th | Thailand | Asia / South-eastern Asia | 21 | reviewed | 2026-10-06 | 1924 | 102 | P1001 74 P17 17 P279 11 | $7.17 | 017 | large place: 221 held or categorised items asked, 1,641 unheld skipped |
-| tl | Timor-Leste | Asia / South-eastern Asia | 21 | reviewed | 2026-10-05 | 55 | 8 | P1001 4 P17 3 P279 1 | $0.25 | 012 |  |
-| vn | Vietnam | Asia / South-eastern Asia | 22 | reviewed | 2026-10-05 | 177 | 48 | P1001 16 P17 21 P279 11 | $4.47 | 013 014 | predecessor list includes Kingdom of Kampuchea (inverse P156 via Q185682): no lines from it |
-| af | Afghanistan | Asia / Southern Asia | 22 | reviewed | 2026-10-05 | 136 | 38 | P1001 1 P17 36 P279 1 | $0.94 | 013 |  |
-| bd | Bangladesh | Asia / Southern Asia | 22 | reviewed | 2026-10-05 | 104 | 25 | P1001 15 P17 2 P279 8 | $1.50 | 013 |  |
-| bt | Bhutan | Asia / Southern Asia | 22 | reviewed | 2026-10-05 | 24 | 18 | P1001 3 P17 13 P279 2 | $0.25 | 013 |  |
-| in | India | Asia / Southern Asia | 22 | reviewed | 2026-10-05 | 914 | 146 | P1001 101 P17 26 P279 17 P31 2 | $8.45 | 013 |  |
-| ir | Iran | Asia / Southern Asia | 0 | submitted | 2026-10-05 | 250 | 0 |  | $4.54 |  | QS 289594 |
-| mv | Maldives | Asia / Southern Asia | 23 | reviewed | 2026-10-05 | 61 | 23 | P1001 7 P17 13 P279 3 | $0.60 | 015 |  |
-| np | Nepal | Asia / Southern Asia | 23 | reviewed | 2026-10-05 | 82 | 15 | P1001 5 P17 6 P279 4 | $0.64 | 015 |  |
-| pk | Pakistan | Asia / Southern Asia | 23 | reviewed | 2026-10-05 | 289 | 52 | P1001 32 P17 9 P279 11 | $2.24 | 015 |  |
-| lk | Sri Lanka | Asia / Southern Asia | 23 | reviewed | 2026-10-05 | 97 | 20 | P1001 7 P17 12 P279 1 | $0.96 | 015 |  |
-| am | Armenia | Asia / Western Asia | 23 | reviewed | 2026-10-06 | 63 | 9 | P1001 1 P17 5 P279 3 | $0.45 | 015 |  |
-| az | Azerbaijan | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 232 | 64 | P1001 53 P17 5 P279 6 | $2.95 | 016 |  |
-| bh | Bahrain | Asia / Western Asia | 0 | submitted | 2026-10-05 | 43 | 0 |  | $0.13 |  | QS 289594; re-run after the monarch fix: King of Bahrain now kept |
-| cy | Cyprus | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 430 | 31 | P1001 4 P17 15 P279 12 | $0.92 | 016 | 9 deputy ministers get generic deputy minister beside Cypriot deputy minister: one P279 on Q66126505 would do |
-| ge | Georgia | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 399 | 7 | P1001 3 P17 2 P279 2 | $1.75 | 016 |  |
-| iq | Iraq | Asia / Western Asia | 0 | submitted | 2026-10-05 | 130 | 21 | P1001 21 | $3.38 | 002 006 | QS 289594 |
-| jo | Jordan | Asia / Western Asia | 0 | submitted | 2026-10-05 | 95 | 1 | P17 1 | $1.08 | 006 | QS 289594 |
-| kw | Kuwait | Asia / Western Asia | 0 | submitted | 2026-10-05 | 51 | 0 |  | $0.33 |  | QS 289594 |
-| lb | Lebanon | Asia / Western Asia | 0 | submitted | 2026-10-04 | 74 | 0 |  | $0.63 |  | QS 289594 |
-| om | Oman | Asia / Western Asia | 0 | submitted | 2026-10-04 | 44 | 0 |  | $0.29 |  | QS 289594 |
-| ps | Palestine | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 302 | 68 | P1001 21 P17 23 P279 24 | $3.09 | 016 |  |
-| qa | Qatar | Asia / Western Asia | 24 | reviewed | 2026-10-06 | 64 | 2 | P1001 1 P279 1 | $0.03 | 016 |  |
-| sa | Saudi Arabia | Asia / Western Asia | 0 | submitted | 2026-10-05 | 155 | 0 |  | $1.48 |  | QS 289594 |
-| sy | Syria | Asia / Western Asia | 25 | reviewed | 2026-10-06 | 84 | 26 | P1001 6 P17 19 P279 1 | $0.77 | 023 |  |
-| ae | United Arab Emirates | Asia / Western Asia | 0 | submitted | 2026-10-05 | 68 | 0 |  | $0.24 |  | QS 289594 |
-| ye | Yemen | Asia / Western Asia | 0 | submitted | 2026-10-04 | 152 | 0 |  | $2.03 |  | QS 289594 |
-| by | Belarus | Europe / Eastern Europe | 0 | submitted | 2026-10-04 | 704 | 0 |  | $14.88 |  | QS 289589 |
-| bg | Bulgaria | Europe / Eastern Europe | 26 | reviewed | 2026-10-06 | 429 | 61 | P1001 11 P17 43 P279 7 | $1.86 | 032 |  |
-| md | Moldova | Europe / Eastern Europe | 26 | reviewed | 2026-10-06 | 44 | 10 | P1001 5 P17 3 P279 2 | $0.26 | 032 |  |
-| ro | Romania | Europe / Eastern Europe | 26 | reviewed | 2026-10-06 | 3605 | 37 | P1001 11 P17 10 P279 16 | $3.44 | 032 |  |
+| io | British Indian Ocean Territory | Africa / Eastern Africa | 1 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  | no offices kept: a base territory |
+| bi | Burundi | Africa / Eastern Africa | 1 | reviewed | 2026-10-07 | 40 | 0 |  | $0.28 | 035 |  |
+| km | Comoros | Africa / Eastern Africa | 1 | reviewed | 2026-10-07 | 32 | 0 |  | $0.15 | 035 |  |
+| dj | Djibouti | Africa / Eastern Africa | 1 | reviewed | 2026-10-07 | 43 | 0 |  | $0.07 |  |  |
+| er | Eritrea | Africa / Eastern Africa | 1 | reviewed | 2026-10-07 | 29 | 0 |  | $0.11 |  |  |
+| et | Ethiopia | Africa / Eastern Africa | 2 | reviewed | 2026-10-06 | 56 | 0 |  | $0.32 |  |  |
+| ke | Kenya | Africa / Eastern Africa | 2 | reviewed | 2026-10-07 | 97 | 0 |  | $1.05 | 035 |  |
+| mg | Madagascar | Africa / Eastern Africa | 2 | reviewed | 2026-10-07 | 59 | 0 |  | $0.29 |  |  |
+| mw | Malawi | Africa / Eastern Africa | 2 | reviewed | 2026-10-06 | 61 | 0 |  | $0.20 |  |  |
+| mu | Mauritius | Africa / Eastern Africa | 2 | reviewed | 2026-10-07 | 47 | 0 |  | $0.42 |  |  |
+| yt | Mayotte | Africa / Eastern Africa | 3 | reviewed | 2026-10-06 | 4 | 0 |  | $0.02 |  | French overseas department: nothing to add |
+| mz | Mozambique | Africa / Eastern Africa | 3 | reviewed | 2026-10-07 | 207 | 0 |  | $0.43 |  |  |
+| rw | Rwanda | Africa / Eastern Africa | 3 | reviewed | 2026-10-07 | 71 | 0 |  | $0.43 |  |  |
+| re | Réunion | Africa / Eastern Africa | 3 | reviewed | 2026-10-06 | 9 | 1 | P31 1 | $0.03 | 035 | French overseas department: nothing to add |
+| sc | Seychelles | Africa / Eastern Africa | 3 | reviewed | 2026-10-06 | 34 | 2 | P31 2 | $0.18 | 035 |  |
+| so | Somalia | Africa / Eastern Africa | 4 | reviewed | 2026-10-06 | 68 | 0 |  | $0.79 |  |  |
+| ss | South Sudan | Africa / Eastern Africa | 4 | reviewed | 2026-10-07 | 80 | 0 |  | $0.28 |  |  |
+| tz | Tanzania | Africa / Eastern Africa | 4 | reviewed | 2026-10-06 | 90 | 1 | P31 1 | $2.04 | 035 |  |
+| ug | Uganda | Africa / Eastern Africa | 4 | reviewed | 2026-10-07 | 168 | 0 |  | $4.68 |  |  |
+| zm | Zambia | Africa / Eastern Africa | 4 | reviewed | 2026-10-07 | 66 | 0 |  | $0.24 |  |  |
+| zw | Zimbabwe | Africa / Eastern Africa | 5 | reviewed | 2026-10-07 | 97 | 0 |  | $0.58 |  | no predecessors found (Southern Rhodesia, Rhodesia, Zimbabwe Rhodesia): P1365/P155 chain gap |
+| ao | Angola | Africa / Middle Africa | 5 | reviewed | 2026-10-07 | 163 | 0 |  | $0.57 | 035 |  |
+| cm | Cameroon | Africa / Middle Africa | 5 | reviewed | 2026-10-06 | 137 | 0 |  | $0.70 |  |  |
+| cf | Central African Republic | Africa / Middle Africa | 5 | reviewed | 2026-10-07 | 142 | 0 |  | $0.10 |  |  |
+| td | Chad | Africa / Middle Africa | 5 | reviewed | 2026-10-06 | 70 | 1 | P31 1 | $0.27 | 035 |  |
+| cg | Congo-Brazzaville | Africa / Middle Africa | 6 | reviewed | 2026-10-07 | 86 | 0 |  | $0.18 | 035 |  |
+| cd | DR Congo | Africa / Middle Africa | 6 | reviewed | 2026-10-07 | 168 | 0 |  | $0.59 | 035 |  |
+| gq | Equatorial Guinea | Africa / Middle Africa | 6 | reviewed | 2026-10-06 | 218 | 0 |  | $0.62 |  |  |
+| ga | Gabon | Africa / Middle Africa | 6 | reviewed | 2026-10-07 | 53 | 0 |  | $0.17 | 035 |  |
+| st | São Tomé and Príncipe | Africa / Middle Africa | 6 | reviewed | 2026-10-07 | 24 | 0 |  | $0.04 | 035 |  |
+| dz | Algeria | Africa / Northern Africa | 7 | reviewed | 2026-10-06 | 108 | 3 | P31 3 | $0.81 | 035 |  |
+| eg | Egypt | Africa / Northern Africa | 7 | reviewed | 2026-10-06 | 136 | 0 |  | $3.66 |  | Medieval Egypt dropped as predecessor (6ceed23); state start 1959 via All-Palestine Government |
+| ly | Libya | Africa / Northern Africa | 7 | reviewed | 2026-10-07 | 60 | 0 |  | $0.22 |  |  |
+| ma | Morocco | Africa / Northern Africa | 7 | reviewed | 2026-10-07 | 136 | 0 |  | $1.87 | 002 035 |  |
+| sd | Sudan | Africa / Northern Africa | 7 | reviewed | 2026-10-07 | 130 | 0 |  | $0.85 | 006 035 |  |
+| tn | Tunisia | Africa / Northern Africa | 8 | reviewed | 2026-10-07 | 82 | 0 |  | $1.51 | 006 |  |
+| eh | Western Sahara | Africa / Northern Africa | 8 | reviewed | 2026-10-07 | 4 | 0 |  | $0.04 |  |  |
+| bw | Botswana | Africa / Southern Africa | 8 | reviewed | 2026-10-07 | 45 | 0 |  | $0.18 |  |  |
+| sz | Eswatini | Africa / Southern Africa | 8 | reviewed | 2026-10-07 | 25 | 0 |  | $0.03 |  |  |
+| ls | Lesotho | Africa / Southern Africa | 8 | reviewed | 2026-10-07 | 52 | 0 |  | $0.18 |  |  |
+| na | Namibia | Africa / Southern Africa | 9 | reviewed | 2026-10-07 | 48 | 0 |  | $0.56 | 001 002 035 |  |
+| za | South Africa | Africa / Southern Africa | 9 | reviewed | 2026-10-07 | 171 | 0 |  | $1.99 | 001 006 035 |  |
+| ac | Ascension Island | Africa / Western Africa | 9 | reviewed | 2026-10-06 | 1 | 0 |  | $0.02 |  |  |
+| bj | Benin | Africa / Western Africa | 9 | reviewed | 2026-10-07 | 46 | 0 |  | $0.31 | 001 |  |
+| bf | Burkina Faso | Africa / Western Africa | 9 | reviewed | 2026-10-07 | 52 | 0 |  | $0.34 | 001 035 |  |
+| cv | Cape Verde | Africa / Western Africa | 10 | reviewed | 2026-10-07 | 50 | 0 |  | $1.05 | 001 |  |
+| ci | Côte d'Ivoire | Africa / Western Africa | 10 | reviewed | 2026-10-07 | 85 | 0 |  | $0.71 | 001 |  |
+| gm | Gambia | Africa / Western Africa | 10 | reviewed | 2026-10-07 | 48 | 0 |  | $0.76 | 001 |  |
+| gh | Ghana | Africa / Western Africa | 10 | reviewed | 2026-10-07 | 129 | 1 | P31 1 | $2.08 | 001 035 036 |  |
+| gn | Guinea | Africa / Western Africa | 10 | reviewed | 2026-10-07 | 120 | 0 |  | $2.85 | 001 |  |
+| gw | Guinea-Bissau | Africa / Western Africa | 11 | reviewed | 2026-10-07 | 36 | 0 |  | $0.08 | 001 035 |  |
+| lr | Liberia | Africa / Western Africa | 11 | reviewed | 2026-10-07 | 34 | 0 |  | $0.18 | 002 035 |  |
+| ml | Mali | Africa / Western Africa | 11 | reviewed | 2026-10-07 | 54 | 0 |  | $0.23 | 002 |  |
+| mr | Mauritania | Africa / Western Africa | 11 | reviewed | 2026-10-07 | 53 | 0 |  | $0.21 | 002 |  |
+| ne | Niger | Africa / Western Africa | 11 | reviewed | 2026-10-07 | 68 | 0 |  | $0.29 | 002 035 |  |
+| ng | Nigeria | Africa / Western Africa | 12 | reviewed | 2026-10-07 | 567 | 1 | P31 1 | $6.75 | 002 035 036 |  |
+| sh | Saint Helena, Ascension and Tristan da Cunha | Africa / Western Africa | 12 | reviewed | 2026-10-06 | 3 | 0 |  | $0.00 |  |  |
+| sn | Senegal | Africa / Western Africa | 12 | reviewed | 2026-10-07 | 93 | 0 |  | $0.37 | 002 035 |  |
+| sl | Sierra Leone | Africa / Western Africa | 12 | reviewed | 2026-10-07 | 46 | 0 |  | $0.74 | 002 006 |  |
+| tg | Togo | Africa / Western Africa | 12 | reviewed | 2026-10-07 | 57 | 0 |  | $0.20 | 002 |  |
+| ta | Tristan da Cunha | Africa / Western Africa | 13 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  | no offices to repair |
+| ai | Anguilla | Americas / Caribbean | 0 | submitted | 2026-10-06 | 11 | 0 |  | $0.12 |  | QS 289612; 289612 added Q112973320 P279 minister (deputy-phrase bug); removed 2026-10-05 |
+| ag | Antigua and Barbuda | Americas / Caribbean | 0 | submitted | 2026-10-06 | 27 | 0 |  | $0.18 |  | QS 289612 |
+| aw | Aruba | Americas / Caribbean | 0 | submitted | 2026-10-06 | 23 | 1 | P31 1 | $0.22 | 035 | QS 289612 |
+| bs | Bahamas | Americas / Caribbean | 0 | submitted | 2026-10-06 | 45 | 0 |  | $0.13 |  | QS 289612 |
+| bb | Barbados | Americas / Caribbean | 0 | submitted | 2026-10-06 | 60 | 1 | P31 1 | $0.44 | 035 | QS 289612 |
+| bq | Bonaire, Sint Eustatius and Saba | Americas / Caribbean | 0 | submitted | 2026-10-06 | 7 | 0 |  | $0.20 |  | QS 289612 |
+| vg | British Virgin Islands | Americas / Caribbean | 0 | submitted | 2026-10-06 | 16 | 0 |  | $0.18 |  | QS 289612 |
+| ky | Cayman Islands | Americas / Caribbean | 0 | submitted | 2026-10-06 | 22 | 0 |  | $0.30 |  | QS 289612 |
+| cu | Cuba | Americas / Caribbean | 0 | submitted | 2026-10-07 | 87 | 0 |  | $1.97 |  | QS 289594 |
+| cw | Curaçao | Americas / Caribbean | 0 | submitted | 2026-10-06 | 13 | 0 |  | $0.24 |  | QS 289612 |
+| dm | Dominica | Americas / Caribbean | 0 | submitted | 2026-10-06 | 29 | 1 | P31 1 | $0.09 | 035 | QS 289612 |
+| do | Dominican Republic | Americas / Caribbean | 0 | submitted | 2026-10-06 | 55 | 0 |  | $0.48 |  | QS 289612 |
+| gd | Grenada | Americas / Caribbean | 0 | submitted | 2026-10-06 | 32 | 1 | P31 1 | $0.20 | 035 | QS 289612 |
+| gp | Guadeloupe | Americas / Caribbean | 0 | submitted | 2026-10-06 | 6 | 0 |  | $0.13 |  | QS 289612 |
+| ht | Haiti | Americas / Caribbean | 0 | submitted | 2026-10-07 | 48 | 0 |  | $0.67 | 002 035 | QS 289612 |
+| jm | Jamaica | Americas / Caribbean | 0 | submitted | 2026-10-06 | 61 | 0 |  | $0.41 |  | QS 289612 |
+| mq | Martinique | Americas / Caribbean | 0 | submitted | 2026-10-06 | 8 | 1 | P31 1 | $0.13 | 035 | QS 289612 |
+| ms | Montserrat | Americas / Caribbean | 0 | submitted | 2026-10-06 | 9 | 0 |  | $0.09 |  | QS 289612 |
+| pr | Puerto Rico | Americas / Caribbean | 0 | submitted | 2026-10-06 | 21 | 1 | P31 1 | $0.69 | 035 | QS 289612 |
+| bl | Saint Barthélemy | Americas / Caribbean | 0 | submitted | 2026-10-06 | 4 | 0 |  | $0.06 |  | QS 289612 |
+| kn | Saint Kitts and Nevis | Americas / Caribbean | 0 | submitted | 2026-10-06 | 22 | 0 |  | $0.05 |  | QS 289612 |
+| lc | Saint Lucia | Americas / Caribbean | 0 | submitted | 2026-10-06 | 37 | 0 |  | $0.09 |  | QS 289612 |
+| mf | Saint Martin | Americas / Caribbean | 0 | submitted | 2026-10-06 | 2 | 0 |  | $0.04 |  | QS 289612 |
+| vc | Saint Vincent and the Grenadines | Americas / Caribbean | 0 | submitted | 2026-10-06 | 23 | 0 |  | $0.10 |  | QS 289612 |
+| sx | Sint Maarten | Americas / Caribbean | 0 | submitted | 2026-10-06 | 12 | 0 |  | $0.24 |  | QS 289612 |
+| tt | Trinidad and Tobago | Americas / Caribbean | 0 | submitted | 2026-10-06 | 69 | 0 |  | $0.25 |  | QS 289612 |
+| tc | Turks and Caicos Islands | Americas / Caribbean | 0 | submitted | 2026-10-06 | 15 | 0 |  | $0.16 |  | QS 289612 |
+| vi | U.S. Virgin Islands | Americas / Caribbean | 0 | submitted | 2026-10-06 | 4 | 0 |  | $0.06 |  | QS 289612 |
+| bz | Belize | Americas / Central America | 0 | submitted | 2026-10-06 | 60 | 0 |  | $0.29 |  | QS 289612 |
+| cr | Costa Rica | Americas / Central America | 38 | reviewed | 2026-10-07 | 48 | 18 | P1001 1 P17 17 | $0.94 |  | Q5801373 Defensoría: an institution held as an office; P31 declined (prompt rule 5: conflated body), wants splitting |
+| sv | El Salvador | Americas / Central America | 14 | reviewed | 2026-10-07 | 172 | 0 |  | $2.35 | 003 |  |
+| gt | Guatemala | Americas / Central America | 14 | reviewed | 2026-10-07 | 40 | 0 |  | $0.38 | 003 |  |
+| hn | Honduras | Americas / Central America | 14 | reviewed | 2026-10-07 | 40 | 0 |  | $0.33 | 003 |  |
+| mx | Mexico | Americas / Central America | 56 | pending |  |  |  |  |  |  |  |
+| ni | Nicaragua | Americas / Central America | 14 | reviewed | 2026-10-07 | 33 | 0 |  | $0.24 | 003 |  |
+| pa | Panama | Americas / Central America | 14 | reviewed | 2026-10-07 | 35 | 0 |  | $0.12 | 003 |  |
+| bm | Bermuda | Americas / Northern America | 15 | reviewed | 2026-10-07 | 35 | 0 |  | $0.04 | 004 |  |
+| ca | Canada | Americas / Northern America | 67 | pending |  |  |  |  |  |  |  |
+| gl | Greenland | Americas / Northern America | 15 | reviewed | 2026-10-07 | 25 | 0 |  | $0.18 | 004 | P17 Greenland: treated as a country (user, 2026-10-05) |
+| pm | Saint Pierre and Miquelon | Americas / Northern America | 15 | reviewed | 2026-10-06 | 3 | 0 |  | $0.00 |  | no offices to repair |
+| us | United States | Americas / Northern America | 71 | pending |  |  |  |  |  |  |  |
+| ar | Argentina | Americas / South America | 15 | reviewed | 2026-10-07 | 261 | 0 |  | $1.28 | 004 035 |  |
+| bo | Bolivia | Americas / South America | 15 | reviewed | 2026-10-07 | 58 | 0 |  | $0.62 | 004 035 |  |
+| br | Brazil | Americas / South America | 16 | reviewed | 2026-10-07 | 5812 | 1 | P31 1 | $22.24 | 005 035 036 | 4271 type/class-swapped mayoralties left alone (inverted); $22 for 46 lines |
+| cl | Chile | Americas / South America | 49 | pending |  |  |  |  |  |  |  |
+| co | Colombia | Americas / South America | 43 | pending |  |  |  |  |  |  |  |
+| ec | Ecuador | Americas / South America | 16 | reviewed | 2026-10-07 | 64 | 1 | P31 1 | $0.58 | 005 036 |  |
+| fk | Falkland Islands | Americas / South America | 16 | reviewed | 2026-10-06 | 4 | 0 |  | $0.02 |  |  |
+| gf | French Guiana | Americas / South America | 16 | reviewed | 2026-10-06 | 4 | 0 |  | $0.02 |  |  |
+| gy | Guyana | Americas / South America | 0 | submitted | 2026-10-06 | 35 | 1 | P31 1 | $0.15 | 035 | QS 289612 |
+| py | Paraguay | Americas / South America | 16 | reviewed | 2026-10-07 | 82 | 0 |  | $0.30 | 005 |  |
+| pe | Peru | Americas / South America | 17 | reviewed | 2026-10-07 | 129 | 0 |  | $0.79 | 007 035 |  |
+| gs | South Georgia and the South Sandwich Islands | Americas / South America | 17 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
+| sr | Suriname | Americas / South America | 0 | submitted | 2026-10-06 | 42 | 0 |  | $0.60 |  | QS 289612 |
+| uy | Uruguay | Americas / South America | 17 | reviewed | 2026-10-07 | 121 | 0 |  | $1.74 | 007 |  |
+| ve | Venezuela | Americas / South America | 17 | reviewed | 2026-10-07 | 138 | 0 |  | $2.07 | 007 |  |
+| kz | Kazakhstan | Asia / Central Asia | 0 | submitted | 2026-10-06 | 102 | 3 | P31 3 | $3.23 | 035 | QS 289594 |
+| kg | Kyrgyzstan | Asia / Central Asia | 18 | reviewed | 2026-10-07 | 58 | 0 |  | $0.48 | 008 035 |  |
+| tj | Tajikistan | Asia / Central Asia | 18 | reviewed | 2026-10-07 | 40 | 0 |  | $0.47 | 008 |  |
+| tm | Turkmenistan | Asia / Central Asia | 18 | reviewed | 2026-10-07 | 38 | 0 |  | $0.43 | 008 |  |
+| uz | Uzbekistan | Asia / Central Asia | 18 | reviewed | 2026-10-07 | 56 | 0 |  | $0.51 | 008 009 |  |
+| cn | China | Asia / Eastern Asia | 18 | reviewed | 2026-10-07 | 499 | 3 | P31 3 | $8.42 | 008 035 036 |  |
+| hk | Hong Kong SAR | Asia / Eastern Asia | 19 | reviewed | 2026-10-06 | 84 | 1 | P31 1 | $1.35 | 035 |  |
+| jp | Japan | Asia / Eastern Asia | 73 | pending |  |  |  |  |  |  |  |
+| mo | Macao SAR | Asia / Eastern Asia | 19 | reviewed | 2026-10-07 | 19 | 0 |  | $0.32 |  |  |
+| mn | Mongolia | Asia / Eastern Asia | 19 | reviewed | 2026-10-07 | 76 | 0 |  | $1.08 | 010 035 |  |
+| kp | North Korea | Asia / Eastern Asia | 19 | reviewed | 2026-10-07 | 104 | 0 |  | $1.22 | 010 |  |
+| kr | South Korea | Asia / Eastern Asia | 58 | pending |  |  |  |  |  |  |  |
+| tw | Taiwan | Asia / Eastern Asia | 19 | reviewed | 2026-10-07 | 235 | 1 | P31 1 | $2.65 | 010 035 036 |  |
+| bn | Brunei | Asia / South-eastern Asia | 20 | reviewed | 2026-10-07 | 36 | 0 |  | $0.27 | 011 |  |
+| kh | Cambodia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-07 | 53 | 0 |  | $0.60 | 011 |  |
+| id | Indonesia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-07 | 15797 | 1 | P31 1 | $165.22 | 027 028 029 030 031 035 036 | large place: 4,032 held or categorised items asked ($165), 9,795 unheld skipped; 405 Kota/Kabupaten P1001s all matched |
+| la | Laos | Asia / South-eastern Asia | 20 | reviewed | 2026-10-07 | 38 | 0 |  | $0.37 | 011 |  |
+| my | Malaysia | Asia / South-eastern Asia | 20 | reviewed | 2026-10-07 | 415 | 0 |  | $6.43 | 011 035 |  |
+| mm | Myanmar | Asia / South-eastern Asia | 21 | reviewed | 2026-10-07 | 98 | 0 |  | $1.37 | 012 |  |
+| ph | Philippines | Asia / South-eastern Asia | 21 | reviewed | 2026-10-07 | 1371 | 0 |  | $1.18 | 012 |  |
+| sg | Singapore | Asia / South-eastern Asia | 21 | reviewed | 2026-10-07 | 65 | 0 |  | $0.66 | 012 035 |  |
+| th | Thailand | Asia / South-eastern Asia | 21 | reviewed | 2026-10-07 | 1924 | 1 | P31 1 | $7.17 | 017 036 | large place: 221 held or categorised items asked, 1,641 unheld skipped |
+| tl | Timor-Leste | Asia / South-eastern Asia | 21 | reviewed | 2026-10-07 | 55 | 1 | P31 1 | $0.25 | 012 036 |  |
+| vn | Vietnam | Asia / South-eastern Asia | 22 | reviewed | 2026-10-07 | 177 | 2 | P31 2 | $4.47 | 013 014 035 036 | predecessor list includes Kingdom of Kampuchea (inverse P156 via Q185682): no lines from it |
+| af | Afghanistan | Asia / Southern Asia | 22 | reviewed | 2026-10-07 | 136 | 0 |  | $0.94 | 013 |  |
+| bd | Bangladesh | Asia / Southern Asia | 22 | reviewed | 2026-10-07 | 104 | 0 |  | $1.50 | 013 035 |  |
+| bt | Bhutan | Asia / Southern Asia | 22 | reviewed | 2026-10-07 | 24 | 0 |  | $0.25 | 013 |  |
+| in | India | Asia / Southern Asia | 22 | reviewed | 2026-10-07 | 914 | 2 | P31 2 | $8.45 | 013 035 036 |  |
+| ir | Iran | Asia / Southern Asia | 0 | submitted | 2026-10-06 | 250 | 5 | P31 5 | $4.54 | 035 | QS 289594 |
+| mv | Maldives | Asia / Southern Asia | 23 | reviewed | 2026-10-07 | 61 | 0 |  | $0.60 | 015 035 |  |
+| np | Nepal | Asia / Southern Asia | 23 | reviewed | 2026-10-07 | 82 | 0 |  | $0.64 | 015 035 |  |
+| pk | Pakistan | Asia / Southern Asia | 23 | reviewed | 2026-10-07 | 289 | 2 | P31 2 | $2.24 | 015 035 036 |  |
+| lk | Sri Lanka | Asia / Southern Asia | 23 | reviewed | 2026-10-07 | 97 | 0 |  | $0.96 | 015 |  |
+| am | Armenia | Asia / Western Asia | 23 | reviewed | 2026-10-07 | 63 | 0 |  | $0.45 | 015 |  |
+| az | Azerbaijan | Asia / Western Asia | 24 | reviewed | 2026-10-07 | 232 | 0 |  | $2.95 | 016 |  |
+| bh | Bahrain | Asia / Western Asia | 0 | submitted | 2026-10-06 | 43 | 1 | P31 1 | $0.13 | 035 | QS 289594; re-run after the monarch fix: King of Bahrain now kept |
+| cy | Cyprus | Asia / Western Asia | 24 | reviewed | 2026-10-07 | 430 | 0 |  | $0.92 | 016 035 | 9 deputy ministers get generic deputy minister beside Cypriot deputy minister: one P279 on Q66126505 would do |
+| ge | Georgia | Asia / Western Asia | 24 | reviewed | 2026-10-07 | 399 | 0 |  | $1.75 | 016 |  |
+| iq | Iraq | Asia / Western Asia | 0 | submitted | 2026-10-07 | 130 | 0 |  | $3.38 | 002 006 035 | QS 289594 |
+| il | Israel | Asia / Western Asia | 48 | pending |  |  |  |  |  |  |  |
+| jo | Jordan | Asia / Western Asia | 0 | submitted | 2026-10-07 | 95 | 0 |  | $1.08 | 006 035 | QS 289594 |
+| kw | Kuwait | Asia / Western Asia | 0 | submitted | 2026-10-06 | 51 | 1 | P31 1 | $0.33 | 035 | QS 289594 |
+| lb | Lebanon | Asia / Western Asia | 0 | submitted | 2026-10-07 | 74 | 0 |  | $0.63 |  | QS 289594 |
+| om | Oman | Asia / Western Asia | 0 | submitted | 2026-10-07 | 44 | 0 |  | $0.29 |  | QS 289594 |
+| ps | Palestine | Asia / Western Asia | 24 | reviewed | 2026-10-07 | 302 | 2 | P31 2 | $3.09 | 016 036 |  |
+| qa | Qatar | Asia / Western Asia | 24 | reviewed | 2026-10-07 | 64 | 0 |  | $0.03 | 016 |  |
+| sa | Saudi Arabia | Asia / Western Asia | 0 | submitted | 2026-10-06 | 155 | 2 | P31 2 | $1.48 | 035 | QS 289594 |
+| sy | Syria | Asia / Western Asia | 25 | reviewed | 2026-10-07 | 84 | 0 |  | $0.77 | 023 |  |
+| tr | Türkiye | Asia / Western Asia | 53 | pending |  |  |  |  |  |  |  |
+| ae | United Arab Emirates | Asia / Western Asia | 0 | submitted | 2026-10-06 | 68 | 0 |  | $0.24 |  | QS 289594 |
+| ye | Yemen | Asia / Western Asia | 0 | submitted | 2026-10-07 | 152 | 1 | P31 1 | $2.03 | 036 | QS 289594 |
+| at | Austria | Europe / Central Europe | 47 | pending |  |  |  |  |  |  |  |
+| cz | Czechia | Europe / Central Europe | 44 | pending |  |  |  |  |  |  |  |
+| de | Germany | Europe / Central Europe | 70 | pending |  |  |  |  |  |  |  |
+| hu | Hungary | Europe / Central Europe | 57 | pending |  |  |  |  |  |  |  |
+| pl | Poland | Europe / Central Europe | 54 | pending |  |  |  |  |  |  |  |
+| si | Slovenia | Europe / Central Europe | 39 | pending |  |  |  |  |  |  |  |
+| by | Belarus | Europe / Eastern Europe | 0 | submitted | 2026-10-07 | 704 | 1 | P31 1 | $14.88 | 035 036 | QS 289589 |
+| bg | Bulgaria | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 429 | 0 |  | $1.86 | 032 035 |  |
+| md | Moldova | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 44 | 0 |  | $0.26 | 032 035 |  |
+| ro | Romania | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 3605 | 2 | P31 2 | $3.44 | 032 035 036 |  |
 | ru | Russia | Europe / Eastern Europe | 26 | skipped: curated by WikiProject EP |  |  |  |  |  |  | 1,778 items to ask (1,195 regional ministers missing P279); left to the WikiProject EP team (user, 2026-10-06) |
-| ua | Ukraine | Europe / Eastern Europe | 26 | reviewed | 2026-10-06 | 234 | 41 | P1001 21 P17 19 P279 1 | $2.07 | 032 |  |
+| sk | Slovakia | Europe / Eastern Europe | 42 | pending |  |  |  |  |  |  |  |
+| ua | Ukraine | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 234 | 0 |  | $2.07 | 032 |  |
+| dk | Denmark | Europe / Northern Europe | 61 | pending |  |  |  |  |  |  |  |
+| ee | Estonia | Europe / Northern Europe | 51 | pending |  |  |  |  |  |  |  |
 | fo | Faroe Islands | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 20 | 0 |  | $0.02 |  |  |
-| gg | Guernsey | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 10 | 1 | P1001 1 | $0.16 | 033 |  |
-| im | Isle of Man | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 22 | 1 | P1001 1 | $0.15 | 033 |  |
+| fi | Finland | Europe / Northern Europe | 55 | pending |  |  |  |  |  |  |  |
+| gg | Guernsey | Europe / Northern Europe | 27 | reviewed | 2026-10-07 | 10 | 0 |  | $0.16 | 033 035 |  |
+| is | Iceland | Europe / Northern Europe | 41 | pending |  |  |  |  |  |  |  |
+| ie | Ireland | Europe / Northern Europe | 46 | pending |  |  |  |  |  |  |  |
+| im | Isle of Man | Europe / Northern Europe | 27 | reviewed | 2026-10-07 | 22 | 0 |  | $0.15 | 033 035 |  |
 | je | Jersey | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 23 | 0 |  | $0.18 |  |  |
+| lv | Latvia | Europe / Northern Europe | 40 | pending |  |  |  |  |  |  |  |
+| lt | Lithuania | Europe / Northern Europe | 45 | pending |  |  |  |  |  |  |  |
+| no | Norway | Europe / Northern Europe | 63 | pending |  |  |  |  |  |  |  |
 | cq | Sark | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
 | sj | Svalbard and Jan Mayen | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
+| se | Sweden | Europe / Northern Europe | 68 | pending |  |  |  |  |  |  |  |
+| gb | United Kingdom | Europe / Northern Europe | 69 | pending |  |  |  |  |  |  |  |
 | ax | Åland Islands | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 10 | 0 |  | $0.00 |  |  |
-| al | Albania | Europe / Southern Europe | 28 | reviewed | 2026-10-06 | 93 | 16 | P1001 8 P17 6 P279 2 | $0.64 | 034 |  |
-| ad | Andorra | Europe / Southern Europe | 28 | reviewed | 2026-10-06 | 59 | 12 | P1001 5 P17 3 P279 4 | $0.37 | 034 |  |
-| ba | Bosnia and Herzegovina | Europe / Southern Europe | 28 | reviewed | 2026-10-06 | 61 | 14 | P1001 2 P17 10 P279 2 | $1.07 | 034 |  |
-| hr | Croatia | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 67 | 7 | P1001 2 P17 3 P279 2 | $0.46 | 024 |  |
-| gi | Gibraltar | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 18 | 0 |  | $0.04 |  |  |
-| va | Holy See | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 217 | 7 | P1001 1 P17 6 | $5.56 | 024 |  |
-| xk | Kosovo | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 44 | 4 | P1001 2 P17 2 | $0.40 | 024 |  |
-| mt | Malta | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 63 | 7 | P1001 1 P17 4 P279 2 | $0.41 | 024 |  |
-| me | Montenegro | Europe / Southern Europe | 30 | reviewed | 2026-10-06 | 51 | 9 | P1001 2 P17 5 P279 2 | $0.32 | 025 |  |
-| mk | North Macedonia | Europe / Southern Europe | 30 | reviewed | 2026-10-06 | 38 | 6 | P1001 2 P17 3 P279 1 | $0.13 | 025 |  |
-| sm | San Marino | Europe / Southern Europe | 30 | reviewed | 2026-10-06 | 20 | 9 | P1001 8 P17 1 | $0.22 | 025 |  |
-| rs | Serbia | Europe / Southern Europe | 30 | reviewed | 2026-10-06 | 77 | 7 | P17 5 P279 2 | $0.45 | 025 |  |
-| li | Liechtenstein | Europe / Western Europe | 30 | reviewed | 2026-10-06 | 26 | 3 | P1001 2 P17 1 | $0.12 | 025 |  |
-| mc | Monaco | Europe / Western Europe | 31 | reviewed | 2026-10-06 | 24 | 10 | P1001 4 P17 4 P279 2 | $0.27 | 026 |  |
+| al | Albania | Europe / Southern Europe | 28 | reviewed | 2026-10-07 | 93 | 15 | P1001 8 P17 5 P279 2 | $0.64 | 034 |  |
+| ad | Andorra | Europe / Southern Europe | 28 | reviewed | 2026-10-06 | 59 | 13 | P1001 5 P17 3 P279 4 P31 1 | $0.37 | 034 035 |  |
+| ba | Bosnia and Herzegovina | Europe / Southern Europe | 28 | reviewed | 2026-10-07 | 61 | 13 | P1001 2 P17 9 P279 2 | $1.07 | 034 035 |  |
+| hr | Croatia | Europe / Southern Europe | 29 | reviewed | 2026-10-07 | 67 | 0 |  | $0.46 | 024 035 |  |
+| gi | Gibraltar | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 18 | 1 | P31 1 | $0.04 | 035 |  |
+| gr | Greece | Europe / Southern Europe | 59 | pending |  |  |  |  |  |  |  |
+| va | Holy See | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 217 | 2 | P31 2 | $5.56 | 024 035 |  |
+| it | Italy | Europe / Southern Europe | 66 | pending |  |  |  |  |  |  |  |
+| xk | Kosovo | Europe / Southern Europe | 29 | reviewed | 2026-10-07 | 44 | 0 |  | $0.40 | 024 |  |
+| mt | Malta | Europe / Southern Europe | 29 | reviewed | 2026-10-07 | 63 | 0 |  | $0.41 | 024 035 |  |
+| me | Montenegro | Europe / Southern Europe | 30 | reviewed | 2026-10-07 | 51 | 0 |  | $0.32 | 025 |  |
+| mk | North Macedonia | Europe / Southern Europe | 30 | reviewed | 2026-10-07 | 38 | 0 |  | $0.13 | 025 |  |
+| pt | Portugal | Europe / Southern Europe | 60 | pending |  |  |  |  |  |  |  |
+| sm | San Marino | Europe / Southern Europe | 30 | reviewed | 2026-10-07 | 20 | 8 | P31 8 | $0.22 | 025 036 |  |
+| rs | Serbia | Europe / Southern Europe | 30 | reviewed | 2026-10-07 | 77 | 0 |  | $0.45 | 025 |  |
+| es | Spain | Europe / Southern Europe | 74 | pending |  |  |  |  |  |  |  |
+| be | Belgium | Europe / Western Europe | 64 | pending |  |  |  |  |  |  |  |
+| fr | France | Europe / Western Europe | 75 | pending |  |  |  |  |  |  |  |
+| li | Liechtenstein | Europe / Western Europe | 30 | reviewed | 2026-10-07 | 26 | 0 |  | $0.12 | 025 |  |
+| lu | Luxembourg | Europe / Western Europe | 50 | pending |  |  |  |  |  |  |  |
+| mc | Monaco | Europe / Western Europe | 31 | reviewed | 2026-10-07 | 24 | 0 |  | $0.27 | 026 |  |
+| nl | Netherlands | Europe / Western Europe | 72 | pending |  |  |  |  |  |  |  |
+| ch | Switzerland | Europe / Western Europe | 62 | pending |  |  |  |  |  |  |  |
+| au | Australia | Oceania / Australia and New Zealand | 65 | pending |  |  |  |  |  |  |  |
 | cx | Christmas Island | Oceania / Australia and New Zealand | 32 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | cc | Cocos (Keeling) Islands | Oceania / Australia and New Zealand | 37 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
+| nz | New Zealand | Oceania / Australia and New Zealand | 52 | pending |  |  |  |  |  |  |  |
 | nf | Norfolk Island | Oceania / Australia and New Zealand | 32 | reviewed | 2026-10-06 | 2 | 0 |  | $0.04 |  |  |
-| fj | Fiji | Oceania / Melanesia | 32 | reviewed | 2026-10-06 | 48 | 9 | P1001 5 P17 4 | $0.20 | 018 |  |
-| nc | New Caledonia | Oceania / Melanesia | 32 | reviewed | 2026-10-06 | 5 | 1 | P279 1 | $0.08 | 018 |  |
-| pg | Papua New Guinea | Oceania / Melanesia | 33 | reviewed | 2026-10-06 | 88 | 2 | P1001 2 | $0.26 | 019 |  |
-| sb | Solomon Islands | Oceania / Melanesia | 33 | reviewed | 2026-10-06 | 39 | 5 | P1001 3 P17 2 | $0.21 | 019 |  |
-| vu | Vanuatu | Oceania / Melanesia | 33 | reviewed | 2026-10-06 | 21 | 3 | P1001 1 P17 1 P279 1 | $0.06 | 019 |  |
+| fj | Fiji | Oceania / Melanesia | 32 | reviewed | 2026-10-07 | 48 | 0 |  | $0.20 | 018 |  |
+| nc | New Caledonia | Oceania / Melanesia | 32 | reviewed | 2026-10-07 | 5 | 0 |  | $0.08 | 018 |  |
+| pg | Papua New Guinea | Oceania / Melanesia | 33 | reviewed | 2026-10-07 | 88 | 0 |  | $0.26 | 019 |  |
+| sb | Solomon Islands | Oceania / Melanesia | 33 | reviewed | 2026-10-07 | 39 | 0 |  | $0.21 | 019 |  |
+| vu | Vanuatu | Oceania / Melanesia | 33 | reviewed | 2026-10-07 | 21 | 0 |  | $0.06 | 019 |  |
 | gu | Guam | Oceania / Micronesia | 33 | reviewed | 2026-10-06 | 4 | 0 |  | $0.04 |  |  |
-| ki | Kiribati | Oceania / Micronesia | 33 | reviewed | 2026-10-06 | 21 | 5 | P1001 1 P17 4 | $0.05 | 019 |  |
-| mh | Marshall Islands | Oceania / Micronesia | 34 | reviewed | 2026-10-06 | 15 | 3 | P17 2 P279 1 | $0.06 | 020 |  |
-| fm | Micronesia | Oceania / Micronesia | 34 | reviewed | 2026-10-06 | 22 | 6 | P1001 1 P17 5 | $0.16 | 020 |  |
-| nr | Naoero | Oceania / Micronesia | 34 | reviewed | 2026-10-06 | 64 | 8 | P1001 2 P17 3 P279 3 | $0.11 | 020 |  |
+| ki | Kiribati | Oceania / Micronesia | 33 | reviewed | 2026-10-07 | 21 | 0 |  | $0.05 | 019 |  |
+| mh | Marshall Islands | Oceania / Micronesia | 34 | reviewed | 2026-10-07 | 15 | 0 |  | $0.06 | 020 |  |
+| fm | Micronesia | Oceania / Micronesia | 34 | reviewed | 2026-10-07 | 22 | 1 | P31 1 | $0.16 | 020 036 |  |
+| nr | Naoero | Oceania / Micronesia | 34 | reviewed | 2026-10-07 | 64 | 0 |  | $0.11 | 020 |  |
 | mp | Northern Mariana Islands | Oceania / Micronesia | 34 | reviewed | 2026-10-06 | 2 | 0 |  | $0.00 |  |  |
-| pw | Palau | Oceania / Micronesia | 34 | reviewed | 2026-10-06 | 20 | 6 | P1001 4 P17 2 | $0.07 | 020 |  |
+| pw | Palau | Oceania / Micronesia | 34 | reviewed | 2026-10-07 | 20 | 0 |  | $0.07 | 020 |  |
 | as | American Samoa | Oceania / Polynesia | 35 | reviewed | 2026-10-06 | 3 | 0 |  | $0.00 |  |  |
 | ck | Cook Islands | Oceania / Polynesia | 35 | reviewed | 2026-10-06 | 6 | 0 |  | $0.05 |  |  |
 | pf | French Polynesia | Oceania / Polynesia | 35 | reviewed | 2026-10-06 | 10 | 0 |  | $0.04 |  |  |
-| nu | Niue | Oceania / Polynesia | 35 | reviewed | 2026-10-06 | 9 | 2 | P17 2 | $0.06 | 021 |  |
-| pn | Pitcairn | Oceania / Polynesia | 35 | reviewed | 2026-10-06 | 6 | 1 | P1001 1 | $0.05 | 021 |  |
-| ws | Samoa | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 26 | 7 | P1001 3 P17 3 P279 1 | $0.14 | 022 |  |
+| nu | Niue | Oceania / Polynesia | 35 | reviewed | 2026-10-07 | 9 | 0 |  | $0.06 | 021 |  |
+| pn | Pitcairn | Oceania / Polynesia | 35 | reviewed | 2026-10-07 | 6 | 0 |  | $0.05 | 021 |  |
+| ws | Samoa | Oceania / Polynesia | 36 | reviewed | 2026-10-07 | 26 | 0 |  | $0.14 | 022 |  |
 | tk | Tokelau | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 2 | 0 |  | $0.00 |  |  |
-| to | Tonga | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 34 | 8 | P1001 2 P17 6 | $0.11 | 022 |  |
-| tv | Tuvalu | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 26 | 4 | P1001 2 P17 1 P279 1 | $0.12 | 022 |  |
+| to | Tonga | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 33 | 2 | P31 2 | $0.11 | 022 035 |  |
+| tv | Tuvalu | Oceania / Polynesia | 36 | reviewed | 2026-10-07 | 26 | 0 |  | $0.12 | 022 |  |
 | wf | Wallis and Futuna | Oceania / Polynesia | 36 | reviewed | 2026-10-06 | 3 | 0 |  | $0.00 |  |  |

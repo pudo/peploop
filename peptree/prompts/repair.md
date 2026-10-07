@@ -43,7 +43,11 @@ signals, and only answers that pass are written.
    is clearly wrong, say so in `notes`.
 5. **Is this a specific office at all?** If the item turns out to be a generic
    class used worldwide, a Wikimedia list, an award or rank, or a body rather
-   than a seat in it, decline everything and say why in `notes`. A class of
+   than a seat in it, decline everything and say why in `notes`. An item
+   that describes the institution ("órgano", "agency", a logo and a website)
+   while people hold it as an office is a body that needs splitting, not
+   typing: decline P31 and P279, and answer P17 and P1001 as for the body.
+   A class of
    offices scoped to one country ("mayor of a place in <country>", which the
    individual mayoralties name as their class) is not an office either: when
    "type of position" is among the P31 candidates, that is its P31, never

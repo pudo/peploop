@@ -1,4 +1,4 @@
-"""Run peptree over every non-OECD country and territory, five at a time.
+"""Run peptree over every country and territory: five at a time, OECD members one by one.
 
 The ledger is `peptree/sweep.md`: one row per place, its batch, where it stands
 and what its run produced. It is what tells a session which batch is next and
@@ -25,9 +25,11 @@ from peptree import qs, repair, wd
 
 LEDGER = Path(__file__).resolve().parent / "sweep.md"
 BATCH_SIZE = 5
-#: OECD members are out of scope: their PEP coverage comes from other sources.
-OECD = frozenset("at au be ca ch cl co cr cz de dk ee es fi fr gb gr hu ie il is it jp kr lt lu lv mx nl no"
-                 " nz pl pt se si sk tr us".split())
+#: OECD members, each a batch of its own, smallest first by direct position items
+#: (2026-10-07: Costa Rica 53 … Spain 13,312; France timed out and goes last), so the
+#: method is tuned on a small state before a large municipal set costs anything.
+OECD = tuple("cr si lv is sk co cz lt ie at il cl lu ee nz tr pl fi mx hu kr gr pt dk ch no be au"
+             " it ca se gb de us nl jp es fr".split())
 #: Codes rigour gives places with no government of their own to hold office in: the
 #: uninhabited, a military base, a region of an OECD state, and the non-places.
 NO_OFFICES = frozenset("aq bv cp dg hm ic ip tf um zz eu un".split())
@@ -45,7 +47,7 @@ def universe() -> list[dict[str, str]]:
     """Every place in scope, ordered so neighbours share a batch."""
     out = []
     for t in get_territories():
-        if t.is_historical or not t.qid or len(t.code) != 2 or t.code in OECD | NO_OFFICES:
+        if t.is_historical or not t.qid or len(t.code) != 2 or t.code in NO_OFFICES:
             continue
         out.append({"cc": t.code, "name": t.name, "region": t.region or "", "subregion": t.subregion or ""})
     return sorted(out, key=lambda r: (r["region"], r["subregion"], r["name"]))
@@ -67,7 +69,8 @@ def read() -> dict[str, dict[str, str]]:
 def write(rows: list[dict[str, str]]) -> Path:
     done = Counter(r["status"].split(":")[0] for r in rows)
     head = ["# peptree sweep", "",
-            "Every non-OECD country and territory, in batches of five by region. Status is "
+            "Every country and territory: non-OECD places in batches of five by region, OECD members "
+            "in batches of one, smallest first. Status is "
             "`pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are "
             "written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.", "",
             "Progress: " + ", ".join(f"{k} {n}" for k, n in sorted(done.items())), "",
@@ -96,7 +99,13 @@ def plan() -> Path:
     n = max(taken, default=0)
     group: str | None = None
     filled = BATCH_SIZE
+    oecd = sorted((f for f in fresh if f[0]["cc"] in OECD), key=lambda f: OECD.index(f[0]["cc"]))
+    for p, row in oecd:
+        n += 1
+        row["batch"] = str(n)
     for p, row in fresh:
+        if p["cc"] in OECD:
+            continue
         if p["region"] != group or filled == BATCH_SIZE:
             n, filled, group = n + 1, 0, p["region"]
         row["batch"] = str(n)
