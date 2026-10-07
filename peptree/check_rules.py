@@ -61,8 +61,15 @@ def main() -> None:
            "low confidence skips")
     expect(rules.decide(slot(raion, "P1001", ["Q900001", "R1"], 1, quote="the Karelian chairman")) == ("skip", "no_quote"),
            "a paraphrase is not a quote")
-    expect(rules.decide(slot(raion, "P1001", ["Q900001", "R1"], 1, quote=quote, live_rev=2)) == ("skip", "revision_moved"),
-           "an item edited since load is not touched")
+    p17_moved = {**raion["entity"], "claims": {**raion["entity"]["claims"], "P17": [{"mainsnak": {"datavalue": {"value": {"id": "Q9"}}}}]}}
+    expect(rules.decide(slot(raion, "P1001", ["Q900001", "R1"], 1, quote=quote, live_rev=2, live=p17_moved))
+           == ("skip", "revision_moved"), "an item edited where the slot looks since load is not touched")
+    listed = {**raion["entity"], "sitelinks": {"eswiki": {"title": "Anexo:Presidentes del distrito"}}}
+    expect(rules.decide(slot(raion, "P31", ["Q294414"], 0, quote=quote, live=listed))[1] == "p31_list_article",
+           "a list article's item is not typed an office")
+    p31_moved = {**raion["entity"], "claims": {**raion["entity"]["claims"], "P31": [{"mainsnak": {"datavalue": {"value": {"id": "Q9"}}}}]}}
+    expect(rules.decide(slot(raion, "P1001", ["Q900001", "Q900020", "R1"], 2, quote=quote, live_rev=2, live=p31_moved))
+           == ("apply", "two_channels"), "an edit elsewhere on the item (a landed P31) leaves a P1001 slot standing")
     moved = ent({"xa": quote}, P1001=["R1"])
     expect(rules.decide(slot(raion, "P1001", ["Q900001", "R1"], 1, quote=quote, live=moved)) == ("skip", "present_now"),
            "a property that appeared live is not added")

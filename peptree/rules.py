@@ -62,6 +62,24 @@ def era_mismatch(slot: Slot) -> bool:
     return slot.prop in ("P17", "P1001") and slot.facts is not None and not signals.era_ok(slot.facts, slot.value)
 
 
+#: Properties whose answers are read together: a slot is stale when any of its group moved.
+GROUPS = ({"P17", "P1001"}, {"P31", "P279"})
+
+
+def _claims(entity: dict[str, Any], props: set[str]) -> dict[str, list[str]]:
+    return {p: sorted(repr((c.get("mainsnak", {}).get("datavalue"), c.get("rank")))
+                      for c in entity.get("claims", {}).get(p, [])) for p in props}
+
+
+def _moved(slot: Slot) -> bool:
+    """Whether the item changed where this slot looks. A landed P1001 moves the
+    revision of every item it touched, and must not leave its P31 slot stale forever."""
+    if slot.facts is None or slot.live_entity is None:
+        return True
+    group = next((g for g in GROUPS if slot.prop in g), {slot.prop})
+    return _claims(slot.facts.item["entity"], group) != _claims(slot.live_entity, group)
+
+
 def _in_range(slot: Slot) -> bool:
     c = slot.answer.get("choice")
     return isinstance(c, int) and 0 <= c < len(slot.candidates)
@@ -95,10 +113,21 @@ def _is_class(slot: Slot) -> bool:
     return slot.facts is not None and slot.qid in slot.facts.classes and not slot.facts.item.get("holders")
 
 
+#: Sitelink titles of a list article ("Anexo:Ministros de Agricultura de Ecuador").
+LIST_TITLE = re.compile(r"^(Anexo:|Annexe:|Daftar |List of |Liste |Lista |Список )", re.I)
+
+
+def _list_article(slot: Slot) -> bool:
+    """An item whose every article is a list of holders: an office only by use, a list by
+    origin, and a type written onto it settles which one it is."""
+    links = (slot.live_entity or {}).get("sitelinks", {})
+    return bool(links) and all(LIST_TITLE.match(sl.get("title", "")) for sl in links.values())
+
+
 #: (rule, predicate, disposition). First match wins.
 RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     ("item_gone", lambda s: s.live_entity is None, "skip"),
-    ("revision_moved", lambda s: s.live_rev != s.load_rev, "skip"),
+    ("revision_moved", lambda s: s.live_rev != s.load_rev and _moved(s), "skip"),
     ("declined", lambda s: s.answer.get("choice") is None, "skip"),
     ("bad_index", lambda s: not _in_range(s), "skip"),
     ("present_now", _present_now, "skip"),
@@ -121,6 +150,7 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     # outside the position tree, takes the model's metaclass on the state-office channel.
     ("p31_typed_elsewhere", lambda s: s.prop == "P31" and not _strong_p31(s) and s.facts is not None
      and s.qid in s.facts.positioned, "skip"),
+    ("p31_list_article", lambda s: s.prop == "P31" and _list_article(s), "skip"),
     ("p31_weak_channel", lambda s: s.prop == "P31" and not _strong_p31(s) and "state_office" not in s.channels, "skip"),
     ("two_channels", lambda s: bool(s.channels), "apply"),
     ("one_channel", lambda s: True, "skip"),
