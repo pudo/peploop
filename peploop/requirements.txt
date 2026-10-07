@@ -3,7 +3,7 @@
 #   python -m venv .venv && .venv/bin/pip install -r peploop/requirements.txt
 # Postgres needs the pg_trgm extension available (schema.sql creates it).
 requests==2.34.2
-urllib3==2.7.0
+urllib3==2.8.0
 rigour==2.5.0
 normality==3.1.0
 psycopg[binary]==3.3.4
