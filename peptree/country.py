@@ -857,6 +857,18 @@ def learn_level_words(c: Country, items: list[dict[str, Any]], places: list[dict
             if len(qs) >= LEARN_MIN and len(qs) / total >= LEARN_SHARE:
                 learned.setdefault(t, set()).add(w)
     c.learned_words = {t: sorted(ws) for t, ws in learned.items()}
+    # A word the state's own offices use names the state's level, not a lower one:
+    # "federal" comes with "federal state of Austria", and the Federal President
+    # and Chancellor read as provincial offices until it goes.
+    by_office = [[tokens(o["value"]) for o in it["entity"].get("labels", {}).values()]
+                 for it in items if _qids(it["entity"], "P1001") == [c.qid]]
+
+    def national_word(w: str) -> bool:
+        return sum(any(word_match(t, w, ending=False) for toks in labels for t in toks)
+                   for labels in by_office) >= LEARN_MIN
+    c.type_words = {t: [w for w in ws if not national_word(w)] for t, ws in c.type_words.items()}
+    c.learned_words = {t: [w for w in ws if not national_word(w)] for t, ws in c.learned_words.items()}
+    c.learned_words = {t: ws for t, ws in c.learned_words.items() if ws}
     return c.learned_words
 
 

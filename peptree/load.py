@@ -145,8 +145,14 @@ OUTBOUND = """SELECT DISTINCT ?pos WHERE { ?cls wdt:P279 wd:Q29645880 ; wdt:P17 
   { ?pos p:P279/ps:P279 ?cls } UNION { ?pos p:P31/ps:P31 ?cls } }"""
 #: Two simple shapes: a predecessor's own scope, and the federation's offices
 #: whose label names the country. One query with both and a typed-or-held join 504s.
+#: A predecessor's scope is read three times, once per shape the filter keeps:
+#: typed a position, a subclass of one, or held. Unfiltered, Austria-Hungary's
+#: scope is 27,380 villages, newspapers and censuses around 129 offices.
 PREDECESSOR = """SELECT DISTINCT ?pos WHERE { VALUES ?r { %(r)s }
-  { ?pos p:P17/ps:P17 ?r } UNION { ?pos p:P1001/ps:P1001 ?r } }"""
+  { ?pos p:P17/ps:P17 ?r } UNION { ?pos p:P1001/ps:P1001 ?r } %(shape)s }"""
+PREDECESSOR_SHAPES = ("?pos p:P31/ps:P31/wdt:P279* wd:Q4164871 .",
+                      "?pos p:P279/ps:P279/wdt:P279* wd:Q4164871 .",
+                      "?h p:P39/ps:P39 ?pos .")
 PREDECESSOR_UNION = """SELECT DISTINCT ?pos WHERE { ?pos p:P17/ps:P17 wd:%(u)s .
   ?pos p:P31/ps:P31/wdt:P279* wd:Q4164871 . ?pos rdfs:label ?l . FILTER(REGEX(?l, "%(re)s", "i")) }"""
 
@@ -158,7 +164,8 @@ def discover(c: countries.Country, log: Callable[[str], None]) -> dict[str, list
     """Run the lanes; return each item with the lanes that found it."""
     queries = [("descent", DESCENT, {}), ("usage", USAGE, {}), ("orphan", ORPHAN, {}), ("outbound", OUTBOUND, {})]
     if c.predecessors:
-        queries.append(("predecessor", PREDECESSOR, {"r": wd.values_block(sorted(c.predecessors))}))
+        for shape in PREDECESSOR_SHAPES:
+            queries.append(("predecessor", PREDECESSOR, {"r": wd.values_block(sorted(c.predecessors)), "shape": shape}))
         regex = countries.sparql_name_regex(c)
         for u in sorted(c.unions):
             if regex:

@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
 
-Progress: pending 27, reviewed 177, skipped 1, submitted 43
+Progress: pending 26, reviewed 178, skipped 1, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | chunks | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -162,7 +162,7 @@ Progress: pending 27, reviewed 177, skipped 1, submitted 43
 | cy | Cyprus | Asia / Western Asia | 24 | reviewed | 2026-10-07 | 430 | 0 |  | $0.92 | 016 035 | 9 deputy ministers get generic deputy minister beside Cypriot deputy minister: one P279 on Q66126505 would do |
 | ge | Georgia | Asia / Western Asia | 24 | reviewed | 2026-10-07 | 399 | 0 |  | $1.75 | 016 |  |
 | iq | Iraq | Asia / Western Asia | 0 | submitted | 2026-10-07 | 130 | 0 |  | $3.38 | 002 006 035 | QS 289594 |
-| il | Israel | Asia / Western Asia | 48 | reviewed | 2026-10-07 | 315 | 50 | P1001 21 P17 15 P279 10 P31 4 | $2.69 |  | strike Q139083417 P17 (a CV entry: Head Radiologist, Maccabi Haifa F.C.) before pasting; 4 sibling CV entries now skipped (non-state words); Q12409993 Deputy Minister sits under Assistant Secretary, as Cyprus |
+| il | Israel | Asia / Western Asia | 48 | reviewed | 2026-10-07 | 315 | 50 | P1001 21 P17 15 P279 10 P31 4 | $2.69 | 047 | strike Q139083417 P17 (a CV entry: Head Radiologist, Maccabi Haifa F.C.) before pasting; 4 sibling CV entries now skipped (non-state words); Q12409993 Deputy Minister sits under Assistant Secretary, as Cyprus |
 | jo | Jordan | Asia / Western Asia | 0 | submitted | 2026-10-07 | 95 | 0 |  | $1.08 | 006 035 | QS 289594 |
 | kw | Kuwait | Asia / Western Asia | 0 | submitted | 2026-10-06 | 51 | 1 | P31 1 | $0.33 | 035 | QS 289594 |
 | lb | Lebanon | Asia / Western Asia | 0 | submitted | 2026-10-07 | 74 | 0 |  | $0.63 |  | QS 289594 |
@@ -174,7 +174,7 @@ Progress: pending 27, reviewed 177, skipped 1, submitted 43
 | tr | Türkiye | Asia / Western Asia | 53 | pending |  |  |  |  |  |  |  |
 | ae | United Arab Emirates | Asia / Western Asia | 0 | submitted | 2026-10-06 | 68 | 0 |  | $0.24 |  | QS 289594 |
 | ye | Yemen | Asia / Western Asia | 0 | submitted | 2026-10-07 | 152 | 1 | P31 1 | $2.03 | 036 | QS 289594 |
-| at | Austria | Europe / Central Europe | 47 | pending |  |  |  |  |  |  |  |
+| at | Austria | Europe / Central Europe | 47 | reviewed | 2026-10-07 | 181 | 22 | P1001 8 P17 10 P279 3 P31 1 | $1.94 |  | predecessor lane was 27,380 Austria-Hungary items (villages, newspapers), now typed/subclass/held only: 162; 'federal' (from Bundesland) read the Federal President and Chancellor as provincial: level words the state's own offices use are dropped |
 | cz | Czechia | Europe / Central Europe | 44 | reviewed | 2026-10-07 | 179 | 26 | P1001 17 P17 8 P279 1 | $1.52 | 043 | 1,550 Czechoslovak legal acts dropped (written work); class lines follow the 31/38 'mayor of a place in X' P1001 convention; Q135399028 (SAC judge class) wants P279 national supreme court judge, as Cyprus |
 | de | Germany | Europe / Central Europe | 70 | pending |  |  |  |  |  |  |  |
 | hu | Hungary | Europe / Central Europe | 57 | pending |  |  |  |  |  |  |  |

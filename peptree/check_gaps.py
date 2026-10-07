@@ -137,6 +137,13 @@ def learned() -> None:
     expect(words == {DISTRICT: ["raionic"]}, "the word after the place's name, in three offices of one type, is learned, whole")
     expect(country.level_types(xx, "deputy chairman of the Zenda Raionic Council") >= {DISTRICT},
            "and then names that level in another label")
+    federal = replace(XX, type_words={**XX.type_words, "Q900010": ["region", "federal"]})
+    heads = [item(f"Q5{i}", "national", ent({"en": f"Federal {t} of Ruritania"}, P1001=[XX.qid]))
+             for i, t in enumerate(("President", "Chancellor", "Minister of Finance"))]
+    country.learn_level_words(federal, heads + offices, list(PLACES.places.values()))
+    expect(country.level_types(federal, "Federal President of Ruritania") == set()
+           and country.level_types(federal, "Governor of the Zenda Region") == {"Q900010"},
+           "a word three of the state's own offices use is not a level word ('federal state')")
     two = country.learn_level_words(replace(XX), offices[:2], list(PLACES.places.values()))
     expect(two == {}, "two offices teach nothing")
     expect(country.stems("Ruritanian PR") == {"ruritani", "pr"} and country.stems("pr of x") == set(),
