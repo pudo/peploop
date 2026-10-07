@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
 
-Progress: pending 37, reviewed 167, skipped 1, submitted 43
+Progress: pending 30, reviewed 174, skipped 1, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | chunks | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -96,7 +96,7 @@ Progress: pending 37, reviewed 167, skipped 1, submitted 43
 | tc | Turks and Caicos Islands | Americas / Caribbean | 0 | submitted | 2026-10-06 | 15 | 0 |  | $0.16 |  | QS 289612 |
 | vi | U.S. Virgin Islands | Americas / Caribbean | 0 | submitted | 2026-10-06 | 4 | 0 |  | $0.06 |  | QS 289612 |
 | bz | Belize | Americas / Central America | 0 | submitted | 2026-10-06 | 60 | 0 |  | $0.29 |  | QS 289612 |
-| cr | Costa Rica | Americas / Central America | 38 | reviewed | 2026-10-07 | 48 | 18 | P1001 1 P17 17 | $0.94 |  | Q5801373 Defensoría: an institution held as an office; P31 declined (prompt rule 5: conflated body), wants splitting |
+| cr | Costa Rica | Americas / Central America | 38 | reviewed | 2026-10-07 | 48 | 18 | P1001 1 P17 17 | $0.94 | 037 | Q5801373 Defensoría: an institution held as an office; P31 declined (prompt rule 5: conflated body), wants splitting |
 | sv | El Salvador | Americas / Central America | 14 | reviewed | 2026-10-07 | 172 | 0 |  | $2.35 | 003 |  |
 | gt | Guatemala | Americas / Central America | 14 | reviewed | 2026-10-07 | 40 | 0 |  | $0.38 | 003 |  |
 | hn | Honduras | Americas / Central America | 14 | reviewed | 2026-10-07 | 40 | 0 |  | $0.33 | 003 |  |
@@ -112,7 +112,7 @@ Progress: pending 37, reviewed 167, skipped 1, submitted 43
 | bo | Bolivia | Americas / South America | 15 | reviewed | 2026-10-07 | 58 | 0 |  | $0.62 | 004 035 |  |
 | br | Brazil | Americas / South America | 16 | reviewed | 2026-10-07 | 5812 | 1 | P31 1 | $22.24 | 005 035 036 | 4271 type/class-swapped mayoralties left alone (inverted); $22 for 46 lines |
 | cl | Chile | Americas / South America | 49 | pending |  |  |  |  |  |  |  |
-| co | Colombia | Americas / South America | 43 | pending |  |  |  |  |  |  |  |
+| co | Colombia | Americas / South America | 43 | reviewed | 2026-10-07 | 200 | 42 | P1001 11 P17 20 P279 5 P31 6 | $1.68 | 042 | for a human: Q5707799 en label vandalised ('Lisa solo', the 1991 Constituent Assembly); Q110567947 and Q113993307 are one office (Chamber president), merge candidate |
 | ec | Ecuador | Americas / South America | 16 | reviewed | 2026-10-07 | 64 | 1 | P31 1 | $0.58 | 005 036 |  |
 | fk | Falkland Islands | Americas / South America | 16 | reviewed | 2026-10-06 | 4 | 0 |  | $0.02 |  |  |
 | gf | French Guiana | Americas / South America | 16 | reviewed | 2026-10-06 | 4 | 0 |  | $0.02 |  |  |
@@ -175,29 +175,29 @@ Progress: pending 37, reviewed 167, skipped 1, submitted 43
 | ae | United Arab Emirates | Asia / Western Asia | 0 | submitted | 2026-10-06 | 68 | 0 |  | $0.24 |  | QS 289594 |
 | ye | Yemen | Asia / Western Asia | 0 | submitted | 2026-10-07 | 152 | 1 | P31 1 | $2.03 | 036 | QS 289594 |
 | at | Austria | Europe / Central Europe | 47 | pending |  |  |  |  |  |  |  |
-| cz | Czechia | Europe / Central Europe | 44 | pending |  |  |  |  |  |  |  |
+| cz | Czechia | Europe / Central Europe | 44 | reviewed | 2026-10-07 | 179 | 26 | P1001 17 P17 8 P279 1 | $1.52 | 043 | 1,550 Czechoslovak legal acts dropped (written work); class lines follow the 31/38 'mayor of a place in X' P1001 convention; Q135399028 (SAC judge class) wants P279 national supreme court judge, as Cyprus |
 | de | Germany | Europe / Central Europe | 70 | pending |  |  |  |  |  |  |  |
 | hu | Hungary | Europe / Central Europe | 57 | pending |  |  |  |  |  |  |  |
 | pl | Poland | Europe / Central Europe | 54 | pending |  |  |  |  |  |  |  |
-| si | Slovenia | Europe / Central Europe | 39 | pending |  |  |  |  |  |  |  |
+| si | Slovenia | Europe / Central Europe | 39 | reviewed | 2026-10-07 | 51 | 14 | P1001 3 P17 6 P279 2 P31 3 | $0.60 | 038 |  |
 | by | Belarus | Europe / Eastern Europe | 0 | submitted | 2026-10-07 | 704 | 1 | P31 1 | $14.88 | 035 036 | QS 289589 |
 | bg | Bulgaria | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 429 | 0 |  | $1.86 | 032 035 |  |
 | md | Moldova | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 44 | 0 |  | $0.26 | 032 035 |  |
 | ro | Romania | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 3605 | 2 | P31 2 | $3.44 | 032 035 036 |  |
 | ru | Russia | Europe / Eastern Europe | 26 | skipped: curated by WikiProject EP |  |  |  |  |  |  | 1,778 items to ask (1,195 regional ministers missing P279); left to the WikiProject EP team (user, 2026-10-06) |
-| sk | Slovakia | Europe / Eastern Europe | 42 | pending |  |  |  |  |  |  |  |
+| sk | Slovakia | Europe / Eastern Europe | 42 | reviewed | 2026-10-07 | 80 | 7 | P1001 3 P17 1 P279 3 | $0.62 | 041 | PM of Slovakia read as a predecessor office (P17 also Czechoslovakia 1969-92): the state's own scope now wins in load.classify |
 | ua | Ukraine | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 234 | 0 |  | $2.07 | 032 |  |
 | dk | Denmark | Europe / Northern Europe | 61 | pending |  |  |  |  |  |  |  |
 | ee | Estonia | Europe / Northern Europe | 51 | pending |  |  |  |  |  |  |  |
 | fo | Faroe Islands | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 20 | 0 |  | $0.02 |  |  |
 | fi | Finland | Europe / Northern Europe | 55 | pending |  |  |  |  |  |  |  |
 | gg | Guernsey | Europe / Northern Europe | 27 | reviewed | 2026-10-07 | 10 | 0 |  | $0.16 | 033 035 |  |
-| is | Iceland | Europe / Northern Europe | 41 | pending |  |  |  |  |  |  |  |
+| is | Iceland | Europe / Northern Europe | 41 | reviewed | 2026-10-07 | 192 | 22 | P1001 5 P17 2 P279 15 | $0.87 | 040 | Kópavogur flag is a false alarm (town under the 100k gazetteer floor, P131 agrees); 9 ministers get bare 'minister' where the pool had nothing finer |
 | ie | Ireland | Europe / Northern Europe | 46 | pending |  |  |  |  |  |  |  |
 | im | Isle of Man | Europe / Northern Europe | 27 | reviewed | 2026-10-07 | 22 | 0 |  | $0.15 | 033 035 |  |
 | je | Jersey | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 23 | 0 |  | $0.18 |  |  |
-| lv | Latvia | Europe / Northern Europe | 40 | pending |  |  |  |  |  |  |  |
-| lt | Lithuania | Europe / Northern Europe | 45 | pending |  |  |  |  |  |  |  |
+| lv | Latvia | Europe / Northern Europe | 40 | reviewed | 2026-10-07 | 65 | 9 | P1001 4 P17 4 P279 1 | $0.41 | 039 | Q4479445 Constitutional Assembly: a body held in P39; P1001 only |
+| lt | Lithuania | Europe / Northern Europe | 45 | reviewed | 2026-10-07 | 184 | 5 | P1001 3 P17 1 P31 1 | $0.50 |  |  |
 | no | Norway | Europe / Northern Europe | 63 | pending |  |  |  |  |  |  |  |
 | cq | Sark | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
 | sj | Svalbard and Jan Mayen | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
