@@ -364,8 +364,9 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     local = p1001 - {c.qid} if territorial is None else (p1001 & territorial) - {c.qid}
     if outbound:
         kind = "ambassador"
-    elif scope & (set(c.predecessors) | c.unions) or (
-            c.qid not in scope and countries.named_predecessor(c, labels)):  # the state's own scope wins
+    # The state's own scope wins: Prime Minister of Slovakia names Czechoslovakia
+    # for 1969-1992 beside Slovakia, and is the state's office, not a predecessor's.
+    elif c.qid not in scope and (scope & (set(c.predecessors) | c.unions) or countries.named_predecessor(c, labels)):
         kind = "predecessor"
     elif local - c.home or countries.label_level(c, labels) or countries.is_mayor(c, labels) \
             or names_city(c, own_labels(c, entity), cities or []):

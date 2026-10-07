@@ -107,6 +107,8 @@ def main() -> None:
            "the state's own P1001 wins over a predecessor's name in the label")
     expect(drop(ent({"en": "x"}, P31=["Q294414"], P17=["Q900003"]))[2] == "predecessor",
            "an office scoped to the federation is a predecessor office")
+    expect(drop(ent({"en": "x"}, P31=["Q294414"], P17=["Q900001", "Q900003"]))[2] == "national",
+           "an office scoped to the state and the federation is the state's")
     raion = ent({"en": "chairman of the Zenda District Executive Committee"}, P17=["Q900001"])
     expect(drop(raion)[2] == "subnational", "a district office is subnational by its label's level word")
     fixes()
