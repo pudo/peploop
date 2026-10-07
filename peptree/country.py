@@ -41,7 +41,8 @@ LIST_CLASS = "Q13406463"  # Wikimedia list article: "list of districts of X" is 
 CONCEPTS = {
     "deputy": ("Q3250324", "Q21814496"),  # deputy, first deputy
     "diplomatic": ("Q121998", "Q19356884", "Q11051391"),  # ambassador, permanent representative, envoy
-    "non_state": ("Q7278", "Q178790", "Q783794", "Q15911314", "Q2485448"),  # party, union, company, association, sports body
+    # party, union, company, association, sports body, university, hospital, sports club
+    "non_state": ("Q7278", "Q178790", "Q783794", "Q15911314", "Q2485448", "Q3918", "Q16917", "Q847017"),
     "consular": ("Q207978", "Q1075179"),  # consul, honorary consul
     "mayor": ("Q30185",),  # mayor
     # office, department, secretariat, executive office, administration, ministry, government agency
@@ -53,7 +54,8 @@ CONCEPTS = {
 ENGLISH = {
     "deputy": ("deputy", "vice", "first deputy"),
     "diplomatic": ("ambassador", "permanent representative", "envoy"),
-    "non_state": ("party", "trade union", "company", "association", "federation", "transitional"),
+    "non_state": ("party", "trade union", "company", "association", "federation", "transitional",
+                  "university", "hospital", "club"),
     "consular": ("consul", "consul general", "honorary consul", "vice consul"),
     "mayor": ("mayor",),
     "body": ("office", "staff", "administration", "secretariat", "ministry", "department", "executive office",
@@ -693,7 +695,7 @@ def config(cc: str) -> dict[str, Any]:
                 "type_words": type_words, "type_terms": type_terms, "subdivisions": sub,
                 "spans": state_spans(qid, preds), "admin_words": admin}
 
-    return wd.cached(f"country3:{cc}", fetch)
+    return wd.cached(f"country4:{cc}", fetch)
 
 
 _loaded: dict[str, Country] = {}

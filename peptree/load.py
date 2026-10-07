@@ -20,6 +20,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Callable
 
+import requests
 from psycopg.types.json import Jsonb
 
 from peptree import country as countries
@@ -479,11 +480,25 @@ def inside_places(c: countries.Country, stored: list[dict[str, Any]]) -> set[str
     inside = set(c.home) | fixed
     scopes = sorted({v for it in stored for p in ("P17", "P1001") for v in values(it["entity"], p)} - inside)
     for chunk in wd.values_chunks(scopes, 50):
-        found = wd.cached("scope_up:" + "|".join(chunk), lambda chunk=chunk: {
-            q: {"P17": values(e, "P17"), "P131": values(e, "P131")}
-            for q, e in wd.fetch_items(chunk, props="claims").items()})
+        found = wd.cached("scope_up:" + "|".join(chunk), lambda chunk=chunk: _scope_up(chunk))
         inside |= {q for q, up in found.items() if set(up["P17"]) & c.home or set(up["P131"]) & inside}
     return inside
+
+
+def _scope_up(qids: list[str]) -> dict[str, dict[str, list[str]]]:
+    """`P17` and `P131` of each place, halving a request whose response is cut off.
+
+    Fifty places can include Jerusalem, Israel and the West Bank, whose claims
+    together outgrow what the API finishes sending: the same chunk fails every time.
+    """
+    try:
+        return {q: {"P17": values(e, "P17"), "P131": values(e, "P131")}
+                for q, e in wd.fetch_items(qids, props="claims").items()}
+    except requests.exceptions.ChunkedEncodingError:
+        if len(qids) == 1:
+            raise
+        half = len(qids) // 2
+        return {**_scope_up(qids[:half]), **_scope_up(qids[half:])}
 
 
 def _cached_edges(qids: list[str]) -> dict[str, list[str]]:

@@ -202,6 +202,12 @@ def eras() -> None:
     city_facts = facts(item("Q59", "subnational", ent({"en": "Mayor of Zendaborg"})))
     city_facts.places = signals.Places(list(PLACES.places.values()) + CITY_PLACES)
     expect(signals.expected_label("P1001", city_facts) == {"C1"}, "a mayor's label names its city as the jurisdiction")
+    union = facts(item("Q60", "subnational", ent({"en": "Chair of the Zendaborg Trade Union"})))
+    union.places = city_facts.places
+    town = facts(item("Q61", "subnational", ent({"en": "Chair of the Zendaborg Council"})))
+    town.places = city_facts.places
+    expect(signals.expected_label("P17", town) == {"Q900001"} and signals.expected_label("P17", union) is None,
+           "a place puts an office in its state, but not a trade union's or a club's office")
     mayor = item("Q58", "subnational", ent({"en": "Mayor of Zendaborg"}))
     msg = "## Article lead\nThe Äkim (local: әкім) of Zendaborg is the chief authority in the city."
     escaped = "The \\u00c4kim (local: \\u04d9\\u043a\\u0456\\u043c) of Zendaborg\x07 is the chief authority"

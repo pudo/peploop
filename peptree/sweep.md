@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.
 
-Progress: pending 30, reviewed 174, skipped 1, submitted 43
+Progress: pending 27, reviewed 177, skipped 1, submitted 43
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | chunks | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -111,7 +111,7 @@ Progress: pending 30, reviewed 174, skipped 1, submitted 43
 | ar | Argentina | Americas / South America | 15 | reviewed | 2026-10-07 | 261 | 0 |  | $1.28 | 004 035 |  |
 | bo | Bolivia | Americas / South America | 15 | reviewed | 2026-10-07 | 58 | 0 |  | $0.62 | 004 035 |  |
 | br | Brazil | Americas / South America | 16 | reviewed | 2026-10-07 | 5812 | 1 | P31 1 | $22.24 | 005 035 036 | 4271 type/class-swapped mayoralties left alone (inverted); $22 for 46 lines |
-| cl | Chile | Americas / South America | 49 | pending |  |  |  |  |  |  |  |
+| cl | Chile | Americas / South America | 49 | reviewed | 2026-10-07 | 235 | 32 | P1001 23 P17 5 P279 1 P31 3 | $1.38 | 046 |  |
 | co | Colombia | Americas / South America | 43 | reviewed | 2026-10-07 | 200 | 42 | P1001 11 P17 20 P279 5 P31 6 | $1.68 | 042 | for a human: Q5707799 en label vandalised ('Lisa solo', the 1991 Constituent Assembly); Q110567947 and Q113993307 are one office (Chamber president), merge candidate |
 | ec | Ecuador | Americas / South America | 16 | reviewed | 2026-10-07 | 64 | 1 | P31 1 | $0.58 | 005 036 |  |
 | fk | Falkland Islands | Americas / South America | 16 | reviewed | 2026-10-06 | 4 | 0 |  | $0.02 |  |  |
@@ -162,7 +162,7 @@ Progress: pending 30, reviewed 174, skipped 1, submitted 43
 | cy | Cyprus | Asia / Western Asia | 24 | reviewed | 2026-10-07 | 430 | 0 |  | $0.92 | 016 035 | 9 deputy ministers get generic deputy minister beside Cypriot deputy minister: one P279 on Q66126505 would do |
 | ge | Georgia | Asia / Western Asia | 24 | reviewed | 2026-10-07 | 399 | 0 |  | $1.75 | 016 |  |
 | iq | Iraq | Asia / Western Asia | 0 | submitted | 2026-10-07 | 130 | 0 |  | $3.38 | 002 006 035 | QS 289594 |
-| il | Israel | Asia / Western Asia | 48 | pending |  |  |  |  |  |  |  |
+| il | Israel | Asia / Western Asia | 48 | reviewed | 2026-10-07 | 315 | 50 | P1001 21 P17 15 P279 10 P31 4 | $2.69 |  | strike Q139083417 P17 (a CV entry: Head Radiologist, Maccabi Haifa F.C.) before pasting; 4 sibling CV entries now skipped (non-state words); Q12409993 Deputy Minister sits under Assistant Secretary, as Cyprus |
 | jo | Jordan | Asia / Western Asia | 0 | submitted | 2026-10-07 | 95 | 0 |  | $1.08 | 006 035 | QS 289594 |
 | kw | Kuwait | Asia / Western Asia | 0 | submitted | 2026-10-06 | 51 | 1 | P31 1 | $0.33 | 035 | QS 289594 |
 | lb | Lebanon | Asia / Western Asia | 0 | submitted | 2026-10-07 | 74 | 0 |  | $0.63 |  | QS 289594 |
@@ -193,11 +193,11 @@ Progress: pending 30, reviewed 174, skipped 1, submitted 43
 | fi | Finland | Europe / Northern Europe | 55 | pending |  |  |  |  |  |  |  |
 | gg | Guernsey | Europe / Northern Europe | 27 | reviewed | 2026-10-07 | 10 | 0 |  | $0.16 | 033 035 |  |
 | is | Iceland | Europe / Northern Europe | 41 | reviewed | 2026-10-07 | 192 | 22 | P1001 5 P17 2 P279 15 | $0.87 | 040 | Kópavogur flag is a false alarm (town under the 100k gazetteer floor, P131 agrees); 9 ministers get bare 'minister' where the pool had nothing finer |
-| ie | Ireland | Europe / Northern Europe | 46 | pending |  |  |  |  |  |  |  |
+| ie | Ireland | Europe / Northern Europe | 46 | reviewed | 2026-10-07 | 245 | 36 | P1001 8 P17 17 P279 3 P31 8 | $2.29 | 045 | Bishop of Kilmore gets P17 Ireland only; its diocese Q870554 is cross-border (Ireland + UK) |
 | im | Isle of Man | Europe / Northern Europe | 27 | reviewed | 2026-10-07 | 22 | 0 |  | $0.15 | 033 035 |  |
 | je | Jersey | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 23 | 0 |  | $0.18 |  |  |
 | lv | Latvia | Europe / Northern Europe | 40 | reviewed | 2026-10-07 | 65 | 9 | P1001 4 P17 4 P279 1 | $0.41 | 039 | Q4479445 Constitutional Assembly: a body held in P39; P1001 only |
-| lt | Lithuania | Europe / Northern Europe | 45 | reviewed | 2026-10-07 | 184 | 5 | P1001 3 P17 1 P31 1 | $0.50 |  |  |
+| lt | Lithuania | Europe / Northern Europe | 45 | reviewed | 2026-10-07 | 184 | 5 | P1001 3 P17 1 P31 1 | $0.50 | 044 |  |
 | no | Norway | Europe / Northern Europe | 63 | pending |  |  |  |  |  |  |  |
 | cq | Sark | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
 | sj | Svalbard and Jan Mayen | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |

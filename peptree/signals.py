@@ -328,7 +328,10 @@ def expected_label(prop: str, f: Facts) -> set[str] | None:
         named = label_states(f, texts, state_of)
         if named is None or named:
             return named or None  # one state named, or a shared name the era cannot settle
-        if f.places.mentioned(joined, SUBNATIONAL) and era_ok(f, c.qid):
+        # A place names the state an office is in, unless the office is a club's,
+        # a university's or a company's: "Head Radiologist, Maccabi Haifa F.C.".
+        if f.places.mentioned(joined, SUBNATIONAL) and era_ok(f, c.qid) \
+                and not countries.says(c.words.get("non_state", []), joined):
             return {c.qid}
         return None
     types: set[str] = set()
