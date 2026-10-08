@@ -124,6 +124,12 @@ def _list_article(slot: Slot) -> bool:
     return bool(links) and all(LIST_TITLE.match(sl.get("title", "")) for sl in links.values())
 
 
+def _foreign_p17(slot: Slot) -> bool:
+    if slot.prop != "P1001" or slot.facts is None or slot.value not in slot.facts.country.home:
+        return False
+    return bool(set(values(slot.live_entity or {}, "P17")) - slot.facts.country.home)
+
+
 #: (rule, predicate, disposition). First match wins.
 RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     ("item_gone", lambda s: s.live_entity is None, "skip"),
@@ -137,6 +143,10 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     # A territory or a region is a jurisdiction, never a country: it goes in P1001.
     ("p17_not_a_state", lambda s: s.prop == "P17" and s.facts is not None and s.value in s.facts.non_states, "skip"),
     ("label_conflict", lambda s: signals.conflict(s.prop, s.value, s.facts), "skip"),
+    # An office whose P17 already names a state outside the country's own is
+    # shared or someone else's: justitieråd sits in Sweden's and Finland's courts,
+    # the Emperor of Mexico in the Mexican Empires. One country is never its P1001.
+    ("shared_with_another_state", _foreign_p17, "skip"),
     # A class of office ("mayor of a place in X", which seven offices name in P279)
     # is a type of position, not a public office: typing it one makes it an instance.
     # Typing it "type of position" waits for a better class signal: "has subclasses"

@@ -33,6 +33,7 @@ LIST_ARTICLES = {"Q13406463", "Q19692233"}
 #: Declared types that say the item is an honour, a rank, an award or a list.
 #: A subset of peploop's NOT_AN_OFFICE plus what the pilot's baseline met.
 NOT_OFFICE = {
+    "Q5",  # human: "oldest living person in Finland" is a subclass of people, not a seat
     "Q3320743",  # title of honor
     "Q13424289",  # honorary title
     "Q618779",  # award

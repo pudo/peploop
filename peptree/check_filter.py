@@ -85,6 +85,8 @@ def main() -> None:
     expect(drop(ent({"en": "Zenda manor"}, P31=["Q12292478"]), {"Q12292478"})[0] == "estate", "an estate is dropped")
     expect(drop(ent({"en": "flag of the RPR"}, P31=["Q186516"]), {"Q186516", "Q14660"})[0] == "non_office",
            "a flag is not an office")
+    expect(drop(ent({"en": "oldest living person in Ruritania"}, P31=["Q4164871"], P279=["Q5"]))[0] == "non_office",
+           "a subclass of human is not an office")
     deprecated = ent({"en": "Zenda"}, P17=["Q900001"])
     deprecated["claims"]["P31"] = [{"rank": "deprecated", "mainsnak": {"datavalue": {"value": {"id": "Q28640"}}}}]
     expect(drop(deprecated)[0] == "occupation", "a deprecated declared type still counts")

@@ -343,3 +343,17 @@ first lane (repair or fill) before writing the tool.
   it); Turkish party and union posts `P17` Turkey; Polesie voivode `P17` Poland
   although its Nowogródek sibling uses Second Polish Republic.
 - **Next:** fi mx hu kr gr (batches 55-59).
+
+## OECD sweep: fi mx hu kr gr (2026-10-08)
+
+- Reviewed and exported: fi 36, mx 49, hu 62, kr 65, gr 57 lines (chunks 055-059).
+- **Fixes:** `P279` human is a declared non-office (Finland's and Sweden's
+  "oldest living person"; Q5 in `load.NOT_OFFICE`); rule
+  `shared_with_another_state`: no `P1001` of ours on an office whose `P17` already
+  names a state outside the home set (justitieråd, Sweden and Finland; Emperor of
+  Mexico, the Mexican Empires) — measured 2 of 307 applied `P1001`, both wrong.
+- Tried and dropped: a list-label gate. The one "Anexo:" item carries a Catalan
+  office label and is used as the constituent-assembly seat; its lines are true.
+- **For a human:** Greek Deputy Minister Q23636253 reaches only Q15735113; one
+  `P279 Q26204040` there makes the 28 leaf class fixes in chunk-059 redundant.
+- **Next:** pt dk ch no be (batches 60-64).

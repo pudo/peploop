@@ -102,6 +102,9 @@ def main() -> None:
     s = slot(nat, "P17", ["Q900001"], 0, quote="Minister of Culture of the Republic of Ruritania")
     s.facts.non_states = {"Q900001"}
     expect(rules.decide(s) == ("skip", "p17_not_a_state"), "a value not typed a state is never a P17")
+    shared = item("Q45", "national", ent({"en": "Justice of the Supreme Court"}, P17=["Q900001", "Q35"]), 4, {"Q900001": 4})
+    expect(rules.decide(slot(shared, "P1001", ["Q900001"], 0, quote="Justice of the Supreme Court"))
+           == ("skip", "shared_with_another_state"), "an office whose P17 names another state gets no P1001 of ours")
     nat_quote = "Minister of Culture of the Republic of Ruritania"
     meta = ["Q294414", "Q4164871", "Q136649946"]
     expect(rules.decide(slot(nat, "P31", meta[:2], 0, quote=nat_quote)) == ("apply", "two_channels"),
