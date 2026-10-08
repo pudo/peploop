@@ -96,6 +96,9 @@ def main() -> None:
            "an unclassed post naming the state and a diplomat, held by its citizens, is its own post abroad")
     expect(drop(outbound, lanes=("orphan",), by={"Q43": 6})[2] != "ambassador",
            "the same label held by foreigners is not")
+    mission = ent({"en": "Permanent Representative of Ruritania to UNESCO"}, P31=["Q4164871"], P17=["Q900001"])
+    expect(drop(mission, lanes=("orphan",), by={"Q900001": 3})[2] == "ambassador",
+           "a mission to an organisation with the state's own P17 is its post abroad, not an inbound one")
     sender = ent({"en": "ambassador of Ruritania"}, P279=["Q29645880"], P17=["Q900001"])
     expect(drop(sender, types={"Q29645880", "Q121998"})[2] == "ambassador", "the state's sender class is its own post")
     # Kinds.

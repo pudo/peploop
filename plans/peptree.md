@@ -329,3 +329,17 @@ first lane (repair or fill) before writing the tool.
   Czech Q135399028 and Israeli Q12409993 want the class fix Cyprus wanted.
 - **Next:** lu ee nz tr pl (batches 50-54). Germany, Italy, Poland and Spain have
   large predecessor sets; the shaped lane should hold, but measure first.
+
+## OECD sweep: lu ee nz tr pl (2026-10-08)
+
+- Reviewed and exported: lu 17, ee 43, nz 62, tr 95, pl 46 lines (chunks 050-054;
+  chunk-049 is Japan, run from another session).
+- **Fix:** a permanent representative (accredited to the UN, UNESCO, not a state)
+  carrying the state's own `P17` was read as an inbound post and kinded national,
+  so it was asked `P1001`; 98 of 103 such items carry none. New `mission` concept,
+  exempt from the inbound-`P17` test (config cache key now `country5`). Egypt's
+  Q130467100 and Moldova's Q39059561 got that `P1001` earlier and it is live.
+- Accepted on reading: NZ mayors to `Q30185 mayor` (63 of 64 NZ mayoralties use
+  it); Turkish party and union posts `P17` Turkey; Polesie voivode `P17` Poland
+  although its Nowogródek sibling uses Second Polish Republic.
+- **Next:** fi mx hu kr gr (batches 55-59).

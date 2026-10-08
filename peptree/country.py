@@ -44,6 +44,7 @@ CONCEPTS = {
     # party, union, company, association, sports body, university, hospital, sports club
     "non_state": ("Q7278", "Q178790", "Q783794", "Q15911314", "Q2485448", "Q3918", "Q16917", "Q847017"),
     "consular": ("Q207978", "Q1075179"),  # consul, honorary consul
+    "mission": ("Q19356884",),  # permanent representative: accredited to an organisation, not a state
     "mayor": ("Q30185",),  # mayor
     # office, department, secretariat, executive office, administration, ministry, government agency
     "body": ("Q182060", "Q2366457", "Q859482", "Q24886529", "Q5283295", "Q192350", "Q327333"),
@@ -57,6 +58,7 @@ ENGLISH = {
     "non_state": ("party", "trade union", "company", "association", "federation", "transitional",
                   "university", "hospital", "club"),
     "consular": ("consul", "consul general", "honorary consul", "vice consul"),
+    "mission": ("permanent representative",),
     "mayor": ("mayor",),
     "body": ("office", "staff", "administration", "secretariat", "ministry", "department", "executive office",
              "chancellery", "apparatus"),
@@ -64,7 +66,7 @@ ENGLISH = {
 #: Concepts read by their labels only: an alias like "minister" (for an envoy)
 #: would make every minister a diplomat, "presidente municipal" (for a mayor)
 #: every president a mayor, and "service" (for a department) every service a body.
-LABELS_ONLY = {"diplomatic", "consular", "mayor", "body"}
+LABELS_ONLY = {"diplomatic", "consular", "mission", "mayor", "body"}
 #: The class whose names are the "administrative" words a level's class name
 #: carries ("administrative region"): never a level word of their own.
 ADMIN_WORDS_CLASS = "Q56061"
@@ -695,7 +697,7 @@ def config(cc: str) -> dict[str, Any]:
                 "type_words": type_words, "type_terms": type_terms, "subdivisions": sub,
                 "spans": state_spans(qid, preds), "admin_words": admin}
 
-    return wd.cached(f"country4:{cc}", fetch)
+    return wd.cached(f"country5:{cc}", fetch)
 
 
 _loaded: dict[str, Country] = {}

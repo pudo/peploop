@@ -262,7 +262,9 @@ def outbound_post(c: countries.Country, entity: dict[str, Any], lanes: list[str]
     if not (countries.says(c.words.get("diplomatic", []), labels) or consular_label(c, labels)) \
             or not countries.names_country(c, labels):
         return False
-    if c.qid in values(entity, "P17"):
+    # An inbound post carries the receiving state in P17; a mission to the UN or
+    # UNESCO has no receiving state, so its P17 is the sender's own.
+    if c.qid in values(entity, "P17") and not countries.says(c.words.get("mission", []), labels):
         return False
     total = sum(by.values())
     return total == 0 or sum(n for k, n in by.items() if k in c.home) / total >= 2 / 3
