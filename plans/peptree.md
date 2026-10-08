@@ -304,3 +304,28 @@ first lane (repair or fill) before writing the tool.
   a bot operator.
 - **Territories:** OECD overseas territories (French, Dutch, Danish, US) follow
   the territory rule: `P1001` only, no `P17`.
+
+## OECD sweep: first eleven (2026-10-07, overnight)
+
+- **Ledger:** OECD members are batches 38-75 of `peptree/sweep.md`, one country
+  each, smallest first by direct position items (cr 53 … es 13,312; fr timed out,
+  last). Reviewed and exported: cr si lv is sk co cz lt ie at il cl (chunks
+  037-048, none pasted yet at handover).
+- **Fixes the eleven forced** (each with a check):
+  - prompt rule 5: an institution held as an office (Costa Rica's Defensoría)
+    gets no `P31`/`P279`, only `P17`/`P1001` as a body;
+  - `load.classify`: the state's own scope beats a predecessor's (Prime Minister
+    of Slovakia also names Czechoslovakia);
+  - `load.inside_places`: a truncated entity fetch is halved (Israel);
+  - `signals.expected_label`: a place in the label does not put a club's,
+    university's or hospital's post in the state; `non_state` gained those
+    concepts (config cache key now `country4`);
+  - the predecessor lane is three shaped queries (typed, subclassed, held):
+    Austria-Hungary's raw scope was 27,380 items and stalled the load;
+  - a level word three of the state's own offices use is dropped ("federal"
+    from Bundesland made Austria's president and chancellor provincial).
+- **For a human:** strike `Q139083417 P17 Q801` from chunk-047 (a CV entry);
+  Colombia Q110567947/Q113993307 merge candidate and Q5707799 vandalised label;
+  Czech Q135399028 and Israeli Q12409993 want the class fix Cyprus wanted.
+- **Next:** lu ee nz tr pl (batches 50-54). Germany, Italy, Poland and Spain have
+  large predecessor sets; the shaped lane should hold, but measure first.
