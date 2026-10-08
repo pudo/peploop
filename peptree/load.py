@@ -163,7 +163,8 @@ ITEM = re.compile(r"Q\d+")
 
 def discover(c: countries.Country, log: Callable[[str], None]) -> dict[str, list[str]]:
     """Run the lanes; return each item with the lanes that found it."""
-    queries = [("descent", DESCENT, {}), ("usage", USAGE, {}), ("orphan", ORPHAN, {}), ("outbound", OUTBOUND, {})]
+    queries = [(lane, q, {"c": state}) for state in (c.qid, *c.realm)
+               for lane, q in (("descent", DESCENT), ("usage", USAGE), ("orphan", ORPHAN), ("outbound", OUTBOUND))]
     if c.predecessors:
         for shape in PREDECESSOR_SHAPES:
             queries.append(("predecessor", PREDECESSOR, {"r": wd.values_block(sorted(c.predecessors)), "shape": shape}))

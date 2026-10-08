@@ -105,6 +105,17 @@ def main() -> None:
     shared = item("Q45", "national", ent({"en": "Justice of the Supreme Court"}, P17=["Q900001", "Q35"]), 4, {"Q900001": 4})
     expect(rules.decide(slot(shared, "P1001", ["Q900001"], 0, quote="Justice of the Supreme Court"))
            == ("skip", "shared_with_another_state"), "an office whose P17 names another state gets no P1001 of ours")
+    from dataclasses import replace
+    realmed = replace(XX, realm=("Q900050",))
+    expect("Q900050" in realmed.p17_values and "Q900050" in realmed.home, "the realm is a home state and a P17 value")
+    in_realm = item("Q48", "national", ent({"en": "Justice of the Supreme Court"}, P17=["Q900001", "Q900050"]), 4,
+                    {"Q900001": 4})
+    expect(rules.decide(slot(in_realm, "P1001", ["Q900001"], 0, quote="Justice of the Supreme Court",
+                             country=realmed))[1] != "shared_with_another_state",
+           "an office whose P17 names the state's own realm is not shared with another state")
+    domestic = item("Q49", "national", ent({"en": "State Auditor"}), 4, {"Q900050": 4})
+    expect(rules.decide(slot(domestic, "P17", ["Q900001", "Q900050"], 1, quote="State Auditor", country=realmed))
+           == ("skip", "realm_in_p17"), "the realm is never written as P17")
     nat_quote = "Minister of Culture of the Republic of Ruritania"
     meta = ["Q294414", "Q4164871", "Q136649946"]
     expect(rules.decide(slot(nat, "P31", meta[:2], 0, quote=nat_quote)) == ("apply", "two_channels"),

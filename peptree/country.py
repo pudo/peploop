@@ -36,6 +36,10 @@ NOT_A_LEVEL = {FORMER, ELECTORAL, "Q57821", "Q473972"}  # fortification, protect
 TYPE_MIN = 2
 #: City and town: the words every country's city offices use, whatever its own city classes.
 GENERIC_PLACE_TYPES = ("Q515", "Q3957")
+#: A state whose offices name the constituent country, not the realm rigour gives:
+#: Danish positions put Q35 Denmark in P17 578 times and the Kingdom of Denmark 45.
+#: The realm stays a home state (Greenland's offices are its), never a predecessor.
+REALM = {"dk": ("Q35", "Q756617")}
 LIST_CLASS = "Q13406463"  # Wikimedia list article: "list of districts of X" is an alias, not a word
 #: Concepts whose names, in the country's languages, are the words a label is read for.
 CONCEPTS = {
@@ -105,6 +109,8 @@ class Country:
     admin_words: list[str] = field(default_factory=list)
     #: False for a dependent territory: its own offices take it in `P1001` and no `P17`.
     is_state: bool = True
+    #: The sovereign realm the state belongs to, where offices also name it (see REALM).
+    realm: tuple[str, ...] = ()
 
     @property
     def unions(self) -> set[str]:
@@ -113,16 +119,16 @@ class Country:
     @property
     def home(self) -> set[str]:
         """The state and every predecessor and federation: one country for holder counts."""
-        return {self.qid} | set(self.predecessors) | self.unions
+        return {self.qid, *self.realm} | set(self.predecessors) | self.unions
 
     @property
     def p17_values(self) -> list[str]:
         """What `P17` may say for an office of this country, the state first."""
-        return list(dict.fromkeys([self.qid, *sorted(set(self.predecessors.values()))]))
+        return list(dict.fromkeys([self.qid, *self.realm, *sorted(set(self.predecessors.values()))]))
 
     @property
     def p1001_values(self) -> list[str]:
-        return [self.qid, *sorted(self.predecessors)]
+        return [self.qid, *self.realm, *sorted(self.predecessors)]
 
 
 # --- tokens and stems --------------------------------------------------------------
@@ -527,7 +533,7 @@ def pushes(qid: str, pred: str, ents: dict[str, dict[str, Any]], preds: dict[str
     return True
 
 
-def state_spans(qid: str, preds: dict[str, str]) -> dict[str, list[int | None]]:
+def state_spans(qid: str, preds: dict[str, str], realm: list[str] = ()) -> dict[str, list[int | None]]:
     """When the state, its predecessors and their federations existed.
 
     A predecessor or federation spans its `P571`-`P576`. The state begins at
@@ -547,6 +553,7 @@ def state_spans(qid: str, preds: dict[str, str]) -> dict[str, list[int | None]]:
     own = years(ents.get(qid, {}), "P571")
     start = max([*own, *ends]) if own or ends else None
     spans[qid] = [start, None]
+    spans.update({q: entity_span(e) for q, e in wd.fetch_items(list(realm), props="claims").items()} if realm else {})
     return spans
 
 
@@ -656,7 +663,7 @@ def config(cc: str) -> dict[str, Any]:
         territory = get_territory(cc)
         if territory is None or not territory.qid:
             raise KeyError(f"rigour knows no state {cc!r}")
-        qid = territory.qid
+        qid, *realm = REALM.get(cc, (territory.qid,))
         official = _official(cc)
         item = wd.fetch_items([qid], props="labels")[qid]
         variants = sorted(lg for lg in item.get("labels", {}) if any(lg.startswith(o + "-") for o in official))
@@ -695,9 +702,9 @@ def config(cc: str) -> dict[str, Any]:
         return {"cc": cc, "qid": qid, "official": list(official), "langs": langs, "predecessors": preds,
                 "provenance": provenance, "names": names, "local_names": local_names, "words": words_,
                 "type_words": type_words, "type_terms": type_terms, "subdivisions": sub,
-                "spans": state_spans(qid, preds), "admin_words": admin}
+                "spans": state_spans(qid, preds), "admin_words": admin, "realm": realm}
 
-    return wd.cached(f"country5:{cc}", fetch)
+    return wd.cached(f"country6:{cc}", fetch)
 
 
 _loaded: dict[str, Country] = {}
@@ -745,7 +752,9 @@ def get(cc: str) -> Country:
                               local_names=_names(cfg["local_names"]), words=cfg["words"],
                               type_words=cfg["type_words"], type_terms=cfg["type_terms"],
                               provenance=cfg["provenance"], admin_words=cfg["admin_words"],
-                              spans=wd.cached(f"spans2:{cc}", lambda: state_spans(cfg["qid"], dict(cfg["predecessors"]))),
+                              spans=wd.cached(f"spans3:{cc}", lambda: state_spans(cfg["qid"], dict(cfg["predecessors"]),
+                                                                                 cfg.get("realm", []))),
+                              realm=tuple(cfg.get("realm", [])),
                               is_state=typed_state(cfg["qid"]))
     c = _loaded[cc]
     wd.set_langs(("en", *[lg for lg in c.langs if lg not in ("en", "mul")], "mul"))

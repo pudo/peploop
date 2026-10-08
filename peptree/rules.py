@@ -147,6 +147,10 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     # shared or someone else's: justitieråd sits in Sweden's and Finland's courts,
     # the Emperor of Mexico in the Mexican Empires. One country is never its P1001.
     ("shared_with_another_state", _foreign_p17, "skip"),
+    # The realm is a home state for scope, never a P17 written here: Danish offices
+    # name Denmark 578 times and the Kingdom of Denmark 45, and holders' citizenship
+    # (the Kingdom) pulls the model toward the realm for plainly domestic offices.
+    ("realm_in_p17", lambda s: s.prop == "P17" and s.facts is not None and s.value in s.facts.country.realm, "skip"),
     # A class of office ("mayor of a place in X", which seven offices name in P279)
     # is a type of position, not a public office: typing it one makes it an instance.
     # Typing it "type of position" waits for a better class signal: "has subclasses"

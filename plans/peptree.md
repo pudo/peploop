@@ -357,3 +357,19 @@ first lane (repair or fill) before writing the tool.
 - **For a human:** Greek Deputy Minister Q23636253 reaches only Q15735113; one
   `P279 Q26204040` there makes the 28 leaf class fixes in chunk-059 redundant.
 - **Next:** pt dk ch no be (batches 60-64).
+
+## OECD sweep: pt dk ch no be (2026-10-08)
+
+- Exported: pt 28 (chunk-060), ch 25 (061), be 41 (062), no 75 (063), dk 30 (064).
+- **Norway** was large (787 to ask); the user approved ~$30, `repair no` asked the
+  756 held items for $23 and got 75 lines, mostly national: the mayoralties were
+  already complete. Strike `Q50810280 P279 Q3368517` (military generaladvokat).
+- **Denmark: the realm.** rigour gives `dk` the Kingdom (Q756617); Danish offices
+  name Denmark (Q35) in `P17` 578 times against 45. `country.REALM` makes Q35 the
+  state and keeps the Kingdom as a realm: a home state, a candidate and its own
+  descent/usage/orphan/outbound lanes (holders' citizenship is the Kingdom: the
+  orphan lane found 0 under Q35 and 300 under Q756617), never a predecessor, never
+  named in labels, and never written as `P17` (`realm_in_p17`). Under Q756617 the
+  descent lane had found 61 offices; under Q35, 586. Netherlands (Q29999 vs Q55)
+  will want the same entry, measured first. Config cache key `country6`.
+- **Next:** au it ca se gb (batches 65-69).
