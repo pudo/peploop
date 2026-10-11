@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
-Progress: pending 7, reviewed 192, skipped 1, submitted 48
+Progress: pending 6, reviewed 193, skipped 1, submitted 48
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | batches | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -201,7 +201,7 @@ Progress: pending 7, reviewed 192, skipped 1, submitted 48
 | no | Norway | Europe / Northern Europe | 63 | submitted | 2026-10-08 | 1013 | 75 | P1001 35 P17 28 P279 3 P31 9 | $23.22 | 59046 59083 | large place: 756 held or categorised items asked (user approved ~$30); strike Q50810280 P279 Q3368517 (military generaladvokat is no prosecutor general) |
 | cq | Sark | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
 | sj | Svalbard and Jan Mayen | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
-| se | Sweden | Europe / Northern Europe | 68 | pending |  |  |  |  |  |  |  |
+| se | Sweden | Europe / Northern Europe | 68 | reviewed | 2026-10-11 | 2529 | 719 | P1001 461 P17 186 P279 12 P31 60 | $22.97 |  | 983 held or categorised items asked (municipal commissioners, agency directors-general); church parish P1001 kept as the parish; strike Q130252154 P1001 (organist), Q10531605 P17 (Finnish honorary title) |
 | gb | United Kingdom | Europe / Northern Europe | 69 | pending |  |  |  |  |  |  |  |
 | ax | Åland Islands | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 10 | 0 |  | $0.00 |  |  |
 | al | Albania | Europe / Southern Europe | 28 | reviewed | 2026-10-07 | 93 | 15 | P1001 8 P17 5 P279 2 | $0.64 | 034 |  |
