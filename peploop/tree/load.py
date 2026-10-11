@@ -99,19 +99,9 @@ TERRITORY = {"Q56061", "Q486972", "Q515", "Q7275", "Q6256", "Q3024240", "Q82794"
 CITY = "Q515"
 
 
-def _rank_ok(claim: dict[str, Any]) -> bool:
-    return claim.get("rank") != "deprecated"
-
-
 def values(entity: dict[str, Any], prop: str, any_rank: bool = False) -> list[str]:
-    out = []
-    for claim in entity.get("claims", {}).get(prop, []):
-        if not any_rank and not _rank_ok(claim):
-            continue
-        v = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
-        if isinstance(v, dict) and "id" in v:
-            out.append(v["id"])
-    return out
+    """Item-valued targets of `prop`, deprecated ones only with `any_rank`."""
+    return wd.claim_qids(entity, prop, include_deprecated=any_rank)
 
 
 def has(entity: dict[str, Any], prop: str) -> bool:
