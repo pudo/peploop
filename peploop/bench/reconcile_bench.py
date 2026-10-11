@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Measure the second turn against the silver test set.
 
-    python scripts/reconcile_bench.py --country cz --limit 20
+    python peploop/bench/reconcile_bench.py --country cz --limit 20
 
 Retrieval is measured by `position_bench.py`; this measures what a model
 makes of the fifteen rows it hands over. Every row asked is recorded in
@@ -30,11 +30,11 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from peploop import db, positions, reconcile
 
-FIXTURES = Path(__file__).resolve().parents[1] / "peploop" / "fixtures"
+FIXTURES = Path(__file__).resolve().parents[2] / "peploop" / "fixtures"
 
 #: Hand-read truth for rows where the silver label and a verdict disagreed:
 #: `person_qid, title, lang, start, truth_qid, status, note`. A row whose

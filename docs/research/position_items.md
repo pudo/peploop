@@ -1,6 +1,6 @@
 # Measured: how Wikidata models political position items
 
-The evidence behind `recipes/position_items.md`. The recipe says what to do; this
+The evidence behind `old/recipes/position_items.md`. The recipe says what to do; this
 says what was counted, over what sample, and what could not be counted. Kept
 separate so the recipe stays readable and so any figure in it can be re-checked
 rather than trusted.
@@ -327,7 +327,7 @@ ambassador to Germany; `P17 = Germany` (receiver); `P137 = United States` (sende
 ## 8b. The consumer-named cohort (measured 2026-08-23)
 
 The 209 position items `opensanctions`' `wd_categories.yml` names by QID, scored
-with `wd/shape.py` by `scripts/audit_os_positions.py`. A different sample from
+with `wd/shape.py` by `old/scripts/audit_os_positions.py`. A different sample from
 everything above — it is a *consumer's* list, so it is worldwide, skewed towards
 the offices somebody needed and away from the ones Wikidata happens to document
 well. 194 of 209 are well modelled; 79 are complete.
@@ -1041,7 +1041,7 @@ through either hook. The known gaps sort three ways.
    | `Q135659026` | Head, Belarus Presidential Security Service | `P17`, `P1001` | 3 (0) |
    | `Q85751928` | Chief of Defence Staff (JM) | `P1001` only (already loaded via `P17`) | 0 |
 
-   `scripts/body_fixes.sh` adds the missing statements: 28 additive
+   `old/scripts/body_fixes.sh` adds the missing statements: 28 additive
    `wb add-claim` lines, each written against the revision it was read at.
 2. *The body is known, but it has no `P2388` and no office item exists.* These
    are mint candidates with a body to name under `P2389`:
@@ -1091,7 +1091,7 @@ which are military units that would load as unflagged rows. The offices the
 runs actually lost are invisible *to every hook*: an item with no claims has no
 `P2389`, and its body has no `P2388` to it. A discovery lane cannot read a
 link that was never written. These cases get fixed in the data, as
-`scripts/body_fixes.sh` does, or by the mint.
+`old/scripts/body_fixes.sh` does, or by the mint.
 
 If one is wanted anyway, the narrow version that pays is **reverse `P2389`
 only, from bodies of the two reliably typed classes plus the census bodies,

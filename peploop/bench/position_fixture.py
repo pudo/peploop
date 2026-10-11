@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Build the silver test set for position reconciliation.
 
-    python scripts/position_fixture.py
-    python scripts/position_fixture.py --compare peploop/fixtures/old.jsonl
+    python peploop/bench/position_fixture.py
+    python peploop/bench/position_fixture.py --compare peploop/fixtures/old.jsonl
 
 One row per extracted title, carrying the person's P39 statements as a weak
 label and, where the structure of the person's record identifies exactly one
@@ -44,12 +44,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from peploop import positions
 from peploop.db import conn
 
-OUT_PATH = Path(__file__).resolve().parents[1] / "peploop" / "fixtures" / "cz_positions.jsonl"
+OUT_PATH = Path(__file__).resolve().parents[2] / "peploop" / "fixtures" / "cz_positions.jsonl"
 PRECISION_LEN = {11: 10, 10: 7, 9: 4}
 #: How much an agreement is worth, by the length of the coarser ISO date.
 PRECISION_RANK = {10: 3, 7: 2, 4: 1}

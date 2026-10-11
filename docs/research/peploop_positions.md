@@ -8,7 +8,7 @@ in `peploop/positions_discarded.md`.
 **Measured 2026-09-20/21** against live WDQS and `wbgetentities` through
 `peploop.wikidata.sparql` / `fetch_items`, and a local Postgres 18.6. Type
 tests use `p:P31/ps:P31` where the question is "does this hold anywhere among
-the values". Bench figures come from `scripts/position_bench.py --country cz`
+the values". Bench figures come from `peploop/bench/position_bench.py --country cz`
 against `peploop/fixtures/cz_positions.jsonl`; every one is re-runnable.
 
 **The query service is the dominant variance in everything below.** The same
@@ -237,7 +237,7 @@ Dropping the three indexes nothing read freed 13.1 MB and cut a full rewrite of
 labels, 32 with no label. 77.6% of gold rows share a token with their answer.
 
 Pairing ablation, same 723 people, **re-measured 2026-09-21 against the
-15,986-row table**, reproducible with `scripts/position_fixture.py --dry` plus
+15,986-row table**, reproducible with `peploop/bench/position_fixture.py --dry` plus
 the named flags. Each row is relative to the shipped rule, since rule 1 is now
 the default:
 
@@ -303,7 +303,7 @@ with no `P39` anywhere on the person, which no re-pairing rule can reach.
 
 ## 9. The second turn, measured (2026-09-21)
 
-`scripts/reconcile_bench.py --country cz`, model `claude-sonnet-5`, one request per
+`peploop/bench/reconcile_bench.py --country cz`, model `claude-sonnet-5`, one request per
 mention, sampled round-robin over distinct gold answers. Verdicts are in the
 `resolution` table; disagreements were hand-read against the person's live `P39`
 and recorded in `fixtures/cz_positions_verified.jsonl`.

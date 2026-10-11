@@ -1,7 +1,7 @@
 # The institution census
 
 The checklist a country sweep is scoped against, and the thing a campaign is
-measured as *complete* against. `recipes/country_sweep.md` is the method; this is
+measured as *complete* against. `old/recipes/country_sweep.md` is the method; this is
 the map of what the method has to cover.
 
 Reach for it at phase A of a sweep, before any roster is opened. Walk every class
@@ -248,7 +248,7 @@ things, which take three different shapes:
   `P463` on the *body*, by a wide margin: the Soviet Central Committee has 933
   distinct holders recorded that way against 2 on a membership-seat item, and
   seven of ten central-committee "member" items carry no `P279` at all
-  (`research/position_items.md` §10a). Don't mint a seat for it.
+  (`docs/research/position_items.md` §10a). Don't mint a seat for it.
 * **A seat in a standing politburo or presidium, a secretariat seat, and the
   national party offices** (general, first and second secretary) are offices:
   `P39` onto an item. The Chinese Politburo and its Standing Committee hold
@@ -273,7 +273,7 @@ things, which take three different shapes:
 * **Add what you learn here, not to the country plan.** A country plan is a
   transitional artifact; this file is where the next country inherits from. When
   a class kills a lane in a new way, write the failure mode down.
-* **The item shape each class needs is in `recipes/position_items.md`**, not
+* **The item shape each class needs is in `old/recipes/position_items.md`**, not
   here. This file says where a class's roster lives; that one says how the office
   is modelled once you have it — which `P279` names its kind, and how `P17` and
   `P1001` divide between the state and the polity governed.

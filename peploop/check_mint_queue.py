@@ -139,7 +139,7 @@ def check_classes(expect: Any) -> None:
     expect(len(set(mint.INSTITUTION_CLASSES)) == len(mint.INSTITUTION_CLASSES),
            "institution classes are unique")
     if not RECIPE.exists():
-        print("  skip no recipes/institutions.md")
+        print("  skip no docs/institutions.md")
         return
     headings = re.findall(r"^### `([a-z_]+\.[a-z_]+)`", RECIPE.read_text(), re.M)
     expect(tuple(headings) == mint.INSTITUTION_CLASSES,

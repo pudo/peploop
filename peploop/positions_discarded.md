@@ -3,7 +3,7 @@
 Read this before changing the resolver. Most of the obvious improvements have
 been tried and cost something; each entry is the rule that stands, the number
 that decided it, and nothing about how it was found. The design is in
-`positions.md`, the full measurements in `research/peploop_positions.md`.
+`positions.md`, the full measurements in `docs/research/peploop_positions.md`.
 
 An entry here is not a law. It is a measurement, and a measurement can be
 overturned by a better one — but by that, and not by an argument.

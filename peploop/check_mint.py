@@ -391,7 +391,7 @@ def main() -> int:
     expect(offices.body_for(Siblings(bodies_by_archetype={"minister": Counter({BODY: 2, OLD: 2})}),
                             "minister"), None, "and a tie names none")
 
-    print("deputy and junior ministers (research/position_items.md §10p):")
+    print("deputy and junior ministers (docs/research/position_items.md §10p):")
     deputy = offices.ARCHETYPES["deputy_minister"]
     expect((deputy.parent, deputy.body_property, deputy.single_seat, deputy.scoped, deputy.level,
             deputy.metaclass, deputy.body_from),

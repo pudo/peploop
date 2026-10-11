@@ -39,7 +39,7 @@ CURRENT_WINDOW_YEARS = 12
 #: scope gate already decided they are not politically exposed now.
 EXCLUDED_STATUSES = ("out_of_scope", "not_human")
 
-#: The institution classes of `recipes/institutions.md`, pinned here because
+#: The institution classes of `docs/institutions.md`, pinned here because
 #: peploop does not read the workbench's docs at runtime. `check_mint_queue`
 #: compares the tuple against the recipe's headings, so a class added there
 #: fails a check rather than going unassignable.

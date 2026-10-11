@@ -12,7 +12,7 @@ worth offering *labelled* as one, and whether an office confers political
 exposure is a question for a consumer. Every signal re-orders and is shown to
 the model as a tag; none of them removes a row.
 
-The numbers behind every claim here are in `research/peploop_positions.md`.
+The numbers behind every claim here are in `docs/research/peploop_positions.md`.
 Things measured and rejected are in `positions_discarded.md` — read it before
 proposing a change, because most of the obvious ideas have been tried.
 
@@ -209,13 +209,13 @@ network, no key and no database.
 section and the cap), the fixed schema, `settle` on every verdict kind, and that
 every tag the ranking can produce is explained in the prompt — so a new tag
 cannot ship unexplained. It needs no network, no key and no tokens.
-`scripts/reconcile_bench.py` measures the turn against the silver set, scoring
+`peploop/bench/reconcile_bench.py` measures the turn against the silver set, scoring
 against `fixtures/cz_positions_verified.jsonl` where a disagreement has been
-hand-read; the numbers are in `research/peploop_positions.md` §9.
+hand-read; the numbers are in `docs/research/peploop_positions.md` §9.
 
 ## The test set
 
-`scripts/position_fixture.py` pairs an extracted title to one of the person's
+`peploop/bench/position_fixture.py` pairs an extracted title to one of the person's
 `P39` statements by date agreement, and writes
 `peploop/fixtures/cz_positions.jsonl`. One pairing rule is in force: **two
 titles in one language with the same dates are two offices, not one tenure
@@ -223,7 +223,7 @@ named twice.** Two further rules were implemented and measured harmful; they
 survive as `--both-endpoints` and `--one-to-one` only so the ablation is
 re-runnable.
 
-`scripts/position_bench.py --country cz` reports four slices. The primary one
+`peploop/bench/position_bench.py --country cz` reports four slices. The primary one
 is **`vocab_overlap`** — rows whose title shares a token with its answer. Use
 it for MRR and top-1 when comparing two orderings; do **not** quote its recall,
 which is flattered by sharing a token-overlap assumption with the retriever.
@@ -233,7 +233,7 @@ which is flattered by sharing a token-overlap assumption with the retriever.
 verdict and the silver label disagreed; `reconcile_bench.py` scores against it
 where present. Of 50 read so far the silver label was wrong in 35, so **silver
 agreement is a floor**: the 150-row run reads 58.7% against silver and 77.3%
-against truth, with no confirmed wrong match (`research/peploop_positions.md`
+against truth, with no confirmed wrong match (`docs/research/peploop_positions.md`
 §9).
 
 **About 22% of gold rows are mispaired and dates cannot fix it.** Correlated
@@ -251,12 +251,12 @@ with no `P39` anywhere on the person, which no re-pairing rule can reach.
 python -m peploop.cli load-positions --country cz     # discovery, fetch, upsert
 python -m peploop.cli position-stats                  # what the table holds
 python -m peploop.cli reconcile --country cz          # the ranking columns, then the second turn, over a run
-python scripts/position_fixture.py                    # rebuild the silver set
-python scripts/position_bench.py --country cz --signals all
+python peploop/bench/position_fixture.py                    # rebuild the silver set
+python peploop/bench/position_bench.py --country cz --signals all
 python -m peploop.check_neutral                       # no country token in peploop/*.py
 python -m peploop.check_reconcile                     # the second turn, offline
 python -m peploop.check_propose                       # the P39 lane, offline
-python scripts/reconcile_bench.py --country cz --limit 150   # the second turn, live
+python peploop/bench/reconcile_bench.py --country cz --limit 150   # the second turn, live
 ```
 
 `--local-holders` is the one to reach for on an *n*th country. `fill_counts`

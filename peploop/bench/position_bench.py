@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Score position retrieval against the silver test set.
 
-    python scripts/position_bench.py --country cz
+    python peploop/bench/position_bench.py --country cz
 
 The number this prints is what every later ranking change is a delta
 against, so it is measured before any ranking signal exists. Retrieval is
@@ -40,11 +40,11 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from peploop import db, positions
 
-FIXTURES = Path(__file__).resolve().parents[1] / "peploop" / "fixtures"
+FIXTURES = Path(__file__).resolve().parents[2] / "peploop" / "fixtures"
 
 
 def name_tokens() -> dict[str, set[str]]:

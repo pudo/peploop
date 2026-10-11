@@ -109,7 +109,7 @@ ARCHETYPES: dict[str, Archetype] = {
         single_seat=True, unbodied="presiding officer of a chamber of {jurisdiction}",
     ),
     # The parents below were measured across other states' items (P279 tallies
-    # and the parents read in full); see research/position_items.md §10.
+    # and the parents read in full); see docs/research/position_items.md §10.
     # A seat in a party's standing politburo. Membership of a large organ (a
     # central committee) is recorded as `P463` on the body by a wide margin, so
     # it has no archetype and is never minted as a seat.
@@ -126,7 +126,7 @@ ARCHETYPES: dict[str, Archetype] = {
     # plurality of 86 chairs and presidents subclass `Q1553195`, across 30
     # states. The party is named under `P2389` (about 82%), and `P1001` is
     # absent from most, rightly: a party governs no polity. Typed `Q4164871`
-    # throughout. research/position_items.md §10n.
+    # throughout. docs/research/position_items.md §10n.
     "party_leader": Archetype(
         "Q1553195", body_property="P2389", description="leader of the {body}", single_seat=True,
         scoped=False, metaclass=POSITION, body_required=True,
@@ -174,7 +174,7 @@ ARCHETYPES: dict[str, Archetype] = {
     # a minister. Several people hold one ministry's deputyship at once; a
     # first deputy is its own seat. Like a minister of state, it names the
     # government or cabinet under `P361` -- not the ministry, by about four
-    # to one. research/position_items.md §10p.
+    # to one. docs/research/position_items.md §10p.
     "deputy_minister": Archetype(
         "Q26204040", description="deputy minister in the government of {jurisdiction}",
         body_from="minister",

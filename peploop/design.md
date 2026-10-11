@@ -243,7 +243,7 @@ makes a proposed `Q183` read as `exists` rather than `new`).
 
 Round 2 adds positions and birthplace. Positions are built, measured and
 proposed; birthplace is not started. `positions.md` is the design and
-`research/peploop_positions.md` the numbers; the shape in one paragraph:
+`docs/research/peploop_positions.md` the numbers; the shape in one paragraph:
 
 - A `position` table, one row per Wikidata item a free-text office title may
   resolve to, with `position_name` holding one row per (qid, lang) name and
@@ -266,7 +266,7 @@ proposed; birthplace is not started. `positions.md` is the design and
   mayor, minister, bishop, prime minister, head of state. A `P39` onto one says
   nothing about where the office was held. The list is a copy of
   `peptree/generic_positions.csv` (the evidence is
-  `research/generic_positions.md`), cut to `qid,label,reason`, because peploop
+  `docs/research/generic_positions.md`), cut to `qid,label,reason`, because peploop
   imports nothing from outside itself. To refresh it, re-copy those three
   columns and run `reconcile` once, which syncs `position.generic`
   (`positions.mark_generic`). It blocks four uses and nothing else:
@@ -318,7 +318,7 @@ queue) has the mechanics; the decisions are these.
 - **The shape is fixed, not drafted.** Each kind of office is an archetype in
   `offices.py` -- its `P279` parent, how it names its body, whether it is
   scoped, whether it is one seat -- with the parents measured across other
-  states' items (`research/position_items.md` §10), and the metaclass and
+  states' items (`docs/research/position_items.md` §10), and the metaclass and
   parent taken from the state's own offices where they agree. A model drafts
   labels and picks a body; it does not invent a data model per item.
 - **Unsupervised, like the rest of the loop.** Categorize clusters and drafts,
@@ -849,7 +849,7 @@ peploop/
 
 Round 1 is roughly 800 lines and anything larger is a sign the increment is
 wrong. Round 2 adds about as much again, most of it in `positions.py`; the
-measurements that justify each part are in `research/peploop_positions.md`.
+measurements that justify each part are in `docs/research/peploop_positions.md`.
 
 ## Open questions for later rounds
 

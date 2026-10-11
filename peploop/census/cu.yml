@@ -1,5 +1,5 @@
 # Offices the state has whether or not a seeded person's article named them.
-# Bodies are from the 2026-10-01 measurement (research/position_items.md §10).
+# Bodies are from the 2026-10-01 measurement (docs/research/position_items.md §10).
 # No `source` is given: none has been checked, and a source is what lets a
 # one-seat office pass on a single current holder, so it is never guessed.
 # Central Committee membership is absent on purpose: it is recorded as P463 on
