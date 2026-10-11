@@ -1,10 +1,10 @@
 """Pin the load-time filter: one case per drop reason, and the kinds that survive.
 
-    .venv/bin/python -m peptree.check_filter
+    .venv/bin/python -m peploop.tree.check_filter
 """
 
-from peptree.check_fixture import XX
-from peptree.load import classify
+from peploop.tree.check_fixture import XX
+from peploop.tree.load import classify
 
 
 def ent(labels: dict[str, str], **claims: list[str]) -> dict:
@@ -121,7 +121,7 @@ def main() -> None:
 
 def fixes() -> None:
     """The defects the first country runs found, one case each."""
-    from peptree.check_fixture import CITY_PLACES
+    from peploop.tree.check_fixture import CITY_PLACES
 
     # Consular posts of another state are inbound, like its ambassadors.
     cg = ent({"en": "Consul General of Turkey in Strelsau"}, P31=["Q4164871"], P17=["Q900001"])

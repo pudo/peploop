@@ -1,15 +1,15 @@
 """Run peptree over every country and territory: five at a time, OECD members one by one.
 
-The ledger is `peptree/sweep.md`: one row per place, its batch, where it stands
+The ledger is `peploop/tree/sweep.md`: one row per place, its batch, where it stands
 and what its run produced. It is what tells a session which batch is next and
 which places wait on a fix, so it is committed while the `.qs` files stay in
 `data/`. Status and notes are written by hand in review; every other column is
 rewritten from the database by `table`. A batch is the unit of running and
 review only: what goes to Wikidata leaves through `send`, whatever the batch.
 
-    python -m peptree.cli sweep plan       # (re)build the universe and its batches
-    python -m peptree.cli sweep run <n>    # `place` for every pending place of batch n
-    python -m peptree.cli sweep table      # refresh the machine columns
+    python -m peploop.tree.cli sweep plan       # (re)build the universe and its batches
+    python -m peploop.tree.cli sweep run <n>    # `place` for every pending place of batch n
+    python -m peploop.tree.cli sweep table      # refresh the machine columns
 """
 
 import re
@@ -21,7 +21,7 @@ from typing import Any
 
 from rigour.territories import get_territories
 
-from peptree import qs, repair, wd
+from peploop.tree import qs, repair, wd
 
 LEDGER = Path(__file__).resolve().parent / "sweep.md"
 BATCH_SIZE = 5
@@ -163,7 +163,7 @@ def run(batch: int, log: Any = print) -> list[str]:
         out = qs.OUT_DIR / cc
         out.mkdir(parents=True, exist_ok=True)
         with open(out / f"place-{cc}.log", "w") as fh:
-            code = subprocess.call([sys.executable, "-m", "peptree.cli", "place", cc], stdout=fh, stderr=subprocess.STDOUT)
+            code = subprocess.call([sys.executable, "-m", "peploop.tree.cli", "place", cc], stdout=fh, stderr=subprocess.STDOUT)
         rows = read()  # the ledger may have been edited by hand while this place ran
         rows[cc]["status"] = (f"blocked: large ({asked(cc)} items to ask)" if code == LARGE_EXIT else
                               f"blocked: crash (place-{cc}.log)" if code else "run")

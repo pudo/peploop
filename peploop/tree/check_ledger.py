@@ -1,13 +1,13 @@
 """Pin the joint send ledger's judgements, offline: what a strike vetoes, what counts as our own edit, removals.
 
-    .venv/bin/python -m peptree.check_ledger
+    .venv/bin/python -m peploop.tree.check_ledger
 """
 
 from typing import Any
 
 from peploop import ledger, send
-from peptree import qs
-from peptree.check_filter import expect
+from peploop.tree import qs
+from peploop.tree.check_filter import expect
 
 URL = "https://de.wikipedia.org/wiki/Kantonsarzt"
 OURS = f'Q1\tP31\tQ294414\tS854\t"{URL}"\tS813\t+2026-10-08T00:00:00Z/11 /* peptree repair ch 2026-10-08 */'

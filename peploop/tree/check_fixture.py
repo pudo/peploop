@@ -6,7 +6,7 @@ Ruritania (Q900001, since 1991) succeeded the Ruritanian People's Republic
 `country.config` would derive them from data.
 """
 
-from peptree import country, signals
+from peploop.tree import country, signals
 
 XX = country.Country(
     cc="xx", qid="Q900001", official=("xa",), langs=("xa", "en", "mul"),

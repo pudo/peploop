@@ -5,13 +5,13 @@ A country's run file says what it would add *now*; the joint ledger
 struck. A fix that re-renders twenty countries therefore costs only its new
 statements. The batch itself goes out through `peploop/send.py`.
 
-    python -m peptree.cli send                     # reconcile; write what would go out to send/pending.qs
-    python -m peptree.cli send --batch 7           # the same, for one reviewed sweep batch only
-    python -m peptree.cli send --submit [--batch 7]  # additions as one QS3 batch, then approved removals as another
-    python -m peptree.cli send --status            # batches, failures, strikes, open removals
-    python -m peptree.cli send --propose-reverts   # queue removals for what landed on items the load now drops
-    python -m peptree.cli strike <qid> <prop> [value] --reason "…" [--country cc]
-    python -m peptree.cli removals [approve|reject <guid…>]
+    python -m peploop.tree.cli send                     # reconcile; write what would go out to send/pending.qs
+    python -m peploop.tree.cli send --batch 7           # the same, for one reviewed sweep batch only
+    python -m peploop.tree.cli send --submit [--batch 7]  # additions as one QS3 batch, then approved removals as another
+    python -m peploop.tree.cli send --status            # batches, failures, strikes, open removals
+    python -m peploop.tree.cli send --propose-reverts   # queue removals for what landed on items the load now drops
+    python -m peploop.tree.cli strike <qid> <prop> [value] --reason "…" [--country cc]
+    python -m peploop.tree.cli removals [approve|reject <guid…>]
 
 - An addition is `sent`, then `landed` once its statement is live (any rank), or
   `failed` when QS3 reports its command failed. A failed line is listed by
@@ -38,7 +38,7 @@ from collections import defaultdict
 from typing import Callable
 
 from peploop import ledger, send
-from peptree import qs, sweep, wd
+from peploop.tree import qs, sweep, wd
 
 TOOL = "peptree"
 DIR = qs.OUT_DIR / "send"

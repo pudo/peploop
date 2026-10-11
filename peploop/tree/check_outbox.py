@@ -1,11 +1,11 @@
 """Pin the outbox's arithmetic, offline: keys, what one batch may carry, and the ledger's transitions.
 
-    .venv/bin/python -m peptree.check_outbox
+    .venv/bin/python -m peploop.tree.check_outbox
 """
 
 from peploop import ledger, send
-from peptree import outbox
-from peptree.check_filter import expect
+from peploop.tree import outbox
+from peploop.tree.check_filter import expect
 
 REF = 'Q1\tP17\tQ9\tS854\t"https://x.org/a"\tS813\t+2026-10-04T00:00:00Z/11 /* peptree repair xx 2026-10-04 */'
 

@@ -6,7 +6,7 @@ given "minister" beside its own class); a flag that turns out to be a real
 defect becomes a rule in `rules.py` with a case in `check_rules.py`, and stops
 being something a reviewer has to catch.
 
-    python -m peptree.cli audit <batch>
+    python -m peploop.tree.cli audit <batch>
 """
 
 import re
@@ -15,9 +15,9 @@ from collections import defaultdict
 from typing import Any
 
 from peploop import ledger
-from peptree import country as countries
-from peptree import gaps, qs, sweep, wd
-from peptree.load import values
+from peploop.tree import country as countries
+from peploop.tree import gaps, qs, sweep, wd
+from peploop.tree.load import values
 
 #: Categories every state has an office for: absent after the run means the load missed it.
 EXPECTED = ("head_of_state", "head_of_government", "minister", "legislator")

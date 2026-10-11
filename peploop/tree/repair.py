@@ -19,10 +19,10 @@ import requests
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
-from peptree import country as countries
-from peptree import gaps as gapmod
-from peptree import signals, wd
-from peptree.load import GENERIC_META, LIST_ARTICLES, POSITION_METAS, items as load_items, place_refs, values
+from peploop.tree import country as countries
+from peploop.tree import gaps as gapmod
+from peploop.tree import signals, wd
+from peploop.tree.load import GENERIC_META, LIST_ARTICLES, POSITION_METAS, items as load_items, place_refs, values
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "repair.md"
 MODEL = os.environ.get("PEPTREE_MODEL", "claude-opus-5")

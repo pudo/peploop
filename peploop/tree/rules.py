@@ -12,8 +12,8 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 
-from peptree import signals, wd
-from peptree.load import has, values
+from peploop.tree import signals, wd
+from peploop.tree.load import has, values
 
 MIN_QUOTE = 4
 

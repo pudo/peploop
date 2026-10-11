@@ -1,7 +1,7 @@
 """Render a run's applied decisions as QuickStatements V1, and check them.
 
 A country's run file is rendered and checked here (`validate`). What reaches
-Wikidata goes out through `outbox.py` (`peptree.cli send`), as a QuickStatements 3.0 batch.
+Wikidata goes out through `outbox.py` (`peploop.cli tree send`), as a QuickStatements 3.0 batch.
 """
 
 import datetime as dt
@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-OUT_DIR = Path(__file__).resolve().parent.parent / "data" / "peptree"
+OUT_DIR = Path(__file__).resolve().parents[2] / "data" / "peptree"
 SUMMARY_RE = re.compile(r" /\* [^*]+ \*/$")
 
 

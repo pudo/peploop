@@ -5,7 +5,7 @@ from data (`country.config`): the languages from rigour, the predecessors
 from rigour and Wikidata, every word a label is read for from a class's
 labels. A rule written around one country's language, territory or wiki is a
 rule the next country silently breaks. This greps the tokens of every country
-already run or queued out of `peptree/*.py` and `peptree/prompts/*.md`, the
+already run or queued out of `peploop/tree/*.py` and `peploop/tree/prompts/*.md`, the
 checks included (their fixtures use an invented country). The list grows as
 countries are added and the hit count stays at zero.
 
@@ -13,7 +13,7 @@ One exception, marked rather than inferred. A prompt teaches by example, and an
 example list that names several unrelated states is the opposite of a
 country-specific rule; such a line says so by ending with its marker comment.
 
-Run it as `python -m peptree.check_neutral` from the repository root.
+Run it as `python -m peploop.tree.check_neutral` from the repository root.
 """
 
 import re

@@ -23,8 +23,8 @@ from typing import Any, Callable
 import requests
 from psycopg.types.json import Jsonb
 
-from peptree import country as countries
-from peptree import wd
+from peploop.tree import country as countries
+from peploop.tree import wd
 
 POSITION_METAS = {"Q4164871", "Q294414", "Q17279032"}
 GENERIC_META = "Q136649946"  # type of position
@@ -82,7 +82,7 @@ NOT_A_SEAT: list[tuple[str, set[str]]] = [
 EVENT_LIKE = {"Q1190554", "Q186081", "Q2424752"}
 EVENT_STOP = {"Q12737077", "Q28640", "Q4164871", "Q294414", "Q17279032", "Q136649946"}
 #: Generic position classes (one never-use class per row), shared with peploop.
-GENERIC_PATH = Path(__file__).resolve().parent.parent / "peploop" / "generic_positions.csv"
+GENERIC_PATH = Path(__file__).resolve().parents[1] / "generic_positions.csv"
 #: Reached through a declared P31 (not a metaclass), these mean "a body".
 BODY_ROOTS = {"Q43229", "Q495430", "Q6813432"}  # organization, general staff, military staff
 DIPLOMATIC = "Q121998"

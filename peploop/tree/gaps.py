@@ -15,9 +15,9 @@ from typing import Any, Iterable
 
 import yaml
 
-from peptree import country as countries
-from peptree import wd
-from peptree.load import POSITION_METAS, has, values
+from peploop.tree import country as countries
+from peploop.tree import wd
+from peploop.tree.load import POSITION_METAS, has, values
 
 CATEGORIES_PATH = Path(__file__).resolve().parent / "categories.yml"
 

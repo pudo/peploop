@@ -25,8 +25,8 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import Any
 
-from peptree import country as countries
-from peptree.load import POSITION_METAS, values
+from peploop.tree import country as countries
+from peploop.tree.load import POSITION_METAS, values
 
 TOKEN = re.compile(r"\w+", re.U)
 PUBLIC_OFFICE, POSITION = "Q294414", "Q4164871"

@@ -1,12 +1,12 @@
 """Pin the gap step: what counts as missing, the ambassador convention, the class fix.
 
-    .venv/bin/python -m peptree.check_gaps
+    .venv/bin/python -m peploop.tree.check_gaps
 """
 
-from peptree import country, gaps
-from peptree.check_filter import ent, expect
-from peptree.check_fixture import XX
-from peptree.check_rules import item
+from peploop.tree import country, gaps
+from peploop.tree.check_filter import ent, expect
+from peploop.tree.check_fixture import XX
+from peploop.tree.check_rules import item
 
 #: Class names as `gaps.class_names` would read them from the category classes.
 NAMES = {key: [country.seq(n) for n in names] for key, names in {
@@ -120,13 +120,13 @@ def learned() -> None:
     """The level words a country's own offices teach, and what they do not."""
     from dataclasses import replace
 
-    from peptree.check_fixture import DISTRICT, PLACES
+    from peploop.tree.check_fixture import DISTRICT, PLACES
 
     xx = replace(XX)
     offices = [item(f"Q7{i}", "subnational", ent({"xa": f"chairman of the {name} Raionic Executive Committee"},
                                                  P1001=[r]))
                for i, (name, r) in enumerate((("Karelia", "R1"), ("Lindau", "R2"), ("Zenda", "R3")))]
-    from peptree.check_fixture import place
+    from peploop.tree.check_fixture import place
     aliased = [place(r, "district", {"en": f"{n} District", "en:x": f"{n} District"}, [DISTRICT])
                for n, r in (("Karelia", "R1"), ("Lindau", "R2"), ("Zenda", "R3"))]
     councils = [item(f"Q6{i}", "subnational", ent({"en": f"chairman of the {n} District Council"}, P1001=[r]))
@@ -158,8 +158,8 @@ def matching() -> None:
     """Places and level words are whole words, inflected at most at the end."""
     from dataclasses import replace
 
-    from peptree import signals
-    from peptree.check_fixture import place
+    from peploop.tree import signals
+    from peploop.tree.check_fixture import place
 
     expect(not country.word_match("zendaborg", "zendel") and not country.word_match("marine", "zendel"),
            "a place's name is never matched by a shared prefix ('Zendel' is not 'Zendaborg')")
@@ -187,7 +187,7 @@ def matching() -> None:
     expect(xx.type_words["Q900010"] == ["region"], "a type word none of its places is named with is dropped")
     offices = [{"qid": f"Q8{i}", "entity": ent({"xa": f"chairman of the {n} administrative committee"}, P1001=[r])}
                for i, (n, r) in enumerate((("Karelia", "R1"), ("Lindau", "R2"), ("Zenda", "R3")))]
-    from peptree.check_fixture import PLACES
+    from peploop.tree.check_fixture import PLACES
     expect(country.learn_level_words(replace(XX), offices, list(PLACES.places.values())) == {},
            "an 'administrative' word is never learned as a level word")
 
@@ -254,7 +254,7 @@ def spans() -> None:
 
 def discovery() -> None:
     """A somevalue P39 binds a blank node; discovery keeps items only."""
-    from peptree import load, wd
+    from peploop.tree import load, wd
 
     real = wd.sparql
     wd.sparql = lambda q, max_age=0: [{"pos": "Q1"}, {"pos": "http://www.wikidata.org/.well-known/genid/abc"}]

@@ -16,7 +16,7 @@ from typing import Any
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territories, get_territory
 
-from peptree import wd
+from peploop.tree import wd
 
 #: Classes that make an item a state, for a predecessor or a federation.
 STATE_CLASSES = {"Q7275", "Q3024240", "Q6256", "Q3624078"}  # state, historical country, country, sovereign state

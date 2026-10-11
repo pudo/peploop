@@ -1,12 +1,12 @@
 """peptree: repair every country's position items, and send the repairs to Wikidata.
 
-    python -m peptree.cli place <cc>                 # country → load → repair → report for one place
-    python -m peptree.cli sweep plan|table|run <n>   # the batched sweep, ledger in peptree/sweep.md
-    python -m peptree.cli audit <n>                  # every line of batch n with labels, and what to look at
-    python -m peptree.cli send [--submit] [--batch n]  # what has not gone out yet; --submit sends it
-    python -m peptree.cli send --status              # the send ledger, failures, strikes, open removals
-    python -m peptree.cli strike <qid> <prop> [value] --reason "…"  # never send it; undo it if it landed
-    python -m peptree.cli removals [approve|reject <guid…>]         # statements to take back off Wikidata
+    python -m peploop.tree.cli place <cc>                 # country → load → repair → report for one place
+    python -m peploop.tree.cli sweep plan|table|run <n>   # the batched sweep, ledger in peploop/tree/sweep.md
+    python -m peploop.tree.cli audit <n>                  # every line of batch n with labels, and what to look at
+    python -m peploop.tree.cli send [--submit] [--batch n]  # what has not gone out yet; --submit sends it
+    python -m peploop.tree.cli send --status              # the send ledger, failures, strikes, open removals
+    python -m peploop.tree.cli strike <qid> <prop> [value] --reason "…"  # never send it; undo it if it landed
+    python -m peploop.tree.cli removals [approve|reject <guid…>]         # statements to take back off Wikidata
 
 Every place's run writes one file per day, `data/peptree/<cc>/<cc>-<date>.qs`,
 holding every lane's statements, with its report as `<cc>-<date>.md` beside it.
@@ -17,8 +17,8 @@ That file is what the place would add now; it is never sent itself. Only
 import argparse
 import sys
 
-from peptree import country as countries
-from peptree import gaps, load, qs, repair, report, rules, wd
+from peploop.tree import country as countries
+from peploop.tree import gaps, load, qs, repair, report, rules, wd
 
 
 def log(msg: str) -> None:
@@ -69,7 +69,7 @@ def cmd_country(cc: str) -> None:
 
 def cmd_place(cc: str, limit: int | None, no_ask: bool, large_ok: bool) -> None:
     """Derive the place's config, load it, and repair it -- unless it is large and nobody said so."""
-    from peptree import sweep
+    from peploop.tree import sweep
     cmd_country(cc)
     cmd_load(cc)
     asked = sweep.asked(cc)
@@ -82,7 +82,7 @@ def cmd_place(cc: str, limit: int | None, no_ask: bool, large_ok: bool) -> None:
 def main() -> None:
     if sys.argv[1:2] in (["sweep"], ["audit"], ["send"], ["removals"], ["strike"]):
         wd.init()
-        from peptree import audit, outbox, sweep
+        from peploop.tree import audit, outbox, sweep
         {"sweep": sweep.main, "audit": audit.main, "send": outbox.main, "removals": outbox.removals_main,
          "strike": outbox.strike_main}[sys.argv[1]](sys.argv[2:])
         return

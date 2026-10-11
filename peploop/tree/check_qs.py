@@ -1,10 +1,10 @@
 """Pin the QuickStatements rendering and the local validation, offline.
 
-    .venv/bin/python -m peptree.check_qs
+    .venv/bin/python -m peploop.tree.check_qs
 """
 
-from peptree import qs
-from peptree.check_filter import expect
+from peploop.tree import qs
+from peploop.tree.check_filter import expect
 
 
 def main() -> None:

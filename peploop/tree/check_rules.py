@@ -1,11 +1,11 @@
 """Pin the rule table and the channels it reads, offline.
 
-    .venv/bin/python -m peptree.check_rules
+    .venv/bin/python -m peploop.tree.check_rules
 """
 
-from peptree import rules, signals
-from peptree.check_filter import ent, expect
-from peptree.check_fixture import PLACES, XX
+from peploop.tree import rules, signals
+from peploop.tree.check_filter import ent, expect
+from peploop.tree.check_fixture import PLACES, XX
 
 
 def item(qid: str, kind: str, e: dict, holders: int = 0, by: dict | None = None, rows: list | None = None) -> dict:
@@ -88,7 +88,7 @@ def main() -> None:
            "label and holders agree on P17")
     expect(signals.channels("P31", "Q294414", facts(nat)) == ["state_office"], "a state office is a public office")
     from types import SimpleNamespace
-    from peptree import repair
+    from peploop.tree import repair
     many = [{"qid": f"Q{i}", "holders": 0} for i in range(repair.LARGE + 1)]
     many[0]["holders"], many[1]["category"] = 2, True
     fake = SimpleNamespace(ctx=SimpleNamespace(detected=lambda it: {"minister"} if it.get("category") else set()))
@@ -206,13 +206,13 @@ def eras() -> None:
     expect("label" not in signals.channels("P1001", "Q900001", facts(rector))
            and "label" in signals.channels("P17", "Q900001", facts(rector)),
            "'… under the President of X' names no jurisdiction, but still the country")
-    from peptree import country
+    from peploop.tree import country
     expect(country.named_states(replace(XX, names={**XX.names, "Q900002": ["Ruritan"]}), "Vice President of Ruritania")
            == {"Q900001"}, "a predecessor named 'Ruritan' is not read into 'Ruritania' when the state's name is spelled out")
     vp = item("Q57", "national", ent({"en": "Vice President of the Republic of Ruritania"}))
     expect("label" in signals.channels("P1001", "Q900001", facts(vp)), "a deputy-prefixed head title still leads")
     # A quote the model wrote with JSON escapes or control characters is still verbatim.
-    from peptree.check_fixture import CITY_PLACES
+    from peploop.tree.check_fixture import CITY_PLACES
     city_facts = facts(item("Q59", "subnational", ent({"en": "Mayor of Zendaborg"})))
     city_facts.places = signals.Places(list(PLACES.places.values()) + CITY_PLACES)
     expect(signals.expected_label("P1001", city_facts) == {"C1"}, "a mayor's label names its city as the jurisdiction")

@@ -7,9 +7,9 @@ account are reviewed together.
 from collections import Counter
 from pathlib import Path
 
-from peptree import gaps as gapmod
-from peptree import qs, repair, wd
-from peptree.load import items as load_items
+from peploop.tree import gaps as gapmod
+from peploop.tree import qs, repair, wd
+from peploop.tree.load import items as load_items
 
 
 def funnel(cc: str) -> list[str]:
