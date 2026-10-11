@@ -204,13 +204,15 @@ def holders(qids: list[str]) -> dict[str, list[dict[str, str]]]:
       SERVICE wikibase:label { bd:serviceParam wikibase:language "%s". } }
       GROUP BY ?pos ?h ?hLabel ?s ?e"""
     out: dict[str, list[dict[str, str]]] = {}
-    for chunk in wd.values_chunks(qids, 40):
-        for r in wd.sparql(q % (wd.values_block(chunk), ",".join(wd.LANGS))):
-            # GROUP_CONCAT order is arbitrary; sorted, so the content key is stable.
-            cit = ", ".join(sorted(x for x in r.get("cit", "").split(", ") if x))
-            out.setdefault(r["pos"], []).append({"qid": r["h"], "name": r.get("hLabel", ""),
-                                                 "start": r.get("s", "")[:10], "end": r.get("e", "")[:10],
-                                                 "cit": cit})
+    # Halved where the service cannot answer: an office with thousands of
+    # holders (a Bundestag seat) makes its chunk of forty 504.
+    found = wd.bisect(lambda chunk: wd.sparql(q % (wd.values_block(chunk), ",".join(wd.LANGS))), qids, 40)
+    for r in found:
+        # GROUP_CONCAT order is arbitrary; sorted, so the content key is stable.
+        cit = ", ".join(sorted(x for x in r.get("cit", "").split(", ") if x))
+        out.setdefault(r["pos"], []).append({"qid": r["h"], "name": r.get("hLabel", ""),
+                                             "start": r.get("s", "")[:10], "end": r.get("e", "")[:10],
+                                             "cit": cit})
     for pos, rows in out.items():
         rows.sort(key=lambda r: (r["start"] or "9999", r["qid"]), reverse=True)
         seen, keep = set(), []
