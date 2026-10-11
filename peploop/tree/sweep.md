@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
-Progress: pending 9, reviewed 190, skipped 1, submitted 48
+Progress: pending 8, reviewed 191, skipped 1, submitted 48
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | batches | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -211,7 +211,7 @@ Progress: pending 9, reviewed 190, skipped 1, submitted 48
 | gi | Gibraltar | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 18 | 1 | P31 1 | $0.04 | 035 |  |
 | gr | Greece | Europe / Southern Europe | 59 | reviewed | 2026-10-08 | 422 | 57 | P1001 14 P17 7 P279 32 P31 4 | $3.76 | 059 | 28 deputy ministries get Q26204040 beside Greek Deputy Minister Q23636253, which itself reaches only Q15735113: that class wants P279 deputy minister (human) |
 | va | Holy See | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 217 | 2 | P31 2 | $5.56 | 024 035 |  |
-| it | Italy | Europe / Southern Europe | 66 | pending |  |  |  |  |  |  |  |
+| it | Italy | Europe / Southern Europe | 66 | reviewed | 2026-10-11 | 1358 | 95 | P1001 9 P17 31 P279 9 P31 46 | $6.87 |  | re-filtered with own-language level words (1 kind changed); strike Q134969369 P1001 (a class), Q54925403 P1001 (titular see), Q3911030 P31 (class of region presidents), Q136788434 P31 (CV entry) |
 | xk | Kosovo | Europe / Southern Europe | 29 | reviewed | 2026-10-07 | 44 | 0 |  | $0.40 | 024 |  |
 | mt | Malta | Europe / Southern Europe | 29 | reviewed | 2026-10-07 | 63 | 0 |  | $0.41 | 024 035 |  |
 | me | Montenegro | Europe / Southern Europe | 30 | reviewed | 2026-10-07 | 51 | 0 |  | $0.32 | 025 |  |
