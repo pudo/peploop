@@ -14,7 +14,7 @@ from collections import Counter, defaultdict
 from contextlib import contextmanager
 from typing import Any, Callable, Iterator
 
-from peploop import db, ledger, qs3
+from peploop import db, ledger, qs, qs3
 from peploop.wikidata import fetch_items
 
 Log = Callable[[str], None]
@@ -49,7 +49,7 @@ def validate_removals(lines: list[str]) -> list[str]:
     """A removal batch carries `-STATEMENT` lines with a well-formed GUID, each once, and nothing else."""
     errors, seen = [], set()
     for n, text in enumerate(lines, 1):
-        cols = ledger.SUMMARY_RE.sub("", text).split("\t")
+        cols = qs.SUMMARY_RE.sub("", text).split("\t")
         if len(cols) != 2 or cols[0] != "-STATEMENT" or not GUID_RE.match(cols[1]):
             errors.append(f"{n}: not a removal by GUID: {text!r}")
         elif cols[1] in seen:

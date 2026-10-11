@@ -18,15 +18,13 @@ import re
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable
 
-from peploop import db
+from peploop import db, qs
 from peploop.wikidata import fetch_items
 
 ANY = "*"
 #: The reference properties that name a URL we read: peptree cites the page
 #: (`P854`), peploop the revision (`P4656`).
 URL_PROPS = ("P854", "P4656")
-#: An edit summary rides after the last column: ` /* … */`.
-SUMMARY_RE = re.compile(r" /\* [^*]+ \*/$")
 RETRIEVED = re.compile(r"\tS813\t\+\S+")
 
 
@@ -46,13 +44,13 @@ class Strike:
 
 def statement(line: str) -> tuple[str, str, str]:
     """(item, property, value) of a V1 line; a leading `+` (always create) is not part of the item."""
-    cols = SUMMARY_RE.sub("", line).split("\t")
+    cols = qs.SUMMARY_RE.sub("", line).split("\t")
     return cols[0].lstrip("+"), cols[1], cols[2]
 
 
 def key(line: str) -> str:
     """The statement a line adds, without the parts that vary run to run (summary, retrieval date)."""
-    return RETRIEVED.sub("", SUMMARY_RE.sub("", line)).strip()
+    return RETRIEVED.sub("", qs.SUMMARY_RE.sub("", line)).strip()
 
 
 # --- batches and edits ---------------------------------------------------------------
@@ -153,7 +151,7 @@ def strike(tool: str, qid: str, prop: str, value: str, country: str, reason: str
 
 def ours_urls(line: str) -> set[str]:
     """The URLs a line of ours cites."""
-    cols = [c for c in SUMMARY_RE.sub("", line).split("\t") if c not in ("R+", "R0", "R-")]
+    cols = [c for c in qs.SUMMARY_RE.sub("", line).split("\t") if c not in ("R+", "R0", "R-")]
     sources = {"S" + p[1:] for p in URL_PROPS}
     return {cols[i + 1].strip('"') for i in range(3, len(cols) - 1, 2) if cols[i].lstrip("!") in sources}
 

@@ -5,12 +5,12 @@ Wikidata goes out through `outbox.py` (`peploop.cli tree send`), as a QuickState
 """
 
 import datetime as dt
-import re
 from pathlib import Path
 from typing import Any
 
+from peploop import qs
+
 OUT_DIR = Path(__file__).resolve().parents[2] / "data" / "peptree"
-SUMMARY_RE = re.compile(r" /\* [^*]+ \*/$")
 
 
 def today() -> str:
@@ -29,10 +29,9 @@ def line(d: dict[str, Any], retrieved: str, name: str) -> str:
     lang = source.removeprefix("article_") if source.startswith("article_") else None
     url = (d.get("articles") or {}).get(lang) if lang else None
     if url:
-        cols += ["S854", f'"{url}"', "S813", retrieved]
-    # The summary rides on the last column after a space: as a column of its
-    # own, QS reads it as half a qualifier pair and fails the line.
-    return "\t".join(cols) + f" /* {name} */"
+        # A quote would end the string column; percent-encoded it is the same URL.
+        cols += ["S854", qs.qs_value(url.replace('"', "%22")), "S813", retrieved]
+    return qs.line(cols, name)
 
 
 def render(decisions: list[dict[str, Any]], name: str) -> list[str]:
@@ -49,7 +48,7 @@ def validate(lines: list[str]) -> list[str]:
         if text.startswith("-"):
             errors.append(f"{n}: removal in an add-only batch")
             continue
-        cols = SUMMARY_RE.sub("", text).split("\t")
+        cols = qs.columns(text)
         if len(cols) < 3 or not cols[0].startswith("Q") or not cols[1].startswith("P") or not cols[2].startswith("Q"):
             errors.append(f"{n}: malformed: {text!r}")
             continue
@@ -66,7 +65,7 @@ def statements(lines: list[str]) -> list[tuple[str, str, str]]:
     """(item, property, value) of every line."""
     out = []
     for text in lines:
-        cols = SUMMARY_RE.sub("", text).split("\t")
+        cols = qs.columns(text)
         out.append((cols[0], cols[1], cols[2]))
     return out
 

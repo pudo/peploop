@@ -22,7 +22,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable
 
-from peploop import db, ledger, plan, qs, send
+from peploop import db, ledger, plan, qs, route, send
 from peploop.wikidata import fetch_items
 
 TOOL = "peploop"
@@ -55,15 +55,15 @@ def settle(log: Log) -> None:
     log(f"settled: {n_applied} rows applied, {n_failed} failed")
 
 
-def routed(country: str, qids: list[str], log: Log, threads: int) -> list[qs.Routed]:
+def routed(country: str, qids: list[str], log: Log, threads: int) -> list[route.Routed]:
     """Pre-flight and route every person; a person whose pre-flight fails is left for the next send."""
-    def one(qid: str) -> qs.Routed | None:
+    def one(qid: str) -> route.Routed | None:
         try:
             entity, rows, _moved = plan.preflight(qid)
         except Exception as exc:  # noqa: BLE001 -- one item must not end the send
             log(f"{qid}: pre-flight failed, left accepted: {exc}")
             return None
-        return qs.route(qid, entity, rows)
+        return route.route(qid, entity, rows)
 
     with ThreadPoolExecutor(threads) as pool:
         people = [r for r in pool.map(one, qids) if r is not None]
@@ -83,7 +83,7 @@ def routed(country: str, qids: list[str], log: Log, threads: int) -> list[qs.Rou
     return people
 
 
-def close(people: list[qs.Routed]) -> int:
+def close(people: list[route.Routed]) -> int:
     """Record every row the plan closed without a line as `skipped` under its route."""
     n = 0
     for person in people:
@@ -128,7 +128,7 @@ def run(country: str, log: Log, submit: bool = False, qids: list[str] | None = N
     for person in people:
         routes.update(person.routes)
     lines = [line for person in people for line in person.lines]
-    errors = qs.validate(lines)
+    errors = route.validate(lines)
     log(f"{len(people)} people: " + " ".join(f"{k}={v}" for k, v in sorted(routes.items())))
     log(f"{len(lines)} lines, {sum(len(p.skipped) for p in people)} rows closed without one, "
         f"{sum(len(p.deferred) for p in people)} rows wait for the next send")

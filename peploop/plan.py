@@ -152,7 +152,7 @@ def addable_qualifiers(
 
     Purely additive, and the guard is what makes it so: a claim already saying
     when a tenure began is not one this may re-date. The plan keeps the live
-    claim with these merged in, and `qs.render` sends only the difference.
+    claim with these merged in, and `route.render` sends only the difference.
     """
     present = claim.get("qualifiers") or {}
     if any(prop in present for prop in qualifiers):
@@ -255,7 +255,7 @@ def _statement(
     prop: str, value: dict[str, Any], qualifiers: dict[str, Any], order: list[str],
     refs: list[dict[str, Any]], rank: str = "normal",
 ) -> dict[str, Any]:
-    """A new statement, in Wikidata's JSON shape: what `qs.render` turns into a `+` line."""
+    """A new statement, in Wikidata's JSON shape: what `route.render` turns into a `+` line."""
     statement: dict[str, Any] = {"type": "statement", "rank": rank, "mainsnak": _snak(prop, value)}
     if qualifiers:
         statement["qualifiers"] = qualifiers
