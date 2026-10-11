@@ -1,59 +1,56 @@
-"""Export a country's accepted additions as QuickStatements chunks, pasted by hand.
+"""Render one person's planned edit as QuickStatements lines, for a QS3 batch.
 
-`apply` writes one person per API edit, ten seconds apart and waiting out every
-lag episode, so a country of 1,300 people is an afternoon at the terminal.
-QuickStatements runs server-side once a batch is pasted. It is the faster path
-for the bulk of a run, and not a safe one for all of it: QS matches a line on
-item, property and *value* and folds the line's qualifiers into the statement
-it finds. So a statement goes out here only when no such match can happen --
-it is new, nothing on the live item has its value, and no other statement in
-the person's edit has it either. A refinement of a recorded statement, a second
-spell beside one, two spells written together, a preferred-rank value: all of
-these stay `accepted` for `apply`, which drains them afterwards.
+QS3 cannot be pointed at a statement: a plain line merges into the *first*
+statement holding its value, and a `+` line always creates one. So every
+statement of the plan becomes the one line that does exactly what was planned:
 
-    python -m peploop.cli export --country my            # write new chunks
-    python -m peploop.cli export --country my --landed   # read pasted ones back
+- a new statement, a further spell of an office, a value beside one somebody
+  else sourced: a `+` line (with `R+` when it outranks that one);
+- dates or a reference for a statement that is the only one with its value: a
+  plain line carrying only what it lacks;
+- a coarse imported date sharpened in place: `SWITCH_VALUE`, then a plain line
+  adding the new reference to it.
 
-An exported row is `exported` until `--landed` finds its statement on the live
-item and records it `applied` under the claim id. A row a pasted chunk never
-landed stays `exported` and is listed; `--release` hands it back to `apply`.
+`plan.plan_claim` has already refused what no line can aim (`ambiguous-statement`).
+A statement no line can render -- a Julian date, a string with a quote or a tab --
+closes its rows as `unrenderable`. A `+` line for a value a plain line of the
+same person also names waits for the next send, by when the merge has landed and
+the plan sees the statement it made.
 """
 
-import json
 import re
 from collections import Counter
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-from peploop import apply, db, http, wikidata
+from peploop import ledger, plan
 
-EXPORTED = "exported"
-OUT_DIR = Path(__file__).resolve().parent.parent / "data" / "peploop" / "qs"
-API = "https://quickstatements.toolforge.org/api.php"
-#: Commands one paste into the QuickStatements importer takes.
-CAP = 300
 GREGORIAN = "http://www.wikidata.org/entity/Q1985727"
-SUMMARY_RE = re.compile(r" /\* [^*]+ \*/$")
-CHUNK_RE = re.compile(r"-(\d{3})\.qs$")
+UNRENDERABLE = "unrenderable"
+SWITCH = "SWITCH_VALUE"
+RANK = re.compile(r"^R[-0+]$")
 
 
 @dataclass
-class Export:
-    """One person's QS-safe statements: the lines, and the rows they write."""
+class Routed:
+    """One person's lines, and what became of each accepted row."""
 
     qid: str
-    baserevid: int | None
     lines: list[str] = field(default_factory=list)
-    rows: list[int] = field(default_factory=list)
+    #: (line, the proposal ids it writes), in line order.
+    edits: list[tuple[str, list[int]]] = field(default_factory=list)
+    #: (proposal id, route) for every row closed without a line.
+    skipped: list[tuple[int, str]] = field(default_factory=list)
+    #: Rows left accepted for the next send.
+    deferred: list[int] = field(default_factory=list)
     routes: Counter[str] = field(default_factory=Counter)
 
 
 def qs_value(value: dict[str, Any] | str) -> str | None:
-    """A datavalue as a QS V1 column, or None for a shape this path does not write.
+    """A datavalue as a QS column, or None for a shape this path does not write.
 
     Only the Gregorian calendar is written: QS's Julian marker is not one any
-    run has needed, and a date it misreads is worse than one left to `apply`.
+    run has needed, and a date it misreads is worse than one left unwritten.
     """
     if isinstance(value, str):
         return None if '"' in value or "\t" in value else f'"{value}"'
@@ -72,276 +69,194 @@ def _snak_value(snak: dict[str, Any]) -> str | None:
     return qs_value(snak.get("datavalue", {}).get("value"))
 
 
-def lines_for(qid: str, statement: dict[str, Any], summary: str) -> list[str] | None:
-    """The QS lines for one new statement: one per reference, or None if unwritable.
-
-    A statement three wikis attest is three lines naming the same statement
-    and qualifiers, each with its own source block; QS lands the first and
-    adds the others' references to it.
-    """
-    prop = statement["mainsnak"]["property"]
-    main = _snak_value(statement["mainsnak"])
-    if main is None:
-        return None
-    cols = [qid, prop, main]
-    qualifiers = statement.get("qualifiers") or {}
-    for qprop in statement.get("qualifiers-order") or list(qualifiers):
+def _qualifiers(qualifiers: dict[str, Any], order: list[str] | None = None) -> list[str] | None:
+    cols: list[str] = []
+    for qprop in order or list(qualifiers):
         for snak in qualifiers.get(qprop, []):
             value = _snak_value(snak)
             if value is None:
                 return None
             cols += [qprop, value]
-    sources: list[list[str]] = []
-    for ref in statement.get("references") or []:
-        block: list[str] = []
+    return cols
+
+
+def _references(references: list[dict[str, Any]]) -> list[str] | None:
+    """Reference blocks as columns: the first opens with `S…`, each further one with `!S…`."""
+    cols: list[str] = []
+    for n, ref in enumerate(references):
+        first = True
         for sprop in ref.get("snaks-order") or list(ref["snaks"]):
             for snak in ref["snaks"].get(sprop, []):
                 value = _snak_value(snak)
                 if value is None:
                     return None
-                block += ["S" + sprop[1:], value]
-        sources.append(block)
+                cols += [("!S" if n and first else "S") + sprop[1:], value]
+                first = False
+    return cols
+
+
+def _line(cols: list[str], summary: str) -> str:
     # The summary rides on the last column after a space: as a column of its
     # own, QS reads it as half a qualifier pair and fails the line.
-    # Two rows citing the same revision merge into one statement carrying that
-    # reference twice; as lines they would be one line twice.
-    return list(dict.fromkeys(
-        "\t".join(cols + block) + f" /* {summary} */" for block in sources or [[]]
-    ))
+    return "\t".join(cols) + f" /* {summary.replace('*', '')} */"
 
 
-def _value_key(prop: str, value: dict[str, Any]) -> str:
-    return prop + "\t" + json.dumps(value.get("id") or value, sort_keys=True)
+def _live(entity: dict[str, Any], prop: str, guid: str) -> dict[str, Any] | None:
+    return next((c for c in entity.get("claims", {}).get(prop, []) if c.get("id") == guid), None)
 
 
-def route(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]], summary: str) -> Export:
-    """Split one person's accepted rows into what QS may write and what stays with `apply`.
+def render(qid: str, entity: dict[str, Any], statement: dict[str, Any], summary: str) -> tuple[str, list[str]] | None:
+    """(route, lines) for one planned statement, or None if a value cannot be written."""
+    prop = statement["mainsnak"]["property"]
+    value = _snak_value(statement["mainsnak"])
+    if value is None:
+        return None
+    guid = statement.get("id")
+    if guid is None:
+        quals = _qualifiers(statement.get("qualifiers") or {}, statement.get("qualifiers-order"))
+        refs = _references(statement.get("references") or [])
+        if quals is None or refs is None:
+            return None
+        rank = ["R+"] if statement.get("rank") == "preferred" else []
+        route = "preferred" if rank else "create"
+        return route, [_line([f"+{qid}", prop, value, *rank, *quals, *refs], summary)]
+    live = _live(entity, prop, guid)
+    if live is None:
+        return None
+    present = live.get("qualifiers") or {}
+    added = {p: s for p, s in (statement.get("qualifiers") or {}).items() if p not in present}
+    quals = _qualifiers(added)
+    refs = _references((statement.get("references") or [])[len(live.get("references") or []):])
+    if quals is None or refs is None:
+        return None
+    merge = _line([qid, prop, value, *quals, *refs], summary)
+    old = _snak_value(live.get("mainsnak", {}))
+    if old is None:
+        return None
+    if old == value:
+        return "merge", [merge]
+    return "switch", [_line([SWITCH, qid, prop, old, value], summary), merge]
 
-    The plan is `apply`'s own, so a row exported here is exactly the statement
-    the API path would have sent. The routes name why a statement stays.
-    """
-    plan = apply.plan_person(qid, entity, rows)
-    out = Export(qid=qid, baserevid=plan.baserevid)
-    statements = plan.data.get("claims", [])
-    planned = Counter(
-        _value_key(s["mainsnak"]["property"], s["mainsnak"]["datavalue"]["value"])
-        for s in statements
-    )
-    by_key: dict[str, list[int]] = {}
-    for row_id, prop, value, qualifiers in plan.claims:
-        key = "\t".join((
-            prop,
-            json.dumps(value, sort_keys=True, ensure_ascii=False),
-            apply._qualifier_fingerprint(qualifiers),
-        ))
-        by_key.setdefault(key, []).append(row_id)
-    for statement in statements:
-        prop = statement["mainsnak"]["property"]
-        value = statement["mainsnak"]["datavalue"]["value"]
-        live = [
-            claim.get("mainsnak", {}).get("datavalue", {}).get("value")
-            for claim in entity.get("claims", {}).get(prop, [])
-            if claim.get("rank") != "deprecated"
-        ]
-        if statement.get("id"):
-            out.routes["api:refine"] += 1
+
+def route(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) -> Routed:
+    """Plan one person's accepted rows against their live item, and render the plan."""
+    planned = plan.plan_person(qid, entity, rows)
+    out = Routed(qid=qid, skipped=list(planned.skipped))
+    out.routes.update({r: n for r, n in planned.routes.items() if r not in ("new", "refine", "preferred", "merged")})
+    rendered: list[tuple[str, list[str], list[int]]] = []
+    for statement, ids in zip(planned.data.get("claims", []), planned.members):
+        found = render(qid, entity, statement, planned.summary)
+        if found is None:
+            out.skipped += [(i, UNRENDERABLE) for i in ids]
+            out.routes[UNRENDERABLE] += 1
             continue
-        if statement.get("rank") == "preferred":
-            out.routes["api:preferred"] += 1
+        rendered.append((found[0], found[1], ids))
+    # A value a plain line names: a `+` line for it in the same batch could be
+    # what the plain line merges into, so the `+` waits for the next send.
+    merged = {parse(line)[1:] for kind, lines, _ in rendered if kind in ("merge", "switch") for line in lines}
+    for kind, lines, ids in rendered:
+        if kind in ("create", "preferred") and parse(lines[0])[1:] in merged:
+            out.deferred += ids
+            out.routes["deferred"] += 1
             continue
-        if any(isinstance(found, dict) and apply.same_value(found, value) for found in live):
-            out.routes["api:value-on-item"] += 1
-            continue
-        if planned[_value_key(prop, value)] > 1:
-            out.routes["api:spells-together"] += 1
-            continue
-        rendered = lines_for(qid, statement, summary)
-        ids = by_key.get(apply._statement_key(prop, statement), [])
-        if rendered is None or not ids:
-            out.routes["api:unrenderable"] += 1
-            continue
-        out.lines += rendered
-        out.rows += ids
-        out.routes["qs"] += 1
+        out.routes[kind] += 1
+        for line in lines:
+            out.lines.append(line)
+            out.edits.append((line, ids))
     return out
 
 
-def statement_of(line: str) -> tuple[str, str, str, str]:
-    """(item, property, value, qualifier columns) of a line, references dropped."""
-    cols = SUMMARY_RE.sub("", line).split("\t")
-    head, rest = cols[:3], cols[3:]
-    quals = []
-    for i in range(0, len(rest) - 1, 2):
-        if rest[i].startswith("S"):
-            break
-        quals += rest[i:i + 2]
-    return head[0], head[1], head[2], "\t".join(quals)
+# --- reading a line back ----------------------------------------------------------
 
+def columns(line: str) -> list[str]:
+    return ledger.SUMMARY_RE.sub("", line).split("\t")
+
+
+def parse(line: str) -> tuple[str, str, str, str]:
+    """(kind, item, property, value) of a line: kind `+`, `merge` or `switch` (value: the new one)."""
+    cols = columns(line)
+    if cols[0] == SWITCH:
+        return "switch", cols[1], cols[2], cols[4]
+    if cols[0].startswith("+"):
+        return "+", cols[0][1:], cols[1], cols[2]
+    return "merge", cols[0], cols[1], cols[2]
+
+
+def qualifier_pairs(line: str) -> list[tuple[str, str]]:
+    """The (property, value) qualifier pairs of a statement line, rank and references left out."""
+    cols = columns(line)
+    if cols[0] == SWITCH:
+        return []
+    rest = [c for c in cols[3:] if not RANK.match(c)]
+    out = []
+    for i in range(0, len(rest) - 1, 2):
+        if not rest[i].startswith("P"):
+            break
+        out.append((rest[i], rest[i + 1]))
+    return out
+
+
+def carries(claim: dict[str, Any], value: str, pairs: list[tuple[str, str]]) -> bool:
+    """Whether a live claim holds this value and every one of these qualifiers, as QS columns."""
+    if _snak_value(claim.get("mainsnak", {})) != value:
+        return False
+    present = claim.get("qualifiers") or {}
+    return all(any(_snak_value(s) == v for s in present.get(p, [])) for p, v in pairs)
+
+
+def live_lines(lines: list[str], entities: dict[str, dict[str, Any]]) -> list[str]:
+    """The lines whose statement the live items now hold."""
+    out = []
+    for line in lines:
+        _, item, prop, value = parse(line)
+        claims = (entities.get(item) or {}).get("claims", {}).get(prop, [])
+        if any(carries(c, value, qualifier_pairs(line)) for c in claims):
+            out.append(line)
+    return out
+
+
+# --- a batch ----------------------------------------------------------------------
 
 def validate(lines: list[str]) -> list[str]:
-    """Local checks: well-formed, no duplicate line, and no value QS would collapse.
+    """Local checks before a batch goes out.
 
-    The last is the one that matters. Two lines naming one (item, property,
-    value) with different qualifiers become one statement carrying both sets,
-    which is the defect this path exists to route around.
+    Well-formed lines, no line twice, no statement both created and merged into
+    (the merge could land on the statement the `+` makes), and one switch per
+    statement.
     """
     errors = []
     seen: set[str] = set()
-    quals: dict[tuple[str, str, str], str] = {}
+    created: set[tuple[str, str, str]] = set()
+    merged: set[tuple[str, str, str]] = set()
+    switched: set[tuple[str, str, str]] = set()
     for n, text in enumerate(lines, 1):
-        bare = SUMMARY_RE.sub("", text)
-        cols = bare.split("\t")
-        if (text.startswith("-") or len(cols) < 3 or len(cols) % 2 == 0
-                or not cols[0].startswith("Q") or not cols[1].startswith("P")):
+        cols = columns(text)
+        if cols[0].startswith("-"):
+            errors.append(f"{n}: removal in an add batch")
+            continue
+        kind = "switch" if cols[0] == SWITCH else "statement"
+        body = cols[1:] if kind == "switch" else cols
+        if kind == "switch" and len(body) != 4 or kind == "statement" and (
+                len(cols) < 3 or not cols[0].lstrip("+").startswith("Q") or not cols[1].startswith("P")):
             errors.append(f"{n}: malformed: {text!r}")
             continue
+        if kind == "statement":
+            rest = [c for c in cols[3:] if not RANK.match(c)]
+            if len(rest) % 2:
+                errors.append(f"{n}: malformed: {text!r}")
+                continue
+        bare = "\t".join(cols)
         if bare in seen:
             errors.append(f"{n}: duplicate line")
         seen.add(bare)
-        item, prop, value, qualifiers = statement_of(text)
-        prior = quals.setdefault((item, prop, value), qualifiers)
-        if prior != qualifiers:
-            errors.append(f"{n}: {item} {prop} {value} twice with different qualifiers")
+        what, item, prop, value = parse(text)
+        key = (item, prop, value)
+        if what == "switch":
+            old = (item, prop, cols[3])
+            if old in switched:
+                errors.append(f"{n}: {item} {prop} {cols[3]} switched twice")
+            switched.add(old)
+        (created if what == "+" else merged).add(key)
+    for item, prop, value in sorted(created & merged):
+        errors.append(f"{item} {prop} {value} both created and merged into")
     return errors
-
-
-def commands(line: str) -> int:
-    """QS commands a line expands to: the statement, one per qualifier, one for its references.
-
-    Measured against QS's own parse: a dated tenure with a source is four.
-    """
-    cols = SUMMARY_RE.sub("", line).split("\t")[3:]
-    keys = cols[::2]
-    return 1 + sum(k.startswith("P") for k in keys) + any(k.startswith("S") for k in keys)
-
-
-def parse(text: str) -> tuple[bool, str]:
-    """QuickStatements' own parse of a chunk, sent without `submit` (no auth, no edit)."""
-    res = http.post(API, data={"action": "import", "format": "v1", "data": text}, timeout=120)
-    try:
-        out = res.json()
-    except ValueError:
-        return False, f"HTTP {res.status_code}: {res.text[:200]}"
-    found = (out.get("data") or {}).get("commands") or []
-    bad = [c for c in found if c.get("error")]
-    if out.get("status") != "OK" or bad:
-        return False, f"status={out.get('status')} errors={bad[:3]}"
-    return True, f"{len(found)} commands parsed, 0 errors"
-
-
-def next_chunk(country: str) -> int:
-    """The next unused chunk number for a country; numbers are never reused."""
-    used = [int(m.group(1)) for p in OUT_DIR.glob(f"{country}-*.qs") if (m := CHUNK_RE.search(p.name))]
-    return max(used, default=0) + 1
-
-
-def chunk_name(country: str, number: int) -> str:
-    return f"peploop {country} qs-{number:03d}"
-
-
-def chunked(exports: list[Export], cap: int = CAP) -> list[list[Export]]:
-    """Fill chunks in order up to `cap` commands, never splitting a person."""
-    out: list[list[Export]] = [[]]
-    used = 0
-    for export in exports:
-        need = sum(commands(line) for line in export.lines)
-        if out[-1] and used + need > cap:
-            out.append([])
-            used = 0
-        out[-1].append(export)
-        used += need
-    return [chunk for chunk in out if chunk]
-
-
-def write_chunks(country: str, exports: list[Export], log: Callable[[str], None]) -> list[Path]:
-    """Write, check and record the chunks; the rows of a chunk that fails stay `accepted`."""
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    paths = []
-    number = next_chunk(country)
-    for chunk in chunked([e for e in exports if e.lines]):
-        name = chunk_name(country, number)
-        lines = [SUMMARY_RE.sub("", line) + f" /* {name} */" for e in chunk for line in e.lines]
-        errors = validate(lines)
-        text = "\n".join(lines) + "\n"
-        ok, detail = (False, "; ".join(errors[:5])) if errors else parse(text)
-        if not ok:
-            log(f"{name}: refused, nothing recorded: {detail}")
-            continue
-        path = OUT_DIR / f"{country}-{number:03d}.qs"
-        path.write_text(text)
-        record(chunk, name)
-        log(f"{name}: {len(chunk)} people, {len(lines)} lines, {detail} -> {path}")
-        paths.append(path)
-        number += 1
-    return paths
-
-
-def record(chunk: list[Export], name: str) -> None:
-    """Mark a written chunk's rows `exported`, so `apply` does not send them too."""
-    conn = db.conn()
-    with conn.transaction():
-        for export in chunk:
-            conn.execute(
-                "UPDATE proposal SET status = %s, applied_batch = %s, base_rev = %s"
-                " WHERE id = ANY(%s) AND status = 'accepted'",
-                (EXPORTED, name, export.baserevid, export.rows),
-            )
-
-
-# --- a pasted chunk ---------------------------------------------------------------
-
-def _carries(claim: dict[str, Any], row: dict[str, Any]) -> bool:
-    """Whether a live claim is the statement a row exported: its value and every qualifier."""
-    found = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
-    if not isinstance(found, dict) or not apply.same_value(found, row["value"]):
-        return False
-    present = claim.get("qualifiers") or {}
-    for prop, value in (row.get("qualifiers") or {}).items():
-        if not prop.startswith("P"):
-            continue
-        values = [s.get("datavalue", {}).get("value") for s in present.get(prop, [])]
-        if not any(isinstance(v, dict) and apply.same_value(v, value) for v in values):
-            return False
-    return True
-
-
-def landed(country: str, release: bool = False) -> Counter[tuple[str, str]]:
-    """Record the exported rows whose statement is now live; count by (chunk, outcome).
-
-    A row is `applied` when the live item carries its value with every one of
-    its qualifiers. One that is not live stays `exported`, unless `release`
-    hands it back to `apply` as `accepted` -- for a chunk QS refused, or one
-    that will never be pasted.
-    """
-    conn = db.conn()
-    rows = conn.execute(
-        "SELECT p.id, p.person_qid, p.property, p.value, p.qualifiers, p.applied_batch"
-        " FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
-        " WHERE pe.country = %s AND p.status = %s ORDER BY p.id",
-        (country, EXPORTED),
-    ).fetchall()
-    keys = ("id", "person", "property", "value", "qualifiers", "batch")
-    rows = [dict(zip(keys, row)) for row in rows]
-    entities = wikidata.fetch_items(sorted({row["person"] for row in rows}), props="claims|info")
-    counts: Counter[tuple[str, str]] = Counter()
-    with conn.transaction():
-        for row in rows:
-            entity = entities.get(row["person"]) or {}
-            claims = entity.get("claims", {}).get(row["property"], [])
-            guid = next((c.get("id") for c in claims if _carries(c, row)), None)
-            if guid is not None:
-                conn.execute(
-                    "UPDATE proposal SET status = 'applied', claim_guid = %s, applied_rev = %s"
-                    " WHERE id = %s",
-                    (guid, entity.get("lastrevid"), row["id"]),
-                )
-                counts[(row["batch"], "landed")] += 1
-            elif release:
-                conn.execute(
-                    "UPDATE proposal SET status = 'accepted', applied_batch = NULL WHERE id = %s",
-                    (row["id"],),
-                )
-                counts[(row["batch"], "released")] += 1
-            else:
-                counts[(row["batch"], "not live")] += 1
-    return counts

@@ -22,6 +22,9 @@ from peploop import db
 from peploop.wikidata import fetch_items
 
 ANY = "*"
+#: The reference properties that name a URL we read: peptree cites the page
+#: (`P854`), peploop the revision (`P4656`).
+URL_PROPS = ("P854", "P4656")
 #: An edit summary rides after the last column: ` /* … */`.
 SUMMARY_RE = re.compile(r" /\* [^*]+ \*/$")
 RETRIEVED = re.compile(r"\tS813\t\+\S+")
@@ -140,9 +143,10 @@ def strike(tool: str, qid: str, prop: str, value: str, country: str, reason: str
 # --- removals ------------------------------------------------------------------------
 
 def ours_urls(line: str) -> set[str]:
-    """The S854 URLs a line of ours cites."""
-    cols = SUMMARY_RE.sub("", line).split("\t")
-    return {cols[i + 1].strip('"') for i in range(3, len(cols) - 1, 2) if cols[i].lstrip("!") == "S854"}
+    """The URLs a line of ours cites."""
+    cols = [c for c in SUMMARY_RE.sub("", line).split("\t") if c not in ("R+", "R0", "R-")]
+    sources = {"S" + p[1:] for p in URL_PROPS}
+    return {cols[i + 1].strip('"') for i in range(3, len(cols) - 1, 2) if cols[i].lstrip("!") in sources}
 
 
 def value_id(snak: dict[str, Any]) -> str | None:
@@ -161,7 +165,7 @@ def candidates(claims: list[dict[str, Any]], value: str, urls: set[str]) -> list
     out = []
     for c in found:
         refs = c.get("references") or []
-        cited = [{_url(s) for s in r.get("snaks", {}).get("P854", [])} for r in refs]
+        cited = [{_url(s) for p in URL_PROPS for s in r.get("snaks", {}).get(p, [])} for r in refs]
         ours = len(found) == 1 and all(cite and cite <= urls for cite in cited)
         out.append((c["id"], ours))
     return out

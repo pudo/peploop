@@ -1,19 +1,20 @@
-"""Pin which accepted rows the QuickStatements export may carry, and what it writes.
+"""Pin what each planned statement becomes as a QS3 line, and what a batch refuses.
 
-The export's whole risk is one QS behaviour: a line is matched to a statement
-on item, property and value, and its qualifiers are folded into whatever it
-finds. A row routed to QS that the item already records under its value, or
-that shares its value with a second spell in the same edit, becomes one
-statement with two tenures' dates and nothing pairing them. Each such case is
-pinned here as staying with `apply`. Offline: `route` is a pure function of an
-entity and rows. Run it as `python -m peploop.check_qs`.
+QS3 cannot be aimed at a statement: a plain line merges into the first one
+holding its value, a `+` line always creates one. Each route below is pinned to
+the one line shape that does what the plan meant, and each case no line can aim
+to the route that closes it. Offline: `route` is a pure function of an entity and
+rows. Run it as `python -m peploop.check_qs`.
 """
 
 import sys
 from typing import Any
 
-from peploop import qs
-from peploop.check_apply import GUID, OFFICE, OTHER, PERSON, claim, day, item, office, row, span
+from peploop import ledger, plan, qs
+from peploop.check_plan import GUID, OFFICE, OTHER, PERSON, claim, day, item, office, row, span
+
+IMPORTED = {"snaks": {"P143": [{"snaktype": "value", "property": "P143",
+                                "datavalue": {"type": "wikibase-entityid", "value": {"id": "Q328"}}}]}}
 
 
 def main() -> int:
@@ -25,83 +26,104 @@ def main() -> int:
         if not ok:
             failures.append(message)
 
-    print("what goes out:")
-    out = qs.route(PERSON, item(), [office(quals=span("2020-10-15", "2022-06-01"))], "t")
-    expect(dict(out.routes), {"qs": 1}, "a dated tenure the item lacks goes to QS")
-    expect(out.rows, [1], "carrying its row")
+    print("a tenure the item lacks:")
+    out = qs.route(PERSON, item(), [office(quals=span("2020-10-15", "2022-06-01"))])
+    expect(dict(out.routes), {"create": 1}, "is created")
+    expect(out.edits[0][1], [1], "carrying its row")
     expect(out.lines[0].split("\t")[:7],
-           [PERSON, "P39", OFFICE, "P580", "+2020-10-15T00:00:00Z/11", "P582", "+2022-06-01T00:00:00Z/11"],
-           "statement and qualifiers in QS columns")
+           [f"+{PERSON}", "P39", OFFICE, "P580", "+2020-10-15T00:00:00Z/11", "P582", "+2022-06-01T00:00:00Z/11"],
+           "as a `+` line: QS3 creates it and merges it into nothing")
     expect("\tS143\tQ0000101\tS4656\t" in out.lines[0] and "\tS813\t+" in out.lines[0], True,
-           "the reference keeps apply's shape: wiki, revision URL, retrieved")
-    expect(out.lines[0].endswith(" /* t */"), True, "the summary rides on the last column")
+           "the reference: wiki, revision URL, retrieved")
 
     print("two wikis attesting one statement:")
-    rows = [
-        office(quals=span("2020-10-15"), id=1),
-        office(quals=span("2020-10-15"), id=2, source_lang="ab",
-               source_url="https://ab.wikipedia.org/wiki/Y", source_rev=8),
-    ]
-    out = qs.route(PERSON, item(), rows, "t")
-    expect(len(out.lines), 2, "one line per reference")
-    expect(sorted(out.rows), [1, 2], "both rows recorded against it")
-    expect(qs.validate(out.lines), [], "and the pair passes validation: same qualifiers")
+    rows = [office(quals=span("2020-10-15")),
+            office(quals=span("2020-10-15"), id=2, source_lang="ab", source_url="https://ab.wikipedia.org/wiki/X")]
+    out = qs.route(PERSON, item(), rows)
+    expect(len(out.lines), 1, "is one line, never one per reference: each `+` line is a statement")
+    expect(out.lines[0].count("\t!S143\t"), 1, "the second reference opens its own block with `!S`")
+    expect(out.edits[0][1], [1, 2], "and the line carries both rows")
 
-    print("what stays with apply:")
-    out = qs.route(PERSON, item(claim(OFFICE, span("2010-01-01", "2014-01-01"))),
-                   [office(quals=span("2020-10-15"))], "t")
-    expect((dict(out.routes), out.lines), ({"api:value-on-item": 1}, []),
-           "a further spell of an office the item records: QS would merge into it")
-    out = qs.route(PERSON, item(), [office(quals=span("2010-01-01", "2014-01-01"), id=1),
-                                    office(quals=span("2020-10-15"), id=2)], "t")
-    expect((dict(out.routes), out.rows), ({"api:spells-together": 2}, []),
-           "two spells of one office in one edit: QS would collapse them")
-    out = qs.route(PERSON, item(claim(OFFICE)), [office(quals=span("2020-10-15"))], "t")
-    expect((dict(out.routes), out.rows), ({"api:refine": 1}, []),
-           "dates for an undated statement are a refinement")
-    born = row("P569", day("1970-05-01"))
-    coarse = {"id": f"{PERSON}$b", "rank": "normal", "mainsnak": {
-        "snaktype": "value", "property": "P569", "datavalue": {"type": "time", "value": {
-            **day("1970-01-01"), "time": "+1970-00-00T00:00:00Z", "precision": 9}}},
-        "references": [{"snaks": {"P999": []}}]}
-    out = qs.route(PERSON, item(coarse), [born], "t")
-    expect(out.lines, [], "a sharper birth date beside somebody's sourced year is not new")
-    julian = row("P569", {**day("1700-05-01"), "calendarmodel": "http://www.wikidata.org/entity/Q1985786"})
-    out = qs.route(PERSON, item(), [julian], "t")
-    expect(dict(out.routes), {"api:unrenderable": 1}, "a Julian date is left to the API")
-    out = qs.route(PERSON, item(claim(OTHER)), [office(quals=span("2020-10-15"))], "t")
-    expect(dict(out.routes), {"qs": 1}, "another office on the item is no obstacle")
+    print("two spells of one office, and a spell beside a recorded one:")
+    out = qs.route(PERSON, item(), [office(quals=span("2001-01-01", "2003-01-01")),
+                                    office(quals=span("2005-01-01", "2007-01-01"), id=2)])
+    expect([line.split("\t")[0] for line in out.lines], [f"+{PERSON}"] * 2, "two `+` lines, so two statements")
+    live = item(claim(OFFICE, span("1990-01-01", "1994-01-01")))
+    out = qs.route(PERSON, live, [office(quals=span("2001-01-01"))])
+    expect(dict(out.routes), {"create": 1}, "a further term beside a dated one is created, not merged")
 
-    print("validation:")
-    a = f"{PERSON}\tP39\t{OFFICE}\tP580\t+2020-10-15T00:00:00Z/11 /* t */"
-    b = f"{PERSON}\tP39\t{OFFICE}\tP580\t+2010-01-01T00:00:00Z/11 /* t */"
-    expect(len(qs.validate([a, b])), 1, "one value twice with different qualifiers is refused")
-    expect(len(qs.validate([a, a])), 1, "a duplicate line is refused")
-    expect(len(qs.validate([f"-{a}"])), 1, "a removal is refused")
+    print("dates for the one statement that says nothing:")
+    out = qs.route(PERSON, item(claim(OFFICE)), [office(quals=span("1997-02-01", "2000-06-30"))])
+    expect(dict(out.routes), {"merge": 1}, "is a merge")
+    expect(out.lines[0].split("\t")[:7],
+           [PERSON, "P39", OFFICE, "P580", "+1997-02-01T00:00:00Z/11", "P582", "+2000-06-30T00:00:00Z/11"],
+           "a plain line: QS3 merges it into the only statement with the value")
+    out = qs.route(PERSON, item(claim(OFFICE, span("2018-06-22"))), [office(quals=span("2018-06-22", "2022-05-13"))])
+    expect(qs.qualifier_pairs(out.lines[0]), [("P582", "+2022-05-13T00:00:00Z/11")],
+           "and it carries only what the statement lacks, never a qualifier it has")
 
-    print("chunks:")
-    big = [qs.Export(qid=f"Q{i}", baserevid=1, lines=["x\ty\tz\tS1\ta"] * 100) for i in range(4)]
-    expect([len(c) for c in qs.chunked(big, cap=300)], [1, 1, 1, 1],
-           "a person is never split, and 200 commands leave no room for a second")
+    print("what no line can aim:")
+    live = item(claim(OTHER, span("1990-01-01", "1994-01-01"), id=f"{PERSON}$dated"), claim(OTHER, id=f"{PERSON}$u"))
+    out = qs.route(PERSON, live, [office(OTHER, quals=span("2001-01-01"))])
+    expect(out.skipped, [(1, plan.AMBIGUOUS)], "a merge with two statements to choose from is closed")
+    expect(out.lines, [], "and writes nothing")
+    julian = {**day("1650-01-01"), "calendarmodel": "http://www.wikidata.org/entity/Q1985786"}
+    out = qs.route(PERSON, item(), [office(quals={"P580": julian})])
+    expect(out.skipped, [(1, qs.UNRENDERABLE)], "a Julian date is closed as unrenderable")
 
-    expect([qs.commands(line) for line in (
-        f"{PERSON}\tP569\t+1953-11-28T00:00:00Z/11\tS143\tQ328\tS813\t+2026-10-08T00:00:00Z/11 /* t */",
-        f"{PERSON}\tP39\t{OFFICE}\tP580\t+2018-05-09T00:00:00Z/11\tP582\t+2025-11-29T00:00:00Z/11"
-        f"\tS143\tQ328 /* t */",
-    )], [2, 4], "commands counted as QS's parse counts them")
-    same = [office(quals=span("2020-10-15"), id=1), office(quals=span("2020-10-15"), id=2)]
-    out = qs.route(PERSON, item(), same, "t")
-    expect((len(out.lines), sorted(out.rows)), (1, [1, 2]),
-           "two rows citing one revision are one line, both rows recorded")
+    print("a sharper date beside somebody's coarse one:")
+    year = {**day("1950-01-01"), "time": "+1950-00-00T00:00:00Z", "precision": 9}
+    sourced = {"snaks": {"P248": [{"snaktype": "value", "property": "P248",
+                                   "datavalue": {"type": "wikibase-entityid", "value": {"id": "Q36578"}}}]}}
 
-    print("read back:")
-    live = claim(OFFICE, span("2020-10-15"))
-    landed = {"value": {"id": OFFICE}, "qualifiers": {**span("2020-10-15"), "_sources": []}}
-    expect(qs._carries(live, landed), True, "a live claim with the value and every qualifier")
-    expect(qs._carries(claim(OFFICE), landed), False, "not one missing a qualifier")
-    expect(GUID.startswith(PERSON), True, "fixture sanity")
+    def born(value: dict[str, Any], ref: dict[str, Any]) -> dict[str, Any]:
+        return {"lastrevid": 1, "claims": {"P569": [{
+            "id": GUID, "rank": "normal", "references": [ref],
+            "mainsnak": {"snaktype": "value", "property": "P569", "datavalue": {"type": "time", "value": value}}}]}}
+    out = qs.route(PERSON, born(year, sourced), [row("P569", day("1950-03-04"))])
+    expect(dict(out.routes), {"preferred": 1}, "is created beside it")
+    expect(out.lines[0].split("\t")[:4], [f"+{PERSON}", "P569", "+1950-03-04T00:00:00Z/11", "R+"],
+           "outranking it: `R+` right after the value")
 
-    print(f"\n{len(failures)} failed" if failures else "\nall ok")
+    print("a coarse imported date:")
+    out = qs.route(PERSON, born(year, IMPORTED), [row("P569", day("1950-03-04"))])
+    expect(dict(out.routes), {"switch": 1}, "is sharpened in place")
+    expect(qs.columns(out.lines[0]),
+           [qs.SWITCH, PERSON, "P569", "+1950-00-00T00:00:00Z/9", "+1950-03-04T00:00:00Z/11"],
+           "by SWITCH_VALUE, which keeps the statement's id")
+    expect(out.lines[1].split("\t")[:3], [PERSON, "P569", "+1950-03-04T00:00:00Z/11"],
+           "then a plain line adds our reference to the sharpened statement")
+    expect("S143\tQ328" in out.lines[1], False, "without re-sending the reference it already has")
+
+    print("a merge and a creation for one office in one edit:")
+    live = item(claim(OFFICE))
+    out = qs.route(PERSON, live, [office(quals=span("1997-02-01", "2000-06-30")),
+                                  office(quals=span("2010-01-01", "2012-01-01"), id=2)])
+    expect(dict(out.routes), {"merge": 1, "deferred": 1},
+           "the creation waits: in one batch the merge could land on the statement it makes")
+    expect(out.deferred, [2], "and its row stays accepted for the next send")
+
+    print("a batch:")
+    line = f"+{PERSON}\tP39\t{OFFICE}\tP580\t+2001-00-00T00:00:00Z/9 /* t */"
+    expect(qs.validate([line]), [], "a `+` line is well-formed")
+    expect(qs.validate([line, line]) != [], True, "a line twice is refused")
+    expect(qs.validate([line, f"{PERSON}\tP39\t{OFFICE}\tP582\t+2003-00-00T00:00:00Z/9 /* t */"]) != [], True,
+           "a statement both created and merged into is refused")
+    switch = f"{qs.SWITCH}\t{PERSON}\tP569\t+1950-00-00T00:00:00Z/9\t+1950-03-04T00:00:00Z/11 /* t */"
+    expect(qs.validate([switch]), [], "a switch is well-formed")
+    expect(qs.validate([switch, switch.replace("03-04", "03-05")]) != [], True, "two switches of one value are refused")
+    expect(qs.validate([f"-STATEMENT\t{GUID} /* t */"]) != [], True, "a removal is refused in an add batch")
+    expect(ledger.key(line) == ledger.key(line.replace(" /* t */", " /* u */")), True,
+           "a line's ledger key leaves its summary out")
+
+    print("reading a line back:")
+    landed = claim(OFFICE, {"P580": {**day("2001-01-01"), "time": "+2001-00-00T00:00:00Z", "precision": 9}})
+    expect(qs.live_lines([line], {PERSON: item(landed)}), [line], "a statement with the value and qualifiers is live")
+    expect(qs.live_lines([line], {PERSON: item(claim(OFFICE))}), [], "the value alone is not that spell")
+    expect(qs.live_lines([switch], {PERSON: born({**year, "time": "+1950-03-04T00:00:00Z", "precision": 11},
+                                                 IMPORTED)}), [switch], "a switch is live once the new value is")
+
+    print(f"{len(failures)} failures")
     return 1 if failures else 0
 
 

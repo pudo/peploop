@@ -23,7 +23,8 @@ from psycopg.types.json import Jsonb
 
 from peploop import cli, db, policy, propose
 
-TABLES = ("proposal", "verdict", "person", "item", "article")
+#: The send ledger is shadowed too: an audit strikes what it takes out.
+TABLES = ("proposal", "verdict", "person", "item", "article", "wd_strike", "wd_removal", "wd_edit", "wd_batch")
 SEQUENCES = ("proposal", "verdict")
 COUNTRY = "zz"
 PERSON = "Q9000001"
@@ -89,10 +90,11 @@ def main() -> int:
         other = row(conn, PERSON, "Q101", "accepted", "policy:supported")
         written = row(conn, PERSON, "Q102", "applied", "policy:supported")
         foreign = row(conn, STRANGER, "Q100", "accepted", "policy:supported")
+        inflight = row(conn, PERSON, "Q105", "sent", "policy:supported")
 
         print("refusals:")
         for ids, why in (
-            ([doubted, written], "a row already on Wikidata"),
+            ([doubted, inflight], "a row whose edit is in flight"),
             ([doubted, foreign], "a row of another country's run"),
             ([doubted, 999999], "an unknown id"),
         ):
@@ -119,6 +121,10 @@ def main() -> int:
         expect(verdict == [("reject", "other", "a career span written as one tenure", "audit:fl")],
                "and carries a reject verdict with the reason and who decided")
 
+        struck = conn.execute("SELECT qid, prop, value, origin FROM wd_strike").fetchall()
+        expect(struck == [(PERSON, "P39", "Q100", "audit:fl")],
+               "and the statement is struck, so no later row sends it either")
+
         print("re-propose:")
         again = [propose.Proposal("P39", office(q), "new", quote="a quote", lang="en")
                  for q in ("Q100", "Q101", "Q103")]
@@ -128,8 +134,8 @@ def main() -> int:
         twins = conn.execute("SELECT count(*) FROM proposal WHERE person_qid = %s"
                              " AND value->>'id' = 'Q100'", (PERSON,)).fetchone()[0]
         expect(twins == 1, "and does not insert its twin beside it")
-        expect(state(conn, other) is None and kept == 2,
-               "while an unaudited row is re-derived as before (the applied one is kept too)")
+        expect(state(conn, other) is None and kept == 3,
+               "while an unaudited row is re-derived as before (the applied and sent ones are kept too)")
         cases = [pid for pid, _case in policy.person_cases(PERSON)]
         expect(doubted not in cases and cases,
                "the policy no longer selects the audited row")
@@ -154,13 +160,23 @@ def main() -> int:
         expect(state(conn, closed) is None,
                "and re-derives it once the item no longer does")
 
+        print("an applied row:")
+        guid = f"{PERSON}$0000-2222"
+        conn.execute("UPDATE proposal SET claim_guid = %s WHERE id = %s", (guid, written))
+        policy.audit([written], "not this office", "fl", COUNTRY)
+        expect(state(conn, written) == ("applied", "policy:supported"),
+               "stays applied: it is on Wikidata until it is taken off")
+        removal = conn.execute("SELECT guid, status, ours FROM wd_removal").fetchall()
+        expect(removal == [(guid, "proposed", False)],
+               "and its statement's removal is proposed: a statement sent before the ledger is not provably ours")
+
         print("command:")
         runner = CliRunner()
         fresh = row(conn, PERSON, "Q104", "accepted", "policy:supported")
         args = ["--country", COUNTRY, "--reason", "stale infobox", "--by", "fl"]
-        res = runner.invoke(cli.audit_, ["proposal", str(written), str(fresh), *args])
+        res = runner.invoke(cli.audit_, ["proposal", str(inflight), str(fresh), *args])
         expect(res.exit_code != 0 and state(conn, fresh) == ("accepted", "policy:supported"),
-               f"`audit proposal` refuses an applied row and the call with it ({res.output.strip()})")
+               f"`audit proposal` refuses a row in flight and the call with it ({res.output.strip()})")
         res = runner.invoke(cli.audit_, ["proposal", "--ids", "-", *args], input=f"{fresh}\n")
         expect(res.exit_code == 0 and state(conn, fresh) == ("skipped", "audit:fl"),
                f"`audit proposal --ids -` skips the listed row ({res.output.strip()})")

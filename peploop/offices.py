@@ -20,7 +20,7 @@ from dataclasses import dataclass, field, replace
 from datetime import date
 from typing import Any, Callable, Collection, Iterable, Sequence
 
-from peploop import apply, db, http, positions, wikidata
+from peploop import db, http, plan, positions, wikidata
 from peploop.positions import NOT_AN_OFFICE, POSITION_METACLASSES, fold, tokens
 
 #: What every office reaches through its `P279` chain.
@@ -288,7 +288,7 @@ def _item(qid: str) -> dict[str, str]:
 
 def _statement(prop: str, qid: str) -> dict[str, Any]:
     """A structural claim: no qualifiers, and no references by community practice."""
-    return {"type": "statement", "rank": "normal", "mainsnak": apply._snak(prop, _item(qid))}
+    return {"type": "statement", "rank": "normal", "mainsnak": plan._snak(prop, _item(qid))}
 
 
 def _terms(texts: dict[str, str]) -> dict[str, dict[str, str]]:

@@ -21,7 +21,9 @@ from peploop import apply as applying
 from peploop import db, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
-from peploop import qs as exporting
+from peploop import outbox
+from peploop import plan as planning
+from peploop import send as sending
 from peploop import propose as proposals
 from peploop import reconcile as reconciling
 from peploop import review as reviewing
@@ -426,7 +428,7 @@ def apply_(limit: int | None, qid: Sequence[str], write: bool, country: str) -> 
             token = applying.csrf_token()
         try:
             while True:
-                qids = [q for q in applying.people(list(qid), None, country) if q not in tried]
+                qids = [q for q in planning.people(list(qid), None, country) if q not in tried]
                 if limit is not None:
                     qids = qids[: max(0, limit - len(tried))]
                 if not qids:
@@ -446,47 +448,40 @@ def apply_(limit: int | None, qid: Sequence[str], write: bool, country: str) -> 
     click.echo(f"{len(tried)} people: {verb} {applied} proposals, {failed} failed")
 
 
-@cli.command("export")
-@click.option("--country", required=True, help="The run to export; its writer lock is taken.")
-@click.option("--landed", "read_back", is_flag=True,
-              help="Read pasted chunks back: rows whose statement is live become `applied`.")
-@click.option("--release", is_flag=True,
-              help="With --landed: hand rows that are not live back to `apply`.")
-def export_(country: str, read_back: bool, release: bool) -> None:
-    """Write a run's QS-safe additions as paste-sized QuickStatements chunks.
+@cli.command("send")
+@click.option("--country", help="The run to send.")
+@click.option("--qid", multiple=True, help="Send these people only.")
+@click.option("--submit", is_flag=True, help="Send it as a QuickStatements 3.0 batch; without it nothing leaves here.")
+@click.option("--status", "show_status", is_flag=True, help="Print the send ledger: batches, failures, strikes, removals.")
+def send_(country: str | None, qid: Sequence[str], submit: bool, show_status: bool) -> None:
+    """Send a run's accepted proposals to Wikidata, then its approved removals, and settle every row.
 
-    The fast path for the bulk of a run: what QS cannot write without folding
-    it into another statement stays `accepted`, and `apply --write` drains it
-    after the chunks are pasted and read back with `--landed`.
+    A dry run by default: it settles what went out before, pre-flights and
+    plans every person with accepted rows against their live item, and writes
+    the lines to `data/peploop/send/<cc>.qs` with the routes counted. `--submit`
+    closes the rows the plan writes nothing for, sends the lines as one QS3
+    batch and the approved removals as another, waits, and records each row
+    `applied` or `failed`. The only command that edits Wikidata.
     """
-    if read_back or release:
-        counts = exporting.landed(country, release)
-        for (batch, outcome), n in sorted(counts.items()):
-            click.echo(f"  {batch}  {outcome:<9} {n}")
-        totals: Counter[str] = Counter()
-        for (_batch, outcome), n in counts.items():
-            totals[outcome] += n
-        click.echo(f"{country}: " + " ".join(f"{o}={n}" for o, n in sorted(totals.items())))
+    if show_status:
+        click.echo(sending.status(outbox.TOOL))
         return
+    if not country:
+        raise click.UsageError("name the run with --country")
+    sent = outbox.run(country, click.echo, submit=submit, qids=list(qid), threads=FETCH_THREADS)
+    click.echo(f"QS3 batches {' '.join(map(str, sent))}" if sent else "nothing sent")
 
-    def one(person_qid: str) -> exporting.Export | None:
-        try:
-            entity, rows, _moved = applying.preflight(person_qid)
-        except Exception as exc:  # noqa: BLE001 -- one item must not end the export
-            click.echo(f"{person_qid}: pre-flight failed, left for apply: {exc}")
-            return None
-        return exporting.route(person_qid, entity, rows, "peploop")
 
-    with minting.writer_lock(country, "export"):
-        qids = applying.people([], None, country)
-        with ThreadPoolExecutor(FETCH_THREADS) as pool:
-            exports = [e for e in pool.map(one, qids) if e is not None]
-        routes: Counter[str] = Counter()
-        for export in exports:
-            routes.update(export.routes)
-        click.echo(f"{len(exports)} people: " + " ".join(f"{k}={v}" for k, v in sorted(routes.items())))
-        paths = exporting.write_chunks(country, exports, click.echo)
-    click.echo(f"{len(paths)} chunks written")
+@cli.command("removals", context_settings={"ignore_unknown_options": True})
+@click.argument("args", nargs=-1)
+def removals_(args: Sequence[str]) -> None:
+    """List statements to take back off Wikidata, or approve/reject them: `removals [approve|reject GUID…]`.
+
+    An audit of an applied row queues its removal: approved when the statement
+    is provably only ours, proposed for a human otherwise. Approved ones go out
+    with the next `send --submit`.
+    """
+    sending.removals_main(outbox.TOOL, list(args))
 
 
 #: The model stages `prompt` can show a request for.
@@ -1053,9 +1048,11 @@ def audit_(
 
     The one way to overrule the pipeline by hand, so that no audit is raw SQL
     again: a proposal audit is a `reject` verdict as well as a skip, which a
-    re-propose keeps, and a candidate audit is a skip `write_candidates` keeps.
-    All or nothing: a row already on Wikidata (an applied proposal, a created
-    item), a row of another country's run or an unknown id refuses the call.
+    re-propose keeps, and a strike, which no later send overrides; on a
+    proposal already applied the strike queues the statement's removal. A
+    candidate audit is a skip `write_candidates` keeps. All or nothing: a
+    proposal in flight, a created item, a row of another country's run or an
+    unknown id refuses the call.
     """
     wanted = list(ids) + (_read_ids(ids_file) if ids_file else [])
     if not wanted:
@@ -1068,7 +1065,10 @@ def audit_(
         raise click.ClickException(str(exc)) from exc
     for row in rows:
         name = row.get("ref") or f"{row.get('person_qid')} {row.get('property')}"
-        click.echo(f"#{row['id']} {name}: {row['status']} -> skipped (audit:{by})")
+        if row["status"] in policy.LANDED:
+            click.echo(f"#{row['id']} {name}: applied, struck; its removal is queued (`removals`)")
+        else:
+            click.echo(f"#{row['id']} {name}: {row['status']} -> skipped (audit:{by})")
     click.echo(f"{len(rows)} {kind}s skipped")
 
 

@@ -174,7 +174,7 @@ TERM_SLACK_YEARS = 1
 NEW_TERM_COHORT = 2
 #: The proposal statuses whose spells count as on record for the office: what
 #: `propose` left and the policy has not set aside, and what `apply` wrote.
-LIVE_SPELL_STATUSES = PROPOSED + (PENDING, ACCEPTED, "applied", "exported")
+LIVE_SPELL_STATUSES = PROPOSED + (PENDING, ACCEPTED, "applied", "sent", "exported")
 
 
 @dataclass(frozen=True)
@@ -1266,7 +1266,10 @@ def _family_conflicts_of(cases: Sequence[tuple[int, Case]], state_qid: str | Non
 AUDITOR = "audit:"
 #: Statuses an audit may not skip: the statement is already on Wikidata, or in
 #: a QuickStatements chunk that may already have been pasted.
-UNAUDITABLE = ("applied", "exported")
+#: Rows whose edit is in flight: an audit waits until they have landed or failed.
+UNAUDITABLE = ("sent", "exported")
+#: Rows already on Wikidata: an audit strikes them, which queues their removal.
+LANDED = ("applied",)
 
 
 def audit(ids: Sequence[int], reason: str, by: str, country: str) -> list[dict[str, Any]]:
@@ -1276,15 +1279,19 @@ def audit(ids: Sequence[int], reason: str, by: str, country: str) -> list[dict[s
     ids, this records who decided and why. The row is `skipped` under
     `audit:<by>` and also carries a `reject` verdict, because a verdict is
     what `propose` keeps across a re-run -- a status alone was wiped by the
-    next one. There is no approve. All or nothing: an id that is unknown,
-    of another country's run, or already written refuses the whole call.
+    next one. Every audited statement is also struck in the send ledger, so
+    no line for it goes out again under another row; for a row already on
+    Wikidata the strike is the point, since it queues the statement's removal
+    (approved when the statement is provably only ours, proposed otherwise).
+    There is no approve. All or nothing: an id that is unknown, of another
+    country's run, or in flight refuses the whole call.
     """
     if not by.strip() or not reason.strip():
         raise ValueError("an audit names who skipped it and why")
     conn = db.conn()
     with conn.transaction(), conn.cursor(row_factory=dict_row) as cur:
         rows = cur.execute(
-            "SELECT p.id, p.person_qid, p.property, p.status, p.decided_by, pe.country"
+            "SELECT p.id, p.person_qid, p.property, p.value, p.status, p.decided_by, p.claim_guid, pe.country"
             " FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
             " WHERE p.id = ANY(%s) ORDER BY p.id FOR UPDATE OF p",
             (list(ids),),
@@ -1293,11 +1300,13 @@ def audit(ids: Sequence[int], reason: str, by: str, country: str) -> list[dict[s
         problems = [f"#{ident}: no such proposal" for ident in ids if ident not in found]
         problems += [f"#{row['id']}: of {row['country']}'s run, not {country}'s"
                      for row in rows if row["country"] != country]
-        problems += [f"#{row['id']}: {row['status']}, already on Wikidata"
+        problems += [f"#{row['id']}: {row['status']}, its edit is in flight"
                      for row in rows if row["status"] in UNAUDITABLE]
         if problems:
             raise ValueError("; ".join(problems))
         for row in rows:
+            if row["status"] in LANDED:
+                continue
             cur.execute(
                 "INSERT INTO verdict (proposal_id, decision, reason, note, decided_by)"
                 " VALUES (%s, 'reject', 'other', %s, %s)",
@@ -1308,7 +1317,23 @@ def audit(ids: Sequence[int], reason: str, by: str, country: str) -> list[dict[s
                 " status = %s, decided_by = %s, decided_at = now() WHERE id = %s",
                 (SKIPPED, AUDITOR + by, row["id"]),
             )
+    _strike(rows, reason, by, country)
     return rows
+
+
+def _strike(rows: list[dict[str, Any]], reason: str, by: str, country: str) -> None:
+    """Strike each audited statement; a landed one sent before the ledger is proposed for removal by its id."""
+    from peploop import ledger, qs  # qs imports plan, which imports this module
+
+    for row in rows:
+        value = qs.qs_value(row["value"])
+        if value is None:
+            continue
+        queued = ledger.strike("peploop", row["person_qid"], row["property"], value, country, reason,
+                               origin=AUDITOR + by, log=lambda _m: None)
+        if row["status"] in LANDED and not queued and row.get("claim_guid"):
+            ledger.propose_removal("peploop", row["claim_guid"], row["person_qid"], row["property"], value,
+                                   country, reason, AUDITOR + by, ours=False)
 
 
 def record(proposal_id: int, disposition: Disposition) -> None:

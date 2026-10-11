@@ -591,9 +591,10 @@ def proposal_key(prop: str, value: dict[str, Any], qualifiers: dict[str, Any] | 
 
 
 #: A row `propose` may not replace: it records something a re-run cannot
-#: reproduce -- a human's ruling, or an edit that has already reached Wikidata
-#: or sits in a QuickStatements chunk (`qs.EXPORTED`) that may be pasted.
-KEPT_STATUSES = ("applied", "exported")
+#: reproduce -- a human's ruling, or an edit that has gone out (`sent`), landed
+#: (`applied`) or failed and is not sent again on its own. `exported` is the
+#: paste era's `sent`.
+KEPT_STATUSES = ("applied", "sent", "failed", "exported")
 #: The provenance prefix `apply` closes an unwritable row under.
 APPLY_DECIDED = "apply:"
 
@@ -610,14 +611,14 @@ def apply_decision_holds(entity: dict[str, Any] | None, row: dict[str, Any]) -> 
     the same non-writing route stays closed. With no record to plan against,
     nothing is kept.
     """
-    from peploop import apply  # apply imports propose
+    from peploop import plan  # plan imports propose
 
     route = (row.get("decided_by") or "")[len(APPLY_DECIDED):]
     if not route or entity is None:
         return False
     if route == "lane_removed":
         return True
-    planned, statement = apply.plan_claim(entity, row)
+    planned, statement = plan.plan_claim(entity, row)
     return statement is None and planned == route
 
 
