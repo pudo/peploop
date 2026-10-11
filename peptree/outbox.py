@@ -1,50 +1,49 @@
-"""Turn every country's latest proposals into paste-sized QuickStatements chunks, once each.
+"""Send every reviewed country's latest proposals to Wikidata as one QS3 batch, once each.
 
-This is peptree's one export path. A country's run file says what it would add
-*now*; the outbox says what has not gone out yet. A fix that re-renders twenty
-countries therefore costs only its new statements, in the next chunk, and a
-chunk never exceeds what one paste into the importer takes (300 commands).
+This is peptree's one write path for additions. A country's run file says what
+it would add *now*; the ledger (`ledger.py`) says what has gone out already and
+what a reviewer struck. A fix that re-renders twenty countries therefore costs
+only its new statements.
 
-    python -m peptree.cli outbox            # reconcile, then write new chunks
-    python -m peptree.cli outbox --batch 7  # the same, for one reviewed sweep batch only
-    python -m peptree.cli outbox --status   # chunks by status, and revert candidates
+    python -m peptree.cli outbox                     # reconcile; write what would go out to outbox/pending.qs
+    python -m peptree.cli outbox --batch 7           # the same, for one reviewed sweep batch only
+    python -m peptree.cli outbox --submit [--batch 7]  # send it as one QuickStatements 3.0 batch, wait, reconcile
+    python -m peptree.cli outbox --status            # batches, failures, strikes, open removals
+    python -m peptree.cli outbox --propose-reverts   # queue removals for what landed on items the load now drops
 
-`ptree_emitted` holds one row per statement written to a chunk, keyed on the
-statement itself (the line without its edit summary or retrieval date):
-
-- `emitted` → `landed` once the statement is live on Wikidata (any rank). This
-  is also the bootstrap: what earlier pastes put there is never emitted at all.
-- `emitted` → `withdrawn` once no country proposes it and it is not live.
-- A chunk none of whose lines has landed counts as unpasted. If one of its lines
-  is withdrawn, the chunk is retired: its file is deleted and its other lines
-  return to pending, so the next run writes them into a fresh chunk. Chunk
-  numbers are never reused, and a written chunk is never edited.
+- An addition is `sent`, then `landed` once its statement is live (any rank), or
+  `failed` when QS3 reports its command failed. A failed line is listed by
+  `--status` and not sent again on its own.
+- Every line is additive and plain (no `+`), so QS3 merges a line into a
+  statement that already holds its value: a line that went out twice changes
+  nothing. The ledger is still what keeps a statement from being sent twice.
+- A struck line is never sent. Striking one that already landed queues its
+  removal (`peptree.cli strike`), which goes out through `removals`, never here.
 - A landed statement on an item the load now drops (a fix found it is no office)
-  is a revert candidate. It is listed and never acted on, because removals are a
-  human gate. "No longer proposed" is no signal here: a landed statement closes
-  its own gap, so no run re-decides it, and a wrong class (the Chief Minister of
-  Anguilla made a minister) stays invisible to this list.
-- A line of a pasted chunk that never lands (QS refused it) stays `emitted` and
-  is listed by `--status`. It is not re-emitted on its own.
-- Only a place the sweep ledger marks reviewed (or submitted) is emitted: a batch
-  is audited before any of it goes out. Every place's proposals still count
-  toward withdrawal, so a place being re-run never retracts what it already sent.
+  is a revert candidate. `--propose-reverts` queues it as a proposed removal;
+  approving it is the human gate. "No longer proposed" is no signal here: a
+  landed statement closes its own gap, so no run re-decides it.
+- Only a place the sweep ledger marks reviewed (or submitted) goes out: a batch
+  is audited before any of it is sent.
 """
 
+import datetime as dt
+import os
 import re
 import sys
 from collections import Counter, defaultdict
-from pathlib import Path
-from typing import Any, Callable
+from typing import Callable
 
-from peptree import qs, sweep, wd
+from peploop import qs3
+from peptree import ledger, qs, sweep, wd
 
 DIR = qs.OUT_DIR / "outbox"
-#: Commands one paste into the QuickStatements importer takes.
-CAP = 300
+PENDING = DIR / "pending.qs"
 #: Ledger statuses whose proposals may go out.
 CLEARED = ("reviewed", "submitted")
 RETRIEVED = re.compile(r"\tS813\t\+\S+")
+#: QS3 batch status code → our batch status.
+FINISHED = {qs3.DONE: "done", qs3.BLOCKED: "stopped", qs3.STOPPED: "stopped"}
 
 
 def key(line: str) -> str:
@@ -52,62 +51,27 @@ def key(line: str) -> str:
     return RETRIEVED.sub("", qs.SUMMARY_RE.sub("", line)).strip()
 
 
-def commands(line: str) -> int:
-    """QS commands a line expands to: the statement, plus one for its references."""
-    cols = qs.SUMMARY_RE.sub("", line).split("\t")
-    return 1 + any(c.startswith("S") and c[1:].isdigit() for c in cols[3:])
+def separable(lines: list[str]) -> tuple[list[str], list[str]]:
+    """Split lines into what one batch may carry and what waits for the next.
 
-
-def name(chunk: int) -> str:
-    return f"peptree outbox chunk-{chunk:03d}"
-
-
-def renamed(line: str, chunk: int) -> str:
-    return qs.SUMMARY_RE.sub("", line) + f" /* {name(chunk)} */"
-
-
-def chunked(lines: list[str], cap: int = CAP) -> list[list[str]]:
-    """Fill chunks in order up to `cap` commands.
-
-    A second value for one single-valued (item, property) waits for a later
-    chunk, so every chunk passes `qs.validate`. Two countries may both propose
-    a value for one item, as with a board shared by two islands.
+    A second value for one single-valued (item, property) waits, so every batch
+    passes `qs.validate`. Two countries may both propose a value for one item,
+    as with a board shared by two islands.
     """
-    out: list[list[str]] = []
-    todo = list(lines)
-    while todo:
-        chunk, used, seen, rest = [], 0, set(), []
-        for line in todo:
-            item, prop, _ = qs.statements([line])[0]
-            n = commands(line)
-            if used + n > cap or (prop != "P279" and (item, prop) in seen):
-                rest.append(line)
-                continue
-            chunk.append(line)
-            used += n
-            seen.add((item, prop))
-        out.append(chunk)
-        todo = rest
-    return out
+    now, later, seen = [], [], set()
+    for line in lines:
+        item, prop, _ = qs.statements([line])[0]
+        if prop != "P279" and (item, prop) in seen:
+            later.append(line)
+            continue
+        now.append(line)
+        seen.add((item, prop))
+    return now, later
 
 
-def transitions(emitted: dict[str, str], live: set[str], proposed: set[str]) -> dict[str, str]:
-    """New status per emitted key: live → landed; neither live nor proposed → withdrawn."""
-    out = {}
-    for k, status in emitted.items():
-        if status == "emitted" and k in live:
-            out[k] = "landed"
-        elif status == "emitted" and k not in proposed:
-            out[k] = "withdrawn"
-    return out
-
-
-def retired(rows: list[tuple[str, int, str]]) -> set[int]:
-    """Chunks to retire, from (key, chunk, status) rows: one with a withdrawn line and nothing landed."""
-    by: dict[int, set[str]] = defaultdict(set)
-    for _, chunk, status in rows:
-        by[chunk].add(status)
-    return {c for c, ss in by.items() if "withdrawn" in ss and "landed" not in ss}
+def landed(sent: dict[str, str], live: set[str]) -> dict[str, str]:
+    """New status per sent key: live → landed."""
+    return {k: "landed" for k, status in sent.items() if status == "sent" and k in live}
 
 
 # --- live state ----------------------------------------------------------------------
@@ -125,6 +89,13 @@ def live_keys(lines: list[str]) -> set[str]:
     return out
 
 
+def live_guids(guids: list[str]) -> set[str]:
+    """Which of these statement GUIDs Wikidata still holds (read live)."""
+    ents = wd.fetch_items(sorted({g.split("$")[0].upper() for g in guids}), props="claims")
+    held = {c["id"] for e in ents.values() for cs in e.get("claims", {}).values() for c in cs}
+    return {g for g in guids if g in held}
+
+
 def proposals() -> dict[str, tuple[str, str]]:
     """key → (country, line) over every place's latest run file; the first country to propose wins."""
     out: dict[str, tuple[str, str]] = {}
@@ -138,94 +109,161 @@ def proposals() -> dict[str, tuple[str, str]]:
 
 # --- the run ----------------------------------------------------------------------
 
-def rows() -> list[tuple[str, str, str, int, str]]:
-    return wd.conn().execute("SELECT key, country, line, chunk, status FROM ptree_emitted").fetchall()
+def reconcile(log: Callable[[str], None]) -> None:
+    """Mark every sent addition that is now live, and every sent removal now gone, as landed."""
+    adds = ledger.edits("add")
+    moved = landed({k: s for k, _, _, _, s in adds}, live_keys([line for _, _, line, _, s in adds if s == "sent"]))
+    ledger.set_status("add", moved, "landed")
+    removes = [k for k, _, _, _, s in ledger.edits("remove") if s == "sent"]
+    gone = set(removes) - live_guids(removes) if removes else set()
+    ledger.set_status("remove", gone, "landed")
+    log(f"reconciled: {len(moved)} additions landed, {len(gone)} removals landed")
 
 
-def path_of(chunk: int) -> Path:
-    return DIR / f"chunk-{chunk:03d}.qs"
+def recover(log: Callable[[str], None]) -> None:
+    """Bind a batch whose submit answer was lost to its QS3 id, found by its unique name."""
+    stuck = wd.conn().execute("SELECT id, name FROM ptree_batch WHERE kind = 'qs3' AND qs3_id IS NULL "
+                              "AND status = 'sending'").fetchall()
+    user = os.environ.get("QS_USERNAME", "")
+    for batch_id, name in stuck:
+        found = qs3.find(name, user) if user else None
+        if found is None:
+            ledger.close_batch(batch_id, "unknown")
+            log(f"batch #{batch_id} {name!r}: no QS3 batch found; marked unknown, its lines stay sent")
+        else:
+            ledger.bind_qs3(batch_id, found)
+            log(f"batch #{batch_id} recovered as QS3 {found}")
 
 
-def run(log: Callable[[str], None] = print, batch: int | None = None) -> list[Path]:
-    """Reconcile the ledger against live state, retire stale chunks, write the pending lines.
-
-    With `batch`, only that sweep batch's places are emitted, so a chunk (or the
-    few a large batch needs) maps to one reviewed batch.
-    """
-    con = wd.conn()
+def pending(log: Callable[[str], None], batch: int | None = None) -> list[tuple[str, str]]:
+    """(country, line) of every cleared proposal not yet sent, not struck and not live, one batch's worth."""
     props = proposals()
-    have = rows()
-    emitted = {k: s for k, _, _, _, s in have}
-    live = live_keys([line for k, _, line, _, s in have if s == "emitted"])
-    moved = transitions(emitted, live, set(props))
-    for k, status in moved.items():
-        con.execute("UPDATE ptree_emitted SET status = %s, status_at = now() WHERE key = %s", (status, k))
-    log(f"reconciled: {Counter(moved.values()) or 'nothing moved'}")
-    stale = {c for c in retired([(k, c, moved.get(k, s)) for k, _, _, c, s in have]) if path_of(c).exists()}
-    for c in sorted(stale):
-        path_of(c).unlink(missing_ok=True)
-        con.execute("DELETE FROM ptree_emitted WHERE chunk = %s AND status = 'emitted'", (c,))
-        log(f"retired chunk {c:03d}: a line was withdrawn before it was pasted")
-    taken = {k for k, *_ in rows()}
-    ledger = sweep.read()
-    cleared = {cc for cc, r in ledger.items() if r["status"] in CLEARED}
+    taken = {k for k, *_ in ledger.edits("add")}
+    cleared = {cc for cc, r in sweep.read().items() if r["status"] in CLEARED}
     held = {v[0] for k, v in props.items() if k not in taken and v[0] not in cleared}
     if batch is not None:
         cleared &= set(sweep.members(batch))
     if held:
         log(f"held back, not yet reviewed: {', '.join(sorted(held))}")
-    pending = {k: v for k, v in props.items() if k not in taken and v[0] in cleared}
-    live_now = live_keys([line for _, line in pending.values()])
-    pending = {k: v for k, v in pending.items() if k not in live_now}
-    log(f"proposed {len(props)}, already out {len(taken & set(props))}, live {len(live_now)}, pending {len(pending)}")
-    order = sorted(pending.values(), key=lambda cl: (cl[0], cl[1]))
-    first = max([c for *_, c, _ in rows()] + [int(p.stem[6:]) for p in DIR.glob("chunk-*.qs")], default=0) + 1
-    written = []
+    todo = {k: v for k, v in props.items() if k not in taken and v[0] in cleared}
+    vetoes = ledger.strikes()
+    struck = {k for k, (_, line) in todo.items() if ledger.struck(line, vetoes)}
+    todo = {k: v for k, v in todo.items() if k not in struck}
+    live_now = live_keys([line for _, line in todo.values()])
+    todo = {k: v for k, v in todo.items() if k not in live_now}
+    # Sorted by country, then line: a country's lines on one item sit together,
+    # which is what lets QS3 combine them into one edit.
+    order = sorted(todo.values())
+    now, later = separable([line for _, line in order])
     by_line = {line: cc for cc, line in order}
-    for i, chunk in enumerate(chunked([line for _, line in order])):
-        n = first + i
-        lines = [renamed(line, n) for line in chunk]
-        errors = qs.validate(lines)
-        ok, detail, cmds = qs.parse_commands("\n".join(lines))
-        if errors or not ok or len(cmds) > CAP:
-            sys.exit(f"chunk {n:03d} refused ({len(cmds)} commands): {errors[:5] or detail}")
-        DIR.mkdir(parents=True, exist_ok=True)
-        path_of(n).write_text("\n".join(lines) + "\n")
-        with con.transaction():
-            for raw, line in zip(chunk, lines):
-                con.execute("INSERT INTO ptree_emitted (key, country, line, chunk) VALUES (%s,%s,%s,%s)",
-                            (key(raw), by_line[raw], line, n))
-        written.append(path_of(n))
-        log(f"{path_of(n)}: {len(lines)} lines, {len(cmds)} commands")
-    return written
+    log(f"proposed {len(props)}, already out {len(taken & set(props))}, struck {len(struck)}, "
+        f"live {len(live_now)}, pending {len(now)}" + (f", {len(later)} wait for a second batch" if later else ""))
+    return [(by_line[line], line) for line in now]
+
+
+def send(op: str, name: str, rows: list[tuple[str, str, str]], log: Callable[[str], None]) -> int:
+    """Send (country, key, line) rows as one QS3 batch and wait for it; returns the QS3 id.
+
+    The batch and its edits are recorded before the request: if the answer is
+    lost, `recover` binds the batch by its name, which carries the local id.
+    """
+    batch_id = ledger.open_batch(op, name)
+    name = f"{name} #{batch_id}"
+    wd.conn().execute("UPDATE ptree_batch SET name = %s WHERE id = %s", (name, batch_id))
+    ledger.record_edits(batch_id, op, rows)
+    qs_id = qs3.submit([line for _, _, line in rows], name)
+    ledger.bind_qs3(batch_id, qs_id)
+    log(f"sent as QS3 batch {qs_id}: {qs3.link(qs_id)}  {qs3.EDITGROUPS.format(qs_id)}")
+    row = qs3.wait(qs_id, log)
+    ledger.close_batch(batch_id, FINISHED.get(row["status"]["code"], "unknown"))
+    failed = {raw.strip() for raw in qs3.failed(qs_id)}
+    bad = {k for k, _, line in rows if line.strip() in failed}
+    ledger.set_status(op, bad, "failed")
+    if bad:
+        log(f"{len(bad)} lines failed; see --status")
+    reconcile(log)
+    return qs_id
+
+
+def run(log: Callable[[str], None] = print, batch: int | None = None, submit: bool = False) -> int | None:
+    """Reconcile, then write the pending lines to `pending.qs`, or send them and wait.
+
+    Returns the QS3 batch id when something was sent.
+    """
+    recover(log)
+    reconcile(log)
+    todo = pending(log, batch)
+    lines = [line for _, line in todo]
+    errors = qs.validate(lines)
+    if errors:
+        sys.exit("refused: " + "; ".join(errors[:5]))
+    DIR.mkdir(parents=True, exist_ok=True)
+    PENDING.write_text("\n".join(lines) + "\n" if lines else "")
+    log(f"{PENDING}: {len(lines)} lines, from {', '.join(sorted({cc for cc, _ in todo})) or 'nowhere'}")
+    if not submit or not lines:
+        return None
+    name = f"peptree outbox {dt.date.today().isoformat()}" + (f" batch {batch}" if batch is not None else "")
+    return send("add", name, [(cc, key(line), line) for cc, line in todo], log)
+
+
+def propose_reverts(log: Callable[[str], None] = print) -> int:
+    """Queue a proposed removal for each landed addition on an item the load now drops."""
+    dropped = set(wd.conn().execute("SELECT country, qid FROM ptree_item WHERE dropped IS NOT NULL").fetchall())
+    gone = [(cc, line) for _, cc, line, _, s in ledger.edits("add")
+            if s == "landed" and (cc, qs.statements([line])[0][0]) in dropped]
+    by_qid: dict[str, list[tuple[str, str]]] = defaultdict(list)
+    for cc, line in gone:
+        by_qid[qs.statements([line])[0][0]].append((cc, line))
+    ents = wd.fetch_items(sorted(by_qid), props="claims")
+    n = 0
+    for qid, rows in by_qid.items():
+        claims = (ents.get(qid) or {}).get("claims", {})
+        for cc, line in rows:
+            _, prop, value = qs.statements([line])[0]
+            for guid, ours in ledger.candidates(claims.get(prop, []), value, ledger.ours_urls(line)):
+                ledger.propose_removal(guid, qid, prop, value, cc, "landed on an item the load now drops",
+                                       "revert", ours)
+                n += 1
+    log(f"{n} revert removals proposed")
+    return n
 
 
 def status() -> str:
-    have = rows()
-    out = ["| chunk | file | emitted | landed | withdrawn |", "|---|---|---|---|---|"]
-    by: dict[int, Counter] = defaultdict(Counter)
-    for _, _, _, c, s in have:
-        by[c][s] += 1
-    for c in sorted(by):
-        out.append(f"| {c:03d} | {'yes' if path_of(c).exists() else 'retired'} | {by[c]['emitted']} | "
-                   f"{by[c]['landed']} | {by[c]['withdrawn']} |")
-    pasted = {c for c, n in by.items() if n["landed"]}
-    stuck = [(c, line) for _, _, line, c, s in have if s == "emitted" and c in pasted]
-    out += ["", f"## Pasted but not live ({len(stuck)})", ""] + [f"- {c:03d}: {line}" for c, line in stuck]
-    dropped = set(wd.conn().execute("SELECT country, qid FROM ptree_item WHERE dropped IS NOT NULL").fetchall())
-    gone = [(c, cc, line) for _, cc, line, c, s in have
-            if s == "landed" and (cc, qs.statements([line])[0][0]) in dropped]
-    out += ["", f"## Landed on an item the load now drops: revert candidates ({len(gone)})", ""]
-    out += [f"- {c:03d} {cc}: {line}" for c, cc, line in gone]
+    con = wd.conn()
+    rows = con.execute(
+        "SELECT b.id, b.kind, b.op, coalesce(b.qs3_id, b.paste_chunk), b.status, e.status, count(e.key)"
+        " FROM ptree_batch b LEFT JOIN ptree_edit e ON e.batch_id = b.id"
+        " GROUP BY 1, 2, 3, 4, 5, 6 ORDER BY 1").fetchall()
+    by: dict[tuple, Counter] = defaultdict(Counter)
+    for bid, kind, op, ext, bstatus, estatus, n in rows:
+        by[(bid, kind, op, ext, bstatus)][estatus] += n
+    out = ["| # | kind | op | QS id | batch | sent | landed | failed | reverted |", "|---|---|---|---|---|---|---|---|---|"]
+    for (bid, kind, op, ext, bstatus), c in by.items():
+        out.append(f"| {bid} | {kind} | {op} | {ext or ''} | {bstatus} | {c['sent']} | {c['landed']} | "
+                   f"{c['failed']} | {c['reverted']} |")
+    stuck = con.execute("SELECT op, status, line FROM ptree_edit WHERE status IN ('sent', 'failed') "
+                        "ORDER BY op, status, line").fetchall()
+    out += ["", f"## Sent but not landed ({len(stuck)})", ""] + [f"- {o} {s}: {line}" for o, s, line in stuck]
+    vetoes = ledger.strikes()
+    out += ["", f"## Strikes ({len(vetoes)})", ""]
+    out += [f"- {s.country} {s.qid} {s.prop} {s.value}: {s.reason}" for s in vetoes]
+    open_ = [r for r in ledger.removals() if r["status"] in ("proposed", "approved") and r["sent"] is None]
+    out += ["", f"## Open removals ({len(open_)})", ""]
+    out += [f"- {r['status']} {r['guid']} ({r['prop']} {r['value']}): {r['reason']}" for r in open_]
     return "\n".join(out)
 
 
 def main(args: list[str]) -> None:
+    log = lambda m: print(m, file=sys.stderr, flush=True)  # noqa: E731
     if args == ["--status"]:
         print(status())
-    elif not args or (len(args) == 2 and args[0] == "--batch" and args[1].isdigit()):
-        log = lambda m: print(m, file=sys.stderr, flush=True)  # noqa: E731
-        paths = run(log, int(args[1]) if args else None)
-        print("\n".join(str(p) for p in paths) or "nothing pending")
-    else:
-        sys.exit("usage: outbox [--status | --batch <n>]")
+        return
+    if args == ["--propose-reverts"]:
+        propose_reverts(log)
+        return
+    submit = "--submit" in args
+    rest = [a for a in args if a != "--submit"]
+    if rest and not (len(rest) == 2 and rest[0] == "--batch" and rest[1].isdigit()):
+        sys.exit("usage: outbox [--status | --propose-reverts | [--submit] [--batch <n>]]")
+    sent = run(log, int(rest[1]) if rest else None, submit=submit)
+    print(f"QS3 batch {sent}" if sent else f"nothing sent; review {PENDING}")

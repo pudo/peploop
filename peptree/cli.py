@@ -2,24 +2,27 @@
 
     python -m peptree.cli country <cc>  # derive the country's config from data (no model calls)
     python -m peptree.cli load <cc>     # discover, filter, store items and gaps
-    python -m peptree.cli repair <cc>   # ask, decide, render and parse-check the .qs
+    python -m peptree.cli repair <cc>   # ask, decide, render and check the .qs
     python -m peptree.cli report <cc>   # funnel, matrix and skips; written beside the .qs
 
 Every run writes one file per country and day, `data/peptree/<cc>/<cc>-<date>.qs`,
 holding every lane's statements, with its report as `<cc>-<date>.md` beside it.
-That file is what the country would add now; it is never pasted itself.
+That file is what the country would add now; it is never sent itself.
     python -m peptree.cli sweep plan|table|run <n>   # the batched sweep, ledger in peptree/sweep.md
     python -m peptree.cli audit <n>                  # every line of batch n with labels, and what to look at
-    python -m peptree.cli outbox [--status]          # what has not gone out yet, as ≤300-command chunks
-    python -m peptree.cli status <batch_id>          # read a pasted QS batch back: status and errors
+    python -m peptree.cli outbox [--submit] [--batch n]  # what has not gone out yet; --submit sends it
+    python -m peptree.cli outbox --status            # the send ledger, failures, revert candidates
+    python -m peptree.cli strike <qid> <prop> [value] --reason "…"  # never send it; undo it if it landed
+    python -m peptree.cli removals [approve|reject <guid…> | submit]  # statements to take back off Wikidata
+    python -m peptree.cli status <batch_id>          # read a QS3 batch back: status and failed lines
 
-Nothing here edits Wikidata. The outbox's chunks in `data/peptree/outbox/` are
-pasted into the QuickStatements importer by hand.
+Only `outbox --submit` and `removals submit` edit Wikidata, each as one QuickStatements 3.0 batch.
 """
 
 import argparse
 import sys
 
+from peploop import qs3
 from peptree import country as countries
 from peptree import gaps, load, qs, repair, report, rules, wd
 
@@ -49,10 +52,10 @@ def cmd_repair(cc: str, limit: int | None, no_ask: bool = False) -> None:
     if errors:
         log("local validation failed:\n  " + "\n  ".join(errors[:20]))
     path = qs.write(cc, lines)
-    ok, detail = qs.parse("\n".join(lines)) if lines else (True, "empty batch")
+    detail = f"{len(errors)} local errors"
     wd.conn().execute("INSERT INTO ptree_run (country, qs_path, lines, parse_ok, parse_detail) VALUES (%s,%s,%s,%s,%s)",
-                      (cc, str(path), len(lines), ok and not errors, detail))
-    log(f"{path}: {len(lines)} lines; QS parse {'OK' if ok else 'FAILED'}: {detail}")
+                      (cc, str(path), len(lines), not errors, detail))
+    log(f"{path}: {len(lines)} lines; {detail}")
     md = report.write(cc)
     log(f"{md}: report")
 
@@ -73,23 +76,19 @@ def cmd_country(cc: str) -> None:
     print(f"  union-lane name regex: {countries.sparql_name_regex(c) or '(none)'}")
 
 
-def show(result: dict) -> None:
-    print(f"status: {result['status']}  counts: {result['counts']}  {result['editgroup']}")
-    for e in result["errors"]:
-        print(f"  ERROR #{e.get('num')}: {e.get('message')}  {e.get('json')}")
-
-
 def cmd_status(batch_id: int) -> None:
-    status, counts, _ = qs.batch_info(batch_id)
-    errs = qs.errors(batch_id)
-    show({"status": status, "counts": counts, "errors": errs, "editgroup": qs.EDITGROUPS.format(batch_id)})
+    row = qs3.info(batch_id)
+    print(f"status: {row['status']['display']}  counts: {row.get('summary')}  {qs3.EDITGROUPS.format(batch_id)}")
+    for raw in qs3.failed(batch_id):
+        print(f"  FAILED: {raw}")
 
 
 def main() -> None:
-    if sys.argv[1:2] in (["sweep"], ["audit"], ["outbox"]):
+    if sys.argv[1:2] in (["sweep"], ["audit"], ["outbox"], ["removals"], ["strike"]):
         wd.init()
-        from peptree import audit, outbox, sweep
-        {"sweep": sweep, "audit": audit, "outbox": outbox}[sys.argv[1]].main(sys.argv[2:])
+        from peptree import audit, outbox, removals, sweep
+        {"sweep": sweep.main, "audit": audit.main, "outbox": outbox.main, "removals": removals.main,
+         "strike": removals.strike_main}[sys.argv[1]](sys.argv[2:])
         return
     parser = argparse.ArgumentParser(prog="peptree")
     parser.add_argument("command", choices=["country", "load", "repair", "report", "status"])

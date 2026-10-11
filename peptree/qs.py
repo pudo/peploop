@@ -1,9 +1,7 @@
 """Render a run's applied decisions as QuickStatements V1, and check them.
 
-A country's run file is rendered here and checked twice: locally (`validate`)
-and by QuickStatements' own parser (`parse`, sent without `submit`, so it needs
-no auth). What reaches Wikidata goes out through `outbox.py`, pasted into the
-importer by hand; `batch_info` and `errors` read a pasted batch back.
+A country's run file is rendered and checked here (`validate`). What reaches
+Wikidata goes out through `outbox.py`, as a QuickStatements 3.0 batch.
 """
 
 import datetime as dt
@@ -11,12 +9,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-
-from peploop import http
-
-API = "https://quickstatements.toolforge.org/api.php"
 OUT_DIR = Path(__file__).resolve().parent.parent / "data" / "peptree"
-EDITGROUPS = "https://editgroups.toolforge.org/b/QSv2/{}/"
 SUMMARY_RE = re.compile(r" /\* [^*]+ \*/$")
 
 
@@ -69,23 +62,25 @@ def validate(lines: list[str]) -> list[str]:
     return errors
 
 
-def parse_commands(text: str) -> tuple[bool, str, list[dict[str, Any]]]:
-    """Server-side parse with no submit: (ok, detail, commands as QS would store them)."""
-    res = http.post(API, data={"action": "import", "format": "v1", "data": text}, timeout=120)
-    try:
-        out = res.json()
-    except ValueError:
-        return False, f"HTTP {res.status_code}: {res.text[:200]}", []
-    commands = (out.get("data") or {}).get("commands") or []
-    bad = [c for c in commands if c.get("error")]
-    if out.get("status") != "OK" or bad:
-        return False, f"status={out.get('status')} errors={bad[:3]}", commands
-    return True, f"{len(commands)} commands parsed, 0 errors", commands
+GUID_RE = re.compile(r"^[Qq]\d+\$[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$")
 
 
-def parse(text: str) -> tuple[bool, str]:
-    ok, detail, _ = parse_commands(text)
-    return ok, detail
+def removal_line(guid: str, reason: str) -> str:
+    """Remove one statement by its GUID: never by value, which takes only the first match."""
+    return f"-STATEMENT\t{guid} /* {reason.replace('*', '')} */"
+
+
+def validate_removals(lines: list[str]) -> list[str]:
+    """A removal batch carries `-STATEMENT` lines with a well-formed GUID, each once, and nothing else."""
+    errors, seen = [], set()
+    for n, text in enumerate(lines, 1):
+        cols = SUMMARY_RE.sub("", text).split("\t")
+        if len(cols) != 2 or cols[0] != "-STATEMENT" or not GUID_RE.match(cols[1]):
+            errors.append(f"{n}: not a removal by GUID: {text!r}")
+        elif cols[1] in seen:
+            errors.append(f"{n}: {cols[1]} twice")
+        seen.add(cols[1])
+    return errors
 
 
 def statements(lines: list[str]) -> list[tuple[str, str, str]]:
@@ -95,29 +90,6 @@ def statements(lines: list[str]) -> list[tuple[str, str, str]]:
         cols = SUMMARY_RE.sub("", text).split("\t")
         out.append((cols[0], cols[1], cols[2]))
     return out
-
-
-# --- a pasted batch ---------------------------------------------------------------
-
-def batch_info(batch_id: int) -> tuple[str, dict[str, int], dict[str, Any]]:
-    """(status, per-status command counts, the batch row), read live."""
-    out = http.get_json(API, params={"action": "get_batch_info", "batch": batch_id}, max_age=0)
-    row = out["data"][str(batch_id)]
-    counts = {k: int(v) for k, v in (row.get("commands") or {}).items()}
-    return row["batch"]["status"], counts, row["batch"]
-
-
-def errors(batch_id: int, limit: int = 500) -> list[dict[str, Any]]:
-    """Every command that ended in ERROR, paged; `limit` must be passed or QS returns nothing."""
-    out, start = [], 0
-    while True:
-        page = http.get_json(API, params={"action": "get_commands_from_batch", "batch": batch_id,
-                                          "start": start, "limit": limit, "filter": "ERROR"}, max_age=0)
-        rows = page.get("data") or []
-        out += rows
-        if len(rows) < limit:
-            return out
-        start += limit
 
 
 def run_path(cc: str, day: dt.date | None = None, suffix: str = ".qs") -> Path:

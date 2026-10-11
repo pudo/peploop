@@ -15,7 +15,7 @@ from collections import defaultdict
 from typing import Any
 
 from peptree import country as countries
-from peptree import gaps, qs, sweep, wd
+from peptree import gaps, ledger, qs, sweep, wd
 from peptree.load import values
 
 #: Categories every state has an office for: absent after the run means the load missed it.
@@ -55,6 +55,7 @@ def audit(batch: int) -> str:
     # A category's own classes are its generic handles (minister, prime minister):
     # one added beside a specific class is how "Chief Minister" became a minister.
     handles = {q for cat in gaps.categories() for q in cat["class_qids"]}
+    vetoes = ledger.strikes()
     out = [f"# audit: batch {batch} ({', '.join(ccs)})", ""]
     total = 0
     for cc in ccs:
@@ -92,6 +93,9 @@ def audit(batch: int) -> str:
                     flags.append("conflicts with " + ", ".join(differ))
                 # The same line in another country is one line in the batch file: a note, not a flag.
                 note = f"   (also in {', '.join(sorted(set(others) - set(differ)))})" if set(others) - set(differ) else ""
+                veto = next((x for x in vetoes if x.matches(s, p, v)), None)
+                if veto:
+                    note += f"   STRUCK: {veto.reason}"
                 mark = "!" if flags else " "
                 flags_here += bool(flags)
                 body.append(f"{mark} {s} {name(s)[:60]} [{it['kind']}] → {v} {name(v)}"

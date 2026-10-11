@@ -38,7 +38,7 @@ STEPS = ("country", "load", "repair")
 #: 5,056 would have cost $100-200 before the type/class swap was understood. The
 #: repair itself then asks only about held or categorised items (`repair.focus`).
 LARGE = repair.LARGE
-COLUMNS = ("cc", "name", "region", "batch", "status", "run", "kept", "lines", "by property", "cost", "chunks", "notes")
+COLUMNS = ("cc", "name", "region", "batch", "status", "run", "kept", "lines", "by property", "cost", "batches", "notes")
 #: Columns a person writes; `table` and `plan` keep them as found.
 HAND = ("status", "notes")
 
@@ -72,7 +72,7 @@ def write(rows: list[dict[str, str]]) -> Path:
             "Every country and territory: non-OECD places in batches of five by region, OECD members "
             "in batches of one, smallest first. Status is "
             "`pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are "
-            "written by hand and survive `sweep table`; `chunks` are the outbox chunks its lines went out in.", "",
+            "written by hand and survive `sweep table`; `batches` are the QS batches its lines went out in (paste-era chunks as 001-064, then QS3 batch ids).", "",
             "Progress: " + ", ".join(f"{k} {n}" for k, n in sorted(done.items())), "",
             "| " + " | ".join(COLUMNS) + " |", "|" + "---|" * len(COLUMNS)]
     body = ["| " + " | ".join(r.get(c, "").replace("|", "/") for c in COLUMNS) + " |" for r in rows]
@@ -122,11 +122,12 @@ def stats(cc: str) -> dict[str, str]:
     by = Counter(p for _, p, _ in qs.statements(lines))
     kept = wd.conn().execute("SELECT count(*) FROM ptree_item WHERE country = %s AND dropped IS NULL", (cc,)).fetchone()[0]
     usd, _ = repair.cost(cc)
-    chunks = [c for (c,) in wd.conn().execute(
-        "SELECT DISTINCT chunk FROM ptree_emitted WHERE country = %s ORDER BY 1", (cc,)).fetchall()]
+    sent = wd.conn().execute(
+        "SELECT DISTINCT b.paste_chunk, b.qs3_id, b.id FROM ptree_edit e JOIN ptree_batch b ON b.id = e.batch_id"
+        " WHERE e.country = %s ORDER BY b.id", (cc,)).fetchall()
     return {"run": path.stem[len(cc) + 1:], "kept": str(kept), "lines": str(len(lines)),
             "by property": " ".join(f"{p} {n}" for p, n in sorted(by.items())), "cost": f"${usd:.2f}",
-            "chunks": " ".join(f"{c:03d}" for c in chunks)}
+            "batches": " ".join(f"{p:03d}" if p else str(q or f"#{i}") for p, q, i in sent)}
 
 
 def fill(rows: list[dict[str, str]]) -> list[dict[str, str]]:
@@ -190,6 +191,6 @@ def main(args: list[str]) -> None:
     elif args[:1] == ["run"] and len(args) == 2:
         done = run(int(args[1]), log=lambda m: print(m, file=sys.stderr, flush=True))
         lines = sum(len(p.read_text().splitlines()) for cc in done if (p := qs.latest(cc)))
-        print(f"batch {args[1]}: ran {' '.join(done) or 'nothing'}, {lines} lines proposed; export with `outbox`")
+        print(f"batch {args[1]}: ran {' '.join(done) or 'nothing'}, {lines} lines proposed; send with `outbox --submit`")
     else:
         sys.exit("usage: sweep plan | table | run <batch>")
