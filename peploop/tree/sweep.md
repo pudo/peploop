@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
-Progress: pending 7, reviewed 191, run 1, skipped 1, submitted 48
+Progress: pending 7, reviewed 192, skipped 1, submitted 48
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | batches | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -104,7 +104,7 @@ Progress: pending 7, reviewed 191, run 1, skipped 1, submitted 48
 | ni | Nicaragua | Americas / Central America | 14 | reviewed | 2026-10-07 | 33 | 0 |  | $0.24 | 003 |  |
 | pa | Panama | Americas / Central America | 14 | reviewed | 2026-10-07 | 35 | 0 |  | $0.12 | 003 |  |
 | bm | Bermuda | Americas / Northern America | 15 | reviewed | 2026-10-07 | 35 | 0 |  | $0.04 | 004 |  |
-| ca | Canada | Americas / Northern America | 67 | run | 2026-10-11 | 803 | 127 | P1001 39 P17 32 P279 29 P31 27 | $7.31 |  |  |
+| ca | Canada | Americas / Northern America | 67 | reviewed | 2026-10-11 | 803 | 148 | P1001 39 P17 33 P279 29 P31 47 | $13.09 |  | re-filtered: Catholic sees and Ontario's Leader of the Opposition kept (+29); head_of_government repaired (PM P279); 1 model answer degenerate (Q3238301); strike Q108350406 P1001 (class of mayors), Q109772486 P1001 (bar association), Q5246678 P31 (Dean of the House) |
 | gl | Greenland | Americas / Northern America | 15 | reviewed | 2026-10-07 | 25 | 0 |  | $0.18 | 004 | P17 Greenland: treated as a country (user, 2026-10-05) |
 | pm | Saint Pierre and Miquelon | Americas / Northern America | 15 | reviewed | 2026-10-06 | 3 | 0 |  | $0.00 |  | no offices to repair |
 | us | United States | Americas / Northern America | 71 | pending |  |  |  |  |  |  |  |
@@ -227,7 +227,7 @@ Progress: pending 7, reviewed 191, run 1, skipped 1, submitted 48
 | mc | Monaco | Europe / Western Europe | 31 | reviewed | 2026-10-07 | 24 | 0 |  | $0.27 | 026 |  |
 | nl | Netherlands | Europe / Western Europe | 72 | pending |  |  |  |  |  |  |  |
 | ch | Switzerland | Europe / Western Europe | 62 | submitted | 2026-10-08 | 592 | 25 | P1001 9 P17 9 P279 3 P31 4 | $2.08 | 59044 |  |
-| au | Australia | Oceania / Australia and New Zealand | 65 | reviewed | 2026-10-11 | 1166 | 88 | P1001 9 P17 20 P279 44 P31 15 | $6.99 |  | UK of GB and Ireland is no predecessor (its offices loaded as Australia's); NSW subdivision query as FILTER; PM was subnational via Swedish 'premiärminister', level words now own-language only; strike Q5261060 P279 Q877955 (deputy premier), Q135293478 P17 + Q135293462/Q135293464 P31 (CV entries), Q19647325 P1001 (sports body) |
+| au | Australia | Oceania / Australia and New Zealand | 65 | reviewed | 2026-10-11 | 1166 | 88 | P1001 10 P17 20 P279 43 P31 15 | $11.81 |  | UK of GB and Ireland is no predecessor (its offices loaded as Australia's); NSW subdivision query as FILTER; PM was subnational via Swedish 'premiärminister', level words now own-language only; strike Q5261060 P279 Q877955 (deputy premier), Q135293478 P17 + Q135293462/Q135293464 P31 (CV entries), Q19647325 P1001 (sports body) |
 | cx | Christmas Island | Oceania / Australia and New Zealand | 32 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | cc | Cocos (Keeling) Islands | Oceania / Australia and New Zealand | 37 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | nz | New Zealand | Oceania / Australia and New Zealand | 52 | reviewed | 2026-10-08 | 262 | 62 | P1001 20 P17 15 P279 27 | $2.58 | 052 |  |
