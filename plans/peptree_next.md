@@ -6,7 +6,8 @@ tags: [peptree, backlog, sweep, subnational, mint]
 
 # peptree: what is next
 
-The tool as it is: `peptree/design.md`; the sweep ledger: `peptree/sweep.md`.
+The tool as it is: `peploop/tree/design.md`; the sweep ledger:
+`peploop/tree/sweep.md`. Commands are `python -m peploop.cli tree <verb>`.
 What was tried: `docs/history.md`.
 
 ## 1. The OECD tail

@@ -4,7 +4,7 @@ Make one country's position items usable: give each office the type (`P31`),
 kind (`P279`), state (`P17`) and jurisdiction (`P1001`) it lacks, so that
 OpenSanctions — and peploop, which places people on these items — can read
 what the office is and whose it is. The sweep over every country and
-territory is `peptree/sweep.md`; open work is `plans/peptree_next.md`; what was
+territory is `peploop/tree/sweep.md`; open work is `plans/peptree_next.md`; what was
 tried is `docs/history.md`.
 
 ## Principles
@@ -26,8 +26,9 @@ tried is `docs/history.md`.
 
 ## The run, per place
 
-`python -m peptree.cli place <cc>` runs four steps; `sweep run <n>` runs it
-for every pending place of a batch, each in its own process with its log.
+`python -m peploop.cli tree place <cc>` runs four steps; `tree sweep run <n>`
+runs it for every pending place of a batch, each in its own process with its
+log.
 
 1. **country** (`country.py`): derive the config from data — languages,
    predecessor states and their eras, first- and second-level places, the
@@ -55,9 +56,9 @@ for every pending place of a batch, each in its own process with its log.
 
 A place with more than `repair.LARGE` (300) items to ask stops before the
 repair as `blocked: large`; it is run on the user's call with
-`place <cc> --large`, asking only about held or categorised items. Changing
+`tree place <cc> --large`, asking only about held or categorised items. Changing
 `prompts/repair.md` re-keys the cache: re-decide earlier places with
-`place <cc> --no-ask`, which reads the ledger and asks nothing.
+`tree place <cc> --no-ask`, which reads the ledger and asks nothing.
 
 ## Modelling rules the code holds
 
@@ -74,35 +75,42 @@ repair as `blocked: large`; it is run on the user's call with
 ## Review and sending
 
 The sweep ledger (`sweep.md`) is the review gate: a place goes
-`pending → run → reviewed → submitted`. `audit <n>` prints every line of a
+`pending → run → reviewed → submitted`. `tree audit <n>` prints every line of a
 batch with labels and flags the shapes that have hidden a defect before; a
 flag that proves real becomes a rule in `rules.py` with a case in
-`check_rules.py`. Notes and status are written by hand; `sweep table` rewrites
+`check_rules.py`. Notes and status are written by hand; `tree sweep table` rewrites
 the other columns.
 
-Only reviewed places go out. `send` (`outbox.py`) reconciles the joint send
+Only reviewed places go out. `tree send` (`outbox.py`) reconciles the joint send
 ledger, takes every reviewed place's latest run file, drops what went out
 before, what a reviewer struck and what is already live, and writes the rest
-to `data/peptree/send/pending.qs`; `send --submit` sends it as one QS3 batch,
+to `data/peptree/send/pending.qs`; `tree send --submit` sends it as one QS3 batch,
 then the approved removals as another. A line is plain (no `+`): it merges
 into a statement that already holds its value, so an addition sent twice
 changes nothing.
 
-`strike <qid> <prop> [value] --reason …` vetoes a statement for good; if one
+`tree strike <qid> <prop> [value] --reason …` vetoes a statement for good; if one
 of ours already landed, its removal is queued (approved when the statement is
-provably only ours). `removals approve|reject` decides the rest.
-`send --propose-reverts` queues removals for landed lines on items the load
+provably only ours). `removals approve|reject` (peploop's top-level command,
+one queue for both lanes) decides the rest. `tree send --propose-reverts` queues removals for landed lines on items the load
 now drops.
 
 ## Layout
 
+peptree is the `tree` subpackage of peploop and the `tree` command group of
+`peploop/cli.py`. It shares peploop's database, HTTP layer and Wikidata reader,
+the type closure (`peploop/typegraph.py`), the slow-read cache
+(`peploop/memo.py`), the QuickStatements codec (`peploop/qs.py`), the send
+ledger and skeleton (`peploop/ledger.py`, `peploop/send.py`) and the model
+client (`peploop/llm.py`).
+
 ```
-peptree/
+peploop/tree/
   design.md       this file
   sweep.md        the sweep ledger: one row per place, its batch, status, notes
   categories.yml  FATF categories: class handles, excludes, bodies
   prompts/repair.md
-  cli.py          place, sweep, audit, send, strike, removals
+  place.py        one place: country → load → gaps → repair → run file and report
   country.py      a country's config from data
   load.py         discovery lanes and the not-an-office filter
   gaps.py         missing statements, class fixes, the matrix
@@ -113,8 +121,8 @@ peptree/
   report.py       the funnel, matrix and skips beside the run file
   audit.py        one batch, every line labelled, for review
   sweep.py        the universe, batches and the ledger table
-  outbox.py       send, strike, removals: peptree's side of peploop/send.py
-  wd.py           cached reads of slow-moving context (class edges, labels, leads)
+  outbox.py       send and strike: peptree's side of peploop/send.py
+  wd.py           the run's label languages, and the readers the modules share
   check_*.py      offline checks
 ```
 

@@ -1,17 +1,23 @@
 # Wikidata PEP workbench
 
-Two tools that improve Wikidata's coverage of politically exposed persons, so
-OpenSanctions can read them back:
+One package, `peploop/`, with two lanes that improve Wikidata's coverage of
+politically exposed persons, so OpenSanctions can read them back:
 
-- **peploop** (`peploop/`) — one person at a time: read their Wikipedia
+- **peploop** (`peploop/`, `peploop.cli <command>`) — one person at a time: read their Wikipedia
   articles, extract the offices they held and their birth date, citizenship
   and death, resolve each office to a position item, decide every proposed
   statement by rule (and a second model where the rule is unsure), and write
   what passes. It also creates office items nobody has made yet (`mint`).
   Spec: `peploop/design.md`; how a country is run: `peploop/countries.md`.
-- **peptree** (`peptree/`) — one country's position items at a time: give each
-  office the type (`P31`), kind (`P279`), state (`P17`) and jurisdiction
-  (`P1001`) it lacks. The sweep over every country is `peptree/sweep.md`.
+- **peptree** (`peploop/tree/`, `peploop.cli tree <verb>`) — one country's
+  position items at a time: give each office the type (`P31`), kind (`P279`),
+  state (`P17`) and jurisdiction (`P1001`) it lacks. Spec:
+  `peploop/tree/design.md`; the sweep over every country is
+  `peploop/tree/sweep.md`.
+
+Both lanes share the type closure (`typegraph.py`), the slow-read cache
+(`memo.py`), the QuickStatements codec (`qs.py`), the send ledger and skeleton
+(`ledger.py`, `send.py`) and the model client (`llm.py`).
 
 Open work for each is `plans/peploop_next.md` and `plans/peptree_next.md`.
 What was tried and learned along the way, including approaches that failed,
@@ -25,12 +31,12 @@ ledgers). It is prior art: never import it, run it, or follow its rules.
 ## Running things
 
 - Python: `.venv/bin/python -m peploop.cli <command>` and
-  `.venv/bin/python -m peptree.cli <verb>` from the repository root, with
+  `.venv/bin/python -m peploop.cli tree <verb>` from the repository root, with
   `set -a && source .envrc && set +a` first (database URL, Anthropic key,
   QuickStatements token and username). Never install into an environment.
 - State is one Postgres database (`peploop`); peptree's tables are `ptree_*`.
 - Checks are offline scripts: `.venv/bin/python -m peploop.check_<name>` and
-  `peptree.check_<name>`. Run the ones next to what you touch, and all of them
+  `peploop.tree.check_<name>`. Run the ones next to what you touch, and all of them
   before a commit. Checks that touch the database shadow its tables with
   temporary ones; a new check must too.
 - All HTTP goes through `peploop/http.py` (descriptive User-Agent, per-host
@@ -69,7 +75,7 @@ ledgers). It is prior art: never import it, run it, or follow its rules.
 - **Rule order is load-bearing.** "Does this belong on this item at all"
   precedes "what kind of tenure is it", and the general rule comes last.
 - **A model pass is code with a committed prompt** (`peploop/prompts/`,
-  `peptree/prompts/`), ledgered on content so a re-run asks only what is new.
+  `peploop/tree/prompts/`), ledgered on content so a re-run asks only what is new.
   Instruct it to cite evidence and prefer "unclear" over guessing.
 - **Measure the convention, don't declare it.** Wikidata's guidance is often
   ambiguous; tally de-facto practice over well-curated items and read

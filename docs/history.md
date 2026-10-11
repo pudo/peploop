@@ -6,7 +6,7 @@ tags: [history, lessons, peploop, peptree, quickstatements, retrieval]
 
 # History and lessons
 
-The specs (`peploop/design.md`, `peploop/positions.md`, `peptree/design.md`)
+The specs (`peploop/design.md`, `peploop/positions.md`, `peploop/tree/design.md`)
 say how things work now. This file says what was tried first and what was
 learned, so the same ideas are not re-proposed without new evidence. An entry
 is a measurement, not a law: a better measurement can overturn it, an argument
@@ -157,6 +157,13 @@ cannot.
 - peptree before peploop (Malaysia): of 93 repaired items 80 were loadable
   anyway; the repair is felt in the attributes, not in which offices load.
 - The non-OECD sweep: 209 of 210 places, 3,916 statements, about $370.
+- peptree began as a separate package with its own copy of the type closure
+  and edge table. The two tables disagreed on 381 of the 4,896 classes both
+  held: 282 because peploop's closure followed deprecated claims, most of the
+  rest because peploop's edges never expired. Merged under nomenklatura's rule
+  (deprecated skipped, ended skipped except historical country); across jp's
+  2,977 offices no position, diplomatic, worship or organisation verdict
+  moved.
 
 ## The campaign toolkit (`old/`)
 

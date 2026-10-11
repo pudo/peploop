@@ -1,5 +1,5 @@
 ---
-description: Open peploop work as of 2026-10-11 — the first live mint, the audit rules Malaysia showed are missing, mint lanes not yet covered, a country tag on the shortlist, and the core consolidation that is still worth doing.
+description: Open peploop work as of 2026-10-11 — the first live mint, the audit rules Malaysia showed are missing, mint lanes not yet covered, a country tag on the shortlist, the consolidation still worth doing, and one office loader for both lanes.
 date: 2026-10-11
 tags: [peploop, backlog, mint, policy, reconcile, consolidation]
 ---
@@ -53,11 +53,11 @@ not the whole ledger (a full re-ask is about $140 over eight countries).
 
 Do these when the files are open anyway; none changes behaviour.
 
-- **One LLM-pass kernel.** Extract, reconcile, verify, titles, mint categorize
-  and mint verify each carry their own copy of request, parse, record and
-  usage accounting (a seventh in `peptree/repair.py`; `Strict` defined five
-  times, `USAGE_KEYS` twice). One `llm.py` plus an `llm_usage` view lets
-  `report` show every pass's cost.
+- **The rest of the LLM-pass kernel.** `llm.py` holds the client, the prompt
+  hash and the usage counts; each of the seven passes (six here, one in
+  `tree/repair.py`) still carries its own request, parse and record, `Strict`
+  is defined five times and `USAGE_KEYS` twice. An `llm_usage` view over the
+  ledgers would let `report` show every pass's cost.
 - **A check fixture and runner.** Five copies of the shadow-table helper; one
   `checks.py` fixture and a `check` command that runs every `check_*`.
 - **Pin every prompt's request hash.** Ledger keys hash the rendered request;
@@ -66,3 +66,20 @@ Do these when the files are open anyway; none changes behaviour.
 
 Not to do: one ledger table for every pass, keying by message hash (re-keys
 about $390 of answers), a single `run` driver.
+
+## 6. One office loader for both lanes
+
+peploop (`positions.discover` → `position`) and peptree (`tree/load.py` →
+`ptree_item`) each find a country's offices with their own queries, holder
+counts and not-an-office lists, and they disagree. Of peploop's `position` rows
+for a state, peptree's filter drops jp 410 of 2,977 (173 not an office, 81
+occupation, 79 inbound ambassador, 62 body), my 290 of 710, by 110 of 646, and
+about half for the small Caribbean runs. So reconcile can resolve a mention to
+an item peptree has ruled out, an inbound ambassadorship among them.
+
+One loader and one filter would fix that, with peptree's lanes as the richer
+half: it knows predecessor states, realms and eras, which peploop's
+`country_qid` does not. Share the country model (`tree/country.py`) with it, so
+reconcile and `mint` see predecessors too. This changes which offices peploop
+resolves against: measure the shortlist and proposal diff on two finished
+countries before switching.

@@ -579,7 +579,8 @@ proposal           one statement to consider: value, qualifiers, sources, status
 verdict            a human's ruling on a proposal (review sample or audit)
 position           one row per office item a title may resolve to, with its signals
 position_name      every name of a position, per language
-type_edge          the P31/P279 ancestry cache
+type_edge          the P31/P279 ancestry cache, shared with peptree (`typegraph.py`)
+memo               slow-moving reads kept under a key, shared with peptree (`memo.py`)
 resolution         the reconciler's verdict per office mention, keyed on content
 title_en, title_en_call   the cached English name of an office title
 verification       the verifier's verdict per proposal, keyed on content
@@ -636,7 +637,8 @@ mint             --country cc [--submit] [--limit N]
 propose          --country cc | --qid Q...
 verify           --country cc | --qid Q...
 send             --country cc [--qid Q...] [--submit [--retry]] | --status
-removals         [approve|reject GUID...]
+removals         [approve|reject GUID...] [--tool peploop|peptree]
+tree             place|sweep|audit|send|strike   peptree, see tree/design.md
 
 report           --country cc [people|positions|proposals|funnel|mint]
 audit            proposal|candidate [ID...] [--ids FILE] --country cc --reason TEXT --by NAME
@@ -654,9 +656,9 @@ their unit, since the queue and the shortlist's ranking are a country's.
 
 Two commands write to Wikidata, `mint` and `send`, both as QS3 batches through
 the joint send ledger, and both are dry runs unless `--submit`; both take the
-one send lock, which peptree's `send` takes too. §7 has the routing. `removals`
-approves or rejects a queued removal; the approved ones go out with the next
-`send --submit`.
+one send lock, which `tree send` takes too. §7 has the routing. `removals`
+approves or rejects a queued removal of either lane; the approved ones go out
+with that lane's next `send --submit`.
 `mint` categorizes, verifies, writes `data/mint/<cc>.md` and feeds the
 `found` rows on every run, then feeds each item it creates; the feed is
 idempotent.
@@ -757,10 +759,14 @@ peploop/
   verify.py      the second reading: render the edit, ask, keep the answer by content
   review.py      Textual TUI: one person per screen, verdicts on submit
   plan.py        plan one person's accepted rows against their live item
-  qs.py          render a plan, or an office to create, as QS3 lines; check a batch
+  qs.py          the QS3 codec both lanes share: values, references, CREATE, read a line back
+  route.py       aim a plan's statements as QS3 lines; check a batch
   outbox.py      what one country sends: pre-flight, route, submit, settle the rows
   ledger.py      the send ledger shared with peptree: batches, edits, strikes, removals
-  send.py        submit to QS3 through the ledger: recover, reconcile, retry, removals
+  send.py        submit to QS3 through the ledger: recover, reconcile, dispatch, retry, removals
+  typegraph.py   the P31/P279 closure over `type_edge`, by nomenklatura's rule
+  memo.py        slow-moving reads (class labels, gazetteers, leads) kept in `memo`
+  llm.py         the model client, a prompt's hash, a response's token counts
   qs3.py         the QuickStatements 3.0 API client
   cli.py         the commands; every stage's selection and its concurrency
   positions.py   load a country's offices, search and rank them
@@ -780,6 +786,7 @@ peploop/
   check_reconcile.py  pins the second turn offline: no network, no key
   check_plan.py       what an accepted row plans to, against a live item, offline
   check_qs.py         the line each route becomes, and what a batch refuses, offline
+  tree/               peptree: position-item repair, see tree/design.md
   check_mint.py       every reason not to mint, on the payload itself
   check_mint_queue.py the queue: what counts as current evidence, how mentions pool
   check_mint_categorize.py  the categorize rendering, gate and ledger, offline
