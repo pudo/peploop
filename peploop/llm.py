@@ -41,3 +41,24 @@ def usage(response: Any) -> dict[str, int]:
         "cache_read_input_tokens": response.usage.cache_read_input_tokens or 0,
         "output_tokens": response.usage.output_tokens,
     }
+
+
+#: List prices per million tokens: input, output, cache read, cache write. A
+#: model not listed is reported in tokens only, never priced by a guess.
+PRICES: dict[str, tuple[float, float, float, float]] = {
+    "claude-sonnet-5": (2.0, 10.0, 0.20, 2.50),
+    "claude-sonnet-5-5": (2.0, 10.0, 0.20, 2.50),
+    "claude-opus-5": (5.0, 25.0, 0.50, 6.25),
+    "claude-opus-5-5": (4.0, 20.0, 0.20, 5.00),
+}
+
+
+def cost(model: str, usage: dict[str, int]) -> float | None:
+    """Dollars for one usage tally at list price, or None for an unpriced model."""
+    price = PRICES.get(model)
+    if price is None:
+        return None
+    p_in, p_out, p_read, p_write = price
+    return (usage.get("input_tokens", 0) * p_in + usage.get("output_tokens", 0) * p_out
+            + usage.get("cache_read_input_tokens", 0) * p_read
+            + usage.get("cache_creation_input_tokens", 0) * p_write) / 1e6

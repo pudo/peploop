@@ -428,16 +428,11 @@ def from_ledger(cc: str) -> list[dict[str, Any]]:
              "articles": req["articles"], "answer": ans} for q, k, req, ans in rows]
 
 
-#: USD per million tokens: input, output, cache read, cache write.
-PRICES = {"claude-opus-5": (5.0, 25.0, 0.50, 6.25), "claude-sonnet-5": (2.0, 10.0, 0.20, 2.50)}
-
-
 def cost(cc: str) -> tuple[float, int]:
-    """Total spend on this country's ledger rows, and the number of calls."""
+    """Total spend on this country's ledger rows at list price, and the number of calls.
+
+    A call on a model `llm.PRICES` does not list adds no dollars: an unknown
+    price is left out, not guessed.
+    """
     rows = wd.conn().execute("SELECT model, usage FROM ptree_call WHERE country = %s", (cc,)).fetchall()
-    total = 0.0
-    for model, u in rows:
-        pi, po, pr, pw = PRICES.get(model, PRICES["claude-opus-5"])
-        total += (u["input_tokens"] * pi + u["output_tokens"] * po + u["cache_read_input_tokens"] * pr
-                  + u["cache_creation_input_tokens"] * pw) / 1e6
-    return total, len(rows)
+    return sum((llm.cost(model, usage) or 0.0 for model, usage in rows), 0.0), len(rows)

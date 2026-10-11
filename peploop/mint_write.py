@@ -23,7 +23,7 @@ from typing import Any, Callable, Sequence
 
 from psycopg.rows import dict_row
 
-from peploop import db, offices, positions, propose, qs, reconcile, send, wikidata
+from peploop import db, llm, offices, positions, propose, qs, reconcile, send, wikidata
 
 #: What a recheck returns: every reason not to create, empty when clean.
 Recheck = Callable[[dict[str, Any]], list[str]]
@@ -45,14 +45,6 @@ TOOL = "peploop"
 #: so the row is closed rather than sent again on every run.
 CREATE_FAILED = "qs3:create-failed"
 
-#: List prices per million tokens: input, output, cache read, cache write. A
-#: model not listed is reported in tokens only, never priced by a guess.
-PRICES: dict[str, tuple[float, float, float, float]] = {
-    "claude-sonnet-5": (2.0, 10.0, 0.20, 2.50),
-    "claude-sonnet-5-5": (2.0, 10.0, 0.20, 2.50),
-    "claude-opus-5": (5.0, 25.0, 0.50, 6.25),
-    "claude-opus-5-5": (4.0, 20.0, 0.20, 5.00),
-}
 USAGE_KEYS = ("input_tokens", "output_tokens", "cache_read_input_tokens",
               "cache_creation_input_tokens")
 
@@ -417,17 +409,6 @@ def audit(ids: Sequence[int], reason: str, by: str, country: str) -> list[dict[s
 # --- report ------------------------------------------------------------------
 
 
-def cost(model: str, usage: dict[str, int]) -> float | None:
-    """Dollars for one usage tally at list price, or None for an unpriced model."""
-    price = PRICES.get(model)
-    if price is None:
-        return None
-    p_in, p_out, p_read, p_write = price
-    return (usage.get("input_tokens", 0) * p_in + usage.get("output_tokens", 0) * p_out
-            + usage.get("cache_read_input_tokens", 0) * p_read
-            + usage.get("cache_creation_input_tokens", 0) * p_write) / 1e6
-
-
 def _labels_text(cand: dict[str, Any]) -> str:
     labels = ((cand.get("spec") or {}).get("labels")
               or (cand.get("draft") or {}).get("labels") or {})
@@ -514,7 +495,7 @@ def report(country: str) -> str:
                     "|---|---|---|---|---|---|---|---|"])
         dollars = 0.0
         for (pass_, model), use in sorted(tally.items()):
-            price = cost(model, use)
+            price = llm.cost(model, use)
             dollars += price or 0.0
             out.append(f"| {pass_} | {model} | {calls[(pass_, model)]} | {use['input_tokens']}"
                        f" | {use['output_tokens']} | {use['cache_read_input_tokens']}"
