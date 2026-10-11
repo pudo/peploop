@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
-Progress: blocked 1, pending 9, reviewed 189, skipped 1, submitted 48
+Progress: pending 9, reviewed 190, skipped 1, submitted 48
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | batches | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -92,7 +92,7 @@ Progress: blocked 1, pending 9, reviewed 189, skipped 1, submitted 48
 | mf | Saint Martin | Americas / Caribbean | 0 | submitted | 2026-10-06 | 2 | 0 |  | $0.04 |  |  |
 | vc | Saint Vincent and the Grenadines | Americas / Caribbean | 0 | submitted | 2026-10-06 | 23 | 0 |  | $0.10 |  |  |
 | sx | Sint Maarten | Americas / Caribbean | 0 | submitted | 2026-10-06 | 12 | 0 |  | $0.24 |  |  |
-| tt | Trinidad and Tobago | Americas / Caribbean | 0 | submitted | 2026-10-06 | 69 | 0 |  | $0.25 |  |  |
+| tt | Trinidad and Tobago | Americas / Caribbean | 0 | submitted | 2026-10-06 | 70 | 0 |  | $0.25 |  |  |
 | tc | Turks and Caicos Islands | Americas / Caribbean | 0 | submitted | 2026-10-06 | 15 | 0 |  | $0.16 |  |  |
 | vi | U.S. Virgin Islands | Americas / Caribbean | 0 | submitted | 2026-10-06 | 4 | 0 |  | $0.06 |  |  |
 | bz | Belize | Americas / Central America | 0 | submitted | 2026-10-06 | 60 | 0 |  | $0.29 |  |  |
@@ -130,7 +130,7 @@ Progress: blocked 1, pending 9, reviewed 189, skipped 1, submitted 48
 | uz | Uzbekistan | Asia / Central Asia | 18 | reviewed | 2026-10-07 | 56 | 0 |  | $0.51 | 008 009 |  |
 | cn | China | Asia / Eastern Asia | 18 | reviewed | 2026-10-07 | 499 | 3 | P31 3 | $8.42 | 008 035 036 |  |
 | hk | Hong Kong SAR | Asia / Eastern Asia | 19 | reviewed | 2026-10-06 | 84 | 1 | P31 1 | $1.35 | 035 |  |
-| jp | Japan | Asia / Eastern Asia | 73 | reviewed | 2026-10-08 | 2807 | 137 | P1001 50 P17 50 P279 14 P31 23 | $15.86 | 049 59098 59101 | large place: 401 held or categorised items asked, 239 unheld skipped; strike Q136230953 P17 (Catalan delegation), Q5152815 P1001 (NPB commissioner), Q136213809 P279 Q83307 (generic) |
+| jp | Japan | Asia / Eastern Asia | 73 | reviewed | 2026-10-08 | 2807 | 137 | P1001 50 P17 50 P279 14 P31 23 | $15.86 | 049 59098 59101 59129 | large place: 401 held or categorised items asked, 239 unheld skipped; strike Q136230953 P17 (Catalan delegation), Q5152815 P1001 (NPB commissioner), Q136213809 P279 Q83307 (generic) |
 | mo | Macao SAR | Asia / Eastern Asia | 19 | reviewed | 2026-10-07 | 19 | 0 |  | $0.32 |  |  |
 | mn | Mongolia | Asia / Eastern Asia | 19 | reviewed | 2026-10-07 | 76 | 0 |  | $1.08 | 010 035 |  |
 | kp | North Korea | Asia / Eastern Asia | 19 | reviewed | 2026-10-07 | 104 | 0 |  | $1.22 | 010 |  |
@@ -175,7 +175,7 @@ Progress: blocked 1, pending 9, reviewed 189, skipped 1, submitted 48
 | ae | United Arab Emirates | Asia / Western Asia | 0 | submitted | 2026-10-06 | 68 | 0 |  | $0.24 |  |  |
 | ye | Yemen | Asia / Western Asia | 0 | submitted | 2026-10-07 | 152 | 1 | P31 1 | $2.03 | 036 |  |
 | at | Austria | Europe / Central Europe | 47 | reviewed | 2026-10-07 | 181 | 22 | P1001 8 P17 10 P279 3 P31 1 | $1.94 | 048 | predecessor lane was 27,380 Austria-Hungary items (villages, newspapers), now typed/subclass/held only: 162; 'federal' (from Bundesland) read the Federal President and Chancellor as provincial: level words the state's own offices use are dropped |
-| cz | Czechia | Europe / Central Europe | 44 | reviewed | 2026-10-08 | 179 | 26 | P1001 17 P17 8 P279 1 | $1.52 | 043 | 1,550 Czechoslovak legal acts dropped (written work); class lines follow the 31/38 'mayor of a place in X' P1001 convention; Q135399028 (SAC judge class) wants P279 national supreme court judge, as Cyprus |
+| cz | Czechia | Europe / Central Europe | 44 | reviewed | 2026-10-08 | 179 | 26 | P1001 17 P17 8 P279 1 | $1.52 | 043 59132 | 1,550 Czechoslovak legal acts dropped (written work); class lines follow the 31/38 'mayor of a place in X' P1001 convention; Q135399028 (SAC judge class) wants P279 national supreme court judge, as Cyprus |
 | de | Germany | Europe / Central Europe | 70 | pending |  |  |  |  |  |  |  |
 | hu | Hungary | Europe / Central Europe | 57 | reviewed | 2026-10-08 | 395 | 62 | P1001 9 P17 2 P279 50 P31 1 | $4.44 | 057 |  |
 | pl | Poland | Europe / Central Europe | 54 | reviewed | 2026-10-08 | 318 | 46 | P1001 16 P17 17 P279 7 P31 6 | $4.42 | 054 | permanent representatives to an organisation now load as the state's posts abroad (no P1001): 3 lines dropped; Polesie voivode P17 Poland where its Nowogródek sibling uses Second Polish Republic |
@@ -227,7 +227,7 @@ Progress: blocked 1, pending 9, reviewed 189, skipped 1, submitted 48
 | mc | Monaco | Europe / Western Europe | 31 | reviewed | 2026-10-07 | 24 | 0 |  | $0.27 | 026 |  |
 | nl | Netherlands | Europe / Western Europe | 72 | pending |  |  |  |  |  |  |  |
 | ch | Switzerland | Europe / Western Europe | 62 | submitted | 2026-10-08 | 592 | 25 | P1001 9 P17 9 P279 3 P31 4 | $2.08 | 59044 |  |
-| au | Australia | Oceania / Australia and New Zealand | 65 | blocked: crash in country |  |  |  |  |  |  |  |
+| au | Australia | Oceania / Australia and New Zealand | 65 | reviewed | 2026-10-11 | 1164 | 88 | P1001 9 P17 20 P279 44 P31 15 | $6.99 |  | UK of GB and Ireland is no predecessor (its offices loaded as Australia's); NSW subdivision query as FILTER; PM was subnational via Swedish 'premiärminister', level words now own-language only; strike Q5261060 P279 Q877955 (deputy premier), Q135293478 P17 + Q135293462/Q135293464 P31 (CV entries), Q19647325 P1001 (sports body) |
 | cx | Christmas Island | Oceania / Australia and New Zealand | 32 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | cc | Cocos (Keeling) Islands | Oceania / Australia and New Zealand | 37 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | nz | New Zealand | Oceania / Australia and New Zealand | 52 | reviewed | 2026-10-08 | 262 | 62 | P1001 20 P17 15 P279 27 | $2.58 | 052 |  |
