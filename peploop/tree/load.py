@@ -372,8 +372,11 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     # for 1969-1992 beside Slovakia, and is the state's office, not a predecessor's.
     elif c.qid not in scope and (scope & (set(c.predecessors) | c.unions) or countries.named_predecessor(c, labels)):
         kind = "predecessor"
-    elif local - c.home or countries.label_level(c, own_labels(c, entity)) or countries.is_mayor(c, labels) \
-            or names_city(c, own_labels(c, entity), cities or []):
+    # An office scoped to the state itself is national, whatever else it names:
+    # the Chancellor of Germany also names the Reich's forms in P1001, and a
+    # German compound hides a level word ("Städtebau" in a federal ministry).
+    elif c.qid not in p1001 and (local - c.home or countries.label_level(c, own_labels(c, entity))
+                                 or countries.is_mayor(c, labels) or names_city(c, own_labels(c, entity), cities or [])):
         kind = "subnational"
     else:
         kind = "national"

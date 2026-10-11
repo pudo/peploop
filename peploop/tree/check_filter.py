@@ -44,6 +44,9 @@ def main() -> None:
     king = ent({"en": "King of Ruritania"}, P31=["Q355567"], P279=["Q116"], P17=["Q900001"])
     expect(drop(king, {"Q355567", "Q4189293"}, types={"Q116", "Q48352"})[0] is None,
            "a throne typed noble title (→ rank) is kept when its class reaches head of state")
+    chancellor = ent({"en": "Chancellor of Ruritania", "xa": "Stadtkanzler"}, P31=["Q4164871"], P1001=["Q900001", "Q900077"])
+    expect(drop(chancellor, territorial={"Q900001", "Q900077"})[2] == "national",
+           "an office scoped to the state itself is national, whatever else its P1001 or label names")
     see = ent({"en": "Roman Catholic Archbishop of Strelsau"}, P31=["Q138024519"], P17=["Q900001"])
     expect(drop(see, {"Q138024519", "Q21114371", "Q3320743"}, types={"Q138024519", "Q21114371", "Q3320743"})[0]
            is None, "a bishop's see is kept though its class reaches title of honor (through 'style')")
