@@ -343,25 +343,22 @@ def ask(message: str, model: str = MODEL) -> tuple[Answer, dict[str, int]]:
     return response.parsed_output, llm.usage(response)
 
 
-#: Items with a gap above which only held offices and offices in a FATF category are
-#: asked about. Indonesia's 13,828 were mostly an imported civil-service org chart
-#: ("Kepala Seksi …", district chiefs), 11,460 of them held by no one.
-LARGE = 300
+def held_or_categorised(run: Run, todo: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep the items worth a model call: held by someone, or in a FATF category.
 
-
-def focus(run: Run, todo: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """In a large place, the items worth a model call: held by someone, or in a category."""
-    if len(todo) <= LARGE:
-        return todo
+    An office nobody holds matters least to OpenSanctions and is most often
+    org-chart clutter: Indonesia's 13,828 items with a gap were mostly an
+    imported civil-service chart, 11,460 of them held by no one.
+    """
     return [it for it in todo if it.get("holders") or run.ctx.detected(it)]
 
 
 def prepare(run: Run, log: Any = print) -> list[dict[str, Any]]:
     """Build every request for the country's gaps (no model calls)."""
     todo = [run.by_qid[q] for q in sorted(run.gaps) if q in run.by_qid]
-    kept = focus(run, todo)
+    kept = held_or_categorised(run, todo)
     if len(kept) < len(todo):
-        log(f"large place: asking about {len(kept)} held or categorised items, not {len(todo) - len(kept)} others")
+        log(f"asking about {len(kept)} held or categorised items, not {len(todo) - len(kept)} others")
     todo = kept
     held = holders([it["qid"] for it in todo])
     run.classes_for([it["qid"] for it in todo if "P31" in run.gaps.get(it["qid"], {})])  # classes get a type-of-position candidate

@@ -32,11 +32,6 @@ OECD = tuple("cr si lv is sk co cz lt ie at il cl lu ee nz tr pl fi mx hu kr gr 
 #: Codes rigour gives places with no government of their own to hold office in: the
 #: uninhabited, a military base, a region of an OECD state, and the non-places.
 NO_OFFICES = frozenset("aq bv cp dg hm ic ip tf um zz eu un".split())
-#: Items with a gap above which a place's repair waits for the user's call on
-#: cost; it then asks only about held or categorised items (`repair.focus`).
-LARGE = repair.LARGE
-#: `place`'s exit code for a place it stopped before the repair because it is large.
-LARGE_EXIT = 3
 COLUMNS = ("cc", "name", "region", "batch", "status", "run", "kept", "lines", "by property", "cost", "batches", "notes")
 #: Columns a person writes; `table` and `plan` keep them as found.
 HAND = ("status", "notes")
@@ -145,11 +140,6 @@ def members(batch: int) -> list[str]:
     return [cc for cc, r in read().items() if r["batch"] == str(batch)]
 
 
-def asked(cc: str) -> int:
-    """How many items the repair would ask the model about."""
-    return wd.conn().execute("SELECT count(DISTINCT qid) FROM ptree_gap WHERE country = %s", (cc,)).fetchone()[0]
-
-
 def run(batch: int, log: Any = print) -> list[str]:
     """Run every pending place of a batch in sequence; return the places run."""
     ccs = members(batch)
@@ -165,8 +155,7 @@ def run(batch: int, log: Any = print) -> list[str]:
         with open(out / f"place-{cc}.log", "w") as fh:
             code = subprocess.call([sys.executable, "-m", "peploop.cli", "tree", "place", cc], stdout=fh, stderr=subprocess.STDOUT)
         rows = read()  # the ledger may have been edited by hand while this place ran
-        rows[cc]["status"] = (f"blocked: large ({asked(cc)} items to ask)" if code == LARGE_EXIT else
-                              f"blocked: crash (place-{cc}.log)" if code else "run")
+        rows[cc]["status"] = f"blocked: crash (place-{cc}.log)" if code else "run"
         log(f"{cc}: {rows[cc]['status']}")
         write(fill([rows[p["cc"]] for p in universe() if p["cc"] in rows]))
         done.append(cc)

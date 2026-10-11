@@ -89,12 +89,11 @@ def main() -> None:
     expect(signals.channels("P31", "Q294414", facts(nat)) == ["state_office"], "a state office is a public office")
     from types import SimpleNamespace
     from peploop.tree import repair
-    many = [{"qid": f"Q{i}", "holders": 0} for i in range(repair.LARGE + 1)]
-    many[0]["holders"], many[1]["category"] = 2, True
+    few = [{"qid": f"Q{i}", "holders": 0} for i in range(3)]
+    few[0]["holders"], few[1]["category"] = 2, True
     fake = SimpleNamespace(ctx=SimpleNamespace(detected=lambda it: {"minister"} if it.get("category") else set()))
-    expect([it["qid"] for it in repair.focus(fake, many)] == ["Q0", "Q1"],
-           "a large place asks only about held or categorised items")
-    expect(len(repair.focus(fake, many[:repair.LARGE])) == repair.LARGE, "a place under the gate asks about all")
+    expect([it["qid"] for it in repair.held_or_categorised(fake, few)] == ["Q0", "Q1"],
+           "only held or categorised items are asked about, in a place of any size")
     unheld = item("Q44", "national", ent({"en": "Minister of Culture of the Republic of Ruritania"}))
     cls = slot(unheld, "P31", ["Q294414", "Q4164871"], 0, quote="Minister of Culture of the Republic of Ruritania")
     cls.facts.classes = {unheld["qid"]}

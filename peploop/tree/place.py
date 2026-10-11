@@ -9,7 +9,7 @@ file is what the place would add now; it is never sent itself. Only
 import sys
 
 from peploop.tree import country as countries
-from peploop.tree import gaps, load, qs, repair, report, rules, sweep, wd
+from peploop.tree import gaps, load, qs, repair, report, rules, wd
 
 
 def log(msg: str) -> None:
@@ -58,12 +58,8 @@ def show_country(cc: str) -> None:
     print(f"  union-lane name regex: {countries.sparql_name_regex(c) or '(none)'}")
 
 
-def run(cc: str, limit: int | None, no_ask: bool, large_ok: bool) -> None:
-    """Derive the place's config, load it, and repair it -- unless it is large and nobody said so."""
+def run(cc: str, limit: int | None, no_ask: bool) -> None:
+    """Derive the place's config, load it, and repair it."""
     show_country(cc)
     load_place(cc)
-    asked = sweep.asked(cc)
-    if asked > sweep.LARGE and not (large_ok or no_ask or limit):
-        log(f"{cc}: {asked} items to ask, above {sweep.LARGE}; pass --large to repair it anyway")
-        sys.exit(sweep.LARGE_EXIT)
     repair_place(cc, limit, no_ask)

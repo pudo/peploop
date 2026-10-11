@@ -54,9 +54,9 @@ log.
    `data/peptree/<cc>/<cc>-<date>.qs` (article-derived values carry `S854` +
    `S813`), with the report beside it.
 
-A place with more than `repair.LARGE` (300) items to ask stops before the
-repair as `blocked: large`; it is run on the user's call with
-`tree place <cc> --large`, asking only about held or categorised items. Changing
+The repair asks only about items someone holds or that a FATF category
+names (`repair.held_or_categorised`): an office nobody holds matters least to
+OpenSanctions and is most often org-chart clutter. Changing
 `prompts/repair.md` re-keys the cache: re-decide earlier places with
 `tree place <cc> --no-ask`, which reads the ledger and asks nothing.
 

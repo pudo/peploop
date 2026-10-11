@@ -999,10 +999,9 @@ def tree() -> None:
 @click.argument("cc")
 @click.option("--no-ask", is_flag=True, help="Re-decide from the ledger; no model calls.")
 @click.option("--limit", type=int, default=None, help="Ask about the first N items only.")
-@click.option("--large", is_flag=True, help="Repair a large place too.")
-def tree_place_(cc: str, no_ask: bool, limit: int | None, large: bool) -> None:
+def tree_place_(cc: str, no_ask: bool, limit: int | None) -> None:
     """Derive a place's country, load its offices, decide their gaps, and write its run file and report."""
-    tree_place.run(cc, limit, no_ask, large)
+    tree_place.run(cc, limit, no_ask)
 
 
 @tree.command("sweep")

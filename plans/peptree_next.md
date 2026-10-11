@@ -15,9 +15,8 @@ What was tried: `docs/history.md`.
 Pending: ca, us, de, se, gb, it, es, fr, nl. Blocked: au (`crash in country`:
 query-service 504s on the `P131` subdivision query — retry before treating it
 as a bug). These are the largest position sets (Spain 13,198 items, mostly
-per-municipality mayoralties, plus bishoprics and nobility titles), so most
-will stop at `repair.LARGE` and need the user's call on cost before
-`place <cc> --large`. Measure each first. Overseas territories follow the
+per-municipality mayoralties, plus bishoprics and nobility titles); the repair
+asks only about held or categorised offices. Overseas territories follow the
 territory rule (`P1001` only, no `P17`). The Netherlands has Denmark's
 problem: rigour's code names the Kingdom; check which state its offices put in
 `P17` before running.
