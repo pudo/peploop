@@ -44,6 +44,12 @@ def main() -> None:
     king = ent({"en": "King of Ruritania"}, P31=["Q355567"], P279=["Q116"], P17=["Q900001"])
     expect(drop(king, {"Q355567", "Q4189293"}, types={"Q116", "Q48352"})[0] is None,
            "a throne typed noble title (→ rank) is kept when its class reaches head of state")
+    see = ent({"en": "Roman Catholic Archbishop of Strelsau"}, P31=["Q138024519"], P17=["Q900001"])
+    expect(drop(see, {"Q138024519", "Q21114371", "Q3320743"}, types={"Q138024519", "Q21114371", "Q3320743"})[0]
+           is None, "a bishop's see is kept though its class reaches title of honor (through 'style')")
+    opposition = ent({"en": "Leader of the Opposition"}, P31=["Q4164871", "Q1193702"], P17=["Q900001"])
+    expect(drop(opposition, {"Q1193702", "Q1190554"})[0] is None,
+           "an item declared a position is no event, whatever else its P31 reaches")
     expect(drop(ent({"en": "Baron of Ruritania"}, P31=["Q355567"], P17=["Q900001"]), {"Q355567", "Q4189293"})[0]
            == "non_office", "a noble title that heads nothing is still a rank")
     potus = ent({"en": "President of the Republic of Ruritania"}, P31=["Q248577"], P17=["Q900001"])

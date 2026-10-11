@@ -61,6 +61,10 @@ NOT_OFFICE = {
 #: Minister of Seychelles; what an item declares directly still drops it.
 HEAD_OF_STATE = "Q48352"
 PUBLIC_OFFICE = "Q294414"
+#: A bishop's see is a seat too: "Christian religious position" is a subclass of
+#: "style" (→ honorific → title of honor), which dropped every Catholic see
+#: typed "Roman Catholic episcopal title" -- 213 in Italy, 110 in Mexico.
+EPISCOPAL = "Q21114371"  # episcopal title
 #: Declared directly (`p:P31/ps:P31`, any rank): the item is an occupation,
 #: not a seat. Not through the closure: "member of parliament" is itself typed
 #: an occupation, so every MP seat reaches it.
@@ -303,7 +307,7 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     hit = p31_any & OCCUPATION
     if hit:
         return "occupation", "P31 " + ",".join(sorted(hit)), ""
-    seat = HEAD_OF_STATE in types or PUBLIC_OFFICE in p31_any
+    seat = HEAD_OF_STATE in types or PUBLIC_OFFICE in p31_any or EPISCOPAL in types
     for reason, roots in NOT_A_SEAT:
         hit = p31_types & roots
         if hit and not seat:
@@ -311,8 +315,10 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     hit = p31_types & {"Q618779", "Q3320743", "Q4189293", "Q13406463"}
     if hit and not seat:
         return "non_office", "P31 reaches " + ",".join(sorted(hit)), ""
+    # Declared a position, it is no event whatever else it declares: Ontario's
+    # Leader of the Opposition is also typed "parliamentary opposition" (→ occurrence).
     hit = (p31_types if event_types is None else event_types) & EVENT_LIKE
-    if hit and not seat:
+    if hit and not seat and not p31_any & POSITION_METAS:
         return "non_office", "P31 reaches " + ",".join(sorted(hit)) + " (not through occupation)", ""
     # A label naming the state or a predecessor is a country-scoped office,
     # whatever its holders' spread or a list says.
