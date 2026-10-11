@@ -144,6 +144,10 @@ def learned() -> None:
     expect(country.level_types(federal, "Federal President of Ruritania") == set()
            and country.level_types(federal, "Governor of the Zenda Region") == {"Q900010"},
            "a word three of the state's own offices use is not a level word ('federal state')")
+    premiers = [item(f"Q4{i}", "subnational", ent({"sv": f"{name}s premiärminister"}, P1001=[r]))
+                for i, (name, r) in enumerate((("Karelia", "R1"), ("Lindau", "R2"), ("Zenda", "R3")))]
+    expect(country.learn_level_words(replace(XX), premiers, list(PLACES.places.values())) == {},
+           "another language's labels teach nothing: Swedish puts the place first, the office's noun after")
     two = country.learn_level_words(replace(XX), offices[:2], list(PLACES.places.values()))
     expect(two == {}, "two offices teach nothing")
     expect(country.stems("Ruritanian PR") == {"ruritani", "pr"} and country.stems("pr of x") == set(),

@@ -836,7 +836,10 @@ def learn_level_words(c: Country, items: list[dict[str, Any]], places: list[dict
     *District* Executive Committee") is counted against the place's types; a
     word that follows at least three offices' place names, four in five of
     them of one type, is that type's word. Never an "administrative" word or
-    the state's own name. Sets `c.learned_words`.
+    the state's own name. Only the country's languages are read: in Swedish
+    the place comes first ("Victorias premiärminister"), so the word after it
+    is the office's own noun, and the Prime Minister read as a state office.
+    Sets `c.learned_words`.
     """
     prune_type_words(c, places)
     by_qid = {p["qid"]: p for p in places}
@@ -852,8 +855,8 @@ def learn_level_words(c: Country, items: list[dict[str, Any]], places: list[dict
         names = {w for need in place["words"] for w in need
                  if not any(word_match(w, k, ending=False) for k in kinds)}
         found = set()
-        for o in it["entity"].get("labels", {}).values():
-            toks = tokens(o["value"])
+        for o in own_language_labels(c, it["entity"]):
+            toks = tokens(o)
             at = [i for i, t in enumerate(toks) if any(word_match(t, n) for n in names)]
             # the level word itself is whole: what follows the place's name verbatim
             if at and at[-1] + 1 < len(toks):
@@ -871,7 +874,7 @@ def learn_level_words(c: Country, items: list[dict[str, Any]], places: list[dict
     # A word the state's own offices use names the state's level, not a lower one:
     # "federal" comes with "federal state of Austria", and the Federal President
     # and Chancellor read as provincial offices until it goes.
-    by_office = [[tokens(o["value"]) for o in it["entity"].get("labels", {}).values()]
+    by_office = [[tokens(o) for o in own_language_labels(c, it["entity"])]
                  for it in items if _qids(it["entity"], "P1001") == [c.qid]]
 
     def national_word(w: str) -> bool:
@@ -881,6 +884,11 @@ def learn_level_words(c: Country, items: list[dict[str, Any]], places: list[dict
     c.learned_words = {t: [w for w in ws if not national_word(w)] for t, ws in c.learned_words.items()}
     c.learned_words = {t: ws for t, ws in c.learned_words.items() if ws}
     return c.learned_words
+
+
+def own_language_labels(c: Country, entity: dict[str, Any]) -> list[str]:
+    """The item's labels in the country's languages (and English, `mul`)."""
+    return [o["value"] for lg, o in entity.get("labels", {}).items() if lg in ("en", *c.langs)]
 
 
 def prune_type_words(c: Country, places: list[dict[str, Any]]) -> None:
