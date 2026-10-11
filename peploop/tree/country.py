@@ -38,9 +38,14 @@ TYPE_MIN = 2
 #: City and town: the words every country's city offices use, whatever its own city classes.
 GENERIC_PLACE_TYPES = ("Q515", "Q3957")
 #: A state whose offices name the constituent country, not the realm rigour gives:
-#: Danish positions put Q35 Denmark in P17 578 times and the Kingdom of Denmark 45.
+#: Danish positions put Q35 Denmark in P17 578 times and the Kingdom of Denmark 45;
+#: Dutch ones Q55 the Netherlands 5,382 times and the Kingdom 95.
 #: The realm stays a home state (Greenland's offices are its), never a predecessor.
-REALM = {"dk": ("Q35", "Q756617")}
+REALM = {"dk": ("Q35", "Q756617"), "nl": ("Q55", "Q29999")}
+#: A predecessor the country's own item names and whose offices are none of its own:
+#: Australia "follows" the United Kingdom of Great Britain and Ireland (P155, 1901),
+#: but federated from six colonies: the UK's own offices loaded as Australia's.
+NOT_PREDECESSOR = {"au": {"Q174193"}}
 LIST_CLASS = "Q13406463"  # Wikimedia list article: "list of districts of X" is an alias, not a word
 #: Concepts whose names, in the country's languages, are the words a label is read for.
 CONCEPTS = {
@@ -409,7 +414,10 @@ def derive_predecessors(cc: str, qid: str) -> tuple[dict[str, str], dict[str, st
     def states(ents: dict[str, dict[str, Any]]) -> dict[str, set[str]]:
         return typegraph.close({q: _qids(e, "P31") for q, e in ents.items()})
 
-    return walk_chain(qid, found, parents, entities, _inverse, states)
+    preds, provenance = walk_chain(qid, found, parents, entities, _inverse, states)
+    drop = NOT_PREDECESSOR.get(cc, set())
+    return ({q: v for q, v in preds.items() if q not in drop},
+            {q: v for q, v in provenance.items() if q not in drop})
 
 
 def walk_chain(qid: str, seeds: dict[str, str], parents: dict[str, str],
@@ -579,9 +587,13 @@ def _subdivisions(qid: str) -> dict[str, Any]:
         up = typegraph.of_classes(types)
         wanted = [t for t in types if not up.get(t, set()) & {FORMER, ELECTORAL} and (
             CITY in up.get(t, set()) or (ADMIN_ENTITY in up.get(t, set()) and SETTLEMENT not in up.get(t, set())))]
-        for x in chunk:  # one unit at a time: a whole chunk times out mid-answer
-            cand += wd.bisect(lambda ts, x=x: rows(f"""SELECT DISTINCT ?y ?t WHERE {{ VALUES ?t {{ {wd.values_block(ts)} }}
-              ?y wdt:P131 wd:{x} ; wdt:P31 ?t . FILTER NOT EXISTS {{ ?y wdt:P576 [] }} }}"""), wanted)
+        # One unit at a time: a whole chunk times out mid-answer. The types are a
+        # FILTER, not VALUES: VALUES makes the planner start from the types
+        # (city, town), and New South Wales' 46,000 P131 children 504 that way.
+        for x in chunk:
+            cand += wd.bisect(lambda ts, x=x: rows(f"""SELECT DISTINCT ?y ?t WHERE {{
+              ?y wdt:P131 wd:{x} ; wdt:P31 ?t . FILTER(?t IN ({", ".join(f"wd:{t}" for t in ts)}))
+              FILTER NOT EXISTS {{ ?y wdt:P576 [] }} }}"""), wanted)
     l2 = sorted({r["y"] for r in cand} - set(l1))
     # The third level is not read in full (a country has thousands of
     # villages); only its types, for the words that name a local office.
