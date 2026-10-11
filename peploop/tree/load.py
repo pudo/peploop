@@ -181,16 +181,8 @@ HOLDER_CITIZENSHIP = """SELECT DISTINCT ?pos ?h ?c WHERE { VALUES ?pos { %s }
 
 
 def _grouped(query: str, qids: list[str], size: int = 60) -> list[dict[str, str]]:
-    """Run a VALUES-pinned query, halving a chunk the service cannot answer."""
-    out = []
-    for chunk in wd.values_chunks(qids, size):
-        try:
-            out += wd.sparql(query % wd.values_block(chunk))
-        except Exception:
-            if len(chunk) == 1:
-                raise
-            out += _grouped(query, chunk, max(1, len(chunk) // 2))
-    return out
+    """Run a VALUES-pinned query in chunks of `size`, halving a chunk the service cannot answer."""
+    return wd.bisect(lambda chunk: wd.sparql(query % wd.values_block(chunk)), qids, size)
 
 
 def holders(qids: list[str]) -> tuple[dict[str, int], dict[str, dict[str, int]], dict[str, list[dict[str, Any]]]]:

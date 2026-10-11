@@ -152,6 +152,7 @@ def learned() -> None:
     chain()
     spans()
     discovery()
+    bisection()
 
 
 def matching() -> None:
@@ -263,6 +264,33 @@ def discovery() -> None:
     finally:
         wd.sparql = real
     expect(set(found) == {"Q1"}, "discover keeps only Q-ids")
+
+
+def bisection() -> None:
+    """A chunk the service cannot answer is halved until it can; one QID that still fails raises."""
+    import requests
+
+    from peploop import wikidata
+
+    asked: list[int] = []
+
+    def ask(chunk: list[str]) -> list[dict[str, str]]:
+        asked.append(len(chunk))
+        if len(chunk) > 3:
+            raise RuntimeError("SPARQL non-JSON response")
+        if "Q13" in chunk:
+            raise requests.HTTPError("504")
+        return [{"pos": q} for q in chunk]
+
+    qids = [f"Q{i}" for i in range(20)]
+    rows = wikidata.bisect(ask, [q for q in qids if q != "Q13"], size=10)
+    expect(sorted(r["pos"] for r in rows) == sorted(q for q in qids if q != "Q13") and max(asked) == 10,
+           "every QID is answered exactly once, from chunks halved below what the service refused")
+    try:
+        wikidata.bisect(ask, ["Q12", "Q13"])
+        expect(False, "a single QID that keeps failing raises")
+    except requests.HTTPError:
+        expect(True, "a single QID that keeps failing raises")
 
 
 if __name__ == "__main__":

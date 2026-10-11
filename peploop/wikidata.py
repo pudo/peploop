@@ -9,9 +9,11 @@ own, and `sparql` handles that one.
 """
 
 import json
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from typing import Any
 import time
+
+import requests
 
 from peploop import db, http
 
@@ -49,6 +51,33 @@ def values_chunks(qids: Iterable[str], size: int = VALUES_CHUNK) -> Iterable[lis
 def values_block(qids: Sequence[str]) -> str:
     """Render QIDs as the body of a `VALUES` clause."""
     return " ".join(f"wd:{qid}" for qid in qids)
+
+
+def bisect(
+    ask: Callable[[list[str]], list[dict[str, str]]],
+    qids: Sequence[str],
+    size: int = VALUES_CHUNK,
+) -> list[dict[str, str]]:
+    """Run a `VALUES`-pinned query over many QIDs, halving any chunk the service cannot answer.
+
+    Reach for this whenever a query is asked once per chunk of items. A chunk
+    that times out, comes back cut off or is refused will fail the same way
+    when asked again, so it is split rather than retried; only a single QID
+    that still fails is raised. `ask` renders and runs the query for one chunk.
+    """
+    def one(chunk: list[str]) -> list[dict[str, str]]:
+        try:
+            return ask(chunk)
+        except (RuntimeError, requests.RequestException):
+            if len(chunk) == 1:
+                raise
+            half = len(chunk) // 2
+            return one(chunk[:half]) + one(chunk[half:])
+
+    rows: list[dict[str, str]] = []
+    for chunk in values_chunks(qids, size):
+        rows += one(chunk)
+    return rows
 
 
 def sparql(query: str, max_age: int = 0) -> list[dict[str, str]]:

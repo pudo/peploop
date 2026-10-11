@@ -558,19 +558,6 @@ def state_spans(qid: str, preds: dict[str, str], realm: list[str] = ()) -> dict[
     return spans
 
 
-def _bisect(fn: Any, qids: list[str]) -> list[dict[str, str]]:
-    """Run a VALUES-pinned query, halving the list when the service cannot answer it."""
-    if not qids:
-        return []
-    try:
-        return fn(qids)
-    except RuntimeError:
-        if len(qids) == 1:
-            raise
-        half = len(qids) // 2
-        return _bisect(fn, qids[:half]) + _bisect(fn, qids[half:])
-
-
 def _subdivisions(qid: str) -> dict[str, Any]:
     """First-level units, second-level units and the third level's types."""
     def rows(query: str) -> list[dict[str, str]]:
@@ -593,7 +580,7 @@ def _subdivisions(qid: str) -> dict[str, Any]:
         wanted = [t for t in types if not up.get(t, set()) & {FORMER, ELECTORAL} and (
             CITY in up.get(t, set()) or (ADMIN_ENTITY in up.get(t, set()) and SETTLEMENT not in up.get(t, set())))]
         for x in chunk:  # one unit at a time: a whole chunk times out mid-answer
-            cand += _bisect(lambda ts, x=x: rows(f"""SELECT DISTINCT ?y ?t WHERE {{ VALUES ?t {{ {wd.values_block(ts)} }}
+            cand += wd.bisect(lambda ts, x=x: rows(f"""SELECT DISTINCT ?y ?t WHERE {{ VALUES ?t {{ {wd.values_block(ts)} }}
               ?y wdt:P131 wd:{x} ; wdt:P31 ?t . FILTER NOT EXISTS {{ ?y wdt:P576 [] }} }}"""), wanted)
     l2 = sorted({r["y"] for r in cand} - set(l1))
     # The third level is not read in full (a country has thousands of

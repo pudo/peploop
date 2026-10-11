@@ -879,15 +879,19 @@ def grouped_count(query: str, qids: Sequence[str], **params: str) -> dict[str, i
     """Run one grouped count over a list of items, 120 QIDs per request.
 
     The chunking is not an optimisation: about 150 `VALUES` entries overflow
-    the query service's GET URI and come back as HTTP 414.
+    the query service's GET URI and come back as HTTP 414. A chunk the service
+    cannot answer is halved (`wikidata.bisect`); each item falls in exactly one
+    chunk, so the counts add up the same.
     """
-    counts: dict[str, int] = {}
-    for chunk in wikidata.values_chunks(qids):
-        rows = wikidata.sparql(
+    rows = wikidata.bisect(
+        lambda chunk: wikidata.sparql(
             query % {"values": wikidata.values_block(chunk), **params}, max_age=0
-        )
-        for row in rows:
-            counts[row["pos"]] = counts.get(row["pos"], 0) + int(row["n"])
+        ),
+        qids,
+    )
+    counts: dict[str, int] = {}
+    for row in rows:
+        counts[row["pos"]] = counts.get(row["pos"], 0) + int(row["n"])
     return counts
 
 
