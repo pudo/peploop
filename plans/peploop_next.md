@@ -56,12 +56,10 @@ not the whole ledger (a full re-ask is about $140 over eight countries).
 Do these when the files are open anyway; none changes behaviour.
 
 - **The rest of the LLM-pass kernel.** `llm.py` holds the client, the prompt
-  hash and the usage counts; each of the seven passes (six here, one in
+  hash, the usage counts and the prices; each of the seven passes (six here, one in
   `tree/repair.py`) still carries its own request, parse and record, `Strict`
   is defined five times and `USAGE_KEYS` twice. An `llm_usage` view over the
-  ledgers would let `report` show every pass's cost. The two price tables
-  (`mint_write.PRICES`, `tree/repair.PRICES`) go into `llm.py` with it;
-  `tree/repair.cost` prices any model it does not know as Opus.
+  ledgers would let `report` show every pass's cost.
 - **A check fixture and runner.** Five copies of the shadow-table helper, and
   peptree's eight checks carry their own `expect` beside peploop's seventeen;
   one `checks.py` fixture and a `check` command that runs every `check_*` of
@@ -69,13 +67,6 @@ Do these when the files are open anyway; none changes behaviour.
 - **Pin every prompt's request hash.** Ledger keys hash the rendered request;
   only reconcile's is pinned, so a refactor that changes rendering by a byte
   silently re-asks a pass.
-- **One bisecting `VALUES` query.** `tree/load._grouped` and
-  `tree/country._bisect` each halve a chunk the query service cannot answer;
-  `positions.grouped_count` chunks the same way but never halves, so one
-  timeout ends a load. A `wikidata.grouped(query, qids)` that bisects serves
-  all three. The claim readers overlap the same way: `tree/load.values`/`has`
-  beside `wikidata.claim_qids`, differing only in how a deprecated claim
-  counts.
 
 Not to do: one ledger table for every pass, keying by message hash (re-keys
 about $390 of answers), a single `run` driver.
