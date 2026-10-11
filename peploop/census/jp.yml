@@ -1,0 +1,82 @@
+# Offices Japan has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-08 live measurement (wbsearchentities in en, the
+# hits' descriptions read); nothing below is from memory. No `source` is
+# given: none was checked live.
+#
+# Not here because an item exists and the load reached it: the Emperor
+# `Q208233`, the Prime Minister `Q274948`, every portfolio and the special
+# missions, the Chief Cabinet Secretary `Q1078482` and his deputies
+# `Q11394656`, the Director-General of the Cabinet Legislation Bureau
+# `Q11394698`, both chambers' members (`Q17506823`, `Q14552828`) and presiding
+# officers, the Chief Justice `Q6566884` and the justices `Q11515703`, the
+# Prosecutor-General `Q11091796`, the Governor of the Bank of Japan
+# `Q48269093`, the four chiefs of staff (`Q11606806`, `Q11658496`,
+# `Q11558683`, `Q11613864`), the Commissioner General of the National Police
+# Agency `Q11632350`, the Commissioner of the Financial Services Agency
+# `Q65288996`, the Grand Steward of the Imperial Household Agency
+# `Q134092110`, every prefectural governor (`Q51198747` and siblings) and
+# assembly (`Q1045259xx`), the vice-governors (`Q1046047xx`), 1,756
+# mayoralties, and the leaders of the LDP, CDP, Komeito and Ishin.
+#
+# Absent and not listed, for want of an archetype: the Bank of Japan's deputy
+# governors, the senior and parliamentary vice-ministers of each ministry
+# beyond the items that exist (the deputy_minister archetype is national and
+# unbodied), and the Central Election Management Council.
+
+# --- Oversight ---
+- key: jftc_chairman
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  body: Q842043            # Fair Trade Commission, Japanese government commission
+  labels:
+    en: Chairman of the Japan Fair Trade Commission
+    ja: 公正取引委員会委員長
+
+- key: board_of_audit_president
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  body: Q615225            # Board of Audit, audits government expenditure of Japan
+  labels:
+    en: President of the Board of Audit of Japan
+    ja: 会計検査院長
+
+# --- State enterprises and public finance ---
+- key: nhk_president
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q212128            # NHK, Japanese broadcasting company
+  labels:
+    en: President of NHK
+    ja: 日本放送協会会長
+
+- key: japan_post_president
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q1372049           # Japan Post Holdings
+  labels:
+    en: President of Japan Post Holdings
+    ja: 日本郵政社長
+
+- key: gpif_president
+  class: economic.sovereign_wealth
+  archetype: soe_head
+  body: Q11483889          # Government Pension Investment Fund
+  labels:
+    en: President of the Government Pension Investment Fund
+    ja: 年金積立金管理運用独立行政法人理事長
+
+- key: jbic_governor
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q1200091           # Japan Bank for International Cooperation
+  labels:
+    en: Governor of the Japan Bank for International Cooperation
+    ja: 国際協力銀行総裁
+
+- key: dbj_president
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q5266677           # Development Bank of Japan
+  labels:
+    en: President of the Development Bank of Japan
+    ja: 日本政策投資銀行社長

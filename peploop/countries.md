@@ -445,3 +445,50 @@ on 159 items** -- 176 `P39` (65 open), 50 `P27`, 19 `P569`, 2 `P570` -- in
 five batches; 18 rows closed at the pre-flight as `apply:termed`. Two drains
 ran side by side and wrote 24 statements twice on 13 items, which is why
 there is one writer lock per country.
+
+**Malaysia** (`seeds/my.yml`, `census/my.yml`, 2026-10-06 to 10-08). The
+first country run straight after a peptree sweep of it (chunk 011: 108 lines
+on 93 position items, all landed). Seeded from en, plus ms for the political
+and parliamentary secretaries and the agency chairmen en has no category for;
+the Dewan Rakyat by term from 2008, every other tier whole. 39 categories,
+2,579 people, 463 set aside by the scope gate and 235 not human, 1,881
+extracted. 12,707 mentions reconciled: 7,119 `same-office`, 5,053 `none`, 274
+`generic-class`, 107 `renamed`, 103 `wrong-office`. **Mint** ($25.73): 28
+created, `Q141670879`–`Q141671019` -- thirteen party presidencies and
+secretaries-general, the deputy ministers of Digital and of Energy Transition,
+and nine agency and SOE chairs (EPF, FAMA, RISDA, Bernama, three commodity
+boards) -- and 106 found. The first `mint --write` sat out ten minutes of
+query-service lag on its first item and created nothing; the re-run made all
+28. Not minted: the state executive councils of nine states, 418 groups
+skipped as `archetype/none` because no archetype names a subnational cabinet
+seat. **Policy**: 698 `P39` skipped as `generic_needs_scope`, 599 of them the
+two federal chambers (`Q21290861`, `Q21328606`), whose items are made specific
+by a constituency or state qualifier that `propose` does not write -- so the
+sitting Dewan Rakyat is not in this run. The verifier answered 2,051 times,
+1,973 `supported`; `verify` died twice on a truncated query-service answer and
+resumed from its ledger. **Written: 1,909 statements on 1,245 items** -- 1,284
+`P39` (280 open), 445 `P569`, 146 `P27`, 20 `P21`, 14 `P570`. 1,499 went
+through QuickStatements (`export`, chunks `peploop my qs-001`–`033`), the first
+country to; 410 through the API in batches `a53c072841` (the first three
+people), `aed5ba0d5d` (the drain, 24 people refused `failed-save` during a lag
+episode) and `4e87482554` (their retry). Chunk `qs-014`'s 58 rows landed
+after close, pasted by hand. **peptree's share**: of the 93 items it repaired, 80 were
+loadable before, and peploop wrote 245 `P39` onto 38 of them; the 13 it
+brought into scope carry 4 written `P39`, all also reachable through the
+citizen lane. The repair is felt in the attributes -- the kinds the shortlist
+and the family rules read, the jurisdiction -- not in the set of offices.
+**Audit** (2026-10-09, 76 rows sampled, every date found in its article): 27
+written rows wrong, 24 of them among the 280 open `P39` -- so roughly 9% of open
+tenures and nothing found among closed spells, dates or sex. Seventeen were
+Malacca assembly seats still open after the 23 September 2026 dissolution,
+because the members' articles still said "Incumbent"; two sat open on the
+ended 16th Sabah assembly; four open tenures were read only from id, th, ta or
+zh and were long over or the wrong office ("Luar Negeri" for "Luar Bandar");
+the caretaker Chief Minister of Malacca was given an end ("Sementara … kini"
+is still in office); one malformed infobox field became an incumbency, one
+civil-service post a deputy ministership, and one ar infobox gave `P27` the
+birthplace. Corrected by hand in batch `38d1f550f6`: 21 closed with a `P582`
+and an en reference for the end, one end removed, five statements removed and
+their rows skipped under `audit:my-review`. The rules that would have stopped
+them -- an open seat after a later dissolution, an open tenure with no en/ms
+source, an open tenure on a term item with a successor -- are not written yet.

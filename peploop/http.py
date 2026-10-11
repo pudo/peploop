@@ -14,6 +14,7 @@ from functools import partial
 from typing import Any
 from urllib.parse import urlsplit
 
+import requests
 from requests import Response, Session
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
@@ -30,8 +31,6 @@ RETRY_STATUSES = [429, 500, 502, 503, 504]
 # Requests per second per host. Reads are cheap; the point is that a
 # many-threaded run does not get the IP throttled.
 HOST_RATES = {
-    "www.wikidata.org": 4.0,
-    "wikipedia.org": 8.0,
     "petscan.wmcloud.org": 0.5,
     # The query service is a shared analytics cluster, not an API: one at a
     # time. Named in full because the suffix fallback below would not find it
@@ -39,6 +38,17 @@ HOST_RATES = {
     "query.wikidata.org": 1.0,
 }
 DEFAULT_RATE = 2.0
+#: Wikimedia's API limit is per IP across every wiki, not per host: a fetch
+#: reading five languages at 8/s each plus Wikidata at 4/s was answered 429 on
+#: every request, and probing it sustained 4/s in total and tripped at 8/s.
+#: So the wikis and Wikidata's API share one pacer; the query service keeps
+#: its own, being a different cluster with its own limit.
+WIKIMEDIA_RATE = 4.0
+WIKIMEDIA_SUFFIXES = ("wikipedia.org", "www.wikidata.org")
+
+#: How often, and how patiently, a GET whose body was cut off is sent again.
+BODY_RETRIES = 3
+BODY_BACKOFF = 10.0
 
 _local = threading.local()
 _buckets: dict[str, "_Pacer"] = {}
@@ -63,16 +73,22 @@ class _Pacer:
             time.sleep(wait)
 
 
+def _bucket(host: str) -> tuple[str, float]:
+    """Name the pacer a host draws from, and that pacer's rate."""
+    if host in HOST_RATES:
+        return host, HOST_RATES[host]
+    if host.endswith(WIKIMEDIA_SUFFIXES):
+        return "wikimedia", WIKIMEDIA_RATE
+    suffix = ".".join(host.rsplit(".", 2)[-2:])
+    return host, HOST_RATES.get(suffix, DEFAULT_RATE)
+
+
 def _pacer(url: str) -> _Pacer:
-    host = urlsplit(url).hostname or ""
-    rate = HOST_RATES.get(host)
-    if rate is None:
-        suffix = ".".join(host.rsplit(".", 2)[-2:])
-        rate = HOST_RATES.get(suffix, DEFAULT_RATE)
+    key, rate = _bucket(urlsplit(url).hostname or "")
     with _buckets_lock:
-        if host not in _buckets:
-            _buckets[host] = _Pacer(rate)
-        return _buckets[host]
+        if key not in _buckets:
+            _buckets[key] = _Pacer(rate)
+        return _buckets[key]
 
 
 def session() -> Session:
@@ -107,9 +123,19 @@ def get(
     call does, so the endpoint that needs it asks for it rather than the
     whole session waiting that long for a 404.
     """
-    _pacer(url).take()
     kwargs: dict[str, Any] = {} if timeout is None else {"timeout": timeout}
-    res = session().get(url, params=params, **kwargs)
+    for attempt in range(BODY_RETRIES + 1):
+        _pacer(url).take()
+        try:
+            res = session().get(url, params=params, **kwargs)
+            break
+        # A body the server stops sending part way arrives after the status
+        # line, where the adapter's retry policy no longer looks; the query
+        # service does this often enough to kill an hours-long verify pass.
+        except requests.exceptions.ChunkedEncodingError:
+            if attempt == BODY_RETRIES:
+                raise
+            time.sleep(BODY_BACKOFF * (attempt + 1))
     res.raise_for_status()
     return res
 

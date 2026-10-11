@@ -82,6 +82,14 @@ def main() -> int:
     wikipedia.seed_category("Root", "xx", 0)
     check("and PetScan is not asked again in the same process", PETSCAN_CALLS == ["Root"])
 
+    # Wikimedia limits an IP across all its wikis, so a fetch reading several
+    # languages paces them together, while the query service keeps its own.
+    wiki = {http._pacer(f"https://{h}/w/api.php") for h in
+            ("fr.wikipedia.org", "en.wikipedia.org", "www.wikidata.org")}
+    check("every wiki and Wikidata's API draw from one pacer", len(wiki) == 1)
+    check("the query service does not",
+          http._pacer("https://query.wikidata.org/sparql") not in wiki)
+
     print(f"{failures} failures")
     return 1 if failures else 0
 

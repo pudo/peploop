@@ -1,0 +1,234 @@
+# Wikipedia categories seeding the Japan run: one PetScan query per entry.
+#
+# OpenSanctions' wd_categories.yml names one Japan entry
+# (`Political_office-holders_in_Japan`), an en.wikipedia container far thinner
+# than ja's tree; every entry below is ja.wikipedia, measured with
+# `wikipedia.seed_category` on 2026-10-08, each with its size and its marginal
+# over the entries above it. The whole seed is ~14,100 distinct people.
+#
+# ja.wikipedia carries a regular tree: the Diet by era (令和, 平成, 昭和),
+# portfolios under 日本の国務大臣, the senior and parliamentary vice-ministers,
+# the administrative vice-ministers by ministry, governors and mayors by
+# prefecture and then by office, and one assembly category per prefecture.
+#
+# The current era is chosen two ways. The Diet is seeded by era from 平成
+# (1989) on: 令和 is the current era, and living 平成 members whose tenure ended
+# after 2006 are inside `policy.P39_MAX_ENDED_YEARS`. Every other tier has no
+# per-period child and is seeded whole, the scope gate dropping the dead at
+# fetch (prewar governors and ambassadors are most of the governor and
+# ambassador tiers) and the recency rule skipping old tenures.
+#
+# The run is deep by decision: every municipal mayor (the 47 per-prefecture
+# containers, one subcat per municipality) and every prefectural assembly.
+#
+# Left out: 昭和 Diet categories (history); `廃止自治体の市町村長` (253 subcats:
+# mayors of municipalities abolished in the 1999-2010 mergers, nearly all ended
+# more than 20 years ago); municipal and ward council members (not PEP grade);
+# `日本銀行の人物` at d1 (414, +390: Bank of Japan staff, so only the governor
+# and deputy-governor categories are seeded); `副知事` (1 page); `日本の官僚`
+# (several thousand civil servants; the administrative vice-ministers are the
+# politically exposed tier and are seeded); `日本の政治家秘書`; party
+# categories beyond the LDP's president and secretary-general (+1 and +2: the
+# party leaders are reached through the Diet); and the by-topic and eponymous
+# trees.
+
+# --- Head of state and government ---
+- category: 日本の内閣総理大臣          # 67, +67; d1 is eponymous children
+  lang: ja
+  depth: 0
+- category: 日本の副総理                # 23, +14
+  lang: ja
+  depth: 0
+- category: 日本の内閣官房長官          # 61, +46
+  lang: ja
+  depth: 0
+- category: 内閣官房副長官              # 118, +103
+  lang: ja
+  depth: 0
+- category: 21世紀日本の皇族          # 46, +46; the living imperial family; genealogy is a kinship lane
+  lang: ja
+
+# --- Cabinet and the national executive ---
+- category: 日本の国務大臣              # 503, +351; portfolios at d1, the abolished ones among them
+  lang: ja
+- category: 日本の副大臣                # 541, +388; senior vice-ministers
+  lang: ja
+- category: 日本の大臣政務官            # 643, +289; parliamentary vice-ministers
+  lang: ja
+- category: 日本の事務次官              # 624, +584; administrative vice-ministers, one subcat per ministry
+  lang: ja
+- category: 内閣法制局長官              # 21, +20
+  lang: ja
+  depth: 0
+
+# --- The Diet ---
+- category: 令和時代の衆議院議員        # 827, +382; 2019-
+  lang: ja
+  depth: 0
+- category: 令和時代の参議院議員        # 406, +202; 2019-
+  lang: ja
+  depth: 0
+- category: 平成時代の衆議院議員        # 1714, +835; 1989-2019
+  lang: ja
+  depth: 0
+- category: 平成時代の参議院議員        # 920, +416; 1989-2019
+  lang: ja
+  depth: 0
+- category: 衆議院議長                  # 36, +11
+  lang: ja
+  depth: 0
+- category: 衆議院副議長                # 32, +15
+  lang: ja
+  depth: 0
+- category: 参議院議長                  # 25, +6
+  lang: ja
+  depth: 0
+- category: 参議院副議長                # 31, +10
+  lang: ja
+  depth: 0
+
+# --- Judiciary ---
+- category: 日本の最高裁判所裁判官      # 175, +164
+  lang: ja
+  depth: 0
+
+# --- Central bank ---
+- category: 日本銀行総裁              # 31
+  lang: ja
+  depth: 0
+- category: 日本銀行副総裁            # 21
+  lang: ja
+  depth: 0
+
+# --- Self-Defense Forces and police ---
+- category: 統合幕僚長                  # 9, +9
+  lang: ja
+  depth: 0
+- category: 陸上幕僚長                  # 40, +35
+  lang: ja
+  depth: 0
+- category: 海上幕僚長                  # 36, +32
+  lang: ja
+  depth: 0
+- category: 航空幕僚長                  # 38, +36
+  lang: ja
+  depth: 0
+- category: 警察庁長官                  # 31, +25
+  lang: ja
+  depth: 0
+
+# --- Diplomats ---
+- category: 日本の大使                  # 1073, +1000; one subcat per receiving state, prewar ones included
+  lang: ja
+
+# --- Party officers ---
+- category: 自由民主党総裁              # 28, +1
+  lang: ja
+  depth: 0
+- category: 自由民主党幹事長            # 45, +2
+  lang: ja
+  depth: 0
+
+# --- Prefectures ---
+- category: 都道府県知事                # 1278, +1134; one subcat per prefecture, abolished prefectures' governors included
+  lang: ja
+- category: 日本の都道府県議会議員      # 4521, +3769; one subcat per assembly
+  lang: ja
+
+# --- Municipalities ---
+- category: 東京都の特別区長            # 119, +87; the 23 wards
+  lang: ja
+- category: 三重県の市町村長            # 108, +64
+  lang: ja
+- category: 京都府の市町村長            # 107, +60
+  lang: ja
+- category: 佐賀県の市町村長            # 62, +44
+  lang: ja
+- category: 兵庫県の市町村長            # 197, +131
+  lang: ja
+- category: 北海道の市町村長            # 313, +250
+  lang: ja
+- category: 千葉県の市町村長            # 187, +119
+  lang: ja
+- category: 和歌山県の市町村長          # 54, +30
+  lang: ja
+- category: 埼玉県の市町村長            # 239, +163
+  lang: ja
+- category: 大分県の市町村長            # 93, +61
+  lang: ja
+- category: 大阪府の市町村長            # 205, +149
+  lang: ja
+- category: 奈良県の市町村長            # 96, +61
+  lang: ja
+- category: 宮城県の市町村長            # 113, +86
+  lang: ja
+- category: 宮崎県の市町村長            # 89, +54
+  lang: ja
+- category: 富山県の市町村長            # 89, +53
+  lang: ja
+- category: 山口県の市町村長            # 117, +68
+  lang: ja
+- category: 山形県の市町村長            # 130, +83
+  lang: ja
+- category: 山梨県の市町村長            # 90, +43
+  lang: ja
+- category: 岐阜県の市町村長            # 144, +106
+  lang: ja
+- category: 岡山県の市町村長            # 107, +73
+  lang: ja
+- category: 岩手県の市町村長            # 114, +74
+  lang: ja
+- category: 島根県の市町村長            # 62, +43
+  lang: ja
+- category: 広島県の市町村長            # 135, +99
+  lang: ja
+- category: 徳島県の市町村長            # 92, +61
+  lang: ja
+- category: 愛媛県の市町村長            # 128, +73
+  lang: ja
+- category: 愛知県の市町村長            # 275, +202
+  lang: ja
+- category: 新潟県の市町村長            # 165, +115
+  lang: ja
+- category: 東京都の市町村長            # 227, +198
+  lang: ja
+- category: 栃木県の市町村長            # 112, +62
+  lang: ja
+- category: 沖縄県の市町村長            # 87, +63
+  lang: ja
+- category: 滋賀県の市町村長            # 90, +49
+  lang: ja
+- category: 熊本県の市町村長            # 105, +62
+  lang: ja
+- category: 石川県の市町村長            # 68, +33
+  lang: ja
+- category: 神奈川県の市町村長          # 184, +125
+  lang: ja
+- category: 福井県の市町村長            # 78, +42
+  lang: ja
+- category: 福岡県の市町村長            # 154, +107
+  lang: ja
+- category: 福島県の市町村長            # 122, +64
+  lang: ja
+- category: 秋田県の市町村長            # 98, +49
+  lang: ja
+- category: 群馬県の市町村長            # 114, +60
+  lang: ja
+- category: 茨城県の市町村長            # 179, +126
+  lang: ja
+- category: 長崎県の市町村長            # 87, +55
+  lang: ja
+- category: 長野県の市町村長            # 225, +158
+  lang: ja
+- category: 青森県の市町村長            # 115, +55
+  lang: ja
+- category: 静岡県の市町村長            # 167, +100
+  lang: ja
+- category: 香川県の市町村長            # 65, +38
+  lang: ja
+- category: 高知県の市町村長            # 63, +38
+  lang: ja
+- category: 鳥取県の市町村長            # 82, +54
+  lang: ja
+- category: 鹿児島県の市町村長          # 85, +60
+  lang: ja

@@ -174,7 +174,7 @@ TERM_SLACK_YEARS = 1
 NEW_TERM_COHORT = 2
 #: The proposal statuses whose spells count as on record for the office: what
 #: `propose` left and the policy has not set aside, and what `apply` wrote.
-LIVE_SPELL_STATUSES = PROPOSED + (PENDING, ACCEPTED, "applied")
+LIVE_SPELL_STATUSES = PROPOSED + (PENDING, ACCEPTED, "applied", "exported")
 
 
 @dataclass(frozen=True)
@@ -1264,8 +1264,9 @@ def _family_conflicts_of(cases: Sequence[tuple[int, Case]], state_qid: str | Non
 #: The prefix of `decided_by` on a row an audit took out. Not `DECIDER`, so the
 #: policy never selects the row again.
 AUDITOR = "audit:"
-#: Statuses an audit may not skip: the statement is already on Wikidata.
-UNAUDITABLE = ("applied",)
+#: Statuses an audit may not skip: the statement is already on Wikidata, or in
+#: a QuickStatements chunk that may already have been pasted.
+UNAUDITABLE = ("applied", "exported")
 
 
 def audit(ids: Sequence[int], reason: str, by: str, country: str) -> list[dict[str, Any]]:

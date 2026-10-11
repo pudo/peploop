@@ -21,6 +21,7 @@ from peploop import apply as applying
 from peploop import db, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
+from peploop import qs as exporting
 from peploop import propose as proposals
 from peploop import reconcile as reconciling
 from peploop import review as reviewing
@@ -432,6 +433,49 @@ def apply_(limit: int | None, qid: Sequence[str], write: bool, country: str) -> 
             click.echo("")
     verb = "applied" if write else "would apply"
     click.echo(f"{len(tried)} people: {verb} {applied} proposals, {failed} failed")
+
+
+@cli.command("export")
+@click.option("--country", required=True, help="The run to export; its writer lock is taken.")
+@click.option("--landed", "read_back", is_flag=True,
+              help="Read pasted chunks back: rows whose statement is live become `applied`.")
+@click.option("--release", is_flag=True,
+              help="With --landed: hand rows that are not live back to `apply`.")
+def export_(country: str, read_back: bool, release: bool) -> None:
+    """Write a run's QS-safe additions as paste-sized QuickStatements chunks.
+
+    The fast path for the bulk of a run: what QS cannot write without folding
+    it into another statement stays `accepted`, and `apply --write` drains it
+    after the chunks are pasted and read back with `--landed`.
+    """
+    if read_back or release:
+        counts = exporting.landed(country, release)
+        for (batch, outcome), n in sorted(counts.items()):
+            click.echo(f"  {batch}  {outcome:<9} {n}")
+        totals: Counter[str] = Counter()
+        for (_batch, outcome), n in counts.items():
+            totals[outcome] += n
+        click.echo(f"{country}: " + " ".join(f"{o}={n}" for o, n in sorted(totals.items())))
+        return
+
+    def one(person_qid: str) -> exporting.Export | None:
+        try:
+            entity, rows, _moved = applying.preflight(person_qid)
+        except Exception as exc:  # noqa: BLE001 -- one item must not end the export
+            click.echo(f"{person_qid}: pre-flight failed, left for apply: {exc}")
+            return None
+        return exporting.route(person_qid, entity, rows, "peploop")
+
+    with minting.writer_lock(country, "export"):
+        qids = applying.people([], None, country)
+        with ThreadPoolExecutor(FETCH_THREADS) as pool:
+            exports = [e for e in pool.map(one, qids) if e is not None]
+        routes: Counter[str] = Counter()
+        for export in exports:
+            routes.update(export.routes)
+        click.echo(f"{len(exports)} people: " + " ".join(f"{k}={v}" for k, v in sorted(routes.items())))
+        paths = exporting.write_chunks(country, exports, click.echo)
+    click.echo(f"{len(paths)} chunks written")
 
 
 #: The model stages `prompt` can show a request for.

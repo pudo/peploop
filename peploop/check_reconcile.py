@@ -539,6 +539,20 @@ def check_generic(expect: Any) -> None:
         conn.execute("DROP TABLE IF EXISTS pg_temp.position")
 
 
+def check_structures(expect: Any) -> None:
+    """Pin that a shrine is not loaded as an office, and a chief of staff still is."""
+    # A shrine (Q134927474): its funding class → shrine rank → rank →
+    # position, and shrine → religious building beside it.
+    shrine = {"Q845945", "Q135160342", "Q10444029", "Q4189293", "Q4164871",
+              "Q24398318", "Q41176", "Q811979"}
+    # A service chief of staff, which the class tree also carries up to building.
+    chief = {"Q4164871", "Q294414", "Q41176", "Q811979"}
+    bishop = {"Q4164871", "Q1144278", "Q29182"}
+    expect(positions.is_structure(shrine), "a shrine is a place of worship, not a row")
+    expect(not positions.is_structure(chief), "an office that reaches building is still an office")
+    expect(not positions.is_structure(bishop), "a church office is still an office")
+
+
 def check_reask(expect: Any) -> None:
     """Pin the retrieval re-ask: a gained list is asked once, an unchanged one never."""
     try:
@@ -635,6 +649,7 @@ def main() -> int:
         ("reopen", check_reopen),
         ("reask", check_reask),
         ("generic", check_generic),
+        ("structures", check_structures),
     ):
         print(f"{name}:")
         check(expect)

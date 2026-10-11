@@ -7,9 +7,11 @@ country's position items into Postgres and searches them, so the shortlist a
 model eventually picks from is short, legible and ordered.
 
 Retrieval ranks and a model decides. Nothing here resolves anything, and
-nothing is excluded from the table: an abolished office is the right answer
+no office is excluded from the table: an abolished office is the right answer
 for a tenure that ended in 1960, and an item typed as an occupation is worth
 offering *labelled* as one so the pick can be refused for the right reason.
+What is not an office of any kind -- a shrine the rank classes carry into the
+position tree -- is not a row (`is_structure`).
 """
 
 import csv
@@ -22,6 +24,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
+import requests
 from normality import ascii_text
 from psycopg.types.json import Jsonb
 from rigour.territories import get_territory
@@ -620,6 +623,11 @@ def upsert_position(row: dict[str, Any], names: Sequence[tuple[str, str, bool]])
             )
 
 
+def is_structure(types: set[str]) -> bool:
+    """Say whether an item's type closure makes it a place of worship, not an office."""
+    return WORSHIP_CLASS in types
+
+
 def sender_classes(types: Iterable[str]) -> dict[str, str]:
     """Map each "ambassador of <state>" class among `types` to its state.
 
@@ -774,8 +782,16 @@ def load_items(
     senders = sender_classes(
         t for actual, entity in canonical.items()
         if DIPLOMATIC_CLASS in types_of[actual] for t in type_targets(entity))
+    # A place of worship is not an office, so it is not a row: never offered,
+    # never minted beside, and a row an earlier load wrote is taken out.
+    structures = {actual for actual in canonical if is_structure(types_of[actual])}
+    if structures:
+        db.conn().execute("DELETE FROM position WHERE qid = ANY(%s)", (sorted(structures),))
+        log(f"places of worship: {len(structures)} items, not loaded")
 
     for actual, entity in canonical.items():
+        if actual in structures:
+            continue
         declared = set(type_targets(entity))
         kind_qids = wikidata.claim_qids(entity, "P279", include_deprecated=False)
         jurisdiction = _unended_qid(entity, "P1001")
@@ -942,6 +958,14 @@ NON_SCOPING_QUALIFIERS = frozenset((
     "P1545",  # series ordinal — the holder's place in the line
 ))
 
+#: Religious building. A shrine is no office however its rank is modelled:
+#: one state's 3,115 shrines and temple ranks reach `Q4164871` through a
+#: funding class → shrine rank → rank, and this is the one class that separates
+#: them. A bare building would not do -- the class tree carries a general
+#: staff's chiefs up to it -- while this reached nothing in 18,843 other
+#: countries' positions, bishoprics included.
+WORSHIP_CLASS = "Q24398318"
+
 #: Ambassadorship, reached through `type_closure` and never through a
 #: `wdt:P279*` in a `FILTER NOT EXISTS`, which times the query service out.
 #: An inbound mission is scoped to the *receiving* state, so a country's own
@@ -1075,26 +1099,49 @@ def fill_local_holders(
         log(f"{state_qid}: nothing to backfill")
         return 0
     counts: dict[str, int] = {}
+    unanswered: set[str] = set()
+
+    def count(chunk: list[str]) -> None:
+        # One item with thousands of holders ("chairperson", 8,839) makes the
+        # citizenship join time out for its whole chunk, and does so on every
+        # retry. Halve down to that item and leave it uncounted: no number is
+        # better than a zero it does not have.
+        try:
+            rows = wikidata.sparql(
+                HOLDERS_COUNTRY_QUERY
+                % {"values": wikidata.values_block(chunk), "country": state_qid},
+                max_age=0,
+            )
+        # A timeout surfaces as retries exhausted, or as a 200 whose JSON
+        # was cut off mid-serialisation.
+        except (requests.RequestException, RuntimeError) as exc:
+            if len(chunk) == 1:
+                log(f"{state_qid}: {chunk[0]} uncounted ({type(exc).__name__})")
+                unanswered.add(chunk[0])
+                return
+            half = len(chunk) // 2
+            count(chunk[:half])
+            count(chunk[half:])
+            return
+        for row in rows:
+            counts[row["pos"]] = counts.get(row["pos"], 0) + int(row["n"])
+
     chunks = list(wikidata.values_chunks(qids, size=BACKFILL_CHUNK))
     for index, chunk in enumerate(chunks, 1):
         started = time.monotonic()
-        rows = wikidata.sparql(
-            HOLDERS_COUNTRY_QUERY
-            % {"values": wikidata.values_block(chunk), "country": state_qid},
-            max_age=0,
-        )
-        for row in rows:
-            counts[row["pos"]] = counts.get(row["pos"], 0) + int(row["n"])
+        count(chunk)
         log(f"{state_qid}: chunk {index}/{len(chunks)}, {len(chunk)} items in "
             f"{time.monotonic() - started:.0f}s")
+    counted = [qid for qid in qids if qid not in unanswered]
     with db.conn().cursor() as cur:
         cur.executemany(
             "UPDATE position SET holders_by_country ="
             " coalesce(holders_by_country, '{}'::jsonb) || %s WHERE qid = %s",
-            [(Jsonb({state_qid: counts.get(qid, 0)}), qid) for qid in qids],
+            [(Jsonb({state_qid: counts.get(qid, 0)}), qid) for qid in counted],
         )
-    log(f"{state_qid}: {len(qids)} rows given a local count")
-    return len(qids)
+    log(f"{state_qid}: {len(counted)} rows given a local count,"
+        f" {len(unanswered)} left uncounted")
+    return len(counted)
 
 
 def modal_scope_qualifiers(entities: Iterable[dict[str, Any]]) -> dict[str, str]:

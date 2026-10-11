@@ -591,8 +591,9 @@ def proposal_key(prop: str, value: dict[str, Any], qualifiers: dict[str, Any] | 
 
 
 #: A row `propose` may not replace: it records something a re-run cannot
-#: reproduce -- a human's ruling, or an edit that has already reached Wikidata.
-KEPT_STATUSES = ("applied",)
+#: reproduce -- a human's ruling, or an edit that has already reached Wikidata
+#: or sits in a QuickStatements chunk (`qs.EXPORTED`) that may be pasted.
+KEPT_STATUSES = ("applied", "exported")
 #: The provenance prefix `apply` closes an unwritable row under.
 APPLY_DECIDED = "apply:"
 

@@ -23,6 +23,8 @@ TOKENS = (
     "czech", "česk", "Q213", "Q33946", "Q191168", "cs.wikipedia", "Úřaduj", "Brno", "Praha",
     "sloven", "Q215", "sl.wikipedia", "državn", "Ljubljana", "Maribor",
     "colomb", "Q739", "es.wikipedia", "Bogotá", "Petro",
+    "malaysia", "ms.wikipedia", "Kuala Lumpur", "Dewan",  # Q833 is a prefix of Q83307 minister
+    "ja.wikipedia", "日本", "Tokyo", "東京", "衆議院",  # Q17 prefixes thousands of QIDs
 )
 # What a line ends with to declare itself a multi-language example list.
 MARKERS = {".md": "<!-- examples -->", ".py": "# examples"}
