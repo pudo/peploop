@@ -12,8 +12,7 @@ closed set the `verdict` table allows.
 A sampler, not a gate: a verdict here never changes a proposal's status. The
 policy reads it -- a rejection skips the row on its next run, an accept decides
 nothing -- so every row still reaches Wikidata through the rules or not at
-all. That closes the path by which 31 hand-accepted rows were once written
-with no rule and no verifier ever looking at them. A submitted person's
+all. A submitted person's
 decisions land in one transaction, and a row marked skipped stays reviewable.
 """
 
@@ -36,8 +35,8 @@ from peploop import db, prompt, reconcile, wikidata
 # What the sampler draws from: rows on their way to Wikidata -- not yet decided,
 # held for the verifier, or accepted -- and conflicts. A conflict is reviewable
 # but not writable: accepting one says the article is right and Wikidata is
-# wrong, which is a human's to-do about the item, and `apply` refuses to write a
-# value that contradicts a single-valued property.
+# wrong, which is a human's to-do about the item, and the plan writes nothing
+# that contradicts a single-valued property.
 REVIEWABLE = ("new", "refine", "pending", "accepted", "conflict")
 # The order is the keypad: digit 1 is the first of these. It must stay a subset
 # of the `verdict.reason` check constraint in schema.sql.
@@ -156,9 +155,8 @@ def span_cell(qualifiers: dict[str, Any] | None) -> Text | None:
     The column is what a reviewer compares down: the statement above says
     `2020-10-15 → 2022-06-01` and this has to say `2020-10-15 → 2022-04-20` in
     the same place and the same shape, or the one date that differs is the one
-    thing the screen does not show. It used to be appended to the value cell,
-    which is truncated at `VALUE_WIDTH`, so an office with a long name lost its
-    dates entirely.
+    thing the screen does not show. Appended to the value cell, which is
+    truncated at `VALUE_WIDTH`, an office with a long name would lose them.
     """
     found = {prop: (qualifiers or {}).get(prop) for prop, _name in SPAN_QUALIFIERS}
     if not any(found.values()):

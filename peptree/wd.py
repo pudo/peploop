@@ -16,7 +16,7 @@ from psycopg.types.json import Jsonb
 from peploop import db as pdb
 from peploop import http
 from peploop.wikidata import (  # noqa: F401  (re-exported for peptree modules)
-    best_label, claim_qids, fetch_items, lastrevids, sparql, values_block, values_chunks,
+    best_label, claim_qids, fetch_items, sparql, values_block, values_chunks,
 )
 
 SCHEMA = Path(__file__).resolve().parent / "schema.sql"

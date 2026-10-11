@@ -87,7 +87,7 @@ def close(people: list[qs.Routed]) -> int:
     """Record every row the plan closed without a line as `skipped` under its route."""
     n = 0
     for person in people:
-        n += plan.retire(plan.Plan(qid=person.qid, baserevid=None, skipped=person.skipped))
+        n += plan.retire(plan.Plan(qid=person.qid, skipped=person.skipped))
     return n
 
 
@@ -123,7 +123,7 @@ def run(country: str, log: Log, submit: bool = False, qids: list[str] | None = N
     send.recover(TOOL, user, log)
     send.reconcile(TOOL, is_live, log)
     settle(log)
-    people = routed(country, plan.people(list(qids or []), None, country), log, threads)
+    people = routed(country, plan.people(list(qids or []), country), log, threads)
     routes: Counter[str] = Counter()
     for person in people:
         routes.update(person.routes)
@@ -147,9 +147,8 @@ def run(country: str, log: Log, submit: bool = False, qids: list[str] | None = N
         rows = [(country, ledger.key(line), line, ids) for person in people for line, ids in person.edits]
         if rows:
             ids = sorted({i for _, _, _, refs in rows for i in refs})
-            # Uncombined: QS3 folded each person's lines into one edit, and for 5 of
-            # Japan's members with three or more new P39s that edit failed whole
-            # (batch 59098); the same lines one edit each all landed (59101).
+            # Uncombined: a combined edit fails whole when one of its commands
+            # does, and QS3 says neither which nor why.
             sent.append(send.send(TOOL, "add", f"peploop send {country} {day}", rows, is_live, log,
                                   on_recorded=lambda name: mark_sent(ids, name), combine=False))
             settle(log)

@@ -2,8 +2,8 @@
 
 The schema here is the machine-readable half of `prompts/extract.md`: every
 field the prompt describes, and nothing it does not. Positions and birthplaces
-are extracted from the first run and stored raw; they become proposals only
-once round 2 can give them QIDs.
+are stored raw; a position becomes a proposal once reconciliation gives it a
+QID, and birthplaces wait for a reconciler of their own.
 """
 
 import json

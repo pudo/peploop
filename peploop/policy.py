@@ -1,13 +1,11 @@
 """Decide every proposal without a human: accept it, skip it, or hold it for the verifier.
 
-Reach for this after `propose` and before `apply`. A proposal used to wait in
-a review screen until somebody ruled on it, and 1,334 of them were waiting
-when this was written, against five ever written; the 158 rulings that were
-made fell into a handful of classes a rule can name. So the rules are here,
-ordered, and the first one that applies decides. The rule's name lands in
+It runs at the end of every `propose` and `verify`, and stands in for a human
+gate: a class of rows a reviewer would reject is a rule here, ordered, and the
+first rule that applies decides. The rule's name lands in
 `proposal.decided_by` as `policy:<rule>`, which is what a run's report counts.
 
-Three outcomes and no fourth. `accepted` is what `apply` writes. `skipped` is
+Three outcomes and no fourth. `accepted` is what `send` writes. `skipped` is
 a decision with a reason, never a queue. `pending` means only that the
 verifier has not yet been asked, and `run` never leaves a row there. The
 deterministic gates come first so that nothing a rule would skip anyway is
@@ -173,8 +171,8 @@ TERM_SLACK_YEARS = 1
 #: term of the chamber rather than one by-election.
 NEW_TERM_COHORT = 2
 #: The proposal statuses whose spells count as on record for the office: what
-#: `propose` left and the policy has not set aside, and what `apply` wrote.
-LIVE_SPELL_STATUSES = PROPOSED + (PENDING, ACCEPTED, "applied", "sent", "exported")
+#: `propose` left and the policy has not set aside, and what went out.
+LIVE_SPELL_STATUSES = PROPOSED + (PENDING, ACCEPTED, "applied", "sent")
 
 
 @dataclass(frozen=True)
@@ -389,7 +387,7 @@ def contested(case: Case) -> Disposition | None:
 def refine_over_sourced(case: Case) -> Disposition | None:
     """A sharper date over somebody else's citation stays unwritten.
 
-    `apply` would put ours beside theirs at preferred rank, which outranks a
+    The plan would put ours beside theirs at preferred rank, which outranks a
     source nobody here has read. Only an import-only or unreferenced
     statement is ours to sharpen.
     """
@@ -1126,8 +1124,8 @@ def person_cases(
 ) -> list[tuple[int, Case]]:
     """Build a case for every proposal of one person the policy may decide.
 
-    A row a human ruled on is theirs and is left out; so is a row `apply` has
-    written. Everything else is re-decided from scratch every time, which is
+    A row a human ruled on is theirs and is left out; so is a row that has
+    gone out. Everything else is re-decided from scratch every time, which is
     what makes a rule change one command rather than a migration.
     """
     conn = db.conn()
@@ -1264,10 +1262,8 @@ def _family_conflicts_of(cases: Sequence[tuple[int, Case]], state_qid: str | Non
 #: The prefix of `decided_by` on a row an audit took out. Not `DECIDER`, so the
 #: policy never selects the row again.
 AUDITOR = "audit:"
-#: Statuses an audit may not skip: the statement is already on Wikidata, or in
-#: a QuickStatements chunk that may already have been pasted.
 #: Rows whose edit is in flight: an audit waits until they have landed or failed.
-UNAUDITABLE = ("sent", "exported")
+UNAUDITABLE = ("sent",)
 #: Rows already on Wikidata: an audit strikes them, which queues their removal.
 LANDED = ("applied",)
 

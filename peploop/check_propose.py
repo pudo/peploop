@@ -116,8 +116,7 @@ def main() -> int:
            propose.OVERLAPPING, "a spell inside a longer recorded term is agreement")
     expect(propose.tenure_status([term], span("2022-04-20", "2024-03-01")),
            propose.OVERLAPPING, "a spell straddling one boundary is the same appointment")
-    # This pin used to say a recorded open term blocks whatever is proposed
-    # against it. It blocks only a spell with another start: one with the
+    # A recorded open term blocks only a spell with another start: one with the
     # same start is the end the record is missing, and is `refine` below.
     expect(propose.tenure_status([span("2020-10-15")], span("2022-01-01", "2024-03-01")),
            propose.OVERLAPPING, "a recorded open term blocks a spell starting elsewhere in it")
@@ -241,8 +240,8 @@ def main() -> int:
 
     print("a row apply closed, on a re-propose:")
     # A seat recorded with a district and no dates is a specific tenure the
-    # article's dates may not be about: apply closes the row as `termed`, and
-    # a re-propose used to bring it back as `accepted`.
+    # article's dates may not be about: the plan closes the row as `termed`, and
+    # a re-propose must not bring it back as `accepted`.
     districted = statement()
     districted["qualifiers"] = {"P768": [{"property": "P768", "snaktype": "value",
                                           "datatype": "wikibase-item", "datavalue": {

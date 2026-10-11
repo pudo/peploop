@@ -1,10 +1,9 @@
 """Pin the audit: a proposal taken out by hand stays out across a re-propose.
 
-The hazard this exists for: an audit used to be a raw `UPDATE proposal SET
-status = 'skipped'`, and `propose` re-derives every row that is neither
-`applied` nor carrying a verdict, so the next re-propose of that person wiped
-it and the policy decided the row again from scratch -- one country's fourteen
-`audit:pudo` rows went that way. So the cases are: an audit leaves a verdict
+The hazard: `propose` re-derives every row that is neither written nor
+carrying a verdict, so a skip set by a raw `UPDATE` would be wiped by the next
+re-propose and the policy would decide the row again from scratch. So the
+cases are: an audit leaves a verdict
 and `audit:<by>` provenance, a re-propose keeps the row and does not insert
 its twin, the policy no longer selects it, and an audit refuses a row already
 written, a row of another country's run, and an unknown id, all or nothing,

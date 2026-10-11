@@ -1,8 +1,7 @@
 """Fail when the code or the prompt knows which country is being run.
 
-The pilot is the first of many and will end up a small fraction of what this
-tool processes, so a rule written around one country's language, territory or
-wiki is a rule the next country silently breaks. This greps the tokens of every
+A rule written around one country's language, territory or wiki is a rule the
+next country silently breaks. This greps the tokens of every
 country already run out of `peploop/*.py` and `peploop/prompts/*.md`: the list
 grows as countries are added and the hit count stays at zero.
 
@@ -25,6 +24,13 @@ TOKENS = (
     "colomb", "Q739", "es.wikipedia", "Bogotá", "Petro",
     "malaysia", "ms.wikipedia", "Kuala Lumpur", "Dewan",  # Q833 is a prefix of Q83307 minister
     "ja.wikipedia", "日本", "Tokyo", "東京", "衆議院",  # Q17 prefixes thousands of QIDs
+    "cuban", "Cuba ", "Cuba,", "Havana", "Habana",
+    "belarus", "be.wikipedia", "Minsk",
+    "burundi", "Gitega", "rn.wikipedia",
+    "dominican", "Santo Domingo",
+    "haiti", "Port-au-Prince",
+    "jamaica", "Kingston",
+    "trinidad", "tobago", "Port of Spain",
 )
 # What a line ends with to declare itself a multi-language example list.
 MARKERS = {".md": "<!-- examples -->", ".py": "# examples"}
@@ -39,7 +45,7 @@ def files() -> list[Path]:
 
 
 def hits(path: Path) -> list[tuple[int, str, str]]:
-    """Report every (line number, token, line) a file names a pilot token on."""
+    """Report every (line number, token, line) a file names a run country's token on."""
     marker = MARKERS[path.suffix]
     found = []
     for number, line in enumerate(path.read_text().splitlines(), 1):
@@ -53,7 +59,7 @@ def hits(path: Path) -> list[tuple[int, str, str]]:
 
 
 def main() -> int:
-    """Print what names the pilot, and fail if anything does."""
+    """Print what names a run country, and fail if anything does."""
     checked = files()
     total = 0
     for path in checked:

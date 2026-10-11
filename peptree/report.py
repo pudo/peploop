@@ -6,7 +6,6 @@ account are reviewed together.
 
 from collections import Counter
 from pathlib import Path
-from typing import Any
 
 from peptree import gaps as gapmod
 from peptree import qs, repair, wd
@@ -107,13 +106,3 @@ def write(cc: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(report(cc) + "\n")
     return path
-
-
-def samples(cc: str, disposition: str, n: int) -> list[dict[str, Any]]:
-    cur = wd.conn().execute(
-        "SELECT d.qid, d.prop, d.value, d.rule, d.channels, d.confidence, d.evidence, d.source, g.gap,"
-        " i.entity->'labels' FROM ptree_decision d JOIN ptree_gap g USING (country, qid, prop)"
-        " JOIN ptree_item i USING (country, qid) WHERE d.country = %s AND d.disposition = %s"
-        " ORDER BY md5(d.qid || d.prop) LIMIT %s", (cc, disposition, n))
-    cols = [c.name for c in cur.description]
-    return [dict(zip(cols, r)) for r in cur.fetchall()]

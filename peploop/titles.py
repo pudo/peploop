@@ -81,8 +81,8 @@ def system_prompt() -> tuple[str, str]:
 def fold_key(text: str | None) -> str:
     """The form a title is cached under: NFC, casefolded, whitespace collapsed.
 
-    Deliberately not `positions.fold`, which transliterates to ASCII: a Russian
-    and a Belarusian spelling must not collapse into one key, and nothing about
+    Deliberately not `positions.fold`, which transliterates to ASCII: two
+    Cyrillic languages' spellings must not collapse into one key, and nothing about
     the translation depends on case or spacing.
     """
     if not text:

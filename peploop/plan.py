@@ -29,22 +29,12 @@ class Plan:
     """One person's whole edit, before it is sent."""
 
     qid: str
-    baserevid: int | None
     data: dict[str, Any] = field(default_factory=dict)
     summary: str = ""
-    # (proposal id, property, value, qualifiers) per statement. The qualifiers
-    # are here because the value alone stopped identifying a statement the day
-    # two spells of one office became two statements rather than one.
-    claims: list[tuple[int, str, dict[str, Any], dict[str, Any]]] = field(default_factory=list)
     skipped: list[tuple[int, str]] = field(default_factory=list)
     routes: Counter[str] = field(default_factory=Counter)
     # The proposal ids behind each statement of `data`, in the same order.
     members: list[list[int]] = field(default_factory=list)
-
-    @property
-    def covered(self) -> int:
-        """Count the proposals this edit would move to `applied`."""
-        return len(self.claims)
 
 
 
@@ -422,11 +412,8 @@ def _statement_key(prop: str, statement: dict[str, Any]) -> str:
 
     **The qualifiers are part of the identity.** Keyed on the value alone, a
     person's two spells in one office are one statement and the second one's
-    dates are dropped in silence -- measured on Q6873822, whose two accepted
-    National Council rows produced a single statement carrying no dates at all.
-    That is the collapse `wd/validate.py:collapsing_groups` documents for
-    QuickStatements' plain lines, and avoiding it is why a new statement goes
-    out as a `+` line.
+    dates are dropped in silence. A plain QuickStatements line collapses them
+    the same way, which is why a new statement goes out as a `+` line.
     """
     guid = statement.get("id")
     if guid:
@@ -451,7 +438,7 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
     Rows attesting the same thing from two wikis become one statement with two
     references, and both are recorded as applied against the one it produced.
     """
-    plan = Plan(qid=qid, baserevid=entity.get("lastrevid"))
+    plan = Plan(qid=qid)
     statements: dict[str, dict[str, Any]] = {}
     members: dict[str, list[int]] = {}
     written: list[dict[str, Any]] = []
@@ -488,9 +475,6 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
             already.setdefault("references", []).extend(statement.get("references") or [])
             plan.routes["merged"] += 1
         members[key].append(row["id"])
-        plan.claims.append(
-            (row["id"], row["property"], row["value"], (statement.get("qualifiers") or {}))
-        )
         written.append(row)
     if statements:
         plan.data["claims"] = list(statements.values())
@@ -519,15 +503,15 @@ def accepted_rows(qid: str) -> list[dict[str, Any]]:
     return [dict(zip(columns, row)) for row in rows]
 
 
-def people(qids: list[str], limit: int, country: str | None = None) -> list[str]:
+def people(qids: list[str], country: str | None = None) -> list[str]:
     """Pick the people to write: the named ones, or those with accepted rows."""
     if qids:
         return qids
     rows = db.conn().execute(
         "SELECT DISTINCT p.person_qid FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
         " WHERE p.status = 'accepted' AND (%s::text IS NULL OR pe.country = %s)"
-        " ORDER BY p.person_qid LIMIT %s",
-        (country, country, limit),
+        " ORDER BY p.person_qid",
+        (country, country),
     )
     return [row[0] for row in rows]
 
@@ -561,7 +545,7 @@ def retire(plan: Plan) -> int:
 
     A conflict, a value already there, a removed lane's row: none of
     these will write on a later pass either, and an accepted row that stays
-    accepted is selected again by every drain. They become
+    accepted is selected again by every send. They become
     `skipped` under `apply:<route>`, which a report counts like any other rule.
     """
     conn = db.conn()

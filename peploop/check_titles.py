@@ -208,15 +208,15 @@ def check_shortlist(expect: Any) -> None:
 
     # Direction: the sending state comes first, and a set match would ignore it.
     wrong, right, named = "Q960", "Q961", "Q962"
-    add_position(wrong, {"en": "ambassador of Germany to Burundi"})
-    add_position(right, {"en": "Burundian Ambassador to Germany"})
-    add_position(named, {"en": "ambassador of Burundi to Germany"})
+    add_position(wrong, {"en": "ambassador of Zembla to Ruritania"})
+    add_position(right, {"en": "Ruritanian Ambassador to Zembla"})
+    add_position(named, {"en": "ambassador of Ruritania to Zembla"})
     hits = [positions.Hit(qid=q, name="", lang="", score=0.0) for q in (right, wrong)]
-    promoted = [h.qid for h in positions.promote_exact(hits, "ambassador of Burundi to Germany")]
+    promoted = [h.qid for h in positions.promote_exact(hits, "ambassador of Ruritania to Zembla")]
     expect(promoted == [right, wrong],
            "the reverse-direction ambassador is not promoted as an exact name")
     hits.append(positions.Hit(qid=named, name="", lang="", score=0.0))
-    promoted = [h.qid for h in positions.promote_exact(hits, "Ambassador of Burundi to Germany")]
+    promoted = [h.qid for h in positions.promote_exact(hits, "Ambassador of Ruritania to Zembla")]
     expect(promoted[0] == named, "the same words in the same order are promoted")
 
 

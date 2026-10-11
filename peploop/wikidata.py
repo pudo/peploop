@@ -124,31 +124,6 @@ def fetch_items(qids: Iterable[str], props: str = ENTITY_PROPS) -> dict[str, dic
     return out
 
 
-def lastrevids(qids: Iterable[str]) -> dict[str, int]:
-    """Return the current revision id of each item, 50 items per request."""
-    out: dict[str, int] = {}
-    for chunk in _chunks(qids):
-        params = {
-            "format": "json",
-            "action": "query",
-            "prop": "info",
-            "titles": "|".join(chunk),
-        }
-        data = http.get_json(WD_API, params=params, max_age=0)
-        query = data.get("query", {})
-        by_title: dict[str, int] = {}
-        for page in query.get("pages", {}).values():
-            if "missing" not in page and "lastrevid" in page:
-                by_title[page["title"]] = page["lastrevid"]
-        for redirect in query.get("redirects", []):
-            if redirect["to"] in by_title:
-                by_title[redirect["from"]] = by_title[redirect["to"]]
-        for qid in chunk:
-            if qid in by_title:
-                out[qid] = by_title[qid]
-    return out
-
-
 def best_label(entity: dict[str, Any], langs: Iterable[str] = ("en", "mul")) -> str | None:
     """Pick a label, falling back en → mul → whatever the item has.
 

@@ -20,7 +20,7 @@ from peploop import db, mint, policy, positions, scope, titles, verify as verify
 from peploop import extract as extraction
 from peploop import mint_write as minting
 from peploop import outbox
-from peploop import qs as v1
+from peploop import qs
 from peploop import plan as planning
 from peploop import send as sending
 from peploop import propose as proposals
@@ -240,8 +240,7 @@ def _extracted_out_of_scope(qid: str) -> str | None:
 
     The item gate ran before any article was read and kept everyone whose item
     carries no date; the extraction is the first thing that says when such a
-    person lived. A person set aside here is never reconciled or proposed,
-    which on the pilot's second country was every mayor of the 1500s.
+    person lived. A person set aside here is never reconciled or proposed.
     """
     row = db.conn().execute(
         "SELECT response_json FROM extraction WHERE qid = %s ORDER BY id DESC LIMIT 1", (qid,)
@@ -368,7 +367,8 @@ def send_(country: str | None, qid: Sequence[str], submit: bool, show_status: bo
     the lines to `data/peploop/send/<cc>.qs` with the routes counted. `--submit`
     closes the rows the plan writes nothing for, sends the lines as one QS3
     batch and the approved removals as another, waits, and records each row
-    `applied` or `failed`. The only command that edits Wikidata.
+    `applied` or `failed`. With `mint --submit`, one of the two commands that
+    edit Wikidata.
     """
     if show_status:
         click.echo(sending.status(outbox.TOOL))
@@ -467,11 +467,10 @@ def verify_(qid: Sequence[str], country: str | None) -> None:
     edit as it would land beside the article and the item's own claims. A
     verdict is stored by the content it was about, so a re-run asks only what
     is new; once a person's rows are answered the policy is run over them
-    again, and each row leaves as `accepted` or `skipped`. It ends with the
-    policy over the whole run and its funnel, which is what a second `policy`
-    after it used to print. It also starts with one, so rows `propose` just
-    made are decided and the ones that need the model are pending: run after a
-    fresh propose it used to find nothing pending and had to be run twice.
+    again, and each row leaves as `accepted` or `skipped`. It starts with the
+    policy, so rows `propose` just made are decided and only those that need the
+    model are asked, and it ends with the policy over the whole run and its
+    funnel.
     """
     run = _select(qid, ("proposed",), country)
     policy.run(run, write=True)
@@ -603,10 +602,9 @@ def _resolve_all(
         summary is the kind of wrong number nothing later contradicts.
 
         A mention the model fails on is a line of output, not the end of the
-        run. Measured once: a response that repeated `0.0}` until it hit
-        `max_tokens` came back as truncated JSON, the structured-output parser
-        raised, and one bad answer out of 440 took the pool down with it. The
-        verdict is simply not recorded, so the next pass asks again.
+        run: a response that degenerates until `max_tokens` comes back as
+        truncated JSON and the structured-output parser raises. The verdict is
+        simply not recorded, so the next pass asks again.
         """
         extraction_id, index, mention = item
         try:
@@ -682,7 +680,7 @@ def _translate_titles(state_qid: str, country: str) -> None:
     """Cache an English name for every mention title of the run, before it is searched.
 
     A search aid, so a failed pass is a line of output and the run goes on:
-    an uncached title is searched by its own words, as before the channel.
+    an uncached title is searched by its own words alone.
     """
     since = db.conn().execute("SELECT now()").fetchone()[0]
     try:
@@ -906,7 +904,7 @@ def mint_(country: str, limit: int | None, submit: bool) -> None:
                        f" {cand['current_holders']} current) =====")
             for qid, label in sorted(names.items()):
                 click.echo(f"  {qid} = {label}")
-            for line in v1.create_lines(cand["data"], "") or ["(cannot be written as QS lines)"]:
+            for line in qs.create_lines(cand["data"], "") or ["(cannot be written as QS lines)"]:
                 click.echo("  " + line.removesuffix(" /*  */"))
         click.echo(f"{len(rows)} guarded; would create {len(rows)} items (dry run)")
         return

@@ -1,9 +1,9 @@
 """Turn one person's extraction into `proposal` rows with a status.
 
-Values are stored in Wikidata's own datavalue shape, so the renderer and a
-later API writer read them unchanged. The status is a comparison against the
-item's non-deprecated claims, recorded together with the revision it was
-computed against: it is a snapshot for `stats`, never a licence to write.
+Values are stored in Wikidata's own datavalue shape, so the plan and the
+verifier read them unchanged. The status is a comparison against the item's
+non-deprecated claims, recorded together with the revision it was computed
+against: it is a snapshot for `report`, never a licence to write.
 
 `positions` become `P39` once reconciliation has given them a QID; the ones it
 refused stay in `extraction.response_json` as the creation queue. `birth_places`
@@ -383,9 +383,7 @@ def overlaps(one: dict[str, Any], other: dict[str, Any]) -> bool:
     """Say whether two tenures of one office can be the same appointment.
 
     An office has one holder at a time, so two overlapping spells of it are one
-    appointment written down twice -- the reasoning `wd/campaign.py`'s
-    `already_under_sibling` applies to a roster row against a sibling item.
-    Both bounds are days a tenure could still cover, so touching counts; a
+    appointment written down twice. Both bounds are days a tenure could still cover, so touching counts; a
     tenure saying nothing overlaps nothing, having no span to intersect.
     """
     first, second = extent(one), extent(other)
@@ -454,9 +452,8 @@ def tenure_status(
 
     An office has one holder at a time, so a proposal overlapping a spell the
     item already records for the *same* office is that one appointment written
-    down twice, dated a few days apart. It is set aside as `OVERLAPPING`, which
-    forfeits nothing: `apply` sees the office value already on the item and
-    drops the proposal's dates anyway. Only the same office is asked -- a
+    down twice, dated a few days apart, and is set aside as `OVERLAPPING`.
+    Only the same office is asked -- a
     tenure overlapping a *different* office is a minister keeping their
     parliamentary seat, and legitimate.
 
@@ -470,7 +467,7 @@ def tenure_status(
     One clash is not a second writing-down but the end the record is missing:
     a recorded open term with the same start, at the precision both share,
     and a proposal that closes it on or before today. That is `refine`, and
-    `apply` merges the `P582` into the statement that is there.
+    the plan merges the `P582` into the statement that is there.
     """
     if not spans:
         return "new"
@@ -581,9 +578,9 @@ def value_key(prop: str, value: dict[str, Any]) -> str:
 def proposal_key(prop: str, value: dict[str, Any], qualifiers: dict[str, Any] | None) -> str:
     """Identify one proposal by its value *and* its qualifiers.
 
-    The value alone stopped identifying a proposal the day two spells of one
-    office became two statements: keyed on it, a person's second term was
-    never inserted once their first carried a verdict. Only the qualifiers
+    Two spells of one office are two statements, so the value alone would
+    let a person's second term go uninserted once their first carried a
+    verdict. Only the qualifiers
     that reach Wikidata count; peploop's own `_` keys are bookkeeping.
     """
     real = {k: v for k, v in (qualifiers or {}).items() if k.startswith("P")}
@@ -592,9 +589,8 @@ def proposal_key(prop: str, value: dict[str, Any], qualifiers: dict[str, Any] | 
 
 #: A row `propose` may not replace: it records something a re-run cannot
 #: reproduce -- a human's ruling, or an edit that has gone out (`sent`), landed
-#: (`applied`) or failed and is not sent again on its own. `exported` is the
-#: paste era's `sent`.
-KEPT_STATUSES = ("applied", "sent", "failed", "exported")
+#: (`applied`) or failed and is not sent again on its own.
+KEPT_STATUSES = ("applied", "sent", "failed")
 #: The provenance prefix `apply` closes an unwritable row under.
 APPLY_DECIDED = "apply:"
 

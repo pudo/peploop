@@ -1,7 +1,7 @@
 """Find the Wikidata item behind an office named in an article.
 
-Round one returns an office as the article writes it — a title, sometimes a
-jurisdiction, dates, quotes. Round two has to turn that into a QID or say it
+Extraction returns an office as the article writes it — a title, sometimes a
+jurisdiction, dates, quotes. Reconciliation turns that into a QID or says it
 cannot, and this module is the half that does not involve a model: it loads a
 country's position items into Postgres and searches them, so the shortlist a
 model eventually picks from is short, legible and ordered.
@@ -305,8 +305,8 @@ def _generic() -> frozenset[str]:
 #: where the office was held, so none is ever a `P39` value, a shortlist row, a
 #: mint duplicate or a "found" office. Never read against a `P279` parent: most
 #: of `offices.ARCHETYPES`' parents are on this list, and a minted mayoralty
-#: subclassing `Q30185` is exactly right. The file is a copy of peptree's
-#: reviewed list; `design.md` says how to refresh it.
+#: subclassing `Q30185` is exactly right. peptree reads the same file; the
+#: evidence for each row is `docs/research/generic_positions.md`.
 GENERIC = _generic()
 
 #: Both properties at every level, matching the crawler that reads these
@@ -1049,10 +1049,9 @@ def fill_counts(
 def uncounted() -> list[str]:
     """The rows `fill_counts` has never answered for.
 
-    Every load since the pilot ran with the counts skipped, so a run
-    country's own offices -- the rows its searches rank first -- had no
-    holder, instance or subclass count, and the `class` signal was silent on
-    them. Counting only these keeps a pass from re-asking the whole corpus.
+    A row with no holder, instance or subclass count leaves the `class`
+    signal silent on it. Counting only these keeps a pass from re-asking the
+    whole corpus.
     """
     rows = db.conn().execute(
         "SELECT qid FROM position WHERE holders_at IS NULL ORDER BY qid"
@@ -1061,9 +1060,8 @@ def uncounted() -> list[str]:
 
 
 #: Chunk size for the backfill below. Half of `VALUES_CHUNK`, and not for the
-#: URI limit: a whole-table pass over the country-holder query is the one
-#: request stage D could not get an answer to, and the query service refused
-#: it with 504s rather than a 414. A smaller chunk is the repo's standing
+#: URI limit: a whole-table pass over the country-holder query is refused
+#: with 504s rather than a 414. A smaller chunk is the repo's standing
 #: answer to a query that times out — bisect it — and it costs only requests.
 BACKFILL_CHUNK = 60
 
@@ -1472,8 +1470,8 @@ def fill_diplomatic(qids: Sequence[str] | None = None,
 def mark_generic(log: Any = lambda _m: None) -> int:
     """Bring `position.generic` in line with `GENERIC`, returning how many rows changed.
 
-    A load sets the flag on what it writes; this is for the rows written
-    before the column existed and after `generic_positions.csv` is refreshed.
+    A load sets the flag on what it writes; this is for the rows loaded
+    before an edit of `generic_positions.csv`.
     A row already right is not touched, so a second call changes nothing.
     """
     changed = db.conn().execute(
@@ -1528,7 +1526,7 @@ WEIGHTS = {
 
 #: A class-like item is one somebody else's item is an instance of, or one
 #: with at least this many children that people are recorded in. Measured,
-#: not declared: see the increment 4 section of `positions.md`.
+#: not declared: `docs/research/peploop_positions.md`.
 HELD_SUBCLASS_FLOOR = 3
 
 #: How many of a state's own citizens have to hold a class-like item before
@@ -1553,10 +1551,10 @@ CONVENTION_FLOOR = 50
 #:     signal column means by `NULL`, and it is the reading that keeps a
 #:     foreign office reachable without letting it win on a borrowed number.
 #: `global`
-#:     What increment 4 shipped. Correct only while the table holds one
+#:     The corpus-wide count. Correct only while the table holds one
 #:     country, because then the largest counts are that country's.
 #: `local_or_global`
-#:     The repair stage D attempted. It cannot be right: the rows with no
+#:     The local count, falling back to the global one. It cannot be right: the rows with no
 #:     local key are exactly the rows another country's load created, so the
 #:     fallback fires on precisely the candidates that need discouraging.
 #: `local_or_zero`
@@ -1918,8 +1916,8 @@ def search(
 def name_sequence(text: str) -> tuple[str, ...]:
     """An office name as its content tokens in written order.
 
-    The order is the point: "ambassador of Germany to Burundi" and "ambassador
-    of Burundi to Germany" share every token and are different offices.
+    The order is the point: "ambassador of Ruritania to Zembla" and "ambassador
+    of Zembla to Ruritania" share every token and are different offices.
     """
     parts = [t for t in re.split(r"[^a-z0-9]+", fold(text)) if t]
     content = tuple(t for t in parts if t not in STOPWORDS)

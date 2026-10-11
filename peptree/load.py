@@ -81,8 +81,8 @@ NOT_A_SEAT: list[tuple[str, set[str]]] = [
 #: reaches it, while a handicraft reaches "position" by its own route.
 EVENT_LIKE = {"Q1190554", "Q186081", "Q2424752"}
 EVENT_STOP = {"Q12737077", "Q28640", "Q4164871", "Q294414", "Q17279032", "Q136649946"}
-#: Generic position classes (`generic_positions.csv`, one never-use class per row).
-GENERIC_PATH = Path(__file__).resolve().parent / "generic_positions.csv"
+#: Generic position classes (one never-use class per row), shared with peploop.
+GENERIC_PATH = Path(__file__).resolve().parent.parent / "peploop" / "generic_positions.csv"
 #: Reached through a declared P31 (not a metaclass), these mean "a body".
 BODY_ROOTS = {"Q43229", "Q495430", "Q6813432"}  # organization, general staff, military staff
 DIPLOMATIC = "Q121998"

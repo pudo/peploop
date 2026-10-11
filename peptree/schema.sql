@@ -1,4 +1,5 @@
--- peptree's own tables. They live in peploop's database and never touch its tables.
+-- peptree's own tables (`ptree_*`), in peploop's database. What peptree sends goes
+-- through the joint send ledger (`wd_*`, peploop/schema.sql).
 
 -- Class-level reads that are not "what does Wikidata hold now": the place
 -- gazetteer, class labels, Wikipedia leads, the closure's upper edges.

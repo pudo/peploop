@@ -180,7 +180,7 @@ class Candidate:
 
 @dataclass
 class Mention:
-    """An office as round one wrote it, with what attests to it."""
+    """An office as extraction wrote it, with what attests to it."""
 
     title: str
     jurisdiction: str | None = None
@@ -242,11 +242,10 @@ class OfficeVerdict(Strict):
 def verdict_schema() -> type[OfficeVerdict]:
     """The answer shape, the same for every request.
 
-    The closed set is `settle`'s guarantee and not the schema's. It used to
-    be both: `qid` was a `Literal` over the offered QIDs, built per request.
-    That put the shortlist inside the cached prefix, so every request wrote
-    3.5k tokens of cache and read none; one shape for all requests reads the
-    prompt back from cache from the second request on.
+    The closed set is `settle`'s guarantee and not the schema's: a schema
+    closing `qid` over the offered QIDs would put the shortlist inside the
+    cached prefix and defeat the prompt cache, while one shape for all
+    requests reads the prompt back from cache from the second request on.
     """
     return OfficeVerdict
 
@@ -659,7 +658,7 @@ def retrieve(
     Two channels when the title's English name is cached (`titles`): its
     search, with exact-name hits first, fills the first `CANON_TOP`, and the
     search for the title as written fills the rest. With no cached name it is
-    the lexical search alone, as before the channel existed. Only the cache is
+    the lexical search alone. Only the cache is
     read, so the shortlist is reproducible and no model is called here.
 
     The name is stored on the verdict (`resolution.retrieval`): the ledger's

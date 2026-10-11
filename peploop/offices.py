@@ -577,8 +577,8 @@ def seat_parent(label: str, siblings: Siblings, allowed: Collection[str], min_ag
                 share: float = 2 / 3) -> str | None:
     """The `P279` the state's offices of the same seat agree on, when it is an allowed kind.
 
-    The same seat is read off the label, as `sibling_form` reads it: Jamaica's
-    ten "Minister of State at the Ministry of X" all subclass minister, which
+    The same seat is read off the label, as `sibling_form` reads it: a state's
+    ten "Minister of State at the Ministry of X" may all subclass minister, which
     the archetype tally files under `minister` and so cannot offer to a new
     minister of state. None unless at least `min_agree` such offices exist and
     `share` of them declare one kind among `allowed`.

@@ -416,24 +416,24 @@ def main() -> int:
            "minister of state in the government of Aland", "described by the state it serves")
 
     print("a label worded as the state's own offices are:")
-    jamaica = [f"Minister of State at the Ministry of {x}" for x in ("Finance", "Health", "Transport")]
-    jamaica += ["Minister of State at the Office of the Prime Minister", "Minister of Finance"]
-    expect(offices.sibling_form("Minister of State in the Ministry of Education", jamaica),
+    ruritania = [f"Minister of State at the Ministry of {x}" for x in ("Finance", "Health", "Transport")]
+    ruritania += ["Minister of State at the Office of the Prime Minister", "Minister of Finance"]
+    expect(offices.sibling_form("Minister of State in the Ministry of Education", ruritania),
            "Minister of State at the Ministry of Education",
            "the siblings' preposition replaces the article's")
-    expect(offices.sibling_form("Minister of State in the Office of the Prime Minister", jamaica),
+    expect(offices.sibling_form("Minister of State in the Office of the Prime Minister", ruritania),
            "Minister of State at the Office of the Prime Minister", "for an office as for a ministry")
-    expect(offices.sibling_form("Parliamentary Secretary in the Ministry of Education", jamaica),
+    expect(offices.sibling_form("Parliamentary Secretary in the Ministry of Education", ruritania),
            "Parliamentary Secretary in the Ministry of Education",
            "another seat's siblings say nothing about this one's wording")
-    expect(offices.sibling_form("Minister of State in the Ministry of Education", jamaica[:1]),
+    expect(offices.sibling_form("Minister of State in the Ministry of Education", ruritania[:1]),
            "Minister of State in the Ministry of Education", "one sibling is not agreement")
-    split = jamaica[:2] + ["Minister of State in the Ministry of Labour"] * 2
+    split = ruritania[:2] + ["Minister of State in the Ministry of Labour"] * 2
     expect(offices.sibling_form("Minister of State in the Ministry of Education", split),
            "Minister of State in the Ministry of Education", "nor is a split")
-    expect(offices.sibling_form("Minister of Education", jamaica), "Minister of Education",
+    expect(offices.sibling_form("Minister of Education", ruritania), "Minister of Education",
            "and a label that attaches to no ministry is kept as it is")
-    kinded = Siblings(label_kinds={label: ["Q83307"] for label in jamaica[:4]})
+    kinded = Siblings(label_kinds={label: ["Q83307"] for label in ruritania[:4]})
     allowed = offices.ARCHETYPES["minister_of_state"].parents
     expect(offices.seat_parent("Minister of State at the Ministry of Education", kinded, allowed), "Q83307",
            "the kind the state's own ministers of state agree on is the new one's")

@@ -1,6 +1,6 @@
 """Ask a second model whether one proposed edit is what the article says.
 
-Reach for this after the policy has run and before `apply` writes: it is the
+Reach for this after the policy has run and before `send` writes: it is the
 last gate, and the only one that reads. The extractor read the article and
 wrote a value; the reconciler placed an office; the policy ruled out what a
 rule could rule out. What is left is a proposal that looks right by every

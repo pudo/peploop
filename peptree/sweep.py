@@ -25,17 +25,15 @@ from peptree import qs, repair, wd
 
 LEDGER = Path(__file__).resolve().parent / "sweep.md"
 BATCH_SIZE = 5
-#: OECD members, each a batch of its own, smallest first by direct position items
-#: (2026-10-07: Costa Rica 53 … Spain 13,312; France timed out and goes last), so the
-#: method is tuned on a small state before a large municipal set costs anything.
+#: OECD members, each a batch of its own, smallest first by direct position items,
+#: so the method is tuned on a small state before a large municipal set costs anything.
 OECD = tuple("cr si lv is sk co cz lt ie at il cl lu ee nz tr pl fi mx hu kr gr pt dk ch no be au"
              " it ca se gb de us nl jp es fr".split())
 #: Codes rigour gives places with no government of their own to hold office in: the
 #: uninhabited, a military base, a region of an OECD state, and the non-places.
 NO_OFFICES = frozenset("aq bv cp dg hm ic ip tf um zz eu un".split())
-#: Items with a gap above which a place's repair waits for a decision: Brazil's
-#: 5,056 would have cost $100-200 before the type/class swap was understood. The
-#: repair itself then asks only about held or categorised items (`repair.focus`).
+#: Items with a gap above which a place's repair waits for the user's call on
+#: cost; it then asks only about held or categorised items (`repair.focus`).
 LARGE = repair.LARGE
 #: `place`'s exit code for a place it stopped before the repair because it is large.
 LARGE_EXIT = 3
@@ -73,7 +71,7 @@ def write(rows: list[dict[str, str]]) -> Path:
             "Every country and territory: non-OECD places in batches of five by region, OECD members "
             "in batches of one, smallest first. Status is "
             "`pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are "
-            "written by hand and survive `sweep table`; `batches` are the QS batches its lines went out in (paste-era chunks as 001-064, then QS3 batch ids).", "",
+            "written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.", "",
             "Progress: " + ", ".join(f"{k} {n}" for k, n in sorted(done.items())), "",
             "| " + " | ".join(COLUMNS) + " |", "|" + "---|" * len(COLUMNS)]
     body = ["| " + " | ".join(r.get(c, "").replace("|", "/") for c in COLUMNS) + " |" for r in rows]

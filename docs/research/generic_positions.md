@@ -5,7 +5,7 @@ This is the evidence for marking classes like `Q83307` minister, `Q30185` mayor 
 subclass of `Q136649946`, added as an extra `P31`. These items are used as the
 *value* of `P39` but name no jurisdiction, so a holder statement pointing at one
 says nothing about where the office was held. The list itself is
-`peptree/generic_positions.csv`. Consumers can read that file until the Wikidata
+`peploop/generic_positions.csv`. Consumers can read that file until the Wikidata
 marker exists.
 
 **Measured 2026-10-04** against live WDQS and `wbgetentities`. Usage counts use
@@ -196,7 +196,7 @@ SELECT ?item WHERE {
 ```
 
 The list is about 250 items, small enough to load once per run as a set. Until
-`Q_NEW` exists, `peptree/generic_positions.csv` is that set.
+`Q_NEW` exists, `peploop/generic_positions.csv` is that set.
 
 Where it plugs in:
 - **zavod, `wikidata_position`.** Return early on a direct hit. Leave

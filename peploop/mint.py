@@ -1653,7 +1653,7 @@ def _run_labels(cand: Candidate) -> list[str]:
 #: the acting holder, the substitute, the co-judge, the deputy. Such a title
 #: still attests the office's existence, but as an alias it would name a
 #: different seat and let a later search place its holders here. Matched on
-#: folded text, so the Russian and Belarusian acting forms ("исполняющий
+#: folded text, so the East Slavic acting forms ("исполняющий
 #: обязанности", "врио", "и. о.", "выконваючы абавязкі") and deputy forms
 #: ("заместитель", "намеснік", "заступник") are matched transliterated.
 ACTING = re.compile(

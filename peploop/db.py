@@ -30,9 +30,8 @@ def conn() -> psycopg.Connection:
     return existing
 
 
-#: The advisory lock schema.sql is applied under. Every CLI start used to run
-#: the file's two dozen `ALTER`s, each an `AccessExclusiveLock`, and two
-#: commands started together deadlocked on them.
+#: The advisory lock schema.sql is applied under: its `ALTER`s each take an
+#: `AccessExclusiveLock`, and two commands started together would deadlock.
 SCHEMA_LOCK = "peploop-schema"
 
 

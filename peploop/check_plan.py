@@ -108,7 +108,6 @@ def main() -> int:
            "with the wiki, the permanent revision url and the day it was read")
     url = made[0]["references"][0]["snaks"]["P4656"][0]["datavalue"]["value"]
     expect("oldid=7" in url, True, "and the url names the revision, not the page")
-    expect(plan.baserevid, 4242, "against the revision the decision was made on")
     expect("position" in plan.summary and "aa.wikipedia" in plan.summary, True,
            "and a summary naming the property and the wiki")
 
@@ -252,7 +251,7 @@ def main() -> int:
     expect(dict(plan.routes), {"conflict": 1}, "is a human's to-do, not an edit")
     expect(plan.data, {}, "and nothing is sent")
     expect([reason for _id, reason in plan.skipped], ["conflict"],
-           "and the row is closed, so a drainer does not select it forever")
+           "and the row is closed, so a send does not select it forever")
 
     print("a label accepted before the lane was removed:")
     live = {"lastrevid": 1, "claims": {}, "labels": {}}
