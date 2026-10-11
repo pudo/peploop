@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
-Progress: pending 8, reviewed 191, skipped 1, submitted 48
+Progress: pending 7, reviewed 191, run 1, skipped 1, submitted 48
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | batches | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -104,7 +104,7 @@ Progress: pending 8, reviewed 191, skipped 1, submitted 48
 | ni | Nicaragua | Americas / Central America | 14 | reviewed | 2026-10-07 | 33 | 0 |  | $0.24 | 003 |  |
 | pa | Panama | Americas / Central America | 14 | reviewed | 2026-10-07 | 35 | 0 |  | $0.12 | 003 |  |
 | bm | Bermuda | Americas / Northern America | 15 | reviewed | 2026-10-07 | 35 | 0 |  | $0.04 | 004 |  |
-| ca | Canada | Americas / Northern America | 67 | pending |  |  |  |  |  |  |  |
+| ca | Canada | Americas / Northern America | 67 | run | 2026-10-11 | 803 | 127 | P1001 39 P17 32 P279 29 P31 27 | $7.31 |  |  |
 | gl | Greenland | Americas / Northern America | 15 | reviewed | 2026-10-07 | 25 | 0 |  | $0.18 | 004 | P17 Greenland: treated as a country (user, 2026-10-05) |
 | pm | Saint Pierre and Miquelon | Americas / Northern America | 15 | reviewed | 2026-10-06 | 3 | 0 |  | $0.00 |  | no offices to repair |
 | us | United States | Americas / Northern America | 71 | pending |  |  |  |  |  |  |  |
@@ -211,7 +211,7 @@ Progress: pending 8, reviewed 191, skipped 1, submitted 48
 | gi | Gibraltar | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 18 | 1 | P31 1 | $0.04 | 035 |  |
 | gr | Greece | Europe / Southern Europe | 59 | reviewed | 2026-10-08 | 422 | 57 | P1001 14 P17 7 P279 32 P31 4 | $3.76 | 059 | 28 deputy ministries get Q26204040 beside Greek Deputy Minister Q23636253, which itself reaches only Q15735113: that class wants P279 deputy minister (human) |
 | va | Holy See | Europe / Southern Europe | 29 | reviewed | 2026-10-06 | 217 | 2 | P31 2 | $5.56 | 024 035 |  |
-| it | Italy | Europe / Southern Europe | 66 | reviewed | 2026-10-11 | 1358 | 95 | P1001 9 P17 31 P279 9 P31 46 | $6.87 |  | re-filtered with own-language level words (1 kind changed); strike Q134969369 P1001 (a class), Q54925403 P1001 (titular see), Q3911030 P31 (class of region presidents), Q136788434 P31 (CV entry) |
+| it | Italy | Europe / Southern Europe | 66 | reviewed | 2026-10-11 | 1504 | 195 | P1001 10 P17 71 P279 9 P31 105 | $13.20 |  | re-filtered: own-language level words, Catholic sees kept (+146 items, +100 lines); strike Q134969369 P1001 (a class), Q54925403 + Q115986260 P1001 (titular sees), Q3911030 P31 (class of region presidents), Q136788434 P31 (CV entry) |
 | xk | Kosovo | Europe / Southern Europe | 29 | reviewed | 2026-10-07 | 44 | 0 |  | $0.40 | 024 |  |
 | mt | Malta | Europe / Southern Europe | 29 | reviewed | 2026-10-07 | 63 | 0 |  | $0.41 | 024 035 |  |
 | me | Montenegro | Europe / Southern Europe | 30 | reviewed | 2026-10-07 | 51 | 0 |  | $0.32 | 025 |  |
@@ -227,7 +227,7 @@ Progress: pending 8, reviewed 191, skipped 1, submitted 48
 | mc | Monaco | Europe / Western Europe | 31 | reviewed | 2026-10-07 | 24 | 0 |  | $0.27 | 026 |  |
 | nl | Netherlands | Europe / Western Europe | 72 | pending |  |  |  |  |  |  |  |
 | ch | Switzerland | Europe / Western Europe | 62 | submitted | 2026-10-08 | 592 | 25 | P1001 9 P17 9 P279 3 P31 4 | $2.08 | 59044 |  |
-| au | Australia | Oceania / Australia and New Zealand | 65 | reviewed | 2026-10-11 | 1164 | 88 | P1001 9 P17 20 P279 44 P31 15 | $6.99 |  | UK of GB and Ireland is no predecessor (its offices loaded as Australia's); NSW subdivision query as FILTER; PM was subnational via Swedish 'premiärminister', level words now own-language only; strike Q5261060 P279 Q877955 (deputy premier), Q135293478 P17 + Q135293462/Q135293464 P31 (CV entries), Q19647325 P1001 (sports body) |
+| au | Australia | Oceania / Australia and New Zealand | 65 | reviewed | 2026-10-11 | 1166 | 88 | P1001 9 P17 20 P279 44 P31 15 | $6.99 |  | UK of GB and Ireland is no predecessor (its offices loaded as Australia's); NSW subdivision query as FILTER; PM was subnational via Swedish 'premiärminister', level words now own-language only; strike Q5261060 P279 Q877955 (deputy premier), Q135293478 P17 + Q135293462/Q135293464 P31 (CV entries), Q19647325 P1001 (sports body) |
 | cx | Christmas Island | Oceania / Australia and New Zealand | 32 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | cc | Cocos (Keeling) Islands | Oceania / Australia and New Zealand | 37 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | nz | New Zealand | Oceania / Australia and New Zealand | 52 | reviewed | 2026-10-08 | 262 | 62 | P1001 20 P17 15 P279 27 | $2.58 | 052 |  |
