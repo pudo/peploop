@@ -249,10 +249,8 @@ with no `P39` anywhere on the person, which no re-pairing rule can reach.
 
 ```
 python -m peploop.cli load-positions --country cz     # discovery, fetch, upsert
-python -m peploop.cli position-signals --country cz   # the ranking columns
-python -m peploop.cli position-signals --country cz --local-holders   # just that state's count
 python -m peploop.cli position-stats                  # what the table holds
-python -m peploop.cli reconcile --country cz          # the second turn, over a run
+python -m peploop.cli reconcile --country cz          # the ranking columns, then the second turn, over a run
 python scripts/position_fixture.py                    # rebuild the silver set
 python scripts/position_bench.py --country cz --signals all
 python -m peploop.check_neutral                       # no country token in peploop/*.py

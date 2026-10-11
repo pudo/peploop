@@ -289,7 +289,16 @@ def extract(qid: Sequence[str], country: str | None) -> None:
 @click.option("--qid", multiple=True, help="Propose for these people instead of the whole run.")
 @country_option
 def propose(qid: Sequence[str], country: str | None) -> None:
-    """Turn each extracted person's answer into proposals, and status them."""
+    """Turn each extracted person's answer into proposals, then decide every one by rule.
+
+    The decision is the policy: accepted, skipped, or pending the verifier. It
+    reads each person's `new` and `refine` rows -- and whatever it decided last
+    time, so a rule change is one re-run -- and never a row a human ruled on or
+    that went out. It is local and re-derived on every run, so it is part of
+    proposing rather than a stage of its own; the report ends with the funnel,
+    per property, of which rule took each row. `report --country <cc> funnel`
+    shows the same without writing.
+    """
     qids = _select(qid, ("extracted", "proposed"), country)
     if not qids:
         click.echo("nothing extracted")
@@ -298,6 +307,8 @@ def propose(qid: Sequence[str], country: str | None) -> None:
         click.echo(_propose_one(person_qid)[1])
     if country:
         _echo_property_counts(country)
+    for line in _funnel(_select(qid, ("proposed",), country), write=True):
+        click.echo(line)
 
 
 def _echo_property_counts(country: str) -> None:
@@ -524,23 +535,6 @@ def _funnel(people: Sequence[str], write: bool) -> list[str]:
     return policy.report_lines(funnel, labels) + [f"{len(people)} people, {verb}"]
 
 
-@cli.command("policy")
-@click.option("--qid", multiple=True, help="Decide these people instead of a run's.")
-@country_option
-def policy_(qid: Sequence[str], country: str | None) -> None:
-    """Decide every proposal by rule: accepted, skipped, or pending the verifier.
-
-    Reads each person's `new` and `refine` rows -- and whatever the policy
-    itself decided last time, so a rule change is one re-run -- and never a
-    row a human ruled on or `apply` has written. The report is the funnel:
-    per property, how many rows entered and which rule took each of them.
-    Writing is the only mode, because the decisions are local and re-derived
-    on every run; `report --country <cc> funnel` shows them without writing.
-    """
-    for line in _funnel(_select(qid, ("proposed",), country), write=True):
-        click.echo(line)
-
-
 def _pending_people(qid: Sequence[str], country: str | None) -> list[str]:
     """The people with a proposal the policy has held for the verifier."""
     if qid:
@@ -673,8 +667,13 @@ def reconcile(country: str) -> None:
     the shortlist reads; a title already cached is never asked again. Last,
     every refusal whose shortlist now offers an item it did not is asked once
     more, because a retrieval change alters no key the ledger reads.
+
+    Before any of it, the positions' ranking signals are filled (`_signals`):
+    they read the item table, which only `fetch` fills, and they count only
+    what has no count yet, so on a re-run they cost nothing.
     """
     state_qid = positions.country_qid(country)
+    _signals(state_qid)
     _translate_titles(state_qid, country)
     work = _mentions_for(country)
     if work:
@@ -806,24 +805,19 @@ def load_positions(country: str) -> None:
     )
 
 
-@cli.command("position-signals")
-@click.option("--country", required=True, help="ISO code of the country to count.")
-def position_signals(country: str) -> None:
-    """Fill the ranking signals for one country's positions, after `fetch`.
+def _signals(state_qid: str) -> None:
+    """Fill the ranking signals the shortlist reads, for rows that have none yet.
 
-    Separate from the load because the scope qualifiers read the item table,
-    which only `fetch` fills. Every pass counts only what has no count yet:
-    the whole-corpus counts for rows no load has counted (a newly loaded
-    country's own, a minted item), and this state's citizens among the
-    holders of rows that have no number for it. A recount of rows already
-    counted is `positions.fill_counts` with no `qids`, called by hand.
+    The whole-corpus counts for rows no load has counted (a newly loaded
+    country's own, a minted item), and this state's citizens among the holders
+    of rows that have no number for it. A recount of rows already counted is
+    `positions.fill_counts` with no `qids`, called by hand.
     """
-    qid = positions.country_qid(country)
     uncounted = positions.uncounted()
     if uncounted:
-        timings = positions.fill_counts(qid, uncounted, log=click.echo)
+        timings = positions.fill_counts(state_qid, uncounted, log=click.echo)
         click.echo(f"counts for {len(uncounted)} uncounted rows in {sum(timings.values()):.0f}s")
-    positions.fill_local_holders(qid, only_missing=True, log=click.echo)
+    positions.fill_local_holders(state_qid, only_missing=True, log=click.echo)
     positions.fill_scope_qualifiers(log=click.echo)
     positions.fill_diplomatic(log=click.echo)
     positions.mark_generic(log=click.echo)
@@ -963,53 +957,37 @@ def report(sections: Sequence[str], country: str) -> None:
 # P39 had anywhere to go.
 
 
-@cli.command("mint-categorize")
-@click.option("--country", required=True, help="ISO code of the country to categorize.")
-def mint_categorize(country: str) -> None:
-    """Cluster a country's unplaced offices into candidates, and draft each one."""
-    stats = mint.categorize(country, log=click.echo)
-    stats.pop("clusters", None)
-    stats.pop("truncated", None)
-    click.echo(json.dumps(stats, sort_keys=True))
-
-
-@cli.command("mint-verify")
-@click.option("--country", required=True, help="ISO code of the country to verify.")
-def mint_verify(country: str) -> None:
-    """Ask the second model about each categorized office, and decide each by rule.
-
-    Ends by writing the mint report to `data/mint/<cc>.md`, the checkpoint
-    every run read next: the funnel by rule, every guarded row with its
-    payload's labels, every found row, the skips and the cost.
-    """
-    stats = mint.verify(country, threads=VERIFY_THREADS, log=click.echo)
-    for (status, rule), n in sorted((stats.get("funnel") or {}).items(), key=lambda kv: -kv[1]):
-        click.echo(f"{n:5d}  {status:10s} {rule}")
-    click.echo(json.dumps({k: v for k, v in stats.items() if k not in ("funnel", "decided") and _jsonable(v)},
-                          sort_keys=True, default=str))
-    out = MINT_REPORT_DIR / f"{country}.md"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(minting.report(country))
-    click.echo(f"{out} written")
-
-
-def _jsonable(value: Any) -> bool:
-    return isinstance(value, (str, int, float, bool, list, dict, type(None)))
-
-
 @cli.command("mint")
 @click.option("--country", required=True, help="ISO code of the country to mint for.")
 @click.option("--limit", default=None, type=int, help="Create at most this many items.")
 @click.option("--write", is_flag=True, help="Create the items; without it nothing leaves here.")
 def mint_(country: str, limit: int | None, write: bool) -> None:
-    """Create each guarded office as a Wikidata item, then feed it back into the run.
+    """Find the offices a country's P39s had nowhere to go, decide each, and create the guarded ones.
 
-    A dry run by default: it prints each guarded payload with the labels of
-    every item it names, and writes nothing anywhere. `--write` logs in, takes
-    the country's writer lock, resolves any creation a crash left behind, and
-    then creates one item every ten seconds, re-checking each live first and
-    feeding it into the position table and the mentions it was attested by.
+    Runs when the reconciler's refusals name offices Wikidata lacks; a run
+    with none skips it. Categorize clusters the misses and the census into
+    candidate offices, verify asks a second model about each and decides it by
+    rule, then the report is written to `data/mint/<cc>.md` and every item the
+    decision found already existing is fed into the run. Both model passes are
+    ledgered, so a re-run asks only what is new.
+
+    A dry run by default: it ends by printing each guarded payload with the
+    labels of every item it names. `--write` takes the country's writer lock,
+    resolves any creation a crash left behind, and creates each guarded item,
+    re-checking it live first and feeding it into the position table and the
+    mentions it was attested by.
     """
+    stats = mint.categorize(country, log=click.echo)
+    click.echo("categorize: " + json.dumps({k: v for k, v in stats.items() if k not in ("clusters", "truncated")},
+                                           sort_keys=True))
+    stats = mint.verify(country, threads=VERIFY_THREADS, log=click.echo)
+    for (status, rule), n in sorted((stats.get("funnel") or {}).items(), key=lambda kv: -kv[1]):
+        click.echo(f"{n:5d}  {status:10s} {rule}")
+    out = MINT_REPORT_DIR / f"{country}.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(minting.report(country))
+    click.echo(f"{out} written")
+    click.echo(minting.feed(country, log=click.echo).line())
     if not write:
         rows = minting.guarded(country, limit)
         for cand in rows:
@@ -1046,13 +1024,6 @@ def mint_(country: str, limit: int | None, write: bool) -> None:
             if after[0] in minting.FEEDABLE:
                 click.echo("  " + minting.feed(country, [cand["id"]], log=click.echo).line())
     click.echo(f"{country}: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
-
-
-@cli.command("mint-feed")
-@click.option("--country", required=True, help="ISO code of the country to feed.")
-def mint_feed(country: str) -> None:
-    """Load every created or found item and re-ask the mentions it was attested by."""
-    click.echo(minting.feed(country, log=click.echo).line())
 
 
 def _read_ids(handle: Any) -> list[int]:

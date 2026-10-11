@@ -115,15 +115,10 @@ seed --country <cc>                  # the categories of seeds/<cc>.yml
 load-positions --country <cc>        # every discovery lane; network only, beside fetch
 fetch --country <cc>                 # items, the scope gate, then every sitelinked article
 extract --country <cc>               # one request per person, Sonnet
-position-signals --country <cc>      # after fetch: uncounted rows, local holders, scope, diplomatic, generic
-reconcile --country <cc>             # English titles, one request per office mention, then the refusals whose list gained
-mint-categorize --country <cc>       # cluster the misses and the census into offices, Sonnet
-mint-verify --country <cc>           # one request per office that clears the floor, Opus; writes data/mint/<cc>.md
-mint --country <cc>                  # dry: every guarded payload with its labels
+reconcile --country <cc>             # ranking signals, English titles, one request per office mention, then the refusals whose list gained
+mint --country <cc>                  # categorize (Sonnet), verify (Opus), data/mint/<cc>.md, feed `found`; dry: every guarded payload
 mint --country <cc> --write          # creates and feeds each item
-mint-feed --country <cc>             # feeds the `found` rows
-propose --country <cc>               # P39 rows appear only now
-policy --country <cc>                # decides every row; prints the funnel
+propose --country <cc>               # P39 rows appear only now; ends by deciding every row and printing the funnel
 verify --country <cc>                # one request per pending row, Opus; ends with the policy's funnel
 apply --country <cc>                 # dry: the payloads, after a live pre-flight
 apply --country <cc> --write --limit 3   # on the user's go
@@ -140,7 +135,7 @@ policy reads (a rejection skips the row; nothing is accepted by it).
 
 Every stage works through its whole selection at a fixed concurrency, and
 takes `--qid` to run named people instead. `fetch` and `load-positions` are
-network only and run side by side. `position-signals` counts holders,
+network only and run side by side. `reconcile` first counts holders,
 instances and subclasses only for rows no pass has counted, so the first
 country after this rule pays once for every row loaded with the counts
 skipped (16,625 of 17,686 when it was written), and later countries pay for
@@ -149,7 +144,7 @@ the ledger asks only the failures.
 
 The mint stage sits between `reconcile` and `propose` because its input is the
 reconciler's refusals and its output is items those refusals can now land on.
-Write `census/<cc>.yml` before `mint-categorize`: the offices the country has
+Write `census/<cc>.yml` before `mint`: the offices the country has
 whether or not a seeded article named them, by institution class of
 `recipes/institutions.md`, each with its body QID and, optionally, an
 official source. An entry is a prompt for the offices nobody's article names
@@ -159,9 +154,9 @@ not. Its bodies come from measurement (`research/position_items.md` §10 is
 the template), never from memory; `census/cu.yml` is the first. A census
 entry nobody's article attests is skipped, so the file says what must exist
 and the seeds still decide what gets made. `mint --write` feeds each item as
-soon as it is created; `mint-feed` feeds the rows `mint-verify` decided
-`found` -- an item that already existed -- which `mint` does not select, and
-repairs a feed a crash or a propose failure cut short. Both are idempotent.
+soon as it is created; every `mint` run, dry or not, feeds the rows verify
+decided `found` -- an item that already existed -- and repairs a feed a crash
+or a propose failure cut short. The feed is idempotent.
 `audit candidate <id> --country <cc> --reason … --by <name>` skips a row
 after the fact; there is no approve.
 
@@ -180,11 +175,10 @@ connection error or a `maxlag` wait is a retry, not a bug.
 | `load-positions` | items loaded per lane; the duplicate pairs from §1 and which twin is used | go on |
 | `extract` | `report people`: people per status (how many the scope gate discarded), token total | go on |
 | `reconcile` | verdicts by kind; the creation queue (`resolution` rows with a null `qid`) by office title; where the incumbents' offices landed | go on |
-| `mint-categorize` | candidates per institution class; the groups no office took (`office_unassigned`) and why | go on |
-| `mint-verify` | `data/mint/<cc>.md` (`report mint`): the funnel by rule, then every `guarded` row with its payload's labels and every `found` row with the item it names | first runs: **stop and show it** |
+| `mint` (dry) | candidates per institution class and the groups no office took (`office_unassigned`); `data/mint/<cc>.md` (`report mint`): the funnel by rule, then every `guarded` row with its payload's labels and every `found` row with the item it names | first runs: **stop and show it** |
 | `mint --write --limit 1` | the item on Wikidata; the feed line (attestations `retrieved`, reopened verdicts by kind); the `P39` rows `propose` made on it | first runs: **only on the user's go** |
 | `mint --write` | created, found at the re-check, failed; a re-run creates nothing | go on to `propose` |
-| `policy` | the funnel, per property, rule by rule (`report funnel` reprints it) | **stop and show it**: `verify` is the next spend |
+| `propose` | the funnel it ends with, per property, rule by rule (`report funnel` reprints it) | **stop and show it**: `verify` is the next spend |
 | `verify` | verdicts by kind and the funnel it ends with; every refusal class read by the observer; doubtful `supported` rows listed | go on to `apply` |
 | `apply --write --limit 3` | the three diffs | **only on the user's go** |
 | the drain | the batch id, statements per property, people written | the audit |
@@ -198,10 +192,9 @@ The two mint stops are development checkpoints, held while the stage is new
 (Cuba, then one more country), not gates in the runtime: nothing in `mint`
 waits on a human. Creating an item is the one write peploop cannot take back
 by editing, so for those runs an observer reads the skips and the guarded rows
-after `mint-verify`, and each class it finds wrong becomes a rule in
+after the dry `mint`, and each class it finds wrong becomes a rule in
 `mint.RULES` with a case in `check_mint` -- never a ruling on a row. Once the
-stage has run clean on two countries, `mint-categorize`, `mint-verify` and
-`mint --write` run back to back as one step, and what is shown is the funnel
+stage has run clean on two countries, `mint --write` runs as one step, and what is shown is the funnel
 number first (offices created and found against candidates), then the report.
 
 The funnel's usual shape (Slovenia, 960 `P39` rows in): about 60% reach the

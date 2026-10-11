@@ -268,7 +268,7 @@ proposed; birthplace is not started. `positions.md` is the design and
   `peptree/generic_positions.csv` (the evidence is
   `research/generic_positions.md`), cut to `qid,label,reason`, because peploop
   imports nothing from outside itself. To refresh it, re-copy those three
-  columns and run `position-signals` once, which syncs `position.generic`
+  columns and run `reconcile` once, which syncs `position.generic`
   (`positions.mark_generic`). It blocks four uses and nothing else:
   the search leaves flagged rows out of every shortlist, the policy skips a `P39`
   onto one as `office/generic`, and mint never takes one as a duplicate or a
@@ -681,14 +681,9 @@ seed             --country cc
 load-positions   --country cc
 fetch            --country cc | --qid Q...
 extract          --country cc | --qid Q...
-position-signals --country cc
 reconcile        --country cc
-mint-categorize  --country cc
-mint-verify      --country cc
 mint             --country cc [--write] [--limit N]
-mint-feed        --country cc
 propose          --country cc | --qid Q...
-policy           --country cc | --qid Q...
 verify           --country cc | --qid Q...
 apply            --country cc [--qid Q...] [--write] [--limit N]
 
@@ -703,17 +698,20 @@ concurrency per stage, and needs `--country` or `--qid`: without one it would
 take every country's people. `--country` is a filter over `person.country`
 and never reaches a stage -- the unit of work stays one person -- and `--qid`
 overrides it, because naming someone is the answer to "this one" rather than
-to "the whole run". The `mint*` commands and `reconcile` take the country as
+to "the whole run". `mint` and `reconcile` take the country as
 their unit, since the queue and the shortlist's ranking are a country's.
 
 Two commands write to Wikidata, `mint` and `apply`, and both are dry runs
 unless `--write`; both take the country's writer lock (`peploop:<cc>`), and
 `--limit` on either is the first-writes gate. `apply --write` drains the run
 in one process and one EditGroups batch, waiting out lag; §7 has the routing.
-`mint` feeds each item it creates; `mint-feed` feeds the `found` rows and is
+`mint` categorizes, verifies, writes `data/mint/<cc>.md` and feeds the
+`found` rows on every run, then feeds each item it creates; the feed is
 idempotent.
 
-`reconcile` first caches an English name for every mention title of the run
+`reconcile` first fills the ranking signals for rows that have none (the
+counts only for rows no pass has counted, and the local signals), then caches
+an English name for every mention title of the run
 (`titles.py`, the second search channel), then resolves each mention to a
 position item or refuses, one request per mention against
 `prompts/reconcile.md`; `positions.md` has the whole of it. The country's
@@ -726,12 +724,11 @@ change alters no key the ledger reads, so without this a better search would
 never reach a mention already refused. Each mention is re-asked once per tag
 (`PEPLOOP_REASK_SCOPE=stranded` limits it to people with no `P39` and nothing
 placed). `load-positions` runs every discovery lane and gives a
-label-less office its English name; `position-signals` fills the counts only
-for rows no pass has counted, and the local signals.
+label-less office its English name.
 
-`policy` decides every row and prints the funnel; `verify` asks about the
-`pending` rows and ends with the policy and its funnel, so the two never need
-chaining by hand. `mint-verify` writes `data/mint/<cc>.md`. `report` prints
+`propose` ends by deciding every row and printing the funnel; `verify` asks
+about the `pending` rows and ends with the policy and its funnel, so the policy
+never runs by hand. `report` prints
 any checkpoint's numbers and writes nothing; `funnel` is what the rules would
 decide now. `audit` is the only way to take a row out by hand -- a proposal
 audit is a verdict as well as a skip, which a re-propose keeps -- and there
