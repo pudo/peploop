@@ -91,8 +91,10 @@ class Run:
         sender = wd.sparql(f"SELECT ?cls WHERE {{ ?cls wdt:P279 wd:Q29645880 ; wdt:P17 wd:{self.country.qid} }}")
         self.sender_class = sender[0]["cls"] if sender else None
         # The country's own P279 conventions: values two or more kept items use.
+        # Ties go by QID: the list is part of the request, and an order that
+        # varies with the process's hash seed re-keys the call cache.
         used = Counter(v for it in self.items for v in set(values(it["entity"], "P279")))
-        self.country_p279 = [q for q, n in used.most_common() if n >= 2]
+        self.country_p279 = [q for q, n in sorted(used.items(), key=lambda kv: (-kv[1], kv[0])) if n >= 2]
         self.cat_classes = {c["key"]: set(c["class_qids"]) for c in self.ctx.cats}
         all_classes = [q for c in self.ctx.cats for q in c["class_qids"]]
         pool = BASE_P279 + all_classes + self.country_p279 + ([self.sender_class] if self.sender_class else [])
