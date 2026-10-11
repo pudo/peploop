@@ -14,16 +14,14 @@ closure over them: the hierarchy is polluted, so a `P279*` walk alone never
 decides that something is an office.
 """
 
-import csv
 import re
 from collections import Counter
-from pathlib import Path
 from typing import Any, Callable
 
 import requests
 from psycopg.types.json import Jsonb
 
-from peploop import memo, typegraph
+from peploop import memo, positions, typegraph
 from peploop.tree import country as countries
 from peploop.tree import wd
 
@@ -82,8 +80,6 @@ NOT_A_SEAT: list[tuple[str, set[str]]] = [
 #: reaches it, while a handicraft reaches "position" by its own route.
 EVENT_LIKE = {"Q1190554", "Q186081", "Q2424752"}
 EVENT_STOP = {"Q12737077", "Q28640", "Q4164871", "Q294414", "Q17279032", "Q136649946"}
-#: Generic position classes (one never-use class per row), shared with peploop.
-GENERIC_PATH = Path(__file__).resolve().parents[1] / "generic_positions.csv"
 #: Reached through a declared P31 (not a metaclass), these mean "a body".
 BODY_ROOTS = {"Q43229", "Q495430", "Q6813432"}  # organization, general staff, military staff
 DIPLOMATIC = "Q121998"
@@ -101,14 +97,6 @@ STATE_BODY = {"Q270791", "Q7278", "Q327333", "Q2659904", "Q66344", "Q3918", "Q41
 #: ministry, a corps, a party) says nothing about the office's level.
 TERRITORY = {"Q56061", "Q486972", "Q515", "Q7275", "Q6256", "Q3024240", "Q82794", "Q1048835"}
 CITY = "Q515"
-
-
-def generic_positions() -> dict[str, str]:
-    """qid → label of every listed generic class; empty when the list is absent."""
-    if not GENERIC_PATH.exists():
-        return {}
-    with GENERIC_PATH.open(newline="") as f:
-        return {row["qid"]: row.get("label") or "" for row in csv.DictReader(f) if row.get("qid")}
 
 
 def _rank_ok(claim: dict[str, Any]) -> bool:
@@ -310,7 +298,7 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
 
     `types` is the item's whole closure; `p31_types` the closure of its
     declared non-metaclass `P31` values (any rank) only. `generic` is the
-    generic-class list (`generic_positions()`). `holders` is the item's holder
+    generic-class list (`positions.GENERIC_LABELS`). `holders` is the item's holder
     count (from `by` when not given); `bodies` maps the body QIDs it names to
     their types and owners; `territorial` is the set of its `P1001` values
     that are territories (all of them when not given); `cities` the
@@ -435,7 +423,7 @@ def refilter(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
                                       if t not in POSITION_METAS] for it in stored}
     p31_types = typegraph.close(p31_seeds)
     events = event_closure(p31_seeds)
-    generic = generic_positions()
+    generic = positions.GENERIC_LABELS
     log(f"generic classes listed: {len(generic)}")
     places = learn(c, stored)
     cities = [p for p in places if CITY in p.get("classes", []) and set(p["levels"]) & countries.SUBNATIONAL]

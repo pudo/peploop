@@ -295,9 +295,10 @@ NOT_AN_OFFICE = {
 GENERIC_PATH = Path(__file__).resolve().parent / "generic_positions.csv"
 
 
-def _generic() -> frozenset[str]:
+def _generic() -> dict[str, str]:
+    """qid → label of every listed class; a missing file raises, it never reads as an empty list."""
     with GENERIC_PATH.open(newline="") as handle:
-        return frozenset(row["qid"] for row in csv.DictReader(handle))
+        return {row["qid"]: row.get("label") or "" for row in csv.DictReader(handle) if row.get("qid")}
 
 
 #: Classes of office that name no jurisdiction and are held across many states:
@@ -305,9 +306,10 @@ def _generic() -> frozenset[str]:
 #: where the office was held, so none is ever a `P39` value, a shortlist row, a
 #: mint duplicate or a "found" office. Never read against a `P279` parent: most
 #: of `offices.ARCHETYPES`' parents are on this list, and a minted mayoralty
-#: subclassing `Q30185` is exactly right. peptree reads the same file; the
-#: evidence for each row is `docs/research/generic_positions.md`.
-GENERIC = _generic()
+#: subclassing `Q30185` is exactly right. peptree's load filter drops them too;
+#: the evidence for each row is `docs/research/generic_positions.md`.
+GENERIC_LABELS = _generic()
+GENERIC = frozenset(GENERIC_LABELS)
 
 #: Wikidata time precision: 9 is a year, 10 a month, 11 a day. Anything
 #: coarser renders as a misleading year — "+2000-00-00" at precision 7 is the

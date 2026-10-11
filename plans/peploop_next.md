@@ -69,11 +69,6 @@ Do these when the files are open anyway; none changes behaviour.
 - **Pin every prompt's request hash.** Ledger keys hash the rendered request;
   only reconcile's is pinned, so a refactor that changes rendering by a byte
   silently re-asks a pass.
-- **One generic-positions reader.** `positions._generic()` and
-  `tree/load.generic_positions()` parse the same CSV twice, and the tree one
-  returns an empty list when the file is missing -- the silent fallback that
-  nearly disabled the generic filter when the package moved. One reader that
-  fails loudly.
 - **One bisecting `VALUES` query.** `tree/load._grouped` and
   `tree/country._bisect` each halve a chunk the query service cannot answer;
   `positions.grouped_count` chunks the same way but never halves, so one
