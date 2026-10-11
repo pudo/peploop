@@ -31,7 +31,6 @@ statements. The batch itself goes out through `peploop/send.py`.
 """
 
 import datetime as dt
-import os
 import sys
 from collections import defaultdict
 from typing import Callable
@@ -64,18 +63,6 @@ def separable(lines: list[str]) -> tuple[list[str], list[str]]:
     return now, later
 
 
-def live_keys(lines: list[str]) -> set[str]:
-    """Keys of the lines whose statement Wikidata holds now, at any rank (read live)."""
-    stmts = qs.statements(lines)
-    ents = wd.fetch_items(sorted({q for q, _, _ in stmts}), props="claims")
-    out = set()
-    for line, (q, prop, value) in zip(lines, stmts):
-        for claim in (ents.get(q) or {}).get("claims", {}).get(prop, []):
-            if ledger.value_id(claim.get("mainsnak", {})) == value:
-                out.add(ledger.key(line))
-    return out
-
-
 def proposals() -> dict[str, tuple[str, str]]:
     """key → (country, line) over every place's latest run file; the first country to propose wins."""
     out: dict[str, tuple[str, str]] = {}
@@ -101,7 +88,7 @@ def pending(log: Callable[[str], None], batch: int | None = None) -> list[tuple[
     vetoes = ledger.strikes()
     struck = {k for k, (_, line) in todo.items() if ledger.struck(line, vetoes)}
     todo = {k: v for k, v in todo.items() if k not in struck}
-    live_now = live_keys([line for _, line in todo.values()])
+    live_now = send.live_keys([line for _, line in todo.values()])
     todo = {k: v for k, v in todo.items() if k not in live_now}
     # Sorted by country, then line: a country's lines on one item sit together,
     # which is what lets QS3 combine them into one edit.
@@ -118,9 +105,7 @@ def run(log: Callable[[str], None] = print, batch: int | None = None, submit: bo
 
     Returns the QS3 batch ids sent.
     """
-    user = os.environ.get("QS_USERNAME", "")
-    send.recover(TOOL, user, log)
-    send.reconcile(TOOL, live_keys, log)
+    send.prepare(TOOL, log)
     todo = pending(log, batch)
     lines = [line for _, line in todo]
     errors = qs.validate(lines)
@@ -133,17 +118,8 @@ def run(log: Callable[[str], None] = print, batch: int | None = None, submit: bo
         n = len([r for r in ledger.removals("approved", TOOL) if r["sent"] is None])
         log(f"{n} approved removals would go out after them")
         return []
-    sent = []
-    day = dt.date.today().isoformat()
-    with send.writer_lock("peptree send"):
-        if lines:
-            name = f"peptree send {day}" + (f" batch {batch}" if batch is not None else "")
-            sent.append(send.send(TOOL, "add", name, [(cc, ledger.key(line), line, []) for cc, line in todo],
-                                  live_keys, log))
-        removals = send.pending_removals(TOOL, log)
-        if removals:
-            sent.append(send.send(TOOL, "remove", f"peptree removals {day}", removals, live_keys, log))
-    return sent
+    name = f"peptree send {dt.date.today().isoformat()}" + (f" batch {batch}" if batch is not None else "")
+    return send.dispatch(TOOL, name, [(cc, ledger.key(line), line, []) for cc, line in todo], log)
 
 
 def propose_reverts(log: Callable[[str], None] = print) -> int:

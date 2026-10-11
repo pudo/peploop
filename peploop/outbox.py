@@ -2,7 +2,7 @@
 
 The peploop side of `send.py`. Each person with accepted rows is pre-flighted
 against their live item and planned (`plan.py`); the plan is rendered as QS3
-lines (`qs.py`); the lines go out as one batch, and approved removals as another.
+lines (`route.py`); the lines go out as one batch, and approved removals as another.
 
     python -m peploop.cli send --country jp            # dry: write send/<cc>.qs, print the routes
     python -m peploop.cli send --country jp --submit   # send it, wait, settle the rows
@@ -16,25 +16,17 @@ a line (`exists`, `conflict`, `ambiguous-statement`, …) is `skipped` under
 """
 
 import datetime as dt
-import os
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable
 
-from peploop import db, ledger, plan, qs, route, send
-from peploop.wikidata import fetch_items
+from peploop import db, ledger, plan, route, send
 
 TOOL = "peploop"
 OUT_DIR = Path(__file__).resolve().parent.parent / "data" / "peploop" / "send"
 SENT, FAILED, APPLIED = "sent", "failed", "applied"
 Log = Callable[[str], None]
-
-
-def is_live(lines: list[str]) -> set[str]:
-    """Ledger keys of the lines whose statement the live items hold now."""
-    entities = fetch_items(sorted({qs.parse(line)[1] for line in lines}), props="claims")
-    return {ledger.key(line) for line in qs.live_lines(lines, entities)}
 
 
 def settle(log: Log) -> None:
@@ -107,7 +99,7 @@ def retry(country: str, log: Log) -> int | None:
                           (SENT, name, failed))
 
     with send.writer_lock(f"peploop send {country} --retry"):
-        qs_id = send.retry(TOOL, "add", f"peploop retry {country} {dt.date.today().isoformat()}", is_live, log,
+        qs_id = send.retry(TOOL, "add", f"peploop retry {country} {dt.date.today().isoformat()}", send.live_keys, log,
                            on_recorded=requeue, country=country)
         settle(log)
     return qs_id
@@ -119,9 +111,7 @@ def run(country: str, log: Log, submit: bool = False, qids: list[str] | None = N
 
     Returns the QS3 batch ids sent.
     """
-    user = os.environ.get("QS_USERNAME", "")
-    send.recover(TOOL, user, log)
-    send.reconcile(TOOL, is_live, log)
+    send.prepare(TOOL, log)
     settle(log)
     people = routed(country, plan.people(list(qids or []), country), log, threads)
     routes: Counter[str] = Counter()
@@ -140,19 +130,11 @@ def run(country: str, log: Log, submit: bool = False, qids: list[str] | None = N
     log(f"{path}: {len(lines)} lines")
     if not submit:
         return []
-    sent = []
-    day = dt.date.today().isoformat()
-    with send.writer_lock(f"peploop send {country}"):
-        log(f"closed {close(people)} rows without a line")
-        rows = [(country, ledger.key(line), line, ids) for person in people for line, ids in person.edits]
-        if rows:
-            ids = sorted({i for _, _, _, refs in rows for i in refs})
-            # Uncombined: a combined edit fails whole when one of its commands
-            # does, and QS3 says neither which nor why.
-            sent.append(send.send(TOOL, "add", f"peploop send {country} {day}", rows, is_live, log,
-                                  on_recorded=lambda name: mark_sent(ids, name), combine=False))
-            settle(log)
-        removals = send.pending_removals(TOOL, log)
-        if removals:
-            sent.append(send.send(TOOL, "remove", f"peploop removals {day}", removals, is_live, log))
-    return sent
+    rows = [(country, ledger.key(line), line, ids) for person in people for line, ids in person.edits]
+    ids = sorted({i for _, _, _, refs in rows for i in refs})
+    # Uncombined: a combined edit fails whole when one of its commands
+    # does, and QS3 says neither which nor why.
+    return send.dispatch(TOOL, f"peploop send {country} {dt.date.today().isoformat()}", rows, log, combine=False,
+                         on_recorded=lambda name: mark_sent(ids, name),
+                         before=lambda: log(f"closed {close(people)} rows without a line"),
+                         after=lambda: settle(log))

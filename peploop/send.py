@@ -8,6 +8,8 @@ by GUID, after a live pre-flight. Additions, removals and creations never share
 a batch.
 """
 
+import datetime as dt
+import os
 import re
 import sys
 from collections import Counter, defaultdict
@@ -124,6 +126,45 @@ def send(tool: str, op: str, name: str, rows: list[tuple[str, str, str, list[int
         log(f"{len(bad)} lines failed; see send --status")
     reconcile(tool, is_live, log)
     return qs_id
+
+
+def live_keys(lines: list[str]) -> set[str]:
+    """Ledger keys of the lines whose statement the live items hold now, at any rank."""
+    if not lines:
+        return set()
+    entities = fetch_items(sorted({qs.parse(line)[1] for line in lines}), props="claims")
+    return {ledger.key(line) for line in qs.live_lines(lines, entities)}
+
+
+def prepare(tool: str, log: Log, is_live: IsLive = live_keys) -> None:
+    """Settle what went out before: bind batches whose answer was lost, mark what is live as landed."""
+    recover(tool, os.environ.get("QS_USERNAME", ""), log)
+    reconcile(tool, is_live, log)
+
+
+def dispatch(tool: str, name: str, rows: list[tuple[str, str, str, list[int]]], log: Log, *,
+             is_live: IsLive = live_keys, combine: bool = True,
+             on_recorded: Callable[[str], None] | None = None,
+             before: Callable[[], None] | None = None, after: Callable[[], None] | None = None) -> list[int]:
+    """Send a tool's additions as one batch, then its approved removals as another; returns the QS3 ids.
+
+    Both go out under the one-sender lock. `before` runs once the lock is
+    held, `after` once the additions have landed or failed -- the places a
+    tool closes and settles its own rows.
+    """
+    sent = []
+    with writer_lock(f"{tool} send"):
+        if before is not None:
+            before()
+        if rows:
+            sent.append(send(tool, "add", name, rows, is_live, log, on_recorded=on_recorded, combine=combine))
+            if after is not None:
+                after()
+        removals = pending_removals(tool, log)
+        if removals:
+            sent.append(send(tool, "remove", f"{tool} removals {dt.date.today().isoformat()}", removals,
+                             is_live, log))
+    return sent
 
 
 def retry(tool: str, op: str, name: str, is_live: IsLive, log: Log,

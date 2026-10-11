@@ -21,6 +21,37 @@ def main() -> None:
            "a second value for one (item, single-valued property) waits a batch; two P279s may share one")
     moved = send.landed({"a": "sent", "b": "sent", "c": "failed", "d": "landed"}, {"a", "c", "d"})
     expect(moved == {"a": "landed"}, "live lands a sent line; a failed or landed line keeps its status")
+    check_dispatch()
+
+
+def check_dispatch() -> None:
+    """`dispatch` holds the lock, runs `before`, the additions, `after`, then the removals -- and no `after` without additions."""
+    calls: list[str] = []
+    real = send.send, send.pending_removals, send.writer_lock
+
+    class Lock:
+        def __init__(self, who: str) -> None:
+            calls.append(f"lock {who}")
+
+        def __enter__(self) -> None:
+            return None
+
+        def __exit__(self, *exc: object) -> None:
+            calls.append("unlock")
+
+    send.writer_lock = Lock  # type: ignore[assignment]
+    send.send = lambda tool, op, name, rows, *a, **k: calls.append(f"{op} {len(rows)}") or len(calls)  # type: ignore[assignment]
+    send.pending_removals = lambda tool, log: [("xx", "g", "-STATEMENT\tg", [])]  # type: ignore[assignment]
+    try:
+        ids = send.dispatch("t", "t send", [("xx", "k", "Q1\tP17\tQ9", [])], print,
+                            before=lambda: calls.append("before"), after=lambda: calls.append("after"))
+        expect(calls == ["lock t send", "before", "add 1", "after", "remove 1", "unlock"] and len(ids) == 2,
+               "additions go out between before and after, removals last, all under the lock")
+        calls.clear()
+        send.dispatch("t", "t send", [], print, after=lambda: calls.append("after"))
+        expect(calls == ["lock t send", "remove 1", "unlock"], "no additions: no add batch and no after, removals still go")
+    finally:
+        send.send, send.pending_removals, send.writer_lock = real
 
 
 if __name__ == "__main__":
