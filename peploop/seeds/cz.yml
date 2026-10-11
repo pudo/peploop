@@ -1,4 +1,4 @@
-# Wikipedia categories seeding the Czech pilot: one PetScan query per entry.
+# Wikipedia categories seeding the Czech run: one PetScan query per entry.
 # Copied from the `country: cz` entries of OpenSanctions' wd_categories.yml
 # (datasets/_wikidata/categories), in that file's order, keeping only the
 # category and its language.

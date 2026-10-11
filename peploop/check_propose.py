@@ -2,7 +2,7 @@
 
 The position lane decides three things that are wrong in ways nothing later
 notices. A tenure the item already records under slightly different dates can
-be shown to a reviewer as an edit, when `apply` could never write it and the
+be shown to a reviewer as an edit, when the plan could never write it and the
 reviewer can only wave it through -- so a quarter of the lane is attention
 spent on nothing. The same spell read in two languages can become two rows
 asking a reviewer one question twice. And an acting tenure can go out as an
