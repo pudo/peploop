@@ -16,6 +16,7 @@ from typing import Any
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territories, get_territory
 
+from peploop import memo, typegraph
 from peploop.tree import wd
 
 #: Classes that make an item a state, for a predecessor or a federation.
@@ -406,7 +407,7 @@ def derive_predecessors(cc: str, qid: str) -> tuple[dict[str, str], dict[str, st
         return wd.fetch_items(qids, props="claims")
 
     def states(ents: dict[str, dict[str, Any]]) -> dict[str, set[str]]:
-        return wd.closure({q: _qids(e, "P31") for q, e in ents.items()})
+        return typegraph.close({q: _qids(e, "P31") for q, e in ents.items()})
 
     return walk_chain(qid, found, parents, entities, _inverse, states)
 
@@ -588,7 +589,7 @@ def _subdivisions(qid: str) -> dict[str, Any]:
         by_type = rows(f"""SELECT ?t (COUNT(DISTINCT ?y) AS ?n) WHERE {{ VALUES ?x {{ {block} }}
           ?y wdt:P131 ?x ; wdt:P31 ?t }} GROUP BY ?t""")
         types = [r["t"] for r in by_type]
-        up = wd.class_closure(types)
+        up = typegraph.of_classes(types)
         wanted = [t for t in types if not up.get(t, set()) & {FORMER, ELECTORAL} and (
             CITY in up.get(t, set()) or (ADMIN_ENTITY in up.get(t, set()) and SETTLEMENT not in up.get(t, set())))]
         for x in chunk:  # one unit at a time: a whole chunk times out mid-answer
@@ -678,19 +679,19 @@ def config(cc: str) -> dict[str, Any]:
                 ents = wd.fetch_items(qids, props="labels")
                 found = [o["value"] for e in ents.values() for lg, o in e.get("labels", {}).items() if lg in langs]
             else:
-                found = [n for ns in wd.names_of(qids, langs).values() for n in ns]
+                found = [n for ns in memo.names_of(qids, langs).values() for n in ns]
             words_[concept] = list(dict.fromkeys([*found, *ENGLISH[concept]]))
         admin_ent = wd.fetch_items([ADMIN_WORDS_CLASS], props="labels").get(ADMIN_WORDS_CLASS, {})
         admin = sorted(set().union(*(words(o["value"]) for lg, o in admin_ent.get("labels", {}).items()
                                      if lg in langs)) if admin_ent.get("labels") else set())
         sub = _subdivisions(qid)
         types = sub["types"]
-        up = wd.class_closure({t for level in types.values() for t in level})
+        up = typegraph.of_classes({t for level in types.values() for t in level})
         totals = {"region": len(sub["l1"]), "district": len(sub["l2"]), "local": sum(types["local"].values())}
         lead_types = {t for level in ("region", "district", "local") for t in dominant(types[level], totals[level], up)}
         lead_types |= set(GENERIC_PLACE_TYPES)
         all_types = lead_types | {t for ts in sub["place_types"].values() for t in ts}
-        type_names = wd.names_of(sorted(all_types | {LIST_CLASS}), langs)
+        type_names = memo.names_of(sorted(all_types | {LIST_CLASS}), langs)
         own = set().union(*(words(n) for n in local_names[qid])) if local_names.get(qid) else set()
         junk = {lead_word(n, own | set(admin)) for n in type_names.get(LIST_CLASS, [])}
         type_words = {}
@@ -704,7 +705,7 @@ def config(cc: str) -> dict[str, Any]:
                 "type_words": type_words, "type_terms": type_terms, "subdivisions": sub,
                 "spans": state_spans(qid, preds), "admin_words": admin, "realm": realm}
 
-    return wd.cached(f"country6:{cc}", fetch)
+    return memo.cached(f"country6:{cc}", fetch)
 
 
 _loaded: dict[str, Country] = {}
@@ -721,7 +722,7 @@ def typed_state(qid: str) -> bool:
     An overseas territory is not part of its sovereign, so neither the sovereign
     nor the territory belongs in its offices' `P17`.
     """
-    return wd.cached(f"typed_state:{qid}",
+    return memo.cached(f"typed_state:{qid}",
                      lambda: is_state(wd.fetch_items([qid], props="claims").get(qid, {})))
 
 
@@ -752,7 +753,7 @@ def get(cc: str) -> Country:
                               local_names=_names(cfg["local_names"]), words=cfg["words"],
                               type_words=cfg["type_words"], type_terms=cfg["type_terms"],
                               provenance=cfg["provenance"], admin_words=cfg["admin_words"],
-                              spans=wd.cached(f"spans3:{cc}", lambda: state_spans(cfg["qid"], dict(cfg["predecessors"]),
+                              spans=memo.cached(f"spans3:{cc}", lambda: state_spans(cfg["qid"], dict(cfg["predecessors"]),
                                                                                  cfg.get("realm", []))),
                               realm=tuple(cfg.get("realm", [])),
                               is_state=typed_state(cfg["qid"]))
@@ -978,7 +979,7 @@ def gazetteer(c: Country, extra: list[str] | None = None) -> list[dict[str, Any]
                         add(row["x"], level, {key: row["l"]}, types.get(row["x"], []))
         return sorted(places.values(), key=lambda p: p["qid"])
 
-    places = {p["qid"]: {**p, "levels": list(p["levels"])} for p in wd.cached(f"gazetteer3:{c.cc}", fetch)}
+    places = {p["qid"]: {**p, "levels": list(p["levels"])} for p in memo.cached(f"gazetteer3:{c.cc}", fetch)}
     for q in c.home:
         level = "country" if q == c.qid else ("union" if q in c.unions else "predecessor")
         places[q] = {"qid": q, "levels": [level], "types": [],
@@ -987,7 +988,7 @@ def gazetteer(c: Country, extra: list[str] | None = None) -> list[dict[str, Any]
     if wanted:
         ents = {}
         for chunk in wd.values_chunks(wanted, 50):
-            ents.update(wd.cached("place2:" + ",".join(c.langs) + ":" + "|".join(chunk),
+            ents.update(memo.cached("place2:" + ",".join(c.langs) + ":" + "|".join(chunk),
                                   lambda chunk=chunk: {q: {"names": {**{lg: o["value"] for lg, o in e.get("labels", {}).items()
                                                                         if lg in c.langs},
                                                                      **{f"{lg}:{a['value']}": a["value"]
@@ -999,9 +1000,9 @@ def gazetteer(c: Country, extra: list[str] | None = None) -> list[dict[str, Any]
             places[q] = {"qid": q, "levels": ["local"], "names": e["names"], "types": e["types"]}
     type_terms = dict(c.type_terms)
     missing = sorted({t for p in places.values() for t in p["types"]} - set(type_terms))
-    for t, ns in wd.names_of(missing, c.langs).items():
+    for t, ns in memo.names_of(missing, c.langs).items():
         type_terms[t] = sorted(set().union(*(words(n) for n in ns))) if ns else []
-    up = wd.class_closure({t for p in places.values() for t in p["types"]})
+    up = typegraph.of_classes({t for p in places.values() for t in p["types"]})
     out = []
     for p in places.values():
         p["classes"] = sorted(set().union(*(up.get(t, {t}) for t in p["types"]))) if p["types"] else []

@@ -20,7 +20,7 @@ from dataclasses import dataclass, field, replace
 from datetime import date
 from typing import Any, Callable, Collection, Iterable, Sequence
 
-from peploop import db, http, plan, positions, wikidata
+from peploop import db, http, plan, positions, typegraph, wikidata
 from peploop.positions import NOT_AN_OFFICE, POSITION_METACLASSES, fold, tokens
 
 #: What every office reaches through its `P279` chain.
@@ -773,7 +773,7 @@ def _body_problems(spec: Spec, body: dict[str, Any] | None, state_names: Iterabl
     if not wikidata.best_label(body):
         return [f"body-unlabelled/{qid}"]
     problems = []
-    declared = set(positions.type_targets(body))
+    declared = set(typegraph.targets(body))
     if declared & POSITION_METACLASSES:
         problems.append(f"body-is-position/{qid}")
     if declared & NOT_A_POSITION:
@@ -828,7 +828,7 @@ HISTORICAL_TYPES = {"Q114962596"}  # historical position
 #: How many hits each search asks for. The office is usually in the first few;
 #: the rest are the people who held it and the lists of them.
 SEARCH_LIMIT = 30
-#: How far `P279` is walked. Deeper than `positions.CLOSURE_DEPTH` because this
+#: How far `P279` is walked. Deeper than `typegraph.DEPTH` because this
 #: walk follows one property only and asks one yes-or-no question of it.
 P279_DEPTH = 10
 
@@ -974,7 +974,7 @@ def live_lookup(label: str, lang: str, state_qid: str) -> list[Found]:
         if hit.label_match and not hit.country_qids and is_office_class(hit.qid):
             hit = replace(hit, is_class=True)
         if hit.label_match:
-            types = positions.type_closure([hit.qid]).get(hit.qid, set())
+            types = typegraph.of_items([hit.qid]).get(hit.qid, set())
             if ORGANISATION in types and not types & POSITION_METACLASSES:
                 hit = replace(hit, is_body=True)
         out.setdefault(hit.qid, hit)
@@ -985,7 +985,7 @@ class _Subclasses:
     """`P279` edges read live and remembered for the life of this object.
 
     For "is this kind a subclass of that archetype's kind", which only `P279`
-    answers: `positions.type_closure` and `type_edge` mix in `P31`, under
+    answers: `typegraph` and `type_edge` mix in `P31`, under
     which every office is a kind of `Q4164871` and nothing narrower.
     """
 
@@ -1020,7 +1020,7 @@ class _Subclasses:
 def live_closure() -> Callable[[str], bool]:
     """Answer, live, whether a class reaches `Q4164871`, for `shape_defects`.
 
-    Through `positions.type_closure`, which walks `P31` and `P279` together:
+    Through `typegraph.of_items`, which walks `P31` and `P279` together:
     that is how the consumer of these items types them, and it is the only
     walk under which the kinds of office Wikidata actually has are offices.
     `P279` alone reaches `Q4164871` from 5 of the 13 archetype parents --
@@ -1033,7 +1033,7 @@ def live_closure() -> Callable[[str], bool]:
 
     def reaches(qid: str) -> bool:
         if qid not in memo:
-            memo[qid] = POSITION in positions.type_closure([qid]).get(qid, set())
+            memo[qid] = POSITION in typegraph.of_items([qid]).get(qid, set())
         return memo[qid]
 
     return reaches
@@ -1118,7 +1118,7 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
         (state_qid, state_qid, list(subdivision_qids)),
     ).fetchall()
     unflagged = [qid for qid, flag in rows if flag is None]
-    closure = positions.type_closure(unflagged) if unflagged else {}
+    closure = typegraph.of_items(unflagged) if unflagged else {}
     keep = [qid for qid, _flag in rows if positions.DIPLOMATIC_CLASS not in closure.get(qid, set())]
     items = wikidata.fetch_items(keep, props="labels|claims")
     held = last_held(list(items))

@@ -148,12 +148,41 @@ CREATE TABLE IF NOT EXISTS position_name (
 -- the answer to *which* name matched, which is looked up by qid afterwards.
 CREATE INDEX IF NOT EXISTS position_name_qid_idx ON position_name (qid);
 
--- The `P31`/`P279` edges of everything the closure has walked, so a second
--- country does not re-fetch the class hierarchy above the first one. Seeds
+-- The `P31`/`P279` edges of everything either lane's closure has walked, so a
+-- second country does not re-fetch the class hierarchy above the first one. Seeds
 -- are always re-read live; only the stable ancestry is served from here.
 CREATE TABLE IF NOT EXISTS type_edge (
     qid        TEXT PRIMARY KEY,
     targets    TEXT[] NOT NULL DEFAULT '{}',
+    fetched_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- peptree kept its own copy of these edges, under the rule `typegraph` now
+-- applies to both (deprecated claims skipped); peploop's rows followed
+-- deprecated claims. Keep peptree's and let peploop's refill.
+DO $$
+BEGIN
+    IF to_regclass('ptree_type_edge') IS NOT NULL THEN
+        DELETE FROM type_edge;
+        INSERT INTO type_edge (qid, targets, fetched_at)
+            SELECT qid, targets, fetched_at FROM ptree_type_edge;
+        DROP TABLE ptree_type_edge;
+    END IF;
+END $$;
+
+-- Slow-moving reads kept under a caller's key (`memo.py`): class labels, place
+-- gazetteers, article leads. Never an item being judged or edited.
+DO $$
+BEGIN
+    IF to_regclass('ptree_cache') IS NOT NULL AND to_regclass('memo') IS NULL THEN
+        ALTER TABLE ptree_cache RENAME TO memo;
+        ALTER INDEX ptree_cache_pkey RENAME TO memo_pkey;
+    END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS memo (
+    key        TEXT PRIMARY KEY,
+    body       JSONB NOT NULL,
     fetched_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

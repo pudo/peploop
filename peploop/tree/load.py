@@ -23,6 +23,7 @@ from typing import Any, Callable
 import requests
 from psycopg.types.json import Jsonb
 
+from peploop import memo, typegraph
 from peploop.tree import country as countries
 from peploop.tree import wd
 
@@ -429,10 +430,10 @@ def refilter(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     c = countries.get(cc)
     stored = items(cc, kept_only=False)
     seeds = {it["qid"]: _seed_edges(it["entity"]) for it in stored}
-    types = wd.closure(seeds)
+    types = typegraph.close(seeds)
     p31_seeds = {f"p31:{it['qid']}": [t for t in values(it["entity"], "P31", any_rank=True)
                                       if t not in POSITION_METAS] for it in stored}
-    p31_types = wd.closure(p31_seeds)
+    p31_types = typegraph.close(p31_seeds)
     events = event_closure(p31_seeds)
     generic = generic_positions()
     log(f"generic classes listed: {len(generic)}")
@@ -440,7 +441,7 @@ def refilter(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     cities = [p for p in places if CITY in p.get("classes", []) and set(p["levels"]) & countries.SUBNATIONAL]
     bodies = body_info(stored)
     scopes = sorted({v for it in stored for v in values(it["entity"], "P1001")})
-    scope_types = wd.closure(_cached_edges(scopes)) if scopes else {}
+    scope_types = typegraph.close(_cached_edges(scopes)) if scopes else {}
     territorial = {q for q, ts in scope_types.items() if ts & TERRITORY} | c.home
     inside = inside_places(c, stored)
     tally: Counter[str] = Counter()
@@ -469,7 +470,7 @@ def event_closure(seeds: dict[str, list[str]], depth: int = 8) -> dict[str, set[
         for _ in range(depth):
             todo = sorted({t for t in level if t not in edges and t not in EVENT_STOP})
             if todo:
-                edges.update(wd._edges(todo))
+                edges.update(typegraph.edges(todo))
             level = [y for x in level if x not in EVENT_STOP for y in edges.get(x, []) if y not in seen]
             seen.update(level)
             if not level:
@@ -491,7 +492,7 @@ def inside_places(c: countries.Country, stored: list[dict[str, Any]]) -> set[str
     inside = set(c.home) | fixed
     scopes = sorted({v for it in stored for p in ("P17", "P1001") for v in values(it["entity"], p)} - inside)
     for chunk in wd.values_chunks(scopes, 50):
-        found = wd.cached("scope_up:" + "|".join(chunk), lambda chunk=chunk: _scope_up(chunk))
+        found = memo.cached("scope_up:" + "|".join(chunk), lambda chunk=chunk: _scope_up(chunk))
         inside |= {q for q, up in found.items() if set(up["P17"]) & c.home or set(up["P131"]) & inside}
     return inside
 
@@ -514,7 +515,7 @@ def _scope_up(qids: list[str]) -> dict[str, dict[str, list[str]]]:
 
 def _cached_edges(qids: list[str]) -> dict[str, list[str]]:
     """`P31`/`P279` edges of referenced items (bodies, jurisdictions), cached like class edges."""
-    return wd._edges(qids)
+    return typegraph.edges(qids)
 
 
 def body_info(stored: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -524,9 +525,9 @@ def body_info(stored: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         return {}
     owners: dict[str, list[str]] = {}
     for chunk in wd.values_chunks(bodies, 50):
-        owners.update(wd.cached("owners:" + "|".join(chunk), lambda chunk=chunk: {
+        owners.update(memo.cached("owners:" + "|".join(chunk), lambda chunk=chunk: {
             q: values(e, "P127") for q, e in wd.fetch_items(chunk, props="claims").items()}))
-    closure = wd.closure(_cached_edges(bodies))
+    closure = typegraph.close(_cached_edges(bodies))
     return {b: {"types": sorted(closure.get(b, {b})), "owners": owners.get(b, [])} for b in bodies}
 
 

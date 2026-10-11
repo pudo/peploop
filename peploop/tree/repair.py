@@ -19,6 +19,7 @@ import requests
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
+from peploop import memo, typegraph
 from peploop.tree import country as countries
 from peploop.tree import gaps as gapmod
 from peploop.tree import signals, wd
@@ -107,7 +108,7 @@ class Run:
         all_classes = [q for c in self.ctx.cats for q in c["class_qids"]]
         pool = BASE_P279 + all_classes + self.country_p279 + ([self.sender_class] if self.sender_class else [])
         self.info = wd.labels_of(pool + META_CANDIDATES + [GENERIC_META] + sorted(self.country.home))
-        self.value_types = wd.class_closure(pool)
+        self.value_types = typegraph.of_classes(pool)
         # Classes that must never be offered: lists and the metaclasses.
         self.p279_pool = [q for q in dict.fromkeys(pool)
                           if q not in POSITION_METAS and q not in LIST_ARTICLES and q != GENERIC_META]
@@ -117,7 +118,7 @@ class Run:
         heads = [q for c in self.ctx.cats if c["key"] in ("head_of_state", "head_of_government") for q in c["class_qids"]]
         # Every language's name, for a label in any language; a one-stem name
         # must be a real word ("cap d'Estat" leaves only "esta").
-        seqs = {tuple(countries.seq(n)) for ns in wd.names_of(heads).values() for n in ns}
+        seqs = {tuple(countries.seq(n)) for ns in memo.names_of(heads).values() for n in ns}
         self.head_seqs = sorted(x for x in seqs if len(x) > 1 or (x and len(x[0]) >= 6))
         self.value_spans: dict[str, list[int | None]] = {}
         self.non_states: set[str] = set()
@@ -129,11 +130,11 @@ class Run:
         """Read (and cache a month) when each candidate value existed."""
         wanted = sorted(set(qids) - set(self.value_spans) - set(self.country.spans))
         for chunk in wd.values_chunks(wanted, 50):
-            self.value_spans.update(wd.cached("spans:" + "|".join(chunk), lambda chunk=chunk: {
+            self.value_spans.update(memo.cached("spans:" + "|".join(chunk), lambda chunk=chunk: {
                 q: countries.entity_span(e) for q, e in wd.fetch_items(chunk, props="claims").items()}))
         unread = sorted(set(qids) - self._typed)
         for chunk in wd.values_chunks(unread, 50):
-            self.non_states.update(wd.cached("non_states:" + "|".join(chunk), lambda chunk=chunk: sorted(
+            self.non_states.update(memo.cached("non_states:" + "|".join(chunk), lambda chunk=chunk: sorted(
                 q for q, e in wd.fetch_items(chunk, props="claims").items() if not countries.is_state(e))))
         self._typed |= set(unread)
 
@@ -143,7 +144,7 @@ class Run:
         `FILTER EXISTS`, not a join: WDQS answers `VALUES ?c {…} ?x wdt:P279 ?c` with nothing.
         """
         for chunk in wd.values_chunks(sorted(set(qids)), 100):
-            found = wd.cached("subclassed:" + "|".join(chunk), lambda chunk=chunk: sorted({
+            found = memo.cached("subclassed:" + "|".join(chunk), lambda chunk=chunk: sorted({
                 r["c"] for r in wd.sparql(f"SELECT ?c WHERE {{ VALUES ?c {{ {wd.values_block(chunk)} }} FILTER EXISTS {{ ?x wdt:P279 ?c }} }}")}),
                 max_age=wd.DAY)
             self.classes.update(found)
@@ -156,7 +157,7 @@ class Run:
         `P31/P279*` walk already finds as a position gains nothing from a second type.
         """
         p31 = {q: values(self.by_qid[q]["entity"], "P31", any_rank=True) for q in qids if q in self.by_qid}
-        up = wd.class_closure({v for vs in p31.values() for v in vs})
+        up = typegraph.of_classes({v for vs in p31.values() for v in vs})
         self.positioned.update(q for q, vs in p31.items() if any(POSITION in up.get(v, {v}) for v in vs))
 
     def facts(self, item: dict[str, Any]) -> signals.Facts:
@@ -245,7 +246,7 @@ def leads(entity: dict[str, Any], langs: tuple[str, ...]) -> list[tuple[str, str
                 title = links[site]["title"]
                 url = links[site].get("url") or f"https://{lang}.wikipedia.org/wiki/{title.replace(' ', '_')}"
                 host = url.split("/")[2].split(".")[0]
-                out.append((lang, url, wd.lead(host, title)))
+                out.append((lang, url, memo.lead(host, title)))
                 break
     return out
 

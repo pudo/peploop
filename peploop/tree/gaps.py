@@ -15,6 +15,7 @@ from typing import Any, Iterable
 
 import yaml
 
+from peploop import memo, typegraph
 from peploop.tree import country as countries
 from peploop.tree import wd
 from peploop.tree.load import POSITION_METAS, has, values
@@ -46,7 +47,7 @@ STATE_HEADS = {"head_of_state", "head_of_government"}
 def class_names(c: countries.Country, cats: list[dict[str, Any]]) -> dict[str, list[list[str]]]:
     """Per category, the stem sequences of its classes' names in the country's languages."""
     qids = sorted({q for cat in cats for q in cat["class_qids"]})
-    names = wd.names_of(qids, c.langs)
+    names = memo.names_of(qids, c.langs)
     out: dict[str, list[list[str]]] = {}
     for cat in cats:
         seqs = {tuple(countries.seq(n)) for q in cat["class_qids"] for n in names.get(q, [])}
@@ -110,11 +111,11 @@ def clean_reach(seeds: Iterable[str], stop: set[str]) -> set[str]:
     stays out: the excluded subtree's own ancestors.
     """
     seen, level = set(seeds), list(dict.fromkeys(seeds))
-    for _ in range(wd.CLOSURE_DEPTH):
+    for _ in range(typegraph.DEPTH):
         walk = [q for q in level if q not in stop]
         if not walk:
             break
-        edges = wd._edges(walk)
+        edges = typegraph.edges(walk)
         level = [t for q in walk for t in edges.get(q, []) if t not in seen]
         seen.update(level)
     return seen
@@ -149,13 +150,13 @@ class Context:
         self.by_key = {c["key"]: c for c in self.cats}
         self.names = class_names(self.country, self.cats)
         self.items = items
-        self.types = wd.closure({it["qid"]: values(it["entity"], "P31") + values(it["entity"], "P279")
+        self.types = typegraph.close({it["qid"]: values(it["entity"], "P31") + values(it["entity"], "P279")
                                  for it in items})
         bodies = sorted({b for it in items for b in values(it["entity"], "P361") + values(it["entity"], "P2389")})
         body_seeds = {}
         for qid, ent in wd.fetch_items(bodies, props="claims|labels").items():
             body_seeds[qid] = values(ent, "P31")
-        self.body_types = wd.closure(body_seeds) if body_seeds else {}
+        self.body_types = typegraph.close(body_seeds) if body_seeds else {}
 
     def body_categories(self, entity: dict[str, Any]) -> set[str]:
         out = set()
@@ -247,7 +248,7 @@ def matrix(ctx: Context, added: dict[str, dict[str, list[str]]] | None = None) -
     """
     added = added or {}
     new_classes = {v for props in added.values() for v in props.get("P279", [])}
-    up = wd.class_closure(new_classes) if new_classes else {}
+    up = typegraph.of_classes(new_classes) if new_classes else {}
     out = {}
     for cat in ctx.cats:
         members, ok = [], []

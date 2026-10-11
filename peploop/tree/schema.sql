@@ -1,20 +1,6 @@
 -- peptree's own tables (`ptree_*`), in peploop's database. What peptree sends goes
 -- through the joint send ledger (`wd_*`, peploop/schema.sql).
 
--- Class-level reads that are not "what does Wikidata hold now": the place
--- gazetteer, class labels, Wikipedia leads, the closure's upper edges.
-CREATE TABLE IF NOT EXISTS ptree_cache (
-    key text PRIMARY KEY,
-    body jsonb NOT NULL,
-    fetched_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS ptree_type_edge (
-    qid text PRIMARY KEY,
-    targets text[] NOT NULL,
-    fetched_at timestamptz NOT NULL DEFAULT now()
-);
-
 -- One row per item a load found; `dropped` is the filter's reason, NULL when kept.
 CREATE TABLE IF NOT EXISTS ptree_item (
     country text NOT NULL,

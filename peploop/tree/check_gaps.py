@@ -76,8 +76,8 @@ def main() -> None:
     # one only under papal legate is out; a hard exclusion (mayor) keeps out whatever else is reached.
     edges = {"Q900081": ["Q740369", "Q29645880"], "Q900082": ["Q740369"], "Q740369": ["Q121998"],
              "Q900083": ["Q30185", "Q14212"], "Q30185": ["Q2285706"]}
-    real = gaps.wd._edges
-    gaps.wd._edges = lambda qs: {q: edges.get(q, []) for q in qs}
+    real = gaps.typegraph.edges
+    gaps.typegraph.edges = lambda qs: {q: edges.get(q, []) for q in qs}
     try:
         amb, hog = ctx.by_key["ambassador"], ctx.by_key["head_of_government"]
         expect(gaps.reaches(amb, {"Q900081", "Q740369", "Q29645880", "Q121998"}, ["Q900081"]),
@@ -89,7 +89,7 @@ def main() -> None:
         expect(not gaps.reaches(hog, {"Q900083", "Q30185", "Q14212", "Q2285706"}, ["Q900083"]),
                "a hard exclusion (mayor) keeps out an item that also reaches prime minister")
     finally:
-        gaps.wd._edges = real
+        gaps.typegraph.edges = real
     expect(ctx.gaps(chief, {"Q900099", "Q14212"}) == [],
            "a title read as minister whose class is already a head of government gets no minister class fix")
     head = ent({"en": "President of the Republic of Ruritania"})

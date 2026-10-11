@@ -23,7 +23,7 @@ from psycopg.types.json import Jsonb
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory
 
-from peploop import db, offices, positions, reconcile, scope, wikidata
+from peploop import db, offices, positions, reconcile, scope, typegraph, wikidata
 from peploop import verify as person_verify
 from peploop.offices import ARCHETYPES, distinct_holders
 
@@ -1539,9 +1539,9 @@ class Context:
         self._anchors = {a.key: a for a in anchors} if anchors is not None else None
         self._claims = claims or (lambda qids: wikidata.fetch_items(qids, props="claims"))
         self._diplomatic = diplomatic or (
-            lambda qid: positions.DIPLOMATIC_CLASS in positions.type_closure([qid]).get(qid, set()))
+            lambda qid: positions.DIPLOMATIC_CLASS in typegraph.of_items([qid]).get(qid, set()))
         #: Every type an item reaches through `P31`/`P279`, itself included.
-        self.types = types or (lambda qid: positions.type_closure([qid]).get(qid, set()))
+        self.types = types or (lambda qid: typegraph.of_items([qid]).get(qid, set()))
         self._labels: dict[str, str] = {}
 
     @property

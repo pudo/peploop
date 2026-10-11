@@ -29,7 +29,7 @@ from normality import ascii_text
 from psycopg.types.json import Jsonb
 from rigour.territories import get_territory
 
-from peploop import db, wikidata
+from peploop import db, typegraph, wikidata
 
 #: What discovery found an item. An item the class descent reached and nobody
 #: holds is a different kind of candidate from one only its holders reveal,
@@ -220,7 +220,7 @@ def _discover_outbound(qid: str, log: Any, page: int | None) -> set[str]:
 
     members = ask("outbound class", OUTBOUND_CLASS_QUERY)
     operated = ask("outbound operator", OUTBOUND_OPERATOR_QUERY) - members
-    closure = type_closure(sorted(operated)) if operated else {}
+    closure = typegraph.of_items(sorted(operated)) if operated else {}
     posts = {q for q in operated if DIPLOMATIC_CLASS in closure.get(q, set())}
     log(f"  outbound: {len(members)} class members; {len(operated)} other"
         f" operated items, {len(posts)} of them diplomatic")
@@ -309,110 +309,10 @@ def _generic() -> frozenset[str]:
 #: evidence for each row is `docs/research/generic_positions.md`.
 GENERIC = _generic()
 
-#: Both properties at every level, matching the crawler that reads these
-#: items downstream. Reading only `P31` misses the chain a position hangs off
-#: its `P279`, which is where the kind of office usually lives.
-TYPE_PROPS = ("P31", "P279")
-
-#: An ended type claim is dropped, except this one: an office scoped to a
-#: state that no longer exists is still an office of that state.
-ALWAYS_KEPT = "Q3024240"  # historical country
-
-#: Six hops, matching `nomenklatura.wikidata.model.Item.types`. A deeper walk
-#: resolves types here that the consumer of these items will never see.
-CLOSURE_DEPTH = 6
-
 #: Wikidata time precision: 9 is a year, 10 a month, 11 a day. Anything
 #: coarser renders as a misleading year — "+2000-00-00" at precision 7 is the
 #: 20th century — so it is not a date and is not stored as one.
 DATE_PRECISION = {11: 10, 10: 7, 9: 4}
-
-
-def type_targets(entity: dict[str, Any]) -> list[str]:
-    """The item's own `P31` and `P279` targets, ended claims dropped."""
-    out: list[str] = []
-    for prop in TYPE_PROPS:
-        for claim in entity.get("claims", {}).get(prop, []):
-            value = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
-            if not isinstance(value, dict) or "id" not in value:
-                continue
-            qid = value["id"]
-            if claim.get("qualifiers", {}).get("P582") and qid != ALWAYS_KEPT:
-                continue
-            out.append(qid)
-    return out
-
-
-def _edges_cached(qids: Iterable[str]) -> dict[str, list[str]]:
-    """Read known `P31`/`P279` edges out of the cache table."""
-    wanted = list(dict.fromkeys(qids))
-    if not wanted:
-        return {}
-    rows = db.conn().execute(
-        "SELECT qid, targets FROM type_edge WHERE qid = ANY(%s)", (wanted,)
-    ).fetchall()
-    return {qid: list(targets) for qid, targets in rows}
-
-
-def _edges_store(edges: dict[str, list[str]]) -> None:
-    """Remember the edges of classes above the seeds; seeds are never stored."""
-    if not edges:
-        return
-    with db.conn().cursor() as cur:
-        cur.executemany(
-            "INSERT INTO type_edge (qid, targets, fetched_at) VALUES (%s, %s, now())"
-            " ON CONFLICT (qid) DO UPDATE SET targets = EXCLUDED.targets,"
-            " fetched_at = now()",
-            [(qid, targets) for qid, targets in edges.items()],
-        )
-
-
-def type_closure(qids: Sequence[str]) -> dict[str, set[str]]:
-    """Every type each item has, closing over `P31` and `P279` together.
-
-    Reach for this instead of a SPARQL property path whenever the question is
-    "does this reach X anywhere among its values": one preferred `P31` hides
-    the normal-rank ones from `wdt:` and a deprecated one vanishes entirely,
-    so a closure built on truthy values reports real offices as untyped.
-
-    The seeds are always re-read live, because they are the items being
-    judged; their ancestry is stable and comes out of `type_edge`. An item's
-    own QID counts as one of its types, so asking whether a class is in some
-    set answers for the class itself too.
-    """
-    seeds = list(dict.fromkeys(qids))
-    fresh = wikidata.fetch_items(seeds, props="claims")
-    seed_edges = {qid: type_targets(fresh.get(qid, {})) for qid in seeds}
-
-    edges: dict[str, list[str]] = {}
-    frontier = {t for targets in seed_edges.values() for t in targets}
-    for _ in range(CLOSURE_DEPTH):
-        frontier -= set(edges)
-        if not frontier:
-            break
-        known = _edges_cached(frontier)
-        missing = sorted(frontier - set(known))
-        found = wikidata.fetch_items(missing, props="claims") if missing else {}
-        fetched = {qid: type_targets(found.get(qid, {})) for qid in missing}
-        _edges_store(fetched)
-        edges.update(known)
-        edges.update(fetched)
-        frontier = {t for qid in frontier for t in edges.get(qid, [])}
-    for qid in frontier:  # depth-capped: keep them as leaves, do not lose them
-        edges.setdefault(qid, [])
-
-    edges.update(seed_edges)
-    out: dict[str, set[str]] = {}
-    for qid in seeds:
-        seen = {qid}
-        level = [qid]
-        for _ in range(CLOSURE_DEPTH):
-            level = [t for x in level for t in edges.get(x, []) if t not in seen]
-            seen.update(level)
-            if not level:
-                break
-        out[qid] = seen
-    return out
 
 
 def _claim_date(entity: dict[str, Any], *props: str) -> str | None:
@@ -633,10 +533,10 @@ def sender_classes(types: Iterable[str]) -> dict[str, str]:
 
     The class names its sender in its own `P17`, and it is the one place a
     post that carries no `P137` says who sends it. The classes' edges are
-    already in `type_edge` by the time a load asks, so only the handful of
-    sender classes is fetched.
+    usually in `type_edge` by the time a load asks, so only the handful of
+    sender classes is fetched in full.
     """
-    edges = _edges_cached(types)
+    edges = typegraph.edges(types)
     classes = sorted(q for q, targets in edges.items() if SENDER_CLASS in targets)
     entities = wikidata.fetch_items(classes, props="claims") if classes else {}
     return {qid: state for qid, entity in entities.items()
@@ -651,7 +551,7 @@ def sender_of(entity: dict[str, Any], senders: dict[str, str]) -> str | None:
     Never its `P17`, which names the receiver on 86% of them. The class
     itself, a direct subclass of the sender layer, is sent by its own `P17`.
     """
-    targets = type_targets(entity)
+    targets = typegraph.targets(entity)
     for target in targets:
         if target in senders:
             return senders[target]
@@ -758,7 +658,7 @@ def load_items(
         log(f"missing or deleted: {len(missing)}")
 
     started = time.monotonic()
-    closure = type_closure(sorted(entities))
+    closure = typegraph.of_items(sorted(entities))
     log(f"type closure: {len(closure)} items in {time.monotonic() - started:.0f}s")
     rows: list[tuple[dict[str, Any], list[tuple[str, str, bool]]]] = []
     referenced: set[str] = set()
@@ -781,7 +681,7 @@ def load_items(
         for actual in canonical}
     senders = sender_classes(
         t for actual, entity in canonical.items()
-        if DIPLOMATIC_CLASS in types_of[actual] for t in type_targets(entity))
+        if DIPLOMATIC_CLASS in types_of[actual] for t in typegraph.targets(entity))
     # A place of worship is not an office, so it is not a row: never offered,
     # never minted beside, and a row an earlier load wrote is taken out.
     structures = {actual for actual in canonical if is_structure(types_of[actual])}
@@ -792,7 +692,7 @@ def load_items(
     for actual, entity in canonical.items():
         if actual in structures:
             continue
-        declared = set(type_targets(entity))
+        declared = set(typegraph.targets(entity))
         kind_qids = wikidata.claim_qids(entity, "P279", include_deprecated=False)
         jurisdiction = _unended_qid(entity, "P1001")
         diplomatic = DIPLOMATIC_CLASS in types_of[actual]
@@ -966,7 +866,7 @@ NON_SCOPING_QUALIFIERS = frozenset((
 #: countries' positions, bishoprics included.
 WORSHIP_CLASS = "Q24398318"
 
-#: Ambassadorship, reached through `type_closure` and never through a
+#: Ambassadorship, reached through `typegraph.of_items` and never through a
 #: `wdt:P279*` in a `FILTER NOT EXISTS`, which times the query service out.
 #: An inbound mission is scoped to the *receiving* state, so a country's own
 #: table is full of other countries' embassies to it.
@@ -1367,7 +1267,7 @@ def fill_kinds(qids: Sequence[str], log: Any = lambda _m: None) -> int:
     with db.conn().cursor() as cur:
         cur.executemany(
             "UPDATE position SET kind_qids = %s WHERE qid = %s",
-            [(sorted(set(type_targets(entity))), qid) for qid, entity in found.items()],
+            [(sorted(set(typegraph.targets(entity))), qid) for qid, entity in found.items()],
         )
     log(f"kinds read for {len(found)} of {len(wanted)} offices")
     return len(found)
@@ -1408,7 +1308,7 @@ def organisations(qids: Iterable[str]) -> set[str]:
     wanted = [q for q in dict.fromkeys(qids) if q]
     if not wanted:
         return set()
-    closure = type_closure(wanted)
+    closure = typegraph.of_items(wanted)
     return {q for q in wanted
             if ORGANISATION in closure.get(q, set()) and not closure[q] & POSITION_METACLASSES}
 
@@ -1447,13 +1347,13 @@ def fill_diplomatic(qids: Sequence[str] | None = None,
     if qids is None:
         rows = db.conn().execute("SELECT qid FROM position ORDER BY qid").fetchall()
         qids = [qid for (qid,) in rows]
-    closure = type_closure(list(qids))
+    closure = typegraph.of_items(list(qids))
     flags = {qid: DIPLOMATIC_CLASS in closure.get(qid, set()) for qid in qids}
     # The sender, for the flagged rows only: it is what tells a state's own
     # post abroad from another state's post to it when both carry its `P17`.
     posts = sorted(qid for qid, flag in flags.items() if flag)
     entities = wikidata.fetch_items(posts, props="claims") if posts else {}
-    senders = sender_classes(t for e in entities.values() for t in type_targets(e))
+    senders = sender_classes(t for e in entities.values() for t in typegraph.targets(e))
     sent = {qid: sender_of(entities[qid], senders) if qid in entities else None
             for qid in posts}
     with db.conn().cursor() as cur:
