@@ -269,6 +269,18 @@ def discovery() -> None:
         wd.sparql = real
     expect(set(found) == {"Q1"}, "discover keeps only Q-ids")
 
+    def cut_off(q: str, max_age: int = 0) -> list[dict[str, str]]:
+        if "Q4164871" in q and "UNION" in q and "?t" in q:
+            raise RuntimeError("SPARQL non-JSON response")
+        return []
+    real_q = wd.qlever
+    wd.sparql, wd.qlever = cut_off, lambda q: [{"pos": "Q2"}]
+    try:
+        found = load.discover(XX, lambda m: None)
+    finally:
+        wd.sparql, wd.qlever = real, real_q
+    expect(found.get("Q2") == ["descent"], "a descent the query service cuts off is asked of QLever")
+
 
 def bisection() -> None:
     """A chunk the service cannot answer is halved until it can; one QID that still fails raises."""

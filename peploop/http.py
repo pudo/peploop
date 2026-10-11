@@ -36,6 +36,7 @@ HOST_RATES = {
     # time. Named in full because the suffix fallback below would not find it
     # — only `www.wikidata.org` is a key, `wikidata.org` is not.
     "query.wikidata.org": 1.0,
+    "qlever.dev": 1.0,
 }
 DEFAULT_RATE = 2.0
 #: Wikimedia's API limit is per IP across every wiki, not per host: a fetch

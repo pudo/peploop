@@ -125,6 +125,9 @@ DESCENT = """SELECT DISTINCT ?pos WHERE {
   { SELECT DISTINCT ?t WHERE { { ?p p:P17/ps:P17 wd:%(c)s } UNION { ?p p:P1001/ps:P1001 wd:%(c)s } ?p p:P31/ps:P31 ?t } }
   ?t wdt:P279* wd:Q4164871 . hint:Prior hint:gearing "forward" .
   { ?pos p:P17/ps:P17 wd:%(c)s } UNION { ?pos p:P1001/ps:P1001 wd:%(c)s } ?pos p:P31/ps:P31 ?t }"""
+#: The same lane in plain SPARQL, for QLever (no Blazegraph hints).
+DESCENT_PLAIN = """SELECT DISTINCT ?pos WHERE { ?pos p:P31/ps:P31/wdt:P279* wd:Q4164871 .
+  { ?pos p:P17/ps:P17 wd:%(c)s } UNION { ?pos p:P1001/ps:P1001 wd:%(c)s } }"""
 USAGE = """SELECT DISTINCT ?pos WHERE { { ?pos p:P17/ps:P17 wd:%(c)s } UNION { ?pos p:P1001/ps:P1001 wd:%(c)s }
   ?h wdt:P31 wd:Q5 ; p:P39/ps:P39 ?pos }"""
 ORPHAN = """SELECT DISTINCT ?pos WHERE { ?h wdt:P27 wd:%(c)s ; wdt:P31 wd:Q5 ; p:P39/ps:P39 ?pos .
@@ -161,7 +164,15 @@ def discover(c: countries.Country, log: Callable[[str], None]) -> dict[str, list
                 queries.append(("predecessor_union", PREDECESSOR_UNION, {"u": u, "re": regex}))
     found: dict[str, list[str]] = {}
     for lane, query, extra in queries:
-        rows = wd.sparql(query % {"c": c.qid, **extra})
+        try:
+            rows = wd.sparql(query % {"c": c.qid, **extra})
+        except RuntimeError:
+            if lane != "descent":
+                raise
+            # The UK's scope is too large for the query service in any shape;
+            # QLever's dump is days old, but load reads every item live.
+            log(f"lane {lane}: cut off by the query service, asking QLever")
+            rows = wd.qlever(DESCENT_PLAIN % {"c": c.qid})
         skipped = [r["pos"] for r in rows if not ITEM.fullmatch(r["pos"])]
         if skipped:  # a somevalue P39 binds a blank node, which no query can pin
             log(f"lane {lane}: skipped {len(skipped)} non-item values")

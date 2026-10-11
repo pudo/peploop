@@ -33,6 +33,14 @@ SPARQL_TIMEOUT = 300
 VALUES_CHUNK = 120
 
 ENTITY_URI = "http://www.wikidata.org/entity/"
+#: A second engine over a Wikidata dump that lags by days, for the one join the
+#: query service cannot answer: the UK's offices typed into the position tree.
+QLEVER_API = "https://qlever.dev/api/wikidata"
+QLEVER_PREFIXES = (
+    "PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> "
+    "PREFIX p: <http://www.wikidata.org/prop/> PREFIX ps: <http://www.wikidata.org/prop/statement/> "
+    "PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
+)
 
 
 def _chunks(qids: Iterable[str]) -> Iterable[list[str]]:
@@ -101,6 +109,22 @@ def sparql(query: str, max_age: int = 0) -> list[dict[str, str]]:
         # is served the same failure out of the cache for a week.
         db.cache_drop(SPARQL_API, params)
         raise RuntimeError(f"SPARQL non-JSON response: {raw[:80]!r}") from None
+    return _bindings(data)
+
+
+def qlever(query: str) -> list[dict[str, str]]:
+    """Run a SPARQL query on QLever, in the shape `sparql` returns.
+
+    Reach for this only when the query service cannot answer a discovery
+    query at all: QLever reads a dump days old, so it finds candidates, and
+    their state is then read live.
+    """
+    params = {"query": QLEVER_PREFIXES + " ".join(query.split())}
+    raw = http.get_text(QLEVER_API, params=params, max_age=0, timeout=SPARQL_TIMEOUT)
+    return _bindings(json.loads(raw))
+
+
+def _bindings(data: dict[str, Any]) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     for binding in data["results"]["bindings"]:
         row = {}
