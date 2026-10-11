@@ -45,7 +45,9 @@ REALM = {"dk": ("Q35", "Q756617"), "nl": ("Q55", "Q29999")}
 #: A predecessor the country's own item names and whose offices are none of its own:
 #: Australia "follows" the United Kingdom of Great Britain and Ireland (P155, 1901),
 #: but federated from six colonies: the UK's own offices loaded as Australia's.
-NOT_PREDECESSOR = {"au": {"Q174193"}}
+#: The State of Scott, a Civil War county's secession claim, names the US as
+#: its successor; its one name, "Scott", would make any Scott's office a predecessor's.
+NOT_PREDECESSOR = {"au": {"Q174193"}, "us": {"Q7603795"}}
 LIST_CLASS = "Q13406463"  # Wikimedia list article: "list of districts of X" is an alias, not a word
 #: Concepts whose names, in the country's languages, are the words a label is read for.
 CONCEPTS = {
