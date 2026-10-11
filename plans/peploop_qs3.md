@@ -37,6 +37,8 @@ tags: [peploop, peptree, quickstatements, qs3, write-path]
 - **References:** several reference blocks go on one line, joined by `!S`. A `+` statement must never be one line per reference: each line would create its own statement.
 - **Rank:** `R+` creates a preferred statement.
 - **`SWITCH_VALUE|Q|P|old|new`** changes the value in place and keeps the GUID.
+  - The old value matches by exact equality. A year stored as `+1939-01-01T00:00:00Z/9`, the form most imported years have, matches when sent verbatim (QS3 59094/59096, 2026-10-11). A plain line after it with the new value merges our reference into the switched statement: one statement, two references.
+- **`ambiguous-statement` is accepted (2026-10-11).** Japan's dry run closed 8 of 367 rows (2.2%) this way, all House of Representatives members with one statement per Diet term. The user chose the skip over remove-and-recreate.
 - **Removal:** `-STATEMENT|GUID` is exact. `-Q|P|value` removes only the first of several statements that share the value, so never use it.
 - **Errors:** a failed command reports status −1 and its raw line, never the reason. The report CSV returns 403 to a token.
 - **The API:**
