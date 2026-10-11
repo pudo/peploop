@@ -1,28 +1,22 @@
-"""peptree: repair one country's position items.
+"""peptree: repair every country's position items, and send the repairs to Wikidata.
 
-    python -m peptree.cli country <cc>  # derive the country's config from data (no model calls)
-    python -m peptree.cli load <cc>     # discover, filter, store items and gaps
-    python -m peptree.cli repair <cc>   # ask, decide, render and check the .qs
-    python -m peptree.cli report <cc>   # funnel, matrix and skips; written beside the .qs
-
-Every run writes one file per country and day, `data/peptree/<cc>/<cc>-<date>.qs`,
-holding every lane's statements, with its report as `<cc>-<date>.md` beside it.
-That file is what the country would add now; it is never sent itself.
+    python -m peptree.cli place <cc>                 # country → load → repair → report for one place
     python -m peptree.cli sweep plan|table|run <n>   # the batched sweep, ledger in peptree/sweep.md
     python -m peptree.cli audit <n>                  # every line of batch n with labels, and what to look at
-    python -m peptree.cli outbox [--submit] [--batch n]  # what has not gone out yet; --submit sends it
-    python -m peptree.cli outbox --status            # the send ledger, failures, revert candidates
+    python -m peptree.cli send [--submit] [--batch n]  # what has not gone out yet; --submit sends it
+    python -m peptree.cli send --status              # the send ledger, failures, strikes, open removals
     python -m peptree.cli strike <qid> <prop> [value] --reason "…"  # never send it; undo it if it landed
-    python -m peptree.cli removals [approve|reject <guid…> | submit]  # statements to take back off Wikidata
-    python -m peptree.cli status <batch_id>          # read a QS3 batch back: status and failed lines
+    python -m peptree.cli removals [approve|reject <guid…>]         # statements to take back off Wikidata
 
-Only `outbox --submit` and `removals submit` edit Wikidata, each as one QuickStatements 3.0 batch.
+Every place's run writes one file per day, `data/peptree/<cc>/<cc>-<date>.qs`,
+holding every lane's statements, with its report as `<cc>-<date>.md` beside it.
+That file is what the place would add now; it is never sent itself. Only
+`send --submit` edits Wikidata, as QuickStatements 3.0 batches.
 """
 
 import argparse
 import sys
 
-from peploop import qs3
 from peptree import country as countries
 from peptree import gaps, load, qs, repair, report, rules, wd
 
@@ -76,38 +70,34 @@ def cmd_country(cc: str) -> None:
     print(f"  union-lane name regex: {countries.sparql_name_regex(c) or '(none)'}")
 
 
-def cmd_status(batch_id: int) -> None:
-    row = qs3.info(batch_id)
-    print(f"status: {row['status']['display']}  counts: {row.get('summary')}  {qs3.EDITGROUPS.format(batch_id)}")
-    for raw in qs3.failed(batch_id):
-        print(f"  FAILED: {raw}")
+def cmd_place(cc: str, limit: int | None, no_ask: bool, large_ok: bool) -> None:
+    """Derive the place's config, load it, and repair it -- unless it is large and nobody said so."""
+    from peptree import sweep
+    cmd_country(cc)
+    cmd_load(cc)
+    asked = sweep.asked(cc)
+    if asked > sweep.LARGE and not (large_ok or no_ask or limit):
+        log(f"{cc}: {asked} items to ask, above {sweep.LARGE}; pass --large to repair it anyway")
+        sys.exit(sweep.LARGE_EXIT)
+    cmd_repair(cc, limit, no_ask)
 
 
 def main() -> None:
-    if sys.argv[1:2] in (["sweep"], ["audit"], ["outbox"], ["removals"], ["strike"]):
+    if sys.argv[1:2] in (["sweep"], ["audit"], ["send"], ["removals"], ["strike"]):
         wd.init()
-        from peptree import audit, outbox, removals, sweep
-        {"sweep": sweep.main, "audit": audit.main, "outbox": outbox.main, "removals": removals.main,
-         "strike": removals.strike_main}[sys.argv[1]](sys.argv[2:])
+        from peptree import audit, outbox, sweep
+        {"sweep": sweep.main, "audit": audit.main, "send": outbox.main, "removals": outbox.removals_main,
+         "strike": outbox.strike_main}[sys.argv[1]](sys.argv[2:])
         return
     parser = argparse.ArgumentParser(prog="peptree")
-    parser.add_argument("command", choices=["country", "load", "repair", "report", "status"])
-    parser.add_argument("cc", help="country code, or the batch id for `status`")
-    parser.add_argument("--no-ask", action="store_true", help="repair: re-decide from the ledger, no model calls")
-    parser.add_argument("--limit", type=int, default=None, help="repair: ask about the first N items only")
+    parser.add_argument("command", choices=["place"])
+    parser.add_argument("cc", help="country code")
+    parser.add_argument("--no-ask", action="store_true", help="re-decide from the ledger, no model calls")
+    parser.add_argument("--limit", type=int, default=None, help="ask about the first N items only")
+    parser.add_argument("--large", action="store_true", help="repair a large place too")
     args = parser.parse_args()
     wd.init()
-    if args.command == "country":
-        cmd_country(args.cc)
-    elif args.command == "load":
-        cmd_load(args.cc)
-    elif args.command == "repair":
-        cmd_repair(args.cc, args.limit, args.no_ask)
-    elif args.command == "status":
-        cmd_status(int(args.cc))
-    else:
-        print(report.report(args.cc))
-        log(f"{report.write(args.cc)}: report")
+    cmd_place(args.cc, args.limit, args.no_ask, args.large)
 
 
 if __name__ == "__main__":

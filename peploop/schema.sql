@@ -513,6 +513,95 @@ CREATE TABLE IF NOT EXISTS title_en (
 ALTER TABLE position ADD COLUMN IF NOT EXISTS title_en TEXT;
 -- END title_en
 
+-- BEGIN send
+-- What peploop and peptree have sent to Wikidata, what they must never send,
+-- and what they should take back (`ledger.py`). The tables began as peptree's
+-- `ptree_*`; they are renamed here once, rows and all, because a line that went
+-- out or was struck must stay that way whichever tool proposes it next.
+DO $$
+BEGIN
+    IF to_regclass('wd_batch') IS NULL AND to_regclass('ptree_batch') IS NOT NULL THEN
+        ALTER TABLE ptree_batch RENAME TO wd_batch;
+        ALTER TABLE ptree_edit RENAME TO wd_edit;
+        ALTER TABLE ptree_strike RENAME TO wd_strike;
+        ALTER TABLE ptree_removal RENAME TO wd_removal;
+        ALTER TABLE wd_batch ADD COLUMN tool TEXT NOT NULL DEFAULT 'peptree';
+        ALTER TABLE wd_strike ADD COLUMN tool TEXT NOT NULL DEFAULT 'peptree';
+        ALTER TABLE wd_removal ADD COLUMN tool TEXT NOT NULL DEFAULT 'peptree';
+        ALTER TABLE wd_batch ALTER COLUMN tool DROP DEFAULT;
+        ALTER TABLE wd_strike ALTER COLUMN tool DROP DEFAULT;
+        ALTER TABLE wd_removal ALTER COLUMN tool DROP DEFAULT;
+    END IF;
+END $$;
+
+-- One QS batch: a paste-era chunk or a QS3 batch. The row is written before the
+-- request, so an answer lost in flight leaves a row with no qs3_id, never a second send.
+CREATE TABLE IF NOT EXISTS wd_batch (
+    id serial PRIMARY KEY,
+    tool text NOT NULL,              -- 'peploop' | 'peptree'
+    kind text NOT NULL,              -- 'paste' | 'qs3'
+    op text NOT NULL,                -- 'add' | 'remove' | 'create': a batch never mixes them
+    name text NOT NULL,
+    qs3_id integer UNIQUE,           -- NULL until QS3 answers, and for every paste chunk
+    paste_chunk integer UNIQUE,      -- 1..64, peptree's paste era
+    status text NOT NULL,            -- 'sending' | 'running' | 'done' | 'stopped' | 'unknown'
+    created_at timestamptz NOT NULL DEFAULT now(),
+    finished_at timestamptz
+);
+
+-- One row per statement sent, keyed on the statement itself: an addition by its
+-- line without summary or retrieval date, a removal by its GUID, a creation by
+-- its intent tag. Keyed across tools, so no tool sends what another already did.
+-- 'sent' → 'landed' (live; for a removal: gone) | 'failed'; 'reverted' is an
+-- addition that landed and was later removed by hand.
+CREATE TABLE IF NOT EXISTS wd_edit (
+    op text NOT NULL,
+    key text NOT NULL,
+    country text NOT NULL,
+    line text NOT NULL,
+    batch_id integer NOT NULL REFERENCES wd_batch(id),
+    status text NOT NULL DEFAULT 'sent',
+    status_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (op, key)
+);
+-- The rows a tool made this edit from (peploop's proposal or candidate ids), so
+-- their status can follow the edit's.
+ALTER TABLE wd_edit ADD COLUMN IF NOT EXISTS refs bigint[] NOT NULL DEFAULT '{}';
+
+-- A reviewer's veto on a proposed addition: never send it, whichever tool
+-- proposes it. Value '*' strikes every value of (qid, prop).
+CREATE TABLE IF NOT EXISTS wd_strike (
+    qid text NOT NULL,
+    prop text NOT NULL,
+    value text NOT NULL DEFAULT '*',
+    tool text NOT NULL,
+    country text NOT NULL,
+    reason text NOT NULL,
+    origin text NOT NULL,            -- 'cli' | 'note' | 'audit:<by>'
+    created_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (qid, prop, value)
+);
+
+-- A statement that should leave Wikidata, by GUID. `ours`: our batch added it and
+-- nobody else has sourced it, so the strike that queued it was its approval.
+-- 'proposed' | 'approved' | 'rejected' | 'gone' (absent at pre-flight); sending
+-- is tracked in wd_edit with op 'remove'.
+CREATE TABLE IF NOT EXISTS wd_removal (
+    guid text PRIMARY KEY,
+    tool text NOT NULL,
+    qid text NOT NULL,
+    prop text NOT NULL,
+    value text NOT NULL,
+    country text,
+    reason text NOT NULL,
+    origin text NOT NULL,            -- 'strike' | 'revert' | 'byproduct:<file>' | 'cli'
+    ours boolean NOT NULL,
+    status text NOT NULL,
+    decided_at timestamptz,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+-- END send
+
 -- The hash of this file as last applied, so a command start that finds it
 -- unchanged runs none of the `ALTER`s above (`db.init_schema`). One row.
 CREATE TABLE IF NOT EXISTS schema_version (

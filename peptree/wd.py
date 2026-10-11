@@ -40,9 +40,10 @@ _ready = False
 
 
 def init() -> None:
-    """Create the `ptree_` tables if they are missing."""
+    """Create the `ptree_` tables if they are missing, and peploop's (the send ledger among them)."""
     global _ready
     if not _ready:
+        pdb.init_schema()
         conn().execute(SCHEMA.read_text())
         _ready = True
 

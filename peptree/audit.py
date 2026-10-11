@@ -14,8 +14,9 @@ import sys
 from collections import defaultdict
 from typing import Any
 
+from peploop import ledger
 from peptree import country as countries
-from peptree import gaps, ledger, qs, sweep, wd
+from peptree import gaps, qs, sweep, wd
 from peptree.load import values
 
 #: Categories every state has an office for: absent after the run means the load missed it.

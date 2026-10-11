@@ -5,10 +5,10 @@ and what its run produced. It is what tells a session which batch is next and
 which places wait on a fix, so it is committed while the `.qs` files stay in
 `data/`. Status and notes are written by hand in review; every other column is
 rewritten from the database by `table`. A batch is the unit of running and
-review only: what goes to Wikidata leaves through `outbox`, whatever the batch.
+review only: what goes to Wikidata leaves through `send`, whatever the batch.
 
     python -m peptree.cli sweep plan       # (re)build the universe and its batches
-    python -m peptree.cli sweep run <n>    # country → load → repair for batch n
+    python -m peptree.cli sweep run <n>    # `place` for every pending place of batch n
     python -m peptree.cli sweep table      # refresh the machine columns
 """
 
@@ -33,11 +33,12 @@ OECD = tuple("cr si lv is sk co cz lt ie at il cl lu ee nz tr pl fi mx hu kr gr 
 #: Codes rigour gives places with no government of their own to hold office in: the
 #: uninhabited, a military base, a region of an OECD state, and the non-places.
 NO_OFFICES = frozenset("aq bv cp dg hm ic ip tf um zz eu un".split())
-STEPS = ("country", "load", "repair")
 #: Items with a gap above which a place's repair waits for a decision: Brazil's
 #: 5,056 would have cost $100-200 before the type/class swap was understood. The
 #: repair itself then asks only about held or categorised items (`repair.focus`).
 LARGE = repair.LARGE
+#: `place`'s exit code for a place it stopped before the repair because it is large.
+LARGE_EXIT = 3
 COLUMNS = ("cc", "name", "region", "batch", "status", "run", "kept", "lines", "by property", "cost", "batches", "notes")
 #: Columns a person writes; `table` and `plan` keep them as found.
 HAND = ("status", "notes")
@@ -123,7 +124,7 @@ def stats(cc: str) -> dict[str, str]:
     kept = wd.conn().execute("SELECT count(*) FROM ptree_item WHERE country = %s AND dropped IS NULL", (cc,)).fetchone()[0]
     usd, _ = repair.cost(cc)
     sent = wd.conn().execute(
-        "SELECT DISTINCT b.paste_chunk, b.qs3_id, b.id FROM ptree_edit e JOIN ptree_batch b ON b.id = e.batch_id"
+        "SELECT DISTINCT b.paste_chunk, b.qs3_id, b.id FROM wd_edit e JOIN wd_batch b ON b.id = e.batch_id"
         " WHERE e.country = %s ORDER BY b.id", (cc,)).fetchall()
     return {"run": path.stem[len(cc) + 1:], "kept": str(kept), "lines": str(len(lines)),
             "by property": " ".join(f"{p} {n}" for p, n in sorted(by.items())), "cost": f"${usd:.2f}",
@@ -163,20 +164,11 @@ def run(batch: int, log: Any = print) -> list[str]:
             continue
         out = qs.OUT_DIR / cc
         out.mkdir(parents=True, exist_ok=True)
-        failed, large = None, 0
-        for step in STEPS:
-            if step == "repair":
-                large = asked(cc)
-                if large > LARGE:
-                    break
-            with open(out / f"{step}-{cc}.log", "w") as fh:
-                code = subprocess.call([sys.executable, "-m", "peptree.cli", step, cc], stdout=fh, stderr=subprocess.STDOUT)
-            if code:
-                failed = step
-                break
+        with open(out / f"place-{cc}.log", "w") as fh:
+            code = subprocess.call([sys.executable, "-m", "peptree.cli", "place", cc], stdout=fh, stderr=subprocess.STDOUT)
         rows = read()  # the ledger may have been edited by hand while this place ran
-        rows[cc]["status"] = (f"blocked: crash in {failed}" if failed else
-                              f"blocked: large ({large} items to ask)" if large > LARGE else "run")
+        rows[cc]["status"] = (f"blocked: large ({asked(cc)} items to ask)" if code == LARGE_EXIT else
+                              f"blocked: crash (place-{cc}.log)" if code else "run")
         log(f"{cc}: {rows[cc]['status']}")
         write(fill([rows[p["cc"]] for p in universe() if p["cc"] in rows]))
         done.append(cc)
@@ -191,6 +183,6 @@ def main(args: list[str]) -> None:
     elif args[:1] == ["run"] and len(args) == 2:
         done = run(int(args[1]), log=lambda m: print(m, file=sys.stderr, flush=True))
         lines = sum(len(p.read_text().splitlines()) for cc in done if (p := qs.latest(cc)))
-        print(f"batch {args[1]}: ran {' '.join(done) or 'nothing'}, {lines} lines proposed; send with `outbox --submit`")
+        print(f"batch {args[1]}: ran {' '.join(done) or 'nothing'}, {lines} lines proposed; send with `send --submit`")
     else:
         sys.exit("usage: sweep plan | table | run <batch>")

@@ -1,7 +1,7 @@
 """Render a run's applied decisions as QuickStatements V1, and check them.
 
 A country's run file is rendered and checked here (`validate`). What reaches
-Wikidata goes out through `outbox.py`, as a QuickStatements 3.0 batch.
+Wikidata goes out through `outbox.py` (`peptree.cli send`), as a QuickStatements 3.0 batch.
 """
 
 import datetime as dt
@@ -59,27 +59,6 @@ def validate(lines: list[str]) -> list[str]:
         seen[key] = cols[2]
         if "S854" in cols and "S813" not in cols:
             errors.append(f"{n}: S854 without S813")
-    return errors
-
-
-GUID_RE = re.compile(r"^[Qq]\d+\$[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$")
-
-
-def removal_line(guid: str, reason: str) -> str:
-    """Remove one statement by its GUID: never by value, which takes only the first match."""
-    return f"-STATEMENT\t{guid} /* {reason.replace('*', '')} */"
-
-
-def validate_removals(lines: list[str]) -> list[str]:
-    """A removal batch carries `-STATEMENT` lines with a well-formed GUID, each once, and nothing else."""
-    errors, seen = [], set()
-    for n, text in enumerate(lines, 1):
-        cols = SUMMARY_RE.sub("", text).split("\t")
-        if len(cols) != 2 or cols[0] != "-STATEMENT" or not GUID_RE.match(cols[1]):
-            errors.append(f"{n}: not a removal by GUID: {text!r}")
-        elif cols[1] in seen:
-            errors.append(f"{n}: {cols[1]} twice")
-        seen.add(cols[1])
     return errors
 
 
