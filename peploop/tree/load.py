@@ -115,8 +115,12 @@ def all_labels(entity: dict[str, Any]) -> str:
 
 # --- discovery ------------------------------------------------------------------
 
-DESCENT = """SELECT DISTINCT ?pos WHERE { ?pos p:P31/ps:P31/wdt:P279* wd:Q4164871 .
-  { ?pos p:P17/ps:P17 wd:%(c)s } UNION { ?pos p:P1001/ps:P1001 wd:%(c)s } }"""
+#: The types the state's items use are walked up once each, then joined back:
+#: walking P279* from every item ran 40 s for Australia and cut Germany off.
+DESCENT = """SELECT DISTINCT ?pos WHERE {
+  { SELECT DISTINCT ?t WHERE { { ?p p:P17/ps:P17 wd:%(c)s } UNION { ?p p:P1001/ps:P1001 wd:%(c)s } ?p p:P31/ps:P31 ?t } }
+  ?t wdt:P279* wd:Q4164871 . hint:Prior hint:gearing "forward" .
+  { ?pos p:P17/ps:P17 wd:%(c)s } UNION { ?pos p:P1001/ps:P1001 wd:%(c)s } ?pos p:P31/ps:P31 ?t }"""
 USAGE = """SELECT DISTINCT ?pos WHERE { { ?pos p:P17/ps:P17 wd:%(c)s } UNION { ?pos p:P1001/ps:P1001 wd:%(c)s }
   ?h wdt:P31 wd:Q5 ; p:P39/ps:P39 ?pos }"""
 ORPHAN = """SELECT DISTINCT ?pos WHERE { ?h wdt:P27 wd:%(c)s ; wdt:P31 wd:Q5 ; p:P39/ps:P39 ?pos .
