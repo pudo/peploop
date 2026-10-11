@@ -454,7 +454,8 @@ def apply_(limit: int | None, qid: Sequence[str], write: bool, country: str) -> 
 @click.option("--qid", multiple=True, help="Send these people only.")
 @click.option("--submit", is_flag=True, help="Send it as a QuickStatements 3.0 batch; without it nothing leaves here.")
 @click.option("--status", "show_status", is_flag=True, help="Print the send ledger: batches, failures, strikes, removals.")
-def send_(country: str | None, qid: Sequence[str], submit: bool, show_status: bool) -> None:
+@click.option("--retry", is_flag=True, help="With --submit: send the run's failed lines again, one edit each.")
+def send_(country: str | None, qid: Sequence[str], submit: bool, show_status: bool, retry: bool) -> None:
     """Send a run's accepted proposals to Wikidata, then its approved removals, and settle every row.
 
     A dry run by default: it settles what went out before, pre-flights and
@@ -469,6 +470,12 @@ def send_(country: str | None, qid: Sequence[str], submit: bool, show_status: bo
         return
     if not country:
         raise click.UsageError("name the run with --country")
+    if retry:
+        if not submit:
+            raise click.UsageError("--retry sends; pass --submit with it")
+        found = outbox.retry(country, click.echo)
+        click.echo(f"QS3 batch {found}" if found else "nothing sent")
+        return
     sent = outbox.run(country, click.echo, submit=submit, qids=list(qid), threads=FETCH_THREADS)
     click.echo(f"QS3 batches {' '.join(map(str, sent))}" if sent else "nothing sent")
 

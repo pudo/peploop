@@ -85,6 +85,15 @@ def record_edits(batch_id: int, op: str, rows: Iterable[tuple[str, str, str, lis
                         (op, k, country, line, batch_id, list(refs)))
 
 
+def move_edits(batch_id: int, op: str, keys: Iterable[str]) -> None:
+    """Move failed edits onto a new batch, to be sent again: the statement keeps its key, never a second row."""
+    con = db.conn()
+    with con.transaction():
+        for k in keys:
+            con.execute("UPDATE wd_edit SET batch_id = %s, status = 'sent', status_at = now()"
+                        " WHERE op = %s AND key = %s AND status = 'failed'", (batch_id, op, k))
+
+
 def set_status(op: str, keys: Iterable[str], status: str) -> None:
     con = db.conn()
     for k in keys:

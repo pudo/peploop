@@ -125,6 +125,44 @@ def send(tool: str, op: str, name: str, rows: list[tuple[str, str, str, list[int
     return qs_id
 
 
+def retry(tool: str, op: str, name: str, is_live: IsLive, log: Log,
+          on_recorded: Callable[[str], None] | None = None, country: str | None = None) -> int | None:
+    """Send a tool's failed edits of one op again, one edit per line; returns the QS3 id.
+
+    QS3 folds an item's consecutive lines into one edit, and one bad command
+    fails them all with no reason given; uncombined, each line stands or falls
+    alone. A line live by now is recorded `landed` instead of being sent.
+    """
+    failed = [(k, line) for k, cc, line, _, s in ledger.edits(op, tool)
+              if s == "failed" and country in (None, cc)]
+    if not failed:
+        log("no failed edits to retry")
+        return None
+    live = is_live([line for _, line in failed]) if op == "add" else set()
+    ledger.set_status(op, live, "landed")
+    todo = [(k, line) for k, line in failed if k not in live]
+    log(f"{len(failed)} failed edits: {len(live)} live already, {len(todo)} to send again")
+    if not todo:
+        return None
+    batch_id = ledger.open_batch(tool, op, name)
+    name = f"{name} #{batch_id}"
+    ledger.rename_batch(batch_id, name)
+    ledger.move_edits(batch_id, op, [k for k, _ in todo])
+    if on_recorded is not None:
+        on_recorded(name)
+    qs_id = qs3.submit([line for _, line in todo], name, combine=False)
+    ledger.bind_qs3(batch_id, qs_id)
+    log(f"sent as QS3 batch {qs_id}: {qs3.link(qs_id)}  {qs3.EDITGROUPS.format(qs_id)}")
+    row = qs3.wait(qs_id, log)
+    ledger.close_batch(batch_id, FINISHED.get(row["status"]["code"], "unknown"))
+    bad = {raw.strip() for raw in qs3.failed(qs_id)}
+    ledger.set_status(op, {k for k, line in todo if line.strip() in bad}, "failed")
+    if bad:
+        log(f"{len(bad)} lines failed again; see send --status")
+    reconcile(tool, is_live, log)
+    return qs_id
+
+
 # --- creations -----------------------------------------------------------------------
 
 def create(tool: str, name: str, rows: list[tuple[str, str, list[str], int]], log: Log,

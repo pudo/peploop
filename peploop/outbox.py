@@ -96,6 +96,23 @@ def mark_sent(ids: list[int], batch_name: str) -> None:
                       (SENT, batch_name, ids))
 
 
+def retry(country: str, log: Log) -> int | None:
+    """Send this tool's failed lines again, one edit each, and settle their rows."""
+    failed = [r for r, in db.conn().execute(
+        "SELECT p.id FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
+        " WHERE pe.country = %s AND p.status = %s", (country, FAILED)).fetchall()]
+
+    def requeue(name: str) -> None:
+        db.conn().execute("UPDATE proposal SET status = %s, applied_batch = %s WHERE id = ANY(%s)",
+                          (SENT, name, failed))
+
+    with send.writer_lock(f"peploop send {country} --retry"):
+        qs_id = send.retry(TOOL, "add", f"peploop retry {country} {dt.date.today().isoformat()}", is_live, log,
+                           on_recorded=requeue, country=country)
+        settle(log)
+    return qs_id
+
+
 def run(country: str, log: Log, submit: bool = False, qids: list[str] | None = None,
         threads: int = 8) -> list[int]:
     """Settle what went out before, route what is accepted now, write it to a file; with `submit`, send it.
