@@ -7,9 +7,9 @@ which places wait on a fix, so it is committed while the `.qs` files stay in
 rewritten from the database by `table`. A batch is the unit of running and
 review only: what goes to Wikidata leaves through `send`, whatever the batch.
 
-    python -m peploop.tree.cli sweep plan       # (re)build the universe and its batches
-    python -m peploop.tree.cli sweep run <n>    # `place` for every pending place of batch n
-    python -m peploop.tree.cli sweep table      # refresh the machine columns
+    python -m peploop.cli tree sweep plan       # (re)build the universe and its batches
+    python -m peploop.cli tree sweep run <n>    # `place` for every pending place of batch n
+    python -m peploop.cli tree sweep table      # refresh the machine columns
 """
 
 import re
@@ -163,7 +163,7 @@ def run(batch: int, log: Any = print) -> list[str]:
         out = qs.OUT_DIR / cc
         out.mkdir(parents=True, exist_ok=True)
         with open(out / f"place-{cc}.log", "w") as fh:
-            code = subprocess.call([sys.executable, "-m", "peploop.tree.cli", "place", cc], stdout=fh, stderr=subprocess.STDOUT)
+            code = subprocess.call([sys.executable, "-m", "peploop.cli", "tree", "place", cc], stdout=fh, stderr=subprocess.STDOUT)
         rows = read()  # the ledger may have been edited by hand while this place ran
         rows[cc]["status"] = (f"blocked: large ({asked(cc)} items to ask)" if code == LARGE_EXIT else
                               f"blocked: crash (place-{cc}.log)" if code else "run")
@@ -171,16 +171,3 @@ def run(batch: int, log: Any = print) -> list[str]:
         write(fill([rows[p["cc"]] for p in universe() if p["cc"] in rows]))
         done.append(cc)
     return done
-
-
-def main(args: list[str]) -> None:
-    if args[:1] == ["plan"]:
-        print(plan())
-    elif args[:1] == ["table"]:
-        print(table())
-    elif args[:1] == ["run"] and len(args) == 2:
-        done = run(int(args[1]), log=lambda m: print(m, file=sys.stderr, flush=True))
-        lines = sum(len(p.read_text().splitlines()) for cc in done if (p := qs.latest(cc)))
-        print(f"batch {args[1]}: ran {' '.join(done) or 'nothing'}, {lines} lines proposed; send with `send --submit`")
-    else:
-        sys.exit("usage: sweep plan | table | run <batch>")

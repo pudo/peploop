@@ -6,11 +6,11 @@ given "minister" beside its own class); a flag that turns out to be a real
 defect becomes a rule in `rules.py` with a case in `check_rules.py`, and stops
 being something a reviewer has to catch.
 
-    python -m peploop.tree.cli audit <batch>
+    python -m peploop.cli tree audit <batch>
 """
 
 import re
-import sys
+from pathlib import Path
 from collections import defaultdict
 from typing import Any
 
@@ -111,12 +111,10 @@ def audit(batch: int) -> str:
     return "\n".join(out)
 
 
-def main(args: list[str]) -> None:
-    if len(args) != 1 or not args[0].isdigit():
-        sys.exit("usage: audit <batch>")
-    text = audit(int(args[0]))
-    path = qs.OUT_DIR / "audit" / f"batch-{int(args[0]):02d}.md"
+def write(batch: int) -> tuple[str, Path]:
+    """Render batch `batch`'s audit and keep a copy under `data/peptree/audit/`."""
+    text = audit(batch)
+    path = qs.OUT_DIR / "audit" / f"batch-{batch:02d}.md"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text + "\n")
-    print(text)
-    print(f"\n{path}", file=sys.stderr)
+    return text, path

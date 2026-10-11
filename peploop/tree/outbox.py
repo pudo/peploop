@@ -5,13 +5,13 @@ A country's run file says what it would add *now*; the joint ledger
 struck. A fix that re-renders twenty countries therefore costs only its new
 statements. The batch itself goes out through `peploop/send.py`.
 
-    python -m peploop.tree.cli send                     # reconcile; write what would go out to send/pending.qs
-    python -m peploop.tree.cli send --batch 7           # the same, for one reviewed sweep batch only
-    python -m peploop.tree.cli send --submit [--batch 7]  # additions as one QS3 batch, then approved removals as another
-    python -m peploop.tree.cli send --status            # batches, failures, strikes, open removals
-    python -m peploop.tree.cli send --propose-reverts   # queue removals for what landed on items the load now drops
-    python -m peploop.tree.cli strike <qid> <prop> [value] --reason "…" [--country cc]
-    python -m peploop.tree.cli removals [approve|reject <guid…>]
+    python -m peploop.cli tree send                       # reconcile; write what would go out to send/pending.qs
+    python -m peploop.cli tree send --batch 7             # the same, for one reviewed sweep batch only
+    python -m peploop.cli tree send --submit [--batch 7]  # additions as one QS3 batch, then approved removals as another
+    python -m peploop.cli tree send --status              # batches, failures, strikes, open removals
+    python -m peploop.cli tree send --propose-reverts     # queue removals for what landed on items the load now drops
+    python -m peploop.cli tree strike <qid> <prop> [value] --reason "…" [--country cc]
+    python -m peploop.cli removals [approve|reject <guid…>]  # both tools' removals
 
 - An addition is `sent`, then `landed` once its statement is live (any rank), or
   `failed` when QS3 reports its command failed. A failed line is listed by
@@ -30,7 +30,6 @@ statements. The batch itself goes out through `peploop/send.py`.
   is audited before any of it is sent.
 """
 
-import argparse
 import datetime as dt
 import os
 import sys
@@ -176,36 +175,10 @@ def country_of(qid: str) -> str | None:
     return row[0] if row else None
 
 
-def strike_main(args: list[str]) -> None:
-    parser = argparse.ArgumentParser(prog="peptree strike")
-    parser.add_argument("qid")
-    parser.add_argument("prop")
-    parser.add_argument("value", nargs="?", default=ledger.ANY)
-    parser.add_argument("--reason", required=True)
-    parser.add_argument("--country")
-    a = parser.parse_args(args)
-    cc = a.country or country_of(a.qid)
+def strike(qid: str, prop: str, value: str, reason: str, country: str | None, log: Callable[[str], None]) -> str:
+    """Never send this statement; queue its removal if it already landed. Returns what was struck."""
+    cc = country or country_of(qid)
     if cc is None:
-        sys.exit(f"no country has proposed anything for {a.qid}; pass --country")
-    queued = ledger.strike(TOOL, a.qid, a.prop, a.value, cc, a.reason, log=lambda m: print(m, file=sys.stderr))
-    print(f"struck {a.qid} {a.prop} {a.value} ({cc})" + (f"; {len(queued)} removals queued" if queued else ""))
-
-
-def removals_main(args: list[str]) -> None:
-    send.removals_main(TOOL, args)
-
-
-def main(args: list[str]) -> None:
-    log = lambda m: print(m, file=sys.stderr, flush=True)  # noqa: E731
-    if args == ["--status"]:
-        print(send.status(TOOL))
-        return
-    if args == ["--propose-reverts"]:
-        propose_reverts(log)
-        return
-    submit = "--submit" in args
-    rest = [a for a in args if a != "--submit"]
-    if rest and not (len(rest) == 2 and rest[0] == "--batch" and rest[1].isdigit()):
-        sys.exit("usage: send [--status | --propose-reverts | [--submit] [--batch <n>]]")
-    sent = run(log, int(rest[1]) if rest else None, submit=submit)
-    print(f"QS3 batches {' '.join(map(str, sent))}" if sent else f"nothing sent; review {PENDING}")
+        raise ValueError(f"no country has proposed anything for {qid}; pass --country")
+    queued = ledger.strike(TOOL, qid, prop, value, cc, reason, log=log)
+    return f"struck {qid} {prop} {value} ({cc})" + (f"; {len(queued)} removals queued" if queued else "")

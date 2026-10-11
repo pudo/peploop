@@ -251,7 +251,8 @@ def pending_removals(tool: str, log: Log) -> list[tuple[str, str, str, list[int]
     return out
 
 
-def removals_listing(tool: str) -> str:
+def removals_listing(tool: str | None = None) -> str:
+    """Every removal of one tool, or of all of them, grouped by status."""
     rows = ledger.removals(tool=tool)
     out = []
     for status in ("approved", "proposed", "rejected", "gone"):
@@ -261,21 +262,10 @@ def removals_listing(tool: str) -> str:
         out += [f"## {status} ({len(here)})", ""]
         for r in here:
             sent = f" [sent: {r['sent']}]" if r["sent"] else ""
-            out.append(f"- {r['guid']} {r['prop']} {r['value']} ({r['country'] or '-'}, {r['origin']}"
+            out.append(f"- {r['guid']} {r['prop']} {r['value']} ({r['tool']}, {r['country'] or '-'}, {r['origin']}"
                        f"{', ours' if r['ours'] else ''}): {r['reason']}{sent}")
         out.append("")
     return "\n".join(out) or "no removals"
-
-
-def removals_main(tool: str, args: list[str]) -> None:
-    """`removals [list | approve <guid…> | reject <guid…>]`; approved ones go out with `send --submit`."""
-    if not args or args == ["list"]:
-        print(removals_listing(tool))
-    elif args[0] in ("approve", "reject") and len(args) > 1:
-        n = ledger.decide(args[1:], "approved" if args[0] == "approve" else "rejected")
-        print(f"{n} of {len(args) - 1} {args[0]}d (only proposed removals change)")
-    else:
-        sys.exit("usage: removals [list | approve <guid…> | reject <guid…>]")
 
 
 # --- status --------------------------------------------------------------------------

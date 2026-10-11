@@ -209,9 +209,9 @@ def mark_gone(guid: str) -> None:
 
 def removals(status: str | None = None, tool: str | None = None) -> list[dict[str, Any]]:
     cur = db.conn().execute(
-        "SELECT r.guid, r.qid, r.prop, r.value, r.country, r.reason, r.origin, r.ours, r.status, e.status"
+        "SELECT r.guid, r.qid, r.prop, r.value, r.country, r.reason, r.origin, r.ours, r.status, e.status, r.tool"
         " FROM wd_removal r LEFT JOIN wd_edit e ON e.op = 'remove' AND e.key = r.guid"
         " WHERE (%s::text IS NULL OR r.status = %s) AND (%s::text IS NULL OR r.tool = %s)"
         " ORDER BY r.created_at", (status, status, tool, tool))
-    cols = ("guid", "qid", "prop", "value", "country", "reason", "origin", "ours", "status", "sent")
+    cols = ("guid", "qid", "prop", "value", "country", "reason", "origin", "ours", "status", "sent", "tool")
     return [dict(zip(cols, r)) for r in cur.fetchall()]

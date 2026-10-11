@@ -16,10 +16,16 @@ from typing import Any
 
 import click
 
-from peploop import db, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
+from peploop import db, ledger, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
 from peploop import outbox
+from peploop.tree import audit as tree_audit
+from peploop.tree import outbox as tree_outbox
+from peploop.tree import place as tree_place
+from peploop.tree import qs as tree_qs
+from peploop.tree import sweep as tree_sweep
+from peploop.tree import wd as tree_wd
 from peploop import qs
 from peploop import plan as planning
 from peploop import send as sending
@@ -385,16 +391,25 @@ def send_(country: str | None, qid: Sequence[str], submit: bool, show_status: bo
     click.echo(f"QS3 batches {' '.join(map(str, sent))}" if sent else "nothing sent")
 
 
-@cli.command("removals", context_settings={"ignore_unknown_options": True})
-@click.argument("args", nargs=-1)
-def removals_(args: Sequence[str]) -> None:
+@cli.command("removals")
+@click.argument("action", type=click.Choice(["list", "approve", "reject"]), default="list")
+@click.argument("guids", nargs=-1)
+@click.option("--tool", type=click.Choice([outbox.TOOL, tree_outbox.TOOL]), help="List one tool's removals only.")
+def removals_(action: str, guids: Sequence[str], tool: str | None) -> None:
     """List statements to take back off Wikidata, or approve/reject them: `removals [approve|reject GUID…]`.
 
-    An audit of an applied row queues its removal: approved when the statement
-    is provably only ours, proposed for a human otherwise. Approved ones go out
-    with the next `send --submit`.
+    One queue for both tools. An audit of an applied peploop row, or a peptree
+    strike of a landed line, queues its removal: approved when the statement is
+    provably only ours, proposed for a human otherwise. Approved ones go out
+    with that tool's next `send --submit`.
     """
-    sending.removals_main(outbox.TOOL, list(args))
+    if action == "list":
+        click.echo(sending.removals_listing(tool))
+        return
+    if not guids:
+        raise click.UsageError(f"{action} needs statement GUIDs")
+    n = ledger.decide(guids, "approved" if action == "approve" else "rejected")
+    click.echo(f"{n} of {len(guids)} {action}d (only proposed removals change)")
 
 
 #: The model stages `prompt` can show a request for.
@@ -969,6 +984,84 @@ def audit_(
         else:
             click.echo(f"#{row['id']} {name}: {row['status']} -> skipped (audit:{by})")
     click.echo(f"{len(rows)} {kind}s skipped")
+
+
+# --- peptree: repair position items, one place at a time ---------------------------
+
+
+@cli.group("tree")
+def tree() -> None:
+    """Give each country's position items the P31, P279, P17 and P1001 they lack."""
+    tree_wd.init()
+
+
+@tree.command("place")
+@click.argument("cc")
+@click.option("--no-ask", is_flag=True, help="Re-decide from the ledger; no model calls.")
+@click.option("--limit", type=int, default=None, help="Ask about the first N items only.")
+@click.option("--large", is_flag=True, help="Repair a large place too.")
+def tree_place_(cc: str, no_ask: bool, limit: int | None, large: bool) -> None:
+    """Derive a place's country, load its offices, decide their gaps, and write its run file and report."""
+    tree_place.run(cc, limit, no_ask, large)
+
+
+@tree.command("sweep")
+@click.argument("step", type=click.Choice(["plan", "table", "run"]))
+@click.argument("batch", type=int, required=False)
+def tree_sweep_(step: str, batch: int | None) -> None:
+    """Rebuild the sweep's batches (`plan`), refresh its ledger (`table`), or run one batch (`run N`)."""
+    if step == "plan":
+        click.echo(tree_sweep.plan())
+    elif step == "table":
+        click.echo(tree_sweep.table())
+    else:
+        if batch is None:
+            raise click.UsageError("sweep run needs a batch number")
+        done = tree_sweep.run(batch, log=lambda m: click.echo(m, err=True))
+        lines = sum(len(p.read_text().splitlines()) for cc in done if (p := tree_qs.latest(cc)))
+        click.echo(f"batch {batch}: ran {' '.join(done) or 'nothing'}, {lines} lines proposed;"
+                   " send with `tree send --submit`")
+
+
+@tree.command("audit")
+@click.argument("batch", type=int)
+def tree_audit_(batch: int) -> None:
+    """Print every line of sweep batch N with labels, and what to look at."""
+    text, path = tree_audit.write(batch)
+    click.echo(text)
+    click.echo(f"\n{path}", err=True)
+
+
+@tree.command("send")
+@click.option("--submit", is_flag=True, help="Send it as a QuickStatements 3.0 batch; without it nothing leaves here.")
+@click.option("--batch", type=int, default=None, help="Only the places of this reviewed sweep batch.")
+@click.option("--status", "show_status", is_flag=True, help="Print the send ledger: batches, failures, strikes, removals.")
+@click.option("--propose-reverts", is_flag=True, help="Queue removals for what landed on items the load now drops.")
+def tree_send_(submit: bool, batch: int | None, show_status: bool, propose_reverts: bool) -> None:
+    """Send what every reviewed place proposes and has not gone out yet, then the approved removals."""
+    log = lambda m: click.echo(m, err=True)  # noqa: E731
+    if show_status:
+        click.echo(sending.status(tree_outbox.TOOL))
+        return
+    if propose_reverts:
+        tree_outbox.propose_reverts(log)
+        return
+    sent = tree_outbox.run(log, batch, submit=submit)
+    click.echo(f"QS3 batches {' '.join(map(str, sent))}" if sent else f"nothing sent; review {tree_outbox.PENDING}")
+
+
+@tree.command("strike")
+@click.argument("qid")
+@click.argument("prop")
+@click.argument("value", required=False, default=ledger.ANY)
+@click.option("--reason", required=True, help="Why it must never be sent.")
+@click.option("--country", default=None, help="The place it belongs to; read from the ledger when omitted.")
+def tree_strike_(qid: str, prop: str, value: str, reason: str, country: str | None) -> None:
+    """Never send this statement; undo it if it already landed."""
+    try:
+        click.echo(tree_outbox.strike(qid, prop, value, reason, country, log=lambda m: click.echo(m, err=True)))
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
 
 
 if __name__ == "__main__":
