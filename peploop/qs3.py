@@ -1,20 +1,26 @@
 """Submit V1 batches to QuickStatements 3.0 and read them back.
 
-This is how peptree and peploop write to Wikidata: QS3 runs a batch
-server-side under the user's account and groups its edits in EditGroups, so a
-country goes out in one request instead of hand-pasted chunks or one API edit
-per person.
+How peptree and peploop write to Wikidata: QS3 runs a batch server-side under
+the user's account and groups its edits in EditGroups. Callers go through
+`send.py`, which records every batch in the ledger before the request.
 
-Measured on the sandbox item before anything was built on it (2026-10-08):
+What QS3 does, measured on the sandbox item:
 
-- A plain line merges into the *first* statement with an equal value. Re-sending
-  a qualifier or reference it already has changes nothing, so a plain line is
-  safe to submit twice.
-- A `+` line always creates a statement. That is how two spells of one office
-  stay two statements, and it duplicates on a re-run, so the caller's ledger
-  must never send one twice.
+- A plain line merges into the *first* statement with an exactly equal value
+  (a date at the same precision too); re-sending a qualifier or reference it
+  already has changes nothing, so a plain line is safe to submit twice.
+- A `+` line always creates a statement, and duplicates on a re-run: the
+  caller's ledger must never send one twice.
+- `SWITCH_VALUE` changes a value in place by exact match and keeps the GUID.
+- `-Q|P|value` removes only the first statement with the value; remove by
+  `-STATEMENT|GUID` only.
+- `combine_commands` folds an item's consecutive lines into one edit, and one
+  bad command then fails them all.
 - A failed command reports status -1 and its raw line, never the reason: the
   reason is on the web report, which a token cannot read.
+- There is no preview step and no maxlag handling (it backs off on HTTP 429
+  only). The `wikibase` field of a submit is left out: its validator rejects
+  any unblocked user.
 
     QS3_TOKEN  the API token from https://qs-dev.toolforge.org/auth/profile/
 """
@@ -57,7 +63,6 @@ def submit(lines: list[str], name: str, combine: bool = True) -> int:
     should arrive grouped by item.
     """
     body: dict[str, Any] = {"name": name, "v1": "\n".join(lines), "combine_commands": combine}
-    # No `wikibase` key: its validator rejects any unblocked user.
     res = http.session().post(f"{API}/batches/", json=body, headers=_headers())
     if res.status_code != 201:
         raise RuntimeError(f"QS3 refused the batch: HTTP {res.status_code} {res.text[:300]}")

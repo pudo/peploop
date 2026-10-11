@@ -1,0 +1,122 @@
+# peptree
+
+Make one country's position items usable: give each office the type (`P31`),
+kind (`P279`), state (`P17`) and jurisdiction (`P1001`) it lacks, so that
+OpenSanctions — and peploop, which places people on these items — can read
+what the office is and whose it is. The sweep over every country and
+territory is `peptree/sweep.md`; open work is `plans/peptree_next.md`; what was
+tried is `docs/history.md`.
+
+## Principles
+
+- **The type hierarchy is polluted and stays polluted.** Mayor is 98% of head
+  of government's subtree; honorary titles and ranks reach the position
+  metaclass. No step trusts a `P279*` walk on its own. A FATF category
+  (`categories.yml`) is a set of class handles, the subtrees known to pollute
+  them (`exclude`), and the bodies its offices sit in. The level (national or
+  subnational) comes from the jurisdiction, never from the class.
+- **Nothing names a country.** A country's languages, predecessor states,
+  gazetteer and level words come from data (`country.py`); a country whose
+  data is thin gets fewer matches, never another country's rule.
+- **Every slot ends applied or skipped by rule.** No review tier: the review
+  is of a whole batch, after the run, before anything is sent.
+- **Two channels or nothing.** The model's answer applies only when a
+  mechanical channel (`signals.py`: the label names it, the holders are its
+  citizens, the body carries it, the office is the state's own) agrees.
+
+## The run, per place
+
+`python -m peptree.cli place <cc>` runs four steps; `sweep run <n>` runs it
+for every pending place of a batch, each in its own process with its log.
+
+1. **country** (`country.py`): derive the config from data — languages,
+   predecessor states and their eras, first- and second-level places, the
+   words that name a level of government, a deputy, an ambassador, a party.
+2. **load** (`load.py`): five discovery lanes, unioned — descent (typed into
+   the position tree, scoped to the state), usage (scoped and held), orphan
+   (held by a citizen, scoped to nothing), outbound (the state's posts
+   abroad), predecessor (scoped to a predecessor state). A filter drops what
+   is not an office (an item typed as a class, an occupation, a place, a
+   generic class from the generic-positions list), each with its reason.
+3. **gaps** (`gaps.py`): per kept item, the missing `P17`, `P1001`, `P279` or
+   metaclass, and the *class fix* — a well-formed office plainly of a FATF
+   category whose chain does not reach that category's class gets the class as
+   one more `P279`. The category × state matrix scores the country.
+4. **repair** (`repair.py`, `rules.py`, `qs.py`, `report.py`): one model request
+   per item with its holders, article leads and an indexed candidate list per
+   asked property (`prompts/repair.md`); the answer is an index and a quote,
+   cached by content in `ptree_call`. The ordered rule table in `rules.py`
+   decides each slot — the refusals first (item gone or moved, declined,
+   unquoted, low confidence, outside the state's era, a non-state or the realm
+   in `P17`, a label that contradicts it, a class or list article given `P31`),
+   then `two_channels` applies and `one_channel` skips. Applied slots render to
+   `data/peptree/<cc>/<cc>-<date>.qs` (article-derived values carry `S854` +
+   `S813`), with the report beside it.
+
+A place with more than `repair.LARGE` (300) items to ask stops before the
+repair as `blocked: large`; it is run on the user's call with
+`place <cc> --large`, asking only about held or categorised items. Changing
+`prompts/repair.md` re-keys the cache: re-decide earlier places with
+`place <cc> --no-ask`, which reads the ledger and asks nothing.
+
+## Modelling rules the code holds
+
+- `P17` holds only a state. A dependent territory's office takes `P1001` alone.
+- A state's era runs from its first recorded form; only a form the state
+  replaced moves its start (an empire's end does not date its colonies).
+- A country's state is the one its offices use: Denmark is Q35, not the
+  Kingdom (Q756617); the Kingdom is a realm lane.
+- A permanent representative to an organisation is the state's post abroad.
+- An office another state shares gets no `P1001` of ours.
+- A type/class-swapped set made by a bot (Brazil's mayoralties) is skipped as
+  `inverted`, left to a bot operator.
+
+## Review and sending
+
+The sweep ledger (`sweep.md`) is the review gate: a place goes
+`pending → run → reviewed → submitted`. `audit <n>` prints every line of a
+batch with labels and flags the shapes that have hidden a defect before; a
+flag that proves real becomes a rule in `rules.py` with a case in
+`check_rules.py`. Notes and status are written by hand; `sweep table` rewrites
+the other columns.
+
+Only reviewed places go out. `send` (`outbox.py`) reconciles the joint send
+ledger, takes every reviewed place's latest run file, drops what went out
+before, what a reviewer struck and what is already live, and writes the rest
+to `data/peptree/send/pending.qs`; `send --submit` sends it as one QS3 batch,
+then the approved removals as another. A line is plain (no `+`): it merges
+into a statement that already holds its value, so an addition sent twice
+changes nothing.
+
+`strike <qid> <prop> [value] --reason …` vetoes a statement for good; if one
+of ours already landed, its removal is queued (approved when the statement is
+provably only ours). `removals approve|reject` decides the rest.
+`send --propose-reverts` queues removals for landed lines on items the load
+now drops.
+
+## Layout
+
+```
+peptree/
+  design.md       this file
+  sweep.md        the sweep ledger: one row per place, its batch, status, notes
+  categories.yml  FATF categories: class handles, excludes, bodies
+  prompts/repair.md
+  cli.py          place, sweep, audit, send, strike, removals
+  country.py      a country's config from data
+  load.py         discovery lanes and the not-an-office filter
+  gaps.py         missing statements, class fixes, the matrix
+  signals.py      the mechanical channels a model answer must agree with
+  repair.py       the model request per item, ledgered on content
+  rules.py        the ordered disposition table
+  qs.py           render and check a run file
+  report.py       the funnel, matrix and skips beside the run file
+  audit.py        one batch, every line labelled, for review
+  sweep.py        the universe, batches and the ledger table
+  outbox.py       send, strike, removals: peptree's side of peploop/send.py
+  wd.py           cached reads of slow-moving context (class edges, labels, leads)
+  check_*.py      offline checks
+```
+
+Tables are `ptree_*` in peploop's database; sends, strikes and removals are in
+the joint `wd_*` tables (`peploop/ledger.py`).
