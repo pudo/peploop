@@ -125,6 +125,58 @@ def send(tool: str, op: str, name: str, rows: list[tuple[str, str, str, list[int
     return qs_id
 
 
+# --- creations -----------------------------------------------------------------------
+
+def create(tool: str, name: str, rows: list[tuple[str, str, list[str], int]], log: Log,
+           on_recorded: Callable[[str], None] | None = None) -> dict[str, str | None]:
+    """Create items as one QS3 batch, from (country, key, lines, ref) rows; returns key → QID or None.
+
+    Each row is one item: its `CREATE` line first, then its `LAST` lines. The
+    rows go out ordered by `ref`, which is how `creations` finds each one's
+    `CREATE` command again, here or after a crash.
+    """
+    rows = sorted(rows, key=lambda r: r[3])
+    batch_id = ledger.open_batch(tool, "create", name)
+    name = f"{name} #{batch_id}"
+    ledger.rename_batch(batch_id, name)
+    ledger.record_edits(batch_id, "create", [(cc, k, "\n".join(lines), [ref]) for cc, k, lines, ref in rows])
+    if on_recorded is not None:
+        on_recorded(name)
+    qs_id = qs3.submit([line for _, _, lines, _ in rows for line in lines], name)
+    ledger.bind_qs3(batch_id, qs_id)
+    log(f"sent as QS3 batch {qs_id}: {qs3.link(qs_id)}  {qs3.EDITGROUPS.format(qs_id)}")
+    row = qs3.wait(qs_id, log)
+    ledger.close_batch(batch_id, FINISHED.get(row["status"]["code"], "unknown"))
+    return creations(batch_id)
+
+
+def creations(batch_id: int) -> dict[str, str | None]:
+    """Each creation of a bound batch → the QID its `CREATE` returned, or None if it failed.
+
+    Settles the edits too: `landed` with a QID, `failed` without one.
+    """
+    qs_id = db.conn().execute("SELECT qs3_id FROM wd_batch WHERE id = %s", (batch_id,)).fetchone()[0]
+    edits = db.conn().execute("SELECT key, line FROM wd_edit WHERE batch_id = %s AND op = 'create'"
+                              " ORDER BY refs[1]", (batch_id,)).fetchall()
+    by_index = {c["index"]: c for c in qs3.commands(qs_id)}
+    out: dict[str, str | None] = {}
+    at = 0
+    for key, block in edits:
+        cmd = by_index.get(at) or {}
+        done = cmd.get("status") == qs3.COMMAND_DONE and str(cmd.get("response_id") or "").startswith("Q")
+        out[key] = cmd["response_id"] if done else None
+        at += len(block.split("\n"))
+    ledger.set_status("create", [k for k, q in out.items() if q], "landed")
+    ledger.set_status("create", [k for k, q in out.items() if not q], "failed")
+    return out
+
+
+def created_in(key: str) -> tuple[int, int | None] | None:
+    """(batch id, QS3 id) of the batch a creation was recorded in, or None if it never was."""
+    return db.conn().execute("SELECT b.id, b.qs3_id FROM wd_edit e JOIN wd_batch b ON b.id = e.batch_id"
+                             " WHERE e.op = 'create' AND e.key = %s", (key,)).fetchone()
+
+
 # --- removals ------------------------------------------------------------------------
 
 def preflight(rows: list[dict[str, Any]], ents: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:

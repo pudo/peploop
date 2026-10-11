@@ -1,12 +1,13 @@
 """Pin the write half of minting: crash safety, recovery, feeding, and the audit.
 
 A creation cannot be undone by an edit, so every transition around it is pinned
-here offline: a crash between the intent and the recorded QID, a recovery that
-finds the edit and one that does not, a label conflict, a re-check that
-refuses, a second call on a done row, a feed run twice, and an audit that tries
-to skip a created row. Every case runs against temporary tables shadowing the
-real ones, and apply's HTTP is replaced by a function that fails the check if
-anything reaches it, so nothing is read from or written to Wikidata.
+here offline: one batch for every guarded office, each QID read back from its
+`CREATE` command, a crash before the request and one after it, a creation QS3
+reports failed, a re-check that refuses, a second call on a done row, a feed
+run twice, and an audit that tries to skip a created row. Every case runs
+against temporary tables shadowing the real ones -- the send ledger among them
+-- and QuickStatements is a fake that fails the check if anything else reaches
+it, so nothing is read from or written to Wikidata.
 
 Run it as `python -m peploop.check_mint_write` from the repository root.
 """
@@ -18,11 +19,11 @@ import psycopg
 from click.testing import CliRunner
 from psycopg.types.json import Jsonb
 
-from peploop import apply, cli, db, mint_write, positions, propose, reconcile
+from peploop import cli, db, mint_write, positions, propose, qs3, reconcile, send
 
 TABLES = ("office_candidate", "office_attestation", "mint_call", "office_unassigned",
-          "resolution", "extraction")
-SEQUENCES = ("office_candidate", "mint_call", "resolution", "extraction")
+          "resolution", "extraction", "wd_batch", "wd_edit", "wd_strike", "wd_removal")
+SEQUENCES = ("office_candidate", "mint_call", "resolution", "extraction", "wd_batch")
 COUNTRY = "zz"
 DATA = {"labels": {"en": {"language": "en", "value": "Mayor of Velmora"}},
         "descriptions": {}, "aliases": {}, "claims": []}
@@ -69,33 +70,6 @@ def state(conn: psycopg.Connection, cid: int) -> tuple[Any, ...]:
 clean: Callable[[dict[str, Any]], list[str]] = lambda _c: []  # noqa: E731
 
 
-def check_crash(expect: Any, conn: psycopg.Connection) -> None:
-    """A crash after the intent commit is recovered from the edit log, not resent."""
-    cid = candidate(conn, "crash-after-create")
-    wikidata_log: dict[str, str] = {}
-
-    def create(data: dict[str, Any], summary: str, token: str) -> tuple[str, int]:
-        tag = summary.split("[", 1)[1].split("]", 1)[0]
-        wikidata_log[tag] = "Q7001"  # the item exists on Wikidata ...
-        raise Crash()  # ... and the process dies before the row records it
-
-    apply.create_item = create
-    try:
-        mint_write.mint_one(cid, "token", recheck=clean)
-    except Crash:
-        pass
-    status, qid, _rule = state(conn, cid)
-    tag, intent_at = conn.execute("SELECT intent_tag, intent_at FROM office_candidate WHERE id = %s",
-                                  (cid,)).fetchone()
-    expect(status == "creating" and qid is None and intent_at is not None
-           and tag.startswith(f"peploop-mint:{COUNTRY}:crash-after-create:"),
-           "a crash after the intent commit leaves the row creating, tagged, without a QID")
-    out = mint_write.recover(COUNTRY, find=lambda t, _since: wikidata_log.get(t),
-                             lookup=lambda _c: None)
-    expect(out == [(cid, "created", "Q7001")] and state(conn, cid) == ("created", "Q7001", "mint:recovered"),
-           "recover finds the item by its tag and records it as created")
-
-
 def check_lock(expect: Any, conn: psycopg.Connection) -> None:
     """One lock per country, whichever writer takes it; other countries run free."""
     def try_lock(key: str) -> bool:
@@ -116,87 +90,148 @@ def check_lock(expect: Any, conn: psycopg.Connection) -> None:
     expect(mint_write.lock_key(COUNTRY) == f"peploop:{COUNTRY}", "the key is peploop:<cc>")
 
 
-def check_resend(expect: Any, conn: psycopg.Connection) -> None:
-    """A crash before the edit landed is put back to guarded and sent exactly once."""
-    cid = candidate(conn, "crash-before-create")
-    sent: list[str] = []
+class FakeQS3:
+    """QuickStatements 3.0 as far as minting uses it: batches by id, a QID per CREATE.
 
-    def die(data: dict[str, Any], summary: str, token: str) -> tuple[str, int]:
-        raise Crash()
+    `fail` names refs whose CREATE fails; `crash` is "before" (the request
+    never arrives), "after" (it arrives, the answer is lost) or None.
+    """
 
-    apply.create_item = die
+    def __init__(self) -> None:
+        self.batches: dict[int, tuple[str, list[str]]] = {}
+        self.next_qid = 7001
+        self.fail: set[str] = set()
+        self.crash: str | None = None
+
+    def submit(self, lines: list[str], name: str, combine: bool = True) -> int:
+        if self.crash == "before":
+            raise Crash()
+        qs_id = 90000 + len(self.batches)
+        self.batches[qs_id] = (name, list(lines))
+        if self.crash == "after":
+            raise Crash()
+        return qs_id
+
+    def wait(self, batch: int, log: Any = None, every: float = 0) -> dict[str, Any]:
+        return {"status": {"code": qs3.DONE, "display": "Done"}}
+
+    def commands(self, batch: int) -> list[dict[str, Any]]:
+        out, current = [], None
+        for i, line in enumerate(self.batches[batch][1]):
+            if line.startswith("CREATE"):
+                failed = any(f in line for f in self.fail)
+                current = None if failed else f"Q{self.next_qid}"
+                if current:
+                    self.next_qid += 1
+                out.append({"index": i, "status": qs3.ERROR if failed else qs3.COMMAND_DONE,
+                            "response_id": current})
+            else:
+                out.append({"index": i, "status": qs3.COMMAND_DONE if current else qs3.ERROR,
+                            "response_id": current})
+        return out
+
+    def find(self, name: str, username: str, pages: int = 3) -> int | None:
+        return next((i for i, (n, _) in self.batches.items() if n == name), None)
+
+
+FAKE = FakeQS3()
+
+
+def check_create(expect: Any, conn: psycopg.Connection) -> None:
+    """Every guarded office goes out in one batch, and each QID is read off its own CREATE."""
+    first, second = candidate(conn, "create-one"), candidate(conn, "create-two")
+    out = mint_write.create(COUNTRY, recheck=clean, lookup=lambda _c: None)
+    expect(len(FAKE.batches) == 1, "one QS3 batch for every guarded office")
+    lines = next(iter(FAKE.batches.values()))[1]
+    expect(lines[0].startswith("CREATE /* Create office: Mayor of Velmora [peploop-mint:zz:create-one:")
+           and lines[1].startswith('LAST\tLen\t"Mayor of Velmora"'),
+           "an item is CREATE and its LAST lines, the intent tag in the summary")
+    expect(sorted(out) == [(first, "created", "Q7001"), (second, "created", "Q7002")]
+           and state(conn, first) == ("created", "Q7001", "mint:created"),
+           "each row takes the QID its own CREATE returned")
+    batch = conn.execute("SELECT batch FROM office_candidate WHERE id = %s", (first,)).fetchone()[0]
+    edits = conn.execute("SELECT status, refs FROM wd_edit WHERE op = 'create' ORDER BY refs[1]").fetchall()
+    expect(batch.startswith("peploop mint zz") and edits == [("landed", [first]), ("landed", [second])],
+           "the batch is named on the row and both creations are landed in the send ledger")
+    expect(mint_write.create(COUNTRY, recheck=clean) == [] and len(FAKE.batches) == 1,
+           "a second create sends nothing: no row is guarded")
+
+
+def check_crash(expect: Any, conn: psycopg.Connection) -> None:
+    """A lost answer is found by the batch's name and its creations read back, not resent."""
+    cid = candidate(conn, "crash-after-submit")
+    FAKE.crash = "after"
     try:
-        mint_write.mint_one(cid, "token", recheck=clean)
+        mint_write.create(COUNTRY, recheck=clean)
     except Crash:
         pass
-    out = mint_write.recover(COUNTRY, find=lambda _t, _s: None, lookup=lambda _c: None)
+    FAKE.crash = None
+    status, qid, _rule = state(conn, cid)
+    tag = conn.execute("SELECT intent_tag FROM office_candidate WHERE id = %s", (cid,)).fetchone()[0]
+    expect(status == "creating" and qid is None and tag.startswith(f"peploop-mint:{COUNTRY}:crash-after-submit:"),
+           "a crash after the request leaves the row creating, tagged, without a QID")
+    sent = len(FAKE.batches)
+    send.recover(mint_write.TOOL, "someone", lambda _m: None)
+    out = mint_write.recover(COUNTRY, lookup=lambda _c: None)
+    expect(len(out) == 1 and out[0][1] == "created" and state(conn, cid)[2] == "mint:recovered"
+           and len(FAKE.batches) == sent,
+           "recover binds the batch by name and reads the QID back; nothing is sent again")
+
+
+def check_resend(expect: Any, conn: psycopg.Connection) -> None:
+    """A creation that never reached QS3 goes back to guarded and is sent exactly once."""
+    cid = candidate(conn, "crash-before-submit")
+    FAKE.crash = "before"
+    try:
+        mint_write.create(COUNTRY, recheck=clean)
+    except Crash:
+        pass
+    FAKE.crash = None
+    send.recover(mint_write.TOOL, "someone", lambda _m: None)
+    out = mint_write.recover(COUNTRY, lookup=lambda _c: None)
     expect(out == [(cid, "guarded", None)] and state(conn, cid)[0] == "guarded",
-           "no edit and a clean live lookup put the row back to guarded")
-
-    def create(data: dict[str, Any], summary: str, token: str) -> tuple[str, int]:
-        sent.append(summary)
-        return "Q7002", 42
-
-    apply.create_item = create
-    first = mint_write.mint_one(cid, "token", recheck=clean)
-    second = mint_write.mint_one(cid, "token", recheck=clean)
-    rev, batch = conn.execute("SELECT created_rev, batch FROM office_candidate WHERE id = %s",
-                              (cid,)).fetchone()
-    expect(first == "Q7002" and len(sent) == 1 and state(conn, cid) == ("created", "Q7002", "mint:created")
-           and rev == 42 and batch == apply.BATCH_ID,
-           "the next mint_one resends exactly once and records qid, revision and batch")
-    expect(second is None and len(sent) == 1, "a second mint_one on a created row does nothing")
-    expect("peploop-mint:" in sent[0], "the summary carries the intent tag")
-
+           "no batch at QS3 and a clean live lookup put the row back to guarded")
+    sent = len(FAKE.batches)
+    again = mint_write.create(COUNTRY, recheck=clean)
+    expect(len(again) == 1 and again[0][1] == "created" and len(FAKE.batches) == sent + 1,
+           "the next create sends it once, under a fresh intent tag")
     other = candidate(conn, "crash-dup")
     conn.execute("UPDATE office_candidate SET status = 'creating', intent_tag = 't', intent_at = now()"
                  " WHERE id = %s", (other,))
-    mint_write.recover(COUNTRY, find=lambda _t, _s: None, lookup=lambda _c: "Q7003")
+    mint_write.recover(COUNTRY, lookup=lambda _c: "Q7003")
     expect(state(conn, other) == ("found", "Q7003", "guard:duplicate"),
-           "no edit and a live duplicate make the interrupted row found")
+           "no batch and a live duplicate make the interrupted row found")
 
 
 def check_refusals(expect: Any, conn: psycopg.Connection) -> None:
-    """A label conflict is found; a refusing re-check skips; another error stays creating."""
-    sent: list[str] = []
-
-    def conflict(data: dict[str, Any], summary: str, token: str) -> tuple[str, int]:
-        sent.append(summary)
-        raise apply.LabelConflict("modification-failed", "already has label", "Q7010")
-
-    apply.create_item = conflict
-    cid = candidate(conn, "label-conflict")
-    expect(mint_write.mint_one(cid, "token", recheck=clean) == "Q7010"
-           and state(conn, cid) == ("found", "Q7010", "api:label-conflict"),
-           "a label conflict records the named item as found")
-
+    """A failed CREATE is found or closed; a refusing re-check skips; nothing else is sent."""
+    failing = candidate(conn, "fails-at-qs3")
+    FAKE.fail = {"fails-at-qs3"}
+    out = mint_write.create(COUNTRY, recheck=clean, lookup=lambda _c: None)
+    expect(out == [(failing, "skipped", None)] and state(conn, failing)[2] == mint_write.CREATE_FAILED,
+           "a CREATE QS3 reports failed, with nothing found live, is closed rather than resent")
+    found = candidate(conn, "fails-but-exists")
+    FAKE.fail = {"fails-but-exists"}
+    mint_write.create(COUNTRY, recheck=clean, lookup=lambda _c: "Q7010")
+    expect(state(conn, found) == ("found", "Q7010", "guard:duplicate"),
+           "a failed CREATE whose office a live search finds is recorded as found")
+    FAKE.fail = set()
+    sent = len(FAKE.batches)
     refused = candidate(conn, "refused")
-    mint_write.mint_one(refused, "token", recheck=lambda _c: ["body-word/Q5", "holders/1"])
-    expect(state(conn, refused) == ("skipped", None, "guard:body-word/Q5") and len(sent) == 1,
+    mint_write.create(COUNTRY, recheck=lambda _c: ["body-word/Q5", "holders/1"])
+    expect(state(conn, refused) == ("skipped", None, "guard:body-word/Q5") and len(FAKE.batches) == sent,
            "a re-check that refuses skips under guard:<reason> and sends nothing")
     dup = candidate(conn, "refused-dup")
-    mint_write.mint_one(dup, "token", recheck=lambda _c: ["duplicate/Q7011"])
-    expect(state(conn, dup) == ("found", "Q7011", "guard:duplicate") and len(sent) == 1,
+    mint_write.create(COUNTRY, recheck=lambda _c: ["duplicate/Q7011"])
+    expect(state(conn, dup) == ("found", "Q7011", "guard:duplicate") and len(FAKE.batches) == sent,
            "a re-check that finds a duplicate records it as found")
-
-    def refused_api(data: dict[str, Any], summary: str, token: str) -> tuple[str, int]:
-        raise apply.ApiError("failed-save", "something else")
-
-    apply.create_item = refused_api
-    err = candidate(conn, "api-error")
-    try:
-        mint_write.mint_one(err, "token", recheck=clean)
-        raised = False
-    except apply.ApiError:
-        raised = True
-    expect(raised and state(conn, err)[0] == "creating",
-           "any other API error raises and leaves the row creating for recover")
-    conn.execute("DELETE FROM office_candidate WHERE id = %s", (err,))
-
+    quoted = candidate(conn, "quoted", data=Jsonb({**DATA, "labels": {"en": {"language": "en", "value": 'A "b"'}}}))
+    mint_write.create(COUNTRY, recheck=clean)
+    expect(state(conn, quoted)[0] == "skipped" and len(FAKE.batches) == sent,
+           "an item QS lines cannot carry is skipped, not sent")
     skipped = candidate(conn, "not-guarded", status="skipped", rule="disagree/x")
-    apply.create_item = lambda *_a: (_ for _ in ()).throw(AssertionError("sent"))
-    expect(mint_write.mint_one(skipped, "token", recheck=clean) is None
-           and state(conn, skipped)[0] == "skipped", "a row not guarded is never sent")
+    mint_write.create(COUNTRY, recheck=clean)
+    expect(state(conn, skipped)[0] == "skipped" and len(FAKE.batches) == sent, "a row not guarded is never sent")
 
 
 def check_feed(expect: Any, conn: psycopg.Connection) -> None:
@@ -293,22 +328,25 @@ def main() -> int:
         print(f"skip: no database ({exc.__class__.__name__})")
         return 0
 
-    def no_http(*_a: Any, **_k: Any) -> Any:
-        failures.append("apply HTTP was reached")
-        raise AssertionError("apply HTTP reached in an offline check")
-
     saved = {
-        (apply, "_api"): apply._api, (apply, "create_item"): apply.create_item,
+        (qs3, "submit"): qs3.submit, (qs3, "wait"): qs3.wait, (qs3, "commands"): qs3.commands,
+        (qs3, "find"): qs3.find, (qs3, "_get"): qs3._get,
         (positions, "load_qids"): positions.load_qids,
         (positions, "fill_diplomatic"): positions.fill_diplomatic,
         (reconcile, "retrievable"): reconcile.retrievable, (reconcile, "reopen"): reconcile.reopen,
         (propose, "propose_person"): propose.propose_person,
     }
-    apply._api = no_http
+    def no_http(*_a: Any, **_k: Any) -> Any:
+        failures.append("QS3 was reached")
+        raise AssertionError("QS3 reached in an offline check")
+
+    qs3.submit, qs3.wait, qs3.commands, qs3.find = FAKE.submit, FAKE.wait, FAKE.commands, FAKE.find
+    qs3._get = no_http
     shadow(conn)
     try:
         for name, check in (
-            ("crash", check_crash), ("lock", check_lock), ("resend", check_resend), ("refusals", check_refusals),
+            ("create", check_create), ("crash", check_crash), ("lock", check_lock), ("resend", check_resend),
+            ("refusals", check_refusals),
             ("feed", check_feed), ("audit", check_audit), ("report", check_report),
         ):
             print(f"{name}:")

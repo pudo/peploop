@@ -32,8 +32,9 @@ EDITGROUPS = "https://editgroups.toolforge.org/b/QSv3/{}/"
 #: Batch status codes, per the QS3 API.
 DONE, BLOCKED, STOPPED = 3, -1, -2
 FINISHED = (DONE, BLOCKED, STOPPED)
-#: Command status for an error.
+#: Command status for an error, and for one done (read off batch 59094).
 ERROR = -1
+COMMAND_DONE = 2
 
 
 def _headers() -> dict[str, str]:
@@ -96,6 +97,22 @@ def failed(batch: int) -> list[str]:
         out += [c["pk"] for c in page["commands"] if c["status"] == ERROR]
         url = (page.get("links") or {}).get("next")
     return [_get(f"{API}/commands/{pk}")["raw"] for pk in out]
+
+
+def commands(batch: int) -> list[dict[str, Any]]:
+    """Every command of a batch in line order: `index`, `status`, and `response_id`.
+
+    `response_id` is the entity a command acted on, so for a `CREATE` it is the
+    new item's QID: how a creation is read back without searching the edit log.
+    """
+    out: list[dict[str, Any]] = []
+    url: str | None = f"{API}/batches/{batch}/commands/"
+    while url:
+        page = _get(url)
+        out += [{"index": c["index"], "status": c["status"], "response_id": c.get("response_id")}
+                for c in page["commands"]]
+        url = (page.get("links") or {}).get("next")
+    return sorted(out, key=lambda c: c["index"])
 
 
 def find(name: str, username: str, pages: int = 3) -> int | None:

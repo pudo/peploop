@@ -1,15 +1,17 @@
 """Create the office items the mint stage guarded, and feed them back into the run.
 
 The other half of `mint`: that module decides which offices may be created and
-leaves each one `guarded` with the exact `wbeditentity` payload, `found` with
-the item that already exists, or `skipped` under a rule. This one sends the
-guarded payloads, resolves a creation a crash interrupted, and then makes every
-created or found item reachable: loaded into the position table, its attested
-mentions re-asked, and their people proposed again.
+leaves each one `guarded` with the exact item it would create, `found` with
+the item that already exists, or `skipped` under a rule. This one creates the
+guarded ones as a QuickStatements 3.0 batch (`send.create`), resolves a
+creation a crash interrupted, and then makes every created or found item
+reachable: loaded into the position table, its attested mentions re-asked, and
+their people proposed again.
 
 A creation is the one write peploop cannot take back by editing, so it is made
-crash-safe by recording the intent before the call: a row left in `creating` is
-resolved by the tag its edit summary carries, never simply retried.
+crash-safe by recording the intent before the request: a row left in
+`creating` is resolved from the send ledger and QS3's own record of the batch,
+never simply retried.
 """
 
 import datetime
@@ -22,7 +24,7 @@ from typing import Any, Callable, Iterator, Sequence
 
 from psycopg.rows import dict_row
 
-from peploop import apply, db, offices, positions, propose, reconcile, wikidata
+from peploop import db, offices, positions, propose, qs, reconcile, send, wikidata
 
 #: What a recheck returns: every reason not to create, empty when clean.
 Recheck = Callable[[dict[str, Any]], list[str]]
@@ -38,9 +40,11 @@ UNSKIPPABLE = ("created", "creating", "loaded")
 CREATED = "mint:created"
 RECOVERED = "mint:recovered"
 
-#: `find_created` is read from a little before the intent, so clock skew between
-#: the database and Wikidata cannot put the edit before the window opens.
-INTENT_SLACK = datetime.timedelta(minutes=5)
+#: The send ledger's tool name for creations.
+TOOL = "peploop"
+#: A creation QS3 reports failed, and no live search finds: QS3 gives no reason,
+#: so the row is closed rather than sent again on every run.
+CREATE_FAILED = "qs3:create-failed"
 
 #: List prices per million tokens: input, output, cache read, cache write. A
 #: model not listed is reported in tokens only, never priced by a guess.
@@ -60,11 +64,16 @@ def _row(cand_id: int, lock: bool = False) -> dict[str, Any] | None:
         return cur.execute(sql, (cand_id,)).fetchone()
 
 
-def intent_tag(cand: dict[str, Any]) -> str:
-    """The marker a creation's summary carries, unique to this row and payload."""
+def intent_tag(cand: dict[str, Any], at: datetime.datetime | None = None) -> str:
+    """The marker a creation's summary carries, unique to this row, payload and attempt.
+
+    It is also the creation's key in the send ledger, which is why the attempt
+    is in it: a row put back to `guarded` after a crash is a new creation.
+    """
     blob = json.dumps(cand["data"], sort_keys=True, ensure_ascii=False)
     sha = hashlib.sha256(blob.encode("utf-8")).hexdigest()[:8]
-    return f"peploop-mint:{cand['country']}:{cand['ref']}:{sha}"
+    stamp = (at or datetime.datetime.now(datetime.timezone.utc)).strftime("%Y%m%d%H%M%S%f")
+    return f"peploop-mint:{cand['country']}:{cand['ref']}:{sha}:{stamp}"
 
 
 def _label(cand: dict[str, Any]) -> str:
@@ -121,16 +130,13 @@ def _settle_refusal(cand_id: int, reasons: Sequence[str]) -> str | None:
     return None
 
 
-def mint_one(cand_id: int, token: str, *, recheck: Recheck) -> str | None:
-    """Create one guarded office and return its QID, or None if nothing was sent.
+def prepare(cand_id: int, *, recheck: Recheck) -> dict[str, Any] | None:
+    """Lock and re-check one guarded office, and record the intent to create it.
 
-    The row is locked and re-checked live, then marked `creating` with its
-    intent tag and committed *before* the API call, so a crash at any later
-    point leaves a row `recover` can resolve by the tag. A row not `guarded`,
-    or one that already has a QID, is left alone, which is what makes a second
-    call a no-op. A label conflict is the duplicate the search missed, and is
-    recorded as `found`; any other API error leaves the row `creating` and
-    propagates.
+    Returns the row, now `creating` with its intent tag and committed, or None
+    if nothing is to be sent: a row not `guarded`, one that already has a QID
+    (which is what makes a second call a no-op), or one the live re-check
+    refuses -- `found` on a duplicate, `skipped` otherwise.
     """
     conn = db.conn()
     with conn.transaction():
@@ -139,25 +145,88 @@ def mint_one(cand_id: int, token: str, *, recheck: Recheck) -> str | None:
             return None
         reasons = recheck(cand)
         if reasons:
-            return _settle_refusal(cand_id, reasons)
+            _settle_refusal(cand_id, reasons)
+            return None
         tag = intent_tag(cand)
         conn.execute(
             "UPDATE office_candidate SET status = 'creating', intent_at = now(),"
-            " intent_tag = %s, batch = %s, updated_at = now() WHERE id = %s",
-            (tag, apply.BATCH_ID, cand_id))
-    summary = f"Create office: {_label(cand)} [{tag}]"
-    try:
-        qid, rev = apply.create_item(cand["data"], summary, token)
-    except apply.LabelConflict as exc:
-        conn.execute(
-            "UPDATE office_candidate SET status = 'found', qid = %s, rule = 'api:label-conflict',"
-            " updated_at = now() WHERE id = %s AND status = 'creating'", (exc.qid, cand_id))
-        return exc.qid
-    conn.execute(
-        "UPDATE office_candidate SET status = 'created', qid = %s, created_rev = %s,"
-        " rule = %s, updated_at = now() WHERE id = %s AND status = 'creating'",
-        (qid, rev, CREATED, cand_id))
-    return qid
+            " intent_tag = %s, updated_at = now() WHERE id = %s", (tag, cand_id))
+    return {**cand, "intent_tag": tag}
+
+
+def _created(cand_id: int, qid: str, rule: str) -> None:
+    db.conn().execute(
+        "UPDATE office_candidate SET status = 'created', qid = %s, rule = %s, updated_at = now()"
+        " WHERE id = %s AND status = 'creating'", (qid, rule, cand_id))
+
+
+def _not_created(cand: dict[str, Any], lookup: Lookup, failed: bool) -> tuple[str, str | None]:
+    """Settle a creation that made no item: `found` if a live search finds it, else back or closed.
+
+    A creation that never went out is put back to `guarded`, from where the
+    next run sends it once; one QS3 tried and failed is `skipped`.
+    """
+    dup = lookup(cand)
+    if dup:
+        db.conn().execute(
+            "UPDATE office_candidate SET status = 'found', qid = %s, rule = 'guard:duplicate',"
+            " updated_at = now() WHERE id = %s AND status = 'creating'", (dup, cand["id"]))
+        return "found", dup
+    if failed:
+        db.conn().execute(
+            "UPDATE office_candidate SET status = 'skipped', rule = %s, updated_at = now()"
+            " WHERE id = %s AND status = 'creating'", (CREATE_FAILED, cand["id"]))
+        return "skipped", None
+    db.conn().execute(
+        "UPDATE office_candidate SET status = 'guarded', intent_at = NULL, intent_tag = NULL,"
+        " batch = NULL, updated_at = now() WHERE id = %s AND status = 'creating'", (cand["id"],))
+    return "guarded", None
+
+
+def create(
+    country: str,
+    limit: int | None = None,
+    *,
+    recheck: Recheck,
+    lookup: Lookup = live_duplicate,
+    log: Callable[[str], None] = lambda _m: None,
+) -> list[tuple[int, str, str | None]]:
+    """Create every guarded office of a run as one QS3 batch; returns (id, outcome, qid).
+
+    Run it under `send.writer_lock`, after `recover`. Each row is re-checked
+    live and marked `creating` before anything is sent; a row whose item cannot
+    be written as QS lines is `skipped` as unrenderable.
+    """
+    rows: list[tuple[str, str, list[str], int]] = []
+    cands: dict[str, dict[str, Any]] = {}
+    for cand in guarded(country, limit):
+        if qs.create_lines(cand["data"], "") is None:
+            _settle_refusal(cand["id"], [qs.UNRENDERABLE])
+            continue
+        ready = prepare(cand["id"], recheck=recheck)
+        if ready is None:
+            continue
+        lines = qs.create_lines(ready["data"], f"Create office: {_label(ready)} [{ready['intent_tag']}]")
+        rows.append((country, ready["intent_tag"], lines or [], ready["id"]))
+        cands[ready["intent_tag"]] = ready
+    if not rows:
+        return []
+
+    def mark(name: str) -> None:
+        db.conn().execute("UPDATE office_candidate SET batch = %s WHERE id = ANY(%s)",
+                          (name, [ref for *_, ref in rows]))
+
+    made = send.create(TOOL, f"peploop mint {country} {datetime.date.today().isoformat()}", rows, log,
+                       on_recorded=mark)
+    return [_settle(cands[tag], qid, lookup) for tag, qid in made.items()]
+
+
+def _settle(cand: dict[str, Any], qid: str | None, lookup: Lookup, rule: str = CREATED) -> tuple[int, str, str | None]:
+    if qid:
+        _created(cand["id"], qid, rule)
+        return cand["id"], "created", qid
+    outcome, found = _not_created(cand, lookup, failed=True)
+    return cand["id"], outcome, found
 
 
 def lock_key(country: str) -> str:
@@ -192,48 +261,34 @@ def writer_lock(country: str, stage: str = "mint") -> Iterator[None]:
 def recover(
     country: str,
     *,
-    find: Callable[[str, datetime.datetime], str | None] | None = None,
     lookup: Lookup = live_duplicate,
     log: Callable[[str], None] = lambda _m: None,
 ) -> list[tuple[int, str, str | None]]:
     """Resolve every row a crash left in `creating`; returns (id, outcome, qid).
 
-    The edit log is asked first, because it is authoritative the moment an edit
-    lands: a creation carrying the row's tag is recorded as created. Only when
-    it shows none is the row put back: a live search that finds the office
-    makes it `found`, and a clean one returns it to `guarded`, from where the
-    next `mint_one` sends it once. Run it under `writer_lock`.
+    QS3's record of the batch is asked first, because it is authoritative: a
+    `CREATE` that returned a QID is recorded as created, one that failed is
+    settled like any failed creation. A row whose batch never reached QS3 --
+    `send.recover` binds one whose answer was lost, so run that first -- is
+    put back: a live search that finds the office makes it `found`, and a clean
+    one returns it to `guarded`, from where the next `create` sends it once.
+    Run it under `send.writer_lock`.
     """
-    find = find or (lambda tag, since: apply.find_created(tag, since))
     with db.conn().cursor(row_factory=dict_row) as cur:
         rows = cur.execute(
             "SELECT * FROM office_candidate WHERE country = %s AND status = 'creating'"
             " ORDER BY id", (country,)).fetchall()
     out: list[tuple[int, str, str | None]] = []
     for cand in rows:
-        since = (cand["intent_at"] or datetime.datetime.now(datetime.timezone.utc)) - INTENT_SLACK
-        qid = find(cand["intent_tag"], since) if cand["intent_tag"] else None
-        if qid:
-            db.conn().execute(
-                "UPDATE office_candidate SET status = 'created', qid = %s, rule = %s,"
-                " updated_at = now() WHERE id = %s AND status = 'creating'",
-                (qid, RECOVERED, cand["id"]))
-            out.append((cand["id"], "created", qid))
-            log(f"#{cand['id']} {cand['ref']}: recovered {qid} from the edit log")
-            continue
-        dup = lookup(cand)
-        if dup:
-            db.conn().execute(
-                "UPDATE office_candidate SET status = 'found', qid = %s, rule = 'guard:duplicate',"
-                " updated_at = now() WHERE id = %s AND status = 'creating'", (dup, cand["id"]))
-            out.append((cand["id"], "found", dup))
-            log(f"#{cand['id']} {cand['ref']}: not created; {dup} exists")
-            continue
-        db.conn().execute(
-            "UPDATE office_candidate SET status = 'guarded', intent_at = NULL, intent_tag = NULL,"
-            " batch = NULL, updated_at = now() WHERE id = %s AND status = 'creating'", (cand["id"],))
-        out.append((cand["id"], "guarded", None))
-        log(f"#{cand['id']} {cand['ref']}: not created; back to guarded")
+        where = send.created_in(cand["intent_tag"]) if cand["intent_tag"] else None
+        if where is not None and where[1] is not None:
+            qid = send.creations(where[0]).get(cand["intent_tag"])
+            result = _settle(cand, qid, lookup, RECOVERED)
+        else:
+            outcome, found = _not_created(cand, lookup, failed=False)
+            result = (cand["id"], outcome, found)
+        out.append(result)
+        log(f"#{cand['id']} {cand['ref']}: {result[1]} {result[2] or ''}".rstrip())
     return out
 
 

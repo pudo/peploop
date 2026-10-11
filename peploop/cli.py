@@ -22,6 +22,7 @@ from peploop import db, mint, policy, positions, scope, titles, verify as verify
 from peploop import extract as extraction
 from peploop import mint_write as minting
 from peploop import outbox
+from peploop import qs as v1
 from peploop import plan as planning
 from peploop import send as sending
 from peploop import propose as proposals
@@ -955,8 +956,8 @@ def report(sections: Sequence[str], country: str) -> None:
 @cli.command("mint")
 @click.option("--country", required=True, help="ISO code of the country to mint for.")
 @click.option("--limit", default=None, type=int, help="Create at most this many items.")
-@click.option("--write", is_flag=True, help="Create the items; without it nothing leaves here.")
-def mint_(country: str, limit: int | None, write: bool) -> None:
+@click.option("--submit", is_flag=True, help="Create the items as a QS3 batch; without it nothing leaves here.")
+def mint_(country: str, limit: int | None, submit: bool) -> None:
     """Find the offices a country's P39s had nowhere to go, decide each, and create the guarded ones.
 
     Runs when the reconciler's refusals name offices Wikidata lacks; a run
@@ -966,11 +967,13 @@ def mint_(country: str, limit: int | None, write: bool) -> None:
     decision found already existing is fed into the run. Both model passes are
     ledgered, so a re-run asks only what is new.
 
-    A dry run by default: it ends by printing each guarded payload with the
-    labels of every item it names. `--write` takes the country's writer lock,
-    resolves any creation a crash left behind, and creates each guarded item,
-    re-checking it live first and feeding it into the position table and the
-    mentions it was attested by.
+    A dry run by default: it ends by printing each guarded office as the QS
+    lines that would create it, with the labels of every item it names.
+    `--submit` takes the send lock, resolves any creation a crash left behind,
+    re-checks each guarded office live and creates them all as one QS3 batch,
+    then feeds every item made into the position table and the mentions it was
+    attested by. The holders' P39s go out with the next `send`, after
+    `propose` and `verify` have seen the new items.
     """
     stats = mint.categorize(country, log=click.echo)
     click.echo("categorize: " + json.dumps({k: v for k, v in stats.items() if k not in ("clusters", "truncated")},
@@ -983,7 +986,7 @@ def mint_(country: str, limit: int | None, write: bool) -> None:
     out.write_text(minting.report(country))
     click.echo(f"{out} written")
     click.echo(minting.feed(country, log=click.echo).line())
-    if not write:
+    if not submit:
         rows = minting.guarded(country, limit)
         for cand in rows:
             names = minting.labels_of(cand)
@@ -991,33 +994,19 @@ def mint_(country: str, limit: int | None, write: bool) -> None:
                        f" {cand['current_holders']} current) =====")
             for qid, label in sorted(names.items()):
                 click.echo(f"  {qid} = {label}")
-            click.echo(json.dumps(cand["data"], indent=2, ensure_ascii=False))
+            for line in v1.create_lines(cand["data"], "") or ["(cannot be written as QS lines)"]:
+                click.echo("  " + line.removesuffix(" /*  */"))
         click.echo(f"{len(rows)} guarded; would create {len(rows)} items (dry run)")
         return
-    click.echo(f"logged in as {applying.login()}")
-    token = applying.csrf_token()
     counts: Counter[str] = Counter()
-    with minting.writer_lock(country):
-        for cid, outcome, qid in minting.recover(country, log=click.echo):
+    with sending.writer_lock(f"peploop mint {country}"):
+        sending.recover(minting.TOOL, os.environ.get("QS_USERNAME", ""), click.echo)
+        for _cid, outcome, _qid in minting.recover(country, log=click.echo):
             counts[f"recovered:{outcome}"] += 1
-        rows = minting.guarded(country, limit)
-        for index, cand in enumerate(rows):
-            if index:
-                time.sleep(applying.THROTTLE)
-            head = f"#{cand['id']} {cand['ref']}"
-            try:
-                qid = minting.mint_one(cand["id"], token, recheck=mint.reguard)
-            except Exception as exc:  # noqa: BLE001 — stop: recover resolves the row next run
-                counts["failed"] += 1
-                click.echo(f"{head} failed, left for recover: {type(exc).__name__}: {exc}")
-                break
-            after = db.conn().execute(
-                "SELECT status, rule FROM office_candidate WHERE id = %s", (cand["id"],)
-            ).fetchone()
-            counts[after[0]] += 1
-            click.echo(f"{head} -> {qid or '-'} {after[0]} {after[1] or ''}".rstrip())
-            if after[0] in minting.FEEDABLE:
-                click.echo("  " + minting.feed(country, [cand["id"]], log=click.echo).line())
+        for cid, outcome, qid in minting.create(country, limit, recheck=mint.reguard, log=click.echo):
+            counts[outcome] += 1
+            click.echo(f"#{cid} -> {qid or '-'} {outcome}")
+    click.echo("  " + minting.feed(country, log=click.echo).line())
     click.echo(f"{country}: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
 
 

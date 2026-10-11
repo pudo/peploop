@@ -166,6 +166,36 @@ def route(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) -> Route
     return out
 
 
+def create_lines(data: dict[str, Any], summary: str) -> list[str] | None:
+    """A new item as QS lines: `CREATE`, then its terms and statements on `LAST`.
+
+    `data` is the `wbeditentity` blob `offices.entity_data` builds. The `CREATE`
+    line comes first, so its command index is where the new QID is read back.
+    None if a term or value cannot be written.
+    """
+    lines = [_line(["CREATE"], summary)]
+    for code, terms in (("L", data.get("labels") or {}), ("D", data.get("descriptions") or {})):
+        for lang, term in terms.items():
+            text = qs_value(term["value"])
+            if text is None:
+                return None
+            lines.append(_line(["LAST", f"{code}{lang}", text], summary))
+    for lang, terms in (data.get("aliases") or {}).items():
+        for term in terms:
+            text = qs_value(term["value"])
+            if text is None:
+                return None
+            lines.append(_line(["LAST", f"A{lang}", text], summary))
+    for claim in data.get("claims") or []:
+        value = _snak_value(claim["mainsnak"])
+        quals = _qualifiers(claim.get("qualifiers") or {}, claim.get("qualifiers-order"))
+        refs = _references(claim.get("references") or [])
+        if value is None or quals is None or refs is None:
+            return None
+        lines.append(_line(["LAST", claim["mainsnak"]["property"], value, *quals, *refs], summary))
+    return lines
+
+
 # --- reading a line back ----------------------------------------------------------
 
 def columns(line: str) -> list[str]:
