@@ -31,17 +31,15 @@ The offline half -- rendering, the fixed answer shape, the key -- is pure, and
 import hashlib
 import json
 import os
-import threading
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal, Sequence
 
-import anthropic
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
-from peploop import db, prompt, propose, reconcile, wikidata
+from peploop import db, llm, prompt, propose, reconcile, wikidata
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "verify.md"
 
@@ -73,8 +71,6 @@ VERDICTS = (
 )
 CONFIDENCES = ("high", "medium", "low")
 
-_client_lock = threading.Lock()
-_client: anthropic.Anthropic | None = None
 
 
 class Strict(BaseModel):
@@ -95,17 +91,9 @@ class Answer(Strict):
 @lru_cache(maxsize=1)
 def system_prompt() -> tuple[str, str]:
     """Read the frozen system prompt and return it with its sha256 hash."""
-    text = PROMPT_PATH.read_text()
-    return text, hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return llm.system_prompt(PROMPT_PATH)
 
 
-def client() -> anthropic.Anthropic:
-    """Return the process-wide Anthropic client, built on first use."""
-    global _client
-    with _client_lock:
-        if _client is None:
-            _client = anthropic.Anthropic()
-        return _client
 
 
 @dataclass
@@ -264,7 +252,7 @@ def verify(edit: Edit, model: str = MODEL) -> Verification:
     _text, prompt_hash = system_prompt()
     request = request_for(edit)
     request["model"] = model
-    response = client().messages.parse(output_format=Answer, **request)
+    response = llm.client().messages.parse(output_format=Answer, **request)
     answer = response.parsed_output
     if answer is None:
         raise RuntimeError(
@@ -277,12 +265,7 @@ def verify(edit: Edit, model: str = MODEL) -> Verification:
         reason=answer.reason,
         prompt_hash=prompt_hash,
         model=model,
-        usage={
-            "input_tokens": response.usage.input_tokens,
-            "cache_creation_input_tokens": response.usage.cache_creation_input_tokens or 0,
-            "cache_read_input_tokens": response.usage.cache_read_input_tokens or 0,
-            "output_tokens": response.usage.output_tokens,
-        },
+        usage=llm.usage(response),
     )
 
 

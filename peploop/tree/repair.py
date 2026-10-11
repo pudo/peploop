@@ -9,17 +9,15 @@ pays only for items whose material changed.
 import concurrent.futures as cf
 import hashlib
 import os
-import threading
 from collections import Counter
 from pathlib import Path
 from typing import Any, Literal, Optional
 
-import anthropic
 import requests
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
-from peploop import memo, typegraph
+from peploop import llm, memo, typegraph
 from peploop.tree import country as countries
 from peploop.tree import gaps as gapmod
 from peploop.tree import signals, wd
@@ -64,20 +62,11 @@ class Answer(Strict):
 
 
 def system_prompt() -> tuple[str, str]:
-    text = PROMPT_PATH.read_text()
-    return text, hashlib.sha256(text.encode()).hexdigest()
+    return llm.system_prompt(PROMPT_PATH)
 
 
-_client = None
-_lock = threading.Lock()
 
 
-def client() -> anthropic.Anthropic:
-    global _client
-    with _lock:
-        if _client is None:
-            _client = anthropic.Anthropic()
-        return _client
 
 
 # --- context ----------------------------------------------------------------------
@@ -345,16 +334,13 @@ def recorded(key: str) -> dict[str, Any] | None:
 
 def ask(message: str, model: str = MODEL) -> tuple[Answer, dict[str, int]]:
     text, _ = system_prompt()
-    response = client().messages.parse(
+    response = llm.client().messages.parse(
         model=model, max_tokens=MAX_TOKENS, thinking={"type": "adaptive"}, output_config={"effort": "high"},
         system=[{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}],
         messages=[{"role": "user", "content": message}], output_format=Answer)
     if response.parsed_output is None:
         raise RuntimeError(f"no parsed output ({response.stop_reason})")
-    u = response.usage
-    return response.parsed_output, {"input_tokens": u.input_tokens, "output_tokens": u.output_tokens,
-                                    "cache_read_input_tokens": u.cache_read_input_tokens or 0,
-                                    "cache_creation_input_tokens": u.cache_creation_input_tokens or 0}
+    return response.parsed_output, llm.usage(response)
 
 
 #: Items with a gap above which only held offices and offices in a FATF category are

@@ -25,7 +25,6 @@ Three properties are the design:
   `position_name`, which holds only names the item really carries.
 """
 
-import hashlib
 import os
 import re
 import threading
@@ -37,13 +36,12 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Callable, Iterable, Sequence
 
-import anthropic
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import db, wikidata
+from peploop import db, llm, wikidata
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "title_en.md"
 
@@ -63,8 +61,6 @@ THREADS = 6
 #: back to the lexical channel for it, and the next run asks again.
 ROUNDS = 3
 
-_client_lock = threading.Lock()
-_client: anthropic.Anthropic | None = None
 
 
 @lru_cache(maxsize=1)
@@ -74,8 +70,7 @@ def system_prompt() -> tuple[str, str]:
     Every cached translation is keyed by the hash, so a prompt edit makes
     every title re-askable instead of mixing two instructions in one table.
     """
-    text = PROMPT_PATH.read_text()
-    return text, hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return llm.system_prompt(PROMPT_PATH)
 
 
 def fold_key(text: str | None) -> str:
@@ -184,13 +179,6 @@ def parse_answer(answer: TitleAnswer, size: int) -> dict[int, str]:
     return out
 
 
-def client() -> anthropic.Anthropic:
-    """Return the process-wide Anthropic client, built on first use."""
-    global _client
-    with _client_lock:
-        if _client is None:
-            _client = anthropic.Anthropic()
-        return _client
 
 
 def request_for(batch: Sequence[Title], model: str = MODEL) -> dict[str, Any]:
@@ -206,11 +194,8 @@ def request_for(batch: Sequence[Title], model: str = MODEL) -> dict[str, Any]:
 
 def ask(batch: Sequence[Title], model: str = MODEL) -> tuple[dict[int, str], dict[str, int]]:
     """Send one batch and return its parsed answer and token usage."""
-    response = client().messages.parse(output_format=TitleAnswer, **request_for(batch, model))
-    usage = {
-        "input_tokens": response.usage.input_tokens,
-        "output_tokens": response.usage.output_tokens,
-    }
+    response = llm.client().messages.parse(output_format=TitleAnswer, **request_for(batch, model))
+    usage = llm.usage(response)
     answer = response.parsed_output
     if answer is None:
         return {}, usage

@@ -5,7 +5,6 @@ Everything that varies per person — the Wikidata state we already hold and the
 article texts — goes into the user message, after the cached prefix.
 """
 
-import hashlib
 import re
 from dataclasses import dataclass
 from functools import lru_cache
@@ -15,7 +14,7 @@ from typing import Any
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import db, wikidata
+from peploop import db, llm, wikidata
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "extract.md"
 
@@ -57,8 +56,7 @@ class Article:
 @lru_cache(maxsize=1)
 def system_prompt() -> tuple[str, str]:
     """Read the frozen system prompt and return it with its sha256 hash."""
-    text = PROMPT_PATH.read_text()
-    return text, hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return llm.system_prompt(PROMPT_PATH)
 
 
 def format_time(value: str, precision: int, name_day: bool = True) -> str:

@@ -22,22 +22,19 @@ Nothing here writes to Wikidata, and nothing here writes a proposal: a
 verdict is a row for a later increment to act on.
 """
 
-import hashlib
 import logging
 import os
 import re
-import threading
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal, Optional, Sequence
 
-import anthropic
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
-from peploop import db, positions, titles, wikidata
+from peploop import db, llm, positions, titles, wikidata
 
 _log = logging.getLogger(__name__)
 
@@ -89,8 +86,6 @@ TAGS = (
     "foreign-scoped",
 )
 
-_client_lock = threading.Lock()
-_client: anthropic.Anthropic | None = None
 
 
 class Strict(BaseModel):
@@ -106,8 +101,7 @@ def system_prompt() -> tuple[str, str]:
     The hash is what a stored verdict is keyed by, so a prompt edit makes the
     old answers re-askable instead of silently mixing two instructions.
     """
-    text = PROMPT_PATH.read_text()
-    return text, hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return llm.system_prompt(PROMPT_PATH)
 
 
 @dataclass
@@ -457,13 +451,6 @@ def replay_shortlist(resolution_id: int) -> tuple[dict[str, Any], list[Candidate
     return record, out
 
 
-def client() -> anthropic.Anthropic:
-    """Return the process-wide Anthropic client, built on first use."""
-    global _client
-    with _client_lock:
-        if _client is None:
-            _client = anthropic.Anthropic()
-        return _client
 
 
 def request_for(
@@ -507,7 +494,7 @@ def reconcile(
     _text, prompt_hash = system_prompt()
     request = request_for(mention, candidates)
     request["model"] = model
-    response = client().messages.parse(output_format=verdict_schema(), **request)
+    response = llm.client().messages.parse(output_format=verdict_schema(), **request)
     answer = response.parsed_output
     if answer is None:
         raise RuntimeError(
@@ -523,12 +510,7 @@ def reconcile(
         chosen=answer.qid,
         prompt_hash=prompt_hash,
         model=model,
-        usage={
-            "input_tokens": response.usage.input_tokens,
-            "cache_creation_input_tokens": response.usage.cache_creation_input_tokens or 0,
-            "cache_read_input_tokens": response.usage.cache_read_input_tokens or 0,
-            "output_tokens": response.usage.output_tokens,
-        },
+        usage=llm.usage(response),
     )
     verdict.qid, verdict.veto = settle(verdict.kind, verdict.chosen, shortlist)
     return verdict

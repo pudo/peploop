@@ -23,7 +23,7 @@ from psycopg.types.json import Jsonb
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory
 
-from peploop import db, offices, positions, reconcile, scope, typegraph, wikidata
+from peploop import db, llm, offices, positions, reconcile, scope, typegraph, wikidata
 from peploop import verify as person_verify
 from peploop.offices import ARCHETYPES, distinct_holders
 
@@ -472,8 +472,7 @@ SORT_ROLE_STEMS = offices.ROLE_STEMS | {w[: positions.PREFIX] for w in SEAT_WORD
 
 def categorize_prompt() -> tuple[str, str]:
     """Read the frozen categorize prompt and return it with its sha256 hash."""
-    text = CATEGORIZE_PROMPT.read_text()
-    return text, hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return llm.system_prompt(CATEGORIZE_PROMPT)
 
 
 def _stems(text: str | None, drop: frozenset[str] | set[str]) -> set[str]:
@@ -936,15 +935,6 @@ class Truncated(RuntimeError):
         self.body = body
 
 
-def _usage(response: Any) -> dict[str, int]:
-    return {
-        "input_tokens": response.usage.input_tokens,
-        "cache_creation_input_tokens": response.usage.cache_creation_input_tokens or 0,
-        "cache_read_input_tokens": response.usage.cache_read_input_tokens or 0,
-        "output_tokens": response.usage.output_tokens,
-    }
-
-
 def ask_categorize(message: str, model: str) -> tuple[CategorizeAnswer, dict[str, int]]:
     """Send one categorize request and return the parsed answer and its usage.
 
@@ -955,7 +945,7 @@ def ask_categorize(message: str, model: str) -> tuple[CategorizeAnswer, dict[str
     """
     text, _hash = categorize_prompt()
     schema = transform_schema(CategorizeAnswer.model_json_schema())
-    with reconcile.client().messages.stream(
+    with llm.client().messages.stream(
         model=model,
         max_tokens=CATEGORIZE_MAX_TOKENS,
         thinking={"type": "adaptive"},
@@ -965,7 +955,7 @@ def ask_categorize(message: str, model: str) -> tuple[CategorizeAnswer, dict[str
         messages=[{"role": "user", "content": message}],
     ) as stream:
         response = stream.get_final_message()
-    usage = _usage(response)
+    usage = llm.usage(response)
     body = "".join(block.text for block in response.content if block.type == "text")
     thinking = sum(len(getattr(block, "thinking", "") or "") for block in response.content
                    if block.type == "thinking")
@@ -1336,8 +1326,7 @@ STAGE_PREFIXES = ("spec:", "verify:", "guard:")
 
 def verify_prompt() -> tuple[str, str]:
     """Read the frozen verify prompt and return it with its sha256 hash."""
-    text = VERIFY_PROMPT.read_text()
-    return text, hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return llm.system_prompt(VERIFY_PROMPT)
 
 
 class Corrections(reconcile.Strict):
@@ -2085,7 +2074,7 @@ def settle_verify(answer: VerifyAnswer, ev: Evidence, call: int | None = None) -
 def ask_verify(message: str, model: str) -> tuple[VerifyAnswer, dict[str, int]]:
     """Send one verify request and return the parsed answer and its usage."""
     text, _hash = verify_prompt()
-    response = reconcile.client().messages.parse(
+    response = llm.client().messages.parse(
         output_format=VerifyAnswer,
         model=model,
         max_tokens=VERIFY_MAX_TOKENS,
@@ -2096,7 +2085,7 @@ def ask_verify(message: str, model: str) -> tuple[VerifyAnswer, dict[str, int]]:
     )
     if response.parsed_output is None:
         raise RuntimeError(f"verify: no parsed output ({response.stop_reason})")
-    return response.parsed_output, _usage(response)
+    return response.parsed_output, llm.usage(response)
 
 
 def recorded_verify(key: str, prompt_hash: str, model: str) -> tuple[int, VerifyAnswer, dict] | None:

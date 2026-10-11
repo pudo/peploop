@@ -9,15 +9,13 @@ QID, and birthplaces wait for a reconciler of their own.
 import json
 import os
 import re
-import threading
 import time
 from dataclasses import dataclass
 from typing import Annotated, Any, Literal
 
-import anthropic
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
-from peploop import db, prompt, wikidata
+from peploop import db, llm, prompt, wikidata
 
 MODEL = os.environ.get("PEPLOOP_MODEL", "claude-sonnet-5")
 MAX_TOKENS = 16000
@@ -26,8 +24,6 @@ WHITESPACE = re.compile(r"\s+")
 
 DateStr = Annotated[str, StringConstraints(pattern=r"^\d{4}(-\d{2}(-\d{2})?)?$")]
 
-_client_lock = threading.Lock()
-_client: anthropic.Anthropic | None = None
 
 
 class Strict(BaseModel):
@@ -118,13 +114,6 @@ class ExtractionRow:
     skipped: bool = False
 
 
-def client() -> anthropic.Anthropic:
-    """Return the process-wide Anthropic client, built on first use."""
-    global _client
-    with _client_lock:
-        if _client is None:
-            _client = anthropic.Anthropic()
-        return _client
 
 
 def _norm(text: str) -> str:
@@ -206,7 +195,7 @@ def extract_person(qid: str) -> ExtractionRow:
         return result
 
     user = user_message(entity, articles)
-    response = client().messages.parse(
+    response = llm.client().messages.parse(
         model=MODEL,
         max_tokens=MAX_TOKENS,
         thinking={"type": "adaptive"},
@@ -222,12 +211,7 @@ def extract_person(qid: str) -> ExtractionRow:
     bad = check_quotes(extraction, articles)
     payload: dict[str, Any] = json.loads(extraction.model_dump_json())
     payload["_bad_quotes"] = bad
-    usage = {
-        "input_tokens": response.usage.input_tokens,
-        "cache_creation_input_tokens": response.usage.cache_creation_input_tokens or 0,
-        "cache_read_input_tokens": response.usage.cache_read_input_tokens or 0,
-        "output_tokens": response.usage.output_tokens,
-    }
+    usage = llm.usage(response)
     request = {
         "model": MODEL,
         "max_tokens": MAX_TOKENS,
