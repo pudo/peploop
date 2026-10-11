@@ -1,20 +1,16 @@
-# The institution census
+# Institution classes
 
-The checklist a country sweep is scoped against, and the thing a campaign is
-measured as *complete* against. `old/recipes/country_sweep.md` is the method; this is
-the map of what the method has to cover.
+The institutions a state's politically exposed people sit in, as ~35 classes:
+what a country is made of, beyond its cabinet. Two things read them.
+`census/<cc>.yml` lists a country's offices by these classes, so the mint stage
+can propose the offices nobody's article named; and mint categorize assigns
+every candidate office one of them (`mint.INSTITUTION_CLASSES` is pinned to
+the headings below by `check_mint_queue`).
 
-Reach for it at phase A of a sweep, before any roster is opened. Walk every class
-below and give it a row in `coverage/<country>.md` — **including the ones the
-country does not have, and especially the ones with no obvious source.** A class
-that is awkward to parse must still appear in the ledger with a status; the
-failure this file exists to prevent is an institution quietly never being
-mentioned, which is how ten campaigns went by without one of them ever completing
-a sovereign-wealth lane.
-
-Each entry gives four things. The fourth is the one that compounds: **the failure
-mode that usually kills it**, written from what campaigns actually hit, so the
-next country inherits the lesson instead of rediscovering it.
+Each class says what it covers, where its holders are usually listed, the
+shape its office item takes, and the failure mode that usually hides it — so
+a country run asks about courts, central banks and state companies, not only
+ministries.
 
 ---
 
@@ -118,7 +114,7 @@ Prosecutor-general, attorney-general.
 ### `judiciary.specialised`
 Revolutionary, clerical, administrative and military courts; the courts of
 appeal. **Failure mode:** the tempting one. A category of named judges will pass
-`wd/create.py:guard` on every mechanical test and still be wrong to mint — Iran's
+every mechanical guard test and still be wrong to mint — Iran's
 17 Revolutionary Court judges cleared the duplicate search, the holder floor and
 the body-label check, but **no source dates any appointment** and the only
 attested shape is a *branch* presidency, not a generic judgeship. A guard
@@ -130,7 +126,7 @@ returning CLEAR is not a reason to create.
 Governor, deputy governors. Small, clean, always worth doing.
 
 ### `economic.sovereign_wealth`
-**Creation-first by definition, and the class no campaign has ever completed.**
+**Creation-first by definition: the offices rarely exist yet.**
 Wikidata's dominant convention is a generic role item plus `P108 <org>`, which the
 OpenSanctions PEP build cannot see — it reads P39 and drops positions with no
 country. Dedicated "Chairman of X" items are the only path that works and there
@@ -177,8 +173,8 @@ country**, and the one most often deferred: Iran had 903 dated roster rows again
 **Shape:** measure `P1001` before minting — the Iranian convention is to scope to
 the polity governed, and worldwide 172 of 185 `P279=Q132050` items with a `P1001`
 do the same. **Failure mode:** minting to a neighbouring country's archetype makes
-the new items siblings of nothing; if two campaign scripts have both overridden
-the same archetype field, that is a missing archetype, not two clever workarounds.
+the new items siblings of nothing; if two countries both need the same archetype
+field overridden, that is a missing archetype in `offices.py`, not two workarounds.
 
 ### `subnational.municipal`
 Mayors of the capital and provincial capitals. **Generator:** `P36`, not `P150` —
@@ -209,10 +205,10 @@ bare where it is an organisation rather than a state.
 
 ### `hybrid.ruling_family`
 Where power is dynastic the office lane reaches only the fraction that held
-office — 81 of 411 for the House of Saud. **Shape:** `wd/kinship.py` over a
-genealogy article, plus `P53` from a hereditary office. **Failure mode:** the four
-in `country_sweep.md` §4a, of which the first is the worst — take the patronymic
-chain from the *item's* full name, never from the article's printed short form.
+office — 81 of 411 for the House of Saud. **Shape:** `P22`/`P25`/`P40` from a genealogy
+article, plus `P53` from a hereditary office; peploop has no kinship lane.
+**Failure mode:** take a patronymic chain from the *item's* full name, never from
+the article's printed short form.
 
 ### `hybrid.religious_hierarchy`
 Where clerical office is state power: Friday prayer leaders, the leader's
@@ -265,15 +261,10 @@ things, which take three different shapes:
 
 ## Using this file
 
-* **Every class gets a ledger row**, including `absent` and `no-source` ones. The
-  measurement is the deliverable for those, not the silence.
-* **A class is not closed by a byproduct list.** Creation-first means the items
-  get minted and populated; a list of specs in `tasks/followups.md` is work in
-  progress, not a disposition.
-* **Add what you learn here, not to the country plan.** A country plan is a
-  transitional artifact; this file is where the next country inherits from. When
-  a class kills a lane in a new way, write the failure mode down.
-* **The item shape each class needs is in `old/recipes/position_items.md`**, not
-  here. This file says where a class's roster lives; that one says how the office
-  is modelled once you have it — which `P279` names its kind, and how `P17` and
-  `P1001` divide between the state and the polity governed.
+* **A census names every class the country has**, including the awkward ones;
+  a class the country lacks is simply absent from it.
+* **Add what a run teaches here**: when a class hides in a new way, write the
+  failure mode down so the next country inherits it.
+* **The item shape is measured, not declared**: `docs/research/position_items.md`
+  says which `P279` names a class's kind and how `P17` and `P1001` divide
+  between the state and the polity governed.

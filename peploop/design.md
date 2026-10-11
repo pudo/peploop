@@ -1,15 +1,20 @@
 # peploop: Wikipedia → Wikidata enrichment loop
 
-A small, deterministic pipeline that reads a politician's Wikipedia articles,
-asks an LLM one structured question about them, and records the answers as
-*proposals* in Postgres. Nothing here writes to Wikidata: a review command
-records a human's verdict on each proposal, and a later round adds the writer
-that applies what those verdicts have shown can be trusted.
+Wikidata is the closest thing there is to a public, structured record of who
+holds political office, and it is thin below the head-of-state tier:
+legislators without birth dates, ministers without a `P39`, judges and central
+bankers with an article in one language and no office item at all. Wikipedia,
+across its languages, holds most of the missing facts as prose and infoboxes.
 
-The parent repo (`wd/`, `scripts/`) is treated as prior art to read, never as a
-dependency. `peploop/` imports nothing from it. Its one dependency from the
-OpenSanctions stack is `rigour`, for everything about countries: name lookup,
-QID lookup, and the languages spoken in a territory.
+peploop reads a politician's Wikipedia articles, asks a model one structured
+question about them, checks each answer against what Wikidata already says,
+decides it by rule (and by a second model where the rule is unsure), and
+writes what passes. It creates the office items nobody has made yet. It is
+built for Wikidata being right; OpenSanctions reads the result through its own
+crawlers, and whether it emits an item is never a reason to shape a claim.
+
+Its one dependency from the OpenSanctions stack is `rigour`, for everything
+about countries: name lookup, QID lookup, and the languages of a territory.
 
 ## Principles
 
@@ -33,21 +38,18 @@ QID lookup, and the languages spoken in a territory.
 - **Add-only, never overwrite.** A proposal that matches an existing Wikidata
   claim is stored as `status=exists` and goes no further. A proposal that
   contradicts one is stored as `status=conflict` for a human, never as an edit.
-- **Review measures; it does not gate.** A human reviews a sample of proposals
-  and records a reason for each rejection. Those verdicts are what later
-  sessions read to tune the prompt, and what decides which properties the
-  writer may apply unreviewed. No stage waits for every proposal to be seen.
-- **Round 1 extracts the whole shape and proposes the flat fields.** Positions
-  and birthplace are extracted as free text from the first run, stored raw, and
-  not proposed until reconciliation gives them QIDs. This stresses the
-  single-call extraction on its real load early and yields the query corpus the
-  candidate search is designed against. Positions have since crossed that line;
-  birthplace has not.
+- **Rules decide; review measures.** Every proposal is decided by the policy
+  and the verifier. A human samples proposals in `review` and records why one
+  is wrong; a class of wrong rows becomes a rule. A human veto after the fact
+  is `audit`, and it is durable. No stage waits for a human.
+- **Extract the whole shape, propose what can be placed.** Positions and
+  birthplaces are extracted as free text and proposed only once
+  reconciliation gives them a QID. Positions are; birthplace is not started.
 
 ## The loop
 
 ```
-seed ─► fetch ─► prompt ─► extract ─► reconcile (round 2) ─► mint ─► propose
+seed ─► fetch ─► extract ─► reconcile ─► mint ─► propose (+ policy) ─► verify ─► send
 ```
 
 `mint` is the one stage whose unit is not a person: it works a country's
@@ -135,33 +137,31 @@ Three kinds of fetched data, three rules:
 
 The item rule is the one that matters. `wbgetentities` is what we compare
 proposals against, and it is also what our own eventual writes change, so an
-age-based cache there would let a statement we just wrote be proposed again
-(the parent repo did exactly this: a `holders()` list cached before its batch
-went in re-admitted twenty existing statements). So nothing that writes trusts
-it: `send` re-reads every item it is about to edit, live.
+age-based cache there would let a statement we just wrote be proposed again.
+So nothing that writes trusts it: `send` re-reads every item it is about to
+edit, live.
 
 Two consequences:
 
 - Every `proposal` row records `item_rev`, the revision its status was computed
-  against. The stored status is a snapshot for `stats`; it is not trusted by
+  against. The stored status is a snapshot for `report`; it is not trusted by
   anything that writes.
 - The pre-flight belongs to `send`: it re-reads every item it is about
   to write with `fetch_items`, which never consults a cache, and decides each
   accepted row against what came back rather than against the stored status.
   An item whose `lastrevid` has left the row's `item_rev` behind is re-proposed
   first, so a value our own earlier edit already added is recognised as
-  `exists` and dropped. The revision the pre-flight read is the edit's
-  `baserevid`, which is what makes a concurrent change an `editconflict`
-  instead of a silent overwrite.
+  `exists` and dropped.
 
 `fetch --qid Q…` bypasses the item TTL for the named items, so re-processing one
 person after fixing something always reads live. Extraction is keyed on the
 article set (languages and revision ids), so a refreshed article re-extracts
 its person and an unchanged one does not.
 
-Rate limits: one `requests.Session` per thread, a shared token bucket per host
-(Wikidata API ~ 4/s, Wikipedia REST ~ 8/s), `Retry-After` honoured, descriptive
-User-Agent. Reads are cheap; the limiter exists so a 16-thread run does not get
+Rate limits: one `requests.Session` per thread, a token bucket per host --
+every Wikipedia and Wikidata's API share one (~4/s), because Wikimedia limits
+an IP across all its wikis; the query service has its own -- `Retry-After`
+honoured, descriptive User-Agent. Reads are cheap; the limiter exists so a 16-thread run does not get
 the IP throttled.
 
 ### 3. Prompt
@@ -195,8 +195,7 @@ Nothing else. No per-request date, no run id, nothing that varies but need not.
 ### 4. Extract
 
 One `client.messages.parse()` call, model `claude-sonnet-5`, adaptive thinking,
-effort `low` to start, output schema enforced by the API. The Pydantic schema
-for round 1:
+effort `low`, output schema enforced by the API:
 
 ```
 Extraction
@@ -221,18 +220,16 @@ The raw response, token usage, model id, prompt hash and article set are stored
 in `extraction`. A person is extracted once per (prompt hash, article set);
 changing the prompt re-extracts everyone on the next run, which is the point.
 
-### 5. Reconcile (round 1: countries only)
+### 5. Reconcile
 
-Round 1 has one soft reconciliation: citizenship country names to QIDs, and
-it is `rigour`'s job, not ours. The model returns the country name as the
+Citizenship country names are resolved to QIDs by `rigour`, not by us. The model returns the country name as the
 article writes it, in whatever language; `rigour.territories.lookup_territory`
 resolves it (strong names, weak names and multilingual forms, with a bounded
 fuzzy fallback) to a `Territory` whose `qid` is the P27 value. Historical
 states stay distinct where Wikidata keeps them distinct: "Czechoslovakia" is
 `Q33946`, not `Q213`, and "Soviet Union" is `Q15180`. Where `rigour` folds a
 predecessor into its successor ("West Germany" → `de`, with `Q713750` in
-`other_qids`), the proposal is `Q183` and the pilot hand check watches for it.
-No country table of our own, no LLM call. A name `rigour` cannot place becomes a
+`other_qids`), the proposal is `Q183`. No country table of our own, no LLM call. A name `rigour` cannot place becomes a
 `status=unresolved` proposal so the gaps are visible.
 
 The same module answers the two other country questions the loop has: which
@@ -241,9 +238,8 @@ their existing P27), and whether an existing P27 claim already covers a proposed
 (`get_territory_by_qid`, compared over `Territory.qids` so `Q713750` on the item
 makes a proposed `Q183` read as `exists` rather than `new`).
 
-Round 2 adds positions and birthplace. Positions are built, measured and
-proposed; birthplace is not started. `positions.md` is the design and
-`docs/research/peploop_positions.md` the numbers; the shape in one paragraph:
+Positions are the main reconciliation. `positions.md` is the design and
+`docs/research/peploop_positions.md` the numbers; the shape in brief:
 
 - A `position` table, one row per Wikidata item a free-text office title may
   resolve to, with `position_name` holding one row per (qid, lang) name and
@@ -261,15 +257,13 @@ proposed; birthplace is not started. `positions.md` is the design and
   string through the identical transformation, OR-ed into one `to_tsquery`
   and ordered by `ts_rank(tsv, q, 0)`, which over a bag counts how much of
   the query the item accounts for. `country_qid` is not a filter.
-- **Generic classes are never a target.** `generic_positions.csv` lists 232
+- **Generic classes are never a target.** `generic_positions.csv` lists the
   classes of office that name no jurisdiction and are held across many states:
   mayor, minister, bishop, prime minister, head of state. A `P39` onto one says
-  nothing about where the office was held. The list is a copy of
-  `peptree/generic_positions.csv` (the evidence is
-  `docs/research/generic_positions.md`), cut to `qid,label,reason`, because peploop
-  imports nothing from outside itself. To refresh it, re-copy those three
-  columns and run `reconcile` once, which syncs `position.generic`
-  (`positions.mark_generic`). It blocks four uses and nothing else:
+  nothing about where the office was held. It is the one list both tools read
+  (the evidence is `docs/research/generic_positions.md`); after editing it, run
+  `reconcile` once, which syncs `position.generic` (`positions.mark_generic`).
+  It blocks four uses and nothing else:
   the search leaves flagged rows out of every shortlist, the policy skips a `P39`
   onto one as `office/generic`, and mint never takes one as a duplicate or a
   found office. It is never read against a `P279` parent. Fourteen of
@@ -345,10 +339,6 @@ queue) has the mechanics; the decisions are these.
   the new item would reach on their shortlist -- so `propose` writes their
   `P39`s through the ordinary policy, verify and send.
 
-The knowledge is ported from `wd/create.py` and `wd/shape.py` and trimmed;
-the mechanics (`wb create-entity`, JSON ledgers, a target pasted back into a
-script) are left behind, and nothing is imported.
-
 ### 6. Propose
 
 `propose` skips `birth_places`, which stay in `extraction.response_json` until
@@ -365,11 +355,7 @@ proposal
   source_rev, extraction_id, item_rev, status, decided_by, decided_at
 ```
 
-Labels and aliases are not proposed. They were, under the pseudo-properties
-`label:<lang>` and `alias:<lang>`, until the policy threw every row of that
-lane away (13 of the 19 a human reviewed were titles or fragments); rows made
-before it stopped stay until their person is re-proposed, and `lane_removed`
-keeps them out of the write path until then.
+Labels and aliases are not proposed.
 
 `status` is set by a small deterministic comparison against the Wikidata claims
 already fetched, deprecated ranks ignored:
@@ -404,7 +390,7 @@ their parliamentary seat. `peploop/positions.md` has the measured counts.
 
 `filtered` and `overlapping` are what a rule decided so a human does not have
 to, with the rule's name in `qualifiers._reason`. Neither is ever rendered,
-reviewed or applied, and `stats` counts both so each rule's volume stays
+reviewed or applied, and `report` counts both so each rule's volume stays
 visible. The reasons:
 
 | reason | what it excludes |
@@ -428,15 +414,14 @@ Only `new` and `refine` are candidates for writing; the policy decides each
 item is exactly what a human should see -- but that records that Wikidata
 looks wrong, which is a to-do about the item and not an edit: `send` writes
 nothing for it. A written proposal moves to `sent` and then `applied`, its
-`applied_batch` naming the QS3 batch; rows written through the API before
-QS3 also carry `applied_rev` and `claim_guid`. The kind of evidence behind a proposal (an infobox line, prose, a
-demonym) is not a column: the extraction JSON keeps `basis` and the quotes, so
+`applied_batch` naming the QS3 batch. The kind of evidence behind a proposal
+(an infobox line, prose, a demonym) is not a column: the extraction JSON keeps `basis` and the quotes, so
 it is derivable by query when the verdicts make it worth measuring.
 
 ### 6a. Policy
 
-`policy` is the gate that replaced the human one. It reads every `new` and
-`refine` row and decides each by an ordered list of rules in `policy.py` --
+The policy runs at the end of every `propose` and `verify`. It reads every
+`new` and `refine` row and decides each by an ordered list of rules in `policy.py` --
 first match wins, the rule's name lands in `proposal.decided_by` as
 `policy:<rule>`, and the status becomes `accepted` (what `send` writes),
 `skipped` (a decision with a reason, never a queue) or `pending` (the verifier
@@ -445,12 +430,10 @@ would skip anyway is ever sent to a model; the verifier's answer is the last
 rule, and only `supported` at better than low confidence passes it.
 
 What the rules say, in order: a row a human rejected in the `review` sampler
-is skipped (an accept there decides nothing); labels and aliases left from the
-removed lane are never written; the dates the *extraction* found set a
+is skipped (an accept there decides nothing); the dates the *extraction* found set a
 person aside the item's own dates could not; a value nobody quoted has nothing
 to verify; a date after today is a schedule, not a record (a term's planned
-end, a nominee's start), and the verifier passed two of those before the rule
-existed. A birth or death date attested by one wiki outside the person's own
+end, a nominee's start). A birth or death date attested by one wiki outside the person's own
 languages is skipped, and so is a refinement over a statement somebody other
 than a Wikipedia import referenced. A citizenship from a demonym passes only
 when it names the run's own state. A `P39` passes only on a `same-office`
@@ -489,14 +472,11 @@ on its other item. A minted office is uncounted rather than unheld, so it is
 never caught.
 
 A row a human ruled on is theirs and the policy never reads it; everything else
-is re-decided from scratch on every run, so a rule change is one command.
-`proposed_status` keeps the `new`/`refine` a row started as. `policy --dry-run`
-prints the funnel -- per property, what entered and which rule took each row --
-and that funnel is the first thing to read after any change to the rules.
-Measured on the pilot's second country before any verifier existed: of 960
-`P39` rows 600 reached the verifier, 153 fell to medium confidence, 69 to a
-missing start, 69 to a tenure that ended before anyone alive was born, and the
-mayors of a city from the 1500s went with them.
+is re-decided from scratch on every run, so a rule change is one `propose`.
+`proposed_status` keeps the `new`/`refine` a row started as. The funnel --
+per property, what entered and which rule took each row -- ends every
+`propose` and `verify`, `report <cc> funnel` reprints it, and it is the first
+thing to read after any change to the rules.
 
 ### 6b. Verify
 
@@ -521,14 +501,6 @@ again; a re-fetched article is a new question; a prompt edit or a rendering
 change re-asks. `policy` looks the verdict up by that key and passes only
 `supported` at better than low confidence. Everything else is `skipped` under
 `verify/<verdict>`, with the model's reason in the ledger for the report.
-
-Measured on the first twelve requests: nine supported, one `already-recorded`
-(a mayoralty the item held), one `contradicted` (an ethnic descriptor read as
-a citizenship, with Austria-Hungary already on the item), one `unsupported`
-(the same, on another person) -- three refusals a reviewer would have made,
-at about $0.02 a request. The same run showed the one thing a single reading
-cannot see, two wikis dating a death two days apart, so `policy` now skips a
-single-valued value as `contested` when a sibling proposal disagrees.
 
 ### 7. Send
 
@@ -563,12 +535,11 @@ article's whole. For everything else:
 QuickStatements cannot be aimed at a statement: a plain line merges into the
 *first* statement holding its value and a `+` line always creates one. So a
 merge or a switch is planned only where that value sits on one statement
-alone; otherwise the row closes as `ambiguous-statement` (measured: 2.2% of
-Japan's rows, all one office held once per Diet term). A `+` line for a value
+alone; otherwise the row closes as `ambiguous-statement`. A `+` line for a value
 a plain line of the same person names waits for the next send, since in one
 batch the merge could land on the statement it makes. A value no line can
 carry (a Julian date, a string with a quote) closes as `unrenderable`. Every
-row closed without a line is `skipped` under `apply:<route>`, which a
+row closed without a line is `skipped` under `plan:<route>`, which a
 re-propose keeps for as long as the route still holds.
 
 Contradiction is ruled out over *every* statement before anything else, not
@@ -584,10 +555,8 @@ with `!S` on one line), not two identical claims. Every statement gets the
 same reference: `P143` imported from the item of the source wiki, `P4656` the
 permanent URL of the revision that was read, `P813` today.
 
-Additions go out **uncombined**, one edit per line: QS3 folded each person's
-lines into one edit, and for five of Japan's members with three or more new
-P39s that edit failed whole with no reason given (QS3 59098); the same lines
-one edit each all landed. A row moves `accepted` → `sent` when its line is
+Additions go out **uncombined**, one edit per line: a combined edit fails
+whole when one of its commands does, with no reason given. A row moves `accepted` → `sent` when its line is
 recorded and → `applied` once every line it rode on is live, or `failed` when
 QS3 reports a line failed; `send --submit --retry` sends a run's failed lines
 again. A row taken out after it landed is struck by `audit proposal`, which
@@ -596,36 +565,30 @@ when the statement is provably only ours.
 
 ## Tables
 
+`schema.sql` is the reference; what each table is for:
+
 ```
-http_cache   (url, params_hash) → body, fetched_at
-person       qid, status, error, updated_at
-membership   qid, category, lang, seen_at        (unique on all three)
-item         qid, lastrevid, json, fetched_at
-article      qid, lang, title, rev_id, url, text, fetched_at
-extraction   id, qid, prompt_hash, model, article_langs[], request_json,
-             response_json, usage_json, created_at
-proposal     (as above, plus applied_rev, claim_guid, proposed_status)
-verdict      proposal_id, decision (accept|reject), reason, note, decided_by, created_at
-position     qid, label, description, country_qid, jurisdiction_qid,
-             jurisdiction_text, body_qid, kinds[], sources[], not_office,
-             inception, abolished, replaces[], replaced_by[], holders,
-             first_held_year, polity_inception_year (each with an _at stamp),
-             search_text, tsv (generated from search_text), generic, loaded_at
-position_name qid, lang, text, alias                 (unique on qid+lang+text)
-type_edge    qid, targets[], fetched_at              (the P31/P279 ancestry cache)
-verification proposal_key, proposal_id, person_qid, property, prompt_hash,
-             render_version, model, verdict, confidence, evidence, reason,
-             usage_json, created_at   (unique on key, prompt, rendering, model)
-mint_call    pass (categorize|verify), country, content_key, prompt_hash,
-             render_version, model, request_json, response_json, usage_json
-             (unique on pass, content, prompt, rendering, model)
-office_candidate country, ref, origin[], institution_class, archetype,
-             single_seat, draft, corrections, spec, data, holders,
-             current_holders, source_url, status, rule, problems[], qid,
-             created_rev, batch, intent_at, intent_tag   (unique on country+ref)
-office_attestation candidate_id, extraction_id, mention_idx, person_qid,
-             current, retrieved, reopened_id
-office_unassigned country, group_key, reason, categorize_call
+http_cache         cached HTTP bodies (PetScan, SPARQL, search), by URL and params
+person             one row per seeded person: status, error, country
+membership         which seed category found which person
+item               Wikidata items as last fetched, with lastrevid
+article            Wikipedia article text and revision, per person and language
+extraction         the model's answer per person, prompt hash and article set
+proposal           one statement to consider: value, qualifiers, sources, status,
+                   decided_by, proposed_status, resolution_id, applied_batch
+verdict            a human's ruling on a proposal (review sample or audit)
+position           one row per office item a title may resolve to, with its signals
+position_name      every name of a position, per language
+type_edge          the P31/P279 ancestry cache
+resolution         the reconciler's verdict per office mention, keyed on content
+title_en, title_en_call   the cached English name of an office title
+verification       the verifier's verdict per proposal, keyed on content
+mint_call          categorize and verify requests of the mint stage
+office_candidate   one office the mint stage considered, its disposition and QID
+office_attestation the mentions behind a candidate, and what the feed reopened
+office_unassigned  mint groups no office took, with the reason
+wd_batch, wd_edit, wd_strike, wd_removal   the send ledger shared with peptree
+schema_version     the hash of schema.sql as last applied
 ```
 
 `verdict.reason` is one of `wrong_value`, `wrong_precision`,
@@ -634,16 +597,13 @@ office_unassigned country, group_key, reason, categorize_call
 placed on the wrong item, which is the one thing a `P39` row can be wrong about
 that no other reason names. The prompt hash that produced a proposal is reachable
 through `extraction`, so acceptance per prompt version is a join, not a column.
-The table exists from round 1 so nothing later has to back-fill it.
 
-Eight tables plus three for round 2, and four for the mint stage:
 `office_candidate.status` is the disposition (`skipped`, `found`, `guarded`,
 then `creating`, `created`, `loaded`) and `rule` the rule that set it;
 `office_attestation` is what the floor counted and what `feed` may reopen, and
 nothing else. Migrations are a single idempotent `schema.sql`; no Alembic.
 It is applied only when its hash differs from the one in `schema_version`,
-under an advisory lock, because its `ALTER`s take exclusive locks and two
-commands that started together used to deadlock on them.
+under an advisory lock, since its `ALTER`s take exclusive locks.
 
 A `verdict` row is a human's: a `review` sample (`decided_by` `review:<user>`)
 or an `audit` (`audit:<name>`). `propose` keeps every proposal that has one,
@@ -723,8 +683,9 @@ about the `pending` rows and ends with the policy and its funnel, so the policy
 never runs by hand. `report` prints
 any checkpoint's numbers and writes nothing; `funnel` is what the rules would
 decide now. `audit` is the only way to take a row out by hand -- a proposal
-audit is a verdict as well as a skip, which a re-propose keeps -- and there
-is no approve. `prompt` prints the request a model stage would send and
+audit is a verdict, a skip and a strike, which a re-propose keeps, and on a
+row already written it queues the statement's removal -- and there is no
+approve. `prompt` prints the request a model stage would send and
 sends nothing, which is how a prompt change is judged before it is run over a
 country.
 
@@ -747,27 +708,6 @@ reason it discarded on lands in `person.error`. `extract` stores the model's
 answer for each `fetched` person; a person already answered under this prompt
 hash and these article revisions is skipped without a request.
 
-## Pilot
-
-Czechia via `seeds/cz.yml`, whose twelve categories queue 1,576 people; the
-wide `Čeští_politici` is commented out, because its ~6,300 members are mostly
-not politically exposed and the prompt should be judged on the narrower set
-first. Success for round 1 means: the loop runs on those people without manual
-intervention, `stats` shows a proposal distribution that reads sensibly, a
-review of 50 `new` proposals finds the quote supports the value in at least 48,
-and 20 people's `positions` lists read beside their infoboxes are complete and
-undated only where the article is. Measured on the first 60 people at Sonnet 5
-rates: $0.025 per person, output tokens being over half of it; a person with a
-long article costs $0.15 to $0.18. The pilot's 1,839 people are therefore
-$50 to $80 depending on the mix. If the review fails, the fix is in the prompt
-file, and re-running is one command.
-
-PetScan does not cap its JSON output at 500: the thirteen categories of
-`seeds/cz.yml` returned between 0 and 6,397 rows in one response each, with no
-parameter asking for more. The exactly-500 result the en category once gave at
-depth 3 is unexplained, and depth 4 still times out; the seed avoids both by
-staying shallow across many categories.
-
 ## What is deliberately not here
 
 - No bot account: `send` writes what the policy accepted, and the edits
@@ -776,7 +716,7 @@ staying shallow across many categories.
   statement with both references; the day two attestations carry different
   qualifiers, that grouping is what has to notice.
 - No roster pages, no Wikipedia lists, no non-Wikimedia sources. The prompt
-  material is one person's own articles. Widening the material is round 3.
+  material is one person's own articles.
 - No per-country policy, dispositions, backtests, or coverage ledgers.
 - No Meilisearch or other search service; Postgres indexes cover the candidate
   set we have (tens of thousands of positions, not millions of places). If
@@ -790,12 +730,12 @@ staying shallow across many categories.
 ```
 peploop/
   design.md
-  countries.md             how a country is run, and the ones that have been
-  bigpicture.md
-  positions.md             round 2: the position resolver, as built
-  positions_discarded.md   round 2: measured and rejected, read before changing
+  countries.md             how a country is run
+  positions.md             the position resolver, as built
   schema.sql
-  fixtures/                the silver test set the bench scores against, and API pins
+  generic_positions.csv    the generic office classes both tools never target
+  fixtures/                the silver test set the bench scores against
+  bench/                   the retrieval and second-turn benches over that set
   seeds/<cc>.yml           the categories a country's run is seeded from
   census/<cc>.yml          the offices a state has whether or not anyone named them
   prompts/extract.md
@@ -806,7 +746,7 @@ peploop/
   prompts/title_en.md          an English name for an office title, a search aid
   __init__.py
   db.py          connection, cache get/put, upserts
-  http.py        session, rate limiter, User-Agent (copied and trimmed from wd/http.py)
+  http.py        session, rate limiter, User-Agent, disk cache
   wikidata.py    fetch item, best_label, claim readers, SPARQL
   wikipedia.py   PetScan seed, REST HTML fetch, HTML → text
   scope.py       the dates that say a person is no longer worth an extraction
@@ -823,9 +763,9 @@ peploop/
   send.py        submit to QS3 through the ledger: recover, reconcile, retry, removals
   qs3.py         the QuickStatements 3.0 API client
   cli.py         the commands; every stage's selection and its concurrency
-  positions.py   round 2: load a country's offices, search and rank them
-  reconcile.py   round 2: resolve one office mention to an item, or refuse
-  titles.py      round 2: the English name of an office title, cached per title
+  positions.py   load a country's offices, search and rank them
+  reconcile.py   resolve one office mention to an item, or refuse
+  titles.py      the English name of an office title, cached per title
   offices.py     mint: the archetypes, the payload, the guard, the live duplicate reads
   mint.py        mint: the queue, the floor, categorize, verify, the disposition rules
   mint_write.py  mint: create crash-safely, recover, feed back, report, audit
@@ -843,21 +783,7 @@ peploop/
   check_mint.py       every reason not to mint, on the payload itself
   check_mint_queue.py the queue: what counts as current evidence, how mentions pool
   check_mint_categorize.py  the categorize rendering, gate and ledger, offline
+  check_mint_verify.py the mint verifier's rendering, rules and ledger, offline
   check_mint_write.py one CREATE batch, crash, recovery, feed, the send lock and audit, offline
   check_titles.py     the title cache's key, batching and search channel, offline
 ```
-
-Round 1 is roughly 800 lines and anything larger is a sign the increment is
-wrong. Round 2 adds about as much again, most of it in `positions.py`; the
-measurements that justify each part are in `docs/research/peploop_positions.md`.
-
-## Open questions for later rounds
-
-- Whether `refine` proposals (adding a day to a year-precision date) are safe
-  to render without review, given how often infoboxes disagree across languages.
-- How the two-turn reconciliation behaves when an article names ten offices;
-  batching all titles into one second turn versus one turn per title.
-- Whether a country-match signal that needs no holder count recovers what a
-  large country's arrival costs a small one's retrieval. `positions.md` closes
-  on this; a dump-based candidate set is *not* the answer, since SPARQL
-  reaches ~16,000 items per country with paging.

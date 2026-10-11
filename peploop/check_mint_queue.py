@@ -24,7 +24,7 @@ from peploop import db, mint
 from peploop.mint import Group, Row
 
 TODAY = date(2026, 10, 1)
-RECIPE = Path(__file__).resolve().parent.parent / "recipes" / "institutions.md"
+RECIPE = Path(__file__).resolve().parent.parent / "docs" / "institutions.md"
 
 
 def row(person: str = "Q1", **fields: Any) -> Row:

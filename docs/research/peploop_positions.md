@@ -3,7 +3,7 @@
 The evidence behind `peploop/positions.md`. That file says what the resolver
 is; this says what was counted, what it cost, and which figures are one run
 wide and should not be generalised. Ideas that were measured and rejected are
-in `peploop/positions_discarded.md`.
+in `docs/history.md`.
 
 **Measured 2026-09-20/21** against live WDQS and `wbgetentities` through
 `peploop.wikidata.sparql` / `fetch_items`, and a local Postgres 18.6. Type

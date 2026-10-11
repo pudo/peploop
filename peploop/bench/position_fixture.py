@@ -67,7 +67,7 @@ class Rules:
     The other two were implemented, measured against the answers they keep
     and discard, and found to select *against* correct pairs; they survive as
     switches because a rejected rule is worth being able to re-run, not
-    because either is a preference. `peploop/positions_discarded.md` says
+    because either is a preference. `docs/history.md` (Retrieval) says
     what each cost.
     """
 

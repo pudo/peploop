@@ -1,9 +1,8 @@
 # Positions: resolving a free-text office to a QID
 
-Round one extracts an office as the article names it — a title, sometimes a
+Extraction gives an office as the article names it — a title, sometimes a
 jurisdiction string, dates, quotes. This is the half that turns that into a
-Wikidata QID or refuses to. It is built and measured on three countries, and
-the second turn has been run and measured on the pilot.
+Wikidata QID or refuses to.
 
 Two rules govern everything here. **Retrieval ranks, a model decides.** And
 **nothing is filtered out of the table**: an abolished office is the right
@@ -13,7 +12,7 @@ exposure is a question for a consumer. Every signal re-orders and is shown to
 the model as a tag; none of them removes a row.
 
 The numbers behind every claim here are in `docs/research/peploop_positions.md`.
-Things measured and rejected are in `positions_discarded.md` — read it before
+Things measured and rejected are in `docs/history.md` (Retrieval) — read it before
 proposing a change, because most of the obvious ideas have been tried.
 
 ## Tables
@@ -124,7 +123,7 @@ not of the search — it was 200 on one country and is 400 on three, and it is
 re-derived by running the curve.
 
 `country_qid` scopes nothing. It is passed because the ranking needs to know
-who is asking, and it is **not a filter** — see `positions_discarded.md`.
+who is asking, and it is **not a filter** — see `docs/history.md` (Retrieval).
 
 ## Ranking
 
@@ -188,9 +187,8 @@ printed as QIDs.
 It answers with a closed set: `same-office`, `renamed`, `generic-class`,
 `body-not-seat`, `wrong-office`, `none`. Only the first two are matches.
 `settle()` refuses a pick that was not on the shortlist. **The answer schema is
-one fixed shape for every request**; it used to close `qid` over the offered
-QIDs per request, which put the shortlist inside the cached prefix and made
-every request write the prompt to cache and read nothing. An uncounted holder
+one fixed shape for every request**: a per-request schema would sit inside the
+cached prefix and defeat the prompt cache. An uncounted holder
 count prints `uncounted`, never `0`.
 
 Every verdict is a row in `resolution`, keyed by (extraction, mention index,
@@ -249,7 +247,7 @@ with no `P39` anywhere on the person, which no re-pairing rule can reach.
 
 ```
 python -m peploop.cli load-positions --country cz     # discovery, fetch, upsert
-python -m peploop.cli position-stats                  # what the table holds
+python -m peploop.cli report --country cz positions  # what the table holds
 python -m peploop.cli reconcile --country cz          # the ranking columns, then the second turn, over a run
 python peploop/bench/position_fixture.py                    # rebuild the silver set
 python peploop/bench/position_bench.py --country cz --signals all
@@ -259,12 +257,10 @@ python -m peploop.check_propose                       # the P39 lane, offline
 python peploop/bench/reconcile_bench.py --country cz --limit 150   # the second turn, live
 ```
 
-`--local-holders` is the one to reach for on an *n*th country. `fill_counts`
-re-asks all five signals over the whole table -- 268 chunks of query service
-per signal -- and four of them are whole-corpus counts a new country does not
-change the answer to. The fifth, `holders_by_country`, is keyed by the state
-that ran it, so a new country has no key anywhere and every row reads
-`uncounted` until this fills it.
+`reconcile` fills the signals only for rows that have none, and the state's
+own holder count (`holders_by_country`, keyed by the state that ran it) for
+rows without one; a recount of rows already counted is `positions.fill_counts`
+with no `qids`, called by hand -- 268 query-service chunks per signal.
 
 `VACUUM (ANALYZE) position` after a signal fill: five whole-table updates
 triple the heap and grow the GIN index by a third with no new documents.
@@ -286,20 +282,15 @@ Four rules decide the rest:
   article on 2022-04-20, a convocation opens on 2018-06-03 and the member was
   sworn in on the 22nd. Such a proposal is `overlapping`, which is inert -- in
   no status the policy decides -- and carries the spell it
-  clashed with in `qualifiers._reason`. Nothing is forfeited by it: `apply`
-  sees the office value already on the item, returns `exists` and drops the
-  dates (see *What is not done* below), so the only `P39` that can reach
-  Wikidata at all is one for an office the item holds no statement for.
-  Downstream the cost is worse than nothing -- OpenSanctions keys an Occupancy
-  on `(person, position, start, end)` and merges only on an *identical* start,
-  so a near-miss is a permanent duplicate. Measured on 1,253 Slovenian `P39`
-  rows: 231 set aside, reviewable rows 1,206 -> 999, people to review 830 ->
-  734. Two things the rule deliberately does not do. It judges *only* the same
-  office QID -- a spell overlapping a *different* office is a minister keeping
-  their parliamentary seat, and 106 of these rows are exactly that. And a
+  clashed with in `qualifiers._reason`. Writing it would cost worse than
+  nothing downstream: OpenSanctions keys an Occupancy on
+  `(person, position, start, end)` and merges only on an *identical* start,
+  so a near-miss is a permanent duplicate. Two things the rule deliberately
+  does not do. It judges *only* the same office QID -- a spell overlapping a
+  *different* office is a minister keeping their parliamentary seat. And a
   recorded statement carrying **no dates at all** blocks nothing, because it is
-  the thing the proposal exists to sharpen; those 65 rows stay `refine`. The
-  order is load-bearing: the clash is asked first, because whether the tenure
+  the thing the proposal exists to sharpen; such rows stay `refine`, and the
+  plan merges the dates into that statement. The order is load-bearing: the clash is asked first, because whether the tenure
   is already recorded decides whether it belongs on the item at all, and only
   what survives it is asked what kind of tenure it was.
 - **The same spell in two languages is one row.** A person's `sl` and `pl`
@@ -308,20 +299,16 @@ Four rules decide the rest:
   reviewer asked the same question twice is a reviewer being wasted.
 - **A spell no recorded statement covers is `new`, whatever else the item
   records for that office.** An earlier term beside a recorded later one is
-  coverage, not a dispute. It used to read `conflict` -- `tenure_status`
-  returned `new` only when the item held no statement for the office at all --
-  and 20 Slovenian rows were being shown as contradictions on that basis.
-  `exists` and `conflict` have left the `P39` lane entirely; both only ever
-  meant a statement the item already carries.
+  coverage, not a dispute. `exists` and `conflict` do not occur in the `P39`
+  lane; both only ever mean a statement the item already carries.
 - **An acting tenure is `filtered`.** Wikidata says "acting" with a qualifier
   this pipeline does not write, and a `P39` that omits it asserts more than the
   article did. Its `_reason` is `acting`, so its volume stays countable
   alongside every other rule that decided something.
 
-Positions go out through `apply`, which creates and never merges, and never
-through QuickStatements: it matches a line on subject, property and *value*
-and folds the qualifiers into whatever statement it finds, so two terms of one
-office would arrive as one statement carrying both starts and both ends.
+A further term goes out as a `+` line, which QuickStatements always creates
+as a statement of its own; dates for the one undated statement of an office go
+out as a plain line merged into it (`design.md` §7).
 
 ## The creation queue
 
@@ -351,8 +338,7 @@ have somewhere to go.
   -- so categorize sees every surviving group, single-person ones included, and
   the floor reads the pieces it merged together: one distinct person attested,
   and a current holder among them, for every office. A floor of two people
-  (or one plus the census or a source, for a one-seat office) removed the
-  party, state-company and agency heads screening needs most, so it went;
+  would remove the party, state-company and agency heads screening needs most;
   verify and the guard are the gate on whether an office is real. Neither
   model can override the floor.
 - **Two models and a veto.** Categorize (`prompts/mint_categorize.md`, the
@@ -375,8 +361,8 @@ have somewhere to go.
   archetype and follows the state's own siblings, falling back to `Q294414`.
   Siblings are the state's offices and those of its current subdivisions,
   less any that is dissolved (`P576`), typed historical, or last held more
-  than 30 years ago: one colonial "Governor of Cuba" otherwise set the type of
-  every minted governorship. A body two or more siblings already use is
+  than 30 years ago, so a colonial predecessor does not set a new office's
+  type. A body two or more siblings already use is
   measured rather than drafted, so it skips the shared-word check ("Council
   of Ministers" shares no content word with "Minister of X").
 - **A disagreement is a skip, never a review row.** `mint.RULES` is ordered
@@ -388,8 +374,9 @@ have somewhere to go.
   decided it -- `verify:not-current`, `disagree/shape:parent_qid`,
   `guard:body-word/…`. The corrections a verifier proposed are kept on the
   row, so a disagreement class an audit shows to be sound can become a rule
-  that accepts it; nothing is relaxed per row. `mint-report` is the export
-  list, the way `conflict` rows are for the person loop.
+  that accepts it; nothing is relaxed per row. The mint report's skip export
+  (`report <cc> mint`) is the list for a human, the way `conflict` rows are
+  for the person loop.
 - **Feed reopens only what was attested.** Once an item is created or found,
   `feed` loads it into `position` with its holder counts left null, so it
   reads `uncounted` rather than unheld; then, for each mention the candidate
@@ -401,19 +388,11 @@ have somewhere to go.
 
 ## What is not done
 
-- **`apply` writes a `refine` by overlap.** A P39 the item already records,
-  wanting the end date the article supplies, is a merge into the statement it
-  overlaps, and the router now finds that statement by its span rather than
-  by the office value -- which is also what lets a further, non-overlapping
-  term go out as a second statement instead of reading as "already there".
-  Measured on `Q101002571`, whose National Assembly statement has a start and
-  no end: it used to report "nothing to write". A near miss on a shared
-  endpoint still touches nothing, and `overlapping` stays inert.
 - **A large country's ranking signals are null on purpose.** Filling them is
   600 query-service requests and 6–11 hours, and a null foreign count scores
   *better* than a filled one, so this is not a cost compromise.
-- **The open question.** Loading a third, much larger country cost 1.5 points
-  of aggregate recall and 4.8 of top-1. Only 0.3 of the recall was the pool
+- **The open question.** Adding a much larger country to the table cost a
+  small one 1.5 points of aggregate recall and 4.8 of top-1. Only 0.3 of the recall was the pool
   cut, now spent by raising the pool. The rest is a foreign office genuinely
   outranking the answer *inside* the fifteen, identical at every pool size, and
   the signal that would settle it is null on exactly those rows. The next

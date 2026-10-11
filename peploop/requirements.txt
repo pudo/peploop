@@ -1,7 +1,6 @@
-# Runtime dependencies of peploop/, wd/ and scripts/, pinned to the versions
-# they were developed against (Python 3.13). Install into a fresh venv:
+# Runtime dependencies of peploop/ and peptree/, pinned to the versions they
+# were developed against (Python 3.13). Install into a fresh venv:
 #   python -m venv .venv && .venv/bin/pip install -r peploop/requirements.txt
-# Postgres needs the pg_trgm extension available (schema.sql creates it).
 requests==2.34.2
 urllib3==2.7.0
 rigour==2.5.0
@@ -14,5 +13,3 @@ PyYAML==6.0.3
 textual==8.2.8
 rich==15.0.0
 click==8.5.0
-# Only wd/human.py imports this, lazily, for name cleaning; peploop itself does not.
-nomenklatura==4.15.0
