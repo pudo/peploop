@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
-Progress: pending 6, reviewed 193, skipped 1, submitted 48
+Progress: blocked 2, pending 3, reviewed 194, skipped 1, submitted 48
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | batches | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -107,7 +107,7 @@ Progress: pending 6, reviewed 193, skipped 1, submitted 48
 | ca | Canada | Americas / Northern America | 67 | reviewed | 2026-10-11 | 803 | 148 | P1001 39 P17 33 P279 29 P31 47 | $13.09 |  | re-filtered: Catholic sees and Ontario's Leader of the Opposition kept (+29); head_of_government repaired (PM P279); 1 model answer degenerate (Q3238301); strike Q108350406 P1001 (class of mayors), Q109772486 P1001 (bar association), Q5246678 P31 (Dean of the House) |
 | gl | Greenland | Americas / Northern America | 15 | reviewed | 2026-10-07 | 25 | 0 |  | $0.18 | 004 | P17 Greenland: treated as a country (user, 2026-10-05) |
 | pm | Saint Pierre and Miquelon | Americas / Northern America | 15 | reviewed | 2026-10-06 | 3 | 0 |  | $0.00 |  | no offices to repair |
-| us | United States | Americas / Northern America | 71 | pending |  |  |  |  |  |  |  |
+| us | United States | Americas / Northern America | 71 | reviewed | 2026-10-11 | 4892 | 476 | P1001 142 P17 246 P279 22 P31 66 | $59.80 |  | State of Scott is no predecessor (no item moved); strike P1001 on body man, Senior Executive Service, Diplomats in Residence, NJ bar president, CUNY chancellor; P31 on Priest, party committeemen, defender of the bond (classes) |
 | ar | Argentina | Americas / South America | 15 | reviewed | 2026-10-07 | 261 | 0 |  | $1.28 | 004 035 |  |
 | bo | Bolivia | Americas / South America | 15 | reviewed | 2026-10-07 | 58 | 0 |  | $0.62 | 004 035 |  |
 | br | Brazil | Americas / South America | 16 | reviewed | 2026-10-07 | 5812 | 1 | P31 1 | $22.24 | 005 035 036 | 4271 type/class-swapped mayoralties left alone (inverted); $22 for 46 lines |
@@ -176,7 +176,7 @@ Progress: pending 6, reviewed 193, skipped 1, submitted 48
 | ye | Yemen | Asia / Western Asia | 0 | submitted | 2026-10-07 | 152 | 1 | P31 1 | $2.03 | 036 |  |
 | at | Austria | Europe / Central Europe | 47 | reviewed | 2026-10-07 | 181 | 22 | P1001 8 P17 10 P279 3 P31 1 | $1.94 | 048 | predecessor lane was 27,380 Austria-Hungary items (villages, newspapers), now typed/subclass/held only: 162; 'federal' (from Bundesland) read the Federal President and Chancellor as provincial: level words the state's own offices use are dropped |
 | cz | Czechia | Europe / Central Europe | 44 | reviewed | 2026-10-08 | 179 | 26 | P1001 17 P17 8 P279 1 | $1.52 | 043 59132 | 1,550 Czechoslovak legal acts dropped (written work); class lines follow the 31/38 'mayor of a place in X' P1001 convention; Q135399028 (SAC judge class) wants P279 national supreme court judge, as Cyprus |
-| de | Germany | Europe / Central Europe | 70 | pending |  |  |  |  |  |  |  |
+| de | Germany | Europe / Central Europe | 70 | blocked: crash (place-de.log) |  |  |  |  |  |  |  |
 | hu | Hungary | Europe / Central Europe | 57 | reviewed | 2026-10-08 | 395 | 62 | P1001 9 P17 2 P279 50 P31 1 | $4.44 | 057 |  |
 | pl | Poland | Europe / Central Europe | 54 | reviewed | 2026-10-08 | 318 | 46 | P1001 16 P17 17 P279 7 P31 6 | $4.42 | 054 | permanent representatives to an organisation now load as the state's posts abroad (no P1001): 3 lines dropped; Polesie voivode P17 Poland where its Nowogródek sibling uses Second Polish Republic |
 | si | Slovenia | Europe / Central Europe | 39 | reviewed | 2026-10-07 | 51 | 0 |  | $0.69 | 038 |  |
@@ -202,7 +202,7 @@ Progress: pending 6, reviewed 193, skipped 1, submitted 48
 | cq | Sark | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
 | sj | Svalbard and Jan Mayen | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
 | se | Sweden | Europe / Northern Europe | 68 | reviewed | 2026-10-11 | 2529 | 719 | P1001 461 P17 186 P279 12 P31 60 | $22.97 |  | 983 held or categorised items asked (municipal commissioners, agency directors-general); church parish P1001 kept as the parish; strike Q130252154 P1001 (organist), Q10531605 P17 (Finnish honorary title) |
-| gb | United Kingdom | Europe / Northern Europe | 69 | pending |  |  |  |  |  |  |  |
+| gb | United Kingdom | Europe / Northern Europe | 69 | blocked: crash (place-gb.log) |  |  |  |  |  |  |  |
 | ax | Åland Islands | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 10 | 0 |  | $0.00 |  |  |
 | al | Albania | Europe / Southern Europe | 28 | reviewed | 2026-10-07 | 93 | 15 | P1001 8 P17 5 P279 2 | $0.64 | 034 |  |
 | ad | Andorra | Europe / Southern Europe | 28 | reviewed | 2026-10-06 | 59 | 13 | P1001 5 P17 3 P279 4 P31 1 | $0.37 | 034 035 |  |
