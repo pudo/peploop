@@ -29,17 +29,24 @@ problem: rigour's code names the Kingdom; check which state its offices put in
   for `removals approve`.
 - **63 held offices with a wrong `P31`** (a family name, human, a title) are
   listed in `data/peptree/byproducts/held_non_position_p31.md`. Import them as
-  proposed removals (a small `removals import <file>`), then approve one by one.
+  proposed removals (an `import <file>` action on peploop's shared `removals`),
+  then approve one by one.
 - **Kazakh labels** put the head noun last; the label channel misses them.
+- **The filter is half of one office loader.** peploop's `position` set and
+  peptree's kept items disagree (jp: peptree drops 410 of 2,977); the shared
+  loader is `plans/peploop_next.md` §6, and changes to `load.py`'s filter feed
+  into it.
 
 ## 3. The fill lane
 
 peptree repairs offices it finds; it creates none. For a FATF category a
 country has no office for (central bank governor, supreme court judge, auditor
-general), find the office or create it. Creation reuses peploop's path:
-`send.create` (one QS3 batch of `CREATE` + `LAST` lines, QIDs from each
-command's `response_id`), with a duplicate search at `max_age=0` right before
-rendering and at least one named holder. Not designed further than that.
+general), find the office or create it. Creating it is peploop's `mint` with a
+different queue: the archetype shapes and `guard` (`offices.py`), the live
+duplicate search, and the crash-safe `CREATE` batch with its feed back
+(`mint_write.py`) all apply as they are. What is new is the queue builder --
+empty category cells from the matrix, each with at least one named holder --
+and any archetype a category lacks. Not designed further than that.
 
 ## 4. Subnational: one level down
 
@@ -79,12 +86,12 @@ units to their offices, and turn empty cells into a mint queue.
 5. Lanes that write, all through `send`:
    - **A** back-link `P1313`/`P1906` on the unit item, on two channels (the
      office's `P1001` = unit, plus the slot evidence). The first lane whose
-     subject is a place; `qs.validate` must accept it. A generic class in a
+     subject is a place; `tree/qs.validate` must accept it. A generic class in a
      unit's `P1313` is not removed by the lane — that is a proposed removal.
    - **B** the existing repair lane, reaching unit offices.
    - **C** a search hit the model confirms, repaired through B.
-   - **D** mint a `missing` head through `send.create`; the unit's `P1313` to
-     the new item goes in the next run's lane A.
+   - **D** mint a `missing` head through peploop's `mint` (as in the fill
+     lane); the unit's `P1313` to the new item goes in the next run's lane A.
 6. A `## Subnational` section in the country report, and a column in `sweep.md`.
 
 **Phases**, each ending at a checkpoint: (0) a read-only report over ~10

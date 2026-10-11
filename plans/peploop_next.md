@@ -7,10 +7,12 @@ tags: [peploop, backlog, mint, policy, reconcile, consolidation]
 # peploop: what is next
 
 The tool as it is: `peploop/design.md`. What was tried: `docs/history.md`.
-Nothing here is started.
+Only §5 is started: `llm.py` holds the first part of the LLM-pass kernel.
 
 ## 1. The first live `mint --submit`
 
+Additions through the shared send skeleton (`send.dispatch`) have run live: jp
+(QS3 59129) and cz (QS3 59132), 42 statements, none failed, every row settled.
 The QS3 creation path (one batch of `CREATE` + `LAST` lines, each QID read from
 its command's `response_id`) is checked offline only. No country has a
 `guarded` office now; the next country run that leaves one creates it with
@@ -58,8 +60,10 @@ Do these when the files are open anyway; none changes behaviour.
   `tree/repair.py`) still carries its own request, parse and record, `Strict`
   is defined five times and `USAGE_KEYS` twice. An `llm_usage` view over the
   ledgers would let `report` show every pass's cost.
-- **A check fixture and runner.** Five copies of the shadow-table helper; one
-  `checks.py` fixture and a `check` command that runs every `check_*`.
+- **A check fixture and runner.** Five copies of the shadow-table helper, and
+  peptree's eight checks carry their own `expect` beside peploop's seventeen;
+  one `checks.py` fixture and a `check` command that runs every `check_*` of
+  both lanes.
 - **Pin every prompt's request hash.** Ledger keys hash the rendered request;
   only reconcile's is pinned, so a refactor that changes rendering by a byte
   silently re-asks a pass.
