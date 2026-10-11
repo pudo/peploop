@@ -1,8 +1,6 @@
 -- peploop enrichment pipeline schema. Applied wholesale by peploop.db.init_schema();
 -- every statement is idempotent, so there are no migrations.
 
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
 -- Generic response cache for PetScan, SPARQL and search. Wikidata items and
 -- Wikipedia articles are state and live in their own tables instead.
 CREATE TABLE IF NOT EXISTS http_cache (
@@ -26,8 +24,7 @@ CREATE TABLE IF NOT EXISTS person (
 CREATE INDEX IF NOT EXISTS person_status_idx ON person (status);
 
 -- Which country's run queued a person, stamped by `seed` from its own flag.
--- Added after the CREATE above, because schema.sql is applied wholesale to a
--- database that already holds a seeded run. It scopes a command's selection
+-- It scopes a command's selection
 -- and nothing else: the pipeline reasons about a person, never about a
 -- country, and a person queued by two runs keeps the first one's stamp.
 ALTER TABLE person ADD COLUMN IF NOT EXISTS country TEXT;
@@ -100,7 +97,7 @@ CREATE TABLE IF NOT EXISTS proposal (
 CREATE INDEX IF NOT EXISTS proposal_person_idx ON proposal (person_qid);
 CREATE INDEX IF NOT EXISTS proposal_status_idx ON proposal (status);
 
--- Reconciliation targets for round 2: one row per Wikidata position item a
+-- Reconciliation targets: one row per Wikidata position item a
 -- free-text office title may resolve to. Nothing here is a filter. An
 -- abolished office is the right answer for a tenure that ended before it, an
 -- item typed as an occupation is worth offering labelled as one, and whether
@@ -160,8 +157,7 @@ CREATE TABLE IF NOT EXISTS type_edge (
     fetched_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Added after the CREATE above, because schema.sql is applied wholesale to a
--- database that already holds a seeded run.
+-- How many quotes failed the verbatim gate, and which articles did not fit the budget.
 ALTER TABLE extraction ADD COLUMN IF NOT EXISTS bad_quotes INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE extraction ADD COLUMN IF NOT EXISTS dropped_langs TEXT[] NOT NULL DEFAULT '{}';
 -- The extraction key: `lang:rev_id` per article sent, sorted. Languages alone
@@ -186,36 +182,15 @@ CREATE TABLE IF NOT EXISTS verdict (
 
 CREATE INDEX IF NOT EXISTS verdict_proposal_idx ON verdict (proposal_id);
 
--- The CHECK above only reaches a database that does not have the table yet, so
--- the closed set is restated here for one that does. `wrong_office` says the
--- office was placed on the wrong item, which is the one thing a P39 row can be
--- wrong about that no other reason names.
-ALTER TABLE verdict DROP CONSTRAINT IF EXISTS verdict_reason_check;
-ALTER TABLE verdict ADD CONSTRAINT verdict_reason_check CHECK (reason IN (
-    'wrong_value', 'wrong_precision', 'quote_unsupported', 'wrong_person',
-    'already_recorded', 'rule_missing', 'source_wrong', 'wrong_office', 'other'));
-
 -- Who recorded a verdict: `review:<user>` from the sampler, `audit:<name>`
--- from an audit. Null on the verdicts recorded before it was kept.
+-- from an audit.
 ALTER TABLE verdict ADD COLUMN IF NOT EXISTS decided_by TEXT;
-
--- An audit is a verdict as well as a status, because `propose` re-derives every
--- row that has neither a verdict nor `applied` -- and the raw-SQL audits made
--- before `cli audit` existed had only the status, so a re-propose wiped them.
--- This gives the survivors their verdict; idempotent, and a no-op once done.
-INSERT INTO verdict (proposal_id, decision, reason, note, decided_by)
-SELECT p.id, 'reject', 'other', 'raw-SQL audit, reason not recorded', p.decided_by
-FROM proposal p
-WHERE p.decided_by LIKE 'audit:%'
-  AND NOT EXISTS (SELECT 1 FROM verdict v WHERE v.proposal_id = p.id);
 
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 CREATE INDEX IF NOT EXISTS proposal_property_idx ON proposal (property, status);
 
--- What `apply` recorded about a written proposal: the item revision its edit
--- produced, and the statement it created or sharpened. A label or an alias is
--- not a statement and leaves `claim_guid` null.
-ALTER TABLE proposal ADD COLUMN IF NOT EXISTS applied_rev BIGINT;
+-- The statement a proposal written through the API produced. Rows sent through
+-- QS3 leave it null; an audit of a written row uses it to queue the removal.
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS claim_guid TEXT;
 
 -- One searchable document per position, and the only index the search reads.
@@ -235,8 +210,7 @@ ALTER TABLE position ADD COLUMN IF NOT EXISTS tsv tsvector
     GENERATED ALWAYS AS (to_tsvector('simple', coalesce(search_text, ''))) STORED;
 CREATE INDEX IF NOT EXISTS position_tsv_idx ON position USING gin (tsv);
 
--- Two more ranking signals, added after the CREATE above because schema.sql is
--- applied wholesale to a database that already holds a loaded run. Both are
+-- Two more ranking signals. Both are
 -- nullable for the same reason every other signal is: null means nobody has
 -- counted, never that the count came back zero.
 --
@@ -273,7 +247,7 @@ CREATE TABLE IF NOT EXISTS resolution (
     mention_idx   INTEGER NOT NULL,
     title         TEXT NOT NULL,
     jurisdiction  TEXT,
-    start_text    TEXT,               -- the tenure as round one wrote it
+    start_text    TEXT,               -- the tenure as extraction wrote it
     end_text      TEXT,
     lang          TEXT,
     state_qid     TEXT,               -- whose holder counts the ranking read
@@ -294,7 +268,6 @@ CREATE TABLE IF NOT EXISTS resolution (
 
 CREATE INDEX IF NOT EXISTS resolution_qid_idx ON resolution (qid);
 
--- BEGIN resolution.reopened_for
 -- A verdict re-asked because the item its office was missing has since been
 -- minted. `reopened_for` names that item, and is '' on every ordinary verdict;
 -- it is part of the key, so a re-ask under the same prompt and rendering is a
@@ -302,18 +275,14 @@ CREATE INDEX IF NOT EXISTS resolution_qid_idx ON resolution (qid);
 -- row per mention is the one `propose.placements` reads. The original stays:
 -- what the model said before the item existed is history, not an error.
 ALTER TABLE resolution ADD COLUMN IF NOT EXISTS reopened_for TEXT NOT NULL DEFAULT '';
-ALTER TABLE resolution
-    DROP CONSTRAINT IF EXISTS resolution_extraction_id_mention_idx_prompt_hash_render_ver_key;
 CREATE UNIQUE INDEX IF NOT EXISTS resolution_key_idx ON resolution
     (extraction_id, mention_idx, prompt_hash, render_version, reopened_for);
--- END resolution.reopened_for
 
 -- Which retrieval built the shortlist a verdict was asked about: `lex`, or
 -- `canon10+lex:<title_en prompt hash[:8]>` once the English-title channel
 -- fills it. Outside the key on purpose -- a retrieval change re-asks only the
 -- refusals whose list gained an item, under `reopened_for = 'retrieval:2'` --
--- so this is how an audit tells the two lists apart. Null on rows stored
--- before the column.
+-- so this is how an audit tells the two lists apart.
 ALTER TABLE resolution ADD COLUMN IF NOT EXISTS retrieval TEXT;
 
 -- Which verdict placed a P39 proposal on its item. The review screen reads it
@@ -331,10 +300,7 @@ ALTER TABLE proposal ADD COLUMN IF NOT EXISTS resolution_id BIGINT
 -- name instead, and the policy never touches such a row again.
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS proposed_status TEXT;
 
--- What `apply` sent, beside what it produced: the revision the edit was made
--- against and the EditGroups batch it went out in. Together with `applied_rev`
--- they are the diff link an audit reads, and the batch a bad run is reverted by.
-ALTER TABLE proposal ADD COLUMN IF NOT EXISTS base_rev BIGINT;
+-- The batch a row went out in: the send ledger's QS3 batch name.
 ALTER TABLE proposal ADD COLUMN IF NOT EXISTS applied_batch TEXT;
 
 -- What the verifier made of one proposed edit, keyed on what was asked rather
@@ -384,7 +350,6 @@ ALTER TABLE position ADD COLUMN IF NOT EXISTS polity_inception_at TIMESTAMPTZ;
 -- half. Null is "not read yet"; an empty array is an item with no type.
 ALTER TABLE position ADD COLUMN IF NOT EXISTS kind_qids TEXT[];
 
--- BEGIN mint
 -- The minting stage: offices reconciliation could not place, turned into items.
 -- `mint_call` is the LLM ledger of both passes, keyed by what was shown, so a
 -- prompt edit or a rendering change re-asks and an unchanged rerun pays nothing.
@@ -421,7 +386,7 @@ CREATE TABLE IF NOT EXISTS office_candidate (
     draft             JSONB,           -- what categorize proposed
     corrections       JSONB,           -- what verify changed
     spec              JSONB,           -- the shape the guard read
-    data              JSONB,           -- the wbeditentity payload
+    data              JSONB,           -- the item as entity JSON, rendered by qs.create_lines
     holders           INTEGER,         -- distinct people attested
     current_holders   INTEGER,
     source_url        TEXT,
@@ -432,8 +397,7 @@ CREATE TABLE IF NOT EXISTS office_candidate (
     categorize_call   BIGINT REFERENCES mint_call (id),
     verify_call       BIGINT REFERENCES mint_call (id),
     qid               TEXT,            -- created or found
-    created_rev       BIGINT,
-    batch             TEXT,            -- the EditGroups batch it went out in
+    batch             TEXT,            -- the send-ledger batch it went out in
     intent_at         TIMESTAMPTZ,
     intent_tag        TEXT,
     decided_by        TEXT,
@@ -469,9 +433,7 @@ CREATE TABLE IF NOT EXISTS office_unassigned (
     categorize_call BIGINT REFERENCES mint_call (id),
     PRIMARY KEY (country, group_key)
 );
--- END mint
 
--- BEGIN title_en
 -- The English office name a small model writes for a title, as a second search
 -- channel beside the lexical one. Cached because the model is not
 -- deterministic (two runs agreed exactly on two thirds of titles), so a
@@ -511,39 +473,20 @@ CREATE TABLE IF NOT EXISTS title_en (
 -- reconcile model as a name the item carries, and nothing that writes to
 -- Wikidata reads it.
 ALTER TABLE position ADD COLUMN IF NOT EXISTS title_en TEXT;
--- END title_en
 
--- BEGIN send
 -- What peploop and peptree have sent to Wikidata, what they must never send,
--- and what they should take back (`ledger.py`). The tables began as peptree's
--- `ptree_*`; they are renamed here once, rows and all, because a line that went
--- out or was struck must stay that way whichever tool proposes it next.
-DO $$
-BEGIN
-    IF to_regclass('wd_batch') IS NULL AND to_regclass('ptree_batch') IS NOT NULL THEN
-        ALTER TABLE ptree_batch RENAME TO wd_batch;
-        ALTER TABLE ptree_edit RENAME TO wd_edit;
-        ALTER TABLE ptree_strike RENAME TO wd_strike;
-        ALTER TABLE ptree_removal RENAME TO wd_removal;
-        ALTER TABLE wd_batch ADD COLUMN tool TEXT NOT NULL DEFAULT 'peptree';
-        ALTER TABLE wd_strike ADD COLUMN tool TEXT NOT NULL DEFAULT 'peptree';
-        ALTER TABLE wd_removal ADD COLUMN tool TEXT NOT NULL DEFAULT 'peptree';
-        ALTER TABLE wd_batch ALTER COLUMN tool DROP DEFAULT;
-        ALTER TABLE wd_strike ALTER COLUMN tool DROP DEFAULT;
-        ALTER TABLE wd_removal ALTER COLUMN tool DROP DEFAULT;
-    END IF;
-END $$;
+-- and what they should take back (`ledger.py`).
 
--- One QS batch: a paste-era chunk or a QS3 batch. The row is written before the
+-- One QS batch: a QS3 batch, or a hand-pasted chunk from before QS3. The row is written before the
 -- request, so an answer lost in flight leaves a row with no qs3_id, never a second send.
 CREATE TABLE IF NOT EXISTS wd_batch (
     id serial PRIMARY KEY,
     tool text NOT NULL,              -- 'peploop' | 'peptree'
-    kind text NOT NULL,              -- 'paste' | 'qs3'
+    kind text NOT NULL,              -- 'qs3' | 'paste'
     op text NOT NULL,                -- 'add' | 'remove' | 'create': a batch never mixes them
     name text NOT NULL,
     qs3_id integer UNIQUE,           -- NULL until QS3 answers, and for every paste chunk
-    paste_chunk integer UNIQUE,      -- 1..64, peptree's paste era
+    paste_chunk integer UNIQUE,      -- 1..64, peptree's pasted chunks
     status text NOT NULL,            -- 'sending' | 'running' | 'done' | 'stopped' | 'unknown'
     created_at timestamptz NOT NULL DEFAULT now(),
     finished_at timestamptz
@@ -600,7 +543,6 @@ CREATE TABLE IF NOT EXISTS wd_removal (
     decided_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now()
 );
--- END send
 
 -- The hash of this file as last applied, so a command start that finds it
 -- unchanged runs none of the `ALTER`s above (`db.init_schema`). One row.

@@ -591,29 +591,27 @@ def proposal_key(prop: str, value: dict[str, Any], qualifiers: dict[str, Any] | 
 #: reproduce -- a human's ruling, or an edit that has gone out (`sent`), landed
 #: (`applied`) or failed and is not sent again on its own.
 KEPT_STATUSES = ("applied", "sent", "failed")
-#: The provenance prefix `apply` closes an unwritable row under.
-APPLY_DECIDED = "apply:"
+#: The provenance prefix of a row the plan closed without a line to send.
+PLAN_DECIDED = "plan:"
 
 
-def apply_decision_holds(entity: dict[str, Any] | None, row: dict[str, Any]) -> bool:
-    """Whether a row `apply` closed would be closed the same way against this item.
+def plan_decision_holds(entity: dict[str, Any] | None, row: dict[str, Any]) -> bool:
+    """Whether a row the plan closed would be closed the same way against this item.
 
-    `apply`'s pre-flight reads things `propose` does not -- a tenure statement
-    carrying a term and no dates (`termed`), a single-valued property already
-    holding another value (`conflict`) -- so a row it closed comes back from a
-    re-propose as `accepted`, inflating the counts until the next drain closes
-    it again. The decision is kept for as long as it still holds: the item's
+    The plan reads things `propose` does not -- a tenure statement carrying a
+    term and no dates (`termed`), a single-valued property already holding
+    another value (`conflict`), a merge QuickStatements cannot aim
+    (`ambiguous-statement`) -- so a row it closed would come back from a
+    re-propose as `accepted` until the next send closed it again. The decision is kept for as long as it still holds: the item's
     stored record is planned against again, and only a row that now routes to
     the same non-writing route stays closed. With no record to plan against,
     nothing is kept.
     """
     from peploop import plan  # plan imports propose
 
-    route = (row.get("decided_by") or "")[len(APPLY_DECIDED):]
+    route = (row.get("decided_by") or "")[len(PLAN_DECIDED):]
     if not route or entity is None:
         return False
-    if route == "lane_removed":
-        return True
     planned, statement = plan.plan_claim(entity, row)
     return statement is None and planned == route
 
@@ -627,8 +625,8 @@ def _store(
     A human's verdict and a written edit are the two things in the table that
     are not derived from the extraction, so rows carrying either survive and
     the proposal that would duplicate them is not inserted again. So does a
-    row `apply` closed against the live item, while `entity` -- the item as
-    last stored -- still closes it (`apply_decision_holds`). Everything
+    row the plan closed against the live item, while `entity` -- the item as
+    last stored -- still closes it (`plan_decision_holds`). Everything
     else -- including what the policy decided last time -- is re-derived, and
     the policy runs again after; that is what makes a rule change one command.
     """
@@ -647,12 +645,12 @@ def _store(
             " p.source_rev, p.decided_by FROM proposal p WHERE p.person_qid = %s"
             " AND p.status = 'skipped' AND p.decided_by LIKE %s AND NOT EXISTS ("
             " SELECT 1 FROM verdict v WHERE v.proposal_id = p.id)",
-            (qid, APPLY_DECIDED + "%"),
+            (qid, PLAN_DECIDED + "%"),
         ).fetchall()
         columns = ("id", "property", "value", "qualifiers", "source_lang", "source_url",
                    "source_rev", "decided_by")
         judged += [tuple(row[:4]) for row in closed
-                   if apply_decision_holds(entity, dict(zip(columns, row)))]
+                   if plan_decision_holds(entity, dict(zip(columns, row)))]
         kept = {proposal_key(prop, value, quals) for _, prop, value, quals in judged}
         conn.execute(
             "DELETE FROM proposal WHERE person_qid = %s AND NOT (id = ANY(%s))",

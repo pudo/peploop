@@ -46,10 +46,7 @@ def cmd_repair(cc: str, limit: int | None, no_ask: bool = False) -> None:
     if errors:
         log("local validation failed:\n  " + "\n  ".join(errors[:20]))
     path = qs.write(cc, lines)
-    detail = f"{len(errors)} local errors"
-    wd.conn().execute("INSERT INTO ptree_run (country, qs_path, lines, parse_ok, parse_detail) VALUES (%s,%s,%s,%s,%s)",
-                      (cc, str(path), len(lines), not errors, detail))
-    log(f"{path}: {len(lines)} lines; {detail}")
+    log(f"{path}: {len(lines)} lines; {len(errors)} local errors")
     md = report.write(cc)
     log(f"{md}: report")
 

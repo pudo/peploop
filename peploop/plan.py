@@ -443,12 +443,6 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
     members: dict[str, list[int]] = {}
     written: list[dict[str, Any]] = []
     for row in rows:
-        if row["property"].startswith(policy.TERM_PREFIXES):
-            # A label or alias a human accepted before the lane was removed:
-            # closed, never written.
-            plan.routes["lane_removed"] += 1
-            plan.skipped.append((row["id"], "lane_removed"))
-            continue
         route, statement = plan_claim(entity, row)
         if statement is None:
             plan.routes[route] += 1
@@ -546,7 +540,7 @@ def retire(plan: Plan) -> int:
     A conflict, a value already there, a removed lane's row: none of
     these will write on a later pass either, and an accepted row that stays
     accepted is selected again by every send. They become
-    `skipped` under `apply:<route>`, which a report counts like any other rule.
+    `skipped` under `plan:<route>`, which a report counts like any other rule.
     """
     conn = db.conn()
     with conn.transaction():
@@ -554,6 +548,6 @@ def retire(plan: Plan) -> int:
             conn.execute(
                 "UPDATE proposal SET status = %s, decided_by = %s, decided_at = now()"
                 " WHERE id = %s AND status = 'accepted'",
-                (policy.SKIPPED, f"apply:{route}", proposal_id),
+                (policy.SKIPPED, f"{propose.PLAN_DECIDED}{route}", proposal_id),
             )
     return len(plan.skipped)

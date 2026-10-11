@@ -100,12 +100,6 @@ def main() -> int:
         print(f"  {mark} {name}{detail}")
 
     print("what belongs in the write path at all:")
-    check("an alias is never written",
-          policy.decide(case("alias:aa", {"language": "aa", "text": "A B"})),
-          policy.SKIPPED, "lane_removed")
-    check("a label is never written",
-          policy.decide(case("label:aa", {"language": "aa", "text": "A B"})),
-          policy.SKIPPED, "lane_removed")
     check("the articles' own dates set a person aside the item did not",
           policy.decide(case(extracted={"death_date": [{"value": "1901-03-02"}]})),
           policy.SKIPPED, "extracted_out_of_scope")

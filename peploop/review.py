@@ -111,14 +111,7 @@ SIDEBAR_MIN_COLUMNS = 110
 
 
 def property_name(prop: str) -> str:
-    """Name a property the way a reviewer reads it, P-codes left out.
-
-    `label:cs` and `alias:cs` are peploop's pseudo-properties for Wikidata
-    terms, which are not statements and have no property of their own.
-    """
-    for prefix in ("label", "alias"):
-        if prop.startswith(f"{prefix}:"):
-            return f"{prefix} ({prop.split(':', 1)[1]})"
+    """Name a property the way a reviewer reads it, P-codes left out."""
     return PROPERTY_NAMES.get(prop, prop)
 
 
@@ -208,11 +201,7 @@ def existing_values(
         return held
     if group in ITEM_GROUPS:
         return [(item_cell(qid, labels), "") for qid in wikidata.claim_qids(entity, group)]
-    kind, _, lang = group.partition(":")
-    if kind == "label":
-        term = entity.get("labels", {}).get(lang)
-        return [(Text(term["value"]), "")] if term else []
-    return [(Text(term["value"]), "") for term in entity.get("aliases", {}).get(lang, [])]
+    return []
 
 
 @dataclass
@@ -275,19 +264,14 @@ def build_lines(person: Person) -> list[Line]:
 
     A group is drawn when the item records something in it or a proposal wants
     to, existing values first so a proposal reads as an addition to what is
-    above it. Term groups come last and only where something is proposed: the
-    item's other thirty labels are the one `labels` row.
+    above it.
     """
     proposals: dict[str, list[Row]] = {}
     for row in person.rows:
         proposals.setdefault(row.property, []).append(row)
-    terms = sorted(
-        (group for group in proposals if ":" in group),
-        key=lambda group: (group.split(":")[1], 0 if group.startswith("label") else 1),
-    )
     prefer = ["en", "mul", *(lang for lang, _ in person.articles)]
     lines: list[Line] = []
-    for group in [*PROPERTY_NAMES, *terms]:
+    for group in PROPERTY_NAMES:
         rows = proposals.get(group, [])
         existing = existing_values(person.entity, group, person.labels, prefer)
         if not rows and not existing:

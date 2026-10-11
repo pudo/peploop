@@ -139,13 +139,13 @@ def main() -> int:
         expect(doubted not in cases and cases,
                "the policy no longer selects the audited row")
 
-        print("re-propose, a row apply closed:")
+        print("re-propose, a row the plan closed:")
         born = {"time": "+1960-03-01T00:00:00Z", "precision": 11, "timezone": 0, "before": 0,
                 "after": 0, "calendarmodel": "http://www.wikidata.org/entity/Q1985727"}
         other_birth = {**born, "time": "+1961-07-04T00:00:00Z"}
         closed = conn.execute(
             "INSERT INTO proposal (person_qid, property, value, quote, status, decided_by)"
-            " VALUES (%s, 'P569', %s, 'a quote', 'skipped', 'apply:conflict') RETURNING id",
+            " VALUES (%s, 'P569', %s, 'a quote', 'skipped', 'plan:conflict') RETURNING id",
             (PERSON, Jsonb(born)),
         ).fetchone()[0]
         recorded = {"claims": {"P569": [{"rank": "normal", "mainsnak": {
@@ -153,7 +153,7 @@ def main() -> int:
             "datavalue": {"type": "time", "value": other_birth}}}]}}
         again.append(propose.Proposal("P569", born, "conflict", quote="a quote", lang="en"))
         propose._store(PERSON, again, extraction_id=1, item_rev=None, entity=recorded)
-        expect(state(conn, closed) == ("skipped", "apply:conflict"),
+        expect(state(conn, closed) == ("skipped", "plan:conflict"),
                "keeps it, and its provenance, while the item still closes it")
         propose._store(PERSON, again, extraction_id=1, item_rev=None, entity={"claims": {}})
         expect(state(conn, closed) is None,

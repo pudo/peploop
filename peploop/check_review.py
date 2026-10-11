@@ -176,10 +176,9 @@ def _check(conn: Any, qid: str) -> int:
     """Review the person headlessly and report what each assertion found."""
     before = dict(conn.execute("SELECT id, status FROM proposal WHERE person_qid = %s", (qid,)))
     app, rows, moves = asyncio.run(_drive(qid))
-    # Drawn order, not load order. The table groups by property and puts the
-    # term pseudo-properties last, so a person with a `label:` or `alias:`
-    # proposal has `person.rows` in a different order from the rows the keys
-    # act on -- and the assertions below are about which row a key reached.
+    # Drawn order, not load order: the table groups by property, so
+    # `person.rows` can differ from the order of the rows the keys act on --
+    # and the assertions below are about which row a key reached.
     ids = [line.row.id for line in app.lines if line.row is not None]
     stops = app.stops
     verdicts = {

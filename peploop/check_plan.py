@@ -253,13 +253,6 @@ def main() -> int:
     expect([reason for _id, reason in plan.skipped], ["conflict"],
            "and the row is closed, so a send does not select it forever")
 
-    print("a label accepted before the lane was removed:")
-    live = {"lastrevid": 1, "claims": {}, "labels": {}}
-    plan = planner.plan_person(PERSON, live, [row("label:aa", {"text": "Y"})])
-    expect([reason for _id, reason in plan.skipped], ["lane_removed"],
-           "is closed and never written")
-    expect(plan.data, {}, "and nothing is sent")
-
     print("a wiki Wikidata has no item for:")
     plan = planner.plan_person(PERSON, item(), [office(quals=span("2020-10-15"), source_lang="ac",
                                                     source_url="https://ac.wikipedia.org/wiki/X")])

@@ -72,16 +72,6 @@ CREATE TABLE IF NOT EXISTS ptree_decision (
     PRIMARY KEY (country, qid, prop)
 );
 
-CREATE TABLE IF NOT EXISTS ptree_run (
-    id serial PRIMARY KEY,
-    country text NOT NULL,
-    qs_path text,
-    lines integer,
-    parse_ok boolean,
-    parse_detail text,
-    created_at timestamptz NOT NULL DEFAULT now()
-);
-
 -- One row per holder of an item ({h, s, e, b, d, c}: tenure, life, citizenships), for the era rule.
 ALTER TABLE ptree_item ADD COLUMN IF NOT EXISTS holder_rows jsonb NOT NULL DEFAULT '[]';
 

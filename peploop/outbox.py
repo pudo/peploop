@@ -12,7 +12,7 @@ A row moves `accepted` → `sent` when its line is recorded, before the request,
 so a lost answer never sends it twice; then `applied` once every line it rode on
 is live, or `failed` when QS3 reports one failed. A row the plan closes without
 a line (`exists`, `conflict`, `ambiguous-statement`, …) is `skipped` under
-`apply:<route>`, which a re-propose keeps for as long as the route still holds.
+`plan:<route>`, which a re-propose keeps for as long as the route still holds.
 """
 
 import datetime as dt

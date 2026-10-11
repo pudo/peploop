@@ -321,7 +321,7 @@ def _echo_property_counts(country: str) -> None:
         " GROUP BY p.property, p.status",
         (country,),
     ):
-        counts[(policy.property_group(prop), status)] += count
+        counts[(prop, status)] += count
     for (prop, status), count in sorted(counts.items()):
         click.echo(f"  {prop:12s} {status:11s} {count}")
 

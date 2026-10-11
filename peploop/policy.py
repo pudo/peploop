@@ -37,10 +37,6 @@ PROPOSED = ("new", "refine")
 #: Every status a row may carry that the policy owns and may re-decide.
 DECIDABLE = PROPOSED + (PENDING, SKIPPED, ACCEPTED)
 DECIDER = "policy:"
-#: The pseudo-properties of the label and alias lane `propose` no longer
-#: emits. Rows made before it stopped stay in the table until their person is
-#: re-proposed, and `lane_removed` keeps them out of the write path until then.
-TERM_PREFIXES = ("label:", "alias:")
 
 #: A P39 is written only on a reconciler verdict of one of these kinds ...
 P39_KINDS = ("same-office",)
@@ -291,13 +287,6 @@ def review_rejected(case: Case) -> Disposition | None:
     """
     if case.review == "reject":
         return _skip("review_rejected")
-    return None
-
-
-def lane_removed(case: Case) -> Disposition | None:
-    """Labels and aliases are no longer written: 13 of the 19 reviewed were titles or fragments."""
-    if case.property.startswith(TERM_PREFIXES):
-        return _skip("lane_removed")
     return None
 
 
@@ -1023,7 +1012,6 @@ def verify_refused(case: Case) -> Disposition | None:
 RULES: tuple[Rule, ...] = (
     # Does the row belong in the write path at all.
     review_rejected,
-    lane_removed,
     extracted_out_of_scope,
     no_quote,
     future_date,
@@ -1353,19 +1341,11 @@ class Funnel:
     offices: Counter[str] = field(default_factory=Counter)
 
     def add(self, case: Case, disposition: Disposition) -> None:
-        group = property_group(case.property)
+        group = case.property
         self.entered[group] += 1
         self.decided[(group, disposition.rule)] += 1
         if case.property == "P39" and disposition.status in (PENDING, ACCEPTED):
             self.offices[case.value.get("id", "?")] += 1
-
-
-def property_group(prop: str) -> str:
-    """Fold the per-language term pseudo-properties into one row of the report."""
-    for prefix in TERM_PREFIXES:
-        if prop.startswith(prefix):
-            return prefix + "*"
-    return prop
 
 
 def offices_of(qids: Sequence[str]) -> list[str]:
