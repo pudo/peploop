@@ -147,8 +147,11 @@ def run(country: str, log: Log, submit: bool = False, qids: list[str] | None = N
         rows = [(country, ledger.key(line), line, ids) for person in people for line, ids in person.edits]
         if rows:
             ids = sorted({i for _, _, _, refs in rows for i in refs})
+            # Uncombined: QS3 folded each person's lines into one edit, and for 5 of
+            # Japan's members with three or more new P39s that edit failed whole
+            # (batch 59098); the same lines one edit each all landed (59101).
             sent.append(send.send(TOOL, "add", f"peploop send {country} {day}", rows, is_live, log,
-                                  on_recorded=lambda name: mark_sent(ids, name)))
+                                  on_recorded=lambda name: mark_sent(ids, name), combine=False))
             settle(log)
         removals = send.pending_removals(TOOL, log)
         if removals:

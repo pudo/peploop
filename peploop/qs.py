@@ -169,7 +169,7 @@ def route(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) -> Route
 def create_lines(data: dict[str, Any], summary: str) -> list[str] | None:
     """A new item as QS lines: `CREATE`, then its terms and statements on `LAST`.
 
-    `data` is the `wbeditentity` blob `offices.entity_data` builds. The `CREATE`
+    `data` is the entity JSON `offices.entity_data` builds. The `CREATE`
     line comes first, so its command index is where the new QID is read back.
     None if a term or value cannot be written.
     """

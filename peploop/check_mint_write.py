@@ -71,7 +71,7 @@ clean: Callable[[dict[str, Any]], list[str]] = lambda _c: []  # noqa: E731
 
 
 def check_lock(expect: Any, conn: psycopg.Connection) -> None:
-    """One lock per country, whichever writer takes it; other countries run free."""
+    """One sender at a time, whichever tool or country: a lost batch is only lost with one sender."""
     def try_lock(key: str) -> bool:
         other = psycopg.connect(db.DATABASE_URL, autocommit=True)
         try:
@@ -79,15 +79,10 @@ def check_lock(expect: Any, conn: psycopg.Connection) -> None:
         finally:
             other.close()
 
-    with mint_write.writer_lock(COUNTRY):
-        taken = try_lock(f"peploop:{COUNTRY}")
-        neighbour = try_lock("peploop:zy")
-    expect(not taken, "a second writer is refused the country's lock")
-    expect(neighbour, "another country's writer is not held up by it")
-    with mint_write.writer_lock(COUNTRY, "apply"):
-        taken = try_lock(mint_write.lock_key(COUNTRY))
-    expect(not taken, "an apply drain holds the same lock a mint writer needs: one writer per country")
-    expect(mint_write.lock_key(COUNTRY) == f"peploop:{COUNTRY}", "the key is peploop:<cc>")
+    with send.writer_lock("peploop mint zz"):
+        taken = try_lock(send.LOCK)
+    expect(not taken, "a second sender is refused the send lock while a mint holds it")
+    expect(try_lock(send.LOCK), "and gets it once the mint is done")
 
 
 class FakeQS3:

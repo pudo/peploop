@@ -268,18 +268,6 @@ def main() -> int:
     expect(refs(made[0]), {"P4656", "P813"},
            "is still a reference, just without the import-from")
 
-    print("finding back the statement a row produced:")
-    live = item(claim(OFFICE, {"P580": day("1996-01-01")}, id="A"),
-                claim(OFFICE, {"P580": day("2000-01-01")}, id="B"))
-    value = {"entity-type": "item", "id": OFFICE}
-    fp = lambda text: {"P580": [{"datavalue": {"value": day(text)}}]}  # noqa: E731
-    expect(planner._find_guid(live, "P39", value, fp("1996-01-01")), "A",
-           "two spells of one office are told apart by their dates")
-    expect(planner._find_guid(live, "P39", value, fp("2000-01-01")), "B",
-           "and each row is recorded under the statement it made")
-    expect(planner._find_guid(live, "P39", value, fp("2010-01-01"), {"A"}), "B",
-           "a spell the item words differently takes one nothing else claimed")
-
     print(f"{len(failures)} failures")
     return 1 if failures else 0
 

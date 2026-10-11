@@ -140,21 +140,6 @@ def get(
     return res
 
 
-def post(url: str, data: dict[str, Any], timeout: float | None = None) -> Response:
-    """POST form data through the rate limiter, returning the response unchecked.
-
-    Nothing is raised for an error status: the action API reports `maxlag` as
-    a 503 whose JSON body and `Retry-After` header are the whole diagnosis.
-
-    A write wants a longer `timeout` than a read. One edit measured in the older
-    pipeline sat through "waiting for wdqs1013: 27.3 seconds lagged" for over
-    four minutes, and a client that gives up first cannot tell an edit that
-    never landed from one that landed and was not reported.
-    """
-    _pacer(url).take()
-    return session().post(url, data=data, **({} if timeout is None else {"timeout": timeout}))
-
-
 def get_text(
     url: str,
     params: dict[str, Any] | None = None,

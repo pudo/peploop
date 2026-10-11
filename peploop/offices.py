@@ -296,7 +296,7 @@ def _terms(texts: dict[str, str]) -> dict[str, dict[str, str]]:
 
 
 def entity_data(spec: Spec) -> dict[str, Any]:
-    """The `wbeditentity` `data` blob that creates this office in one atomic edit."""
+    """The office as Wikidata entity JSON: what `qs.create_lines` sends as a CREATE batch."""
     claims = [
         _statement("P31", spec.metaclass),
         _statement("P279", spec.kind),

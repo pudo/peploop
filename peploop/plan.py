@@ -161,10 +161,8 @@ def addable_qualifiers(
     """The proposed qualifiers a claim carries none of, or None if it carries any.
 
     Purely additive, and the guard is what makes it so: a claim already saying
-    when a tenure began is not one this may re-date. `wbeditentity` replaces a
-    statement with what it is sent, so the caller sends the live claim back with
-    these merged in rather than a payload holding only the new qualifier --
-    which would wipe every qualifier already on it.
+    when a tenure began is not one this may re-date. The plan keeps the live
+    claim with these merged in, and `qs.render` sends only the difference.
     """
     present = claim.get("qualifiers") or {}
     if any(prop in present for prop in qualifiers):
@@ -267,7 +265,7 @@ def _statement(
     prop: str, value: dict[str, Any], qualifiers: dict[str, Any], order: list[str],
     refs: list[dict[str, Any]], rank: str = "normal",
 ) -> dict[str, Any]:
-    """A new statement, as `wbeditentity` takes one."""
+    """A new statement, in Wikidata's JSON shape: what `qs.render` turns into a `+` line."""
     statement: dict[str, Any] = {"type": "statement", "rank": rank, "mainsnak": _snak(prop, value)}
     if qualifiers:
         statement["qualifiers"] = qualifiers
@@ -418,8 +416,8 @@ def _qualifier_fingerprint(qualifiers: dict[str, Any] | None) -> str:
 def _statement_key(prop: str, statement: dict[str, Any]) -> str:
     """Identify the statement a row lands on, so two rows cannot both create it.
 
-    The API de-duplicates nothing, so the same citizenship attested in two
-    languages would otherwise go out as two identical claims. They are the same
+    A `+` line de-duplicates nothing, so the same citizenship attested in two
+    languages would otherwise go out as two identical statements. They are the same
     statement with two references, and that is what this collapses them into.
 
     **The qualifiers are part of the identity.** Keyed on the value alone, a
@@ -427,8 +425,8 @@ def _statement_key(prop: str, statement: dict[str, Any]) -> str:
     dates are dropped in silence -- measured on Q6873822, whose two accepted
     National Council rows produced a single statement carrying no dates at all.
     That is the collapse `wd/validate.py:collapsing_groups` documents for
-    QuickStatements, and avoiding it is the reason this path writes through the
-    API instead.
+    QuickStatements' plain lines, and avoiding it is why a new statement goes
+    out as a `+` line.
     """
     guid = statement.get("id")
     if guid:
@@ -556,34 +554,6 @@ def preflight(qid: str) -> tuple[dict[str, Any], list[dict[str, Any]], bool]:
         policy.run([qid], write=True)
         rows = accepted_rows(qid)
     return entity, rows, moved
-
-
-def _find_guid(
-    entity: dict[str, Any], prop: str, value: dict[str, Any],
-    qualifiers: dict[str, Any] | None = None, taken: set[str] = frozenset(),
-) -> str | None:
-    """Find the statement a written row produced, in the item the API returned.
-
-    The value alone stopped identifying a statement the day two spells of one
-    office became two statements: both rows then matched the first claim and
-    were recorded under the same id. So the qualifiers narrow it, and `taken`
-    excludes the ids already claimed by rows written in the same edit -- which
-    is what separates two statements the item genuinely records identically.
-    """
-    fallback = None
-    for claim in entity.get("claims", {}).get(prop, []):
-        guid = claim.get("id")
-        if guid in taken:
-            continue
-        existing = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
-        if not isinstance(existing, dict) or not same_value(existing, value):
-            continue
-        if fallback is None:
-            fallback = guid
-        if _qualifier_fingerprint(claim.get("qualifiers")) == _qualifier_fingerprint(qualifiers):
-            return guid
-    return fallback
-
 
 
 def retire(plan: Plan) -> int:

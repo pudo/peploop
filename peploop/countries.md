@@ -117,12 +117,12 @@ fetch --country <cc>                 # items, the scope gate, then every sitelin
 extract --country <cc>               # one request per person, Sonnet
 reconcile --country <cc>             # ranking signals, English titles, one request per office mention, then the refusals whose list gained
 mint --country <cc>                  # categorize (Sonnet), verify (Opus), data/mint/<cc>.md, feed `found`; dry: every guarded payload
-mint --country <cc> --write          # creates and feeds each item
+mint --country <cc> --submit         # one QS3 batch of CREATEs; feeds each item made
 propose --country <cc>               # P39 rows appear only now; ends by deciding every row and printing the funnel
 verify --country <cc>                # one request per pending row, Opus; ends with the policy's funnel
-apply --country <cc>                 # dry: the payloads, after a live pre-flight
-apply --country <cc> --write --limit 3   # on the user's go
-apply --country <cc> --write         # the drain: one process, one EditGroups batch
+send --country <cc>                  # dry: pre-flight, plan, data/peploop/send/<cc>.qs with its routes
+send --country <cc> --submit         # on the user's go: one QS3 batch, then approved removals; rows settle
+send --country <cc> --submit --retry # the lines QS3 failed, again, one edit each
 ```
 
 Beside them: `report --country <cc> [people|positions|proposals|funnel|mint]`
@@ -153,7 +153,7 @@ channel of evidence: every office passes on one current holder, census or
 not. Its bodies come from measurement (`research/position_items.md` §10 is
 the template), never from memory; `census/cu.yml` is the first. A census
 entry nobody's article attests is skipped, so the file says what must exist
-and the seeds still decide what gets made. `mint --write` feeds each item as
+and the seeds still decide what gets made. `mint --submit` feeds each item as
 soon as it is created; every `mint` run, dry or not, feeds the rows verify
 decided `found` -- an item that already existed -- and repairs a feed a crash
 or a propose failure cut short. The feed is idempotent.
@@ -176,12 +176,12 @@ connection error or a `maxlag` wait is a retry, not a bug.
 | `extract` | `report people`: people per status (how many the scope gate discarded), token total | go on |
 | `reconcile` | verdicts by kind; the creation queue (`resolution` rows with a null `qid`) by office title; where the incumbents' offices landed | go on |
 | `mint` (dry) | candidates per institution class and the groups no office took (`office_unassigned`); `data/mint/<cc>.md` (`report mint`): the funnel by rule, then every `guarded` row with its payload's labels and every `found` row with the item it names | first runs: **stop and show it** |
-| `mint --write --limit 1` | the item on Wikidata; the feed line (attestations `retrieved`, reopened verdicts by kind); the `P39` rows `propose` made on it | first runs: **only on the user's go** |
-| `mint --write` | created, found at the re-check, failed; a re-run creates nothing | go on to `propose` |
+| `mint --submit --limit 1` | the item on Wikidata; the feed line (attestations `retrieved`, reopened verdicts by kind); the `P39` rows `propose` made on it | first runs: **only on the user's go** |
+| `mint --submit` | created, found at the re-check, failed; a re-run creates nothing | go on to `propose` |
 | `propose` | the funnel it ends with, per property, rule by rule (`report funnel` reprints it) | **stop and show it**: `verify` is the next spend |
-| `verify` | verdicts by kind and the funnel it ends with; every refusal class read by the observer; doubtful `supported` rows listed | go on to `apply` |
-| `apply --write --limit 3` | the three diffs | **only on the user's go** |
-| the drain | the batch id, statements per property, people written | the audit |
+| `verify` | verdicts by kind and the funnel it ends with; every refusal class read by the observer; doubtful `supported` rows listed | go on to `send` |
+| `send` (dry) | routes (create, merge, switch, and what closes without a line: `exists`, `termed`, `ambiguous-statement`, …), lines, rows deferred; above 2% `ambiguous-statement`, stop and report | **stop and show it** |
+| `send --submit` | the QS3 batch id and EditGroups link, rows applied and failed (`send --status`); failed lines go again with `--retry` | **only on the user's go**, then the audit |
 
 Nothing is written to Wikidata and nothing is pushed to git without the user
 asking. The funnel is the one place to stop unasked: a rule that fires on a
@@ -194,7 +194,7 @@ waits on a human. Creating an item is the one write peploop cannot take back
 by editing, so for those runs an observer reads the skips and the guarded rows
 after the dry `mint`, and each class it finds wrong becomes a rule in
 `mint.RULES` with a case in `check_mint` -- never a ruling on a row. Once the
-stage has run clean on two countries, `mint --write` runs as one step, and what is shown is the funnel
+stage has run clean on two countries, `mint --submit` runs as one step, and what is shown is the funnel
 number first (offices created and found against candidates), then the report.
 
 The funnel's usual shape (Slovenia, 960 `P39` rows in): about 60% reach the
@@ -206,12 +206,12 @@ never a row to hand-check, never a "review later".
 
 ## 5. The audit
 
-The audit is an observer agent over `psql` and the diffs; what it doubts it
+The audit is an observer agent over `psql` and the edits; what it doubts it
 takes out with `audit proposal --ids <file> --country <cc> --reason … --by
 <name>`, never with a raw `UPDATE` -- a skip without its verdict is wiped by
 the next `propose`. It reads `verification` joined to `proposal` for the country's
-applied rows, opens
-`https://www.wikidata.org/w/index.php?title=<qid>&diff=<applied_rev>&oldid=<base_rev>`
+applied rows and the batch's edits on EditGroups
+(`https://editgroups.toolforge.org/b/QSv3/<qs3 id>/`, ids from `send --status`)
 for a stratified sample (per property, per policy rule, per office), and
 reports the `supported` verdicts it doubts, with the verifier's evidence and
 its own reading of the article. Where to focus, always: the **incumbents** --
@@ -221,8 +221,12 @@ Then whatever §1 flagged for this country: the duplicate office pairs, the
 tiers with no item, the renamed offices.
 
 What a doubtful class becomes: a rule, with its case, and a re-run of the
-policy; the rows already written are reverted by EditGroups batch if the class
-is large and by hand if it is a few. peploop never reverts on its own.
+policy. A row already written is taken back by the same `audit proposal`: it
+strikes the statement, and the strike queues its removal by statement id --
+approved at once when the statement is provably only ours, `proposed` for
+`removals approve` otherwise -- which the next `send --submit` sends. A large
+class can still be reverted whole on EditGroups. peploop never removes
+anything nobody approved.
 
 ## 6. Closing a country
 
@@ -485,3 +489,16 @@ and an en reference for the end, one end removed, five statements removed and
 their rows skipped under `audit:my-review`. The rules that would have stopped
 them -- an open seat after a later dissolution, an open tenure with no en/ms
 source, an open tenure on a term item with a successor -- are not written yet.
+
+**Japan** (`seeds/jp.yml`, `census/jp.yml`, 2026-10-08 to 10-11). The first
+country written through QS3 `send`. 5,357 rows had gone out before through the
+API, in batches `2417c74c8b`, `0216ceab44` and `6c47bfe35d`; the 367 left
+`accepted` were routed by `send` as 228 `+` lines, 87 merges and 25 birth
+dates sharpened in place (`SWITCH_VALUE` + a merge for the reference), with 15
+`termed`, 8 `ambiguous-statement` (2.2%: House of Representatives members whose
+item holds one statement per Diet term, accepted as a skip) and 4 deferred
+behind a merge. QS3 59098: 346 of 365 lines landed; 19 failed, every one a
+`+` P39 of five members whose lines were all three or more new P39s, which QS3
+had combined into one edit per person. The same 19 sent uncombined
+(`--retry`, QS3 59101) all landed, and additions have gone out uncombined
+since. 5,697 rows applied, none failed.

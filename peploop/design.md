@@ -129,7 +129,7 @@ Three kinds of fetched data, three rules:
 
 | data | table | valid while | refreshed by |
 |---|---|---|---|
-| Wikidata item | `item` | `fetched_at` under 7 days | `fetch --qid`, and always by `apply`'s pre-flight |
+| Wikidata item | `item` | `fetched_at` under 7 days | `fetch --qid`, and always by `send`'s pre-flight |
 | Wikipedia article | `article` | `fetched_at` under 30 days | `fetch --qid` |
 | everything else (PetScan, SPARQL, search) | `http_cache` | 7 days | age only |
 
@@ -138,14 +138,14 @@ proposals against, and it is also what our own eventual writes change, so an
 age-based cache there would let a statement we just wrote be proposed again
 (the parent repo did exactly this: a `holders()` list cached before its batch
 went in re-admitted twenty existing statements). So nothing that writes trusts
-it: `apply` re-reads every item it is about to edit, live.
+it: `send` re-reads every item it is about to edit, live.
 
 Two consequences:
 
 - Every `proposal` row records `item_rev`, the revision its status was computed
   against. The stored status is a snapshot for `stats`; it is not trusted by
   anything that writes.
-- The pre-flight belongs to `apply`: it re-reads every item it is about
+- The pre-flight belongs to `send`: it re-reads every item it is about
   to write with `fetch_items`, which never consults a cache, and decides each
   accepted row against what came back rather than against the stored status.
   An item whose `lastrevid` has left the row's `item_rev` behind is re-proposed
@@ -328,21 +328,22 @@ queue) has the mechanics; the decisions are these.
   says which stage disagreed, or `found` when the item turns out to exist. No
   status means "waiting for a human": a recurring disagreement becomes a rule,
   and `audit candidate` can only skip, after the fact.
-- **Crash-safe by intent, not by retry.** Before the API call the row is
-  re-guarded live, marked `creating` with an intent tag unique to the row and
-  its payload, and committed; the tag rides in the edit summary. A row a crash
-  leaves in `creating` is resolved by `usercontribs`, which -- unlike search or
-  the query service -- is authoritative the moment an edit lands: a creation
-  carrying the tag is recorded, and only when there is none does a live
-  duplicate search return the row to `found` or to `guarded`. One advisory
-  lock per country keeps a second writer from reading another's in-flight row
-  as a crash. The create goes through `apply`'s session (`wbeditentity
-  new=item`, `assert=user`, `maxlag`, the EditGroups tag), under the user's
-  account like every other write.
+- **Crash-safe by intent, not by retry.** Before the request every row is
+  re-guarded live, marked `creating` with an intent tag unique to the row, its
+  payload and the attempt, and committed; the tag rides in the edit summary
+  and keys the creation in the send ledger. All of a run's offices go out as
+  one QS3 batch of `CREATE` + `LAST` lines, and each office's QID is the
+  `response_id` of its own `CREATE` command, found by line index. A row a
+  crash leaves in `creating` is resolved from QS3's record of that batch --
+  found by name if its answer was lost -- and only a creation that never
+  reached QS3 goes back to `guarded`, or to `found` when a live search sees the
+  office. A creation QS3 reports failed is `found` likewise, or else closed as
+  `qs3:create-failed`. The one send lock keeps a second sender from reading
+  another's in-flight batch as lost.
 - **Fed back, narrowly.** A created or found item is loaded into `position`,
   and only the mentions it was clustered from are re-asked -- and only those
   the new item would reach on their shortlist -- so `propose` writes their
-  `P39`s through the ordinary policy, verify and apply.
+  `P39`s through the ordinary policy, verify and send.
 
 The knowledge is ported from `wd/create.py` and `wd/shape.py` and trimmed;
 the mechanics (`wb create-entity`, JSON ledgers, a target pasted back into a
@@ -397,7 +398,7 @@ A spell no recorded statement covers is a further term and is `new`; a recorded
 statement carrying no dates at all blocks nothing and yields `refine`, because
 that is the statement the proposal exists to sharpen. `exists` and `conflict`
 do not occur on a tenure -- both only ever meant a statement the item already
-carries, and `apply` could write neither. Overlap is judged against the same
+carries, and `send` could write neither. Overlap is judged against the same
 office only: a spell overlapping a *different* office is a minister keeping
 their parliamentary seat. `peploop/positions.md` has the measured counts.
 
@@ -425,10 +426,10 @@ behind it, so it is not a candidate edit however well it agrees with Wikidata.
 Only `new` and `refine` are candidates for writing; the policy decides each
 (§6a). A `conflict` can be sampled in `review` -- an article disputing the
 item is exactly what a human should see -- but that records that Wikidata
-looks wrong, which is a to-do about the item and not an edit: `apply` writes
-nothing for it. A written proposal moves to `applied`, carrying `applied_rev`
-(the revision the edit produced) and `claim_guid` (the statement it created
-or sharpened). The kind of evidence behind a proposal (an infobox line, prose, a
+looks wrong, which is a to-do about the item and not an edit: `send` writes
+nothing for it. A written proposal moves to `sent` and then `applied`, its
+`applied_batch` naming the QS3 batch; rows written through the API before
+QS3 also carry `applied_rev` and `claim_guid`. The kind of evidence behind a proposal (an infobox line, prose, a
 demonym) is not a column: the extraction JSON keeps `basis` and the quotes, so
 it is derivable by query when the verdicts make it worth measuring.
 
@@ -437,7 +438,7 @@ it is derivable by query when the verdicts make it worth measuring.
 `policy` is the gate that replaced the human one. It reads every `new` and
 `refine` row and decides each by an ordered list of rules in `policy.py` --
 first match wins, the rule's name lands in `proposal.decided_by` as
-`policy:<rule>`, and the status becomes `accepted` (what `apply` writes),
+`policy:<rule>`, and the status becomes `accepted` (what `send` writes),
 `skipped` (a decision with a reason, never a queue) or `pending` (the verifier
 has not been asked yet). The deterministic rules come first, so nothing a rule
 would skip anyway is ever sent to a model; the verifier's answer is the last
@@ -529,23 +530,23 @@ at about $0.02 a request. The same run showed the one thing a single reading
 cannot see, two wikis dating a death two days apart, so `policy` now skips a
 single-valued value as `contested` when a sibling proposal disagrees.
 
-### 7. Apply
+### 7. Send
 
-`apply` writes one person per `wbeditentity` call: every proposal accepted for
-them lands atomically, under the user's own account through the action API,
-with the pre-flight revision as `baserevid`, `maxlag=5` and no bot flag. The
-credentials are the ones wikibase-cli is configured with, and `action=login`
-takes the bot password it stores.
-
-It is a **dry run by default**. Without `--write` it does the same pre-flight
-and prints the payload it would send; `--write` logs in, fetches a CSRF token
-and sends, one person every ten seconds, single-threaded.
+`send` is the one way peploop edits Wikidata, shared with peptree: a
+QuickStatements 3.0 batch submitted over its API under the user's own
+account, recorded in the joint send ledger (`ledger.py`: `wd_batch`,
+`wd_edit`, `wd_strike`, `wd_removal`) *before* the request, so an answer lost
+in flight is found again by the batch's name rather than sent twice. It is a
+**dry run by default**: it pre-flights and plans every person with accepted
+rows and writes the lines to `data/peploop/send/<cc>.qs`, counted by route;
+`--submit` sends them, then the approved removals as a batch of their own,
+waits, and settles each row `applied` or `failed` from what is live.
 
 Nothing trusts a stored status. Each accepted row is re-decided against the
-live claims, and routed. A dated spell of an office is matched to the statements
-it *overlaps*, never to the office value alone -- keyed on the value, a
-legislator's every later term read as already recorded and was never written.
-A spell overlapping nothing is a further term and a new statement; one
+live claims (`plan.py`), and routed. A dated spell of an office is matched to
+the statements it *overlaps*, never to the office value alone -- keyed on the
+value, a legislator's every later term read as already recorded and was never
+written. A spell overlapping nothing is a further term and a new statement; one
 overlapping a statement that lacks an endpoint the article gives, and agrees on
 the endpoint they share, has that endpoint merged in; a near miss on a shared
 endpoint touches nothing; and a statement with no dates at all takes the
@@ -553,23 +554,22 @@ article's whole. For everything else:
 
 | live state | what is written |
 |---|---|
-| no statement with this value | a new statement, normal rank |
+| no statement with this value | a new statement: a `+` line |
 | the value, at the same or a finer precision | nothing |
-| the value more coarsely, referenced only by `P143`/`P4656`/`P813` | that same statement, `id` and all, with our value and our reference appended |
-| the value more coarsely, referenced to anything else | a second statement at `rank: preferred`, the old one left alone |
+| the value more coarsely, referenced only by `P143`/`P4656`/`P813` | `SWITCH_VALUE` on that statement, then a plain line adding our reference |
+| the value more coarsely, referenced to anything else | a `+` line with `R+`, the old one left alone |
 | a differing value on a `SINGLE_VALUED` property | nothing; it is a conflict |
 
-An accepted `conflict` is therefore inert here by construction: every property
-a proposal can conflict on is `SINGLE_VALUED`, and that row is ruled out before
-anything else. Nothing reaches Wikidata through it, and with `--write` the row
-is closed as `skipped` under `apply:conflict` -- as is every accepted row the
-edit could not carry -- so a drainer does not select it again every minute.
-
-A pre-flight that finds the item moved re-proposes the person and then runs
-the policy over them again, because a re-propose re-derives every row the
-policy decided; a verdict the verifier already gave is found by its content.
-Each written row records `base_rev` and `applied_batch` beside `applied_rev`,
-which is the diff link an audit reads and the batch a bad run is reverted by.
+QuickStatements cannot be aimed at a statement: a plain line merges into the
+*first* statement holding its value and a `+` line always creates one. So a
+merge or a switch is planned only where that value sits on one statement
+alone; otherwise the row closes as `ambiguous-statement` (measured: 2.2% of
+Japan's rows, all one office held once per Diet term). A `+` line for a value
+a plain line of the same person names waits for the next send, since in one
+batch the merge could land on the statement it makes. A value no line can
+carry (a Julian date, a string with a quote) closes as `unrenderable`. Every
+row closed without a line is `skipped` under `apply:<route>`, which a
+re-propose keeps for as long as the route still holds.
 
 Contradiction is ruled out over *every* statement before anything else, not
 over the one that happens to match: a person recorded with both a coarse 1950
@@ -577,32 +577,22 @@ and a day-precision 1 March 1950 is not someone our 1 February 1950 refines,
 though it agrees with the coarse value at the precision they share. A
 `somevalue` snak records that nobody knows and contradicts nothing.
 
-A label or alias row accepted before that lane was removed is closed as
-`apply:lane_removed` and never written.
+The rows are grouped by the statement they land on before anything is
+rendered, because a `+` line de-duplicates nothing: the same citizenship
+attested in two languages is one statement carrying two references (joined
+with `!S` on one line), not two identical claims. Every statement gets the
+same reference: `P143` imported from the item of the source wiki, `P4656` the
+permanent URL of the revision that was read, `P813` today.
 
-The rows are grouped by the statement they land on before the payload is built,
-because the API de-duplicates nothing: the same citizenship attested in two
-languages is one statement carrying two references, not two identical claims,
-and both rows are recorded against the one guid it produced. `propose` now
-groups the same value across articles into one row as well, so that row carries
-its `_sources` list and contributes one reference per language on its own.
-
-Every statement gets the same reference: `P143`
-imported from the item of the source wiki (resolved once by SPARQL over
-`wdt:P31 wd:Q10876391; wdt:P424 ?code` and cached), `P4656` the permanent URL
-of the revision that was read, `P813` today. A `maxlag` refusal is slept off
-with `Retry-After`, doubling to a single wait of two minutes and to ten minutes
-in total for one person's write; an `editconflict` re-reads the item,
-re-proposes and retries once, and then the person gets an `error` and their
-proposals stay `accepted`.
-
-`apply --write` drains the run in one process, so one invocation is one
-EditGroups batch. A lag episode outlasting the ten minutes is not that
-person's fault, so the drain leaves them untouched, waits a minute and selects
-again, while any other API error marks them `failed` and keeps them out of
-the rest of the drain -- a payload the site refuses must not be offered
-forever. It takes the country's writer lock, `peploop:<cc>`, which `mint
---write` takes too.
+Additions go out **uncombined**, one edit per line: QS3 folded each person's
+lines into one edit, and for five of Japan's members with three or more new
+P39s that edit failed whole with no reason given (QS3 59098); the same lines
+one edit each all landed. A row moves `accepted` → `sent` when its line is
+recorded and → `applied` once every line it rode on is live, or `failed` when
+QS3 reports a line failed; `send --submit --retry` sends a run's failed lines
+again. A row taken out after it landed is struck by `audit proposal`, which
+queues the statement's removal by id; removals go out only when approved, or
+when the statement is provably only ours.
 
 ## Tables
 
@@ -682,10 +672,11 @@ load-positions   --country cc
 fetch            --country cc | --qid Q...
 extract          --country cc | --qid Q...
 reconcile        --country cc
-mint             --country cc [--write] [--limit N]
+mint             --country cc [--submit] [--limit N]
 propose          --country cc | --qid Q...
 verify           --country cc | --qid Q...
-apply            --country cc [--qid Q...] [--write] [--limit N]
+send             --country cc [--qid Q...] [--submit [--retry]] | --status
+removals         [approve|reject GUID...]
 
 report           --country cc [people|positions|proposals|funnel|mint]
 audit            proposal|candidate [ID...] [--ids FILE] --country cc --reason TEXT --by NAME
@@ -701,10 +692,11 @@ overrides it, because naming someone is the answer to "this one" rather than
 to "the whole run". `mint` and `reconcile` take the country as
 their unit, since the queue and the shortlist's ranking are a country's.
 
-Two commands write to Wikidata, `mint` and `apply`, and both are dry runs
-unless `--write`; both take the country's writer lock (`peploop:<cc>`), and
-`--limit` on either is the first-writes gate. `apply --write` drains the run
-in one process and one EditGroups batch, waiting out lag; §7 has the routing.
+Two commands write to Wikidata, `mint` and `send`, both as QS3 batches through
+the joint send ledger, and both are dry runs unless `--submit`; both take the
+one send lock, which peptree's `send` takes too. §7 has the routing. `removals`
+approves or rejects a queued removal; the approved ones go out with the next
+`send --submit`.
 `mint` categorizes, verifies, writes `data/mint/<cc>.md` and feeds the
 `found` rows on every run, then feeds each item it creates; the feed is
 idempotent.
@@ -778,11 +770,11 @@ staying shallow across many categories.
 
 ## What is deliberately not here
 
-- No bot account: `apply` writes what the policy accepted, and the edits
-  appear under the user's own name. `apply` groups the same (person, property,
-  value) attested from two languages by statement and sends one claim with both
-  references; the day two attestations carry different qualifiers, that
-  grouping is what has to notice.
+- No bot account: `send` writes what the policy accepted, and the edits
+  appear under the user's own name. The plan groups the same (person,
+  property, value) attested from two languages by statement and sends one
+  statement with both references; the day two attestations carry different
+  qualifiers, that grouping is what has to notice.
 - No roster pages, no Wikipedia lists, no non-Wikimedia sources. The prompt
   material is one person's own articles. Widening the material is round 3.
 - No per-country policy, dispositions, backtests, or coverage ledgers.
@@ -824,7 +816,12 @@ peploop/
   policy.py      decide every proposal by rule: accepted, skipped or pending
   verify.py      the second reading: render the edit, ask, keep the answer by content
   review.py      Textual TUI: one person per screen, verdicts on submit
-  apply.py       log in, plan one wbeditentity per person, write and record
+  plan.py        plan one person's accepted rows against their live item
+  qs.py          render a plan, or an office to create, as QS3 lines; check a batch
+  outbox.py      what one country sends: pre-flight, route, submit, settle the rows
+  ledger.py      the send ledger shared with peptree: batches, edits, strikes, removals
+  send.py        submit to QS3 through the ledger: recover, reconcile, retry, removals
+  qs3.py         the QuickStatements 3.0 API client
   cli.py         the commands; every stage's selection and its concurrency
   positions.py   round 2: load a country's offices, search and rank them
   reconcile.py   round 2: resolve one office mention to an item, or refuse
@@ -841,11 +838,12 @@ peploop/
   check_policy.py     one fabricated case per rule of the policy, offline
   check_verify.py     the verifier's rendering, key, schema and prompt coverage, offline
   check_reconcile.py  pins the second turn offline: no network, no key
-  check_apply.py      the write payloads and the router, offline
+  check_plan.py       what an accepted row plans to, against a live item, offline
+  check_qs.py         the line each route becomes, and what a batch refuses, offline
   check_mint.py       every reason not to mint, on the payload itself
   check_mint_queue.py the queue: what counts as current evidence, how mentions pool
   check_mint_categorize.py  the categorize rendering, gate and ledger, offline
-  check_mint_write.py crash, recovery, feed, the writer lock and audit transitions, offline
+  check_mint_write.py one CREATE batch, crash, recovery, feed, the send lock and audit, offline
   check_titles.py     the title cache's key, batching and search channel, offline
 ```
 

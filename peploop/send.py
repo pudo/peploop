@@ -97,13 +97,14 @@ def recover(tool: str, username: str, log: Log) -> None:
 
 
 def send(tool: str, op: str, name: str, rows: list[tuple[str, str, str, list[int]]], is_live: IsLive,
-         log: Log, on_recorded: Callable[[str], None] | None = None) -> int:
+         log: Log, on_recorded: Callable[[str], None] | None = None, combine: bool = True) -> int:
     """Send (country, key, line, refs) rows as one QS3 batch and wait for it; returns the QS3 id.
 
     The batch and its edits are recorded before the request: if the answer is
     lost, `recover` binds the batch by its name, which carries the local id.
     `on_recorded(name)` runs after that and before the request, for a tool to
-    mark its own rows as gone out.
+    mark its own rows as gone out. `combine` lets QS3 fold an item's consecutive
+    lines into one edit, where one bad command fails them all.
     """
     batch_id = ledger.open_batch(tool, op, name)
     name = f"{name} #{batch_id}"
@@ -111,7 +112,7 @@ def send(tool: str, op: str, name: str, rows: list[tuple[str, str, str, list[int
     ledger.record_edits(batch_id, op, rows)
     if on_recorded is not None:
         on_recorded(name)
-    qs_id = qs3.submit([line for _, _, line, _ in rows], name)
+    qs_id = qs3.submit([line for _, _, line, _ in rows], name, combine=combine)
     ledger.bind_qs3(batch_id, qs_id)
     log(f"sent as QS3 batch {qs_id}: {qs3.link(qs_id)}  {qs3.EDITGROUPS.format(qs_id)}")
     row = qs3.wait(qs_id, log)

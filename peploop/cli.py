@@ -5,7 +5,6 @@ is idempotent: seeding twice queues nothing new, fetching twice re-uses the
 item and article rows that are still inside their age tolerance.
 """
 
-import contextlib
 import json
 import os
 import time
@@ -17,7 +16,6 @@ from typing import Any
 
 import click
 
-from peploop import apply as applying
 from peploop import db, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
@@ -354,99 +352,6 @@ def review(limit: int, qid: Sequence[str], country: str | None) -> None:
     )
     for line in reviewing.summary_lines():
         click.echo(line)
-
-
-def _apply_pass(
-    qids: Sequence[str], token: str | None, write: bool
-) -> tuple[list[str], int, int, bool]:
-    """Write one pass over `qids` and say who it got through.
-
-    Returns the people dealt with, the proposals applied, the failures, and
-    whether a lagged site stopped the pass. A person the lag budget ran out on
-    is not theirs to fail: they are left out of the first list, untouched, for
-    the drain to come back to once the site has caught up.
-    """
-    done: list[str] = []
-    applied, failed = 0, 0
-    for index, person_qid in enumerate(qids):
-        if write and index:
-            time.sleep(applying.THROTTLE)
-        try:
-            plan, note = applying.apply_person(person_qid, token, defer_lag=write)
-        except applying.ApiError as exc:
-            if write and exc.code == "maxlag":
-                return done, applied, failed, True
-            done.append(person_qid)
-            failed += 1
-            click.echo(f"{person_qid} failed: {type(exc).__name__}: {exc}")
-            continue
-        except Exception as exc:  # noqa: BLE001 — a refused edit is a row, not a dead run
-            done.append(person_qid)
-            failed += 1
-            click.echo(f"{person_qid} failed: {type(exc).__name__}: {exc}")
-            continue
-        done.append(person_qid)
-        routes = " ".join(f"{route}={n}" for route, n in sorted(plan.routes.items()))
-        head = f"{person_qid} [{routes}]{note}"
-        click.echo(f"{head}: {plan.summary}" if plan.data else f"{head}: nothing to write")
-        for proposal_id, reason in plan.skipped:
-            click.echo(f"  skipped proposal {proposal_id}: {reason}")
-        if not plan.data:
-            continue
-        applied += plan.covered
-        if not write:
-            click.echo(json.dumps(plan.data, indent=2, ensure_ascii=False))
-    return done, applied, failed, False
-
-
-@cli.command("apply")
-@click.option("--limit", default=None, type=int,
-              help="Write at most this many people: the first-diffs gate. Default: all.")
-@click.option("--qid", multiple=True, help="Write these people instead of the whole run.")
-@click.option("--write", is_flag=True, help="Send the edits; without it nothing leaves here.")
-@click.option("--country", required=True, help="The run to write; its writer lock is taken.")
-def apply_(limit: int | None, qid: Sequence[str], write: bool, country: str) -> None:
-    """Write each person's accepted proposals to Wikidata as one edit, until none are left.
-
-    A dry run by default: it does the same pre-flight against the live item and
-    prints the payload it would send. `--write` logs in and sends, one person
-    every ten seconds, and records what came back on each proposal. It drains
-    the run in one process, so one invocation is one EditGroups batch: a lagged
-    site is waited out and the person it stopped on retried, while a person
-    who failed for any other reason is not offered again until the next run.
-    """
-    token = None
-    lock = contextlib.nullcontext()
-    if write:
-        # One writer per country: a second drain picks the same people and the
-        # API writes their statements twice, and a mint beside it is no safer.
-        lock = minting.writer_lock(country, "apply")
-    tried: set[str] = set()
-    applied, failed = 0, 0
-    with lock:
-        if write:
-            click.echo(f"logged in as {applying.login()}, batch {applying.BATCH_ID}")
-            token = applying.csrf_token()
-        try:
-            while True:
-                qids = [q for q in planning.people(list(qid), None, country) if q not in tried]
-                if limit is not None:
-                    qids = qids[: max(0, limit - len(tried))]
-                if not qids:
-                    break
-                done, count, fails, lagged = _apply_pass(qids, token, write)
-                tried.update(done)
-                applied += count
-                failed += fails
-                if not write:
-                    break
-                if lagged:
-                    click.echo(f"wikidata is lagged: waiting {applying.LAG_WAIT:.0f}s")
-                    time.sleep(applying.LAG_WAIT)
-        except KeyboardInterrupt:
-            click.echo("")
-    verb = "applied" if write else "would apply"
-    click.echo(f"{len(tried)} people: {verb} {applied} proposals, {failed} failed")
 
 
 @cli.command("send")

@@ -18,9 +18,8 @@ import datetime
 import hashlib
 import json
 from collections import Counter
-from contextlib import contextmanager
 from dataclasses import dataclass, field, fields
-from typing import Any, Callable, Iterator, Sequence
+from typing import Any, Callable, Sequence
 
 from psycopg.rows import dict_row
 
@@ -227,35 +226,6 @@ def _settle(cand: dict[str, Any], qid: str | None, lookup: Lookup, rule: str = C
         return cand["id"], "created", qid
     outcome, found = _not_created(cand, lookup, failed=True)
     return cand["id"], outcome, found
-
-
-def lock_key(country: str) -> str:
-    """The advisory lock every writer of one country takes."""
-    return f"peploop:{country}"
-
-
-@contextmanager
-def writer_lock(country: str, stage: str = "mint") -> Iterator[None]:
-    """Hold the one-writer-per-country lock for the length of a write run.
-
-    `recover` treats every `creating` row as interrupted, which is only true
-    when no other process is in the middle of a creation: a second writer would
-    otherwise reset a row whose edit is still in flight and send it twice. The
-    same holds for `apply`: two drains of one country picked the same people
-    and wrote 24 statements twice, because the API de-duplicates nothing. The
-    key is the country's alone, not the stage's, so a `mint --write` and an
-    `apply --write` on one country exclude each other too; `stage` only names
-    who is asking in the refusal.
-    """
-    conn = db.conn()
-    key = lock_key(country)
-    got = conn.execute("SELECT pg_try_advisory_lock(hashtext(%s))", (key,)).fetchone()[0]
-    if not got:
-        raise RuntimeError(f"{stage}: another writer holds the lock for {country} ({key})")
-    try:
-        yield
-    finally:
-        conn.execute("SELECT pg_advisory_unlock(hashtext(%s))", (key,))
 
 
 def recover(
