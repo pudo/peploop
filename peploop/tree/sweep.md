@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
-Progress: blocked 2, pending 2, reviewed 194, run 1, skipped 1, submitted 48
+Progress: blocked 2, pending 1, reviewed 195, run 1, skipped 1, submitted 48
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | batches | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -219,7 +219,7 @@ Progress: blocked 2, pending 2, reviewed 194, run 1, skipped 1, submitted 48
 | pt | Portugal | Europe / Southern Europe | 60 | submitted | 2026-10-08 | 375 | 28 | P1001 9 P17 9 P279 4 P31 6 | $3.55 | 59046 |  |
 | sm | San Marino | Europe / Southern Europe | 30 | reviewed | 2026-10-07 | 20 | 8 | P31 8 | $0.22 | 025 036 |  |
 | rs | Serbia | Europe / Southern Europe | 30 | reviewed | 2026-10-07 | 77 | 0 |  | $0.45 | 025 |  |
-| es | Spain | Europe / Southern Europe | 74 | pending |  |  |  |  |  |  |  |
+| es | Spain | Europe / Southern Europe | 74 | reviewed | 2026-10-12 | 11339 | 683 | P1001 141 P17 293 P279 58 P31 191 | $162.82 |  | 3,574 held or categorised asked, $163 for 683 lines: ~2,700 held mayoralties lack P31/P279 and mostly fail two_channels (one_channel 2,886, p31_typed_elsewhere 2,413); strike P1001 on two museum directors and a party spokesperson, P31 on two CV entries |
 | be | Belgium | Europe / Western Europe | 64 | submitted | 2026-10-08 | 859 | 41 | P1001 22 P17 5 P279 10 P31 4 | $3.55 | 59046 |  |
 | fr | France | Europe / Western Europe | 75 | pending |  |  |  |  |  |  |  |
 | li | Liechtenstein | Europe / Western Europe | 30 | reviewed | 2026-10-07 | 26 | 0 |  | $0.12 | 025 |  |
