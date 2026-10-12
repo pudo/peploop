@@ -9,6 +9,7 @@ model is asked about them. Nothing here writes to Wikidata or calls a model.
 """
 
 import hashlib
+import json
 import re
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -459,8 +460,10 @@ CATEGORIZE_ARCHETYPES = tuple(ARCHETYPES) + EXTRA_ARCHETYPES
 PROTECTED_STATUSES = ("created", "found", "loaded", "creating")
 
 #: Seat words beyond `offices.ROLE_STEMS` that say what kind of seat a title is
-#: and nothing about which one. Dropped from the ordering key only, so that two
-#: forms of one office, or one office in two languages, sort next to each other.
+#: and nothing about which one. Dropped from the ordering key, so that two forms
+#: of one office, or one office in two languages, sort next to each other; and a
+#: title of nothing else never becomes an alias, which a live search would match
+#: to every seat of its kind -- and to "Maire", a given name.
 SEAT_WORDS = """
 mayor alcalde alcaldesa maire prefeito sindaco burgomaestre governor gobernador
 gobernadora governador magistrate magistrado magistrada senator senador senadora
@@ -802,6 +805,9 @@ def settle_categorize(
         for label in office.labels:
             if label.text.strip() and label.lang not in labels:
                 labels[label.lang] = label.text.strip()
+        if labels and "en" not in labels:
+            # Verify fills it; counted so the report shows how often it must.
+            mine.append("labels/no-en")
         problems.extend(mine)
         if not members and not census_key:
             problems.append("office-without-groups")
@@ -1678,14 +1684,15 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
 
     So the item is found by the words the next article uses. Folded and
     deduplicated, the most-held first, at most `ALIASES_PER_LANG` a language,
-    never one of the labels, never a bare seat word ("Governor"), which
-    names every office of its kind and would make a live search find them all,
+    never one of the labels, never a bare seat word ("Governor", "maire": the
+    role words and `SEAT_WORDS`), which names every office of its kind and
+    would make a live search find them all,
     and never a title that marks another seat (`not_the_seat`), nor one written
     in another language than the article's: a title whose words all sit in
     another language's label and not in its own language's label.
     """
     taken = {_fold(text) for text in labels.values()}
-    drop = offices.ROLE_STEMS | state_stems(state_names)
+    drop = SORT_ROLE_STEMS | state_stems(state_names)
     state = state_stems(state_names)
 
     def words(text: str) -> set[str]:
@@ -1728,7 +1735,8 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
     return out
 
 
-def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spec | None, list[str]]:
+def build_spec(cand: Candidate, ctx: Context | None = None,
+               label_en: str | None = None) -> tuple[offices.Spec | None, list[str]]:
     """Turn a categorized candidate's draft into the item it would be.
 
     The shape comes from the archetype and the state's own offices rather than
@@ -1738,7 +1746,8 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
     always.
     The description is `describe`d from resolved labels, never the draft's
     text. None, with the reason, for a seat no archetype fits: there is no
-    shape to build.
+    shape to build. `label_en` is the verifier's English label for a draft
+    that had none; a draft's own English label always wins.
     """
     ctx = ctx or Context(cand.country)
     arch = cand.kind
@@ -1753,6 +1762,8 @@ def build_spec(cand: Candidate, ctx: Context | None = None) -> tuple[offices.Spe
     anchor = ctx.anchors.get(cand.census_key or "") if cand.census_key else None
     for lang, text in (anchor.labels.items() if anchor else ()):
         labels.setdefault(lang, text)
+    if label_en and label_en.strip():
+        labels.setdefault("en", label_en.strip())
     # A label is written only in a language that is checked: English, the
     # languages the state's own offices are labelled in, or the census's own.
     # Categorize drafts a label in every official language, and one nobody
@@ -2165,6 +2176,9 @@ class Case:
     exists_problem: str | None = None
     #: The same for the verifier's `exists` item.
     verify_exists_problem: str | None = None
+    #: The verifier's English label, filled into a draft that had none, moved a
+    #: statement: the item it agreed to is not the one that would be created.
+    fill_moved: bool = False
 
 
 Decision = tuple[str, str]
@@ -2241,6 +2255,12 @@ def shape_disagree(case: Case) -> Decision | None:
     return None
 
 
+def fill_moved(case: Case) -> Decision | None:
+    if case.fill_moved:
+        return SKIPPED, "fill/shape-moved"
+    return None
+
+
 def guard_refused(case: Case) -> Decision | None:
     if case.guard_reasons:
         return SKIPPED, f"guard:{case.guard_reasons[0]}"
@@ -2273,8 +2293,10 @@ RULES: tuple[Rule, ...] = (
     shape_disagree,      # 10. the verifier would shape it otherwise. A future
                          #     rule may accept a correction naming a measured
                          #     sibling parent; the corrections are kept for it.
-    guard_refused,       # 11. every static reason not to create
-    agreed,              # 12. only on high confidence
+    fill_moved,          # 11. the English label the verifier filled in moved
+                         #     a statement it never saw
+    guard_refused,       # 12. every static reason not to create
+    agreed,              # 13. only on high confidence
 )
 #: The rules that read neither the live search nor the model.
 MODEL_FREE = RULES[:6]
@@ -2291,7 +2313,8 @@ def _first(case: Case, rules: Sequence[Rule]) -> Decision | None:
 def disposition(cand: Candidate, spec: offices.Spec | None, verdict: MintVerdict | None,
                 guard_reasons: Sequence[str], dup: str | None, *,
                 exists_problem: str | None = None,
-                verify_exists_problem: str | None = None) -> Decision:
+                verify_exists_problem: str | None = None,
+                fill_moved: bool = False) -> Decision:
     """Decide one candidate: the first rule in `RULES` that applies, as (status, rule).
 
     The status is `skipped`, `found` or `guarded` and nothing else: every case
@@ -2299,10 +2322,41 @@ def disposition(cand: Candidate, spec: offices.Spec | None, verdict: MintVerdict
     a `guarded` row is one categorize, verify and the guard all agree on.
     """
     case = Case(cand, spec, verdict, list(guard_reasons), dup, exists_problem,
-                verify_exists_problem)
+                verify_exists_problem, fill_moved)
     found = _first(case, RULES)
     assert found is not None  # `agreed` always answers
     return found
+
+
+def _claims(spec: offices.Spec) -> set[tuple[str, str]]:
+    return {(c["mainsnak"]["property"], json.dumps(c["mainsnak"].get("datavalue"), sort_keys=True))
+            for c in offices.entity_data(spec)["claims"]}
+
+
+def fill_label_en(cand: Candidate, spec: offices.Spec, verdict: MintVerdict,
+                  ctx: Context) -> tuple[offices.Spec, MintVerdict, bool]:
+    """Write the verifier's English label onto a draft that had none.
+
+    Categorize sometimes drafts a seat only in the state's language, and the
+    guard refuses an office with no English label. Filling an absent label is
+    not a correction of the draft, so a `correct` that changes nothing else is
+    read as `agree`, and the fill is kept as `label_en_filled`. The spec is
+    rebuilt with it; if the English words move a statement (`seat_parent`
+    reads them), the verifier never saw that item. Returns (spec, verdict,
+    moved): the old spec when it moved.
+    """
+    text = (verdict.corrections.get("label_en") or "").strip()
+    if spec.labels.get("en") or not text:
+        return spec, verdict, False
+    corrections = {**verdict.corrections, "label_en": None, "label_en_filled": text}
+    shape = verdict.shape
+    if shape == "correct" and not any(corrections.get(f) for f in CORRECTION_FIELDS):
+        shape = "agree"
+    verdict = replace(verdict, corrections=corrections, shape=shape)
+    filled, _problems = build_spec(cand, ctx, label_en=text)
+    if filled is None or _claims(filled) != _claims(spec):
+        return spec, verdict, True
+    return filled, verdict, False
 
 
 def found_qid(rule: str, cand: Candidate, verdict: MintVerdict | None, dup: str | None) -> str | None:
@@ -2524,7 +2578,13 @@ def verify(
             status, rule = early
         elif cand.id in results:
             verdict = results[cand.id].verdict
-            found = results[cand.id].evidence.found
+            found = list(results[cand.id].evidence.found)
+            moved = False
+            if verdict is not None and spec is not None and not spec.labels.get("en"):
+                spec, verdict, moved = fill_label_en(cand, spec, verdict, ctx)
+                if spec.labels.get("en"):
+                    # The English label is a name nobody has searched for yet.
+                    found += live_duplicates(spec, ctx)
             dup = scoped_duplicate(found, spec_bodies(cand, spec, ctx))
             reasons = guard_reasons(cand, spec, ctx, found) if spec is not None else []
             verify_problem = (ctx.exists_problem(verdict.exists_qid)
@@ -2533,7 +2593,7 @@ def verify(
                 verdict.problems.append(verify_problem)
             status, rule = disposition(cand, spec, verdict, reasons, dup,
                                        exists_problem=exists_problems.get(cand.id),
-                                       verify_exists_problem=verify_problem)
+                                       verify_exists_problem=verify_problem, fill_moved=moved)
         else:
             continue
         qid = found_qid(rule, cand, verdict, dup) if status == FOUND else None

@@ -92,6 +92,11 @@ Answer each one separately; the verdict follows from them.
    use, or a label that is not the office's name. Leave every other correction
    null.
 
+   When the draft shows no `label (en)`, write the office's English name in
+   `corrections.label_en`, worded as the state's other offices of the same
+   kind are worded. Filling a missing English label is not a correction: on
+   its own it leaves `shape` at `agree`.
+
 ## The verdicts
 
 - **`mint`** — real, current, missing, and every attestation names this one
@@ -141,7 +146,8 @@ One JSON object.
 - `shape`: `agree` or `correct`.
 - `corrections`: `parent_qid`, `body_qid`, `jurisdiction_qid`, `metaclass`
   (QIDs shown to you), `label_en`, `label_local` (text); null for every field
-  you do not correct, and all null when `shape` is `agree`.
+  you do not correct, and all null when `shape` is `agree` -- except
+  `label_en` for a draft that has no English label.
 - `confidence`: `high`, `medium` or `low`. `high` means another patroller
   reading the same evidence would answer the same.
 - `evidence`: the words that settle it, quoted verbatim from the attestations,

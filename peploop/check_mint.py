@@ -285,6 +285,9 @@ def main() -> int:
            "Q77", "but a list that is also something else is")
     expect(offices.duplicate_of([replace(hit, types=frozenset({"Q5"}))]), None,
            "a human carrying the office as an alias is not")
+    expect(offices.duplicate_of([replace(hit, country_match=False, country_qids=(),
+                                         types=frozenset({"Q11879590"}))]), None,
+           "nor a given name that reads like a seat word")
     expect(offices.duplicate_of([replace(hit, country_match=False, country_qids=("Q0000099",))]),
            None, "the same title in another state is another office")
     expect(offices.duplicate_of([replace(hit, country_match=False, country_qids=())]), "Q77",

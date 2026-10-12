@@ -216,6 +216,12 @@ NOT_A_POSITION = {
     "Q11266439",  # Wikimedia template
     "Q17633526",  # Wikinews article
     "Q13442814",  # scholarly article
+    # A person's name: "Maire" is a given name as well as the French for mayor.
+    "Q202444",  # given name
+    "Q12308941",  # male given name
+    "Q11879590",  # female given name
+    "Q3409032",  # unisex given name
+    "Q101352",  # family name
 }
 #: A list of holders. Not a duplicate when it is *only* a list; an item typed
 #: as a list and something else still blocks, because a false duplicate costs

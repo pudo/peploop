@@ -205,6 +205,37 @@ def check_rules(expect: Any) -> None:
            "a listed generic class (head of state) is never taken as found, even scoped")
 
 
+def check_fill_label_en(expect: Any) -> None:
+    """The verifier's English label fills a draft that had none, and only that."""
+    c = ctx()
+    local = cand(draft={"labels": {"es": "ministro de Salud de Alvania"}})
+    spec, _p = mint.build_spec(local, c)
+    filled_in = {**verdict().corrections, "label_en": "Minister of Health of Alvania"}
+    for shape in ("agree", "correct"):
+        new, v, moved = mint.fill_label_en(local, spec, verdict(shape=shape, corrections=filled_in), c)
+        expect(new.labels.get("en") == "Minister of Health of Alvania" and not moved
+               and v.shape == "agree" and v.corrected is None
+               and v.corrections["label_en_filled"] == "Minister of Health of Alvania",
+               f"a missing English label is filled, and a {shape} that only fills it is an agree")
+        expect(mint.disposition(local, new, v, [], None) == ("guarded", "mint:agreed"),
+               f"so the filled office is guarded ({shape})")
+    english, _p = mint.build_spec(cand(), c)
+    wrong = {**verdict().corrections, "label_en": "Minister of Public Health of Alvania"}
+    same, v, moved = mint.fill_label_en(cand(), english, verdict(shape="correct", corrections=wrong), c)
+    expect(same is english and v.shape == "correct" and not moved
+           and mint.disposition(cand(), same, v, [], None) == ("skipped", "disagree/shape:label_en"),
+           "a draft's own English label is never replaced: a different one is a disagreement")
+    saved = mint.build_spec
+    mint.build_spec = lambda cnd, cx=None, label_en=None: (replace(saved(cnd, cx, label_en)[0], parent="Q999"), [])
+    try:
+        kept, v, moved = mint.fill_label_en(local, spec, verdict(corrections=filled_in), c)
+    finally:
+        mint.build_spec = saved
+    expect(moved and kept is spec and mint.disposition(local, kept, v, [], None, fill_moved=True)
+           == ("skipped", "fill/shape-moved"),
+           "a fill that moves a statement the verifier saw is skipped under its own rule")
+
+
 def check_exists_problem(expect: Any) -> None:
     """An item named as existing must be this state's office, not a class or a mission."""
     c = ctx()
@@ -303,6 +334,12 @@ def check_build_spec(expect: Any) -> None:
     expect("ministro de Salud de Alvania" not in es and "Minister of Health of Alvania"
            not in spec.aliases.get("en", []), "an alias never repeats a label")
     expect("Ministro" not in es, "a bare seat word is never an alias")
+    mayors = mint.attested_aliases(
+        [mint.Attestation(person=f"Q{i}", title=t, lang="fr", current=True)
+         for i, t in enumerate(["maire", "Maire", "maire de la ville de Velmora"])],
+        {"fr": "maire de Velmora"}, ["Alvania"], "mayor")
+    expect(mayors == {"fr": ["maire de la ville de Velmora"]},
+           f"nor is a seat word of another archetype, the mayor's: {mayors}")
     sib = siblings()
     sib.offices, sib.label_langs = 10, Counter({"es": 10})
     drafted = cand(draft={"labels": {"en": "Minister of Health of Alvania",
@@ -555,6 +592,7 @@ def main() -> int:
 
     for name, check in (
         ("rules", check_rules),
+        ("fill_label_en", check_fill_label_en),
         ("exists_problem", check_exists_problem),
         ("offices_fixes", check_offices_fixes),
         ("build_spec", check_build_spec),
