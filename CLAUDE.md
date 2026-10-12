@@ -10,8 +10,7 @@ exposed persons so OpenSanctions can read them back. Two lanes:
   `P31`/`P279`/`P17`/`P1001`. Spec `peploop/tree/design.md`, sweep
   `peploop/tree/sweep.md`.
 
-The user's requirements are `docs/requirements.md`. Open work is
-`plans/peploop_next.md` and `plans/peptree_next.md`; what was tried and learned
+Open work is `plans/peploop_next.md` and `plans/peptree_next.md`; what was tried and learned
 is `docs/history.md` (read it before re-measuring something). `old/` is
 retired prior art: never import it, run it, or follow its rules.
 
@@ -46,9 +45,8 @@ entry yourself.
 
 - QuickStatements 3.0 through the send ledger (`peploop/ledger.py`,
   `send.py`) is the only write path. Every batch is recorded before the
-  request, so a lost answer is recovered by name, never sent twice. Failed
-  lines go again with `send --retry`.
-- Write commands are dry runs unless given `--submit`.
+  request, so a lost answer is recovered by name, never sent twice. Write
+  commands are dry runs unless given `--submit`; `send --retry` re-sends failures.
 - A new statement is a `+` line; a merge is a plain line, planned only when
   exactly one statement holds the value. Removals go by statement id.
 - Statements read from an article carry a reference; structural inferences
