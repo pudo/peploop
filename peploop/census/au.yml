@@ -1,0 +1,145 @@
+# Offices Australia has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-12 live measurement (wbsearchentities in en, the
+# items read); nothing below is from memory.
+#
+# Not here because an item exists and the load reaches it: the Governor-General,
+# the six governors and their lieutenants, the Administrator of the Northern
+# Territory, the premiers, chief ministers and their deputies, every chief
+# justice, the Supreme Court seats of NSW (`Q66085196`), Victoria
+# (`Q56060731`), South Australia (`Q50400750`), Western Australia
+# (`Q105416350`), the ACT (`Q56050823`) and the Northern Territory
+# (`Q52178330`), the District Court seats of NSW (`Q108395556`) and South
+# Australia (`Q51601370`), the auditors-general of NSW and Victoria, the
+# solicitors-general, and the police commissioners of Victoria (`Q20751425`)
+# and Queensland (`Q141344330`).
+#
+# A state Supreme Court seat takes `supreme_judge`: the six existing ones
+# subclass supreme court judge (`Q117826617`).
+#
+# Absent and not listed, for want of a body item: the state auditors-general
+# outside NSW and Victoria, the state DPPs, NSW's ICAC and the state
+# ombudsmen.
+#
+# The two `per: units` entries are the local level: a mayoralty and a council
+# seat for every current local government area (`Q1867183`), built by
+# `mint_units` from each area's own article. Every state's set is below half
+# covered, so each needs the level source: en.wikipedia's "Local government in
+# Australia", which reads "Council members are generally known as councillors,
+# and the head of a council is called the mayor, chairman or shire president."
+
+# --- Judiciary: state Supreme Courts ---
+- key: supreme_court_queensland_judge
+  class: judiciary.apex
+  archetype: supreme_judge
+  body: Q7644973           # Supreme Court of Queensland
+  labels:
+    en: Justice of the Supreme Court of Queensland
+
+- key: supreme_court_tasmania_judge
+  class: judiciary.apex
+  archetype: supreme_judge
+  body: Q7644985           # Supreme Court of Tasmania
+  labels:
+    en: Justice of the Supreme Court of Tasmania
+
+# --- Judiciary: District and County Courts ---
+- key: district_court_queensland_judge
+  class: judiciary.specialised
+  archetype: judge
+  body: Q5283303           # District Court of Queensland
+  labels:
+    en: Judge of the District Court of Queensland
+
+- key: district_court_western_australia_judge
+  class: judiciary.specialised
+  archetype: judge
+  body: Q5283305           # District Court of Western Australia
+  labels:
+    en: Judge of the District Court of Western Australia
+
+- key: county_court_victoria_judge
+  class: judiciary.specialised
+  archetype: judge
+  body: Q5177646           # County Court of Victoria
+  labels:
+    en: Judge of the County Court of Victoria
+
+# --- Police: state commissioners not reachable ---
+- key: nsw_police_commissioner
+  class: security.police
+  archetype: agency_head
+  body: Q7011763           # New South Wales Police Force
+  labels:
+    en: Commissioner of the New South Wales Police Force
+
+- key: wa_police_commissioner
+  class: security.police
+  archetype: agency_head
+  body: Q7987488           # Western Australia Police
+  labels:
+    en: Commissioner of the Western Australia Police Force
+
+- key: sa_police_commissioner
+  class: security.police
+  archetype: agency_head
+  body: Q7566092           # South Australia Police
+  labels:
+    en: Commissioner of South Australia Police
+
+- key: tas_police_commissioner
+  class: security.police
+  archetype: agency_head
+  body: Q3313240           # Tasmania Police
+  labels:
+    en: Commissioner of Tasmania Police
+
+- key: nt_police_commissioner
+  class: security.police
+  archetype: agency_head
+  body: Q7059043           # Northern Territory Police Force
+  labels:
+    en: Commissioner of the Northern Territory Police
+
+# --- Oversight: anti-corruption commissions ---
+- key: qld_ccc_chair
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  body: Q5185245           # Crime and Corruption Commission (Queensland)
+  labels:
+    en: Chairperson of the Crime and Corruption Commission
+
+- key: vic_ibac_commissioner
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  body: Q25183104          # Independent Broad-based Anti-corruption Commission
+  labels:
+    en: Commissioner of the Independent Broad-based Anti-corruption Commission
+
+- key: wa_ccc_commissioner
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  body: Q5173057           # Corruption and Crime Commission (Western Australia)
+  labels:
+    en: Commissioner of the Corruption and Crime Commission
+
+# --- Local government: every local government area ---
+- key: lga_mayor
+  class: subnational.municipal
+  archetype: mayor
+  per: units
+  of: Q1867183             # local government area of Australia
+  sources: &lga_level
+    Q3224: https://en.wikipedia.org/wiki/Local_government_in_Australia
+    Q3235: https://en.wikipedia.org/wiki/Local_government_in_Australia
+    Q36074: https://en.wikipedia.org/wiki/Local_government_in_Australia
+    Q35715: https://en.wikipedia.org/wiki/Local_government_in_Australia
+    Q34366: https://en.wikipedia.org/wiki/Local_government_in_Australia
+    Q36687: https://en.wikipedia.org/wiki/Local_government_in_Australia
+    Q3206: https://en.wikipedia.org/wiki/Local_government_in_Australia
+
+- key: lga_councillor
+  class: subnational.assemblies
+  archetype: councillor
+  per: units
+  of: Q1867183
+  sources: *lga_level
