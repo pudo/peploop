@@ -94,6 +94,9 @@ def main() -> None:
     fake = SimpleNamespace(ctx=SimpleNamespace(detected=lambda it: {"minister"} if it.get("category") else set()))
     expect([it["qid"] for it in repair.held_or_categorised(fake, few)] == ["Q0", "Q1"],
            "only held or categorised items are asked about, in a place of any size")
+    mayor = {"qid": "Q9", "holders": 5, "kind": "subnational", "entity": ent({"en": "Mayor of Zendaburg"})}
+    fake_xx = SimpleNamespace(ctx=fake.ctx, country=XX)
+    expect(repair.held_or_categorised(fake_xx, [mayor]) == [], "a held mayoralty is not asked about")
     unheld = item("Q44", "national", ent({"en": "Minister of Culture of the Republic of Ruritania"}))
     cls = slot(unheld, "P31", ["Q294414", "Q4164871"], 0, quote="Minister of Culture of the Republic of Ruritania")
     cls.facts.classes = {unheld["qid"]}

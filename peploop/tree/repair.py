@@ -21,7 +21,7 @@ from peploop import llm, memo, typegraph
 from peploop.tree import country as countries
 from peploop.tree import gaps as gapmod
 from peploop.tree import signals, wd
-from peploop.tree.load import GENERIC_META, LIST_ARTICLES, POSITION_METAS, items as load_items, place_refs, values
+from peploop.tree.load import GENERIC_META, LIST_ARTICLES, POSITION_METAS, all_labels, items as load_items, place_refs, values
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "repair.md"
 MODEL = os.environ.get("PEPTREE_MODEL", "claude-opus-5")
@@ -348,13 +348,17 @@ def ask(message: str, model: str = MODEL) -> tuple[Answer, dict[str, int]]:
 
 
 def held_or_categorised(run: Run, todo: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Keep the items worth a model call: held by someone, or in a FATF category.
+    """Keep the items worth a model call: held by someone, or in a FATF category; never a mayoralty.
 
     An office nobody holds matters least to OpenSanctions and is most often
     org-chart clutter: Indonesia's 13,828 items with a gap were mostly an
-    imported civil-service chart, 11,460 of them held by no one.
+    imported civil-service chart, 11,460 of them held by no one. A town's
+    mayoralty is a set of thousands, and the two-channel rule turns most
+    answers about it into skips: Spain paid $163 for 683 lines, nearly all of
+    its 2,700 mayoralties asked and few repaired.
     """
-    return [it for it in todo if it.get("holders") or run.ctx.detected(it)]
+    return [it for it in todo if (it.get("holders") or run.ctx.detected(it))
+            and not (it.get("kind") == "subnational" and countries.is_mayor(run.country, all_labels(it["entity"])))]
 
 
 def prepare(run: Run, log: Any = print) -> list[dict[str, Any]]:

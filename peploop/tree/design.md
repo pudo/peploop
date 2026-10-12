@@ -57,8 +57,9 @@ log.
    `S813`), with the report beside it.
 
 The repair asks only about items someone holds or that a FATF category
-names (`repair.held_or_categorised`): an office nobody holds matters least to
-OpenSanctions and is most often org-chart clutter. Changing
+names (`repair.held_or_categorised`), and never about a mayoralty: an office
+nobody holds matters least to OpenSanctions and is most often org-chart
+clutter, and a country's thousands of mayoralties rarely clear two channels. Changing
 `prompts/repair.md` re-keys the cache: re-decide earlier places with
 `tree place <cc> --no-ask`, which reads the ledger and asks nothing.
 
