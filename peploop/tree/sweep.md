@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
-Progress: blocked 2, reviewed 196, run 1, skipped 1, submitted 48
+Progress: blocked 1, reviewed 197, run 1, skipped 1, submitted 48
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | batches | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -176,7 +176,7 @@ Progress: blocked 2, reviewed 196, run 1, skipped 1, submitted 48
 | ye | Yemen | Asia / Western Asia | 0 | submitted | 2026-10-07 | 152 | 1 | P31 1 | $2.03 | 036 |  |
 | at | Austria | Europe / Central Europe | 47 | reviewed | 2026-10-07 | 181 | 22 | P1001 8 P17 10 P279 3 P31 1 | $1.94 | 048 | predecessor lane was 27,380 Austria-Hungary items (villages, newspapers), now typed/subclass/held only: 162; 'federal' (from Bundesland) read the Federal President and Chancellor as provincial: level words the state's own offices use are dropped |
 | cz | Czechia | Europe / Central Europe | 44 | reviewed | 2026-10-08 | 179 | 26 | P1001 17 P17 8 P279 1 | $1.52 | 043 59132 | 1,550 Czechoslovak legal acts dropped (written work); class lines follow the 31/38 'mayor of a place in X' P1001 convention; Q135399028 (SAC judge class) wants P279 national supreme court judge, as Cyprus |
-| de | Germany | Europe / Central Europe | 70 | blocked: crash (place-de.log) |  |  |  |  |  |  |  |
+| de | Germany | Europe / Central Europe | 70 | reviewed | 2026-10-12 | 3352 | 138 | P1001 30 P17 62 P279 8 P31 38 | $15.39 |  | first run crashed on a 504ed holder chunk (now bisected); Chancellor of Germany and a federal ministry now national; strike P1001 on three sports coaches, an Esperanto youth official, a trade association head |
 | hu | Hungary | Europe / Central Europe | 57 | reviewed | 2026-10-08 | 395 | 62 | P1001 9 P17 2 P279 50 P31 1 | $4.44 | 057 |  |
 | pl | Poland | Europe / Central Europe | 54 | reviewed | 2026-10-08 | 318 | 46 | P1001 16 P17 17 P279 7 P31 6 | $4.42 | 054 | permanent representatives to an organisation now load as the state's posts abroad (no P1001): 3 lines dropped; Polesie voivode P17 Poland where its Nowogródek sibling uses Second Polish Republic |
 | si | Slovenia | Europe / Central Europe | 39 | reviewed | 2026-10-07 | 51 | 0 |  | $0.69 | 038 |  |
