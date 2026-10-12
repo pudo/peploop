@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
-Progress: blocked 2, pending 1, reviewed 195, run 1, skipped 1, submitted 48
+Progress: blocked 2, reviewed 196, run 1, skipped 1, submitted 48
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | batches | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -202,7 +202,7 @@ Progress: blocked 2, pending 1, reviewed 195, run 1, skipped 1, submitted 48
 | cq | Sark | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
 | sj | Svalbard and Jan Mayen | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
 | se | Sweden | Europe / Northern Europe | 68 | reviewed | 2026-10-11 | 2529 | 719 | P1001 461 P17 186 P279 12 P31 60 | $22.97 |  | 983 held or categorised items asked (municipal commissioners, agency directors-general); church parish P1001 kept as the parish; strike Q130252154 P1001 (organist), Q10531605 P17 (Finnish honorary title) |
-| gb | United Kingdom | Europe / Northern Europe | 69 | blocked: crash (place-gb.log) |  |  |  |  |  |  |  |
+| gb | United Kingdom | Europe / Northern Europe | 69 | reviewed | 2026-10-12 | 3134 | 455 | P1001 82 P17 292 P279 49 P31 32 | $37.44 |  | descent from QLever on the first retry's crash, then answered by the query service; strike Q25172094 P17 Q174193 (a present diocese's state is the UK) |
 | ax | Åland Islands | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 10 | 0 |  | $0.00 |  |  |
 | al | Albania | Europe / Southern Europe | 28 | reviewed | 2026-10-07 | 93 | 15 | P1001 8 P17 5 P279 2 | $0.64 | 034 |  |
 | ad | Andorra | Europe / Southern Europe | 28 | reviewed | 2026-10-06 | 59 | 13 | P1001 5 P17 3 P279 4 P31 1 | $0.37 | 034 035 |  |
@@ -221,7 +221,7 @@ Progress: blocked 2, pending 1, reviewed 195, run 1, skipped 1, submitted 48
 | rs | Serbia | Europe / Southern Europe | 30 | reviewed | 2026-10-07 | 77 | 0 |  | $0.45 | 025 |  |
 | es | Spain | Europe / Southern Europe | 74 | reviewed | 2026-10-12 | 11339 | 683 | P1001 141 P17 293 P279 58 P31 191 | $162.82 |  | 3,574 held or categorised asked, $163 for 683 lines: ~2,700 held mayoralties lack P31/P279 and mostly fail two_channels (one_channel 2,886, p31_typed_elsewhere 2,413); strike P1001 on two museum directors and a party spokesperson, P31 on two CV entries |
 | be | Belgium | Europe / Western Europe | 64 | submitted | 2026-10-08 | 859 | 41 | P1001 22 P17 5 P279 10 P31 4 | $3.55 | 59046 |  |
-| fr | France | Europe / Western Europe | 75 | pending |  |  |  |  |  |  |  |
+| fr | France | Europe / Western Europe | 75 | blocked: crash (place-fr.log) |  |  |  |  |  |  |  |
 | li | Liechtenstein | Europe / Western Europe | 30 | reviewed | 2026-10-07 | 26 | 0 |  | $0.12 | 025 |  |
 | lu | Luxembourg | Europe / Western Europe | 50 | reviewed | 2026-10-08 | 237 | 17 | P1001 8 P17 7 P279 1 P31 1 | $0.78 | 050 |  |
 | mc | Monaco | Europe / Western Europe | 31 | reviewed | 2026-10-07 | 24 | 0 |  | $0.27 | 026 |  |
