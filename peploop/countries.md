@@ -121,7 +121,7 @@ mint --country <cc> --submit         # creates what the dry run printed, decides
 propose --country <cc>               # P39 rows appear only now; ends by deciding every row and printing the funnel
 verify --country <cc>                # one request per pending row, Opus; ends with the policy's funnel
 send --country <cc>                  # dry: pre-flight, plan, data/peploop/send/<cc>.qs with its routes
-send --country <cc> --submit         # on the user's go: one QS3 batch, then approved removals; rows settle
+send --country <cc> --submit         # one QS3 batch, then approved removals; rows settle
 send --country <cc> --submit --retry # the lines QS3 failed, again, one edit each
 ```
 
@@ -166,31 +166,25 @@ detached (`fetch`, `extract`, `reconcile`, `verify`) with an observer that
 reports the tail of the log, the failure count and the token total; a
 connection error or a `maxlag` wait is a retry, not a bug.
 
-## 4. The checkpoints, and what to show at each
+## 4. The checkpoints, and what to report at each
 
-| after | show | then |
-|---|---|---|
-| `seed` | people per category, the distinct total | go on |
-| `load-positions` | items loaded per lane; the duplicate pairs from §1 and which twin is used | go on |
-| `extract` | `report people`: people per status (how many the scope gate discarded), token total | go on |
-| `reconcile` | verdicts by kind; the creation queue (`resolution` rows with a null `qid`) by office title; where the incumbents' offices landed | go on |
-| `mint` (dry) | candidates per institution class and the groups no office took (`office_unassigned`); `data/mint/<cc>.md` (`report mint`): the funnel by rule, then every `guarded` row with the lines that would create it and every `found` row with the item it names | **stop and show it** |
-| `mint --submit` | created, found at the re-check, failed; the feed line (attestations `retrieved`, reopened verdicts by kind); a re-run creates nothing | **only on the user's go**, then `propose` |
-| `propose` | the funnel it ends with, per property, rule by rule (`report funnel` reprints it) | **stop and show it**: `verify` is the next spend |
-| `verify` | verdicts by kind and the funnel it ends with; every refusal class read by the observer; doubtful `supported` rows listed | go on to `send` |
-| `send` (dry) | routes (create, merge, switch, and what closes without a line: `exists`, `termed`, `ambiguous-statement`, …), lines, rows deferred; above 2% `ambiguous-statement`, stop and report | **stop and show it** |
-| `send --submit` | the QS3 batch id and EditGroups link, rows applied and failed (`send --status`); failed lines go again with `--retry` | **only on the user's go**, then the audit |
+| after | show |
+|---|---|
+| `seed` | people per category, the distinct total |
+| `load-positions` | items loaded per lane; the duplicate pairs from §1 and which twin is used |
+| `extract` | `report people`: people per status (how many the scope gate discarded), token total |
+| `reconcile` | verdicts by kind; the creation queue (`resolution` rows with a null `qid`) by office title; where the incumbents' offices landed |
+| `mint` (dry) | candidates per institution class and the groups no office took (`office_unassigned`); `data/mint/<cc>.md` (`report mint`): the funnel by rule, then every `guarded` row with the lines that would create it and every `found` row with the item it names |
+| `mint --submit` | created, found at the re-check, failed; the feed line (attestations `retrieved`, reopened verdicts by kind); a re-run creates nothing |
+| `propose` | the funnel it ends with, per property, rule by rule (`report funnel` reprints it) |
+| `verify` | verdicts by kind and the funnel it ends with; every refusal class read by the observer; doubtful `supported` rows listed |
+| `send` (dry) | routes (create, merge, switch, and what closes without a line: `exists`, `termed`, `ambiguous-statement`, …), lines, rows deferred |
+| `send --submit` | the QS3 batch id and EditGroups link, rows applied and failed (`send --status`); failed lines go again with `--retry` |
 
-Nothing is written to Wikidata and nothing is pushed to git without the user
-asking. The funnel is the one place to stop unasked: a rule that fires on a
-class the country's shape explains is fine, and a rule firing on a class
-nobody predicted is a finding to report before any request is spent.
-
-Creating an item is the one write peploop cannot take back by editing, so the
-dry `mint` is a stop: an observer reads the skips and the guarded rows, and
-each class it finds wrong becomes a rule in `mint.RULES` with a case in
-`check_mint` -- never a ruling on a row. What is shown first is the funnel
-number (offices created and found against candidates), then the report.
+Every stage goes straight on to the next. A class the rules do not explain
+becomes a rule with its check, in the run, before the next spend; for `mint`
+that is a rule in `mint.RULES` with a case in `check_mint`, never a ruling on a
+row.
 
 The funnel's usual shape: about 60% of `P39` rows reach the verifier; the rest
 fall to a medium-confidence placement, a missing start, a tenure too old, a

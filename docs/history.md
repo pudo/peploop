@@ -208,7 +208,7 @@ that still applies:
 | Trinidad and Tobago | 10-03 | 247 statements; 2 minted | API, 5 batches |
 | Malaysia | 10-06 – 10-08 | 1,909 statements; 28 minted | QS2 chunks `qs-001`–`033`, API `a53c072841` `aed5ba0d5d` `4e87482554`, fixes `38d1f550f6` |
 | Japan | 10-08 – 10-11 | 5,697 rows applied | API `2417c74c8b` `0216ceab44` `6c47bfe35d`, QS3 59098 59101 |
-| Republic of the Congo | 10-12 | 110 lines planned; 4 minted; Brazzaville mayor repaired | QS3 59246 59247 (repair), 59322 59339 59348 (mint; 59301 59323 failed combined) |
+| Republic of the Congo | 10-12 | 110 statements (98 rows applied); 4 minted; Brazzaville mayor repaired | QS3 59371, 59246 59247 (repair), 59322 59339 59348 (mint; 59301 59323 failed combined) |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
 (Colombia), `future_date` and `termed` (Colombia's audit), `recorded_elsewhere`

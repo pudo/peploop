@@ -1,114 +1,75 @@
 # Wikidata PEP workbench
 
-One package, `peploop/`, with two lanes that improve Wikidata's coverage of
-politically exposed persons, so OpenSanctions can read them back:
+One package, `peploop/`, that improves Wikidata's coverage of politically
+exposed persons so OpenSanctions can read them back. Two lanes:
 
-- **peploop** (`peploop/`, `peploop.cli <command>`) — one person at a time: read their Wikipedia
-  articles, extract the offices they held and their birth date, citizenship
-  and death, resolve each office to a position item, decide every proposed
-  statement by rule (and a second model where the rule is unsure), and write
-  what passes. It also creates office items nobody has made yet (`mint`).
-  Spec: `peploop/design.md`; how a country is run: `peploop/countries.md`.
-- **peptree** (`peploop/tree/`, `peploop.cli tree <verb>`) — one country's
-  position items at a time: give each office the type (`P31`), kind (`P279`),
-  state (`P17`) and jurisdiction (`P1001`) it lacks. Spec:
-  `peploop/tree/design.md`; the sweep over every country is
+- **peploop** (`peploop.cli <command>`): people one at a time, from their
+  Wikipedia articles to `P39` and biography statements; `mint` creates
+  missing office items. Spec `peploop/design.md`, runbook `peploop/countries.md`.
+- **peptree** (`peploop.cli tree <verb>`): a country's position items, filling
+  `P31`/`P279`/`P17`/`P1001`. Spec `peploop/tree/design.md`, sweep
   `peploop/tree/sweep.md`.
 
-Both lanes share the type closure (`typegraph.py`), the slow-read cache
-(`memo.py`), the QuickStatements codec (`qs.py`), the send ledger and skeleton
-(`ledger.py`, `send.py`) and the model client (`llm.py`).
+The user's requirements are `docs/requirements.md`. Open work is
+`plans/peploop_next.md` and `plans/peptree_next.md`; what was tried and learned
+is `docs/history.md` (read it before re-measuring something). `old/` is
+retired prior art: never import it, run it, or follow its rules.
 
-Open work for each is `plans/peploop_next.md` and `plans/peptree_next.md`.
-What was tried and learned along the way, including approaches that failed,
-is `docs/history.md` — read it before re-measuring something.
-`docs/research/` holds the measurements the code cites, `docs/institutions.md`
-the institution classes `mint` works through.
+## Sweeps run unattended
 
-`old/` is the retired campaign toolkit (`wd/`, its scripts, recipes, coverage
-ledgers). It is prior art: never import it, run it, or follow its rules.
+A country sweep runs end to end without checking in: every stage, `mint
+--submit`, `send --submit`, `--retry`, undoing our own edits, model spend,
+rule fixes found along the way, and local commits. This replaces the global
+pacing rules inside this repo. Stop and ask only for: a git push, merging
+items or changing ranks, and removing a statement that is not provably ours.
+
+## Requirements
+
+`docs/requirements.md` is the user's statement of intent. When the user
+directly states a requirement (not an answer to a question you asked), append
+it dated, in their words, in that turn. Never add, expand, reword or remove an
+entry yourself.
 
 ## Running things
 
-- Python: `.venv/bin/python -m peploop.cli <command>` and
-  `.venv/bin/python -m peploop.cli tree <verb>` from the repository root, with
-  `set -a && source .envrc && set +a` first (database URL, Anthropic key,
-  QuickStatements token and username). Never install into an environment.
+- `set -a && source .envrc && set +a`, then `.venv/bin/python -m peploop.cli
+  <command>` from the repository root. Never install into an environment.
 - State is one Postgres database (`peploop`); peptree's tables are `ptree_*`.
-- Checks are offline scripts: `.venv/bin/python -m peploop.check_<name>` and
-  `peploop.tree.check_<name>`. Run the ones next to what you touch, and all of them
-  before a commit. Checks that touch the database shadow its tables with
-  temporary ones; a new check must too.
-- All HTTP goes through `peploop/http.py` (descriptive User-Agent, per-host
-  pacing, disk cache). For an ad-hoc curl pass
+- Checks are offline scripts (`peploop.check_<name>`,
+  `peploop.tree.check_<name>`): the ones next to what you touch, and all of
+  them before a commit. A check that touches the database shadows its tables
+  with temporary ones.
+- All HTTP goes through `peploop/http.py`. Ad-hoc curl passes
   `-A "opensanctions-workbench/0.1 (friedrich@opensanctions.org)"`.
 
 ## Writing to Wikidata
 
-- **QuickStatements 3.0 is the only write path**, for both tools, through one
-  send ledger (`peploop/ledger.py`, `peploop/send.py`; tables `wd_batch`,
-  `wd_edit`, `wd_strike`, `wd_removal`). Every batch is recorded before the
-  request, so a lost answer is recovered by name, never sent twice.
-- Every write command is a dry run by default; `--submit` sends. **Submit only
-  when the user has asked for it in that turn.**
-- A new statement is a `+` line (QS3 creates, never merges); a merge into an
-  existing statement is a plain line and is only planned when exactly one
-  statement holds the value. Removals go by statement id only, and only once
-  approved (`removals approve`) — except undoing our own edit after a strike.
-- Destructive edits — removals, rank changes, merges of items — always stop
-  and ask.
-- Statements read from an article carry a reference (peploop: `P143` the
-  wiki, `P4656` the revision, `P813` retrieved; peptree: `S854` + `S813`);
-  structural inferences go unreferenced.
+- QuickStatements 3.0 through the send ledger (`peploop/ledger.py`,
+  `send.py`) is the only write path. Every batch is recorded before the
+  request, so a lost answer is recovered by name, never sent twice. Failed
+  lines go again with `send --retry`.
+- Write commands are dry runs unless given `--submit`.
+- A new statement is a `+` line; a merge is a plain line, planned only when
+  exactly one statement holds the value. Removals go by statement id.
+- Statements read from an article carry a reference; structural inferences
+  don't.
 
-## How decisions are made
+## Judgment
 
-- **Model Wikidata correctly first; what OpenSanctions emits is secondary.**
-  When they disagree, the measured Wikidata convention wins.
-- **Every case gets a disposition by rule.** No review queue, no "later"
-  tier: a class of case that should not be written becomes a rule with its
-  check. A human vetoes after the fact (`audit` in peploop, `strike` in
-  peptree), and that veto is durable.
-- **Mechanical first, a model for the tail, a mechanical gate vetoes.**
-  Retrieval ranks, a model decides from a shortlist shown in full, and a rule
-  can still refuse the pick.
-- **Rule order is load-bearing.** "Does this belong on this item at all"
-  precedes "what kind of tenure is it", and the general rule comes last.
-- **A model pass is code with a committed prompt** (`peploop/prompts/`,
-  `peploop/tree/prompts/`), ledgered on content so a re-run asks only what is new.
-  Instruct it to cite evidence and prefer "unclear" over guessing.
-- **Measure the convention, don't declare it.** Wikidata's guidance is often
-  ambiguous; tally de-facto practice over well-curated items and read
-  exemplars before choosing a property.
-- **Holder-derived priors are corpus-biased.** A generic occupation shows a
-  90–100% one-country share because one wiki documented its people; ask
-  whether the office is bound to one jurisdiction.
+- Model Wikidata correctly first; what OpenSanctions emits is secondary.
+- Measure the convention, don't declare it: tally de-facto practice over
+  well-curated items before choosing a property.
+- Holder-derived priors are corpus-biased: a 90–100% one-country share often
+  means one wiki documented its people. Ask whether the office is bound to
+  one jurisdiction.
+- A class of case that should not be written becomes a rule with its check,
+  never a review queue.
 
 ## Wikidata gotchas
 
-- Many items have no `en` label: fall back `en` → `mul` (`wikidata.best_label`).
-- `wbgetentities` hides transient errors in HTTP-200 bodies and answers a
-  merged item under the target's id; `peploop/wikidata.py:fetch_items` handles
-  both.
-- Time precision below 9 (century, millennium) renders as a misleading year.
-  Compare two dates at the precision they share; a whole office at 0% date
-  agreement is a comparison bug before it is a parser bug.
-- Hijri dates are not converted; a lane dated only in AH yields no term.
-- `wdt:` returns best-rank values only, for every property: one preferred
-  statement hides the normal ones and a deprecated one vanishes. Ask "does
-  this hold anywhere" with `p:P31/ps:P31`, and keep `wdt:` for "the current
-  value".
-- Never read Wikidata's state through a cache: our own writes change it. State
-  reads use `max_age=0`.
-- QS3 backs off only on HTTP 429 and does not wait out maxlag, and a failed
-  command reports no reason: re-send a run's failed lines with `send --retry`.
-- WDQS: statement-node scans time out; an unbounded `wdt:P279*` inside
-  `FILTER NOT EXISTS` 504s; ~150+ `VALUES` items overflow a GET (414); a 200
-  with truncated JSON is a deterministic timeout — bisect the chunk, never
-  retry it whole, never cache it.
-- A country's position set contains other countries' offices: an inbound
-  ambassadorship is scoped to the receiving state. Don't separate inbound
-  from outbound by `P17` (predecessor states break it).
-- PetScan's "uses Q5" passes category items; check `P31=Q5` yourself.
-  Category membership is a candidate, never a fact.
-- References extracted from wikitext arrive HTML-escaped (`&amp;`).
+- `wdt:` returns best-rank values only: ask "does this hold anywhere" with
+  `p:P31/ps:P31`.
+- Never read Wikidata's state through a cache; state reads use `max_age=0`.
+- WDQS: statement-node scans time out; unbounded `wdt:P279*` inside `FILTER
+  NOT EXISTS` 504s; ~150+ `VALUES` items 414; a 200 with truncated JSON is a
+  deterministic timeout: bisect, never retry whole, never cache.
