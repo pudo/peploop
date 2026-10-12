@@ -167,12 +167,11 @@ def discover(c: countries.Country, log: Callable[[str], None]) -> dict[str, list
         try:
             rows = wd.sparql(query % {"c": c.qid, **extra})
         except RuntimeError:
-            if lane != "descent":
-                raise
-            # The UK's scope is too large for the query service in any shape;
-            # QLever's dump is days old, but load reads every item live.
+            # The UK's descent and France's orphans are too large for the query
+            # service in any shape; QLever's dump is days old, but load reads
+            # every item live.
             log(f"lane {lane}: cut off by the query service, asking QLever")
-            rows = wd.qlever(DESCENT_PLAIN % {"c": c.qid})
+            rows = wd.qlever((DESCENT_PLAIN if query is DESCENT else query) % {"c": c.qid, **extra})
         skipped = [r["pos"] for r in rows if not ITEM.fullmatch(r["pos"])]
         if skipped:  # a somevalue P39 binds a blank node, which no query can pin
             log(f"lane {lane}: skipped {len(skipped)} non-item values")

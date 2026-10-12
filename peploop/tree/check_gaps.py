@@ -280,6 +280,12 @@ def discovery() -> None:
     finally:
         wd.sparql, wd.qlever = real, real_q
     expect(found.get("Q2") == ["descent"], "a descent the query service cuts off is asked of QLever")
+    wd.sparql, wd.qlever = (lambda q, max_age=0: (_ for _ in ()).throw(RuntimeError("cut off"))), lambda q: [{"pos": "Q3"}]
+    try:
+        found = load.discover(XX, lambda m: None)
+    finally:
+        wd.sparql, wd.qlever = real, real_q
+    expect(set(found["Q3"]) >= {"descent", "usage", "orphan"}, "so is any other lane")
 
 
 def bisection() -> None:

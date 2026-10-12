@@ -39,8 +39,8 @@ log.
    abroad), predecessor (scoped to a predecessor state). A filter drops what
    is not an office (an item typed as a class, an occupation, a place, a
    generic class from the generic-positions list), each with its reason.
-   A descent the query service cuts off (the UK's scope is too large for it)
-   is asked of QLever, whose dump lags by days; every item is then read live.
+   A lane the query service cuts off (the UK's descent, France's orphans) is
+   asked of QLever, whose dump lags by days; every item is then read live.
 3. **gaps** (`gaps.py`): per kept item, the missing `P17`, `P1001`, `P279` or
    metaclass, and the *class fix* — a well-formed office plainly of a FATF
    category whose chain does not reach that category's class gets the class as
