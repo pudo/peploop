@@ -352,6 +352,8 @@ def census(
         )
         labels = dict(entry.get("labels") or {})
         per = entry.get("per")
+        if per == "units":
+            continue  # a level's offices, built from its units' articles: `mint_units`
         if per is None:
             out.append(Anchor(key=entry["key"], labels=labels, **base))
             continue
@@ -1165,7 +1167,8 @@ def write_candidates(country: str, clusters: dict[str, Cluster],
             gone = conn.execute(
                 "UPDATE office_candidate SET status = 'superseded', updated_at = now()"
                 " WHERE country = %s AND NOT (ref = ANY(%s)) AND status <> ALL(%s)"
-                " AND status <> 'superseded' AND decided_by IS NULL RETURNING id",
+                " AND status <> 'superseded' AND decided_by IS NULL"
+                " AND NOT ('unit' = ANY(origin)) RETURNING id",
                 (country, list(clusters), list(PROTECTED_STATUSES)),
             ).fetchall()
             stats["superseded"] = len(gone)
@@ -1457,7 +1460,25 @@ def _attestations(ids: Sequence[int]) -> dict[int, list[Attestation]]:
             acting=bool(entry.get("acting")), quotes=list(entry.get("quotes") or []),
             person_label=wikidata.best_label({"labels": labels or {}}),
         ))
+    # A unit's office is attested by the unit's own article naming its holder.
+    units = db.conn().execute(
+        "SELECT id, draft -> 'unit' FROM office_candidate WHERE id = ANY(%s) AND draft ? 'unit'",
+        (list(ids),)).fetchall()
+    for cid, unit in units:
+        out.setdefault(cid, []).append(unit_attestation(unit))
     return out
+
+
+def unit_attestation(unit: dict[str, Any]) -> Attestation:
+    """The holder a unit's article names, as the one attestation of its office."""
+    quotes = [unit.get("quote") or ""]
+    if unit.get("source"):
+        quotes.append(f"Every unit of the level has the office: {unit['source']}")
+    return Attestation(
+        person=f"unit:{unit['qid']}", current=True, title=unit.get("quote"),
+        jurisdiction=unit.get("label"), lang="en", quotes=[q for q in quotes if q],
+        person_label=f"{unit.get('holder')}, named as the current holder by {unit.get('url')}",
+    )
 
 
 def load_candidates(country: str, ids: Sequence[int] | None = None,
@@ -1517,6 +1538,7 @@ class Context:
         claims: Callable[[Sequence[str]], dict[str, dict[str, Any]]] | None = None,
         diplomatic: Callable[[str], bool] | None = None,
         types: Callable[[str], set[str]] | None = None,
+        places: Callable[[str], list[str]] | None = None,
     ):
         self.country = country
         self.state_qid = state_qid or positions.country_qid(country)
@@ -1537,6 +1559,8 @@ class Context:
             lambda qid: positions.DIPLOMATIC_CLASS in typegraph.of_items([qid]).get(qid, set()))
         #: Every type an item reaches through `P31`/`P279`, itself included.
         self.types = types or (lambda qid: typegraph.of_items([qid]).get(qid, set()))
+        #: The items a place name finds in a live search, best first.
+        self._places = places or (lambda name: offices._search_entities(name, "en"))
         self._labels: dict[str, str] = {}
 
     @property
@@ -1611,6 +1635,32 @@ class Context:
             ).fetchall()
             self._index = [PositionRow(q, l, list(k or []), bool(n)) for q, l, k, n in rows]
         return self._index
+
+    def local_place(self, name: str | None) -> tuple[str, str | None] | None:
+        """The one live municipality of this state a name finds, with its council.
+
+        Categorize may cite only the state and its first-level subdivisions,
+        so a mayor's or councillor's town comes back as a name. It resolves
+        when exactly one search hit is a current item of this state typed as a
+        municipality (`MUNICIPAL_CLASSES`); the council is its `P194` when it
+        names exactly one. None when no hit or several qualify.
+        """
+        if not name or not name.strip():
+            return None
+        hits = [q for q in dict.fromkeys(self._places(name.strip())) if q != self.state_qid]
+        claims = self._claims(hits) if hits else {}
+        found = []
+        for qid in hits:
+            entity = claims.get(qid) or {}
+            if self.state_qid not in wikidata.claim_qids(entity, "P17", include_deprecated=False):
+                continue
+            if offices.dissolved(entity) or not self.types(qid) & offices.MUNICIPAL_CLASSES:
+                continue
+            found.append(qid)
+        if len(found) != 1:
+            return None
+        councils = offices._unended(claims[found[0]], "P194")
+        return found[0], councils[0] if len(councils) == 1 else None
 
     def labels_for(self, qids: Iterable[str | None]) -> dict[str, str]:
         wanted = [q for q in dict.fromkeys(qids) if q]
@@ -1812,14 +1862,26 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
     # Failing both, the body the state's offices of this kind agree on. An
     # archetype that sits where another does (`body_from`) takes the measured
     # body first: a deputy's drafted ministry is the minority shape.
-    measured = offices.measured_body(sibs, arch)
+    jurisdiction = draft.get("jurisdiction_qid") or (anchor.jurisdiction if anchor else None)
+    council = None
+    if not jurisdiction and shape.level == "municipality":
+        # A town is never on categorize's lists: it comes back as a name.
+        place = ctx.local_place(draft.get("jurisdiction_name"))
+        if place:
+            jurisdiction, council = place
+        else:
+            problems.append("jurisdiction-unresolved")
+    if not jurisdiction and shape.scoped:
+        jurisdiction = ctx.state_qid
+    # Measured over the offices that govern the same polity: a provincial
+    # minister's cabinet is not the national one, nor another province's.
+    measured = offices.measured_body(sibs, arch, scope=jurisdiction or ctx.state_qid)
     if shape.body_from and measured:
         body = measured
     else:
-        body = draft.get("body_qid") or (anchor.body if anchor else None) or measured
+        body = draft.get("body_qid") or (anchor.body if anchor else None) or council or measured
     if not labels:
         problems.append("labels/none")
-    jurisdiction = draft.get("jurisdiction_qid") or (ctx.state_qid if shape.scoped else None)
     drafted = draft.get("parent_qid")
     measured = set(sibs.parents.get(arch) or ())
     # The state's own offices of the same seat, read by label, outrank the

@@ -1189,3 +1189,27 @@ seat. The sibling label wins over the drafted one: an article's "Minister of
 State in the Ministry of X" is minted as Jamaica's "… at the Ministry of X".
 Parliamentary secretaries (Jamaica, Trinidad and Tobago) are a third kind
 with 25 items worldwide and no class of their own; they get no archetype.
+
+### 10q. State and local offices of a federation (Australia, measured 2026-10-12)
+
+Over peptree's 842 subnational items kept for Australia (`Q408`), read live.
+
+| kind | items (held) | shape |
+|---|---|---|
+| state minister | 285 (237) | `P31 Q294414` 232; `P279 Q83307` 129, a topical minister class 80, none 75; `P1001` the state (SA 174, NSW 76, WA 20, NT 6, Tas 3, Qld 2, Vic 0); `P361` the state's cabinet or executive council 230 |
+| mayoralty | 185 (86) | `P31 Q4164871` 125, `Q294414` 59; `P279 Q30185` 171, lord mayor `Q11902879` 8; `P1001` the local government area, 23 the state; `P361` the area's council (`P2389` 5) |
+| council seat | 142 of 176 "council" items | "member of X Council", `P279 Q708492`, `P1001` the area, `P361` the council |
+| state judge | 27 (25) | supreme court judge `Q117826617` 6, judge `Q16533` 5, chief justice 6; `P1001` the state; `P361` the court |
+
+Local government areas are `P31` a per-state subclass of `Q1867183` (local
+government area of Australia, `P279` `Q3299260` local government area). An
+area names its council under `P194` (an item typed `Q3308596`) and its
+mayoralty under `P1313`. Of 698 current areas with an English article, 144
+have a mayoralty: SA 66%, NSW 28%, Vic 27%, WA 22%, Tas 10%, NT 4%, Qld 2%.
+
+So a provincial minister keeps the `minister` archetype, scoped to its
+subdivision, with the body its subdivision's ministers share (never the
+national cabinet: the body tally is per scope). A council seat is
+`councillor`: `Q708492`, the area under `P1001`, its council under `P361`.
+A mayoralty stays plain `Q30185` whatever the title (lord mayor, shire
+president): that is the overwhelming convention.

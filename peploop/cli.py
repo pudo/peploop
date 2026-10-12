@@ -19,6 +19,7 @@ import click
 from peploop import db, ledger, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
+from peploop import mint_units
 from peploop import outbox
 from peploop.tree import audit as tree_audit
 from peploop.tree import outbox as tree_outbox
@@ -911,6 +912,9 @@ def mint_(country: str, limit: int | None, submit: bool) -> None:
     stats = mint.categorize(country, log=click.echo)
     click.echo("categorize: " + json.dumps({k: v for k, v in stats.items() if k not in ("clusters", "truncated")},
                                            sort_keys=True))
+    units = mint_units.build(country, log=click.echo)
+    if units:
+        click.echo("units: " + json.dumps(dict(sorted(units.items()))))
     stats = mint.verify(country, threads=VERIFY_THREADS, log=click.echo)
     for (status, rule), n in sorted((stats.get("funnel") or {}).items(), key=lambda kv: -kv[1]):
         click.echo(f"{n:5d}  {status:10s} {rule}")

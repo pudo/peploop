@@ -174,7 +174,7 @@ For every office, whatever its decision:
 
   | archetype | the seat |
   |---|---|
-  | `minister` | a minister of the national government |
+  | `minister` | a minister of the national government, or of the government of a listed subdivision (a state or provincial cabinet seat, scoped to that subdivision) |
   | `deputy_minister` | a deputy, vice- or first deputy minister of a national ministry |
   | `minister_of_state` | a minister of state attached to a national ministry or the prime minister's office, below its minister |
   | `legislator` | a member of a chamber or assembly |
@@ -184,6 +184,7 @@ For every office, whatever its decision:
   | `speaker` | the president or speaker of a legislative chamber |
   | `governor` | the executive head of a subdivision |
   | `mayor` | the executive head of a municipality |
+  | `councillor` | a seat on a municipality's council: "member of X Council", "councillor of X" |
   | `agency_head` | the head of a state agency, directorate, office, regulator or oversight body |
   | `central_bank_governor` | the governor of the central bank |
   | `prosecutor_general` | the head of the national prosecution service |

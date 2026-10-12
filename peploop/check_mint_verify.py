@@ -294,10 +294,20 @@ def check_offices_fixes(expect: Any) -> None:
     expect(dspec.body_qid == "Q911", f"but never replaces the body a draft named: {dspec.body_qid}")
     cabinet = siblings()
     cabinet.bodies_by_archetype = {"minister": Counter({COUNCIL: 12, BODY: 1})}
+    cabinet.bodies_by_scope = {("minister", STATE): Counter({COUNCIL: 12, BODY: 1}),
+                               ("minister", "Q901"): Counter({"Q931": 40})}
     unbodied = cand(draft={"body_qid": None})
     sspec, _p = mint.build_spec(unbodied, ctx(siblings=cabinet))
     expect(sspec.body_qid == COUNCIL,
            f"a draft with no body takes the one the state's ministers share: {sspec.body_qid}")
+    provincial = cand(draft={"body_qid": None, "jurisdiction_qid": "Q901"})
+    pspec, _p = mint.build_spec(provincial, ctx(siblings=cabinet))
+    expect(pspec.body_qid == "Q931" and pspec.jurisdiction == "Q901",
+           f"and a provincial minister takes its province's cabinet, never the state's: {pspec.body_qid}")
+    lonely = cand(draft={"body_qid": None, "jurisdiction_qid": "Q932"})
+    lspec, _p = mint.build_spec(lonely, ctx(siblings=cabinet))
+    expect(lspec.body_qid is None,
+           f"nor another province's, where its own ministers share none: {lspec.body_qid}")
     town = cand(draft={"archetype": "mayor", "body_qid": None, "jurisdiction_qid": "Q901",
                        "labels": {"en": "Mayor of Ostra", "es": "alcalde de Ostra"}})
     mspec, _p = mint.build_spec(town, ctx())
@@ -397,6 +407,7 @@ def check_build_spec(expect: Any) -> None:
     expect(minister == {}, f"while a minister's item takes no deputy title, Cyrillic either: {minister}")
     sib = siblings()
     sib.bodies_by_archetype = {"minister": Counter({COUNCIL: 12})}
+    sib.bodies_by_scope = {("minister", STATE): Counter({COUNCIL: 12})}
     sib.labels = [f"Minister of State at the Ministry of {x} of Alvania" for x in ("Finance", "Labour")]
     junior = cand(draft={"archetype": "minister_of_state", "single_seat": False, "body_qid": BODY,
                          "labels": {"en": "Minister of State in the Ministry of Health of Alvania"}})
@@ -452,6 +463,34 @@ def check_build_spec(expect: Any) -> None:
     expect([c["mainsnak"]["property"] for c in data["claims"]] == ["P31", "P279", "P17", "P1001", "P361"],
            "the payload carries the five structural claims")
     expect(mint.spec_from(mint.asdict(spec)) == spec, "a stored spec reads back equal")
+
+    # A town comes back from categorize as a name; one live hit resolves it.
+    towns = {
+        "Q960": {"claims": {"P17": _claim("P17", STATE), "P194": _claim("P194", "Q961")}},
+        "Q962": {"claims": {"P17": _claim("P17", STATE), "P576": [{"rank": "normal", "mainsnak": {
+            "datavalue": {"value": {"time": "+1990-00-00T00:00:00Z", "precision": 9}}}}]}},
+        "Q963": {"claims": {"P17": _claim("P17", "Q999")}},
+        "Q964": {"claims": {"P17": _claim("P17", STATE)}},
+    }
+    search = {"Lindo": ["Q960", "Q962", "Q963", "Q964"], "Twin": ["Q960", "Q965"]}
+    local = ctx(claims=lambda qids: {q: towns.get(q, {}) for q in qids},
+                places=lambda name: search.get(name, []),
+                types=lambda qid: {"Q15284"} if qid in ("Q960", "Q962", "Q963", "Q965") else {"Q5"})
+    towns["Q965"] = towns["Q960"]
+    expect(local.local_place("Lindo") == ("Q960", "Q961"),
+           f"one current town of the state resolves, with its council: {local.local_place('Lindo')}")
+    expect(local.local_place("Twin") is None, "two qualifying towns resolve to neither")
+    expect(local.local_place("Nowhere") is None and local.local_place(None) is None, "nor does no hit")
+    mayor, problems = mint.build_spec(cand(draft={"archetype": "mayor", "body_qid": None,
+                                                  "jurisdiction_name": "Lindo",
+                                                  "labels": {"en": "Mayor of Lindo"}}), local)
+    expect(mayor.jurisdiction == "Q960" and mayor.body_qid == "Q961" and "jurisdiction-unresolved" not in problems,
+           f"a mayor named by its town is scoped to it and sits in its council: {mayor.jurisdiction} {mayor.body_qid} {problems}")
+    seat, problems = mint.build_spec(cand(draft={"archetype": "councillor", "body_qid": None,
+                                                 "jurisdiction_name": "Twin",
+                                                 "labels": {"en": "member of Twin Council"}}), local)
+    expect(seat.jurisdiction == STATE and "jurisdiction-unresolved" in problems,
+           f"an unresolved town falls to the state, for the guard to refuse: {seat.jurisdiction} {problems}")
 
 
 def check_settle(expect: Any) -> None:

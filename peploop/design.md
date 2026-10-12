@@ -309,6 +309,13 @@ queue) has the mechanics; the decisions are these.
   somebody holds it now. A census entry is a prompt for offices nobody's
   article names, not evidence: one no mention attests is skipped. The floor
   is applied in code before a model is asked, and neither model can lower it.
+- **A level's offices come from its units' own articles.** A census entry
+  with `per: units` names a level (a country's local government areas) and
+  the office each unit has. `mint_units` makes a candidate for every current
+  unit that lacks it, attested by the head its own article names, so the
+  mayoralties of towns whose mayor has no article are not left out. A level
+  where fewer than half the units have the office is started only on a source
+  saying every unit has it. Verify and the guard decide these as any other.
 - **The shape is fixed, not drafted.** Each kind of office is an archetype in
   `offices.py` -- its `P279` parent, how it names its body, whether it is
   scoped, whether it is one seat -- with the parents measured across other
@@ -780,6 +787,7 @@ peploop/
   offices.py     mint: the archetypes, the payload, the guard, the live duplicate reads
   mint.py        mint: the queue, the floor, categorize, verify, the disposition rules
   mint_write.py  mint: create crash-safely, recover, feed back, report, audit
+  mint_units.py  mint: a level's offices, one candidate per unit, from the unit's article
   check_neutral.py    fails when the code names a country it has run
   check_review.py     drives the review TUI headlessly over shadowed tables
   check_audit.py      an audited proposal survives a re-propose

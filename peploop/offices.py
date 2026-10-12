@@ -95,6 +95,12 @@ ARCHETYPES: dict[str, Archetype] = {
     # existing municipal items subclass.
     "mayor": Archetype("Q30185", description="mayor of {jurisdiction}", single_seat=True,
                        level="municipality"),
+    # A seat on a local council: one state's 142 measured council seats are
+    # "member of X Council", `P279` council member, `P1001` the local area and
+    # the council under `P361`.
+    "councillor": Archetype("Q708492", description="member of the {body}",
+                            unbodied="member of a local council of {jurisdiction}",
+                            level="municipality"),
     # Of ~3,200 heads of a government agency, 89% are typed `Q4164871`, and
     # 2,088 name the agency under `P2389` against 1,265 under `P361`. The class
     # follows the title word: director, director general, chairperson.
@@ -199,6 +205,7 @@ MUNICIPAL_CLASSES = frozenset({
     "Q5195043",  # borough
     "Q3957",     # town
     "Q7930989",  # city or town
+    "Q3299260",  # local government area: a council's area, mayor and all
 })
 
 #: The parents an enterprise head may take by its title word: director general,
@@ -474,6 +481,10 @@ class Siblings:
     #: Per archetype, the bodies its offices name under the archetype's own
     #: body property: what `body_for` drafts a body from.
     bodies_by_archetype: dict[str, Counter[str]] = field(default_factory=dict)
+    #: The same, per archetype and the polity the office governs (its `P1001`,
+    #: else the state): a state's provincial ministers sit in each province's
+    #: cabinet, and none of those is a national minister's body.
+    bodies_by_scope: dict[tuple[str, str], Counter[str]] = field(default_factory=dict)
     #: How many current offices were tallied, and how many carry a label in
     #: each language: what `label_langs` measures the guard's languages by.
     offices: int = 0
@@ -520,27 +531,35 @@ def metaclass_for(siblings: Siblings, parent: str, default: str | None = None) -
             or _mode(siblings.metaclasses) or PUBLIC_OFFICE)
 
 
-def body_for(siblings: Siblings, archetype: str, min_agree: int | None = None) -> str | None:
+def body_for(siblings: Siblings, archetype: str, min_agree: int | None = None,
+             scope: str | None = None) -> str | None:
     """The body the state's offices of this kind are seats in, when they agree on one.
 
     A draft often names no body, and an office minted without one sits in
     nothing its siblings sit in: one state's ministers of state all name the
     cabinet. The most common body of the archetype, when at least `min_agree`
     offices name it (`MEASURED_BODY_USES` by default) and no other is named
-    as often; None otherwise.
+    as often; None otherwise. `scope` counts only the offices governing that
+    polity.
     """
     min_agree = MEASURED_BODY_USES if min_agree is None else min_agree
-    ranked = (siblings.bodies_by_archetype.get(archetype) or Counter()).most_common(2)
+    tally = (siblings.bodies_by_archetype.get(archetype) if scope is None
+             else siblings.bodies_by_scope.get((archetype, scope)))
+    ranked = (tally or Counter()).most_common(2)
     if not ranked or ranked[0][1] < min_agree or (len(ranked) > 1 and ranked[1][1] == ranked[0][1]):
         return None
     return ranked[0][0]
 
 
-def measured_body(siblings: Siblings, archetype: str) -> str | None:
-    """The body the state's offices of this kind sit in, or of its `body_from` kind."""
+def measured_body(siblings: Siblings, archetype: str, scope: str | None = None) -> str | None:
+    """The body the state's offices of this kind sit in, or of its `body_from` kind.
+
+    `scope` is the polity the new office governs; only offices governing the
+    same one are counted.
+    """
     shape = ARCHETYPES[archetype]
-    return body_for(siblings, archetype) or (
-        body_for(siblings, shape.body_from) if shape.body_from else None)
+    return body_for(siblings, archetype, scope=scope) or (
+        body_for(siblings, shape.body_from, scope=scope) if shape.body_from else None)
 
 
 #: An office named as a seat attached to a ministry, office or department:
@@ -1156,9 +1175,12 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
                 typed |= narrow
                 out.parents.setdefault(narrow.pop(), Counter())[kind] += 1
         out.bodies.update(list(dict.fromkeys(_values(entity, "P361") + _values(entity, "P2389"))))
+        scopes = list(dict.fromkeys(_values(entity, "P1001"))) or [state_qid]
         for arch in typed:
-            out.bodies_by_archetype.setdefault(arch, Counter()).update(
-                list(dict.fromkeys(_values(entity, ARCHETYPES[arch].body_property))))
+            named = list(dict.fromkeys(_values(entity, ARCHETYPES[arch].body_property)))
+            out.bodies_by_archetype.setdefault(arch, Counter()).update(named)
+            for scope in scopes:
+                out.bodies_by_scope.setdefault((arch, scope), Counter()).update(named)
     return out
 
 
