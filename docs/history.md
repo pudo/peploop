@@ -39,6 +39,9 @@ cannot.
   edit, and for five Japanese members with three or more new P39s that edit
   failed whole (19 lines, batch 59098) while the same lines one edit each all
   landed (59101) — so peploop's additions go out uncombined.
+  Creations failed the same way, with nothing invalid in them: Congo's five
+  offices combined failed whole twice (59301, 59323), and the same items sent
+  one edit per line landed (59322, 59339) — so creations go out uncombined too.
 - **A strike that lived only in prose went live.** Batch 59046 sent a line a
   reviewer had struck in a `sweep.md` note; it had to be removed by GUID. Strikes
   and removals became ledger rows the sender honours.

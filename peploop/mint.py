@@ -1649,11 +1649,13 @@ def _run_labels(cand: Candidate) -> list[str]:
 #: still attests the office's existence, but as an alias it would name a
 #: different seat and let a later search place its holders here. Matched on
 #: folded text, so the East Slavic acting forms ("исполняющий
-#: обязанности", "врио", "и. о.", "выконваючы абавязкі") and deputy forms
-#: ("заместитель", "намеснік", "заступник") are matched transliterated.
+#: обязанности", "временный", "тимчасовий", "врио", "и. о.", "выконваючы
+#: абавязкі") and deputy forms ("заместитель", "намеснік", "заступник") are
+#: matched transliterated.
 ACTING = re.compile(
     r"\b(acting|interim|interino|interina|encargad[oa]|ad hoc|provisional"
-    r"|ispolna\w*|obazannost\w*|vrio|vykonva\w*|abavazk\w*)\b|\bi\. ?o\."
+    r"|ispolna\w*|obazannost\w*|vrio|vykonva\w*|abavazk\w*|vremenn\w*|timcasov\w*|tymczasow\w*)\b"
+    r"|\bi\. ?o\."
 )
 DEPUTY = re.compile(
     r"\b(substitute|suplente|alternate|co[- ]?judge|conjuez|conjueza|deputy|vice|vice-?\w+"
@@ -1677,6 +1679,32 @@ def not_the_seat(title: str, labels: dict[str, str], archetype: str | None = Non
     return bool(FIRST.search(title)) != first
 
 
+#: Languages whose articles name an office in the instrumental after "was"
+#: ("był sekretarzem generalnym", "был председателем"), and the folded endings
+#: of that case. A title so inflected is a phrase lifted from a sentence, not
+#: a name the office goes by.
+INSTRUMENTAL_LANGS = frozenset({"pl", "ru", "uk", "be"})
+INSTRUMENTAL = re.compile(r"^\S+(em|om|ym|im)\b")
+
+
+def lifted(folded: str, lang: str, labels: dict[str, str], state: set[str]) -> bool:
+    """Whether a folded title is not a name for the office but a fragment of one.
+
+    Either a title declined as a sentence declines it (`INSTRUMENTAL`), or a
+    label cut short of more than the state's name ("Président de l'Assemblée"
+    drops "nationale"), which names the seat of every body of its kind. A label
+    less only the state ("Minister of Health") is how the state's own articles
+    name it, and stays.
+    """
+    if lang in INSTRUMENTAL_LANGS and INSTRUMENTAL.match(folded):
+        return True
+    for text in labels.values():
+        label = _fold(text)
+        if label.startswith(folded + " ") and _stems(label[len(folded):], frozenset()) - state:
+            return True
+    return False
+
+
 def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str],
                      state_names: Iterable[str] = (), archetype: str | None = None,
                      ) -> dict[str, list[str]]:
@@ -1687,9 +1715,10 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
     never one of the labels, never a bare seat word ("Governor", "maire": the
     role words and `SEAT_WORDS`), which names every office of its kind and
     would make a live search find them all,
-    and never a title that marks another seat (`not_the_seat`), nor one written
-    in another language than the article's: a title whose words all sit in
-    another language's label and not in its own language's label.
+    and never a title that marks another seat (`not_the_seat`), nor a fragment
+    of a name (`lifted`), nor one written in another language than the
+    article's: a title whose words all sit in another language's label and not
+    in its own language's label.
     """
     taken = {_fold(text) for text in labels.values()}
     drop = SORT_ROLE_STEMS | state_stems(state_names)
@@ -1719,6 +1748,8 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
         if not folded or folded in taken or offices.QID.search(a.title):
             continue
         if not _stems(a.title, drop) or not_the_seat(folded, labels, archetype):
+            continue
+        if lifted(folded, a.lang, labels, state):
             continue
         if misfiled(a.title, a.lang):
             continue

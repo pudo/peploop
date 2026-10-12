@@ -213,7 +213,8 @@ def create(tool: str, name: str, rows: list[tuple[str, str, list[str], int]], lo
 
     Each row is one item: its `CREATE` line first, then its `LAST` lines. The
     rows go out ordered by `ref`, which is how `creations` finds each one's
-    `CREATE` command again, here or after a crash.
+    `CREATE` command again, here or after a crash. They go out uncombined:
+    QS3 fails a combined batch of creations whole.
     """
     rows = sorted(rows, key=lambda r: r[3])
     batch_id = ledger.open_batch(tool, "create", name)
@@ -222,7 +223,7 @@ def create(tool: str, name: str, rows: list[tuple[str, str, list[str], int]], lo
     ledger.record_edits(batch_id, "create", [(cc, k, "\n".join(lines), [ref]) for cc, k, lines, ref in rows])
     if on_recorded is not None:
         on_recorded(name)
-    qs_id = qs3.submit([line for _, _, lines, _ in rows for line in lines], name)
+    qs_id = qs3.submit([line for _, _, lines, _ in rows for line in lines], name, combine=False)
     ledger.bind_qs3(batch_id, qs_id)
     log(f"sent as QS3 batch {qs_id}: {qs3.link(qs_id)}  {qs3.EDITGROUPS.format(qs_id)}")
     row = qs3.wait(qs_id, log)

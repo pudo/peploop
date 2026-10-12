@@ -97,12 +97,14 @@ class FakeQS3:
         self.next_qid = 7001
         self.fail: set[str] = set()
         self.crash: str | None = None
+        self.combined: dict[int, bool] = {}
 
     def submit(self, lines: list[str], name: str, combine: bool = True) -> int:
         if self.crash == "before":
             raise Crash()
         qs_id = 90000 + len(self.batches)
         self.batches[qs_id] = (name, list(lines))
+        self.combined[qs_id] = combine
         if self.crash == "after":
             raise Crash()
         return qs_id
@@ -138,6 +140,7 @@ def check_create(expect: Any, conn: psycopg.Connection) -> None:
     out = mint_write.create(COUNTRY, recheck=clean, lookup=lambda _c: None)
     expect(len(FAKE.batches) == 1, "one QS3 batch for every guarded office")
     lines = next(iter(FAKE.batches.values()))[1]
+    expect(not any(FAKE.combined.values()), "creations go out uncombined")
     expect(lines[0].startswith("CREATE /* Create office: Mayor of Velmora [peploop-mint:zz:create-one:")
            and lines[1].startswith('LAST\tLen\t"Mayor of Velmora"'),
            "an item is CREATE and its LAST lines, the intent tag in the summary")

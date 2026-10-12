@@ -340,6 +340,14 @@ def check_build_spec(expect: Any) -> None:
         {"fr": "maire de Velmora"}, ["Alvania"], "mayor")
     expect(mayors == {"fr": ["maire de la ville de Velmora"]},
            f"nor is a seat word of another archetype, the mayor's: {mayors}")
+    lifted = mint.attested_aliases(
+        [mint.Attestation(person=f"Q{i}", title=t, lang=lang, current=True) for i, (t, lang) in enumerate([
+            ("sekretarzem generalnym Partii Jedności", "pl"), ("sekretarz generalny Partii Jedności", "pl"),
+            ("временный генеральный секретарь Партии единства", "ru"),
+            ("Président de l'Assemblée", "fr"), ("Président de l'Assemblée nationale", "fr")])],
+        {"fr": "président de l'Assemblée nationale de Alvania"}, ["Alvania"])
+    expect(lifted == {"pl": ["sekretarz generalny Partii Jedności"], "fr": ["Président de l'Assemblée nationale"]},
+           f"a title declined from a sentence, an interim one, or a label cut short of its body is no alias: {lifted}")
     sib = siblings()
     sib.offices, sib.label_langs = 10, Counter({"es": 10})
     drafted = cand(draft={"labels": {"en": "Minister of Health of Alvania",
