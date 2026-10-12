@@ -9,3 +9,4 @@
   set of requirements, but is required to record them.
 - 2026-10-12: Changes to the repo's instructions simplify them overall
   instead of expanding them.
+- 2026-10-12: Also mint empty positions if well-justified.

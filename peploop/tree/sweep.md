@@ -2,7 +2,7 @@
 
 Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are set by the sweeping agent and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
-Progress: blocked 1, reviewed 197, run 1, skipped 1, submitted 48
+Progress: blocked 1, reviewed 196, run 1, skipped 1, submitted 49
 
 | cc | name | region | batch | status | run | kept | lines | by property | cost | batches | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -227,7 +227,7 @@ Progress: blocked 1, reviewed 197, run 1, skipped 1, submitted 48
 | mc | Monaco | Europe / Western Europe | 31 | reviewed | 2026-10-07 | 24 | 0 |  | $0.27 | 026 |  |
 | nl | Netherlands | Europe / Western Europe | 72 | reviewed | 2026-10-11 | 5472 | 47 | P1001 20 P17 13 P279 11 P31 3 | $6.61 |  | state Q55 (offices name it 5,382 times, the Kingdom 95); descent from QLever; 5,074 bot-made municipal offices mostly complete; strike P1001 on two professor ranks and the Dichter der Nederlanden |
 | ch | Switzerland | Europe / Western Europe | 62 | submitted | 2026-10-08 | 592 | 25 | P1001 9 P17 9 P279 3 P31 4 | $2.08 | 59044 |  |
-| au | Australia | Oceania / Australia and New Zealand | 65 | reviewed | 2026-10-11 | 1166 | 88 | P1001 10 P17 20 P279 43 P31 15 | $11.81 |  | UK of GB and Ireland is no predecessor (its offices loaded as Australia's); NSW subdivision query as FILTER; PM was subnational via Swedish 'premiärminister', level words now own-language only; strike Q5261060 P279 Q877955 (deputy premier), Q135293478 P17 + Q135293462/Q135293464 P31 (CV entries), Q19647325 P1001 (sports body) |
+| au | Australia | Oceania / Australia and New Zealand | 65 | submitted | 2026-10-11 | 1166 | 88 | P1001 10 P17 20 P279 43 P31 15 | $11.81 | 59250 | UK of GB and Ireland is no predecessor (its offices loaded as Australia's); NSW subdivision query as FILTER; PM was subnational via Swedish 'premiärminister', level words now own-language only; strike Q5261060 P279 Q877955 (deputy premier), Q135293478 P17 + Q135293462/Q135293464 P31 (CV entries), Q19647325 P1001 (sports body) |
 | cx | Christmas Island | Oceania / Australia and New Zealand | 32 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | cc | Cocos (Keeling) Islands | Oceania / Australia and New Zealand | 37 | reviewed | 2026-10-06 | 0 | 0 |  | $0.00 |  |  |
 | nz | New Zealand | Oceania / Australia and New Zealand | 52 | reviewed | 2026-10-08 | 262 | 62 | P1001 20 P17 15 P279 27 | $2.58 | 052 |  |
