@@ -1,0 +1,99 @@
+# Wikipedia categories seeding the Republic of the Congo run: one PetScan query per entry.
+#
+# OpenSanctions' wd_categories.yml has no Congo entry, so every entry below is
+# measured here (PetScan, 2026-10-12) and nothing is inherited. Counts are
+# distinct sitelinked items reached, then how many no earlier entry reached.
+#
+# Congo is a small corpus: the whole tree below is ~350 people. fr.wikipedia is
+# the main wiki and carries the tiers under `Personnalité politique congolaise
+# (RC)` -- "(RC)" is what separates it from the DRC's "(RDC)" tree -- with a
+# `Ministre de la république du Congo` container of 35 portfolio subcats (134
+# of the first 157 people), both chambers' members and presidents, the mayors
+# of Brazzaville and Pointe-Noire, ambassadors by post and the generals.
+# en.wikipedia adds the parliament by chamber, the vice-presidents and the
+# Pan-African Parliament members (66 new under `Political office-holders`).
+# en titles "Republic of the Congo (Léopoldville)" for the DRC of 1960-64:
+# every en entry was read for it, and none below carries it.
+#
+# The current era is the 2015 constitution: Sassou Nguesso re-elected on 15
+# March 2026, Makosso reappointed Prime Minister and his second government (41
+# members, with a restored vice-prime ministership) named by decree on 24 April
+# 2026; the National Assembly elected in July 2022 sits until 2027. Neither
+# wiki has a per-legislature or per-period category below a tier (the fr `du
+# XXIe siècle` bag is 14 pages), so the era cannot be chosen by category: every
+# tier is seeded whole, the scope gate drops the dead at fetch and
+# `policy.P39_MAX_ENDED_YEARS` skips the old tenures.
+#
+# Wikidata already holds 581 Assembly-member statements (`Q21295980`), against
+# ~80 deputies with an article: this run reaches the articled ones only.
+#
+# Left out: fr `Personnalité politique congolaise (RC) du XXe siècle` (17, 2
+# new), `Membre du Conseil de la République représentant le Moyen-Congo` (6, 4
+# new, French Fourth Republic seats), `Première dame` (a spouse, no office),
+# `Personnalité politique congolaise assassinée (RC)` and `Putschiste`
+# (dead); en `Republic_of_the_Congo_politicians_by_party` (106, 6 new),
+# `20th-century_Republic_of_the_Congo_politicians`. There is no judge,
+# magistrate, central-bank (the BEAC is regional) or prefect category on
+# either wiki; `Magistrat congolais (RC)` is empty.
+
+# --- Head of state and government ---
+- category: Président_de_la_république_du_Congo                # 7
+  lang: fr
+  depth: 0
+- category: Premier_ministre_de_la_république_du_Congo         # 21, 16 new
+  lang: fr
+  depth: 0
+
+# --- Cabinet: fr's 35 portfolio subcats, ministres d'État, secrétaires d'État ---
+- category: Ministre_de_la_république_du_Congo                 # container; 145, 134 new
+  lang: fr
+
+# --- Parliament: both chambers with their presidents ---
+- category: Parlementaire_en_république_du_Congo               # Député, Sénateur; 82, 36 new
+  lang: fr
+- category: Président_de_l'Assemblée_nationale_de_la_république_du_Congo   # 4, 0 new
+  lang: fr
+  depth: 0
+- category: Président_du_Sénat_de_la_république_du_Congo       # 3 pages, none sitelinked to an item PetScan returns
+  lang: fr
+  depth: 0
+
+# --- Subnational: Brazzaville and Pointe-Noire ---
+- category: Maire_en_république_du_Congo                       # 18, 3 new
+  lang: fr
+
+# --- Diplomatic service ---
+- category: Diplomate_congolais_(RC)                           # ambassadors by post at d2; 38, 12 new
+  lang: fr
+  depth: 2
+
+# --- Military: the generals are the only way to the general staff ---
+- category: Militaire_congolais_(RC)                           # Général, Amiral, by century; 33, 18 new
+  lang: fr
+
+# --- Party and catch-alls ---
+- category: Personnalité_du_Parti_congolais_du_travail          # ruling party; 20, 3 new
+  lang: fr
+  depth: 0
+- category: Femme_politique_congolaise_(RC)                    # with Ministre congolaise; 25, 6 new
+  lang: fr
+- category: Personnalité_politique_congolaise_(RC)_du_XXIe_siècle   # 14, 6 new
+  lang: fr
+  depth: 0
+- category: Personnalité_politique_congolaise_(RC)             # flat bag; 67, 21 new
+  lang: fr
+  depth: 0
+
+# --- en: parliament by chamber, vice-presidents, Pan-African Parliament ---
+- category: Political_office-holders_in_the_Republic_of_the_Congo   # 160, 66 new
+  lang: en
+  depth: 2
+- category: Ambassadors_of_the_Republic_of_the_Congo           # 31 posts; 26, 4 new
+  lang: en
+- category: 21st-century_Republic_of_the_Congo_politicians     # 41, 2 new
+  lang: en
+- category: Republic_of_the_Congo_women_in_politics            # 30, 3 new
+  lang: en
+- category: Republic_of_the_Congo_politicians                  # 25 pages, 12 new
+  lang: en
+  depth: 0

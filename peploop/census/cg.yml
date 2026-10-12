@@ -1,0 +1,78 @@
+# Offices the state has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-12 live measurement (labels, P31, P17, P361 read
+# in full); nothing below is from memory. No `source` is given: none was
+# checked live, and a source is what lets a one-seat office pass on a single
+# current holder, so it is never guessed.
+#
+# Not here because an item exists: the President `Q10353660`, the
+# Vice-President `Q49001219`, the Prime Minister `Q30101451`, the Foreign
+# Minister `Q18204385`, the portfolio ministers of the `Q112320644`..`Q112320732`
+# batch, the Vice-Prime Minister `Q112320732`, the membership seats of the
+# Assembly `Q21295980` (and its alternates `Q112567889`) and of the Senate
+# `Q21295131`, and the mayor of Brazzaville `Q62515409` (repaired from `P31`
+# rank to an office on 2026-10-12, QS3 59246/59247).
+#
+# Era-split ministry items, not twins: Defence `Q112320665` (1999-2005) and
+# National Defence `Q112320695` (2005-), Territorial Administration
+# `Q112320718` (1997-2002) and `Q112320719` (2002-2016), Industry `Q112320684`
+# and Industrial Development `Q112320681`, Trade `Q112320722` and Commerce
+# `Q112320660` -- each older one holds the 1999-2002 government's name.
+#
+# Absent and not listed: the mayor of Pointe-Noire (no item -- `Q64826327` is
+# Pointe-Noire in Guadeloupe -- but a single municipality takes no census
+# jurisdiction; categorize reaches it from the mayors' articles), departmental
+# prefects (no category on either wiki names one), the central bank governor
+# (the BEAC is regional, not the state's).
+
+# --- Parliament: no presidency item for either chamber ---
+- key: assembly_president
+  class: legislature.leadership
+  archetype: speaker
+  body: Q1969587           # Assemblée nationale, P31 lower house, P17 Q971, P361 Parliament Q4345421
+  labels:
+    fr: président de l'Assemblée nationale de la république du Congo
+    en: President of the National Assembly of the Republic of the Congo
+
+- key: senate_president
+  class: legislature.leadership
+  archetype: speaker
+  body: Q3510840           # Sénat, P31 upper house, P17 Q971, P361 Parliament Q4345421
+  labels:
+    fr: président du Sénat de la république du Congo
+    en: President of the Senate of the Republic of the Congo
+
+# --- Apex courts: no item for either court ---
+# Searched fr and en, and `haswbstatement:P17=Q971` with "Cour"; the
+# Constitutional Court that search returns, `Q3000938`, is the DRC's.
+- key: constitutional_court_president
+  class: judiciary.apex
+  archetype: court_president
+  labels:
+    fr: président de la Cour constitutionnelle de la république du Congo
+    en: President of the Constitutional Court of the Republic of the Congo
+
+- key: supreme_court_president
+  class: judiciary.apex
+  archetype: court_president
+  labels:
+    fr: président de la Cour suprême de la république du Congo
+    en: President of the Supreme Court of the Republic of the Congo
+
+# --- Audit ---
+- key: court_of_accounts_president
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  # No body: no item for the Cour des comptes et de discipline budgétaire was
+  # found (searched fr and en, and `haswbstatement:P17=Q971` with "comptes").
+  labels:
+    fr: président de la Cour des comptes et de discipline budgétaire
+    en: President of the Court of Audit and Budgetary Discipline of the Republic of the Congo
+
+# --- Defence ---
+- key: chief_of_general_staff
+  class: security.defence_command
+  archetype: military_chief_of_staff
+  body: Q458231            # Armed Forces of the Republic of the Congo, P31 armed forces, P17 Q971 (no General Staff item)
+  labels:
+    fr: chef d'état-major général des Forces armées congolaises
+    en: Chief of the General Staff of the Congolese Armed Forces
