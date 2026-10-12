@@ -137,6 +137,25 @@ def main() -> int:
                              qualifiers={"_sources": [{"lang": "zz", "quote": "born"},
                                                       {"lang": "yy", "quote": "born"}]})),
           policy.PENDING, "unverified")
+    check("an open tenure only minor wikis keep open is skipped, however many",
+          policy.decide(case(qualifiers={"P580": time("2026-05-15"),
+                                         "_sources": [{"lang": "zz", "quote": "in office"},
+                                                      {"lang": "yy", "quote": "in office"}]})),
+          policy.SKIPPED, "minor_wiki_only/open")
+    check("the seed language's article clears it",
+          policy.decide(case(qualifiers={"P580": time("2026-05-15"),
+                                         "_sources": [{"lang": "zz", "quote": "in office"},
+                                                      {"lang": "aa", "quote": "in office"}]})),
+          policy.PENDING, "unverified")
+    check("the run state's language is a home language with no citizenship on record",
+          policy.decide(case(state_qid="Q142",
+                             qualifiers={"P580": time("2026-05-15"),
+                                         "_sources": [{"lang": "fr", "quote": "in office"}]})),
+          policy.PENDING, "unverified")
+    check("a closed tenure from a minor wiki is not held to it",
+          policy.decide(case(qualifiers={"P580": time("2018-06-22"), "P582": time("2022-05-13"),
+                                         "_sources": [{"lang": "zz", "quote": "was in office"}]})),
+          policy.PENDING, "unverified")
     check("two articles giving different days are both skipped",
           policy.decide(case("P569", time("1970-01-02"),
                              qualifiers={"_sources": [{"lang": "aa", "quote": "born"}]},
@@ -617,6 +636,31 @@ def main() -> int:
           policy.PENDING, "unverified")
     check("a closed tenure is never superseded",
           policy.decide(case(entity=me, office_spells=ministry)),
+          policy.PENDING, "unverified")
+    cabinet = office(kinds=["foreign minister"])
+    check("a minister open since before the head of government took office is skipped",
+          policy.decide(case(entity=me, position=cabinet, government=time("2024-12-12"),
+                             qualifiers=open_from("2017-12-14"))),
+          policy.SKIPPED, "open_superseded/government")
+    check("one appointed by the current government is kept",
+          policy.decide(case(entity=me, position=cabinet, government=time("2024-12-12"),
+                             qualifiers=open_from("2024-12-20"))),
+          policy.PENDING, "unverified")
+    check("a start in the government's year at year precision is not an earlier one",
+          policy.decide(case(entity=me, position=cabinet, government=time("2024-12-12"),
+                             qualifiers=open_from("2024"))),
+          policy.PENDING, "unverified")
+    check("a deputy minister is not a cabinet seat",
+          policy.decide(case(entity=me, government=time("2024-12-12"),
+                             position=office(kinds=["deputy minister"], kind_qids=["Q26204040"]),
+                             qualifiers=open_from("2017-12-14"))),
+          policy.PENDING, "unverified")
+    check("nor is a governor, whoever heads the government",
+          policy.decide(case(entity=me, position=office(kinds=["governor"]),
+                             government=time("2024-12-12"), qualifiers=open_from("2017-12-14"))),
+          policy.PENDING, "unverified")
+    check("a state whose head of government nobody read is left alone",
+          policy.decide(case(entity=me, position=cabinet, qualifiers=open_from("2017-12-14"))),
           policy.PENDING, "unverified")
 
     print("the verifier:")

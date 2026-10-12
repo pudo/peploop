@@ -1,0 +1,78 @@
+# Wikipedia categories seeding the Somaliland run: one PetScan query per entry.
+#
+# OpenSanctions' wd_categories.yml has no Somaliland entry, so every entry
+# below is measured here (PetScan, 2026-10-12) and nothing is inherited.
+# Counts are distinct sitelinked items reached, then how many no earlier entry
+# reached. The whole seed is ~160 people.
+#
+# en.wikipedia is the only wiki with a tree: `Political office-holders in
+# Somaliland` holds the presidents, vice-presidents, a container of 15
+# portfolio subcats, the governors by region, the mayors and the House of
+# Representatives with its speakers. ar.wikipedia's `سياسيو أرض الصومال` at
+# depth 2 reaches 74 people and none new; so.wikipedia has no category tree.
+#
+# Somaliland's tree sits *inside* Somalia's on en (`Government ministers of
+# Somalia` has `Government ministers of Somaliland` as a child, `Presidents of
+# Somalia` has `Presidents of Somaliland`). A person keeps the stamp of the
+# first run that seeds them, so this file is seeded before `so.yml`: its
+# people stay in this run, and Somalia's containers reach only Somalia's.
+#
+# The current era is the 1991 declaration and the 2001 constitution; President
+# Abdirahman Irro took office in December 2024. No tier has a per-period
+# subcategory below it except the presidents' (20th/21st century, both
+# small), so the tiers are seeded whole and the scope gate and
+# `policy.P39_MAX_ENDED_YEARS` handle the past.
+#
+# Left out: ar `سياسيو أرض الصومال` (74, 0 new), `Military of Somaliland` at
+# depth 1 (13 people, but mostly `Military history of Somaliland`; its chiefs
+# of staff are seeded directly), `First ladies of Somaliland` (a spouse, no
+# office), `Presidential elections in Somaliland`.
+
+# --- Head of state ---
+- category: Presidents_of_Somaliland                           # 20th/21st century; 6
+  lang: en
+- category: Vice_presidents_of_Somaliland                      # 6, 5 new
+  lang: en
+  depth: 0
+
+# --- Cabinet: 15 portfolio subcats ---
+- category: Government_ministers_of_Somaliland                 # 85, 83 new
+  lang: en
+
+# --- Parliament: House of Representatives, its speakers; the Guurti's speakers ---
+- category: Members_of_the_Parliament_of_Somaliland            # nested container; 9, 5 new
+  lang: en
+  depth: 3
+- category: Speakers_of_the_House_of_Elders_(Somaliland)       # 2, 1 new
+  lang: en
+  depth: 0
+
+# --- Subnational: governors by region, mayors ---
+- category: Governors_of_Somaliland                            # 6 regional subcats; 8, 6 new
+  lang: en
+- category: Mayors_of_places_in_Somaliland                     # with Mayors of Hargeisa; 15, 13 new
+  lang: en
+
+# --- Diplomatic service and military command ---
+- category: Somaliland_diplomats                               # 2, 1 new
+  lang: en
+- category: Chiefs_of_the_General_Staff_(Somaliland)           # 9, 9 new
+  lang: en
+  depth: 0
+
+# --- Catch-alls ---
+- category: Political_office-holders_in_Somaliland             # own pages; 2, 1 new
+  lang: en
+  depth: 0
+- category: 21st-century_Somaliland_politicians                # 88, 17 new
+  lang: en
+- category: Somaliland_politicians_by_party                    # 3 parties; 44, 3 new
+  lang: en
+- category: Somaliland_women_in_politics                       # 13, 1 new
+  lang: en
+- category: Somaliland_politicians                             # flat bag; 29, 10 new
+  lang: en
+  depth: 0
+- category: Somaliland_politician_stubs                        # 46, 2 new
+  lang: en
+  depth: 0

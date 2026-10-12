@@ -209,6 +209,8 @@ that still applies:
 | Malaysia | 10-06 – 10-08 | 1,909 statements; 28 minted | QS2 chunks `qs-001`–`033`, API `a53c072841` `aed5ba0d5d` `4e87482554`, fixes `38d1f550f6` |
 | Japan | 10-08 – 10-11 | 5,697 rows applied | API `2417c74c8b` `0216ceab44` `6c47bfe35d`, QS3 59098 59101 |
 | Republic of the Congo | 10-12 | 110 statements (98 rows applied); 4 minted; Brazzaville mayor repaired | QS3 59371, 59246 59247 (repair), 59322 59339 59348 (mint; 59301 59323 failed combined) |
+| Somaliland | 10-12 | 99 statements (96 rows applied); 6 minted | QS3 59387, 59385 (mint) |
+| Somalia | 10-12 | 237 statements (229 rows applied); nothing minted | QS3 59411 59412 |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
 (Colombia), `future_date` and `termed` (Colombia's audit), `recorded_elsewhere`
@@ -216,3 +218,20 @@ Findings from runs that became rules: `tenure_ended` and the current-era seed
 its body's `P576` (Haiti, Trinidad). Malaysia's audit found about 9% of open
 tenures wrong — 17 Malacca seats left open after a dissolution — and the rules
 that would catch them are open work (`plans/peploop_next.md`).
+
+Somaliland and Somalia (one session, Somaliland seeded first because en
+nests its tree inside Somalia's) added two of those rules. `open_superseded/
+government`: an open minister's seat that began before the state's current
+`P1313` holder took office -- stale "incumbent" infoboxes of Bihi's cabinet
+after the December 2024 change, 19 Somali ministers from before the 2022
+government. `minor_wiki_only/open`: an open tenure only wikis outside the home
+languages and English keep open -- among them an it.wikipedia "disputed"
+presidency of Somalia from May 2026. Its first cut read the home languages off
+the person's `P27` alone and took six ar-only rows: the run state's languages
+count too. Somaliland's `P27` was measured, not assumed: holders of its offices
+carry Somaliland 37 times to Somalia's 15. Somalia minted nothing: its federal
+ministries all have items, and what was left were member-state cabinet seats
+(no archetype) and offices attested in English only where its offices carry ar
+labels. Four open rows were audited out by hand: two senators from the 2016-17
+term (the chamber rule needs a cohort of starters on record, and the 2022 term
+has one) and two ambassadorships an article had ended or left a decade stale.

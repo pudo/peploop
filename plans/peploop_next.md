@@ -22,8 +22,13 @@ ones. Three rules for `policy.py`, each with a case in `check_policy.py`:
 
 - an open seat on a body dissolved after the article's revision (17 Malacca
   seats after the 2026-09-23 dissolution);
-- an open tenure read only from a wiki outside the country's languages and
-  English (four from id, th, ta or zh were long over or the wrong office);
+- ~~an open tenure read only from a wiki outside the country's languages and
+  English~~ -- done, `minor_wiki_only/open` (Somalia, 2026-10-12);
+- an open chamber seat whose new term is on record with too few starters to
+  make the cohort (Somalia's Upper House: one 2022 senator against 2016-17
+  seats);
+- an open ambassadorship the same person's later posting ends, when the later
+  post has no item to propose it on;
 - an open tenure on a term item that has a successor.
 
 ## 3. Mint lanes not yet covered

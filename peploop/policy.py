@@ -25,6 +25,7 @@ from datetime import date
 from typing import Any
 
 from psycopg.rows import dict_row
+from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
 from peploop import db, positions, prompt, propose, scope, verify, wikidata
@@ -228,6 +229,9 @@ class Case:
     #: When the office, or a body it is a seat in, was dissolved: `P576` as
     #: time values, read live. None when nobody read it.
     dissolved: list[dict[str, Any]] | None = None
+    #: When the state's current head of government took office (`P1313`'s
+    #: open spell, read live). None when nobody read it or nobody holds it.
+    government: dict[str, Any] | None = None
     today: date | None = None
 
     @property
@@ -330,21 +334,36 @@ def future_date(case: Case) -> Disposition | None:
 
 
 def _allowed_langs(case: Case) -> set[str]:
-    return {"en", *prompt.country_langs(case.seed_lang, case.entity)}
+    """English, the person's own languages, and the languages of the run's state.
+
+    The state's count for the people whose items record no citizenship yet,
+    which is most of the ones a run adds one to.
+    """
+    langs = {"en", *prompt.country_langs(case.seed_lang, case.entity)}
+    territory = get_territory_by_qid(case.state_qid) if case.state_qid else None
+    if territory is not None:
+        langs.update(iso_639_alpha2(lang) for lang in territory.langs)
+    return {lang for lang in langs if lang}
 
 
 def minor_wiki_only(case: Case) -> Disposition | None:
-    """A date only a wiki outside the person's own languages gives.
+    """A date, or an open tenure, only wikis outside the person's own languages give.
 
     Both dates the reviewer rejected as `source_wrong` were attested by one
     minor wiki alone and contradicted by the article in the person's own
-    language. A second attestation, or the home wiki, clears it.
+    language. A second attestation, or the home wiki, clears it. An open
+    tenure is held to the home wikis and English whatever else attests it:
+    one that only a distant wiki keeps open is long over, the wrong office, or
+    a claim that wiki alone makes.
     """
-    if case.property not in ("P569", "P570"):
-        return None
     langs = {source.get("lang") for source in case.sources}
-    if len(langs) == 1 and not (langs & _allowed_langs(case)):
-        return _skip("minor_wiki_only")
+    if case.property in ("P569", "P570"):
+        if len(langs) == 1 and not (langs & _allowed_langs(case)):
+            return _skip("minor_wiki_only")
+        return None
+    if (case.property == "P39" and case.tenure("P580") is not None
+            and case.tenure("P582") is None and not (langs & _allowed_langs(case))):
+        return _skip("minor_wiki_only/open")
     return None
 
 
@@ -929,6 +948,18 @@ def _later(one: dict[str, Any], other: dict[str, Any]) -> bool:
     return mine is not None and theirs is not None and theirs > mine
 
 
+def cabinet_seat(position: dict[str, Any]) -> bool:
+    """Whether an office is a minister's seat, which a new government fills anew.
+
+    Read off the labels of the item's own `P279` parents ("minister", "foreign
+    minister", "deputy prime minister"); a deputy ministry or a minister of
+    state is one of several seats and is left out.
+    """
+    if set(position.get("kind_qids") or ()) & MULTI_SEAT_KINDS:
+        return False
+    return any(kind.split()[-1:] == ["minister"] for kind in position.get("kinds") or ())
+
+
 def open_superseded(case: Case) -> Disposition | None:
     """An open tenure somebody else's later one has evidently ended.
 
@@ -948,6 +979,11 @@ def open_superseded(case: Case) -> Disposition | None:
     in it, whatever its holders' statements say: a senate that lapsed with
     every term in it. One dissolved *before* the tenure began says nothing
     here: a body re-formed under its old item is the case it would get wrong.
+
+    A cabinet seat (`cabinet_seat`) open since before the current head of
+    government took office belongs to an earlier government: a minister kept
+    on is reappointed, and the article that has not caught up says
+    "incumbent" of the cabinet before.
     """
     if case.property != "P39" or case.position is None:
         return None
@@ -962,6 +998,9 @@ def open_superseded(case: Case) -> Disposition | None:
     for value in ended:
         if _later(start, value) and not _dated_after(value, today):
             return _skip("open_superseded/dissolved")
+    if (case.government is not None and cabinet_seat(case.position)
+            and _later(start, case.government)):
+        return _skip("open_superseded/government")
     if case.office_spells is None:
         return None
     me = case.entity.get("id")
@@ -1109,6 +1148,7 @@ def person_cases(
     qid: str, today: date | None = None,
     spells: dict[str, list[OfficeSpell]] | None = None,
     dissolved: dict[str, list[dict[str, Any]]] | None = None,
+    governments: dict[str, dict[str, Any]] | None = None,
 ) -> list[tuple[int, Case]]:
     """Build a case for every proposal of one person the policy may decide.
 
@@ -1187,6 +1227,7 @@ def person_cases(
             else spells.get(row["value"].get("id"), []),
             dissolved=None if dissolved is None or row["property"] != "P39"
             else dissolved.get(row["value"].get("id"), []),
+            government=(governments or {}).get(state_qid or ""),
             today=today,
         )))
     # Spells are judged against each other only among the rows every other
@@ -1370,6 +1411,26 @@ def states_of(qids: Sequence[str]) -> list[str]:
     return [state for (cc,) in rows if (state := _state_qid(cc)) is not None]
 
 
+def government_since(states: Sequence[str]) -> dict[str, dict[str, Any]]:
+    """When each state's current head of government took office, read live.
+
+    The office is the state's `P1313`; the start is that of its one open,
+    dated spell. A state with no such office, or with none or several open,
+    is left out, and its cabinet seats are judged by their own holders only.
+    """
+    heads: dict[str, list[str]] = {}
+    for state, entity in wikidata.fetch_items(states, props="claims").items():
+        heads[state] = wikidata.claim_qids(entity, "P1313", include_deprecated=False)
+    held = positions.holder_spells([q for offices in heads.values() for q in offices])
+    out: dict[str, dict[str, Any]] = {}
+    for state, offices in heads.items():
+        current = [span["P580"] for office in offices for _person, span in held.get(office, [])
+                   if "P580" in span and "P582" not in span]
+        if len(current) == 1:
+            out[state] = current[0]
+    return out
+
+
 def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     """Decide every decidable proposal of these people, writing unless told not to.
 
@@ -1378,8 +1439,8 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     reads a filled column rather than silence; and a state whose offices'
     kinds were never read has them read once, so `family_conflicts` counts the
     whole table rather than the part that happened to be loaded since. Every
-    office's holders and dissolution are read live once per run, for
-    `open_superseded`.
+    office's holders and dissolution, and each state's head of government,
+    are read live once per run, for `open_superseded`.
     """
     offices = offices_of(qids)
     unfilled = positions.unfilled_polity_inception(offices)
@@ -1393,9 +1454,10 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
         positions.fill_kinds(unfilled)
     spells = office_spells(offices)
     dissolved = positions.dissolutions(offices)
+    governments = government_since(states_of(qids))
     funnel = Funnel()
     for qid in qids:
-        for proposal_id, case in person_cases(qid, today, spells, dissolved):
+        for proposal_id, case in person_cases(qid, today, spells, dissolved, governments):
             disposition = decide(case)
             funnel.add(case, disposition)
             if write:

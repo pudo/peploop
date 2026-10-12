@@ -1,0 +1,124 @@
+# Wikipedia categories seeding the Somalia run: one PetScan query per entry.
+#
+# OpenSanctions' wd_categories.yml has no Somalia entry, so every entry below
+# is measured here (PetScan, 2026-10-12) and nothing is inherited. Counts are
+# distinct sitelinked items reached, then how many no earlier entry reached,
+# with Somaliland's people (`so-som.yml`) already taken. The whole seed is
+# ~450 people.
+#
+# en.wikipedia is the regular wiki: `Political office-holders in Somalia`
+# carries a portfolio container of 38 subcats, both chambers of the Federal
+# Parliament, the presidents and vice-presidents of the federal member states
+# (Puntland, Jubaland, Galmudug, Hirshabelle, South West), the mayors and the
+# governors. ar.wikipedia mirrors it (`أصحاب مناصب سياسية في الصومال`, 332, 7
+# new) and so.wikipedia has no category tree. Many en categories were renamed
+# from `Somalian …` to `Somali …`: the `Somalian` names are empty redirects.
+#
+# Somaliland's tree sits inside Somalia's on en: `so-som.yml` is seeded first,
+# so its people keep that run's stamp and the containers below reach only
+# Somalia's.
+#
+# The current era is the Federal Government under the 2012 provisional
+# constitution: the Federal Parliament (House of the People and Upper House)
+# and the federal member states. The Transitional Federal Parliament
+# (2004-2012) is inside `policy.P39_MAX_ENDED_YEARS` and its members are
+# today's politicians, so it is seeded; the Somali National Assembly of
+# 1960-1969 is not. Presidents are seeded by century, which leaves out the
+# eponymous `Siad Barre` and `Hassan Sheikh Mohamud` categories.
+#
+# Left out: `Members of the Somali National Assembly` (14, 12 new, 1960-69),
+# `Speakers of the Parliament of Somalia` (the same assembly), `Somali
+# politicians by party` (107, 10 new: SYL, SRSP and the civil-war fronts),
+# `Politicians from Mogadishu` (a birthplace, 6 new), `Presidential elections
+# in Somalia`, `First Lady`; ar's tree (7 new). There is no central-bank,
+# police or court tier under the office-holders root; each is seeded from its
+# own category below.
+
+# --- Head of state and government ---
+- category: Presidents_of_Somalia                              # 8, 7 new
+  lang: en
+  depth: 0
+- category: 21st-century_presidents_of_Somalia                 # 8, 7 new
+  lang: en
+  depth: 0
+- category: 20th-century_presidents_of_Somalia                 # 6, 5 new
+  lang: en
+  depth: 0
+- category: Prime_ministers_of_Somalia                         # by century; 23, 20 new
+  lang: en
+- category: Vice_presidents_of_Somalia                         # 8, 4 new
+  lang: en
+  depth: 0
+
+# --- Cabinet: 38 portfolio subcats (Puntland's ministers among them) ---
+- category: Government_ministers_of_Somalia                    # 255, 190 new
+  lang: en
+
+# --- Federal Parliament and its predecessor ---
+- category: Members_of_People's_House_(Somalia)                # 22, 22 new
+  lang: en
+  depth: 0
+- category: Members_of_the_Senate_of_Somalia                   # with its speakers; 8, 8 new
+  lang: en
+- category: Speakers_of_the_Federal_Parliament_of_Somalia      # 4, 2 new
+  lang: en
+  depth: 0
+- category: Members_of_the_Transitional_Federal_Parliament     # 2004-2012; 44, 44 new
+  lang: en
+  depth: 0
+
+# --- Central bank, courts, police, military ---
+- category: Governors_of_Central_Bank_of_Somalia               # 5, 3 new
+  lang: en
+  depth: 0
+- category: Somali_judges                                      # 4, 3 new
+  lang: en
+- category: Somali_police_chiefs                               # 10, 3 new
+  lang: en
+  depth: 0
+- category: Chiefs_of_Defence_Force_(Somalia)                  # 17, 11 new
+  lang: en
+  depth: 0
+- category: Somali_generals                                    # 33, 12 new
+  lang: en
+  depth: 0
+
+# --- Diplomatic service ---
+- category: Ambassadors_of_Somalia                             # 31 posts; 44, 18 new
+  lang: en
+- category: Somali_diplomats                                   # 33, 7 new
+  lang: en
+  depth: 0
+
+# --- Subnational: federal member states, governors, mayors ---
+- category: Presidents_of_states_of_Somalia                    # 6 states; 25, 16 new
+  lang: en
+- category: Vice_presidents_of_states_of_Somalia               # 6, 2 new
+  lang: en
+- category: Political_office-holders_in_Puntland               # cabinet, parliament, mayors; 53, 30 new
+  lang: en
+  depth: 2
+- category: Puntland_politicians                               # 55, 6 new
+  lang: en
+- category: Khatumo_politicians                                # 9, 2 new
+  lang: en
+- category: Governors_of_Somalia                               # 2, 1 new
+  lang: en
+  depth: 0
+- category: Mayors_of_places_in_Somalia                        # Mogadishu, Puntland's towns; 32, 9 new
+  lang: en
+  depth: 2
+
+# --- Catch-alls ---
+- category: 21st-century_Somali_politicians                    # 72, 6 new
+  lang: en
+  depth: 0
+- category: 21st-century_Somali_women_politicians              # 26, 1 new
+  lang: en
+  depth: 0
+- category: Somali_politicians                                 # flat bag; 72, 60 new
+  lang: en
+  depth: 0
+- category: Somali_politician_stubs                            # 158, 19 new
+  lang: en
+  depth: 0

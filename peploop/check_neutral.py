@@ -32,6 +32,7 @@ TOKENS = (
     "jamaica", "Kingston",
     "trinidad", "tobago", "Port of Spain",
     "congo", "Brazzaville", "Pointe-Noire", "Sassou",  # Q971 prefixes thousands of QIDs
+    "somali", "Q34754", "Mogadishu", "Hargeisa", "Puntland",  # Q1045 prefixes thousands of QIDs
 )
 # What a line ends with to declare itself a multi-language example list.
 MARKERS = {".md": "<!-- examples -->", ".py": "# examples"}

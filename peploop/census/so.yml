@@ -1,0 +1,94 @@
+# Offices Somalia has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-12 live measurement (full-text search with
+# `haswbstatement:P17=Q1045`, then labels, P31, P17, P361, P576 read in full);
+# nothing below is from memory. No `source` is given: none was checked live.
+#
+# Not here because an item exists and the loader reaches it: the President
+# `Q19364214`, Vice-President `Q29569906`, Prime Minister `Q1335939` and Deputy
+# `Q111819846`, the portfolio ministers of the `Q107709xxx`/`Q107722xxx`
+# series, both chambers' members (`Q21328615`, `Q21328640`) and speakers
+# (`Q109745132`, `Q109745150`), the Governor of the Central Bank
+# `Q109745158`, the Chief of Defence Force `Q96374894`, the Mayor of
+# Mogadishu `Q39057061` and Governor of Banadir `Q131758656`, the Presidents
+# of Puntland `Q61905410` (scoped P17 Puntland, loaded all the same) and
+# Galmudug `Q123271728`, the Vice-President of Puntland `Q118724740`.
+#
+# Jubaland `Q949280` and South West State `Q1136259` are the current member
+# states' items but carry `P576` 1999 and 2006 from their predecessor
+# entities; an office on either would read as dissolved, so their presidents
+# are listed without a body. Somaliland's regions are in `so-som.yml`; Awdal
+# `Q791667` is in both states' `P150` and is excluded here.
+#
+# Absent and not listed: a Constitutional Court (no item, and none measured
+# live), the Banadir mayor-governor pair (both items exist).
+
+# --- Federal member states: three presidencies with no item ---
+- key: hirshabelle_president
+  class: subnational.executive
+  archetype: governor
+  body: Q30322863          # Hirshabelle, P31 federal member state of Somalia, P17 Q1045
+  labels:
+    en: President of Hirshabelle
+
+- key: jubaland_president
+  class: subnational.executive
+  archetype: governor
+  # No body: Jubaland `Q949280` carries P576 1999.
+  labels:
+    en: President of Jubaland
+
+- key: south_west_president
+  class: subnational.executive
+  archetype: governor
+  # No body: South West State `Q1136259` carries P576 2006.
+  labels:
+    en: President of South West State of Somalia
+
+# --- Regions: three governorships exist (Banadir, Lower Shabelle, Bay) ---
+- key: regional_governor
+  class: subnational.executive
+  archetype: governor
+  per: subdivisions
+  exclude:
+    - Q791667              # Awdal: Somaliland's region (P17 Q1045 and Q34754)
+  labels:
+    en: Governor of {name}
+
+# --- Apex court: no item for the Supreme Court ---
+# Searched en, and `haswbstatement:P17=Q1045` with "court": only the Islamic
+# Courts Union and the Supreme Military Court's chiefs come back.
+- key: chief_justice
+  class: judiciary.apex
+  archetype: court_president
+  labels:
+    en: Chief Justice of Somalia
+
+# --- Prosecution and audit ---
+- key: attorney_general
+  class: judiciary.prosecution
+  archetype: prosecutor_general
+  # No body: no item for the Attorney General's office was found.
+  labels:
+    en: Attorney General of Somalia
+
+- key: auditor_general
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  # No body: no item for the Office of the Auditor General was found.
+  labels:
+    en: Auditor General of Somalia
+
+# --- Security ---
+- key: police_commissioner
+  class: security.police
+  archetype: agency_head
+  body: Q2359890           # Somali Police Force, P31 police, P17 Q1045
+  labels:
+    en: Commissioner of the Somali Police Force
+
+- key: nisa_director
+  class: security.intelligence
+  archetype: agency_head
+  body: Q17068877          # National Intelligence and Security Agency, P31 intelligence agency, P17 Q1045
+  labels:
+    en: Director-General of the National Intelligence and Security Agency

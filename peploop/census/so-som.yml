@@ -1,0 +1,74 @@
+# Offices Somaliland has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-12 live measurement (full-text search with
+# `haswbstatement:P17=Q34754`, then labels, P31, P17, P361 read in full);
+# nothing below is from memory. No `source` is given: none was checked live.
+#
+# Not here because an item exists and the loader reaches it: the President
+# `Q25906534`, Vice-President `Q16885384`, the Foreign `Q104869321`, Finance
+# `Q138637987`, Education `Q138637596`, Agriculture `Q137867096` and Defence
+# `Q138002910` ministers, both chambers' members (`Q28941952`, `Q34926715`),
+# the Chief of the General Staff `Q110221213` and the Mayor of Hargeisa
+# `Q85784492` (no P31, loaded all the same).
+#
+# `Q61476765` "Colonial Governor of French Somaliland" carries P17 Q34754; it
+# is Djibouti's colonial office, a peptree repair, not this run's.
+
+# --- Parliament: no presiding-officer item for either chamber ---
+- key: house_speaker
+  class: legislature.leadership
+  archetype: speaker
+  body: Q16965447          # House of Representatives, P31 lower house, P17 Q34754, P361 Parliament Q7138940
+  labels:
+    en: Speaker of the House of Representatives of Somaliland
+
+- key: elders_speaker
+  class: legislature.leadership
+  archetype: speaker
+  body: Q10998293          # House of Elders, P31 upper house, P17 Q34754, P361 Parliament Q7138940
+  labels:
+    en: Speaker of the House of Elders of Somaliland
+
+# --- Regions: no governorship item ---
+- key: regional_governor
+  class: subnational.executive
+  archetype: governor
+  per: subdivisions
+  labels:
+    en: Governor of {name}
+
+# --- Apex court, prosecution, audit ---
+- key: chief_justice
+  class: judiciary.apex
+  archetype: court_president
+  body: Q96407005          # Supreme Court of Somaliland, P31 supreme court, P17 Q34754
+  labels:
+    en: Chief Justice of Somaliland
+
+- key: attorney_general
+  class: judiciary.prosecution
+  archetype: prosecutor_general
+  # No body: no item for the Attorney General's office was found.
+  labels:
+    en: Attorney General of Somaliland
+
+- key: auditor_general
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  # No body: no item for the Auditor General was found.
+  labels:
+    en: Auditor General of Somaliland
+
+# --- Central bank and police ---
+- key: central_bank_governor
+  class: economic.central_bank
+  archetype: central_bank_governor
+  body: Q797484            # Bank of Somaliland, P31 central bank, P17 Q34754
+  labels:
+    en: Governor of the Bank of Somaliland
+
+- key: police_commissioner
+  class: security.police
+  archetype: agency_head
+  body: Q7559186           # Somaliland Police Force, P31 police, P17 Q34754
+  labels:
+    en: Commissioner of the Somaliland Police Force
