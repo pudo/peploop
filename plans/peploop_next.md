@@ -1,5 +1,5 @@
 ---
-description: Open peploop work as of 2026-10-11 — the first live mint, the audit rules Malaysia showed are missing, mint lanes not yet covered, a country tag on the shortlist, the consolidation still worth doing, and one office loader for both lanes.
+description: Open peploop work as of 2026-10-12 — the audit rules Malaysia showed are missing, mint lanes not yet covered, a country tag on the shortlist, the consolidation still worth doing, and one office loader for both lanes.
 date: 2026-10-11
 tags: [peploop, backlog, mint, policy, reconcile, consolidation]
 ---
@@ -9,16 +9,11 @@ tags: [peploop, backlog, mint, policy, reconcile, consolidation]
 The tool as it is: `peploop/design.md`. What was tried: `docs/history.md`.
 Only §5 is started: `llm.py` holds the first part of the LLM-pass kernel.
 
-## 1. The first live `mint --submit`
+## 1. The first live `mint --submit` — done
 
-Additions through the shared send skeleton (`send.dispatch`) have run live: jp
-(QS3 59129) and cz (QS3 59132), 42 statements, none failed, every row settled.
-The QS3 creation path (one batch of `CREATE` + `LAST` lines, each QID read from
-its command's `response_id`) is checked offline only. No country has a
-`guarded` office now; the next country run that leaves one creates it with
-`mint --submit --limit 1` on the user's go, then checks: the item exists with
-its labels and claims, the row is `created` with that QID, the send ledger's
-`create` edit is `landed`, and the feed reopened its mentions.
+Congo (2026-10-12) created four offices through QS3 (59322, 59339, 59348), each
+checked live, rows `created`, edits `landed`, mentions fed. Combined creation
+batches failed whole, so creations now go out uncombined.
 
 ## 2. Rules for wrong open tenures
 
