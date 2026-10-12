@@ -164,8 +164,23 @@ def council_quote(text: str, limit: int = 380) -> str | None:
     return None
 
 
+#: A lead that puts the unit in the past: abolished, though nothing on its item says so.
+PAST = re.compile(r"\b(?:was|were)\s+(?:an?|the)\s+[^.]{0,60}?\b(?:local government area|shire|city|town|"
+                  r"municipality|borough|council|division)\b", re.I)
+
+
+def lead(text: str) -> str:
+    """The article's first sentence of prose, past the infobox lines."""
+    for line in text.splitlines():
+        if len(line) > 80 and not line.startswith("##") and ":" not in line[:40]:
+            return line
+    return ""
+
+
 def draft_for(level: Level, unit: Unit, text: str, url: str) -> tuple[dict[str, Any] | None, str]:
     """The candidate's draft for one unit, or None with the reason it has none."""
+    if PAST.search(lead(text)[:250]):
+        return None, "unit/former"
     head = head_of(text)
     if head is None:
         return None, "unit/no-named-holder"
@@ -253,6 +268,11 @@ def build(cc: str, log: Callable[[str], None] = print,
             draft, why = draft_for(level, unit, text, url)
             stats[f"{level.key}:{why}"] += 1
             if draft is None:
+                # A unit drafted by an earlier run, whose article no longer qualifies.
+                db.conn().execute(
+                    "UPDATE office_candidate SET status = 'superseded', updated_at = now()"
+                    " WHERE country = %s AND ref = %s AND status <> ALL(%s) AND decided_by IS NULL",
+                    (cc, f"unit/{level.key}/{unit.qid}", list(PROTECTED_STATUSES)))
                 continue
             db.conn().execute(UPSERT_SQL, (
                 cc, f"unit/{level.key}/{unit.qid}", level.institution_class, level.archetype,

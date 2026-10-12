@@ -67,6 +67,10 @@ def main() -> int:
     draft, _why = mu.draft_for(LEVEL, UNIT, lord, "u")
     expect((draft["labels"]["en"], draft["parent_qid"]), ("Lord Mayor of Lindo", "Q30185"),
            "a lord mayor is named so, and is a mayoralty of the place")
+    former = ("• Mayor: Ann Smith\nThe Town of Lindo was a local government area of the north of the country,"
+              " based in the town of Lindo.\n")
+    expect(mu.draft_for(LEVEL, UNIT, former, "u"), (None, "unit/former"),
+           "a unit its article puts in the past is history, whatever its infobox still says")
     expect(mu.draft_for(LEVEL, UNIT, "## Council\nNine councillors.", "u"), (None, "unit/no-named-holder"),
            "no named head, no candidate")
     seat, why = mu.draft_for(SEATS, UNIT, ARTICLE, "u")
