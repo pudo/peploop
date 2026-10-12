@@ -117,7 +117,7 @@ fetch --country <cc>                 # items, the scope gate, then every sitelin
 extract --country <cc>               # one request per person, Sonnet
 reconcile --country <cc>             # ranking signals, English titles, one request per office mention, then the refusals whose list gained
 mint --country <cc>                  # categorize (Sonnet), verify (Opus), data/mint/<cc>.md, feed `found`; dry: every guarded payload
-mint --country <cc> --submit         # one QS3 batch of CREATEs; feeds each item made
+mint --country <cc> --submit         # creates what the dry run printed, decides nothing; feeds each item made
 propose --country <cc>               # P39 rows appear only now; ends by deciding every row and printing the funnel
 verify --country <cc>                # one request per pending row, Opus; ends with the policy's funnel
 send --country <cc>                  # dry: pre-flight, plan, data/peploop/send/<cc>.qs with its routes
@@ -151,7 +151,8 @@ channel of evidence: every office passes on one current holder, census or
 not. Its bodies come from measurement (`docs/research/position_items.md` §10 is
 the template), never from memory. A census
 entry nobody's article attests is skipped, so the file says what must exist
-and the seeds still decide what gets made. `mint --submit` feeds each item as
+and the seeds still decide what gets made. `mint --submit` creates the rows
+the last dry run guarded and nothing it did not print, and feeds each item as
 soon as it is created; every `mint` run, dry or not, feeds the rows verify
 decided `found` -- an item that already existed -- and repairs a feed a crash
 or a propose failure cut short. The feed is idempotent.

@@ -212,6 +212,33 @@ def create(
     return [_settle(cands[tag], qid, lookup) for tag, qid in made.items()]
 
 
+def submit(
+    country: str,
+    limit: int | None = None,
+    *,
+    recheck: Recheck,
+    lookup: Lookup = live_duplicate,
+    username: str = "",
+    log: Callable[[str], None] = lambda _m: None,
+) -> tuple[Counter[str], "FeedStats"]:
+    """Create exactly the offices the last dry run guarded, then feed what was made.
+
+    What `mint --submit` runs. It decides nothing: categorize and verify are
+    the dry run's, and a re-run of them here could guard an office nobody was
+    shown. Each guarded row is still re-checked live before it is sent.
+    Returns the outcomes counted and the feed's stats.
+    """
+    counts: Counter[str] = Counter()
+    with send.writer_lock(f"peploop mint {country}"):
+        send.recover(TOOL, username, log)
+        for _cid, outcome, _qid in recover(country, lookup=lookup, log=log):
+            counts[f"recovered:{outcome}"] += 1
+        for cid, outcome, qid in create(country, limit, recheck=recheck, lookup=lookup, log=log):
+            counts[outcome] += 1
+            log(f"#{cid} -> {qid or '-'} {outcome}")
+    return counts, feed(country, log=log)
+
+
 def _settle(cand: dict[str, Any], qid: str | None, lookup: Lookup, rule: str = CREATED) -> tuple[int, str, str | None]:
     if qid:
         _created(cand["id"], qid, rule)

@@ -19,7 +19,7 @@ import psycopg
 from click.testing import CliRunner
 from psycopg.types.json import Jsonb
 
-from peploop import cli, db, mint_write, positions, propose, qs3, reconcile, send
+from peploop import cli, db, mint, mint_write, positions, propose, qs3, reconcile, send
 
 TABLES = ("office_candidate", "office_attestation", "mint_call", "office_unassigned",
           "resolution", "extraction", "wd_batch", "wd_edit", "wd_strike", "wd_removal")
@@ -150,6 +150,29 @@ def check_create(expect: Any, conn: psycopg.Connection) -> None:
            "the batch is named on the row and both creations are landed in the send ledger")
     expect(mint_write.create(COUNTRY, recheck=clean) == [] and len(FAKE.batches) == 1,
            "a second create sends nothing: no row is guarded")
+
+
+def check_submit(expect: Any, conn: psycopg.Connection) -> None:
+    """Submit creates what the dry run guarded and decides nothing: no categorize, no verify."""
+    def no_model(*_a: Any, **_k: Any) -> Any:
+        raise AssertionError("submit decided again")
+
+    saved = mint.categorize, mint.verify, mint.reguard
+    mint.categorize, mint.verify, mint.reguard = no_model, no_model, clean
+    positions.load_qids = lambda qids, source="minted", log=None: {}
+    positions.fill_diplomatic = lambda qids=None, log=None: 0
+    try:
+        guarded = candidate(conn, "submit-guarded")
+        skipped = candidate(conn, "submit-skipped", status="skipped", rule="verify:unclear")
+        sent = len(FAKE.batches)
+        res = CliRunner().invoke(cli.mint_, ["--country", COUNTRY, "--submit"])
+        expect(res.exit_code == 0 and len(FAKE.batches) == sent + 1
+               and state(conn, guarded)[0] == "loaded" and state(conn, skipped)[0] == "skipped",
+               f"--submit creates the guarded row only, without deciding ({res.output.strip()[-200:]})")
+        counts, _fed = mint_write.submit(COUNTRY, recheck=clean, lookup=lambda _c: None)
+        expect(not counts and len(FAKE.batches) == sent + 1, "a second submit creates nothing")
+    finally:
+        mint.categorize, mint.verify, mint.reguard = saved
 
 
 def check_crash(expect: Any, conn: psycopg.Connection) -> None:
@@ -340,7 +363,7 @@ def main() -> int:
     shadow(conn)
     try:
         for name, check in (
-            ("create", check_create), ("crash", check_crash), ("lock", check_lock), ("resend", check_resend),
+            ("create", check_create), ("submit", check_submit), ("crash", check_crash), ("lock", check_lock), ("resend", check_resend),
             ("refusals", check_refusals),
             ("feed", check_feed), ("audit", check_audit), ("report", check_report),
         ):

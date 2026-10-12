@@ -894,12 +894,20 @@ def mint_(country: str, limit: int | None, submit: bool) -> None:
 
     A dry run by default: it ends by printing each guarded office as the QS
     lines that would create it, with the labels of every item it names.
-    `--submit` takes the send lock, resolves any creation a crash left behind,
-    re-checks each guarded office live and creates them all as one QS3 batch,
-    then feeds every item made into the position table and the mentions it was
-    attested by. The holders' P39s go out with the next `send`, after
-    `propose` and `verify` have seen the new items.
+    `--submit` decides nothing: it creates the offices the last dry run
+    guarded and printed, each re-checked live, as one QS3 batch, then feeds
+    every item made into the position table and the mentions it was attested
+    by. The holders' P39s go out with the next `send`, after `propose` and
+    `verify` have seen the new items.
     """
+    if submit:
+        if not minting.guarded(country, limit):
+            click.echo(f"{country}: 0 guarded: run the dry mint first")
+        counts, fed = minting.submit(country, limit, recheck=mint.reguard,
+                                     username=os.environ.get("QS_USERNAME", ""), log=click.echo)
+        click.echo("  " + fed.line())
+        click.echo(f"{country}: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+        return
     stats = mint.categorize(country, log=click.echo)
     click.echo("categorize: " + json.dumps({k: v for k, v in stats.items() if k not in ("clusters", "truncated")},
                                            sort_keys=True))
@@ -911,28 +919,16 @@ def mint_(country: str, limit: int | None, submit: bool) -> None:
     out.write_text(minting.report(country))
     click.echo(f"{out} written")
     click.echo(minting.feed(country, log=click.echo).line())
-    if not submit:
-        rows = minting.guarded(country, limit)
-        for cand in rows:
-            names = minting.labels_of(cand)
-            click.echo(f"===== #{cand['id']} {cand['ref']} ({cand['holders']} holders,"
-                       f" {cand['current_holders']} current) =====")
-            for qid, label in sorted(names.items()):
-                click.echo(f"  {qid} = {label}")
-            for line in qs.create_lines(cand["data"], "") or ["(cannot be written as QS lines)"]:
-                click.echo("  " + line.removesuffix(" /*  */"))
-        click.echo(f"{len(rows)} guarded; would create {len(rows)} items (dry run)")
-        return
-    counts: Counter[str] = Counter()
-    with sending.writer_lock(f"peploop mint {country}"):
-        sending.recover(minting.TOOL, os.environ.get("QS_USERNAME", ""), click.echo)
-        for _cid, outcome, _qid in minting.recover(country, log=click.echo):
-            counts[f"recovered:{outcome}"] += 1
-        for cid, outcome, qid in minting.create(country, limit, recheck=mint.reguard, log=click.echo):
-            counts[outcome] += 1
-            click.echo(f"#{cid} -> {qid or '-'} {outcome}")
-    click.echo("  " + minting.feed(country, log=click.echo).line())
-    click.echo(f"{country}: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+    rows = minting.guarded(country, limit)
+    for cand in rows:
+        names = minting.labels_of(cand)
+        click.echo(f"===== #{cand['id']} {cand['ref']} ({cand['holders']} holders,"
+                   f" {cand['current_holders']} current) =====")
+        for qid, label in sorted(names.items()):
+            click.echo(f"  {qid} = {label}")
+        for line in qs.create_lines(cand["data"], "") or ["(cannot be written as QS lines)"]:
+            click.echo("  " + line.removesuffix(" /*  */"))
+    click.echo(f"{len(rows)} guarded; would create {len(rows)} items (dry run)")
 
 
 def _read_ids(handle: Any) -> list[int]:

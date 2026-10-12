@@ -322,6 +322,11 @@ queue) has the mechanics; the decisions are these.
   says which stage disagreed, or `found` when the item turns out to exist. No
   status means "waiting for a human": a recurring disagreement becomes a rule,
   and `audit candidate` can only skip, after the fact.
+- **Submit creates what the dry run showed.** The dry run decides and prints
+  every guarded office; `--submit` runs neither categorize nor verify, so it
+  creates those rows and no others. A dry run's own feed changes the misses a
+  re-run would categorize, and a decision made inside the submit would create
+  an office nobody was shown.
 - **Crash-safe by intent, not by retry.** Before the request every row is
   re-guarded live, marked `creating` with an intent tag unique to the row, its
   payload and the attempt, and committed; the tag rides in the edit summary
