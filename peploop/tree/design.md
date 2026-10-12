@@ -79,10 +79,10 @@ clutter, and a country's thousands of mayoralties rarely clear two channels. Cha
 
 The sweep ledger (`sweep.md`) is the review gate: a place goes
 `pending → run → reviewed → submitted`. `tree audit <n>` prints every line of a
-batch with labels and flags the shapes that have hidden a defect before; a
-flag that proves real becomes a rule in `rules.py` with a case in
-`check_rules.py`. Notes and status are written by hand; `tree sweep table` rewrites
-the other columns.
+batch with labels and flags the shapes that have hidden a defect before. The
+sweeping agent turns each flag that proves real into a rule in `rules.py` with
+a case in `check_rules.py`, or a strike, then marks the batch `reviewed`;
+`tree sweep table` rewrites the other columns.
 
 Only reviewed places go out. `tree send` (`outbox.py`) reconciles the joint send
 ledger, takes every reviewed place's latest run file, drops what went out

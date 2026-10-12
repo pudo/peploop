@@ -66,7 +66,7 @@ def write(rows: list[dict[str, str]]) -> Path:
             "Every country and territory: non-OECD places in batches of five by region, OECD members "
             "in batches of one, smallest first. Status is "
             "`pending → run → reviewed → submitted`, or `blocked: <why>`; `status` and `notes` are "
-            "written by hand and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.", "",
+            "set by the sweeping agent and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.", "",
             "Progress: " + ", ".join(f"{k} {n}" for k, n in sorted(done.items())), "",
             "| " + " | ".join(COLUMNS) + " |", "|" + "---|" * len(COLUMNS)]
     body = ["| " + " | ".join(r.get(c, "").replace("|", "/") for c in COLUMNS) + " |" for r in rows]
