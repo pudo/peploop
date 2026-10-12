@@ -31,6 +31,9 @@ DEPTH = 6
 #: wrong one is deprecated. A month keeps a sweep from re-reading them.
 MAX_AGE_DAYS = 30
 
+#: Items whose claims are held at once while their edges are read.
+FETCH_CHUNK = 500
+
 
 def targets(entity: dict[str, Any]) -> list[str]:
     """The item's own `P31` and `P279` targets that count, in statement order."""
@@ -58,9 +61,14 @@ def edges(qids: Iterable[str]) -> dict[str, list[str]]:
         " AND fetched_at > now() - make_interval(days => %s)", (wanted, MAX_AGE_DAYS)).fetchall()
     known = {qid: list(found) for qid, found in rows}
     missing = [qid for qid in wanted if qid not in known]
-    if missing:
-        found = wikidata.fetch_items(missing, props="claims")
-        fresh = {qid: targets(found.get(qid, {})) for qid in missing}
+    # A chunk's claims are reduced to its targets and stored before the next is
+    # fetched: France's 41,000 communes as full claims outgrow the machine, and
+    # an interrupted walk keeps what it already read.
+    for start in range(0, len(missing), FETCH_CHUNK):
+        chunk = missing[start : start + FETCH_CHUNK]
+        found = wikidata.fetch_items(chunk, props="claims")
+        fresh = {qid: targets(found.get(qid, {})) for qid in chunk}
+        del found
         with db.conn().cursor() as cur:
             cur.executemany(
                 "INSERT INTO type_edge (qid, targets, fetched_at) VALUES (%s, %s, now())"
