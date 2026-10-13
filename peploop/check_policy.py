@@ -218,6 +218,23 @@ def main() -> int:
           policy.SKIPPED, "resolution/renamed")
     check("a P39 with no verdict behind it is skipped",
           policy.decide(case(resolution=None)), policy.SKIPPED, "resolution/missing")
+    polities = {STATE: ["Alvania"], "Q0000010": ["North Province"], "Q0000011": ["South Province"]}
+    said = lambda where: {"kind": "same-office", "confidence": "high", "qid": OFFICE, "jurisdiction": where}  # noqa: E731
+    check("a minister the article places in one province is not another province's",
+          policy.decide(case(resolution=said("South Province"), polities=polities,
+                             position=office(jurisdiction_qid="Q0000010"))),
+          policy.SKIPPED, "office/other-polity")
+    check("nor the state's",
+          policy.decide(case(resolution=said("South Province"), polities=polities)),
+          policy.SKIPPED, "office/other-polity")
+    check("while the province's own office passes",
+          policy.decide(case(resolution=said("North Province, Alvania"), polities=polities,
+                             position=office(jurisdiction_qid="Q0000010"))),
+          policy.PENDING, "unverified")
+    check("and a mention naming no polity says nothing",
+          policy.decide(case(resolution=said("the capital"), polities=polities,
+                             position=office(jurisdiction_qid="Q0000010"))),
+          policy.PENDING, "unverified")
     check("a tenure that ended a generation ago is skipped",
           policy.decide(case(qualifiers={"P580": time("2000"), "P582": time("2004"),
                                          "_sources": [{"lang": "aa", "quote": "q"}]})),

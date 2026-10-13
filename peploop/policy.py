@@ -18,6 +18,7 @@ Nothing here names a country. The state a run is about is read off
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -232,6 +233,9 @@ class Case:
     #: When the state's current head of government took office (`P1313`'s
     #: open spell, read live). None when nobody read it or nobody holds it.
     government: dict[str, Any] | None = None
+    #: The state and its first-level subdivisions, each with its names: the
+    #: polities a mention's jurisdiction is read against. Empty when unread.
+    polities: dict[str, list[str]] = field(default_factory=dict)
     today: date | None = None
 
     @property
@@ -711,6 +715,31 @@ def resolution_weak(case: Case) -> Disposition | None:
     return None
 
 
+def _names_in(text: str, name: str) -> bool:
+    return bool(re.search(rf"(?<!\w){re.escape(name.lower())}(?!\w)", text.lower()))
+
+
+def other_polity(case: Case) -> Disposition | None:
+    """The office governs another of the state's polities than the one the article names.
+
+    A federation's states each have a "Minister for Disability Services", and
+    the reconciler can take a Tasmanian minister for the West Australian one.
+    Read only where the mention names one of the state's first-level polities
+    and the office is scoped to one; a mention naming several, or none, is
+    left to the other rules.
+    """
+    if case.property != "P39" or not case.resolution or not case.position or not case.polities:
+        return None
+    text = case.resolution.get("jurisdiction") or ""
+    scoped = case.position.get("jurisdiction_qid")
+    if not text or scoped not in case.polities:
+        return None
+    named = {qid for qid, names in case.polities.items() if any(_names_in(text, n) for n in names)}
+    if named and scoped not in named:
+        return _skip("office/other-polity")
+    return None
+
+
 def tenure_ended(case: Case) -> Disposition | None:
     """A tenure that ended a generation ago is a biography, not who holds office now."""
     if case.property != "P39":
@@ -1060,6 +1089,7 @@ RULES: tuple[Rule, ...] = (
     refine_over_sourced,
     demonym_abroad,
     resolution_weak,
+    other_polity,
     tenure_ended,
     undated_tenure,
     start_precision,
@@ -1168,7 +1198,7 @@ def person_cases(
         rows = cur.execute(
             "SELECT p.id, p.property, p.value, p.qualifiers, p.status, p.proposed_status,"
             " p.quote, p.source_lang, e.response_json,"
-            " r.kind, r.confidence, r.qid AS office,"
+            " r.kind, r.confidence, r.qid AS office, r.jurisdiction,"
             " (SELECT v.decision FROM verdict v WHERE v.proposal_id = p.id"
             "  ORDER BY v.id DESC LIMIT 1) AS review"
             " FROM proposal p"
@@ -1204,6 +1234,7 @@ def person_cases(
         if row["kind"] is not None:
             resolution = {
                 "kind": row["kind"], "confidence": row["confidence"], "qid": row["office"],
+                "jurisdiction": row["jurisdiction"],
             }
         out.append((row["id"], Case(
             property=row["property"],
@@ -1228,6 +1259,7 @@ def person_cases(
             dissolved=None if dissolved is None or row["property"] != "P39"
             else dissolved.get(row["value"].get("id"), []),
             government=(governments or {}).get(state_qid or ""),
+            polities=polities_of(state_qid) if state_qid else {},
             today=today,
         )))
     # Spells are judged against each other only among the rows every other
@@ -1252,6 +1284,23 @@ def person_cases(
     ).items():
         by_id[pid].spell_conflict = conflict
     return out
+
+
+_POLITIES: dict[str, dict[str, list[str]]] = {}
+
+
+def polities_of(state_qid: str) -> dict[str, list[str]]:
+    """The state and its current first-level subdivisions, with their English names, read once."""
+    if state_qid not in _POLITIES:
+        state = wikidata.fetch_items([state_qid], props="claims").get(state_qid) or {}
+        subs = [q for q in wikidata.claim_qids(state, "P150", include_deprecated=False)]
+        items = wikidata.fetch_items([state_qid, *subs], props="labels|aliases")
+        _POLITIES[state_qid] = {
+            qid: [n for n in dict.fromkeys(
+                [(e.get("labels", {}).get(lang) or {}).get("value") for lang in ("en", "mul")]) if n]
+            for qid, e in items.items()
+        }
+    return _POLITIES[state_qid]
 
 
 def state_office(position: dict[str, Any], state_qid: str | None) -> bool:
