@@ -537,9 +537,8 @@ Nobody on Wikidata knows these tools, so an edit says what it is for and
 never how it was made. Its batch is named by objective (`Politically exposed
 persons: person profiles (81)`; peptree's is `positions hierarchy`, mint's
 `missing positions`), made unique by its ledger id. The summary of each line
-links the explainer page `User:Pudox/PEP` (drafted in
-`docs/wikidata_explainer.wiki`) and names the property and the source wikis
-(`qs.describe`). A line is stamped as it goes out, so one queued under older
+links the explainer page `User:Pudox/PEP` (maintained on Wikidata) and names
+the property and the source wikis (`qs.describe`). A line is stamped as it goes out, so one queued under older
 wording goes out under the current one. A removal carries its reason, which is
 therefore written for the public.
 
