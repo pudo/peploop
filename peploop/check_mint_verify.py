@@ -577,9 +577,9 @@ def check_ledger(expect: Any) -> None:
     def insert(ref: str, draft: dict[str, Any], people: list[tuple[str, bool]], **cols: Any) -> int:
         cid = conn.execute(
             "INSERT INTO office_candidate (country, ref, origin, archetype, draft, status, decided_by)"
-            " VALUES ('zz', %s, '{reconcile}', %s, %s, %s, %s) RETURNING id",
-            (ref, draft.get("archetype"), mint.Jsonb(draft), cols.get("status", "categorized"),
-             cols.get("decided_by"))).fetchone()[0]
+            " VALUES ('zz', %s, %s, %s, %s, %s, %s) RETURNING id",
+            (ref, cols.get("origin", ["reconcile"]), draft.get("archetype"), mint.Jsonb(draft),
+             cols.get("status", "categorized"), cols.get("decided_by"))).fetchone()[0]
         for i, (person, current) in enumerate(people):
             conn.execute(mint.ATTESTATION_SQL, (cid, None, 10_000_000 + cid, i, person, current))
         return cid
@@ -619,6 +619,35 @@ def check_ledger(expect: Any) -> None:
         expect(mint.reguard(good, ctx(lookup=lambda _t, _l, _s: [offices.Found(
             "Q961", label_match=True, country_match=True, country_qids=(STATE,))]))
             == ["duplicate/Q961"], "reguard reads the searches again and names a new duplicate")
+        # A unit's seat yields to a mention candidate guarded for the same seat.
+        es = {"es": "Ministro de Salud de Ostra"}
+        provincial = {**base, "jurisdiction_qid": "Q901", "labels": {**es, "en": "Minister of Health of Ostra"}}
+        unit = insert("unit/health/Q901", {**provincial, "labels": {"es": "Ministra de Salud de Ostra",
+                                                                    "en": "Health Minister of Ostra"},
+                                           "unit": {"qid": "Q901", "label": "Ostra", "url": "u",
+                                                    "holder": "A. B.", "quote": "Minister: A. B."}},
+                      [], origin=["unit"])
+        lone = insert("unit/health/Q902", {**base, "jurisdiction_qid": "Q902",
+                                           "labels": {"es": "Ministro de Salud de Nada",
+                                                             "en": "Health Minister of Nowhere"},
+                                           "unit": {"qid": "Q902", "label": "Nowhere", "url": "u",
+                                                    "holder": "C. D.", "quote": "Minister: C. D."}},
+                      [], origin=["unit"])
+        named = insert("health-ostra", provincial, [("Q6", True)])
+        places = {q: {"id": q, "claims": {"P17": _claim("P17", STATE)},
+                      "labels": {"en": {"language": "en", "value": q}}} for q in ("Q901", "Q902")}
+        named_places = {**LABELS, "Q901": "Ostra", "Q902": "Nada"}
+        provinces = ctx(subdivisions=["Q901", "Q902"],
+                        labels_of=lambda qids: {q: named_places[q] for q in qids if q in named_places},
+                        resolve=lambda qids: {q: places.get(q) or BODY_ITEM for q in qids
+                                              if q in places or q == BODY})
+        third = mint.verify("zz", ctx=provinces, log=quiet, threads=1, ids=[unit, lone, named])
+        got = {r[0]: r[1:] for r in conn.execute(
+            "SELECT id, status, rule FROM office_candidate WHERE id = ANY(%s)", ([unit, lone, named],))}
+        expect(got[named] == ("guarded", "mint:agreed") and got[unit] == ("skipped", mint.UNIT_YIELDS),
+               f"a unit's seat yields to the mention candidate guarded for it: {got}")
+        expect(got[lone] == ("guarded", "mint:agreed"), f"and one nobody names is guarded: {got[lone]}")
+        expect(third["funnel"][("skipped", mint.UNIT_YIELDS)] == 1, "the funnel counts the yield")
         # A categorize rerun leaves an audited row alone, on upsert and on supersede.
         group = mint.Group("audited|", [mint.Row(1, 1, 0, "Q4", "x", current=True)])
         cluster = mint.Cluster("audited", [group])

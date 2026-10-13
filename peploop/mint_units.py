@@ -244,9 +244,9 @@ def started(units_: Sequence[Unit]) -> dict[str | None, float]:
     return {sub: held[sub] / total[sub] for sub in total}
 
 
-#: The statuses of a mention candidate still in the run: decided for an
-#: item, or not yet decided.
-LIVE_STATUSES = ("categorized", "guarded", "found", "loaded", "creating", "created")
+#: The statuses of a mention candidate an item exists or is being made for;
+#: one the coming verify guards makes the unit's yield there (`mint.UNIT_YIELDS`).
+LIVE_STATUSES = PROTECTED_STATUSES
 
 
 def mention_seats(cc: str, ctx: "mint.Context | None" = None) -> set[tuple[str, str]]:
@@ -286,7 +286,7 @@ UPSERT_SQL = (
     " single_seat = EXCLUDED.single_seat, source_url = EXCLUDED.source_url,"
     " status = 'categorized', rule = NULL, updated_at = now()"
     " WHERE office_candidate.status <> ALL(%s) AND office_candidate.decided_by IS NULL"
-    " AND office_candidate.draft IS DISTINCT FROM EXCLUDED.draft"
+    " AND (office_candidate.draft IS DISTINCT FROM EXCLUDED.draft OR office_candidate.status = 'superseded')"
 )
 
 

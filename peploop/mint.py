@@ -2726,5 +2726,31 @@ def verify(
             decided[cand.id] = {"status": status, "rule": rule, "qid": qid, "spec": spec,
                                 "verdict": verdict, "problems": written}
             log(f"{cand.id:>5} {status:<8} {rule:<32} {cand.ref}")
+    seats = mention_seats(country)
+    for cand, _spec, _problems, _early in planned:
+        made = decided.get(cand.id)
+        if "unit" not in cand.origin or not made or made["status"] != GUARDED:
+            continue
+        if (cand.kind, made["spec"].jurisdiction) in seats:
+            # The run's holders name this seat: their candidate makes it, and feeds them.
+            stats["funnel"][(GUARDED, made["rule"])] -= 1
+            if record_disposition(cand, SKIPPED, UNIT_YIELDS, spec=made["spec"],
+                                  problems=made["problems"], verdict=made["verdict"], qid=None):
+                stats["funnel"][(SKIPPED, UNIT_YIELDS)] += 1
+                decided[cand.id] = {**made, "status": SKIPPED, "rule": UNIT_YIELDS}
     stats["decided"] = decided
     return stats
+
+
+#: A unit's seat that a mention candidate makes instead.
+UNIT_YIELDS = "unit:mention-has-it"
+
+
+def mention_seats(country: str) -> set[tuple[str, str]]:
+    """(archetype, polity) of every seat a mention candidate is guarded, found or made for."""
+    rows = db.conn().execute(
+        "SELECT archetype, spec ->> 'jurisdiction_qid' FROM office_candidate WHERE country = %s"
+        " AND NOT ('unit' = ANY(origin)) AND status = ANY(%s) AND spec IS NOT NULL",
+        (country, [GUARDED, *PROTECTED_STATUSES]),
+    ).fetchall()
+    return {(arch, jur) for arch, jur in rows if arch and jur}
