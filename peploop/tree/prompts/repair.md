@@ -28,7 +28,9 @@ would exist, under that name, outside this one country.
   Culture of Ruritania"), or a title that exists only within one state's
   institutions (a judicial title of its courts, a rank of its royal court, a
   post its article calls a title of that country's administration, church or
-  armed forces). The material must show that tie.
+  armed forces). An existing `P17` or `P1001` statement is such a tie: a
+  "Minister of Mines" whose `P1001` is a state is that state's minister, not
+  the generic role; quote the statement line. The material must show the tie.
 - `generic`: a bare role that any country, army, church or organisation could
   have: "school commander", "squadron commander", "deputy mayor", "priest in
   charge", "section president", "chief of staff". It stays generic even when

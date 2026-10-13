@@ -70,6 +70,9 @@ def generic_role() -> None:
     for scope, why in (({**judged, "kind": "unclear"}, "an unsettled scope is not listed"),
                        ({**judged, "source": "holders"}, "holders never list a role")):
         expect(not rules.judged_generic(slot(generic, "P17", ["Q900001"], 0, message=msg, scope=scope)), why)
+    mines = item("Q63", "national", ent({"en": "Minister of Mines"}, P1001=["Q900001"]))
+    expect(not rules.judged_generic(slot(mines, "P17", ["Q900001"], 0, scope={**judged, "quote": "Minister of Mines"})),
+           "a role an editor gave a jurisdiction is never listed")
     named = item("Q62", "national", ent({"en": "squadron commander of Ruritania"}))
     expect(not rules.judged_generic(slot(named, "P17", ["Q900001"], 0, scope={**judged, "quote": "squadron commander"})),
            "a role whose label names the state is never listed")

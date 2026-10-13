@@ -72,15 +72,19 @@ def one_polity(slot: Slot) -> bool:
 
 
 def judged_generic(slot: Slot) -> bool:
-    """A role to list as generic: quoted as such, and no label of it names the state.
+    """A role to list as generic: quoted as such, with no label naming the state and no country of its own.
 
-    A label naming the state is a country-scoped office whatever the model
-    said, the same guard the load applies before dropping a listed item.
+    A label naming the state, or a `P17`/`P1001` an editor gave it, makes the
+    item a country's office whatever the model said: "Minister of Mines" with
+    `P1001` Tanzania is Tanzania's minister.
     """
     if not scope_is(slot, "generic") or slot.facts is None:
         return False
+    entity = slot.facts.item["entity"]
+    if values(entity, "P17") or values(entity, "P1001"):
+        return False
     c = slot.facts.country
-    labels = " | ".join(signals.labels_text(slot.facts.item["entity"]))
+    labels = " | ".join(signals.labels_text(entity))
     return not (countries.names_country(c, labels) or countries.named_states(c, labels))
 
 
