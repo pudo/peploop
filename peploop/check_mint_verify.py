@@ -648,6 +648,7 @@ def check_ledger(expect: Any) -> None:
                f"a unit's seat yields to the mention candidate guarded for it: {got}")
         expect(got[lone] == ("guarded", "mint:agreed"), f"and one nobody names is guarded: {got[lone]}")
         expect(third["funnel"][("skipped", mint.UNIT_YIELDS)] == 1, "the funnel counts the yield")
+        expect(unit < named, "though the unit's candidate came first")
         # A categorize rerun leaves an audited row alone, on upsert and on supersede.
         group = mint.Group("audited|", [mint.Row(1, 1, 0, "Q4", "x", current=True)])
         cluster = mint.Cluster("audited", [group])

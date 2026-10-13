@@ -1697,14 +1697,15 @@ class Context:
 def _run_labels(cand: Candidate) -> list[str]:
     """The labels of the country's other offices that are about to exist.
 
-    Created and creating rows, and guarded rows with a lower id: verify decides
-    in id order, so of two candidates with one label the first one guarded
-    keeps it, and a rerun decides the same way.
+    Created and creating rows, and guarded rows verify decides before this
+    one: in id order, the units' last, so of two candidates with one label the
+    first one guarded keeps it, and a rerun decides the same way.
     """
     rows = db.conn().execute(
         "SELECT spec -> 'labels' FROM office_candidate WHERE country = %s AND id <> %s"
-        " AND spec IS NOT NULL AND status = ANY(%s) AND (status <> %s OR id < %s)",
-        (cand.country, cand.id, list(RUN_STATUSES), GUARDED, cand.id),
+        " AND spec IS NOT NULL AND status = ANY(%s)"
+        " AND (status <> %s OR ('unit' = ANY(origin), id) < (%s, %s))",
+        (cand.country, cand.id, list(RUN_STATUSES), GUARDED, "unit" in cand.origin, cand.id),
     ).fetchall()
     return [text for (labels,) in rows for text in (labels or {}).values()]
 
@@ -2628,13 +2629,15 @@ def verify(
     The rules that need no tokens run first, over every candidate; only an
     office of a mintable kind that clears the floor is shown to the model,
     one request each, under a thread pool and through the ledger. Then every
-    candidate is decided in id order, so that of two with one label the
-    lower id keeps it. `limit` caps the requests; candidates beyond it are
+    candidate is decided in id order, the units' last, so that of two with
+    one label the lower id keeps it. `limit` caps the requests; candidates beyond it are
     left as they are for the next run. A dry run renders the first request,
     counts what would be asked, and writes nothing.
     """
     ctx = ctx or Context(country)
-    cands = load_candidates(country, ids)
+    # A unit's office is decided after the mentions': where both name one seat,
+    # the candidate whose holders the item is fed to keeps it.
+    cands = sorted(load_candidates(country, ids), key=lambda c: ("unit" in c.origin, c.id))
     stats: dict[str, Any] = {"candidates": len(cands), "asked": 0, "recorded": 0, "failed": 0,
                              "usage": {k: 0 for k in USAGE_KEYS}, "funnel": Counter()}
     planned: list[tuple[Candidate, offices.Spec | None, list[str], Decision | None]] = []
