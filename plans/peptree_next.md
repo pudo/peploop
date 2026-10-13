@@ -36,6 +36,37 @@ problem: rigour's code names the Kingdom; check which state its offices put in
   loader is `plans/peploop_next.md` §6, and changes to `load.py`'s filter feed
   into it.
 
+## 2b. Generic roles: what the first pass left open
+
+The repair's `scope` answer and the `generic_position` table are in; the
+2026-10-13 pass over landed `P17`s listed 17 roles and took back 14 `P17`s
+(QS3 59521). Open:
+
+- **No real run has exercised the writer.** `record_generic` is pinned by
+  checks only. The prompt change re-keys the cache, so each country's next run
+  re-asks every item; `tree place --no-ask` on old answers skips every
+  `P17`/`P1001` (no scope answer).
+- **`P1001` never audited.** Only landed `P17`s were re-asked.
+- **Our own `P17` hides an item from the load.** An orphan we gave a country
+  leaves the orphan lane and no other lane takes it; the five Swedish roles
+  were missing from the reload and needed `tree strike`. The load should also
+  take items whose only `P17` is ours.
+- **Kept as offices, worth a second look:** Q110299985 kommunalordförande,
+  Q3742121 slottsfogde, Q10658478 räntmästare, Q131323581 Rainha de Bateria,
+  Q139303992 (ng) Commissioner for Women Affairs and Poverty Alleviation.
+- **Q11870945 Fältprost** keeps our `P31 Q294414` (public office); a generic
+  chaplain role is arguably no office of the state.
+- **Classes of local office** ("mayor of a place in X"): own `P17`, ≥10 direct
+  subclasses with distinct `P1001` making up half its subclasses, holders
+  ignored: about 224 candidates at ~90% precision (QLever, 2026-10-13). A
+  feeder for "type of position" typing and for the scope question, not for
+  the generic list. False positives are "member of <legislature>" with a
+  subclass per constituency.
+- **P39s filed on such a class:** 22,905 holders on 146 one-country classes;
+  about 1,400 `P1001`-qualified statements have a matching subclass to move
+  to (Landrat 356 of 467). Czech, Hungarian and Swiss mayors use the
+  qualifier by convention and stay.
+
 ## 3. The fill lane
 
 peptree repairs offices it finds; it creates none. For a FATF category a

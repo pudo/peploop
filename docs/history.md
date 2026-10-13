@@ -169,6 +169,19 @@ cannot.
   Sweden's correct P17s ("svensk" is not "Sverige"); an explicit scope answer
   separates the roles (all `generic` or `unclear` on a probe) from Swedish-only
   titles (kammarrättspresident, hovrättsassessor: `office`).
+  Re-asked over all 876 landed `P17`s whose label names no state: 823
+  `office`, 4 `unclear`, 19 `generic`; 17 listed (14 plus the three reverted),
+  14 `P17`s removed (QS3 59521).
+- No measured generic class carries a `P17`; the eight with a `P1001` all name
+  a class of polity (mayor's municipality, bishop's diocese). A `P1001` value
+  with a `P279` of its own and no `P17` is such a class: 2 of 400 sampled
+  `P1001` values had a `P279`, "state" and a county whose `P17` keeps it a
+  polity.
+- Counting subclasses does not find generic roles: "≥3 subclasses" is 9%
+  precise, the Swedish roles have 0–2, and the most-used "mayor of a place in
+  X" classes have under ten. What one-country classes of local office share
+  is many subclasses with distinct `P1001`; the old `class_type` rule also
+  failed because people put the class itself in `P39`.
 - Reconcile's `generic-class` is not "generic": its 253 items are mostly
   national classes picked against a named seat ("member of the Australian
   House of Representatives"), so it does not feed the generic list.
