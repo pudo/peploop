@@ -1669,8 +1669,13 @@ class Context:
             found.append(qid)
         if len(found) != 1:
             return None
-        councils = offices._unended(claims[found[0]], "P194")
-        return found[0], councils[0] if len(councils) == 1 else None
+        return found[0], self.council_of(found[0], claims[found[0]])
+
+    def council_of(self, place: str, entity: dict[str, Any] | None = None) -> str | None:
+        """The council a town names under `P194`, when it names exactly one."""
+        entity = entity if entity is not None else self._claims([place]).get(place) or {}
+        councils = offices._unended(entity, "P194")
+        return councils[0] if len(councils) == 1 else None
 
     def labels_for(self, qids: Iterable[str | None]) -> dict[str, str]:
         wanted = [q for q in dict.fromkeys(qids) if q]
@@ -1874,6 +1879,9 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
     # body first: a deputy's drafted ministry is the minority shape.
     jurisdiction = draft.get("jurisdiction_qid") or (anchor.jurisdiction if anchor else None)
     council = None
+    if shape.level == "municipality" and jurisdiction and jurisdiction not in ctx.levels:
+        # A town categorize named by QID still sits in its council.
+        council = ctx.council_of(jurisdiction)
     if not jurisdiction and shape.level == "municipality":
         # A town is never on categorize's lists: it comes back as a name.
         place = ctx.local_place(draft.get("jurisdiction_name"))
@@ -1889,7 +1897,8 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
     if shape.body_from and measured:
         body = measured
     else:
-        body = draft.get("body_qid") or (anchor.body if anchor else None) or council or measured
+        drafted_body = draft.get("body_qid") if draft.get("body_qid") != jurisdiction else None
+        body = drafted_body or (anchor.body if anchor else None) or council or measured
     if not labels:
         problems.append("labels/none")
     drafted = draft.get("parent_qid")

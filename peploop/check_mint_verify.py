@@ -489,6 +489,10 @@ def check_build_spec(expect: Any) -> None:
                                                   "labels": {"en": "Mayor of Lindo"}}), local)
     expect(mayor.jurisdiction == "Q960" and mayor.body_qid == "Q961" and "jurisdiction-unresolved" not in problems,
            f"a mayor named by its town is scoped to it and sits in its council: {mayor.jurisdiction} {mayor.body_qid} {problems}")
+    itself, _p = mint.build_spec(cand(draft={"archetype": "mayor", "body_qid": "Q960", "jurisdiction_qid": "Q960",
+                                             "labels": {"en": "Mayor of Lindo"}}), local)
+    expect(itself.body_qid == "Q961",
+           f"a town drafted as its own mayor's body gives way to its council: {itself.body_qid}")
     seat, problems = mint.build_spec(cand(draft={"archetype": "councillor", "body_qid": None,
                                                  "jurisdiction_name": "Twin",
                                                  "labels": {"en": "member of Twin Council"}}), local)

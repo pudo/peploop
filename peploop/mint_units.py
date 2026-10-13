@@ -244,6 +244,40 @@ def started(units_: Sequence[Unit]) -> dict[str | None, float]:
     return {sub: held[sub] / total[sub] for sub in total}
 
 
+#: The statuses of a mention candidate still in the run: decided for an
+#: item, or not yet decided.
+LIVE_STATUSES = ("categorized", "guarded", "found", "loaded", "creating", "created")
+
+
+def mention_seats(cc: str, ctx: "mint.Context | None" = None) -> set[tuple[str, str]]:
+    """(archetype, town) of every local seat the run's mention candidates name."""
+    from peploop import mint
+    ctx = ctx or mint.Context(cc)
+    rows = db.conn().execute(
+        "SELECT archetype, draft, spec FROM office_candidate WHERE country = %s"
+        " AND NOT ('unit' = ANY(origin)) AND status = ANY(%s) AND archetype = ANY(%s)",
+        (cc, list(LIVE_STATUSES), [a for a, s in offices.ARCHETYPES.items() if s.level == "municipality"]),
+    ).fetchall()
+    out = set()
+    for archetype, draft, spec in rows:
+        draft = draft or {}
+        place = (spec or {}).get("jurisdiction_qid") or draft.get("jurisdiction_qid")
+        if not place or place in ctx.levels:
+            found = ctx.local_place(draft.get("jurisdiction_name"))
+            place = found[0] if found else None
+        if place:
+            out.add((archetype, place))
+    return out
+
+
+def supersede(cc: str, ref: str) -> None:
+    """Take a unit's candidate out of the run, unless an item was made from it."""
+    db.conn().execute(
+        "UPDATE office_candidate SET status = 'superseded', updated_at = now()"
+        " WHERE country = %s AND ref = %s AND status <> ALL(%s) AND decided_by IS NULL",
+        (cc, ref, list(PROTECTED_STATUSES)))
+
+
 UPSERT_SQL = (
     "INSERT INTO office_candidate (country, ref, origin, institution_class, archetype, single_seat,"
     " draft, holders, current_holders, source_url, status, problems)"
@@ -265,6 +299,7 @@ def build(cc: str, log: Callable[[str], None] = print,
 
     read = read or _read
     state = positions.country_qid(cc)
+    claimed = mention_seats(cc)
     subs = [q for q, _labels in offices.subdivisions(state)]
     stats: Counter[str] = Counter()
     for level in levels(cc):
@@ -276,6 +311,11 @@ def build(cc: str, log: Callable[[str], None] = print,
         for unit in found:
             if unit.has_office:
                 stats[f"{level.key}:has-office"] += 1
+                continue
+            if (level.archetype, unit.qid) in claimed:
+                # The run's holders name this seat: their candidate makes it, and feeds them.
+                stats[f"{level.key}:mention-has-it"] += 1
+                supersede(cc, f"unit/{level.key}/{unit.qid}")
                 continue
             if shares[unit.subdivision] < COMPLETE_AT and not level.sources.get(unit.subdivision or ""):
                 stats[f"{level.key}:set-not-started"] += 1
@@ -290,10 +330,7 @@ def build(cc: str, log: Callable[[str], None] = print,
             stats[f"{level.key}:{why}"] += 1
             if draft is None:
                 # A unit drafted by an earlier run, whose article no longer qualifies.
-                db.conn().execute(
-                    "UPDATE office_candidate SET status = 'superseded', updated_at = now()"
-                    " WHERE country = %s AND ref = %s AND status <> ALL(%s) AND decided_by IS NULL",
-                    (cc, f"unit/{level.key}/{unit.qid}", list(PROTECTED_STATUSES)))
+                supersede(cc, f"unit/{level.key}/{unit.qid}")
                 continue
             db.conn().execute(UPSERT_SQL, (
                 cc, f"unit/{level.key}/{unit.qid}", level.institution_class, level.archetype,
