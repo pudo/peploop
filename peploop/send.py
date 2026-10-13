@@ -8,7 +8,6 @@ by GUID, after a live pre-flight. Additions, removals and creations never share
 a batch.
 """
 
-import datetime as dt
 import os
 import re
 import sys
@@ -40,11 +39,38 @@ def writer_lock(who: str) -> Iterator[None]:
         conn.execute("SELECT pg_advisory_unlock(hashtext(%s))", (LOCK,))
 
 
+# --- how a batch reads on Wikidata ---------------------------------------------------
+
+#: What each tool's batches are for. Nobody on Wikidata knows the tools by name.
+OBJECTIVES = {"peploop": "person profiles", "peptree": "positions hierarchy"}
+
+
+def batch_name(tool: str, op: str, batch_id: int) -> str:
+    """Name a batch by the objective it serves, made unique by its ledger id.
+
+    QS3 puts the name ahead of every edit's summary, and `recover` finds a batch
+    whose answer was lost by it.
+    """
+    objective = "missing positions" if op == "create" else OBJECTIVES.get(tool, tool)
+    return f"Politically exposed persons: {objective} ({batch_id})"
+
+
+def _open(tool: str, op: str) -> tuple[int, str]:
+    """Record a new batch in the ledger; returns its id and name."""
+    batch_id = ledger.open_batch(tool, op, "")
+    name = batch_name(tool, op, batch_id)
+    ledger.rename_batch(batch_id, name)
+    return batch_id, name
+
+
 # --- removal lines -------------------------------------------------------------------
 
 def removal_line(guid: str, reason: str) -> str:
-    """Remove one statement by its GUID: never by value, which takes only the first match."""
-    return f"-STATEMENT\t{guid} /* {reason.replace('*', '')} */"
+    """Remove one statement by its GUID: never by value, which takes only the first match.
+
+    The reason is shown on Wikidata, after the link to what the edits are for.
+    """
+    return f"-STATEMENT\t{guid} /* {qs.EXPLAINER}: remove a statement: {reason.replace('*', '')} */"
 
 
 def validate_removals(lines: list[str]) -> list[str]:
@@ -98,7 +124,7 @@ def recover(tool: str, username: str, log: Log) -> None:
             log(f"batch #{batch_id} recovered as QS3 {found}")
 
 
-def send(tool: str, op: str, name: str, rows: list[tuple[str, str, str, list[int]]], is_live: IsLive,
+def send(tool: str, op: str, rows: list[tuple[str, str, str, list[int]]], is_live: IsLive,
          log: Log, on_recorded: Callable[[str], None] | None = None, combine: bool = True) -> int:
     """Send (country, key, line, refs) rows as one QS3 batch and wait for it; returns the QS3 id.
 
@@ -106,11 +132,11 @@ def send(tool: str, op: str, name: str, rows: list[tuple[str, str, str, list[int
     lost, `recover` binds the batch by its name, which carries the local id.
     `on_recorded(name)` runs after that and before the request, for a tool to
     mark its own rows as gone out. `combine` lets QS3 fold an item's consecutive
-    lines into one edit, where one bad command fails them all.
+    lines into one edit, where one bad command fails them all. Each line goes
+    out with the summary it should carry now (`qs.stamp`), whenever it was written.
     """
-    batch_id = ledger.open_batch(tool, op, name)
-    name = f"{name} #{batch_id}"
-    ledger.rename_batch(batch_id, name)
+    rows = [(cc, k, qs.stamp(tool, line), refs) for cc, k, line, refs in rows]
+    batch_id, name = _open(tool, op)
     ledger.record_edits(batch_id, op, rows)
     if on_recorded is not None:
         on_recorded(name)
@@ -142,7 +168,7 @@ def prepare(tool: str, log: Log, is_live: IsLive = live_keys) -> None:
     reconcile(tool, is_live, log)
 
 
-def dispatch(tool: str, name: str, rows: list[tuple[str, str, str, list[int]]], log: Log, *,
+def dispatch(tool: str, rows: list[tuple[str, str, str, list[int]]], log: Log, *,
              is_live: IsLive = live_keys, combine: bool = True,
              on_recorded: Callable[[str], None] | None = None,
              before: Callable[[], None] | None = None, after: Callable[[], None] | None = None) -> list[int]:
@@ -157,17 +183,16 @@ def dispatch(tool: str, name: str, rows: list[tuple[str, str, str, list[int]]], 
         if before is not None:
             before()
         if rows:
-            sent.append(send(tool, "add", name, rows, is_live, log, on_recorded=on_recorded, combine=combine))
+            sent.append(send(tool, "add", rows, is_live, log, on_recorded=on_recorded, combine=combine))
             if after is not None:
                 after()
         removals = pending_removals(tool, log)
         if removals:
-            sent.append(send(tool, "remove", f"{tool} removals {dt.date.today().isoformat()}", removals,
-                             is_live, log))
+            sent.append(send(tool, "remove", removals, is_live, log))
     return sent
 
 
-def retry(tool: str, op: str, name: str, is_live: IsLive, log: Log,
+def retry(tool: str, op: str, is_live: IsLive, log: Log,
           on_recorded: Callable[[str], None] | None = None, country: str | None = None) -> int | None:
     """Send a tool's failed edits of one op again, one edit per line; returns the QS3 id.
 
@@ -182,13 +207,11 @@ def retry(tool: str, op: str, name: str, is_live: IsLive, log: Log,
         return None
     live = is_live([line for _, line in failed]) if op == "add" else set()
     ledger.set_status(op, live, "landed")
-    todo = [(k, line) for k, line in failed if k not in live]
+    todo = [(k, qs.stamp(tool, line)) for k, line in failed if k not in live]
     log(f"{len(failed)} failed edits: {len(live)} live already, {len(todo)} to send again")
     if not todo:
         return None
-    batch_id = ledger.open_batch(tool, op, name)
-    name = f"{name} #{batch_id}"
-    ledger.rename_batch(batch_id, name)
+    batch_id, name = _open(tool, op)
     ledger.move_edits(batch_id, op, [k for k, _ in todo])
     if on_recorded is not None:
         on_recorded(name)
@@ -207,7 +230,7 @@ def retry(tool: str, op: str, name: str, is_live: IsLive, log: Log,
 
 # --- creations -----------------------------------------------------------------------
 
-def create(tool: str, name: str, rows: list[tuple[str, str, list[str], int]], log: Log,
+def create(tool: str, rows: list[tuple[str, str, list[str], int]], log: Log,
            on_recorded: Callable[[str], None] | None = None) -> dict[str, str | None]:
     """Create items as one QS3 batch, from (country, key, lines, ref) rows; returns key → QID or None.
 
@@ -217,9 +240,7 @@ def create(tool: str, name: str, rows: list[tuple[str, str, list[str], int]], lo
     QS3 fails a combined batch of creations whole.
     """
     rows = sorted(rows, key=lambda r: r[3])
-    batch_id = ledger.open_batch(tool, "create", name)
-    name = f"{name} #{batch_id}"
-    ledger.rename_batch(batch_id, name)
+    batch_id, name = _open(tool, "create")
     ledger.record_edits(batch_id, "create", [(cc, k, "\n".join(lines), [ref]) for cc, k, lines, ref in rows])
     if on_recorded is not None:
         on_recorded(name)

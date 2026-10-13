@@ -16,3 +16,7 @@
   stage of the pipeline as a separate model call. Making that list clean is
   immensely valuable, and recording every generic position to it goes out of
   reconciliation.
+- 2026-10-13: Improve the readability of the QS edit comments in peploop and
+  peptree. They talk about themselves but nobody knows what peploop and
+  peptree are (this repo is private). We probably shouldn't mention stuff like
+  "send so <date>", it's internal.

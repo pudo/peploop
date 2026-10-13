@@ -30,12 +30,12 @@ statements. The batch itself goes out through `peploop/send.py`.
   is audited before any of it is sent.
 """
 
-import datetime as dt
 import sys
 from collections import defaultdict
 from typing import Callable
 
 from peploop import ledger, send
+from peploop import qs as peploop_qs
 from peploop.tree import qs, sweep, wd
 
 TOOL = "peptree"
@@ -107,7 +107,8 @@ def run(log: Callable[[str], None] = print, batch: int | None = None, submit: bo
     """
     send.prepare(TOOL, log)
     todo = pending(log, batch)
-    lines = [line for _, line in todo]
+    # Stamped as `send` will stamp them, so the file shows what lands.
+    lines = [peploop_qs.stamp(TOOL, line) for _, line in todo]
     errors = qs.validate(lines)
     if errors:
         sys.exit("refused: " + "; ".join(errors[:5]))
@@ -118,8 +119,7 @@ def run(log: Callable[[str], None] = print, batch: int | None = None, submit: bo
         n = len([r for r in ledger.removals("approved", TOOL) if r["sent"] is None])
         log(f"{n} approved removals would go out after them")
         return []
-    name = f"peptree send {dt.date.today().isoformat()}" + (f" batch {batch}" if batch is not None else "")
-    return send.dispatch(TOOL, name, [(cc, ledger.key(line), line, []) for cc, line in todo], log)
+    return send.dispatch(TOOL, [(cc, ledger.key(line), line, []) for cc, line in todo], log)
 
 
 def propose_reverts(log: Callable[[str], None] = print) -> int:
@@ -137,7 +137,7 @@ def propose_reverts(log: Callable[[str], None] = print) -> int:
         for cc, line in rows:
             _, prop, value = qs.statements([line])[0]
             for guid, ours in ledger.candidates(claims.get(prop, []), value, ledger.ours_urls(line)):
-                ledger.propose_removal(TOOL, guid, qid, prop, value, cc, "landed on an item the load now drops",
+                ledger.propose_removal(TOOL, guid, qid, prop, value, cc, "undo an earlier edit of this account, on an item outside the positions it covers",
                                        "revert", ours)
                 n += 1
     log(f"{n} revert removals proposed")

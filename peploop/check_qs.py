@@ -123,6 +123,26 @@ def main() -> int:
     expect(qs.live_lines([switch], {PERSON: born({**year, "time": "+1950-03-04T00:00:00Z", "precision": 11},
                                                  IMPORTED)}), [switch], "a switch is live once the new value is")
 
+    print("what an edit says on Wikidata:")
+    url = '"https://{}.wikipedia.org/w/index.php?title=X&oldid=1"'
+    made = route.route(PERSON, item(), [office(quals=span("2020-10-15", "2022-06-01"))]).lines
+    expect(len(made) == 1 and made[0].endswith(
+        " /* [[User:Pudox/PEP|PEP coverage]]: add position held from Wikipedia (aa) */"), True,
+           "a person line names the objective, the property and the source wiki, not the run")
+    many = [f"+{PERSON}", "P27", OFFICE] + [c for w in "abcdefgh" for c in ("S4656", url.format(w * 2))]
+    expect(qs.describe("peploop", many),
+           "[[User:Pudox/PEP|PEP coverage]]: add country of citizenship from Wikipedia (aa, bb, cc, dd, ee, ff and 2 more)",
+           "many source wikis are counted past the first few")
+    expect(qs.describe("peploop", [qs.SWITCH, PERSON, "P569", "+1950", "+1950-03-04"]).endswith("refine date of birth"),
+           True, "a switch refines its value")
+    stale = f"{PERSON}\tP39\t{OFFICE} /* peploop: add position from aa.wikipedia (rev 7) */"
+    expect(qs.stamp("peptree", stale).endswith(" /* [[User:Pudox/PEP|PEP coverage]]: "
+                                                "classify a political position and its jurisdiction */"), True,
+           "a line queued before is restamped when it goes out")
+    expect(ledger.key(qs.stamp("peptree", stale)), ledger.key(stale), "and keeps its ledger key")
+    removal = f"-STATEMENT\t{GUID} /* [[User:Pudox/PEP|PEP coverage]]: remove a statement: wrong office */"
+    expect(qs.stamp("peploop", removal), removal, "a removal keeps the reason written for it")
+
     print(f"{len(failures)} failures")
     return 1 if failures else 0
 

@@ -56,10 +56,10 @@ def _row(cand_id: int, lock: bool = False) -> dict[str, Any] | None:
 
 
 def intent_tag(cand: dict[str, Any], at: datetime.datetime | None = None) -> str:
-    """The marker a creation's summary carries, unique to this row, payload and attempt.
+    """The creation's key in the send ledger, unique to this row, payload and attempt.
 
-    It is also the creation's key in the send ledger, which is why the attempt
-    is in it: a row put back to `guarded` after a crash is a new creation.
+    The attempt is in it because a row put back to `guarded` after a crash is a
+    new creation.
     """
     blob = json.dumps(cand["data"], sort_keys=True, ensure_ascii=False)
     sha = hashlib.sha256(blob.encode("utf-8")).hexdigest()[:8]
@@ -197,7 +197,7 @@ def create(
         ready = prepare(cand["id"], recheck=recheck)
         if ready is None:
             continue
-        lines = qs.create_lines(ready["data"], f"Create office: {_label(ready)} [{ready['intent_tag']}]")
+        lines = qs.create_lines(ready["data"], qs.describe(TOOL, ["CREATE"]))
         rows.append((country, ready["intent_tag"], lines or [], ready["id"]))
         cands[ready["intent_tag"]] = ready
     if not rows:
@@ -207,8 +207,7 @@ def create(
         db.conn().execute("UPDATE office_candidate SET batch = %s WHERE id = ANY(%s)",
                           (name, [ref for *_, ref in rows]))
 
-    made = send.create(TOOL, f"peploop mint {country} {datetime.date.today().isoformat()}", rows, log,
-                       on_recorded=mark)
+    made = send.create(TOOL, rows, log, on_recorded=mark)
     return [_settle(cands[tag], qid, lookup) for tag, qid in made.items()]
 
 

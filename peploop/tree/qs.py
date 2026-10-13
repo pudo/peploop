@@ -17,12 +17,7 @@ def today() -> str:
     return dt.date.today().strftime("+%Y-%m-%dT00:00:00Z/11")
 
 
-def batch_name(cc: str, day: dt.date | None = None, lane: str = "repair") -> str:
-    """The handle for one country's batch: the QS batch name and every edit's summary."""
-    return f"peptree {lane} {cc} {(day or dt.date.today()).isoformat()}"
-
-
-def line(d: dict[str, Any], retrieved: str, name: str) -> str:
+def line(d: dict[str, Any], retrieved: str) -> str:
     """One statement. Article-derived values carry S854 + S813; structural ones nothing."""
     cols = [d["qid"], d["prop"], d["value"]]
     source = d.get("source") or ""
@@ -31,12 +26,12 @@ def line(d: dict[str, Any], retrieved: str, name: str) -> str:
     if url:
         # A quote would end the string column; percent-encoded it is the same URL.
         cols += ["S854", qs.qs_value(url.replace('"', "%22")), "S813", retrieved]
-    return qs.line(cols, name)
+    return qs.described("peptree", cols)
 
 
-def render(decisions: list[dict[str, Any]], name: str) -> list[str]:
+def render(decisions: list[dict[str, Any]]) -> list[str]:
     retrieved = today()
-    lines = [line(d, retrieved, name) for d in decisions if d["disposition"] == "apply"]
+    lines = [line(d, retrieved) for d in decisions if d["disposition"] == "apply"]
     return sorted(dict.fromkeys(lines))
 
 

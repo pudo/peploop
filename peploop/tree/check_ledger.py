@@ -44,7 +44,7 @@ def main() -> None:
 
     guid = "Q1$12774DF1-9BD0-49A0-998E-C1271E593A3B"
     line = send.removal_line(guid, "why */ not")
-    expect(line == f"-STATEMENT\t{guid} /* why / not */" and send.validate_removals([line]) == [],
+    expect(line == f"-STATEMENT\t{guid} /* [[User:Pudox/PEP|PEP coverage]]: remove a statement: why / not */" and send.validate_removals([line]) == [],
            "a removal goes by GUID, and a reason cannot close its own comment")
     expect(send.validate_removals(["-Q1\tP279\tQ3 /* a */"]) != [], "removal by value is refused: it takes only the first match")
     expect(send.validate_removals(["-STATEMENT\tQ1$nope /* a */"]) != [], "a malformed GUID is refused")

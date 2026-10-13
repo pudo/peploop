@@ -249,7 +249,7 @@ NON_WIKIPEDIA_SITES = {
 }
 
 
-#: How an edit summary and a report name the properties this pipeline writes.
+#: How a report names the properties this pipeline writes.
 PROPERTY_NAMES = {
     "P31": "human",
     "labels": "labels",

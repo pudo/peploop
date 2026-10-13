@@ -99,7 +99,8 @@ into a statement that already holds its value, so an addition sent twice
 changes nothing.
 
 `tree strike <qid> <prop> [value] --reason …` vetoes a statement for good; if one
-of ours already landed, its removal is queued (approved when the statement is
+of ours already landed, its removal is queued, with the reason as its public
+edit summary (approved when the statement is
 provably only ours). `removals approve|reject` (peploop's top-level command,
 one queue for both lanes) decides the rest. `tree send --propose-reverts` queues removals for landed lines on items the load
 now drops.

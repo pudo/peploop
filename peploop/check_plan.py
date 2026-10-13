@@ -108,8 +108,6 @@ def main() -> int:
            "with the wiki, the permanent revision url and the day it was read")
     url = made[0]["references"][0]["snaks"]["P4656"][0]["datavalue"]["value"]
     expect("oldid=7" in url, True, "and the url names the revision, not the page")
-    expect("position" in plan.summary and "aa.wikipedia" in plan.summary, True,
-           "and a summary naming the property and the wiki")
 
     print("two spells of one office:")
     rows = [office(quals=span("2004-12-03", "2008-11-21"), id=1),

@@ -343,8 +343,8 @@ queue) has the mechanics; the decisions are these.
   an office nobody was shown.
 - **Crash-safe by intent, not by retry.** Before the request every row is
   re-guarded live, marked `creating` with an intent tag unique to the row, its
-  payload and the attempt, and committed; the tag rides in the edit summary
-  and keys the creation in the send ledger. All of a run's offices go out as
+  payload and the attempt, and committed; the tag keys the creation in the
+  send ledger. All of a run's offices go out as
   one QS3 batch of `CREATE` + `LAST` lines, and each office's QID is the
   `response_id` of its own `CREATE` command, found by line index. A row a
   crash leaves in `creating` is resolved from QS3's record of that batch --
@@ -532,6 +532,16 @@ in flight is found again by the batch's name rather than sent twice. It is a
 rows and writes the lines to `data/peploop/send/<cc>.qs`, counted by route;
 `--submit` sends them, then the approved removals as a batch of their own,
 waits, and settles each row `applied` or `failed` from what is live.
+
+Nobody on Wikidata knows these tools, so an edit says what it is for and
+never how it was made. Its batch is named by objective (`Politically exposed
+persons: person profiles (81)`; peptree's is `positions hierarchy`, mint's
+`missing positions`), made unique by its ledger id. The summary of each line
+links the explainer page `User:Pudox/PEP` (drafted in
+`docs/wikidata_explainer.wiki`) and names the property and the source wikis
+(`qs.describe`). A line is stamped as it goes out, so one queued under older
+wording goes out under the current one. A removal carries its reason, which is
+therefore written for the public.
 
 Nothing trusts a stored status. Each accepted row is re-decided against the
 live claims (`plan.py`), and routed. A dated spell of an office is matched to

@@ -24,6 +24,8 @@ from typing import Any
 
 from peploop import plan, qs
 
+TOOL = "peploop"
+
 
 @dataclass
 class Routed:
@@ -44,7 +46,7 @@ def _live(entity: dict[str, Any], prop: str, guid: str) -> dict[str, Any] | None
     return next((c for c in entity.get("claims", {}).get(prop, []) if c.get("id") == guid), None)
 
 
-def render(qid: str, entity: dict[str, Any], statement: dict[str, Any], summary: str) -> tuple[str, list[str]] | None:
+def render(qid: str, entity: dict[str, Any], statement: dict[str, Any]) -> tuple[str, list[str]] | None:
     """(route, lines) for one planned statement, or None if a value cannot be written."""
     prop = statement["mainsnak"]["property"]
     value = qs.snak_value(statement["mainsnak"])
@@ -58,7 +60,7 @@ def render(qid: str, entity: dict[str, Any], statement: dict[str, Any], summary:
             return None
         rank = ["R+"] if statement.get("rank") == "preferred" else []
         route = "preferred" if rank else "create"
-        return route, [qs.line([f"+{qid}", prop, value, *rank, *quals, *refs], summary)]
+        return route, [qs.described(TOOL, [f"+{qid}", prop, value, *rank, *quals, *refs])]
     live = _live(entity, prop, guid)
     if live is None:
         return None
@@ -68,13 +70,13 @@ def render(qid: str, entity: dict[str, Any], statement: dict[str, Any], summary:
     refs = qs.references((statement.get("references") or [])[len(live.get("references") or []):])
     if quals is None or refs is None:
         return None
-    merge = qs.line([qid, prop, value, *quals, *refs], summary)
+    merge = qs.described(TOOL, [qid, prop, value, *quals, *refs])
     old = qs.snak_value(live.get("mainsnak", {}))
     if old is None:
         return None
     if old == value:
         return "merge", [merge]
-    return "switch", [qs.line([qs.SWITCH, qid, prop, old, value], summary), merge]
+    return "switch", [qs.described(TOOL, [qs.SWITCH, qid, prop, old, value]), merge]
 
 
 def route(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) -> Routed:
@@ -84,7 +86,7 @@ def route(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) -> Route
     out.routes.update({r: n for r, n in planned.routes.items() if r not in ("new", "refine", "preferred", "merged")})
     rendered: list[tuple[str, list[str], list[int]]] = []
     for statement, ids in zip(planned.data.get("claims", []), planned.members):
-        found = render(qid, entity, statement, planned.summary)
+        found = render(qid, entity, statement)
         if found is None:
             out.skipped += [(i, qs.UNRENDERABLE) for i in ids]
             out.routes[qs.UNRENDERABLE] += 1

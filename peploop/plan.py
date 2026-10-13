@@ -19,7 +19,6 @@ from typing import Any
 
 from peploop import db, policy, propose, wikidata, wikipedia
 
-PROPERTY_NAMES = wikidata.PROPERTY_NAMES
 # A reference built only from these says "imported from a Wikipedia article",
 # which is the one provenance a refinement may overwrite in place.
 IMPORT_PROPS = wikidata.IMPORT_PROPS
@@ -30,7 +29,6 @@ class Plan:
 
     qid: str
     data: dict[str, Any] = field(default_factory=dict)
-    summary: str = ""
     skipped: list[tuple[int, str]] = field(default_factory=list)
     routes: Counter[str] = field(default_factory=Counter)
     # The proposal ids behind each statement of `data`, in the same order.
@@ -376,21 +374,6 @@ def plan_tenure(
     return "new", _statement(prop, value, qualifiers, order, refs)
 
 
-def _summary(rows: list[dict[str, Any]], claims: int) -> str:
-    """Name what the edit changes and which article revisions say so."""
-    parts = []
-    for prop in dict.fromkeys(row["property"] for row in rows):
-        parts.append(PROPERTY_NAMES.get(prop, prop))
-    sources = {}
-    for row in rows:
-        for source in row_sources(row):
-            if source.get("lang") and source.get("rev"):
-                sources[f"{source['lang']}.wikipedia"] = source["rev"]
-    where = ", ".join(f"{site} (rev {rev})" for site, rev in sorted(sources.items()))
-    head = f"peploop: add {', '.join(parts) or f'{claims} statements'}"
-    return f"{head} from {where}" if where else head
-
-
 def _qualifier_fingerprint(qualifiers: dict[str, Any] | None) -> str:
     """Render a statement's qualifier values, so two spells can be told apart."""
     return json.dumps(
@@ -441,7 +424,6 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
     plan = Plan(qid=qid)
     statements: dict[str, dict[str, Any]] = {}
     members: dict[str, list[int]] = {}
-    written: list[dict[str, Any]] = []
     for row in rows:
         route, statement = plan_claim(entity, row)
         if statement is None:
@@ -469,11 +451,9 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
             already.setdefault("references", []).extend(statement.get("references") or [])
             plan.routes["merged"] += 1
         members[key].append(row["id"])
-        written.append(row)
     if statements:
         plan.data["claims"] = list(statements.values())
         plan.members = list(members.values())
-    plan.summary = _summary(written, len(statements))
     return plan
 
 

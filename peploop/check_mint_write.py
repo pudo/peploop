@@ -88,7 +88,7 @@ def check_lock(expect: Any, conn: psycopg.Connection) -> None:
 class FakeQS3:
     """QuickStatements 3.0 as far as minting uses it: batches by id, a QID per CREATE.
 
-    `fail` names refs whose CREATE fails; `crash` is "before" (the request
+    `fail` names refs whose CREATE fails (read off the ledger key); `crash` is "before" (the request
     never arrives), "after" (it arrives, the answer is lost) or None.
     """
 
@@ -113,10 +113,15 @@ class FakeQS3:
         return {"status": {"code": qs3.DONE, "display": "Done"}}
 
     def commands(self, batch: int) -> list[dict[str, Any]]:
+        # Which office each CREATE is, as the ledger recorded it: its key names the ref.
+        keys = iter(k for k, in db.conn().execute(
+            "SELECT e.key FROM wd_edit e JOIN wd_batch b ON b.id = e.batch_id"
+            " WHERE b.qs3_id = %s AND e.op = 'create' ORDER BY e.refs[1]", (batch,)).fetchall())
         out, current = [], None
         for i, line in enumerate(self.batches[batch][1]):
             if line.startswith("CREATE"):
-                failed = any(f in line for f in self.fail)
+                key = next(keys)
+                failed = any(f in key for f in self.fail)
                 current = None if failed else f"Q{self.next_qid}"
                 if current:
                     self.next_qid += 1
@@ -141,15 +146,15 @@ def check_create(expect: Any, conn: psycopg.Connection) -> None:
     expect(len(FAKE.batches) == 1, "one QS3 batch for every guarded office")
     lines = next(iter(FAKE.batches.values()))[1]
     expect(not any(FAKE.combined.values()), "creations go out uncombined")
-    expect(lines[0].startswith("CREATE /* Create office: Mayor of Velmora [peploop-mint:zz:create-one:")
+    expect(lines[0] == "CREATE /* [[User:Pudox/PEP|PEP coverage]]: create a position item */"
            and lines[1].startswith('LAST\tLen\t"Mayor of Velmora"'),
-           "an item is CREATE and its LAST lines, the intent tag in the summary")
+           "an item is CREATE and its LAST lines, its summary saying what it is for")
     expect(sorted(out) == [(first, "created", "Q7001"), (second, "created", "Q7002")]
            and state(conn, first) == ("created", "Q7001", "mint:created"),
            "each row takes the QID its own CREATE returned")
     batch = conn.execute("SELECT batch FROM office_candidate WHERE id = %s", (first,)).fetchone()[0]
     edits = conn.execute("SELECT status, refs FROM wd_edit WHERE op = 'create' ORDER BY refs[1]").fetchall()
-    expect(batch.startswith("peploop mint zz") and edits == [("landed", [first]), ("landed", [second])],
+    expect(batch.startswith("Politically exposed persons: missing positions (") and edits == [("landed", [first]), ("landed", [second])],
            "the batch is named on the row and both creations are landed in the send ledger")
     expect(mint_write.create(COUNTRY, recheck=clean) == [] and len(FAKE.batches) == 1,
            "a second create sends nothing: no row is guarded")

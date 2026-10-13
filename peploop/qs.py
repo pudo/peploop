@@ -76,6 +76,70 @@ def line(cols: list[str], summary: str) -> str:
     return "\t".join(cols) + f" /* {summary.replace('*', '')} */"
 
 
+# --- what an edit says about itself ---------------------------------------------------
+
+#: The page every edit summary links: the tools behind the edits are not public.
+EXPLAINER = "[[User:Pudox/PEP|PEP coverage]]"
+#: Wikidata's labels for the properties a person edit writes.
+PERSON_PROPS = {
+    "P31": "instance of",
+    "P21": "sex or gender",
+    "P569": "date of birth",
+    "P570": "date of death",
+    "P19": "place of birth",
+    "P27": "country of citizenship",
+    "P39": "position held",
+}
+WIKI_RE = re.compile(r"https://([a-z0-9-]+)\.wikipedia\.org/")
+#: Source wikis named before the rest are counted, so a summary stays short.
+MAX_WIKIS = 6
+
+
+def describe(tool: str, cols: list[str]) -> str:
+    """Say what one command does, in words for someone who has never heard of our tools.
+
+    The edit summary every line carries. It names the objective and the property,
+    not the run that made it: a reader on Wikidata can check an edit against it.
+    """
+    if cols[0] in ("CREATE", "LAST"):
+        what = "create a position item"
+    elif tool == "peptree":
+        # QS3 folds an item's lines into one edit under the first line's summary,
+        # so this one names no single property.
+        what = "classify a political position and its jurisdiction"
+    else:
+        if cols[0] == SWITCH:
+            verb, prop = "refine", cols[2]
+        else:
+            verb, prop = ("add" if cols[0].startswith("+") else "complete"), cols[1]
+        if prop.startswith("P"):
+            name = PERSON_PROPS.get(prop, prop)
+        else:
+            name = {"L": "label", "D": "description", "A": "alias"}.get(prop[:1], prop)
+        what = f"{verb} {name}"
+        wikis = sorted(set(WIKI_RE.findall("\t".join(cols))))
+        if wikis:
+            more = f" and {len(wikis) - MAX_WIKIS} more" if len(wikis) > MAX_WIKIS else ""
+            what += f" from Wikipedia ({', '.join(wikis[:MAX_WIKIS])}{more})"
+    return f"{EXPLAINER}: {what}"
+
+
+def described(tool: str, cols: list[str]) -> str:
+    """One command, carrying the summary `describe` gives it."""
+    return line(cols, describe(tool, cols))
+
+
+def stamp(tool: str, text: str) -> str:
+    """Give a line the summary it should carry now, whatever it was written with.
+
+    Removals keep theirs: their reason is written by hand for each one.
+    """
+    cols = columns(text)
+    if cols[0] == "-STATEMENT":
+        return text
+    return described(tool, cols)
+
+
 def create_lines(data: dict[str, Any], summary: str) -> list[str] | None:
     """A new item as QS lines: `CREATE`, then its terms and statements on `LAST`.
 

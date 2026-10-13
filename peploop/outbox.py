@@ -15,7 +15,6 @@ a line (`exists`, `conflict`, `ambiguous-statement`, …) is `skipped` under
 `plan:<route>`, which a re-propose keeps for as long as the route still holds.
 """
 
-import datetime as dt
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -99,8 +98,7 @@ def retry(country: str, log: Log) -> int | None:
                           (SENT, name, failed))
 
     with send.writer_lock(f"peploop send {country} --retry"):
-        qs_id = send.retry(TOOL, "add", f"peploop retry {country} {dt.date.today().isoformat()}", send.live_keys, log,
-                           on_recorded=requeue, country=country)
+        qs_id = send.retry(TOOL, "add", send.live_keys, log, on_recorded=requeue, country=country)
         settle(log)
     return qs_id
 
@@ -134,7 +132,7 @@ def run(country: str, log: Log, submit: bool = False, qids: list[str] | None = N
     ids = sorted({i for _, _, _, refs in rows for i in refs})
     # Uncombined: a combined edit fails whole when one of its commands
     # does, and QS3 says neither which nor why.
-    return send.dispatch(TOOL, f"peploop send {country} {dt.date.today().isoformat()}", rows, log, combine=False,
+    return send.dispatch(TOOL, rows, log, combine=False,
                          on_recorded=lambda name: mark_sent(ids, name),
                          before=lambda: log(f"closed {close(people)} rows without a line"),
                          after=lambda: settle(log))

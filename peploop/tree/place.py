@@ -32,7 +32,7 @@ def repair_place(cc: str, limit: int | None, no_ask: bool = False) -> None:
     else:
         reqs = repair.repair(cc, limit=limit, log=log)
     decisions = rules.run_rules(cc, reqs, state, log)
-    lines = qs.render(decisions, qs.batch_name(cc))
+    lines = qs.render(decisions)
     errors = qs.validate(lines)
     if errors:
         log("local validation failed:\n  " + "\n  ".join(errors[:20]))
