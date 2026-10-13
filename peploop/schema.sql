@@ -258,10 +258,26 @@ ALTER TABLE position ADD COLUMN IF NOT EXISTS diplomatic BOOLEAN;
 -- inbound test and every per-state listing of the table read. NULL on
 -- anything not diplomatic, and on a post that names no sender.
 ALTER TABLE position ADD COLUMN IF NOT EXISTS sender_qid TEXT;
--- On `positions.GENERIC`, peploop/generic_positions.csv: a class of office
--- with no jurisdiction (mayor, minister, bishop), never a P39 value. The
--- search leaves it out; set by every load and synced by `mark_generic`.
+-- On `positions.generic_labels()`: a class of office with no jurisdiction
+-- (mayor, minister, bishop), never a P39 value. The search leaves it out; set
+-- by every load and synced by `mark_generic`.
 ALTER TABLE position ADD COLUMN IF NOT EXISTS generic BOOLEAN;
+
+-- Roles a model judged to have no country of their own, beside the measured
+-- peploop/generic_positions.csv: "squadron commander", recorded by one wiki
+-- for its own officers, looks national in its holders and is not. Both tools
+-- read the union. A struck row stays, so no later run lists it again.
+CREATE TABLE IF NOT EXISTS generic_position (
+    qid        TEXT PRIMARY KEY,
+    label      TEXT,
+    origin     TEXT NOT NULL,      -- 'scope': peptree's repair answer
+    country    TEXT,               -- the run that judged it
+    source     TEXT,               -- label | description | statements | article
+    evidence   TEXT,               -- the verbatim quote
+    call_key   TEXT,               -- ptree_call.key: the full request
+    struck     TEXT,               -- why it is not generic after all; NULL while listed
+    decided_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
 -- What the second turn made of one office mention: the model's verdict and the
 -- mechanical gate's ruling on it, keyed to the exact extraction that produced

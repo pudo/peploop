@@ -257,13 +257,20 @@ Positions are the main reconciliation. `positions.md` is the design and
   string through the identical transformation, OR-ed into one `to_tsquery`
   and ordered by `ts_rank(tsv, q, 0)`, which over a bag counts how much of
   the query the item accounts for. `country_qid` is not a filter.
-- **Generic classes are never a target.** `generic_positions.csv` lists the
-  classes of office that name no jurisdiction and are held across many states:
-  mayor, minister, bishop, prime minister, head of state. A `P39` onto one says
-  nothing about where the office was held. It is the one list both tools read
-  (the evidence is `docs/research/generic_positions.md`); after editing it, run
-  `reconcile` once, which syncs `position.generic` (`positions.mark_generic`).
-  It blocks four uses and nothing else:
+- **Generic classes are never a target.** `positions.generic_labels()` is the
+  one list both tools read: the classes of office that name no jurisdiction.
+  `generic_positions.csv` is its measured seed, the classes held across many
+  states (mayor, minister, bishop, head of state; the evidence is
+  `docs/research/generic_positions.md`). The `generic_position` table adds the
+  roles peptree's repair answer judged generic on quoted evidence: "squadron
+  commander", which one wiki recorded for its own officers alone, looks
+  national in its holders and is not. `peploop.cli generic strike` takes back
+  a wrong one. Reconcile reads the list and never writes to it: its
+  `generic-class` verdict means "less specific than this mention", which
+  holds for national classes that are right `P39` values. A `P39` onto a
+  listed item says nothing about where the office was held. After the list
+  changes, run `reconcile` once, which syncs `position.generic`
+  (`positions.mark_generic`). It blocks four uses and nothing else:
   the search leaves flagged rows out of every shortlist, the policy skips a `P39`
   onto one as `office/generic`, and mint never takes one as a duplicate or a
   found office. It is never read against a `P279` parent. Fourteen of
@@ -747,7 +754,7 @@ peploop/
   countries.md             how a country is run
   positions.md             the position resolver, as built
   schema.sql
-  generic_positions.csv    the generic office classes both tools never target
+  generic_positions.csv    the measured generic office classes both tools never target
   fixtures/                the silver test set the bench scores against
   bench/                   the retrieval and second-turn benches over that set
   seeds/<cc>.yml           the categories a country's run is seeded from

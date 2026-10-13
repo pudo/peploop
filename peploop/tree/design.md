@@ -23,6 +23,12 @@ tried is `docs/history.md`.
 - **Two channels or nothing.** The model's answer applies only when a
   mechanical channel (`signals.py`: the label names it, the holders are its
   citizens, the body carries it, the office is the state's own) agrees.
+- **No country for a generic role.** The repair answers `scope` before any
+  property: one polity's office, or a role many states have. Holders never
+  settle it, because one wiki's editors record their own people. `P17` and
+  `P1001` apply only to an office (`generic_role`), and a role judged generic
+  joins the generic list (`positions.generic_labels()`), so the next load
+  drops it and peploop never targets it.
 
 ## The run, per place
 
@@ -38,7 +44,7 @@ log.
    (held by a citizen, scoped to nothing), outbound (the state's posts
    abroad), predecessor (scoped to a predecessor state). A filter drops what
    is not an office (an item typed as a class, an occupation, a place, a
-   generic class from the generic-positions list), each with its reason.
+   generic class from the generic list), each with its reason.
    A lane the query service cuts off (the UK's descent, France's orphans) is
    asked of QLever, whose dump lags by days; every item is then read live.
 3. **gaps** (`gaps.py`): per kept item, the missing `P17`, `P1001`, `P279` or
@@ -50,7 +56,7 @@ log.
    asked property (`prompts/repair.md`); the answer is an index and a quote,
    cached by content in `ptree_call`. The ordered rule table in `rules.py`
    decides each slot — the refusals first (item gone or moved, declined,
-   unquoted, low confidence, outside the state's era, a non-state or the realm
+   unquoted, low confidence, a generic role given a country, outside the state's era, a non-state or the realm
    in `P17`, a label that contradicts it, a class or list article given `P31`),
    then `two_channels` applies and `one_channel` skips. Applied slots render to
    `data/peptree/<cc>/<cc>-<date>.qs` (article-derived values carry `S854` +

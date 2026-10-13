@@ -161,6 +161,17 @@ cannot.
 - peptree before peploop (Malaysia): of 93 repaired items 80 were loadable
   anyway; the repair is felt in the attributes, not in which offices load.
 - The non-OECD sweep: 209 of 210 places, 3,916 statements, about $370.
+- Three `P17 = Sweden` statements were reverted by the items' creator
+  (2026-10-12): "school commander", "squadron commander", "air group
+  commander", generic military roles made for Swedish officers. The only
+  channel was holders, 100% Swedish because Swedish editors documented them.
+  Requiring the model's quote to name the state would have refused a fifth of
+  Sweden's correct P17s ("svensk" is not "Sverige"); an explicit scope answer
+  separates the roles (all `generic` or `unclear` on a probe) from Swedish-only
+  titles (kammarrättspresident, hovrättsassessor: `office`).
+- Reconcile's `generic-class` is not "generic": its 253 items are mostly
+  national classes picked against a named seat ("member of the Australian
+  House of Representatives"), so it does not feed the generic list.
 - peptree began as a separate package with its own copy of the type closure
   and edge table. The two tables disagreed on 381 of the 4,896 classes both
   held: 282 because peploop's closure followed deprecated claims, most of the

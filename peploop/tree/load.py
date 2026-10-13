@@ -298,7 +298,7 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
 
     `types` is the item's whole closure; `p31_types` the closure of its
     declared non-metaclass `P31` values (any rank) only. `generic` is the
-    generic-class list (`positions.GENERIC_LABELS`). `holders` is the item's holder
+    generic-class list (`positions.generic_labels()`). `holders` is the item's holder
     count (from `by` when not given); `bodies` maps the body QIDs it names to
     their types and owners; `territorial` is the set of its `P1001` values
     that are territories (all of them when not given); `cities` the
@@ -428,7 +428,7 @@ def refilter(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
                                       if t not in POSITION_METAS] for it in stored}
     p31_types = typegraph.close(p31_seeds)
     events = event_closure(p31_seeds)
-    generic = positions.GENERIC_LABELS
+    generic = positions.generic_labels()
     log(f"generic classes listed: {len(generic)}")
     places = learn(c, stored)
     cities = [p for p in places if CITY in p.get("classes", []) and set(p["levels"]) & countries.SUBNATIONAL]

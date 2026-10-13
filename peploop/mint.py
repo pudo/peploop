@@ -1592,7 +1592,7 @@ class Context:
                    | set(self.siblings.metaclass_by_parent))
         if qid in classes:
             return f"exists-class/{qid}"
-        if qid in positions.GENERIC:
+        if positions.is_generic(qid):
             return f"exists-generic/{qid}"
         if self._diplomatic(qid):
             return f"exists-diplomatic/{qid}"

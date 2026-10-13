@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 
+from peploop.tree import country as countries
 from peploop.tree import signals, wd
 from peploop.tree.load import has, values
 
@@ -32,6 +33,8 @@ class Slot:
     live_entity: dict[str, Any] | None
     value: str | None = None
     channels: list[str] = field(default_factory=list)
+    #: The model's answer on whether the item is one polity's office or a generic role.
+    scope: dict[str, Any] | None = None
 
 
 ESCAPE = re.compile(r"\\(u[0-9a-fA-F]{4}|[nrt\"\\/])")
@@ -51,10 +54,34 @@ def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
-def quoted(slot: Slot) -> bool:
+def quoted(slot: Slot, answer: dict[str, Any] | None = None) -> bool:
     """The quote is non-trivial and appears verbatim in what the model was shown."""
-    quote = _norm(_unescape(slot.answer.get("quote") or "")).strip("\"'«»„“”. ")
+    quote = _norm(_unescape((answer or slot.answer).get("quote") or "")).strip("\"'«»„“”. ")
     return len(quote) >= MIN_QUOTE and quote in _norm(slot.message)
+
+
+def scope_is(slot: Slot, kind: str) -> bool:
+    """The model judged the item's scope `kind`, on quoted evidence other than its holders."""
+    scope = slot.scope or {}
+    return scope.get("kind") == kind and scope.get("source") not in (None, "none", "holders") \
+        and quoted(slot, scope)
+
+
+def one_polity(slot: Slot) -> bool:
+    return scope_is(slot, "office")
+
+
+def judged_generic(slot: Slot) -> bool:
+    """A role to list as generic: quoted as such, and no label of it names the state.
+
+    A label naming the state is a country-scoped office whatever the model
+    said, the same guard the load applies before dropping a listed item.
+    """
+    if not scope_is(slot, "generic") or slot.facts is None:
+        return False
+    c = slot.facts.country
+    labels = " | ".join(signals.labels_text(slot.facts.item["entity"]))
+    return not (countries.names_country(c, labels) or countries.named_states(c, labels))
 
 
 def era_mismatch(slot: Slot) -> bool:
@@ -139,6 +166,9 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     ("present_now", _present_now, "skip"),
     ("low_confidence", lambda s: s.answer.get("confidence") not in ("high", "medium"), "skip"),
     ("no_quote", lambda s: not quoted(s), "skip"),
+    # A generic role ("squadron commander", "deputy mayor") has no country, even
+    # when one wiki recorded every holder: holders say who documented it.
+    ("generic_role", lambda s: s.prop in ("P17", "P1001") and not one_polity(s), "skip"),
     ("era_mismatch", era_mismatch, "skip"),
     # A territory or a region is a jurisdiction, never a country: it goes in P1001.
     ("p17_not_a_state", lambda s: s.prop == "P17" and s.facts is not None and s.value in s.facts.non_states, "skip"),
@@ -201,7 +231,7 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
         run.classes_for(p31_asked)
     if hasattr(run, "positioned_for"):  # which already reach position through their own P31
         run.positioned_for(p31_asked)
-    out = []
+    out, generic = [], []
     for r in reqs:
         answer = r.get("answer")
         if not answer:
@@ -212,14 +242,17 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
         for prop, cands in r["candidates"].items():
             gap, _cat = run.gaps[r["qid"]][prop]
             slot = Slot(qid=r["qid"], prop=prop, gap=gap, candidates=cands, answer=answer[prop],
-                        message=r["message"], facts=facts, load_rev=item["lastrevid"],
+                        scope=answer.get("scope"), message=r["message"], facts=facts, load_rev=item["lastrevid"],
                         live_rev=(ent or {}).get("lastrevid"), live_entity=ent)
             disposition, rule = decide(slot)
+            if prop == next(iter(r["candidates"])) and judged_generic(slot):
+                generic.append((r["qid"], slot.facts.item, slot.scope, r["key"]))
             out.append({"qid": r["qid"], "prop": prop, "gap": gap, "value": slot.value,
                         "disposition": disposition, "rule": rule, "channels": slot.channels,
                         "confidence": slot.answer.get("confidence"), "quote": slot.answer.get("quote"),
                         "source": source_of(slot.answer), "decline_reason": slot.answer.get("decline_reason"),
                         "key": r["key"], "articles": dict(r.get("articles") or [])})
+    record_generic(cc, generic, log)
     con = wd.conn()
     with con.transaction():
         con.execute("DELETE FROM ptree_decision WHERE country = %s", (cc,))
@@ -230,3 +263,16 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
                 [(cc, d["qid"], d["prop"], d["value"], d["disposition"], d["rule"], d["channels"], d["confidence"],
                   d["quote"], d["source"], d["key"]) for d in out])
     return out
+
+
+def record_generic(cc: str, found: list[tuple[str, dict[str, Any], dict[str, Any], str]], log: Any = print) -> int:
+    """List the roles judged generic, so both tools filter them from now on; a struck row is never revived."""
+    rows = [(qid, wd.name({"labels": {lg: o["value"] for lg, o in item["entity"].get("labels", {}).items()}}) or None, cc, scope.get("source"),
+             scope.get("quote"), key) for qid, item, scope, key in found]
+    with wd.conn().cursor() as cur:
+        cur.executemany(
+            "INSERT INTO generic_position (qid, label, origin, country, source, evidence, call_key)"
+            " VALUES (%s, %s, 'scope', %s, %s, %s, %s) ON CONFLICT (qid) DO NOTHING", rows)
+    if rows:
+        log(f"generic: {len(rows)} roles judged generic")
+    return len(rows)

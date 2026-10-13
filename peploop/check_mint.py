@@ -516,7 +516,7 @@ def check_generic(expect: Any) -> None:
     print("generic classes:")
     parents = sorted({(name, parent) for name, shape in offices.ARCHETYPES.items()
                       for parent in (shape.parent, *shape.parents)})
-    listed = {p for _n, p in parents if p in positions.GENERIC}
+    listed = {p for _n, p in parents if positions.is_generic(p)}
     expect({"Q30185", "Q83307"} <= listed, True,
            f"the list holds archetype parents ({len(listed)} of them), so this pin bites")
     defective = [(name, parent, defects) for name, parent in parents

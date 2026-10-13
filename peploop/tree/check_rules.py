@@ -34,15 +34,52 @@ def facts(it: dict, detected: set[str] | None = None, country=XX, bodies: dict |
 
 def slot(it: dict, prop: str, cands: list[str], choice: int | None, conf: str = "high", quote: str = "",
          live_rev: int = 1, live: dict | None = None, detected: set[str] | None = None, country=XX,
-         bodies: dict | None = None, message: str | None = None) -> rules.Slot:
+         bodies: dict | None = None, message: str | None = None, source: str | None = None, scope: dict | None = None) -> rules.Slot:
     message = message or "## Labels\n" + "\n".join(o["value"] for o in it["entity"]["labels"].values())
     return rules.Slot(qid=it["qid"], prop=prop, gap="missing", candidates=cands,
-                      answer={"choice": choice, "confidence": conf, "quote": quote},
+                      answer={"choice": choice, "confidence": conf, "quote": quote, "source": source},
                       message=message, facts=facts(it, detected, country, bodies), load_rev=1, live_rev=live_rev,
-                      live_entity=live if live is not None else it["entity"])
+                      live_entity=live if live is not None else it["entity"],
+                      scope=scope or {"kind": "office", "source": "label",
+                                      "quote": next(iter(it["entity"]["labels"].values()))["value"]})
+
+
+def generic_role() -> None:
+    generic = item("Q60", "national", ent({"en": "squadron commander"}, P31=["Q16631188"]), 11, {"Q900001": 11},
+                   held(11, 2000, 2010))
+    msg = "## Labels\nsquadron commander\n## Holders\n- A (Q1) 2001 – 2003; citizenship: Ruritania"
+    expect(signals.channels("P17", "Q900001", facts(generic)) == ["holders"], "a generic role's holders are all one country's")
+    for kind, why in (("generic", "a generic role gets no P17, though one country's citizens hold it"),
+                      ("unclear", "an unsettled scope writes no P17")):
+        scope = {"kind": kind, "source": "label", "quote": "squadron commander"}
+        expect(rules.decide(slot(generic, "P17", ["Q900001"], 0, quote="citizenship: Ruritania", message=msg,
+                                 scope=scope)) == ("skip", "generic_role"), why)
+    by_holders = {"kind": "office", "source": "holders", "quote": "citizenship: Ruritania"}
+    expect(rules.decide(slot(generic, "P17", ["Q900001"], 0, quote="citizenship: Ruritania", message=msg,
+                             scope=by_holders)) == ("skip", "generic_role"), "holders never settle the scope")
+    unquoted = {"kind": "office", "source": "description", "quote": "a post of the Ruritanian air force"}
+    expect(rules.decide(slot(generic, "P17", ["Q900001"], 0, quote="citizenship: Ruritania", message=msg,
+                             scope=unquoted)) == ("skip", "generic_role"), "a scope quote must be verbatim")
+    article = {"kind": "office", "source": "article", "quote": "a post of the Ruritanian air force"}
+    expect(rules.decide(slot(generic, "P17", ["Q900001"], 0, quote="citizenship: Ruritania", scope=article,
+                             message=msg + "\n## Article lead\nIt is a post of the Ruritanian air force."))
+           == ("apply", "two_channels"), "an office the article ties to one state takes its holders' P17")
+    judged = {"kind": "generic", "source": "label", "quote": "squadron commander"}
+    expect(rules.judged_generic(slot(generic, "P17", ["Q900001"], 0, message=msg, scope=judged)),
+           "a role quoted as generic is listed")
+    for scope, why in (({**judged, "kind": "unclear"}, "an unsettled scope is not listed"),
+                       ({**judged, "source": "holders"}, "holders never list a role")):
+        expect(not rules.judged_generic(slot(generic, "P17", ["Q900001"], 0, message=msg, scope=scope)), why)
+    named = item("Q62", "national", ent({"en": "squadron commander of Ruritania"}))
+    expect(not rules.judged_generic(slot(named, "P17", ["Q900001"], 0, scope={**judged, "quote": "squadron commander"})),
+           "a role whose label names the state is never listed")
+    expect(rules.decide(slot(generic, "P279", ["Q11247470"], 0, quote="squadron commander", message=msg,
+                             scope={"kind": "generic", "source": "label", "quote": "squadron commander"}))[1]
+           != "generic_role", "a generic role still has a kind")
 
 
 def main() -> None:
+    generic_role()
     raion = DISTRICTS[2]
     quote = "chairman of the Karelia District Council"
     expect(signals.convention(SIB, "Q12", "p279") == "Q900060", "siblings agree on a district chairman's class")

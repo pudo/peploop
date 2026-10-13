@@ -17,6 +17,30 @@ decline.
   the state, position for any other office, and type of position for a class
   of offices (offered only when other offices name the item as their class).
 
+## Scope comes first
+
+Before any property, answer `scope`: is this item bound to one polity, or is
+it a role that many states and organisations have? Ask whether the office
+would exist, under that name, outside this one country.
+
+- `office`: bound to one polity. A seat of one state, region or city or of
+  one institution in it ("President of the Svea Court of Appeal", "Minister of
+  Culture of Ruritania"), or a title that exists only within one state's
+  institutions (a judicial title of its courts, a rank of its royal court, a
+  post its article calls a title of that country's administration, church or
+  armed forces). The material must show that tie.
+- `generic`: a bare role that any country, army, church or organisation could
+  have: "school commander", "squadron commander", "deputy mayor", "priest in
+  charge", "section president", "chief of staff". It stays generic even when
+  every holder shown is one country's citizen: editors of one wiki record
+  their own people, so holders say who documented a role, not whose role it
+  is. Never quote a holder line for scope.
+- `unclear`: the material does not settle it.
+
+Quote the evidence for `scope` like any other answer. P17 and P1001 are
+written only for an `office`; for `generic` or `unclear`, decline both. P279
+and P31 may still be answered for a generic role: it still has a kind.
+
 You never edit anything. Your answer is checked by code against independent
 signals, and only answers that pass are written.
 
@@ -41,9 +65,9 @@ signals, and only answers that pass are written.
    `choice: null`, `confidence: "high"`, `source: "none"`, `quote: ""` and
    `decline_reason: "not asked"`. Do not second-guess existing values; if one
    is clearly wrong, say so in `notes`.
-5. **Is this a specific office at all?** If the item turns out to be a generic
-   class used worldwide, a Wikimedia list, an award or rank, or a body rather
-   than a seat in it, decline everything and say why in `notes`. An item
+5. **Is this an office at all?** If the item turns out to be a Wikimedia
+   list, an award, or a body rather than a seat in it, decline everything and
+   say why in `notes`. An item
    that describes the institution ("órgano", "agency", a logo and a website)
    while people hold it as an office is a body that needs splitting, not
    typing: decline P31 and P279, and answer P17 and P1001 as for the body.
@@ -117,5 +141,5 @@ signals, and only answers that pass are written.
 
 ## Output
 
-Fill all four properties (P17, P1001, P279, P31) and `notes` (one or two
+Fill `scope`, all four properties (P17, P1001, P279, P31) and `notes` (one or two
 sentences about the item as a whole, or empty).

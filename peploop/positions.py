@@ -21,6 +21,7 @@ import time
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
@@ -295,21 +296,33 @@ NOT_AN_OFFICE = {
 GENERIC_PATH = Path(__file__).resolve().parent / "generic_positions.csv"
 
 
-def _generic() -> dict[str, str]:
-    """qid → label of every listed class; a missing file raises, it never reads as an empty list."""
+def _measured() -> dict[str, str]:
+    """qid → label of every row of the CSV; a missing file raises, it never reads as an empty list."""
     with GENERIC_PATH.open(newline="") as handle:
         return {row["qid"]: row.get("label") or "" for row in csv.DictReader(handle) if row.get("qid")}
 
 
-#: Classes of office that name no jurisdiction and are held across many states:
-#: mayor, minister, bishop, head of state. A `P39` onto one says nothing about
-#: where the office was held, so none is ever a `P39` value, a shortlist row, a
-#: mint duplicate or a "found" office. Never read against a `P279` parent: most
-#: of `offices.ARCHETYPES`' parents are on this list, and a minted mayoralty
-#: subclassing `Q30185` is exactly right. peptree's load filter drops them too;
-#: the evidence for each row is `docs/research/generic_positions.md`.
-GENERIC_LABELS = _generic()
-GENERIC = frozenset(GENERIC_LABELS)
+@lru_cache(maxsize=1)
+def generic_labels() -> dict[str, str]:
+    """qid → label of every class of office that names no jurisdiction.
+
+    Mayor, minister, bishop, head of state, and the roles peptree's model
+    judged generic ("squadron commander") that one wiki documented alone. A
+    `P39` onto one says nothing about where the office was held, so none is
+    ever a `P39` value, a shortlist row, a mint duplicate or a "found" office,
+    and peptree writes it no country. Never read against a `P279` parent: most
+    of `offices.ARCHETYPES`' parents are measured generic, and a minted
+    mayoralty subclassing `Q30185` is exactly right.
+
+    The CSV is the measured, reviewed seed (`docs/research/generic_positions.md`);
+    `generic_position` holds the model's findings, less those struck.
+    """
+    rows = db.conn().execute("SELECT qid, coalesce(label, '') FROM generic_position WHERE struck IS NULL").fetchall()
+    return {**dict(rows), **_measured()}
+
+
+def is_generic(qid: str | None) -> bool:
+    return qid in generic_labels()
 
 #: Wikidata time precision: 9 is a year, 10 a month, 11 a day. Anything
 #: coarser renders as a misleading year — "+2000-00-00" at precision 7 is the
@@ -739,7 +752,7 @@ def load_items(
                 # office of the receiving state.
                 "diplomatic": diplomatic,
                 "sender_qid": sender_of(entity, senders) if diplomatic else None,
-                "generic": actual in GENERIC,
+                "generic": is_generic(actual),
                 "_kind_qids": kind_qids,
                 "_refs": refs,
             },
@@ -1374,7 +1387,7 @@ def fill_diplomatic(qids: Sequence[str] | None = None,
 
 
 def mark_generic(log: Any = lambda _m: None) -> int:
-    """Bring `position.generic` in line with `GENERIC`, returning how many rows changed.
+    """Bring `position.generic` in line with `generic_labels()`, returning how many rows changed.
 
     A load sets the flag on what it writes; this is for the rows loaded
     before an edit of `generic_positions.csv`.
@@ -1383,9 +1396,9 @@ def mark_generic(log: Any = lambda _m: None) -> int:
     changed = db.conn().execute(
         "UPDATE position SET generic = (qid = ANY(%(g)s))"
         " WHERE generic IS DISTINCT FROM (qid = ANY(%(g)s))",
-        {"g": sorted(GENERIC)},
+        {"g": sorted(generic_labels())},
     ).rowcount
-    log(f"generic: {changed} rows changed, {len(GENERIC)} items listed")
+    log(f"generic: {changed} rows changed, {len(generic_labels())} items listed")
     return changed
 
 
@@ -1768,7 +1781,7 @@ def search(
     drops no re-ranking can recover. Retrieve deep, order in Python, cut
     last.
 
-    The one exclusion is `GENERIC`, via `position.generic`: an item that is
+    The one exclusion is `generic_labels()`, via `position.generic`: an item that is
     never a `P39` value is never worth a shortlist row, unlike the `abstract`
     tag's classes, which some state's community does use on purpose.
     """

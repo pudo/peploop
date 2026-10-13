@@ -413,6 +413,35 @@ def removals_(action: str, guids: Sequence[str], tool: str | None) -> None:
     click.echo(f"{n} of {len(guids)} {action}d (only proposed removals change)")
 
 
+@cli.command("generic")
+@click.argument("action", type=click.Choice(["list", "strike"]), default="list")
+@click.argument("qid", required=False)
+@click.option("--reason", help="Why the struck item is not generic after all.")
+def generic_(action: str, qid: str | None, reason: str | None) -> None:
+    """List the roles a model judged generic, or strike one it got wrong: `generic [strike QID --reason …]`.
+
+    A listed role is no `P39` target, no shortlist row and gets no country from
+    peptree, so a false one silently costs statements; striking it restores it
+    and keeps any later run from listing it again.
+    """
+    con = db.conn()
+    if action == "list":
+        for row in con.execute("SELECT qid, label, country, source, evidence, struck FROM generic_position"
+                               " ORDER BY struck IS NOT NULL, country, qid").fetchall():
+            q, label, cc, source, evidence, struck = row
+            click.echo(f"{q}\t{label or ''}\t{cc or ''}\t{source or ''}: {evidence or ''}"
+                       + (f"\tSTRUCK: {struck}" if struck else ""))
+        return
+    if not qid or not reason:
+        raise click.UsageError("strike needs a QID and --reason")
+    n = con.execute("UPDATE generic_position SET struck = %s WHERE qid = %s", (reason, qid)).rowcount
+    if not n:
+        raise click.UsageError(f"{qid} is not a model-judged generic role (the measured CSV is edited by hand)")
+    positions.generic_labels.cache_clear()
+    positions.mark_generic(log=click.echo)
+    click.echo(f"struck {qid}")
+
+
 #: The model stages `prompt` can show a request for.
 PROMPT_STAGES = ("extract", "verify", "mint-categorize", "mint-verify")
 

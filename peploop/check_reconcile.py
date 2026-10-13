@@ -513,6 +513,19 @@ def check_generic(expect: Any) -> None:
     except psycopg.OperationalError as exc:
         print(f"  skip no database ({exc.__class__.__name__})")
         return
+    conn.execute("CREATE TEMP TABLE generic_position (LIKE public.generic_position INCLUDING DEFAULTS)")
+    try:
+        conn.execute("INSERT INTO pg_temp.generic_position (qid, label, origin, struck) VALUES"
+                     " ('Q97', 'squadron commander', 'scope', NULL), ('Q96', 'hovrättsassessor', 'scope', 'bound'),"
+                     " ('Q30185', 'not the label', 'scope', NULL)")
+        positions.generic_labels.cache_clear()
+        listed = positions.generic_labels()
+        expect(positions.is_generic("Q97") and not positions.is_generic("Q96"),
+               "a model-judged role is listed, a struck one is not")
+        expect(listed.get("Q30185") == "mayor", "the measured CSV wins over a table row")
+    finally:
+        conn.execute("DROP TABLE IF EXISTS pg_temp.generic_position")
+        positions.generic_labels.cache_clear()
     conn.execute(
         "CREATE TEMP TABLE position (LIKE public.position"
         " INCLUDING DEFAULTS INCLUDING GENERATED)"
@@ -526,7 +539,7 @@ def check_generic(expect: Any) -> None:
             conn.execute(
                 "INSERT INTO pg_temp.position (qid, label, search_text, generic)"
                 " VALUES (%s, %s, %s, %s)", (qid, label, text, generic))
-        expect("Q30185" in positions.GENERIC, "mayor is on the list")
+        expect(positions.is_generic("Q30185"), "mayor is on the list")
         got = [hit.qid for hit in positions.search("mayor", None, STATE)]
         expect(got and "Q30185" not in got and set(got) == {"Q98", "Q99"},
                f"the search leaves the flagged class out, and an unflagged row in: {got}")

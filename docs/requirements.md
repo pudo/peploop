@@ -10,3 +10,9 @@
 - 2026-10-12: Changes to the repo's instructions simplify them overall
   instead of expanding them.
 - 2026-10-12: Also mint empty positions if well-justified.
+- 2026-10-13: Make it part of the primary design of peptree/peploop to
+  consider if a position is abstract/non-national in their main evaluation.
+- 2026-10-13: Worst case we could even build a generic/abstract detection
+  stage of the pipeline as a separate model call. Making that list clean is
+  immensely valuable, and recording every generic position to it goes out of
+  reconciliation.

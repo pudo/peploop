@@ -450,7 +450,7 @@ def duplicate_of(found: Iterable[Found], state_names: Iterable[str] = ()) -> str
             continue
         # A listed generic class ("mayor") is never the office a state's seat
         # duplicates, nor one to send holders to; as a `P279` parent it is fine.
-        if hit.qid in positions.GENERIC:
+        if positions.is_generic(hit.qid):
             continue
         if hit.country_match:
             return hit.qid

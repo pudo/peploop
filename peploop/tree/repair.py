@@ -53,7 +53,18 @@ class Slot(Strict):
     decline_reason: Optional[str]
 
 
+class Scope(Strict):
+    #: "office": a seat of one polity (a state, a region, a city) or of one institution in it;
+    #: "generic": a role, title or rank that many states or institutions have, whoever holds it here.
+    kind: Literal["office", "generic", "unclear"]
+    #: Never the holders: who held a role says which wiki recorded it, not whose role it is.
+    source: Literal["label", "description", "statements", "article", "none"]
+    article: Optional[str]
+    quote: str
+
+
 class Answer(Strict):
+    scope: Scope
     P17: Slot
     P1001: Slot
     P279: Slot

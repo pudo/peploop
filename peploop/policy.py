@@ -765,12 +765,12 @@ def office_tags(case: Case) -> list[str]:
 def generic_office(case: Case) -> Disposition | None:
     """The item is a class of office no `P39` should name: mayor, minister, bishop.
 
-    Read off `positions.GENERIC`, the reviewed list, and not off the ranking's
+    Read off `positions.generic_labels()`, the generic list, and not off the ranking's
     tags, which call the same item `abstract` in one state and a local
     convention in the next. No qualifier repairs such a placement, which is
     what separates it from `generic_needs_scope`.
     """
-    if case.property == "P39" and (case.value or {}).get("id") in positions.GENERIC:
+    if case.property == "P39" and positions.is_generic((case.value or {}).get("id")):
         return _skip("office/generic")
     return None
 
