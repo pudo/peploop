@@ -100,8 +100,10 @@ def live_duplicate(cand: dict[str, Any]) -> str | None:
         return None
     texts = [(lang, text) for lang, text in spec.labels.items()]
     texts += [(lang, text) for lang, many in spec.aliases.items() for text in many]
+    levels = {spec.state_qid, *(qid for qid, _labels in offices.subdivisions(spec.state_qid))}
     for lang, text in texts:
-        dup = offices.duplicate_of(offices.live_lookup(text, lang, spec.state_qid))
+        dup = offices.duplicate_of(offices.live_lookup(text, lang, spec.state_qid), (),
+                                   spec.jurisdiction, levels)
         if dup:
             return dup
     return None

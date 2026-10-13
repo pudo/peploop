@@ -367,6 +367,8 @@ class Found:
     #: The hit's `P17`/`P1001` names the spec's state.
     country_match: bool = False
     country_qids: tuple[str, ...] = ()
+    #: The hit's `P1001`: the polity it governs.
+    scopes: tuple[str, ...] = ()
     #: The hit's declared `P31`, every rank but deprecated.
     types: frozenset[str] = frozenset()
     #: Other offices name the hit as their `P279`: it is a kind of office
@@ -427,7 +429,21 @@ def body_hit(found: Iterable[Found], bodies: Collection[str] = ()) -> str | None
     return None
 
 
-def duplicate_of(found: Iterable[Found], state_names: Iterable[str] = ()) -> str | None:
+def other_polity(jurisdiction: str | None, scopes: Iterable[str], levels: Collection[str]) -> bool:
+    """Whether an item governing `scopes` is another polity's office than one governing `jurisdiction`.
+
+    A federation's states each have a "Minister for Energy", and the national
+    government has one too: the same title in another state's government is
+    another office. Judged only where both sit at the levels named (the state
+    and its first-level subdivisions) and differ; an item scoped to a town
+    within them says nothing either way.
+    """
+    scopes = set(scopes)
+    return bool(jurisdiction in levels and scopes & set(levels) and jurisdiction not in scopes)
+
+
+def duplicate_of(found: Iterable[Found], state_names: Iterable[str] = (),
+                 jurisdiction: str | None = None, levels: Collection[str] = ()) -> str | None:
     """The item this office would duplicate, judged hit by hit.
 
     A search's own status is not enough: two hits that both match come back
@@ -445,6 +461,8 @@ def duplicate_of(found: Iterable[Found], state_names: Iterable[str] = ()) -> str
     state_names = list(state_names)
     for hit in found:
         if not hit.label_match or hit.types & NOT_A_POSITION:
+            continue
+        if other_polity(jurisdiction, hit.scopes, levels):
             continue
         if hit.types == {LIST_ARTICLE}:
             continue
@@ -750,7 +768,8 @@ def guard(
     if hit := body_hit(duplicates, own):
         problems.append(f"hit-is-body/{hit}")
     duplicates = [d for d in duplicates if not (d.label_match and (d.qid in own or d.is_body))]
-    if dup := duplicate_of(duplicates, state_names if state_named else ()):
+    if dup := duplicate_of(duplicates, state_names if state_named else (), spec.jurisdiction,
+                           {spec.state_qid, *(regions or ())}):
         problems.append(f"duplicate/{dup}")
     others = {label_key(text) for text in run_labels}
     if any(label_key(text) in others for text in spec.labels.values()):
@@ -936,6 +955,7 @@ def found_from(entity: dict[str, Any], label: str, state_qid: str,
         matched=frozenset({_norm(label)}) if _variants(label) & named else frozenset(),
         country_match=country_match,
         country_qids=tuple(dict.fromkeys(p17 + p1001)),
+        scopes=tuple(dict.fromkeys(p1001)),
         types=frozenset(_values(entity, "P31")),
     )
 

@@ -538,6 +538,18 @@ def check_generic(expect: Any) -> None:
     expect(guard(judge(), duplicates=[replace(mayor, qid="Q14212")]), [],
            "so the guard mints past one")
 
+    print("the same title in another polity:")
+    other = Found(qid="Q71", label_match=True, country_match=True, country_qids=(STATE, OLD), scopes=(OLD,),
+                  types=frozenset({"Q294414"}))
+    levels = {STATE, PROVINCE, OLD}
+    expect(offices.duplicate_of([other], (), PROVINCE, levels), None,
+           "another province's minister of the same title is not this province's")
+    expect(offices.duplicate_of([other], (), STATE, levels), None, "nor the state's")
+    expect(offices.duplicate_of([replace(other, scopes=(PROVINCE,))], (), PROVINCE, levels), "Q71",
+           "while this province's own is")
+    expect(offices.duplicate_of([replace(other, scopes=("Q99",))], (), PROVINCE, levels), "Q71",
+           "and one scoped to a town says nothing either way")
+
 
 if __name__ == "__main__":
     sys.exit(main())

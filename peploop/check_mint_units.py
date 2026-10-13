@@ -60,12 +60,12 @@ def main() -> int:
     draft, why = mu.draft_for(LEVEL, UNIT, ARTICLE, "https://en.wikipedia.org/wiki/Shire_of_Lindo")
     expect(why, "unit/drafted", "a named head drafts the mayoralty")
     expect((draft["labels"], draft["parent_qid"], draft["jurisdiction_qid"], draft["body_qid"]),
-           ({"en": "President of the Shire of Lindo"}, "Q30185", "Q20", "Q21"),
+           ({"en": "Shire President of the Shire of Lindo"}, "Q30185", "Q20", "Q21"),
            "a shire president is that seat, of the unit, in its council")
     expect(draft["unit"]["source"], "https://example.org/level", "the level's source travels with it")
     lord = ARTICLE.replace("Shire President: Cr Ann Smith[3]", "Lord Mayor: Ann Smith")
     draft, _why = mu.draft_for(LEVEL, UNIT, lord, "u")
-    expect((draft["labels"]["en"], draft["parent_qid"]), ("Lord Mayor of Lindo", "Q30185"),
+    expect((draft["labels"]["en"], draft["parent_qid"]), ("Lord Mayor of the Shire of Lindo", "Q30185"),
            "a lord mayor is named so, and is a mayoralty of the place")
     former = ("• Mayor: Ann Smith\nThe Town of Lindo was a local government area of the north of the country,"
               " based in the town of Lindo.\n")
@@ -79,8 +79,14 @@ def main() -> int:
            "a council seat is named by its council, many to a body")
     bare = mu.Unit(qid="Q22", label="Shire of Bray", title="Shire of Bray", subdivision="Q10",
                    council=None, council_label=None)
-    expect(mu.draft_for(SEATS, bare, ARTICLE, "u")[0]["labels"]["en"], "councillor of the Shire of Bray",
-           "and by its unit where no council item exists")
+    named = ARTICLE + "The Bray Shire Council meets monthly.\n"
+    expect(mu.draft_for(SEATS, bare, named, "u")[0]["labels"]["en"], "member of Bray Shire Council",
+           "and by the council its article names where no council item exists")
+    expect(mu.draft_for(SEATS, bare, ARTICLE, "u"), (None, "unit/no-council-name"),
+           "and not at all where the article names none")
+    for label, want in (("Shire of Capel", "of the Shire of Capel"), ("Coonamble Shire", "of Coonamble Shire"),
+                        ("The Hills Shire", "of The Hills Shire")):
+        expect(mu.of_unit(label), want, f"the unit's full name, as the siblings word it: {label!r}")
     expect(mu.draft_for(SEATS, UNIT, ARTICLE.split("## Council")[0], "u"), (None, "unit/no-council-section"),
            "a council seat needs the article's council section")
 
@@ -96,6 +102,13 @@ def main() -> int:
            "one current holder, quoting the article and the level's source")
     cand = mint.Candidate(id=1, country="zz", ref="unit/lga_mayor/Q20", origin=("unit",), attestations=[att])
     expect(mint.floor(cand), None, "which clears the floor")
+    verdict = mint.MintVerdict(verdict="mint", real=True, current=True, missing=True, shape="agree",
+                               confidence="medium")
+    expect(mint.agreed(mint.Case(cand, None, verdict, [], None)), (mint.GUARDED, "mint:agreed-unit"),
+           "a unit's office passes at medium: its undated infobox is all the lane has")
+    other = mint.Candidate(id=2, country="zz", ref="x", origin=("mention",), attestations=[att])
+    expect(mint.agreed(mint.Case(other, None, verdict, [], None)), (mint.SKIPPED, "verify:confidence/medium"),
+           "any other office still needs high")
     expect((cand.holders, cand.current_holders), (1, 1), "and counts as one current holder for the guard")
 
     print("the census leaves units to this lane:")

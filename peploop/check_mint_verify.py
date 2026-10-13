@@ -241,6 +241,9 @@ def check_exists_problem(expect: Any) -> None:
     c = ctx()
     expect(c.exists_problem("Q950") is None, "the state's own office is accepted")
     expect(c.exists_problem("Q952") is None, "an office scoped to a subdivision is accepted")
+    expect(c.exists_problem("Q952", "Q901") is None, "for that subdivision's own office")
+    expect(c.exists_problem("Q952", STATE) == "exists-other-polity/Q952",
+           "but never for the state's: the same title in a subdivision is another office")
     expect(c.exists_problem("Q953") == "exists-unscoped/Q953", "another state's office is refused")
     expect(c.exists_problem("Q954") == "exists-diplomatic/Q954", "a diplomatic post is refused")
     expect(c.exists_problem("Q83307") == "exists-class/Q83307", "an archetype's parent is a class")

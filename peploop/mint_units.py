@@ -190,8 +190,8 @@ def draft_for(level: Level, unit: Unit, text: str, url: str) -> tuple[dict[str, 
     evidence = {"qid": unit.qid, "label": unit.label, "url": url, "holder": name, "source": source}
     if level.archetype == "mayor":
         parent = "Q30185"
-        label = (f"President of the {unit.label}" if title in SHIRE_PRESIDENT
-                 else f"{title.title()} of {place}")
+        word = "Shire President" if title in SHIRE_PRESIDENT else title.title()
+        label = f"{word} {of_unit(unit.label)}"
         evidence["quote"] = f"{title.title()}: {name}"
         single = True
     elif level.archetype == "councillor":
@@ -199,7 +199,10 @@ def draft_for(level: Level, unit: Unit, text: str, url: str) -> tuple[dict[str, 
         if quote is None:
             return None, "unit/no-council-section"
         parent = "Q708492"
-        label = f"member of {unit.council_label}" if unit.council_label else f"councillor of the {unit.label}"
+        council = unit.council_label or council_name(text, place)
+        if not council:
+            return None, "unit/no-council-name"
+        label = f"member of {council}"
         evidence["quote"] = f"{quote} … {title.title()}: {name} (a member of the council)"
         single = False
     else:
@@ -212,6 +215,24 @@ def draft_for(level: Level, unit: Unit, text: str, url: str) -> tuple[dict[str, 
         "reason": f"every unit of the level has the office; {unit.label}'s article names its holder",
         "unit": evidence,
     }, "unit/drafted"
+
+
+def of_unit(label: str) -> str:
+    """"of" and the unit's full name, as the existing items word it: "of the Shire of X", "of X Shire"."""
+    return f"of the {label}" if re.match(r"^(?:the\s+)?\w[\w ]*? of ", label, re.I) and not label.lower().startswith("the ") \
+        else f"of {label}"
+
+
+COUNCIL_NAME = re.compile(r"\b((?:[A-Z][\w'’-]*\s){1,5}Council)\b")
+
+
+def council_name(text: str, place: str) -> str | None:
+    """The council's name as the article writes it ("Clarence City Council"), or None."""
+    for found in COUNCIL_NAME.finditer(text):
+        name = re.sub(r"^(?:The|A|An)\s+", "", found.group(1).strip())
+        if name.lower() != "council" and place.split()[0].lower() in name.lower():
+            return name
+    return None
 
 
 def started(units_: Sequence[Unit]) -> dict[str | None, float]:

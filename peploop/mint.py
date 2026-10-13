@@ -1577,14 +1577,16 @@ class Context:
             self._anchors = {a.key: a for a in census(self.country)}
         return self._anchors
 
-    def exists_problem(self, qid: str | None) -> str | None:
+    def exists_problem(self, qid: str | None, jurisdiction: str | None = None) -> str | None:
         """Why an item named as already existing is not this state's office, or None.
 
         `exists` is the one answer that sends holders to an item nobody
         created for them, so it must be an office of this state -- its `P17`
         or `P1001` the state or one of its subdivisions -- and not a class:
         not an archetype's parent, a position metaclass, or a kind the state's
-        own offices subclass ("député", "ambassador to X"). Nor a diplomatic post.
+        own offices subclass ("député", "ambassador to X"). Nor a diplomatic post,
+        nor the same title in another of the state's polities than
+        `jurisdiction`, the one the office governs.
         """
         if not qid:
             return None
@@ -1601,7 +1603,15 @@ class Context:
         scope |= set(wikidata.claim_qids(entity, "P1001", include_deprecated=False))
         if not scope & ({self.state_qid} | set(self.subdivisions)):
             return f"exists-unscoped/{qid}"
+        if offices.other_polity(jurisdiction, wikidata.claim_qids(entity, "P1001", include_deprecated=False),
+                                self.levels):
+            return f"exists-other-polity/{qid}"
         return None
+
+    @property
+    def levels(self) -> set[str]:
+        """The state and its first-level subdivisions: the polities a state office governs."""
+        return {self.state_qid, *self.subdivisions}
 
     @property
     def state_names(self) -> list[str]:
@@ -1933,7 +1943,8 @@ def live_duplicates(spec: offices.Spec, ctx: Context) -> list[offices.Found]:
     return list(out.values())
 
 
-def scoped_duplicate(found: Iterable[offices.Found], bodies: Collection[str] = ()) -> str | None:
+def scoped_duplicate(found: Iterable[offices.Found], bodies: Collection[str] = (),
+                     jurisdiction: str | None = None, levels: Collection[str] = ()) -> str | None:
     """The duplicate that is this state's, or None.
 
     `duplicate_of` also blocks on a matching item that names no state at all,
@@ -1945,8 +1956,8 @@ def scoped_duplicate(found: Iterable[offices.Found], bodies: Collection[str] = (
     office's `bodies` and any hit typed as an organisation are passed over
     here and named by the guard as `hit-is-body`.
     """
-    return offices.duplicate_of(hit for hit in found if hit.country_match
-                                and not (hit.qid in bodies or hit.is_body))
+    return offices.duplicate_of((hit for hit in found if hit.country_match
+                                 and not (hit.qid in bodies or hit.is_body)), (), jurisdiction, levels)
 
 
 @dataclass
@@ -2365,6 +2376,11 @@ def agreed(case: Case) -> Decision:
     confidence = v.confidence if v is not None else "none"
     if confidence == "high":
         return GUARDED, "mint:agreed"
+    # A unit's office rests on the level's source, which says every unit has
+    # it; the article's undated infobox only shows the seat is filled, and is
+    # what keeps a verifier at medium.
+    if confidence == "medium" and "unit" in case.cand.origin:
+        return GUARDED, "mint:agreed-unit"
     return SKIPPED, f"verify:confidence/{confidence}"
 
 
@@ -2617,7 +2633,8 @@ def verify(
     for cand in cands:
         spec, problems = build_spec(cand, ctx)
         if cand.decision == "exists":
-            exists_problems[cand.id] = ctx.exists_problem((cand.draft or {}).get("exists_qid"))
+            exists_problems[cand.id] = ctx.exists_problem((cand.draft or {}).get("exists_qid"),
+                                                          spec.jurisdiction if spec else None)
             if exists_problems[cand.id]:
                 problems.append(exists_problems[cand.id])
         early = _first(Case(cand, spec, None, [], None, exists_problems.get(cand.id)), MODEL_FREE)
@@ -2678,9 +2695,10 @@ def verify(
                 if spec.labels.get("en"):
                     # The English label is a name nobody has searched for yet.
                     found += live_duplicates(spec, ctx)
-            dup = scoped_duplicate(found, spec_bodies(cand, spec, ctx))
+            dup = scoped_duplicate(found, spec_bodies(cand, spec, ctx),
+                                   spec.jurisdiction if spec else None, ctx.levels)
             reasons = guard_reasons(cand, spec, ctx, found) if spec is not None else []
-            verify_problem = (ctx.exists_problem(verdict.exists_qid)
+            verify_problem = (ctx.exists_problem(verdict.exists_qid, spec.jurisdiction if spec else None)
                               if verdict is not None and verdict.verdict == "exists" else None)
             if verify_problem and verdict is not None:
                 verdict.problems.append(verify_problem)
