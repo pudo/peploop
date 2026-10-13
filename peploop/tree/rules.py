@@ -71,21 +71,32 @@ def one_polity(slot: Slot) -> bool:
     return scope_is(slot, "office")
 
 
-def judged_generic(slot: Slot) -> bool:
+def judged_generic(slot: Slot, polity_classes: set[str] | frozenset[str] = frozenset()) -> bool:
     """A role to list as generic: quoted as such, with no label naming the state and no country of its own.
 
-    A label naming the state, or a `P17`/`P1001` an editor gave it, makes the
-    item a country's office whatever the model said: "Minister of Mines" with
-    `P1001` Tanzania is Tanzania's minister.
+    A label naming the state, a `P17`, or a `P1001` naming one polity makes
+    the item a country's office whatever the model said: "Minister of Mines"
+    with `P1001` Tanzania is Tanzania's minister. A `P1001` naming a class of
+    polity ties it to nothing: mayor's is "municipality", bishop's "diocese".
     """
     if not scope_is(slot, "generic") or slot.facts is None:
         return False
     entity = slot.facts.item["entity"]
-    if values(entity, "P17") or values(entity, "P1001"):
+    if values(entity, "P17") or set(values(entity, "P1001")) - set(polity_classes):
         return False
     c = slot.facts.country
     labels = " | ".join(signals.labels_text(entity))
     return not (countries.names_country(c, labels) or countries.named_states(c, labels))
+
+
+def polity_classes(qids: list[str]) -> set[str]:
+    """The values that are classes of polity, not one polity: a `P279` of their own and no `P17`.
+
+    Measured over 400 `P1001` values: two had a `P279`, "state" and a county
+    whose own `P17` keeps it a polity here.
+    """
+    ents = wd.fetch_items(sorted(set(qids)), props="claims")
+    return {q for q, e in ents.items() if values(e, "P279") and not values(e, "P17")}
 
 
 def era_mismatch(slot: Slot) -> bool:
@@ -249,14 +260,16 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
                         scope=answer.get("scope"), message=r["message"], facts=facts, load_rev=item["lastrevid"],
                         live_rev=(ent or {}).get("lastrevid"), live_entity=ent)
             disposition, rule = decide(slot)
-            if prop == next(iter(r["candidates"])) and judged_generic(slot):
-                generic.append((r["qid"], slot.facts.item, slot.scope, r["key"]))
+            if prop == next(iter(r["candidates"])) and scope_is(slot, "generic"):
+                generic.append((slot, r["key"]))
             out.append({"qid": r["qid"], "prop": prop, "gap": gap, "value": slot.value,
                         "disposition": disposition, "rule": rule, "channels": slot.channels,
                         "confidence": slot.answer.get("confidence"), "quote": slot.answer.get("quote"),
                         "source": source_of(slot.answer), "decline_reason": slot.answer.get("decline_reason"),
                         "key": r["key"], "articles": dict(r.get("articles") or [])})
-    record_generic(cc, generic, log)
+    classes = polity_classes([v for slot, _ in generic for v in values(slot.facts.item["entity"], "P1001")])
+    record_generic(cc, [(slot.qid, slot.facts.item, slot.scope, key) for slot, key in generic
+                        if judged_generic(slot, classes)], log)
     con = wd.conn()
     with con.transaction():
         con.execute("DELETE FROM ptree_decision WHERE country = %s", (cc,))

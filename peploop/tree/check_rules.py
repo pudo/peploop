@@ -73,6 +73,12 @@ def generic_role() -> None:
     mines = item("Q63", "national", ent({"en": "Minister of Mines"}, P1001=["Q900001"]))
     expect(not rules.judged_generic(slot(mines, "P17", ["Q900001"], 0, scope={**judged, "quote": "Minister of Mines"})),
            "a role an editor gave a jurisdiction is never listed")
+    mayor = item("Q64", "national", ent({"en": "mayor"}, P1001=["Q15284"]))
+    expect(rules.judged_generic(slot(mayor, "P17", ["Q900001"], 0, scope={**judged, "quote": "mayor"}), {"Q15284"}),
+           "a jurisdiction that is a class of polity ties a role to nothing")
+    flagged = item("Q65", "national", ent({"en": "mayor"}, P17=["Q900001"]))
+    expect(not rules.judged_generic(slot(flagged, "P17", ["Q900001"], 0, scope={**judged, "quote": "mayor"})),
+           "a role with a P17 is never listed")
     named = item("Q62", "national", ent({"en": "squadron commander of Ruritania"}))
     expect(not rules.judged_generic(slot(named, "P17", ["Q900001"], 0, scope={**judged, "quote": "squadron commander"})),
            "a role whose label names the state is never listed")
