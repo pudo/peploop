@@ -1727,7 +1727,7 @@ ACTING = re.compile(
 )
 DEPUTY = re.compile(
     r"\b(substitute|suplente|alternate|co[- ]?judge|conjuez|conjueza|deputy|vice|vice-?\w+"
-    r"|adjunt[oa]|zamestitel\w*|namesnik\w*|zastupnik\w*)\b"
+    r"|adjunt[oa]|zamestitel\w*|namesnik\w*|zastupnik\w*|yardimci\w*|vekil\w*)\b"
 )
 #: A first deputy is another seat than the deputies of the same ministry.
 FIRST = re.compile(r"\b(first|primer[oa]?|premier|premiere|pervyj|pervaa|persy|persaa)\b")
@@ -1745,6 +1745,13 @@ def not_the_seat(title: str, labels: dict[str, str], archetype: str | None = Non
         return bool(DEPUTY.search(title))
     first = any(FIRST.search(_fold(text)) for text in labels.values())
     return bool(FIRST.search(title)) != first
+
+
+#: A title naming the ministry rather than the minister's seat in it.
+MINISTRY = re.compile(
+    r"\b(ministry|ministerio|ministere|ministero|ministerie|ministeru|bakanligi|ypourgeio)\b"
+    r"|ministerium\b"
+)
 
 
 #: Languages whose articles name an office in the instrumental after "was"
@@ -1783,7 +1790,8 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
     never one of the labels, never a bare seat word ("Governor", "maire": the
     role words and `SEAT_WORDS`), which names every office of its kind and
     would make a live search find them all,
-    and never a title that marks another seat (`not_the_seat`), nor a fragment
+    and never a title that marks another seat (`not_the_seat`) or names the
+    ministry (`MINISTRY`) where the labels do not, nor a fragment
     of a name (`lifted`), nor one written in another language than the
     article's: a title whose words all sit in another language's label and not
     in its own language's label.
@@ -1816,6 +1824,8 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
         if not folded or folded in taken or offices.QID.search(a.title):
             continue
         if not _stems(a.title, drop) or not_the_seat(folded, labels, archetype):
+            continue
+        if MINISTRY.search(folded) and not any(MINISTRY.search(_fold(t)) for t in labels.values()):
             continue
         if lifted(folded, a.lang, labels, state):
             continue
@@ -2393,6 +2403,10 @@ def agreed(case: Case) -> Decision:
     # what keeps a verifier at medium.
     if confidence == "medium" and "unit" in case.cand.origin:
         return GUARDED, "mint:agreed-unit"
+    # A census anchor's body was measured live before the run; the verifier's
+    # doubt at medium is the shape's siblings, and it agreed with the shape.
+    if confidence == "medium" and "census" in case.cand.origin and v is not None and v.shape == "agree":
+        return GUARDED, "mint:agreed-census"
     return SKIPPED, f"verify:confidence/{confidence}"
 
 

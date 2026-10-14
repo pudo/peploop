@@ -376,6 +376,18 @@ def check_build_spec(expect: Any) -> None:
         {"en": "Justice of the Constitutional Court"})
     expect(other.get("en") == ["Magistrate of the Constitutional Court"],
            "a title that names another seat (a co-judge, an acting holder) is never an alias")
+    joint = mint.attested_aliases(
+        [mint.Attestation(person=f"Q{i}", title=t, lang="tr", current=True) for i, t in enumerate(
+            ["Başbakan Yardımcısı ve Maliye Bakanı", "Meclis Başkan Vekili", "Maliye Bakanı"])],
+        {"en": "Minister of Finance", "tr": "Alvania Maliye Bakanı"}, ["Alvania"])
+    ministry = mint.attested_aliases(
+        [mint.Attestation(person=f"Q{i}", title=t, lang=lang, current=True) for i, (t, lang) in enumerate([
+            ("Sağlık Bakanlığı", "tr"), ("Sağlık Bakanı", "tr"), ("Υπουργείο Υγείας", "el")])],
+        {"en": "Minister of Health", "tr": "Alvania Sağlık Bakanı"}, ["Alvania"])
+    expect(ministry == {"tr": ["Sağlık Bakanı"]},
+           f"a title naming the ministry is the body's, not the minister's: {ministry}")
+    expect(joint.get("tr") == ["Maliye Bakanı"],
+           f"nor one that joins a deputy's seat to this one, in Turkish too: {joint}")
     expect(spec.aliases.get("en") == ["Minister of Health"], "aliases are kept per language")
     quoted = mint.attested_aliases(
         [mint.Attestation(person="Q1", title="Secretary-General of the Unity Party", lang="fr", current=True),

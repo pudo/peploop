@@ -118,6 +118,10 @@ def main() -> int:
     other = mint.Candidate(id=2, country="zz", ref="x", origin=("mention",), attestations=[att])
     expect(mint.agreed(mint.Case(other, None, verdict, [], None)), (mint.SKIPPED, "verify:confidence/medium"),
            "any other office still needs high")
+    anchor = mint.Candidate(id=3, country="zz", ref="supreme_judge", origin=("reconcile", "census"),
+                            attestations=[att])
+    expect(mint.agreed(mint.Case(anchor, None, verdict, [], None)), (mint.GUARDED, "mint:agreed-census"),
+           "a census anchor passes at medium when the verifier agreed with its shape")
     expect((cand.holders, cand.current_holders), (1, 1), "and counts as one current holder for the guard")
 
     print("the census leaves units to this lane:")
