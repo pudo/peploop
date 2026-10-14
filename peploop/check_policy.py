@@ -132,6 +132,10 @@ def main() -> int:
           policy.decide(case("P569", time("1970-01-02"),
                              qualifiers={"_sources": [{"lang": "aa", "quote": "born"}]})),
           policy.PENDING, "unverified")
+    check("so is a citizenship only a minor wiki gives",
+          policy.decide(case("P27", {"entity-type": "item", "id": "Q0000099"},
+                             qualifiers={"_sources": [{"lang": "zz", "quote": "Citizenship: X"}]})),
+          policy.SKIPPED, "minor_wiki_only")
     check("two minor wikis agreeing pass",
           policy.decide(case("P569", time("1970-01-02"),
                              qualifiers={"_sources": [{"lang": "zz", "quote": "born"},
@@ -248,6 +252,12 @@ def main() -> int:
     serving = {**opened, "_sources": [{"lang": "tr", "quote": "Milletvekili Görevde Makama geliş 2013"}]}
     check("while a Turkish infobox saying it is held passes",
           policy.decide(case(qualifiers=serving, lang="tr", seed_lang="tr")), policy.PENDING, "unverified")
+    stub = {**opened, "_sources": [{"lang": "en", "quote": "Since June 2016 he is Ambassador to Ruritania"}]}
+    check("an ambassadorship older than a term needs an infobox's word, not a stub's 'since'",
+          policy.decide(case(qualifiers=stub, lang="en", seed_lang="en", position=office(diplomatic=True))),
+          policy.SKIPPED, "open_unattested")
+    check("while 'since' still serves any other office",
+          policy.decide(case(qualifiers=stub, lang="en", seed_lang="en")), policy.PENDING, "unverified")
     check("and so does one quoted in an unlisted language",
           policy.decide(case(qualifiers={**opened, "_sources": [{"lang": "aa", "quote": "nommé en 2008"}]})),
           policy.PENDING, "unverified")

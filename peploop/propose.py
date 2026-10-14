@@ -47,7 +47,11 @@ OVERLAPPING = "overlapping"
 BASIS_RANK = ("explicit", "demonym")
 # Community names `rigour` reads as a state: a Turkish Cypriot is a Cypriot
 # of the Turkish community, not a citizen of Turkey. Left unresolved.
-NOT_A_STATE = frozenset({"turkish cypriot", "turkish cypriots", "kıbrıs türkü"})
+NOT_A_STATE = frozenset({
+    "turkish cypriot", "turkish cypriots", "kıbrıs türkü", "kıbrıslı türk", "τουρκοκύπριος",
+    "τουρκοκύπρια", "chypriote turc", "chypriote turque", "türkisch-zyprisch", "türkisch-zyprischer",
+    "cypryjsko-turecki",
+})
 
 
 @dataclass
@@ -490,6 +494,18 @@ def tenure_status(
     return "new"
 
 
+def same_span(one: dict[str, Any], other: dict[str, Any]) -> bool:
+    """Whether two spans agree on both endpoints at the precision each pair shares."""
+    for _key, prop in SPAN:
+        a, b = one.get(prop), other.get(prop)
+        if a is None or b is None:
+            continue
+        shared = min(a.get("precision", 11), b.get("precision", 11))
+        if at_precision(a["time"], shared) != at_precision(b["time"], shared):
+            return False
+    return True
+
+
 def tenure_key(qid: str, span: dict[str, Any]) -> tuple[str, str, str]:
     """Identify one tenure, so the same spell named in two languages is one row."""
     return (
@@ -540,6 +556,11 @@ def _positions(
         if existing is not None:
             # The same spell read in a second language: one statement with two
             # references, not two rows asking a reviewer the same question.
+            # Dates that differ within the year are two spells, or one wiki's
+            # error; either way no source is cited against its own value.
+            if not same_span(existing.qualifiers or {}, span) and existing.status != FILTERED:
+                existing.status = FILTERED
+                existing.qualifiers = {**(existing.qualifiers or {}), "_reason": "sources_disagree"}
             existing.sources.extend(attestations([entry]))
             continue
         out[key] = Proposal(

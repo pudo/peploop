@@ -59,6 +59,13 @@ OPEN_TERM_YEARS = 4
 #: "Incumbent" and "Assumed office", or prose in the present.
 CURRENT_EN = re.compile(r"\bincumbent\b|\bassumed office\b|\bpresent\b|\bcurrent(?:ly)?\b|\bsince\b|"
                         r"\b(?:is|serves|sits) (?:as )?(?:the|a|an)\b|\bserving\b", re.I)
+#: What only an infobox says: an office it lists as held now. An ambassador
+#: rotates within a term, and a stub's "since 2016 he is" is never revised.
+INFOBOX = {
+    "en": re.compile(r"\bincumbent\b|\bassumed office\b", re.I),
+    "el": re.compile(r"εν ενεργεία", re.I),
+    "tr": re.compile(r"görevde|makama geliş", re.I),
+}
 #: The same, per language whose articles were measured: Greek infoboxes
 #: write "Εν ενεργεία", Turkish ones "Görevde" and "Makama geliş" (assumed
 #: office); prose says "σήμερα" / "halen", "günümüz" (today, still).
@@ -366,7 +373,7 @@ def _allowed_langs(case: Case) -> set[str]:
 
 
 def minor_wiki_only(case: Case) -> Disposition | None:
-    """A date, or an open tenure, only wikis outside the person's own languages give.
+    """A date, a citizenship, or an open tenure, only wikis outside the person's own languages give.
 
     Both dates the reviewer rejected as `source_wrong` were attested by one
     minor wiki alone and contradicted by the article in the person's own
@@ -376,7 +383,7 @@ def minor_wiki_only(case: Case) -> Disposition | None:
     a claim that wiki alone makes.
     """
     langs = {source.get("lang") for source in case.sources}
-    if case.property in ("P569", "P570"):
+    if case.property in ("P569", "P570", "P27"):
         if len(langs) == 1 and not (langs & _allowed_langs(case)):
             return _skip("minor_wiki_only")
         return None
@@ -773,7 +780,8 @@ def open_unattested(case: Case) -> Disposition | None:
     was appointed far more often than that they left: a planning minister of
     2008, a judge since elevated to a higher court, a councillor of one term
     all came back open. Read only where every quote is in a language whose
-    present-tense markers are listed (`CURRENT`).
+    present-tense markers are listed (`CURRENT`); an ambassadorship needs
+    an infobox's (`INFOBOX`).
     """
     if case.property != "P39" or case.tenure("P582") is not None:
         return None
@@ -784,7 +792,8 @@ def open_unattested(case: Case) -> Disposition | None:
     sources = case.sources
     if any((s.get("lang") or "en") not in CURRENT for s in sources):
         return None
-    if any(CURRENT[s.get("lang") or "en"].search(s.get("quote") or "") for s in sources):
+    markers = INFOBOX if (case.position or {}).get("diplomatic") else CURRENT
+    if any(markers[s.get("lang") or "en"].search(s.get("quote") or "") for s in sources):
         return None
     return _skip("open_unattested")
 

@@ -31,6 +31,17 @@ ones. Three rules for `policy.py`, each with a case in `check_policy.py`:
   post has no item to propose it on;
 - an open tenure on a term item that has a successor.
 
+Found by the Cypriot audits (2026-10-14), not yet rules:
+
+- a closed legislative seat whose span crosses a general election, written
+  as one statement where the chamber has one per term (a Cypriot MP's
+  "May 2001 – 29 February 2008" spans the 2006 election);
+- an infobox "MP until" equal to the day the person became a minister, read
+  as the seat's end where ministers keep their seats (Northern Cyprus);
+- a seed person that is a duplicate of another item already holding the
+  tenures (same name and birth date, one item per wiki): skip, and report
+  the pair for a merge.
+
 ## 3. Mint lanes not yet covered
 
 - **Bilateral ambassadorships** are refused (`offices.bilateral`); every

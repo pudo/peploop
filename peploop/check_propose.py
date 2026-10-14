@@ -208,6 +208,12 @@ def main() -> int:
     expect(sorted(s.lang or "" for s in out[0].sources), ["aa", "ab"],
            "and it carries both articles as sources")
 
+    differ = {"positions": [mention(), mention(lang="ab", start="2020-02-21", end="2022-04-25")]}
+    out = propose._positions(item(), differ, {0: (OFFICE, 1), 1: (OFFICE, 2)}, set())
+    expect([(p.status, (p.qualifiers or {}).get("_reason")) for p in out],
+           [(propose.FILTERED, "sources_disagree")],
+           "two articles dating one year's spell differently are not one statement citing both")
+
     gap = {"positions": [mention(), mention(start="2004-12-03", end="2008-11-21")]}
     out = propose._positions(item(), gap, {0: (OFFICE, 1), 1: (OFFICE, 2)}, set())
     expect(len(out), 2, "two spells with a gap stay two rows")
