@@ -35,9 +35,11 @@ ones. Three rules for `policy.py`, each with a case in `check_policy.py`:
 
 - **Bilateral ambassadorships** are refused (`offices.bilateral`); every
   country has dozens of unplaced "ambassador of X to Y" mentions.
-- **Subnational cabinet seats** have no archetype (Malaysia: 418 groups,
-  `archetype/none`).
 - **Deputy ministers** without a national class to shape them.
+- **Subnational cabinet seats** are minted since Australia; Malaysia's 418
+  `archetype/none` groups were never re-run.
+- **`open_unattested` reads English only.** Other languages need their
+  present-tense markers, measured, before it applies to them.
 
 Each needs an archetype in `offices.py` with its shape measured first
 (`docs/research/position_items.md` is the template), and a case in

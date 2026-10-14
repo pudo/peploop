@@ -235,6 +235,7 @@ that still applies:
 | Republic of the Congo | 10-12 | 110 statements (98 rows applied); 4 minted; Brazzaville mayor repaired | QS3 59371, 59246 59247 (repair), 59322 59339 59348 (mint; 59301 59323 failed combined) |
 | Somaliland | 10-12 | 99 statements (96 rows applied); 6 minted | QS3 59387, 59385 (mint) |
 | Somalia | 10-12 | 237 statements (229 rows applied); nothing minted | QS3 59411 59412 |
+| Australia | 10-12 – 10-14 | 2,188 statements (2,115 rows applied), 43 open tenures taken back; 579 offices minted, 498 of them local | QS3 59669, 59594 59621 (mint); peptree 59250 |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
 (Colombia), `future_date` and `termed` (Colombia's audit), `recorded_elsewhere`
@@ -259,3 +260,22 @@ ministries all have items, and what was left were member-state cabinet seats
 labels. Four open rows were audited out by hand: two senators from the 2016-17
 term (the chamber rule needs a cohort of starters on record, and the 2022 term
 has one) and two ambassadorships an article had ended or left a decade stale.
+
+Australia went down to local government, with mint creating every office it
+lacked. A state minister is now a `minister` scoped to its state, a council
+seat a `councillor`, and a mayor's town is resolved live from the name
+categorize gives. A `per: units` census entry mints a level's office for
+every unit whose own article names a holder (`mint_units`): mayoralties of
+local government areas went from 2-66% per state to 35-99%. The checks missed
+four things, each found in a dry run or after a send and each now a rule:
+federation homonyms (45 state offices first fed to another state's or the
+Commonwealth's item of the same title: `other_polity` in the guard, `exists`
+and the policy), the two lanes drafting one seat twice (units yield to the
+mention candidate verify guards, and are decided last), the unit's infobox
+line becoming the created item's alias (488 items; removed with wikibase-cli,
+the only write outside QS3), and open tenures begun long ago that no quote
+calls current (`open_unattested`: of 132 open tenures from 2022 or earlier,
+45 had no such quote and about half were over). Categorize re-asks every
+chunk after a submit, since the state's office list it shows has changed:
+about $20 a pass.
+

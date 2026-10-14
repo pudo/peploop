@@ -730,7 +730,7 @@ def other_polity(case: Case) -> Disposition | None:
     """The office governs another of the state's polities than the one the article names.
 
     A federation's states each have a "Minister for Disability Services", and
-    the reconciler can take a Tasmanian minister for the West Australian one.
+    the reconciler can take one state's minister for another's.
     Read only where the mention names one of the state's first-level polities
     and the office is scoped to one; a mention naming several, or none, is
     left to the other rules.
