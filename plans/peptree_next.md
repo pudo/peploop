@@ -1,6 +1,6 @@
 ---
 description: Open peptree work as of 2026-10-11 — the OECD tail of the sweep, loose ends from sent batches, the never-built fill lane, and the subnational workstream (governed units, their head offices, back-links and a mint queue), all on the QS3 send path.
-date: 2026-10-11
+date: 2026-10-14
 tags: [peptree, backlog, sweep, subnational, mint]
 ---
 
@@ -82,62 +82,53 @@ and any archetype a category lacks. Not designed further than that.
 
 Score every country's governed subnational units × {head of government, head
 of state, deputy, legislature member}, find the offices load cannot see, link
-units to their offices, and turn empty cells into a mint queue.
+units to their offices, and mint the empty cells.
 
 **What the data says** (measured 2026-10-05):
 - 3,084 first-level units in 175 countries. Only 694 carry `P1313`
   (head-of-government office); 124 countries link no head office at all.
 - `P150` is not one grain: communes, atolls, villages and electoral units all
   appear at level 1. Sometimes the governed level is the second (Philippine
-  provinces link a head on 116 of 119; regions on 1 of 18). Unit types carry
-  nothing (3 of 349).
+  provinces link a head on 116 of 119; regions on 1 of 18).
 - 5,505 positions are scoped `P1001` to a first-level unit; 648 lack `P17` and
   are invisible to load (103 of them unit heads).
 - 168 units have exactly one head office and link none: a mechanical back-link.
-- "Head" is two slots where a governor and a chief minister coexist (India,
-  Malaysia, Pakistan).
-- About 40 countries (Algeria, Vietnam, Dominican Republic, Tunisia, Ghana,
-  Ethiopia, …) have governed units and no head office: 700–900 offices to mint.
-- Others are minting this layer now (Thailand, Russia, Bulgaria), so a mint
-  needs a fresh duplicate search.
+- "Head" is two slots where a governor and a chief minister coexist.
 
-**Design.**
-1. Choose the level per country from data: the highest level where at least
-   half the units are governed, municipal and non-levels excluded; a country
-   with none gets a one-call census that must quote.
-2. Discovery lanes into `ptree_item` (`kind = subnational`): offices scoped to a
-   chosen-level unit, the units' `P1313`/`P1906` targets, and a label search for
-   empty head cells (claimless items, e.g. Ghana's regional ministers).
-3. Slots: `head_gov` from the unit's `P1313`, else the country's sibling
-   convention, else a model pick by index with a quote; `head_state` from
-   `P1906` or the second of a pair; `deputy` and `legislator` by label and body.
-4. Cell states: `ok`, `unlinked`, `repair`, `unheld` (a peploop job), `claimless`,
-   `missing`, `n/a`.
-5. Lanes that write, all through `send`:
-   - **A** back-link `P1313`/`P1906` on the unit item, on two channels (the
-     office's `P1001` = unit, plus the slot evidence). The first lane whose
-     subject is a place; `tree/qs.validate` must accept it. A generic class in a
-     unit's `P1313` is not removed by the lane — that is a proposed removal.
-   - **B** the existing repair lane, reaching unit offices.
-   - **C** a search hit the model confirms, repaired through B.
-   - **D** mint a `missing` head through peploop's `mint` (as in the fill
-     lane); the unit's `P1313` to the new item goes in the next run's lane A.
-6. A `## Subnational` section in the country report, and a column in `sweep.md`.
+**What a run down to local government established** (Australia, 2026-10):
+- **Places, not people, reach the local level.** Person articles minted about
+  15 local offices; the units' own articles 498 (`mint_units`, a `per: units`
+  census entry). Start from the units; the person lane feeds holders onto
+  what exists.
+- **One office item per unit and role:** `P1001` the unit, `P361` its council
+  (the unit's `P194`), and the unit's `P1313` naming the head office. A
+  provincial seat sits in its own province's cabinet. Titles repeat across
+  polities, so sibling measures and duplicate checks are per polity.
+- **Coverage is regional:** one subdivision near complete, the next empty.
+  Completing or starting a set is decided per subdivision.
+- **Unit lists carry the dead.** Units come from a class (`P150` stops at the
+  first level), and many defunct ones have no `P576`; the unit's article is
+  the check.
+- **Local currency is weak evidence.** Infoboxes are undated, so the office
+  rests on a level-wide source; local open tenures go stale fast.
 
-**Phases**, each ending at a checkpoint: (0) a read-only report over ~10
-profiles (ng, ph, gh, th, ir, in, ug, az, dz, pf), level choices and the
-`head?` residue read in full; (1) discovery lanes and the model slot step, the
-matched list read in full; (2) lane A, the first batch read line by line;
-(3) lanes B and C; (4) the mint queue as a report, then minting.
+**Settled:** the mint evidence bar is a named current holder in the unit's own
+article, plus a source for the whole level where fewer than half the
+subdivision's units have the office. Municipal levels are minted through
+`per: units`, not a separate workstream.
 
-**Decisions for the user** (open):
-1. The evidence bar for a mint: completing a set (≥50% of the level's units
-   have the office) needs only the unit's article quoting it; starting a set
-   needs one quoted source for the whole level plus one named current holder.
-2. Deputies and legislature members: OpenSanctions types `Q486839` member of
-   parliament as PEP but not `Q4175034` legislator, which most provincial seats
-   are. Recommended: report both, mint neither until asked.
-3. Never score level 2 beside level 1: one governed level per country;
-   municipal levels belong to a mayor workstream.
-4. Writes to place items (lane A) are a new kind of subject: first batch
-   reviewed line by line.
+**Open:**
+- **Lane A, the back-link.** No unit's `P1313` points at the head offices
+  minted for it; without it they are reachable only through their own `P1001`.
+  The first lane whose subject is a place; `tree/qs.validate` must accept it,
+  and its first batch is read line by line. A generic class in a unit's
+  `P1313` is a proposed removal, not the lane's.
+- **The governed level per country**, from data: the highest level where at
+  least half the units are governed, municipal and non-levels excluded.
+- **Discovery lanes** into `ptree_item` (`kind = subnational`): offices scoped
+  to a chosen-level unit, the units' `P1313`/`P1906` targets, and claimless
+  head items found by label.
+- **Deputies and legislature members:** OpenSanctions types `Q486839` member
+  of parliament as PEP, not `Q4175034` legislator, which most provincial seats
+  are. Report both, mint neither until asked.
+- A `## Subnational` section in the country report and a column in `sweep.md`.

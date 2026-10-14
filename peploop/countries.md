@@ -142,20 +142,19 @@ the ledger asks only the failures.
 
 The mint stage sits between `reconcile` and `propose` because its input is the
 reconciler's refusals and its output is items those refusals can now land on.
-Write `census/<cc>.yml` before `mint`: the offices the country has
-whether or not a seeded article named them, by institution class of
-`docs/institutions.md`, each with its body QID and, optionally, an
-official source. An entry is a prompt for the offices nobody's article names
--- it puts the anchor and its body in front of categorize -- and not a second
-channel of evidence: every office passes on one current holder, census or
-not. Its bodies come from measurement (`docs/research/position_items.md` §10 is
-the template), never from memory. A census
-entry nobody's article attests is skipped, so the file says what must exist
-and the seeds still decide what gets made. `mint --submit` creates the rows
-the last dry run guarded and nothing it did not print, and feeds each item as
-soon as it is created; every `mint` run, dry or not, feeds the rows verify
-decided `found` -- an item that already existed -- and repairs a feed a crash
-or a propose failure cut short. The feed is idempotent.
+Write `census/<cc>.yml` before `mint`: the offices the country has whether or
+not a seeded article named them, by institution class of
+`docs/institutions.md`, each with its body QID measured live
+(`docs/research/position_items.md` §10), never from memory. An entry prompts
+categorize and is no evidence (`design.md` has the bar); one nobody's article
+attests is skipped. A `per: units` entry is the exception and the way below
+national level: it makes a level's office for every unit whose own article
+names a holder (`plans/peptree_next.md` §4). `mint --submit` creates what the
+last dry run guarded and printed, nothing else. Every `mint` run, dry or not,
+feeds the rows verify decided `found` -- re-asking their mentions and
+re-proposing their people -- so read the dry run's `found` rows as closely as
+its guarded ones, and fix every class you find before the next dry run: after
+any creation it re-asks categorize whole. The feed is idempotent.
 `audit candidate <id> --country <cc> --reason … --by <name>` skips a row
 after the fact; there is no approve.
 
@@ -163,8 +162,9 @@ Every LLM stage is ledgered on content (prompt hash, article revisions,
 rendering version), so re-running one after a prompt edit costs only what is
 new, and re-running one that was interrupted costs nothing. Run the long ones
 detached (`fetch`, `extract`, `reconcile`, `verify`) with an observer that
-reports the tail of the log, the failure count and the token total; a
-connection error or a `maxlag` wait is a retry, not a bug.
+reports the tail of the log, the failure count and the token total, and never
+inside a timeout: every stage resumes where it stopped. A connection error or
+a `maxlag` wait is a retry, not a bug.
 
 ## 4. The checkpoints, and what to report at each
 
