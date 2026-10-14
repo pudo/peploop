@@ -235,7 +235,7 @@ that still applies:
 | Republic of the Congo | 10-12 | 110 statements (98 rows applied); 4 minted; Brazzaville mayor repaired | QS3 59371, 59246 59247 (repair), 59322 59339 59348 (mint; 59301 59323 failed combined) |
 | Somaliland | 10-12 | 99 statements (96 rows applied); 6 minted | QS3 59387, 59385 (mint) |
 | Somalia | 10-12 | 237 statements (229 rows applied); nothing minted | QS3 59411 59412 |
-| Australia | 10-12 – 10-14 | 2,188 statements (2,115 rows applied), 43 open tenures taken back; 579 offices minted, 498 of them local | QS3 59669, 59594 59621 (mint); peptree 59250 |
+| Australia | 10-12 – 10-14 | 2,196 statements (2,123 rows applied), 43 open tenures taken back; 579 offices minted, 498 of them local | QS3 59669 59690, 59691 (removals), 59594 59621 (mint); peptree 59250 |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
 (Colombia), `future_date` and `termed` (Colombia's audit), `recorded_elsewhere`
