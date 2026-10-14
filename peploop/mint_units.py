@@ -63,7 +63,9 @@ class Level:
     key: str
     archetype: str
     institution_class: str
-    #: The class the level's units are instances of, directly or by a subclass.
+    #: The class the level's units are instances of, directly or by a subclass;
+    #: or `P150`, the units the state's subdivisions list, where no class
+    #: types them all.
     of: str
     #: Per subdivision QID, a source saying every unit of it has the office.
     sources: dict[str, str] = field(default_factory=dict)
@@ -97,7 +99,7 @@ def levels(cc: str, path: Path | None = None) -> list[Level]:
 
 
 UNITS_SQL = """SELECT DISTINCT ?u ?uLabel ?article ?sub ?council ?councilLabel WHERE {{
-  ?u wdt:P31/wdt:P279* wd:{of} ; wdt:P17 wd:{state} .
+  {unit}
   FILTER NOT EXISTS {{ ?u wdt:P576 [] }}
   FILTER NOT EXISTS {{ ?u wdt:P31/wdt:P279?/wdt:P279? wd:{former} }}
   ?article schema:about ?u ; schema:isPartOf <https://en.wikipedia.org/> .
@@ -109,18 +111,25 @@ UNITS_SQL = """SELECT DISTINCT ?u ?uLabel ?article ?sub ?council ?councilLabel W
 #: Units that already have an office of the archetype's parent: scoped to them
 #: under `P1001`, or named as their head of government.
 HELD_SQL = """SELECT DISTINCT ?u WHERE {{
-  ?u wdt:P31/wdt:P279* wd:{of} ; wdt:P17 wd:{state} .
+  {unit}
   {{ ?o wdt:P1001 ?u ; wdt:P279/wdt:P279* wd:{parent} . }} {head}
 }}"""
+
+
+def unit_pattern(level: Level, state: str) -> str:
+    """The SPARQL pattern binding `?u` to the level's units."""
+    if level.of == "P150":
+        return f"wd:{state} wdt:P150 ?sub . ?sub wdt:P150 ?u ."
+    return f"?u wdt:P31/wdt:P279* wd:{level.of} ; wdt:P17 wd:{state} ."
 
 
 def units(level: Level, state: str, subdivisions: Sequence[str], parent: str) -> list[Unit]:
     """Every current unit of the level with an English article, read live."""
     subs = " ".join(f"wd:{q}" for q in subdivisions) or "wd:Q0"
-    rows = wikidata.sparql(UNITS_SQL.format(of=level.of, state=state, subs=subs, former=FORMER))
+    unit = unit_pattern(level, state)
+    rows = wikidata.sparql(UNITS_SQL.format(unit=unit, subs=subs, former=FORMER))
     head = "UNION { ?u wdt:P1313 [] }" if parent == "Q30185" else ""
-    held = {r["u"] for r in wikidata.sparql(HELD_SQL.format(of=level.of, state=state,
-                                                            parent=parent, head=head))}
+    held = {r["u"] for r in wikidata.sparql(HELD_SQL.format(unit=unit, parent=parent, head=head))}
     out: dict[str, Unit] = {}
     for r in rows:
         qid = r["u"]

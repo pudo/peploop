@@ -40,6 +40,13 @@ def main() -> int:
         if not ok:
             failures.append(message)
 
+    print("the units of a level:")
+    expect(mu.unit_pattern(LEVEL, "Q408"), "?u wdt:P31/wdt:P279* wd:" + LEVEL.of + " ; wdt:P17 wd:Q408 .",
+           "a class names the units it types")
+    listed = mu.Level(key="lc_mayor", archetype="mayor", institution_class="subnational.municipal", of="P150")
+    expect(mu.unit_pattern(listed, "Q233"), "wd:Q233 wdt:P150 ?sub . ?sub wdt:P150 ?u .",
+           "P150 names the units the subdivisions list, each under its subdivision")
+
     print("reading a unit's article:")
     expect(mu.head_of(ARTICLE), ("shire president", "Ann Smith"),
            "the infobox head is read with its title, without the councillor style or a footnote")
