@@ -15,6 +15,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 from psycopg.types.json import Jsonb
@@ -45,13 +46,12 @@ FILTERED = "filtered"
 OVERLAPPING = "overlapping"
 # Strongest first, for a value several articles attest on different grounds.
 BASIS_RANK = ("explicit", "demonym")
-# Community names `rigour` reads as a state: a Turkish Cypriot is a Cypriot
-# of the Turkish community, not a citizen of Turkey. Left unresolved.
-NOT_A_STATE = frozenset({
-    "turkish cypriot", "turkish cypriots", "kıbrıs türkü", "kıbrıslı türk", "τουρκοκύπριος",
-    "τουρκοκύπρια", "chypriote turc", "chypriote turque", "türkisch-zyprisch", "türkisch-zyprischer",
-    "cypryjsko-turecki",
-})
+# Community names `rigour` reads as a state, which stay unresolved.
+NOT_A_STATE = frozenset(
+    line.strip().casefold()
+    for line in (Path(__file__).resolve().parent / "not_a_state.txt").read_text().splitlines()
+    if line.strip() and not line.startswith("#")
+)
 
 
 @dataclass

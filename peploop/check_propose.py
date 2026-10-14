@@ -102,10 +102,11 @@ def main() -> int:
             failures.append(message)
 
     print("citizenship_territory, a community name is no state:")
-    expect(propose.citizenship_territory("Turkish Cypriot"), None,
-           "a Turkish Cypriot is not a citizen of Turkey")
-    expect(propose.citizenship_territory("Cypriot").qid, "Q229",
-           "a Cypriot is a citizen of Cyprus")
+    community = sorted(propose.NOT_A_STATE)[0]
+    expect(propose.citizenship_territory(community.upper()), None,
+           "a community's name is no citizenship, however it is cased")
+    expect(propose.citizenship_territory("Norwegian").qid, "Q20",
+           "a demonym still names its state")
 
     term = span("2020-10-15", "2022-06-01")
 

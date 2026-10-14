@@ -113,9 +113,9 @@ OUTBOUND_OPERATOR_QUERY = """SELECT DISTINCT ?pos WHERE {
 def rivals(state_qid: str) -> frozenset[str]:
     """The states in a territorial claim with this one, either way round.
 
-    Northern Cyprus and the Republic of Cyprus each keep a mayor of
-    Famagusta; the Republic's is its mayor in exile, never the northern
-    mayor. An office of a rival state is another office whatever its title.
+    Two states claiming one territory can each keep a mayor of the same
+    town; the claimant's is its mayor in exile, never the one who governs
+    the town. An office of a rival state is another office whatever its title.
     """
     rows = wikidata.sparql(
         f"SELECT DISTINCT ?s WHERE {{ {{ wd:{state_qid} wdt:P1336 ?s }}"

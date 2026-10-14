@@ -218,12 +218,12 @@ def check_rendering(expect: Any) -> None:
 
 def check_rivals(expect: Any) -> None:
     """A rival state's office never reaches the shortlist; the state's own does."""
-    barred = {"Q229"}
-    expect(positions.of_rival({"country_qid": "Q229", "jurisdiction_qid": "Q56118759"}, barred),
-           "the Republic's mayor of Famagusta is barred from the northern run")
-    expect(positions.of_rival({"country_qid": None, "jurisdiction_qid": "Q229"}, barred),
+    barred = {"Q0000098"}
+    expect(positions.of_rival({"country_qid": "Q0000098", "jurisdiction_qid": "Q0000097"}, barred),
+           "the claimant's mayor of a town in the run's territory is barred")
+    expect(positions.of_rival({"country_qid": None, "jurisdiction_qid": "Q0000098"}, barred),
            "an office scoped only by P1001 to the rival is barred too")
-    expect(not positions.of_rival({"country_qid": "Q23681", "jurisdiction_qid": None}, barred),
+    expect(not positions.of_rival({"country_qid": "Q0000099", "jurisdiction_qid": None}, barred),
            "the run state's own office stays")
     expect(not positions.of_rival({"country_qid": None, "jurisdiction_qid": None}, barred),
            "a stateless office stays")

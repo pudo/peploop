@@ -1,0 +1,13 @@
+# Citizenship names rigour reads as a state that name a community within one,
+# folded to lower case: the citizenship stays unresolved. One per line.
+turkish cypriot
+turkish cypriots
+kıbrıs türkü
+kıbrıslı türk
+τουρκοκύπριος
+τουρκοκύπρια
+chypriote turc
+chypriote turque
+türkisch-zyprisch
+türkisch-zyprischer
+cypryjsko-turecki
