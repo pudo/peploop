@@ -421,10 +421,12 @@ def body_hit(found: Iterable[Found], bodies: Collection[str] = ()) -> str | None
     organisation: an article alias naming the council the seat is in finds
     the council. That is not a duplicate -- no office would be minted twice --
     but a name of the body is about to be written onto the seat, and the
-    guard says so under its own name.
+    guard says so under its own name. Another state's ministry sharing a
+    name says nothing about this seat.
     """
     for hit in found:
-        if hit.label_match and (hit.qid in bodies or hit.is_body):
+        foreign = bool(hit.country_qids) and not hit.country_match
+        if hit.label_match and (hit.qid in bodies or (hit.is_body and not foreign)):
             return hit.qid
     return None
 

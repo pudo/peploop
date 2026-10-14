@@ -313,6 +313,9 @@ def main() -> int:
            ["hit-is-body/Q78"], "and so is the census anchor's body")
     expect(guard(judge(), duplicates=[replace(hit, qid="Q79", is_body=True)]), ["hit-is-body/Q79"],
            "and any hit typed as an organisation rather than an office")
+    expect(guard(judge(), duplicates=[replace(hit, qid="Q81", is_body=True, country_match=False,
+                                              country_qids=("Q0000099",))]), [],
+           "but another state's ministry of the same name is neither")
     expect(guard(judge(), duplicates=[council, replace(hit, qid="Q80")]),
            [f"hit-is-body/{BODY}", "duplicate/Q80"], "while a real duplicate beside it still blocks")
     expect(offices.names_state("Chief Secretary of Bray", ["Alba and Bray"]), False,
