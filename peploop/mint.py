@@ -1474,8 +1474,10 @@ def unit_attestation(unit: dict[str, Any]) -> Attestation:
     quotes = [unit.get("quote") or ""]
     if unit.get("source"):
         quotes.append(f"Every unit of the level has the office: {unit['source']}")
+    # No title: an attestation's title is what a created item takes as an alias,
+    # and an infobox line is not a name of the office.
     return Attestation(
-        person=f"unit:{unit['qid']}", current=True, title=unit.get("quote"),
+        person=f"unit:{unit['qid']}", current=True, title=None,
         jurisdiction=unit.get("label"), lang="en", quotes=[q for q in quotes if q],
         person_label=f"{unit.get('holder')}, named as the current holder by {unit.get('url')}",
     )

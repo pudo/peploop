@@ -102,6 +102,8 @@ def main() -> int:
            "one current holder, quoting the article and the level's source")
     cand = mint.Candidate(id=1, country="zz", ref="unit/lga_mayor/Q20", origin=("unit",), attestations=[att])
     expect(mint.floor(cand), None, "which clears the floor")
+    expect(mint.attested_aliases([att], {"en": "Shire President of the Shire of Lindo"}, ["Aland"], "mayor"), {},
+           "and gives the item no alias: an infobox line is not a name of the office")
     verdict = mint.MintVerdict(verdict="mint", real=True, current=True, missing=True, shape="agree",
                                confidence="medium")
     expect(mint.agreed(mint.Case(cand, None, verdict, [], None)), (mint.GUARDED, "mint:agreed-unit"),
