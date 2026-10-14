@@ -231,6 +231,19 @@ def main() -> int:
           policy.decide(case(resolution=said("North Province, Alvania"), polities=polities,
                              position=office(jurisdiction_qid="Q0000010"))),
           policy.PENDING, "unverified")
+    opened = {"P580": time("2008"), "_sources": [{"lang": "en", "quote": "As Planning Minister from August 2008"}]}
+    check("an open tenure older than a term, quoted only as begun, is skipped",
+          policy.decide(case(qualifiers=dict(opened), lang="en", seed_lang="en")),
+          policy.SKIPPED, "open_unattested")
+    held = {**opened, "_sources": [{"lang": "en", "quote": "Minister for Planning Incumbent Assumed office 2008"}]}
+    check("while one quoted as held now passes",
+          policy.decide(case(qualifiers=held, lang="en", seed_lang="en")), policy.PENDING, "unverified")
+    recent = {**opened, "P580": time(f"{TODAY.year - 1}")}
+    check("and so does a recent one",
+          policy.decide(case(qualifiers=recent, lang="en", seed_lang="en")), policy.PENDING, "unverified")
+    check("and so does one quoted in another language",
+          policy.decide(case(qualifiers={**opened, "_sources": [{"lang": "aa", "quote": "nommé en 2008"}]})),
+          policy.PENDING, "unverified")
     check("and a mention naming no polity says nothing",
           policy.decide(case(resolution=said("the capital"), polities=polities,
                              position=office(jurisdiction_qid="Q0000010"))),

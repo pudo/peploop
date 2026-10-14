@@ -52,6 +52,13 @@ P39_MIN_START_PRECISION = 9
 #: biography, and a start that long ago with no end is more often an end the
 #: article did not give than a career still running.
 P39_MAX_ENDED_YEARS = 20
+#: An open tenure that began this many years ago or more has outlived a
+#: typical term: it must be quoted as held now (`open_unattested`).
+OPEN_TERM_YEARS = 4
+#: What an English quote says when the office is held now: an infobox's
+#: "Incumbent" and "Assumed office", or prose in the present.
+CURRENT_EN = re.compile(r"\bincumbent\b|\bassumed office\b|\bpresent\b|\bcurrent(?:ly)?\b|\bsince\b|"
+                        r"\b(?:is|serves|sits) (?:as )?(?:the|a|an)\b|\bserving\b", re.I)
 #: Tags `positions.tags_for` derives that rule an office out as the value of
 #: a P39: the item is not an office, is a class of office, is another state's
 #: mission to this one, or did not exist when the tenure ran.
@@ -751,6 +758,29 @@ def tenure_ended(case: Case) -> Disposition | None:
     return None
 
 
+def open_unattested(case: Case) -> Disposition | None:
+    """An open tenure older than a term needs a quote saying it is held now.
+
+    No end date is read as "holds it now", and an article says when someone
+    was appointed far more often than that they left: a planning minister of
+    2008, a judge since elevated to a higher court, a councillor of one term
+    all came back open. Read only where every quote is English, the one
+    language whose present-tense markers are listed.
+    """
+    if case.property != "P39" or case.tenure("P582") is not None:
+        return None
+    start = _year(case.tenure("P580"))
+    today = case.today or date.today()
+    if start is None or start > today.year - OPEN_TERM_YEARS:
+        return None
+    sources = case.sources
+    if any((s.get("lang") or "en") != "en" for s in sources):
+        return None
+    if any(CURRENT_EN.search(s.get("quote") or "") for s in sources):
+        return None
+    return _skip("open_unattested")
+
+
 def undated_tenure(case: Case) -> Disposition | None:
     """A P39 with no start is a fact about the person, not a tenure.
 
@@ -1091,6 +1121,7 @@ RULES: tuple[Rule, ...] = (
     resolution_weak,
     other_polity,
     tenure_ended,
+    open_unattested,
     undated_tenure,
     start_precision,
     # Before the tags and before `generic_needs_scope`: a listed class is
