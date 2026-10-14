@@ -101,6 +101,12 @@ def main() -> int:
         if not ok:
             failures.append(message)
 
+    print("citizenship_territory, a community name is no state:")
+    expect(propose.citizenship_territory("Turkish Cypriot"), None,
+           "a Turkish Cypriot is not a citizen of Turkey")
+    expect(propose.citizenship_territory("Cypriot").qid, "Q229",
+           "a Cypriot is a citizen of Cyprus")
+
     term = span("2020-10-15", "2022-06-01")
 
     print("tenure_status, a spell the item already records:")

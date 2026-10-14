@@ -45,6 +45,9 @@ FILTERED = "filtered"
 OVERLAPPING = "overlapping"
 # Strongest first, for a value several articles attest on different grounds.
 BASIS_RANK = ("explicit", "demonym")
+# Community names `rigour` reads as a state: a Turkish Cypriot is a Cypriot
+# of the Turkish community, not a citizen of Turkey. Left unresolved.
+NOT_A_STATE = frozenset({"turkish cypriot", "turkish cypriots", "kıbrıs türkü"})
 
 
 @dataclass
@@ -264,6 +267,13 @@ def strongest_basis(entries: list[dict[str, Any]]) -> str | None:
     return found[0] if found else None
 
 
+def citizenship_territory(name: str) -> Any:
+    """Find the state a citizenship name means, or None for a community name."""
+    if name.strip().casefold() in NOT_A_STATE:
+        return None
+    return lookup_territory(name)
+
+
 def _citizenship(existing: list[set[str]], entries: list[dict[str, Any]], bad: set[str]) -> Proposal:
     """Turn every article that named one country into the one proposal for it.
 
@@ -281,7 +291,7 @@ def _citizenship(existing: list[set[str]], entries: list[dict[str, Any]], bad: s
             if bound is not None:
                 qualifiers[prop] = bound
                 break
-    territory = lookup_territory(entries[0]["name"])
+    territory = citizenship_territory(entries[0]["name"])
     proposal = Proposal(
         property="P27",
         value={},
@@ -313,7 +323,7 @@ def _citizenships(entity: dict[str, Any], data: dict[str, Any], bad: set[str]) -
     ]
     groups: dict[str, list[dict[str, Any]]] = {}
     for entry in data.get("citizenships") or []:
-        territory = lookup_territory(entry["name"])
+        territory = citizenship_territory(entry["name"])
         key = territory.qid if territory is not None and territory.qid else entry["name"]
         groups.setdefault(key, []).append(entry)
     return [_citizenship(existing, entries, bad) for entries in groups.values()]
