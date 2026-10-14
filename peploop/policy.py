@@ -59,6 +59,14 @@ OPEN_TERM_YEARS = 4
 #: "Incumbent" and "Assumed office", or prose in the present.
 CURRENT_EN = re.compile(r"\bincumbent\b|\bassumed office\b|\bpresent\b|\bcurrent(?:ly)?\b|\bsince\b|"
                         r"\b(?:is|serves|sits) (?:as )?(?:the|a|an)\b|\bserving\b", re.I)
+#: The same, per language whose articles were measured: Greek infoboxes
+#: write "Εν ενεργεία", Turkish ones "Görevde" and "Makama geliş" (assumed
+#: office); prose says "σήμερα" / "halen", "günümüz" (today, still).
+CURRENT = {
+    "en": CURRENT_EN,
+    "el": re.compile(r"εν ενεργεία|σήμερα|διατελεί|υπηρετεί", re.I),
+    "tr": re.compile(r"görevde|makama geliş|halen|hâlâ|günümüz|devam ediyor|sürdürüyor", re.I),
+}
 #: Tags `positions.tags_for` derives that rule an office out as the value of
 #: a P39: the item is not an office, is a class of office, is another state's
 #: mission to this one, or did not exist when the tenure ran.
@@ -764,8 +772,8 @@ def open_unattested(case: Case) -> Disposition | None:
     No end date is read as "holds it now", and an article says when someone
     was appointed far more often than that they left: a planning minister of
     2008, a judge since elevated to a higher court, a councillor of one term
-    all came back open. Read only where every quote is English, the one
-    language whose present-tense markers are listed.
+    all came back open. Read only where every quote is in a language whose
+    present-tense markers are listed (`CURRENT`).
     """
     if case.property != "P39" or case.tenure("P582") is not None:
         return None
@@ -774,9 +782,9 @@ def open_unattested(case: Case) -> Disposition | None:
     if start is None or start > today.year - OPEN_TERM_YEARS:
         return None
     sources = case.sources
-    if any((s.get("lang") or "en") != "en" for s in sources):
+    if any((s.get("lang") or "en") not in CURRENT for s in sources):
         return None
-    if any(CURRENT_EN.search(s.get("quote") or "") for s in sources):
+    if any(CURRENT[s.get("lang") or "en"].search(s.get("quote") or "") for s in sources):
         return None
     return _skip("open_unattested")
 

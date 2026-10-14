@@ -241,7 +241,14 @@ def main() -> int:
     recent = {**opened, "P580": time(f"{TODAY.year - 1}")}
     check("and so does a recent one",
           policy.decide(case(qualifiers=recent, lang="en", seed_lang="en")), policy.PENDING, "unverified")
-    check("and so does one quoted in another language",
+    stale = {**opened, "_sources": [{"lang": "el", "quote": "Το 2011 εκλέχθηκε δημοτικός σύμβουλος"}]}
+    check("a Greek quote only of the election is skipped too",
+          policy.decide(case(qualifiers=stale, lang="el", seed_lang="el")),
+          policy.SKIPPED, "open_unattested")
+    serving = {**opened, "_sources": [{"lang": "tr", "quote": "Milletvekili Görevde Makama geliş 2013"}]}
+    check("while a Turkish infobox saying it is held passes",
+          policy.decide(case(qualifiers=serving, lang="tr", seed_lang="tr")), policy.PENDING, "unverified")
+    check("and so does one quoted in an unlisted language",
           policy.decide(case(qualifiers={**opened, "_sources": [{"lang": "aa", "quote": "nommé en 2008"}]})),
           policy.PENDING, "unverified")
     check("and a mention naming no polity says nothing",
