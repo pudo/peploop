@@ -109,6 +109,26 @@ OUTBOUND_OPERATOR_QUERY = """SELECT DISTINCT ?pos WHERE {
 }"""
 
 
+@lru_cache(maxsize=None)
+def rivals(state_qid: str) -> frozenset[str]:
+    """The states in a territorial claim with this one, either way round.
+
+    Northern Cyprus and the Republic of Cyprus each keep a mayor of
+    Famagusta; the Republic's is its mayor in exile, never the northern
+    mayor. An office of a rival state is another office whatever its title.
+    """
+    rows = wikidata.sparql(
+        f"SELECT DISTINCT ?s WHERE {{ {{ wd:{state_qid} wdt:P1336 ?s }}"
+        f" UNION {{ ?s wdt:P1336 wd:{state_qid} }} }}"
+    )
+    return frozenset(r["s"] for r in rows)
+
+
+def of_rival(record: dict[str, Any], barred: Iterable[str]) -> bool:
+    """Whether a position row is scoped to one of the `barred` states."""
+    return (record.get("country_qid") or record.get("jurisdiction_qid")) in set(barred)
+
+
 def country_qid(cc: str) -> str:
     """Resolve an ISO country code to the QID its offices are scoped by."""
     territory = get_territory(cc)
@@ -1802,6 +1822,13 @@ def search(
     # fraction of a whole query's vocabulary rather than a raw `ts_rank`
     # value, which means nothing outside the one shortlist it came from. The
     # pool's best is the table's best: SQL ordered by this same score.
+    if country_qid is not None and rivals(country_qid):
+        # The one country filter: a rival state's office is never this one.
+        barred = rivals(country_qid)
+        rows = [row for row in rows
+                if not of_rival(dict(zip(SIGNAL_COLUMNS, row[2:])), barred)]
+        if not rows:
+            return []
     top = max(float(row[1]) for row in rows) or 1.0
     scored: list[tuple[float, float, str, tuple[str, ...]]] = []
     for row in rows:

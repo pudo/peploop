@@ -216,6 +216,19 @@ def check_rendering(expect: Any) -> None:
         print("    --- got ---\n" + got)
 
 
+def check_rivals(expect: Any) -> None:
+    """A rival state's office never reaches the shortlist; the state's own does."""
+    barred = {"Q229"}
+    expect(positions.of_rival({"country_qid": "Q229", "jurisdiction_qid": "Q56118759"}, barred),
+           "the Republic's mayor of Famagusta is barred from the northern run")
+    expect(positions.of_rival({"country_qid": None, "jurisdiction_qid": "Q229"}, barred),
+           "an office scoped only by P1001 to the rival is barred too")
+    expect(not positions.of_rival({"country_qid": "Q23681", "jurisdiction_qid": None}, barred),
+           "the run state's own office stays")
+    expect(not positions.of_rival({"country_qid": None, "jurisdiction_qid": None}, barred),
+           "a stateless office stays")
+
+
 def check_settle(expect: Any) -> None:
     """Pin the gate on every verdict kind, and on both ways a match fails."""
     offered = [c.qid for c in SHORTLIST]
@@ -652,6 +665,7 @@ def main() -> int:
     for name, check in (
         ("rendering", check_rendering),
         ("settle", check_settle),
+        ("rivals", check_rivals),
         ("schema", check_schema),
         ("prompt", check_prompt),
         ("tags", check_tags),
