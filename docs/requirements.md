@@ -20,3 +20,5 @@
   peptree. They talk about themselves but nobody knows what peploop and
   peptree are (this repo is private). We probably shouldn't mention stuff like
   "send so <date>", it's internal.
+- 2026-10-14: For a country sweep on the national and subnational levels: "We
+  want all FATF positions, broad holders, and rich Wikidata personal details."

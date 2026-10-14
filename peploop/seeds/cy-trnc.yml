@@ -1,0 +1,112 @@
+# Wikipedia categories seeding the Northern Cyprus run: one PetScan query per entry.
+#
+# OpenSanctions' wd_categories.yml has one `cy-trnc` entry,
+# `Political_office-holders_in_Northern_Cyprus`; everything else is measured
+# here (PetScan, 2026-10-14). Counts are distinct sitelinked items reached,
+# then how many no earlier entry reached. The whole seed is 178 items, 176
+# of them people.
+#
+# tr.wikipedia carries the tiers: `Kuzey Kıbrıs'taki siyasi makam sahipleri`
+# holds the presidents, 18 portfolio subcats (with the prime ministers and
+# their deputies), the Assembly by term and the mayors of the Nicosia Turkish
+# Municipality; the Assembly has per-term children (`KKTC Cumhuriyet Meclisi
+# N. dönem milletvekilleri`, 10th = the 2022 election). en.wikipedia's tree
+# is small (presidents, 8 portfolio subcats, the Assembly flat, North
+# Nicosia's mayors) and is seeded beside it for the people tr lacks: tr's
+# presidents miss the sitting one, Tufan Erhürman.
+#
+# Northern Cyprus's tree sits *inside* Cyprus's on both wikis: en
+# `Political office-holders in Cyprus` has `Political office-holders in
+# Northern Cyprus` as a child and `Cypriot politicians` has `Turkish Cypriot
+# politicians`; tr `Kıbrıslı siyasetçiler` has `Kıbrıs Türkü siyasetçiler`.
+# A person keeps the stamp of the first run that seeds them, so this file is
+# seeded before `cy.yml`. No Turkish tree reaches it.
+#
+# The current era is the 1983 declaration; President Tufan Erhürman took
+# office in October 2025, Prime Minister Ünal Üstel in May 2022. Only the
+# Assembly is per term: the 10th (current) and the 9th (2018-2022) are
+# seeded; the rest of the tiers are seeded whole and the scope gate and
+# `policy.P39_MAX_ENDED_YEARS` handle the past.
+#
+# Left out: `Kıbrıs_Türkü_hukukçular` (lawyers, +2), en
+# `Turkish_Cypriot_politicians_by_party` and `Turkish_Cypriot_women_in_politics`
+# (+0 each), `Lists_of_mayors_of_places_in_Northern_Cyprus` (+0, a list
+# article), `KKTC_Cumhuriyet_Meclisi_üyeleri` at depth 2 (106, +0 over the
+# entries below), `Kuzey_Kıbrıs_Türk_Cumhuriyeti_siyasetçileri` at depth 2
+# (+2, the district rolls of every term since 1985), `Güvenlik_Kuvvetleri_Komutanlığı`
+# and `Kuzey_Kıbrıs'ta_polis` (no people), and `Kıbrıs Türkü siyasetçilerin
+# eşleri` (spouses).
+
+# --- Head of state ---
+- category: Kuzey_Kıbrıs_Türk_Cumhuriyeti_cumhurbaşkanları         # 5
+  lang: tr
+- category: Presidents_of_Northern_Cyprus                         # 6, +1 (Erhürman)
+  lang: en
+
+# --- Prime minister and cabinet: 18 portfolio subcats ---
+- category: Kuzey_Kıbrıs_Türk_Cumhuriyeti_bakanları               # 79, +74
+  lang: tr
+- category: Government_ministers_of_Northern_Cyprus               # PMs under a subcat; 45, +8
+  lang: en
+  depth: 2
+
+# --- Assembly of the Republic: the current and last term, presidium ---
+- category: KKTC_Cumhuriyet_Meclisi_10._dönem_milletvekilleri      # 2022-; 39, +17
+  lang: tr
+- category: KKTC_Cumhuriyet_Meclisi_9._dönem_milletvekilleri       # 2018-2022, by district; 37, +5
+  lang: tr
+- category: KKTC_Cumhuriyet_Meclisi_başkanları                    # speakers; 13, +5
+  lang: tr
+- category: KKTC_Cumhuriyet_Meclisi_başkan_yardımcıları           # deputy speakers; 11, +3
+  lang: tr
+- category: Members_of_the_Assembly_of_the_Republic_(Northern_Cyprus)  # with its speakers; 38, +4
+  lang: en
+
+# --- Courts and the central bank ---
+- category: Kuzey_Kıbrıs_Türk_Cumhuriyeti_Anayasa_Mahkemesi_başkanları  # 1, +1
+  lang: tr
+- category: Turkish_Cypriot_judges                                # 1, +1
+  lang: en
+- category: Kuzey_Kıbrıs_Türk_Cumhuriyeti_Merkez_Bankası_başkanları     # 1, +1
+  lang: tr
+
+# --- Municipal: the Nicosia Turkish Municipality's mayors ---
+- category: Kuzey_Kıbrıs_belediye_başkanları                      # 9, +4
+  lang: tr
+- category: Mayors_of_North_Nicosia                               # 5, +1
+  lang: en
+
+# --- Diplomatic service ---
+- category: Kıbrıs_Türkü_diplomatlar                              # with the envoys to Turkey; 8, +6
+  lang: tr
+  depth: 2
+- category: Diplomats_for_Northern_Cyprus                         # 3, +3
+  lang: en
+  depth: 2
+
+# --- Party leaders ---
+- category: Kuzey_Kıbrıs_Türk_Cumhuriyeti'ndeki_siyasi_parti_genel_başkanları  # 5 parties; 20, +2
+  lang: tr
+- category: Leaders_of_political_parties_in_Northern_Cyprus       # 11, +1
+  lang: en
+
+# --- Catch-alls ---
+- category: Political_office-holders_in_Northern_Cyprus           # own pages; 1, +1
+  lang: en
+  depth: 0
+- category: Partilerine_göre_Kıbrıs_Türkü_siyasetçiler            # 9 parties; 112, +16
+  lang: tr
+- category: Kıbrıs_Türkü_kadın_siyasetçiler                        # 21, +4
+  lang: tr
+- category: Kuzey_Kıbrıs_Türk_Cumhuriyeti_siyasetçileri           # flat bag; 68, +4
+  lang: tr
+  depth: 0
+- category: Kıbrıs_Türkü_siyasetçiler                             # flat bag; 37, +7
+  lang: tr
+  depth: 0
+- category: Turkish_Cypriot_politicians                           # flat bag; 7, +2
+  lang: en
+  depth: 0
+- category: Kıbrıs_Türkü_siyasetçi_taslakları                     # 84, +2
+  lang: tr
+  depth: 0

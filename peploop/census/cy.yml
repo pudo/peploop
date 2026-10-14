@@ -1,0 +1,175 @@
+# Offices the Republic of Cyprus has whether or not a seeded person's article
+# named them. Bodies are from the 2026-10-14 live measurement (wbsearchentities,
+# CirrusSearch with `haswbstatement:P17=Q229`, the items read); nothing below is
+# from memory.
+#
+# Not here because an item exists and the load reaches it: the President, the
+# ministers of every era, the Government Spokesman, the Deputy Minister to the
+# President and the other deputy ministers (11 items, under "Cypriot deputy
+# minister" `Q66126505`), the President and Vice-President of the House, the
+# Attorney General (`Q19241145`) and his deputy (`Q96658008`), the Chief of the
+# National Guard General Staff (`Q19282969`), the Archbishop (`Q4070753`), the
+# six District Officers (`Q56251911` Nicosia and five more), and a mayoralty
+# for every one of the 31 municipality items with an en article (`Q16739079`;
+# the displaced municipalities' among them).
+#
+# No `per: units` entry. Every current municipality item already has its
+# mayoralty, so `mint_units` would draft nothing; the 2024 reform's merged
+# municipalities (Latsia-Geri, South Nicosia-Idalion, Paralimni-Deryneia,
+# Lefkara, Polemidia, Kourion, Akamas, Ierokipia) have no unit item at all, and
+# the loop creates no places. The District Local Government Organisations
+# have neither unit items nor an article, so their presidencies are a
+# `per: subdivisions` entry instead.
+#
+# Absent and not listed: the 2023 Court of Appeal's and the Supreme
+# Constitutional Court's bodies (no items), the metropolitans of the Church of
+# Cyprus (seeded; no archetype takes a see), the community leaders (248
+# per-village items already exist, batch-made, and no category names their
+# holders), the Accountant General, the Commissioners for the Environment and
+# for Gender Equality, and the head of the state broadcaster.
+
+# --- Judiciary: the 2023 split of the Supreme Court ---
+# July 2023: the single Supreme Court split again into a Supreme
+# Constitutional Court (nine judges) and a Supreme Court (seven).
+- key: supreme_court_judge
+  class: judiciary.apex
+  archetype: supreme_judge
+  body: Q19201850          # The Supreme Court of Cyprus
+  source: https://el.wikipedia.org/wiki/Ανώτατο_Δικαστήριο_Κύπρου
+  labels:
+    en: Judge of the Supreme Court of Cyprus
+    el: Δικαστής του Ανωτάτου Δικαστηρίου Κύπρου
+
+- key: supreme_court_president
+  class: judiciary.apex
+  archetype: court_president
+  body: Q19201850
+  # `Q23585879` "Chief Justice of Cyprus" holds two colonial-era justices (1898-1919).
+  labels:
+    en: President of the Supreme Court of Cyprus
+    el: Πρόεδρος του Ανωτάτου Δικαστηρίου Κύπρου
+
+- key: supreme_constitutional_court_judge
+  class: oversight.constitutional_body
+  archetype: supreme_judge
+  # No body: the Supreme Constitutional Court has no item.
+  source: https://el.wikipedia.org/wiki/Ανώτατο_Δικαστήριο_Κύπρου
+  labels:
+    en: Judge of the Supreme Constitutional Court of Cyprus
+    el: Δικαστής του Ανωτάτου Συνταγματικού Δικαστηρίου Κύπρου
+
+- key: supreme_constitutional_court_president
+  class: oversight.constitutional_body
+  archetype: court_president
+  source: https://el.wikipedia.org/wiki/Ανώτατο_Δικαστήριο_Κύπρου
+  labels:
+    en: President of the Supreme Constitutional Court of Cyprus
+    el: Πρόεδρος του Ανωτάτου Συνταγματικού Δικαστηρίου Κύπρου
+
+- key: court_of_appeal_judge
+  class: judiciary.specialised
+  archetype: judge
+  # No body: the Court of Appeal has no item.
+  source: https://el.wikipedia.org/wiki/Ανώτατο_Δικαστήριο_Κύπρου
+  labels:
+    en: Judge of the Court of Appeal of Cyprus
+    el: Δικαστής του Εφετείου Κύπρου
+
+# --- Oversight: independent officers ---
+- key: auditor_general
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  body: Q135487581         # Audit Office
+  labels:
+    en: Auditor General of the Republic of Cyprus
+    el: Γενικός Ελεγκτής της Δημοκρατίας
+
+- key: ombudsman
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  body: Q135490525         # Commissioner for Administration and the Protection of Human Rights (Ombudsman)
+  labels:
+    en: Commissioner for Administration and the Protection of Human Rights of Cyprus
+    el: Επίτροπος Διοικήσεως και Προστασίας Ανθρωπίνων Δικαιωμάτων
+
+- key: data_protection_commissioner
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  # The body item's en label is the office's title; its el label is the office.
+  body: Q56056449          # Γραφείο Επιτρόπου Δεδομένων Προσωπικού Χαρακτήρα
+  labels:
+    en: Commissioner for Personal Data Protection of Cyprus
+    el: Επίτροπος Προστασίας Δεδομένων Προσωπικού Χαρακτήρα
+
+# --- Economic: central bank, regulator, state companies ---
+- key: central_bank_governor
+  class: economic.central_bank
+  archetype: central_bank_governor
+  body: Q74693             # Central Bank of Cyprus
+  labels:
+    en: Governor of the Central Bank of Cyprus
+    el: Διοικητής της Κεντρικής Τράπεζας της Κύπρου
+
+- key: cysec_chair
+  class: economic.regulators
+  archetype: agency_head
+  body: Q570231            # Cyprus Securities and Exchange Commission
+  labels:
+    en: Chairman of the Cyprus Securities and Exchange Commission
+    el: Πρόεδρος της Επιτροπής Κεφαλαιαγοράς Κύπρου
+
+- key: eac_chair
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q5357793           # Electricity Authority of Cyprus
+  labels:
+    en: Chairman of the Electricity Authority of Cyprus
+    el: Πρόεδρος της Αρχής Ηλεκτρισμού Κύπρου
+
+- key: cyta_chair
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q3565273           # Cyta
+  labels:
+    en: Chairman of the Cyprus Telecommunications Authority
+    el: Πρόεδρος της Αρχής Τηλεπικοινωνιών Κύπρου
+
+- key: ports_authority_chair
+  class: economic.soe_leadership
+  archetype: soe_head
+  body: Q5200482           # Cyprus Ports Authority
+  labels:
+    en: Chairman of the Cyprus Ports Authority
+    el: Πρόεδρος της Αρχής Λιμένων Κύπρου
+
+# --- Security: police and intelligence ---
+- key: police_chief
+  class: security.police
+  archetype: agency_head
+  body: Q5200481           # Cyprus Police
+  labels:
+    en: Chief of the Cyprus Police
+    el: Αρχηγός της Αστυνομίας Κύπρου
+
+- key: intelligence_chief
+  class: security.intelligence
+  archetype: agency_head
+  body: Q24915366          # Cyprus Intelligence Service
+  labels:
+    en: Head of the Cyprus Intelligence Service
+    el: Διοικητής της Κυπριακής Υπηρεσίας Πληροφοριών
+
+# --- Districts: the District Local Government Organisations' presidents ---
+# Q229's P150 is the six districts, none ended. en.wikipedia's "Local government
+# reform (Cyprus)": "District councils called District Local Government
+# Organisations were created in each district [...] The president is directly
+# elected to a 5-year term, firstly on 9 June 2024." None has an item. Kyrenia
+# District is wholly outside the Republic's control and is left in: an
+# office nobody's article attests is skipped as `census/unattested`.
+- key: district_organisation_president
+  class: subnational.executive
+  archetype: governor
+  per: subdivisions
+  source: https://en.wikipedia.org/wiki/Local_government_reform_(Cyprus)
+  labels:
+    en: President of the District Local Government Organisation of {name}
