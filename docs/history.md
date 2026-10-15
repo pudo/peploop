@@ -245,7 +245,7 @@ that still applies:
 | Somalia | 10-12 | 237 statements (229 rows applied); nothing minted | QS3 59411 59412 |
 | Australia | 10-12 – 10-14 | 2,196 statements (2,123 rows applied), 43 open tenures taken back; 579 offices minted, 498 of them local | QS3 59669 59690, 59691 (removals), 59594 59621 (mint); peptree 59250 |
 | Northern Cyprus | 10-14 – 10-15 | 121 statements (112 rows applied), 1 taken back; 11 offices minted | QS3 59848 59871, 59850 (removals), 59843 59847 (mint) |
-| Cyprus | 10-14 – 10-15 | 76 statements (72 rows applied), 3 taken back; 4 offices and 6 municipalities created, a duplicate MP merged | QS3 59849 59869 59951, 59850 (removals), 59846 59950 (mint), 59945 59946 (places) |
+| Cyprus | 10-14 – 10-15 | 76 statements (72 rows applied), 3 taken back; 4 offices and 6 municipalities created, a duplicate MP merged | QS3 59849 59869 59951, 59850 (removals), 59846 59950 (mint), 59945 59946 59952 (places) |
 | Malta | 10-14 – 10-15 | 268 statements (247 rows applied), 3 taken back; 63 offices minted, 59 of them local council mayoralties | QS3 59858 59868, 59863 (removals), 59856 (mint) |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
@@ -321,6 +321,7 @@ now name a list article, which reached the few newcomers with articles. Six of t
 as "Amathounta Municipality" found no item until the search retried the bare
 name; only Amathounta's mayor has an article, so it is the one mayoralty
 those places gained. No article names a Maltese regional president, and the
-user kept those out. A duplicate Cypriot MP (one item per wiki) was merged
+user kept those out, as they kept the 2026 MPs who have no article: a later
+re-run of the list-article seed reaches them once their articles exist. A duplicate Cypriot MP (one item per wiki) was merged
 with wikibase-cli at the user's word, and our moved statement removed as a
 duplicate.
