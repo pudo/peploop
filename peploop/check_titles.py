@@ -30,11 +30,11 @@ from typing import Any, Sequence
 import psycopg
 
 from peploop import db, positions, reconcile, titles
+from peploop.check_reconcile import PROMPT_DIGEST
 
-#: The reconcile prompt and rendering this channel shipped under. A retrieval
-#: change must not move either: the ledger is keyed by them, and moving one
-#: re-asks every placed mention.
-RECONCILE_PROMPT_SHA256 = "0c8e514fe693abac432180896eb8dd01e6d322d5762017961741a033a37e7490"
+#: The reconcile prompt the ledger is keyed by. A retrieval change must not
+#: move it: moving it re-asks every placed mention.
+RECONCILE_PROMPT_SHA256 = PROMPT_DIGEST
 RECONCILE_RENDER_VERSION = 2
 
 STATE = "Q1"

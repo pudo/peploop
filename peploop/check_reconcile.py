@@ -196,6 +196,18 @@ def check_rendering(expect: Any) -> None:
         "used with: P1001" in SHORTLIST[5].line(),
         "a scoping qualifier at the floor is shown without the tag",
     )
+    governor = reconcile.Candidate(qid="Q0000090", label="Governor of Northvale", body="Cabinet",
+                                   governs="Northvale State", holders=2)
+    expect(governor.line() == "Q0000090 | Governor of Northvale | (no description) | part of: Cabinet"
+                              " | governs: Northvale State | holders: 2",
+           "an office's narrower polity is named after its body")
+    labels = {"Q0000091": "Northvale State"}
+    expect(reconcile._governs({"jurisdiction_qid": "Q0000091", "country_qid": None}, "Q0000001", labels)
+           == "Northvale State", "a polity narrower than the state is named")
+    expect(reconcile._governs({"jurisdiction_qid": "Q0000001", "country_qid": "Q0000001"}, "Q0000001",
+                              labels) is None, "the state itself is not")
+    expect(reconcile._governs({"jurisdiction_qid": "Q0000002", "country_qid": "Q0000002"}, "Q0000001",
+                              labels) is None, "nor another state, which its tags already say")
     short = dataclasses.replace(MENTION, article="He was minister. Then he was not.")
     got = reconcile.render_mention(short, SHORTLIST)
     expect(
@@ -512,8 +524,9 @@ def check_reopen(expect: Any) -> None:
 
 #: The ledger key a verdict is stored under. Leaving the generic classes out of
 #: the shortlist changed what the model is shown, not how it is asked, so
-#: neither moved, and every verdict on record still reads back.
-PROMPT_DIGEST = "0c8e514fe693abac432180896eb8dd01e6d322d5762017961741a033a37e7490"
+#: neither moved. Naming a candidate's narrower polity (`governs:`) did move
+#: it: a verdict from before it is read back by no later run.
+PROMPT_DIGEST = "8a8ad4da606250fca295bdda077bf74784afad4f7538633baa864a2e8292dd7d"
 RENDER_VERSION = 2
 
 

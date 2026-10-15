@@ -123,6 +123,9 @@ class Candidate:
     #: does not. Naming it matters: the body/seat rule is unusable when the
     #: body is an opaque identifier.
     body: str | None = None
+    #: The polity the office governs, by label, where it is narrower than the
+    #: state: an undescribed "Governor of X" is otherwise judged on its label.
+    governs: str | None = None
     inception: str | None = None
     abolished: str | None = None
     #: Counted where the search is, so `None` means "nobody has counted for
@@ -157,6 +160,8 @@ class Candidate:
             parts.append("kind: " + ", ".join(self.kinds))
         if self.body:
             parts.append("part of: " + self.body)
+        if self.governs:
+            parts.append("governs: " + self.governs)
         span = "–".join([self.inception or "", self.abolished or ""]).strip("–")
         if span:
             parts.append("exists: " + span)
@@ -314,12 +319,12 @@ def settle(
 #: rather than per row.
 DISPLAY_COLUMNS = (
     "label", "description", "kinds", "body_qid", "inception", "abolished",
-    "holders", "holders_by_country", "scope_qualifier",
+    "holders", "holders_by_country", "scope_qualifier", "jurisdiction_qid", "country_qid",
 )
 
 
-def _body_labels(qids: Sequence[str]) -> dict[str, str]:
-    """Name the bodies a shortlist points at.
+def _labels(qids: Sequence[str]) -> dict[str, str]:
+    """Name the bodies and polities a shortlist points at.
 
     A body that is itself a loaded position is named from its own row; the
     rest are fetched by label through the cached item reader, because the
@@ -344,6 +349,14 @@ def _body_labels(qids: Sequence[str]) -> dict[str, str]:
     return labels
 
 
+def _governs(record: dict[str, Any], state_qid: str | None, labels: dict[str, str]) -> str | None:
+    """The office's polity by label, or None where it is the state itself."""
+    polity = record.get("jurisdiction_qid")
+    if not polity or polity in {state_qid, record.get("country_qid")}:
+        return None
+    return labels.get(polity, polity)
+
+
 def candidates_for(
     hits: Sequence[positions.Hit],
     state_qid: str | None = None,
@@ -363,7 +376,7 @@ def candidates_for(
         ([hit.qid for hit in hits],),
     ).fetchall()
     by_qid = {row[0]: dict(zip(DISPLAY_COLUMNS, row[1:])) for row in rows}
-    bodies = _body_labels([r.get("body_qid") for r in by_qid.values()])
+    bodies = _labels([q for r in by_qid.values() for q in (r.get("body_qid"), r.get("jurisdiction_qid"))])
     out: list[Candidate] = []
     for hit in hits:
         record = by_qid.get(hit.qid, {})
@@ -374,6 +387,7 @@ def candidates_for(
             description=record.get("description"),
             kinds=list(record.get("kinds") or []),
             body=bodies.get(body_qid or "", body_qid),
+            governs=_governs(record, state_qid, bodies),
             inception=str(record["inception"]) if record.get("inception") else None,
             abolished=str(record["abolished"]) if record.get("abolished") else None,
             holders=positions.holder_count(record, state_qid, holder_scope),
@@ -428,7 +442,7 @@ def replay_shortlist(resolution_id: int) -> tuple[dict[str, Any], list[Candidate
         f"SELECT qid, {fields} FROM position WHERE qid = ANY(%s)", (offered,)
     ).fetchall()
     by_qid = {r[0]: dict(zip(REPLAY_COLUMNS, r[1:])) for r in rows}
-    bodies = _body_labels([r.get("body_qid") for r in by_qid.values()])
+    bodies = _labels([q for r in by_qid.values() for q in (r.get("body_qid"), r.get("jurisdiction_qid"))])
     state = record["state_qid"]
     out = []
     for qid in offered:
@@ -440,6 +454,7 @@ def replay_shortlist(resolution_id: int) -> tuple[dict[str, Any], list[Candidate
             description=item.get("description"),
             kinds=list(item.get("kinds") or []),
             body=bodies.get(body_qid or "", body_qid),
+            governs=_governs(item, state, bodies),
             inception=str(item["inception"]) if item.get("inception") else None,
             abolished=str(item["abolished"]) if item.get("abolished") else None,
             holders=positions.holder_count(item, state),

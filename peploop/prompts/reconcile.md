@@ -34,7 +34,7 @@ question.
 **The candidates.** One line each:
 
 ```
-QID | label | description | kind: … | part of: … | exists: …–… | holders: … | tags: … | matched: …
+QID | label | description | kind: … | part of: … | governs: … | exists: …–… | holders: … | tags: … | matched: …
 ```
 
 - **label**, **description** — the item's own, in whatever language it carries
@@ -44,6 +44,11 @@ QID | label | description | kind: … | part of: … | exists: …–… | holde
 - **part of** — the body the office is a seat in. An office having one is
   normal and correct. It is the item's *own* label and kind that say whether
   the item is the body itself.
+- **governs** — the polity the office is scoped to, shown only when it is
+  narrower than the state: a province, a region, a city. The same title in
+  another polity is another office; the polity under another form of its
+  name ("Northvale" and "Northvale State") is the same one, and the label
+  need not repeat it.
 - **exists** — when the office was created and when it was abolished, either
   side blank when the item does not record it.
 - **holders** — how many people *of the state being searched* are recorded in
