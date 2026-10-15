@@ -89,9 +89,11 @@ people to 2,600 already reached by tier, nearly all history, and was left out.
 
 ## 2. The seed file
 
-`seeds/<cc>.yml`, one PetScan query per entry: `category`, `lang`, optional
-`depth` (default 1). OpenSanctions' `wd_categories.yml` (`country: <cc>`
-entries) is the starting list and never the whole of it: it names the tiers
+`seeds/<cc>.yml`: `category`, `lang`, optional `depth` (default 1) per entry,
+or `article` and `lang` for a list article, a chamber with no category yet. A
+territory OpenSanctions codes apart (`so-som`, `cy-trnc`) is a run of its own,
+seeded before the state whose tree nests it. OpenSanctions'
+`wd_categories.yml` (`country: <cc>` entries) is the starting list and never the whole of it: it names the tiers
 OpenSanctions has a spec for, and its retirements are OpenSanctions' reasons
 (a category whose members are born before 1920 is retired *there*; here the
 scope gate handles that at fetch). The tiers to cover are the ones in
@@ -100,10 +102,9 @@ saying where the entries came from and what was left out, then the entries by
 tier, **every one commented with its measured size**, depth 1 except pure
 containers, `depth: 0` where the only subcategory is an eponymous one. Where
 the wiki has per-period or per-century subcategories, seed the current era's;
-where it has a `carteras desaparecidas` tier, leave it out. Seed the English
-tree at whatever depth *its* shape earns: one level where the country's own
-wiki carries the tiers, the portfolio and governor containers where it is the
-only wiki that has them.
+leave out a `carteras desaparecidas` tier. Seed the English tree at the depth
+*its* shape earns: one level where the country's own wiki carries the tiers,
+the portfolio and governor containers where only English has them.
 
 ## 3. The stages, in order
 
@@ -147,10 +148,11 @@ not a seeded article named them, by institution class of
 `docs/institutions.md`, each with its body QID measured live
 (`docs/research/position_items.md` §10), never from memory. An entry prompts
 categorize and is no evidence (`design.md` has the bar); one nobody's article
-attests is skipped. A `per: units` entry is the exception and the way below
-national level: it makes a level's office for every unit whose own article
-names a holder (`plans/peptree_next.md` §4). `mint --submit` creates what the
-last dry run guarded and printed, nothing else. Every `mint` run, dry or not,
+attests is skipped. A `per: units` entry is the way below national level: it
+makes the head's office for every unit whose own article names a holder
+(councillor seats only when asked). `mint --submit` creates what the last dry
+run guarded, nothing else; then `load-positions` and `reconcile` place the
+mentions refused before those items existed. Every `mint` run, dry or not,
 feeds the rows verify decided `found` -- re-asking their mentions and
 re-proposing their people -- so read the dry run's `found` rows as closely as
 its guarded ones, and fix every class you find before the next dry run: after
@@ -222,11 +224,7 @@ anything nobody approved.
   QID, `<lang>.wikipedia`, its capital) and the check passes -- which is what
   finds anything of the country that crept into a rule or a prompt during the
   run.
-- The country's entry in §7 is finished with its numbers.
-- The memory file gets one line.
-
-## 7. Countries run
-
-One line per country run, with its batches, is in `docs/history.md`; the
-findings that became rules are there too. Add the new country's line there
-when it closes.
+- `docs/history.md` gains the country's line with its batches, the findings
+  that became rules, and the residue it could not reach (people without an
+  article, offices no article attests, units without an item). That line, not
+  a memory, is the record; the run is then done.

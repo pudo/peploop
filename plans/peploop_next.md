@@ -57,6 +57,13 @@ Found by Malta's audit (2026-10-15), not yet rules:
 
 ## 3. Mint lanes not yet covered
 
+- **Empty offices, "if well-justified"** (requirements, 2026-10-12). The user
+  defined it on 2026-10-15: a source says every unit of the level has the
+  office, and at least one sibling of the level has an attested holder. Build
+  it as a rule in `mint.RULES` with its case in `check_mint`; Malta's six
+  regional presidencies are the first test, and design.md's evidence bar
+  changes with it.
+
 - **Bilateral ambassadorships** are refused (`offices.bilateral`); every
   country has dozens of unplaced "ambassador of X to Y" mentions.
 - **Deputy ministers** without a national class to shape them.
