@@ -245,7 +245,7 @@ that still applies:
 | Somalia | 10-12 | 237 statements (229 rows applied); nothing minted | QS3 59411 59412 |
 | Australia | 10-12 – 10-14 | 2,196 statements (2,123 rows applied), 43 open tenures taken back; 579 offices minted, 498 of them local | QS3 59669 59690, 59691 (removals), 59594 59621 (mint); peptree 59250 |
 | Northern Cyprus | 10-14 – 10-15 | 121 statements (112 rows applied), 1 taken back; 11 offices minted | QS3 59848 59871, 59850 (removals), 59843 59847 (mint) |
-| Cyprus | 10-14 – 10-15 | 75 statements (71 rows applied), 3 taken back; 3 offices minted | QS3 59849 59869, 59850 (removals), 59846 (mint) |
+| Cyprus | 10-14 – 10-15 | 76 statements (72 rows applied), 3 taken back; 4 offices and 6 municipalities created, a duplicate MP merged | QS3 59849 59869 59951, 59850 (removals), 59846 59950 (mint), 59945 59946 (places) |
 | Malta | 10-14 – 10-15 | 268 statements (247 rows applied), 3 taken back; 63 offices minted, 59 of them local council mayoralties | QS3 59858 59868, 59863 (removals), 59856 (mint) |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
@@ -314,6 +314,13 @@ of offices does not re-ask the mentions refused before it existed: the mayors'
 own articles were placed only by `load-positions` then `reconcile`, whose
 re-ask takes every refusal whose shortlist gained an item (61 Maltese mayors'
 mentions). The Houses elected in 2026 have no category yet; a seed entry may
-now name a list article, which reached the few newcomers with articles. The
-2024 merged Cypriot municipalities have no place items, and no article names
-a Maltese regional president, so neither level could be reached.
+now name a list article, which reached the few newcomers with articles. Six of the
+2024 merged Cypriot municipalities had no item: the user had them created
+(the reform article's table, `P31` municipality of Cyprus, `P131` district,
+`P571` 2024-07-01) and Amathounta typed like its peers. A mayor's town drafted
+as "Amathounta Municipality" found no item until the search retried the bare
+name; only Amathounta's mayor has an article, so it is the one mayoralty
+those places gained. No article names a Maltese regional president, and the
+user kept those out. A duplicate Cypriot MP (one item per wiki) was merged
+with wikibase-cli at the user's word, and our moved statement removed as a
+duplicate.

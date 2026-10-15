@@ -51,7 +51,7 @@ UNIT_WORDS = re.compile(
     r"^(?:the\s+)?(?:(?:aboriginal\s+)?shire|city|rural city|town|municipality|borough|region|"
     r"municipal district|district council|regional council|council)\s+of\s+(?:the\s+)?"
     r"|\s+(?:(?:city|regional|shire|municipal|town|district|aboriginal shire|rural city)\s+)?"
-    r"(?:council|shire|region)$",
+    r"(?:council|shire|region|municipality)$",
     re.I,
 )
 

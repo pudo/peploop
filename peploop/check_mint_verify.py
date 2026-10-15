@@ -495,6 +495,8 @@ def check_build_spec(expect: Any) -> None:
     expect(local.local_place("Lindo") == ("Q960", "Q961"),
            f"one current town of the state resolves, with its council: {local.local_place('Lindo')}")
     expect(local.local_place("Twin") is None, "two qualifying towns resolve to neither")
+    expect(local.local_place("Lindo Municipality") == ("Q960", "Q961"),
+           "a name with its type word finds the town under its bare name")
     expect(local.local_place("Nowhere") is None and local.local_place(None) is None, "nor does no hit")
     mayor, problems = mint.build_spec(cand(draft={"archetype": "mayor", "body_qid": None,
                                                   "jurisdiction_name": "Lindo",

@@ -1659,7 +1659,11 @@ class Context:
         """
         if not name or not name.strip():
             return None
+        from peploop.mint_units import place_name  # mint_units imports this module
         hits = [q for q in dict.fromkeys(self._places(name.strip())) if q != self.state_qid]
+        if not hits and place_name(name) != name.strip():
+            # "Amathounta Municipality" finds nothing; the item is "Amathounta".
+            hits = [q for q in dict.fromkeys(self._places(place_name(name))) if q != self.state_qid]
         claims = self._claims(hits) if hits else {}
         found = []
         for qid in hits:
