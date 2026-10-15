@@ -192,6 +192,14 @@ cannot.
   (deprecated skipped, ended skipped except historical country); across jp's
   2,977 offices no position, diplomatic, worship or organisation verdict
   moved.
+- A Wikidata editor asked us to revert QS3 59250 (2026-10-13): `P31 public
+  office` on Swedish speakers of municipal assemblies already typed "speaker
+  of the municipal assembly", itself a public office. `p31_typed_elsewhere`
+  had exempted the siblings channel, so wherever sibling offices carried the
+  metaclass we wrote it beside a type that already reached position. 410 of
+  the 900 landed peptree `P31`s were redundant this way (alcalde 163, episcopal
+  titles 189, the Brazilian mayoralty classes 15); all 410 were struck and
+  removed (QS3 59949), and the rule now holds for every channel.
 
 ## The campaign toolkit (`old/`)
 

@@ -205,9 +205,11 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
      and not _is_class(s), "skip"),
     ("p31_on_a_class", lambda s: s.prop == "P31" and _is_class(s), "skip"),
     # A second type beside one a P31/P279* walk already finds as a position adds
-    # nothing and repeats the Brazil swap; an untyped office, or one typed only
-    # outside the position tree, takes the model's metaclass on the state-office channel.
-    ("p31_typed_elsewhere", lambda s: s.prop == "P31" and not _strong_p31(s) and s.facts is not None
+    # nothing and repeats the Brazil swap, however strongly the siblings agree:
+    # "alcalde" or "speaker of the municipal assembly" already says public office,
+    # and Wikidata editors revert the redundant claim. An untyped office, or one
+    # typed only outside the position tree, takes the model's metaclass.
+    ("p31_typed_elsewhere", lambda s: s.prop == "P31" and s.facts is not None
      and s.qid in s.facts.positioned, "skip"),
     ("p31_list_article", lambda s: s.prop == "P31" and _list_article(s), "skip"),
     ("p31_weak_channel", lambda s: s.prop == "P31" and not _strong_p31(s) and "state_office" not in s.channels, "skip"),

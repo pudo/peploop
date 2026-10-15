@@ -187,6 +187,10 @@ def main() -> None:
            "an office that is no class is never typed a type of position")
     expect(rules.decide(slot(raion, "P31", ["Q294414", "Q4164871"], 0, quote=quote)) == ("apply", "two_channels"),
            "a P31 the siblings agree on still applies")
+    sibling_typed = slot(raion, "P31", ["Q294414", "Q4164871"], 0, quote=quote)
+    sibling_typed.facts.positioned = {raion["qid"]}
+    expect(rules.decide(sibling_typed) == ("skip", "p31_typed_elsewhere"),
+           "a P31 the siblings agree on is still redundant beside a type that reaches position")
     party = item("Q41", "national", ent({"en": "Chairman of the Ruritanian Patriotic Party"}))
     expect(signals.channels("P31", "Q294414", facts(party)) == [], "a party office is not a public office")
     pred = item("Q42", "predecessor", ent({"en": "Minister of Health of the RPR"}), 3, {"Q900003": 3})
