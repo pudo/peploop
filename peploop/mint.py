@@ -286,8 +286,10 @@ class Anchor:
 def _subdivisions(state_qid: str, dissolved: bool = False) -> list[str]:
     """The state's current first-level subdivisions, read live.
 
-    A `P150` value whose own item records its dissolution is left out, because
-    a state's list is often not updated when its provinces merge. `dissolved`
+    Its `P150` and the items typed a first-level subdivision of it, since
+    either may omit some (`positions.typed_units`). A unit whose own item
+    records its dissolution is left out, because a state's list is often not
+    updated when its provinces merge. `dissolved`
     asks for those too: categorize must still be able to name the province a
     mention is about, or a stale governorship is scoped to the whole state
     rather than refused for the province it governed.
@@ -300,6 +302,7 @@ def _subdivisions(state_qid: str, dissolved: bool = False) -> list[str]:
         value = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
         if isinstance(value, dict) and value.get("id") and value["id"] not in out:
             out.append(value["id"])
+    out += [qid for qid in positions.typed_units(state_qid) if qid not in out]
     if dissolved or not out:
         return out
     items = wikidata.fetch_items(out, props="claims")
@@ -787,6 +790,10 @@ def settle_categorize(
                 mine.append(f"off-list:{name}:{qid}")
                 values[name] = None
         decision, exists = office.decision, office.exists_qid
+        if decision == "exists" and not exists and office.census_key in offered.census_keys:
+            # A census anchor is an office with no item yet: "exists" naming
+            # none means the survey says it exists, which is `office`.
+            decision = "office"
         if decision == "exists" and exists not in offered.offices:
             mine.append(f"off-list:exists_qid:{exists}")
             decision, exists = "unclear", None

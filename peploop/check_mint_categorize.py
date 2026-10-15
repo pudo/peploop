@@ -127,6 +127,15 @@ def check_settle(expect: Any) -> None:
            and "unknown-census:nonesuch" in problems,
            "`ambassador` is a valid archetype, and an unknown census key is nulled")
     expect(left == [], "every group assigned leaves nothing unassigned")
+    answer = CategorizeAnswer(offices=[
+        office(["g1"], decision="exists", exists_qid=None, census_key="court"),
+        office(["g2"], decision="exists", exists_qid=None),
+    ], unassigned=[])
+    settled, _left, _problems = mint.settle_categorize(answer, chunk, o)
+    expect(settled[0].decision == "office" and not settled[0].problems,
+           "`exists` naming no item but a census anchor is that anchor's office")
+    expect(settled[1].decision == "unclear" and "off-list:exists_qid:None" in settled[1].problems,
+           "`exists` naming no item and no anchor stays `unclear`")
     unassigned = CategorizeAnswer(offices=[], unassigned=[
         UnassignedAnswer(group=f"g{i}", reason="noise") for i in range(1, 5)])
     _s, left, problems = mint.settle_categorize(unassigned, chunk, o)
