@@ -35,7 +35,7 @@ from peploop import db, typegraph, wikidata
 #: What discovery found an item. An item the class descent reached and nobody
 #: holds is a different kind of candidate from one only its holders reveal,
 #: and both facts survive into the ranking.
-SOURCES = ("descent", "usage", "citizen", "outbound")
+SOURCES = ("descent", "usage", "subdivision", "citizen", "outbound")
 
 #: `P31`/`P279` into the position tree, scoped to one state. `p:P31/ps:P31`
 #: and not `wdt:P31`: one preferred value hides the normal-rank ones, and a
@@ -52,6 +52,29 @@ DESCENT_QUERY = """SELECT DISTINCT ?pos WHERE {
 USAGE_QUERY = """SELECT DISTINCT ?pos WHERE {
   { ?pos wdt:P17 wd:%(country)s } UNION { ?pos wdt:P1001 wd:%(country)s }
   { ?h wdt:P31 wd:Q5 ; p:P39/ps:P39 ?pos } UNION { ?pos wdt:P1308 ?h }
+}"""
+
+#: The state's current first-level units: its unended `P150` and the items
+#: typed a first-level subdivision with the state as `P17`, neither
+#: dissolved. Either alone misses some -- one state's `P150` names 3 of its
+#: 13 units, the class misses 10 of another's 16 -- and the union is complete
+#: for every state measured.
+UNITS_QUERY = """SELECT DISTINCT ?u WHERE {
+  { wd:%(country)s p:P150 ?st . ?st ps:P150 ?u . FILTER NOT EXISTS { ?st pq:P582 ?end } }
+  UNION { ?u wdt:P31/wdt:P279? wd:Q10864048 ; wdt:P17 wd:%(country)s }
+  FILTER NOT EXISTS { ?u wdt:P576 ?gone }
+}"""
+
+#: What is scoped to those units, with its types. A state's governorships and
+#: provincial cabinet seats often carry `P1001` the province and no `P17` at
+#: all, so the descent and usage queries, keyed on the state, miss them and
+#: only a holder the citizen lane happens to find brings one in: three of
+#: two states' 28 governorships were reached by no lane. Which
+#: answers are offices is decided after the query from the types' closure,
+#: since a `wdt:P279*` joined to a large province's `P1001` times out.
+POSITION = "Q4164871"
+SUBDIVISION_QUERY = """SELECT DISTINCT ?pos ?type WHERE {
+  VALUES ?u { %(values)s } ?pos p:P1001/ps:P1001 ?u ; p:P31/ps:P31 ?type .
 }"""
 
 #: Occupations that make a person's offices worth harvesting. The citizen
@@ -175,6 +198,8 @@ def discover(
         started = time.monotonic()
         if source == "citizen":
             found[source] = _discover_citizen(qid, log)
+        elif source == "subdivision":
+            found[source] = _discover_subdivision(qid, log)
         elif source == "outbound":
             found[source] = _discover_outbound(qid, log, page)
         else:
@@ -223,6 +248,20 @@ def _discover_citizen(qid: str, log: Any) -> set[str]:
         items.update(row["pos"] for row in rows)
         log(f"  citizen chunk {index}/{len(chunks)}: {len(rows)} offices,"
             f" {len(items)} total, in {time.monotonic() - started:.0f}s")
+    return items
+
+
+def _discover_subdivision(qid: str, log: Any) -> set[str]:
+    """Find the offices scoped to one of the state's first-level units."""
+    units = sorted({row["u"] for row in wikidata.sparql(UNITS_QUERY % {"country": qid})})
+    typed: dict[str, set[str]] = {}
+    for chunk in wikidata.values_chunks(units, size=10):
+        for row in wikidata.sparql(SUBDIVISION_QUERY % {"values": wikidata.values_block(chunk)}):
+            typed.setdefault(row["pos"], set()).add(row["type"])
+    closure = typegraph.of_classes({t for types in typed.values() for t in types})
+    items = {pos for pos, types in typed.items()
+             if any(t == POSITION or POSITION in closure.get(t, set()) for t in types)}
+    log(f"  subdivision: {len(units)} units, {len(typed)} scoped items, {len(items)} offices")
     return items
 
 

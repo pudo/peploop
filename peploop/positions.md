@@ -44,7 +44,7 @@ reads or writes it.
 
 ## Discovery
 
-Four lanes per country, each tagged in `sources`, run by
+Five lanes per country, each tagged in `sources`, run by
 `load-positions --country <cc>`. `rigour` resolves the code to a QID.
 
 - **`descent`** — `?pos p:P31/ps:P31/wdt:P279* wd:Q4164871` with a
@@ -55,6 +55,12 @@ Four lanes per country, each tagged in `sources`, run by
   that name their own holder via `P1308`. This catches what the ontology
   mistyped: a country-generic mayoralty whose only `P31` is "type of position"
   is invisible to the descent and can still have a thousand holders.
+- **`subdivision`** — offices whose `P1001` is one of the state's
+  first-level units (its unended `P150`, and the items typed a first-level
+  subdivision with the state as `P17`: each list alone misses some). A
+  governorship or provincial cabinet seat often carries no `P17`, so the two
+  lanes above, keyed on the state, never reach it. Types are closed after
+  the query, since a `P279*` joined to a large province's `P1001` times out.
 - **`citizen`** — offices held by citizens of the state whose `P106` is
   politician, diplomat or judge. The only route to an office the state's own
   people hold that is scoped to no polity of theirs: a posting abroad, a seat
