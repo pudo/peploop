@@ -367,4 +367,6 @@ cabinet and assembly left "Incumbent" (a health ministry whose holder
 statements are too polluted to show it is one seat), and a deputy chair of
 the 2019 Transitional Military Council, an office with no end and no body.
 The Justice ministry's twins (`Q136664945`, `Q112325297`) both took
-mentions and neither took a statement; merging them is the user's decision.
+mentions and neither took a statement; the user had the first merged into
+the second with wikibase-cli, which waited out a query-service lag of up to
+18 s. Their holder lists still disagree over 1998-2008.
