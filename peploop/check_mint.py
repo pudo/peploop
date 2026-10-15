@@ -232,6 +232,9 @@ def main() -> int:
                  holders=1,
                  body=entity(BODY, "Senate of Aland", p31="Q43229", p17=STATE)), [],
            "as does a chamber's speaker")
+    expect(guard(judge(archetype="speaker", labels={"en": "Speaker of the Council of States"},
+                       body_qid=None), holders=1), ["body/none"],
+           "but a speakership naming no chamber is refused")
     data = offices.entity_data(judge(archetype="speaker"))
     expect((statement(data, "P279"), statement(data, "P2389"), statement(data, "P361")),
            (["Q1758037"], [BODY], []), "a speaker is kind speaker, naming its chamber under P2389")

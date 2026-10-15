@@ -19,6 +19,17 @@
 # names them. County commissioners (79 counties) have no unit items with
 # holders in their articles.
 
+# --- Legislature: the upper house's presiding officer ---
+# `Q112316485` presides over the whole National Legislature; the Council of
+# States has its own speaker and no item for the seat.
+- key: council_of_states_speaker
+  class: legislature.leadership
+  archetype: speaker
+  body: Q1454821           # Council of States, P31 upper house, P17 Q958
+  labels:
+    en: Speaker of the Council of States of South Sudan
+    ar: رئيس مجلس الولايات في جنوب السودان
+
 # --- Judiciary: the Supreme Court ---
 - key: chief_justice
   class: judiciary.apex

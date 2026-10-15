@@ -109,10 +109,12 @@ ARCHETYPES: dict[str, Archetype] = {
                              parents=("Q1162163", "Q1501800", "Q140686"), metaclass=POSITION),
     # The presiding officer of a chamber: 84 of 96 speakerships measured use
     # `Q1758037`, and a state's existing one names its chamber under `P2389`.
+    # Without its chamber a speakership is told from no other: "Speaker of the
+    # Council of States" names chambers of two neighbouring states.
     # A deputy speaker is not a speaker and has no archetype.
     "speaker": Archetype(
         "Q1758037", body_property="P2389", description="presiding officer of the {body}",
-        single_seat=True, unbodied="presiding officer of a chamber of {jurisdiction}",
+        single_seat=True, body_required=True,
     ),
     # A prime minister or other head of government: 132 of the sovereign
     # states' `P1313` items subclass prime minister and 72 head of government;
