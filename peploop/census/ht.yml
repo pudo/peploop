@@ -20,11 +20,9 @@
 # holder" floor refuses the member seat however many articles attest it: the
 # entry is here so the funnel says so, not because it can pass.
 #
-# Not here for want of an archetype: the CPT's president ("coordonnateur"),
+# Not here because it is not current: the CPT's president ("coordonnateur"),
 # a rotating chair of a collegial head of state (Leblanc Fils, Voltaire,
-# Saint-Cyr). None of `speaker`, `agency_head` or `state_body_member` is its
-# shape; it would want a chair-of-collegial-body archetype (P279 `Q140686`
-# chairperson, P2389 the body, one seat). It is also not current.
+# Saint-Cyr), whose shape is `council_chair`.
 #
 # Not here because an item exists: President `Q3290543`, Prime Minister
 # `Q1064589`, the portfolio ministers (`Q113531482`-`Q114736187`, P279

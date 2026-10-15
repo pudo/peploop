@@ -174,6 +174,8 @@ For every office, whatever its decision:
 
   | archetype | the seat |
   |---|---|
+  | `head_of_government` | a prime minister or other head of a government |
+  | `council_chair` | the chair or president of a collegial head of state: a sovereignty, presidential or military council |
   | `minister` | a minister of the national government, or of the government of a listed subdivision (a state or provincial cabinet seat, scoped to that subdivision) |
   | `deputy_minister` | a deputy, vice- or first deputy minister of a national ministry |
   | `minister_of_state` | a minister of state attached to a national ministry or the prime minister's office, below its minister |
@@ -212,7 +214,9 @@ For every office, whatever its decision:
   deputy prime minister (a minister of the government), or a "minister of
   state" that is a full minister's title (a minister without portfolio, a
   senior minister heading a portfolio of its own: `minister`). A
-  vice-president or deputy speaker of a chamber is not `speaker`, it is null.
+  vice-president or deputy speaker of a chamber is not `speaker`, it is null,
+  and so is a council's deputy chair; a deputy prime minister is never
+  `head_of_government`.
 
 - **`single_seat`** — true when one person holds the office at a time (a
   minister, a mayor, a court's president, a first deputy minister), false when

@@ -537,7 +537,7 @@ def main() -> int:
           " and its twins are judged")
 
     plural = {a.parent for a in offices.ARCHETYPES.values()} - policy.FAMILY_GENERIC
-    ok = plural == {"Q5097014", "Q107363151", "Q3368517"} and {
+    ok = plural == {"Q5097014", "Q107363151", "Q3368517", "Q14212", "Q48352"} and {
         q for a in offices.ARCHETYPES.values() for q in a.parents} <= policy.FAMILY_GENERIC
     failures += 0 if ok else 1
     print(f"  {'ok  ' if ok else 'FAIL'} every archetype parent but the one-per-state seats"

@@ -423,6 +423,21 @@ def main() -> int:
     expect(offices.describe(judge(archetype="minister_of_state", body_qid=None), LABELS),
            "minister of state in the government of Aland", "described by the state it serves")
 
+    print("heads of government and chairs of a collegial head of state:")
+    data = offices.entity_data(judge(archetype="head_of_government", labels={"en": "Prime Minister"}))
+    expect((statement(data, "P31"), statement(data, "P279"), statement(data, "P361"),
+            statement(data, "P2389"), statement(data, "P1001")),
+           (["Q294414"], ["Q14212"], [BODY], [], [STATE]),
+           "a head of government: kind prime minister, P361 its government, P1001 the state")
+    expect(offices.describe(judge(archetype="head_of_government", body_qid=None), LABELS),
+           "head of government of Aland", "with no government named, described by the state")
+    data = offices.entity_data(judge(archetype="council_chair", labels={"en": "Chairman of the Council"},
+                                     metaclass=offices.ARCHETYPES["council_chair"].metaclass))
+    expect((statement(data, "P31"), statement(data, "P279"), statement(data, "P2389"),
+            statement(data, "P361")), (["Q4164871"], ["Q48352"], [BODY], []),
+           "a council's chair: a position, kind head of state, P2389 the council")
+    expect(offices.ARCHETYPES["council_chair"].single_seat, True, "one chair at a time")
+
     print("a label worded as the state's own offices are:")
     ruritania = [f"Minister of State at the Ministry of {x}" for x in ("Finance", "Health", "Transport")]
     ruritania += ["Minister of State at the Office of the Prime Minister", "Minister of Finance"]

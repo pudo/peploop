@@ -114,6 +114,21 @@ ARCHETYPES: dict[str, Archetype] = {
         "Q1758037", body_property="P2389", description="presiding officer of the {body}",
         single_seat=True, unbodied="presiding officer of a chamber of {jurisdiction}",
     ),
+    # A prime minister or other head of government: 132 of the sovereign
+    # states' `P1313` items subclass prime minister and 72 head of government;
+    # 176 of 195 name their government under `P361`, none under `P2389`.
+    "head_of_government": Archetype(
+        "Q14212", description="head of the {body}", single_seat=True,
+        unbodied="head of government of {jurisdiction}", parents=("Q2285706",),
+    ),
+    # The chair of a collegial head of state (a sovereignty, presidential or
+    # military council): 6 of the 7 such national chairs measured subclass
+    # head of state, 5 name the council under `P2389`, and most are typed
+    # `Q4164871`. A chair of anything else is not this.
+    "council_chair": Archetype(
+        "Q48352", body_property="P2389", description="chair of the {body}", single_seat=True,
+        unbodied="chair of a collegial head of state of {jurisdiction}", metaclass=POSITION,
+    ),
     # The parents below were measured across other states' items (P279 tallies
     # and the parents read in full); see docs/research/position_items.md §10.
     # A seat in a party's standing politburo. Membership of a large organ (a

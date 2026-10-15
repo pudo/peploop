@@ -250,8 +250,8 @@ def check_exists_problem(expect: Any) -> None:
     expect(c.exists_problem(SIB_PARENT) == f"exists-class/{SIB_PARENT}",
            "a kind the state's own offices subclass is a class")
     expect(c.exists_problem("Q294414") == "exists-class/Q294414", "a metaclass is a class")
-    expect(c.exists_problem("Q14212") == "exists-generic/Q14212",
-           "a listed generic class (prime minister) is never found")
+    expect(c.exists_problem("Q30461") == "exists-generic/Q30461",
+           "a listed generic class (president) is never found")
     expect(c.exists_problem("Q30185") == "exists-class/Q30185",
            "a listed archetype parent still reads as the class it is")
 

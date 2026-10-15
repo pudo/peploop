@@ -112,7 +112,7 @@ POLITY_MARGIN = 2
 FAMILY_MAX_OFFICES = 2
 #: Kinds that name a class of seats however few of a state's offices declare
 #: them: the archetype parents of `offices.ARCHETYPES` (which this module
-#: cannot import) except the three a state has one of, the deputies of them,
+#: cannot import) except the five a state has one of, the deputies of them,
 #: and the plural legislative and diplomatic classes. `check_policy` pins the
 #: archetype half against `offices.py`.
 FAMILY_GENERIC = frozenset({
@@ -140,6 +140,7 @@ FAMILY_GENERIC = frozenset({
     "Q26204040",   # deputy minister
     "Q90132546",   # deputy minister
     "Q2632935",    # minister of state
+    "Q2285706",    # head of government: provinces' and regions' premiers too
     "Q124079538",  # deputy head
     "Q121998",     # ambassador
     "Q29645886",   # ambassador to a country
