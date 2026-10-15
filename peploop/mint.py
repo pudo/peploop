@@ -24,7 +24,7 @@ from psycopg.types.json import Jsonb
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory
 
-from peploop import db, llm, offices, positions, reconcile, scope, typegraph, wikidata
+from peploop import db, llm, offices, policy, positions, reconcile, scope, typegraph, wikidata
 from peploop import verify as person_verify
 from peploop.offices import ARCHETYPES, distinct_holders
 
@@ -183,8 +183,9 @@ def is_current(row: Row, today: date) -> bool:
     The floor's second half: an office nobody holds today is history, and the
     loop records who holds office now. Read conservatively on every side. An
     acting tenure and a dead holder never count; an end counts only when its
-    earliest reading is still to come; an open tenure counts only when it
-    began inside `CURRENT_WINDOW_YEARS`; an undated one never does.
+    earliest reading is still to come; an open tenure counts when it began
+    inside `CURRENT_WINDOW_YEARS`, or earlier where its quote is an infobox's
+    word that it is held now (`policy.INFOBOX`); an undated one never does.
     """
     if row.acting or row.death:
         return False
@@ -196,7 +197,10 @@ def is_current(row: Row, today: date) -> bool:
     if start is None:
         return False
     cutoff: scope.Point = (today.year - CURRENT_WINDOW_YEARS, today.month, today.day)
-    return start[1] >= cutoff
+    if start[1] >= cutoff:
+        return True
+    marker = policy.INFOBOX.get(row.lang or "en")
+    return bool(marker and row.quote and marker.search(row.quote))
 
 
 _SPACE = re.compile(r"\s+")
