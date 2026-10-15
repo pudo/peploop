@@ -1,0 +1,111 @@
+# Offices Sudan has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-15 live measurement (CirrusSearch with
+# `haswbstatement:P17=Q1049`, wbsearchentities, the items read); nothing below
+# is from memory.
+#
+# Not here because an item exists and the load reaches it: the President
+# `Q14948193`, the Chairman `Q112675151`, Deputy Chairman `Q112315913` and
+# members `Q112675154` of the Sovereignty Council, the Prime Minister
+# `Q30100623`, the portfolio ministers and ministers of state
+# (`Q112325xxx`, `Q112792xxx`), both chambers' members (`Q21328630`,
+# `Q21328588`) and the Speaker `Q112160021`, the state governors
+# (`Q112765xxx`), the Chief Justice `Q74020889`, the Governor of the Bank of
+# Sudan `Q112789998`, the head of the intelligence service `Q112674303`.
+# Twins, each a merge decision: Minister of Justice `Q136664945` / `Q112325297`;
+# Supreme Court `Q7644845` (sitelinked) / `Q113658987` (bare).
+#
+# The RSF's rival Government of Peace and Unity (`Q132717949`, P31 government,
+# P361 Rapid Support Forces, P17 Q1049; 2025) has no office items. Its offices
+# are their own items with that government as their body, so the Port Sudan
+# government's offices of the same title never take its people; its ministers
+# come from the mentions. Its Presidential Council has no item of its own, so
+# the council's president names the government as its body too.
+#
+# Absent and not listed: the police and the Public Prosecution have no items;
+# both heads are listed without a body.
+
+# --- The RSF's Government of Peace and Unity (2025) ---
+- key: gpu_presidential_council_president
+  class: executive.head_of_state
+  archetype: council_chair
+  body: Q132717949         # Government of Peace and Unity, P31 government, P361 RSF
+  source: https://en.wikipedia.org/wiki/Government_of_Peace_and_Unity
+  labels:
+    en: President of the Presidential Council of the Government of Peace and Unity
+    ar: رئيس المجلس الرئاسي لحكومة السلام والوحدة
+
+- key: gpu_prime_minister
+  class: executive.head_of_government
+  archetype: head_of_government
+  body: Q132717949
+  source: https://en.wikipedia.org/wiki/Government_of_Peace_and_Unity
+  labels:
+    en: Prime Minister of the Government of Peace and Unity
+    ar: رئيس وزراء حكومة السلام والوحدة
+
+# --- Judiciary: the Supreme and Constitutional Courts ---
+- key: supreme_court_justice
+  class: judiciary.apex
+  archetype: supreme_judge
+  body: Q7644845           # Supreme Court of Sudan, P31 supreme court, P17 Q1049
+  labels:
+    en: Justice of the Supreme Court of Sudan
+    ar: قاضي المحكمة العليا السودانية
+
+- key: constitutional_court_president
+  class: oversight.constitutional_body
+  archetype: court_president
+  body: Q16117675          # Constitutional Court of Sudan, P31 constitutional court
+  labels:
+    en: President of the Constitutional Court of Sudan
+    ar: رئيس المحكمة الدستورية في السودان
+
+- key: attorney_general
+  class: judiciary.prosecution
+  archetype: prosecutor_general
+  # No body: no item for the Public Prosecution was found.
+  labels:
+    en: Attorney General of Sudan
+    ar: النائب العام في السودان
+
+# --- Security: the armed forces, the RSF, the police ---
+- key: saf_chief_of_staff
+  class: security.defence_command
+  archetype: military_chief_of_staff
+  body: Q371721            # Sudanese Armed Forces, P31 armed forces, P17 Q1049
+  labels:
+    en: Chief of the General Staff of the Sudanese Armed Forces
+    ar: رئيس هيئة أركان القوات المسلحة السودانية
+
+- key: rsf_commander
+  class: security.paramilitary
+  archetype: military_chief_of_staff
+  body: Q18210867          # Rapid Support Forces, P31 paramilitary organization, P17 Q1049
+  labels:
+    en: Commander of the Rapid Support Forces
+    ar: قائد قوات الدعم السريع
+
+- key: police_director_general
+  class: security.police
+  archetype: agency_head
+  # No body: no item for the Sudan Police Force was found.
+  labels:
+    en: Director General of the Sudan Police Force
+    ar: المدير العام لقوات الشرطة السودانية
+
+# --- Oversight ---
+- key: auditor_general
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  # No body: no item for the National Audit Chamber was found.
+  labels:
+    en: Auditor General of Sudan
+    ar: المراجع العام في السودان
+
+- key: elections_commission_chair
+  class: oversight.electoral_commission
+  archetype: agency_head
+  body: Q130420940         # Sudan National Elections Commission
+  labels:
+    en: Chairman of the National Elections Commission of Sudan
+    ar: رئيس المفوضية القومية للانتخابات في السودان

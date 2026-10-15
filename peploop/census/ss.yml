@@ -1,0 +1,58 @@
+# Offices South Sudan has whether or not a seeded person's article named them.
+# Bodies are from the 2026-10-15 live measurement (CirrusSearch with
+# `haswbstatement:P17=Q958`, wbsearchentities, the items read); nothing below
+# is from memory.
+#
+# Not here because an item exists and the load reaches it: the President
+# `Q19362922` and Vice-Presidents `Q53569601`, the portfolio ministers and
+# their deputies (`Q1126xxxxx`/`Q1127xxxxx`), both chambers' members
+# (`Q21328629`, `Q21328604`) and the Speaker `Q112316485`, the governors of
+# the states and chief administrators of the administrative areas
+# (`Q1126839xx`-`Q1126849xx`), the Governor of the Bank of South Sudan
+# `Q112789348`. The Minister of Justice and Constitutional Affairs is also the
+# Attorney General, so the latter has no entry.
+#
+# Absent and not listed: the police, the National Security Service, the
+# Anti-Corruption Commission and the National Audit Chamber have no items,
+# and no seeded category names their heads; the auditor and the police chief
+# are listed without a body all the same, since a minister's article often
+# names them. County commissioners (79 counties) have no unit items with
+# holders in their articles.
+
+# --- Judiciary: the Supreme Court ---
+- key: chief_justice
+  class: judiciary.apex
+  archetype: court_president
+  body: Q7568581           # South Sudan Supreme Court, P31 supreme court, P17 Q958
+  labels:
+    en: Chief Justice of South Sudan
+
+- key: supreme_court_justice
+  class: judiciary.apex
+  archetype: supreme_judge
+  body: Q7568581
+  labels:
+    en: Justice of the Supreme Court of South Sudan
+
+# --- Security: the armed forces, the police ---
+- key: chief_of_defence_forces
+  class: security.defence_command
+  archetype: military_chief_of_staff
+  body: Q912908            # South Sudan People's Defence Forces, P31 armed forces, P17 Q958
+  labels:
+    en: Chief of Defence Forces of South Sudan
+
+- key: inspector_general_of_police
+  class: security.police
+  archetype: agency_head
+  # No body: no item for the South Sudan National Police Service was found.
+  labels:
+    en: Inspector General of Police of South Sudan
+
+# --- Oversight ---
+- key: auditor_general
+  class: oversight.audit_anticorruption
+  archetype: agency_head
+  # No body: no item for the National Audit Chamber was found.
+  labels:
+    en: Auditor General of South Sudan
