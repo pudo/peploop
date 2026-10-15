@@ -29,7 +29,7 @@ from psycopg.rows import dict_row
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import db, positions, prompt, propose, scope, verify, wikidata
+from peploop import db, eras, positions, prompt, propose, scope, verify, wikidata
 
 ACCEPTED = "accepted"
 SKIPPED = "skipped"
@@ -259,6 +259,9 @@ class Case:
     #: The state and its first-level subdivisions, each with its names: the
     #: polities a mention's jurisdiction is read against. Empty when unread.
     polities: dict[str, list[str]] = field(default_factory=dict)
+    #: [start, end] years of the state a P27 names (`eras.span_of`). None when
+    #: nobody read it or nothing dates the state, which no rule reads as a veto.
+    state_span: list[int | None] | None = None
     today: date | None = None
 
     @property
@@ -453,6 +456,32 @@ def _state_qids(case: Case) -> set[str]:
         return set()
     territory = get_territory_by_qid(case.state_qid)
     return set(territory.qids) if territory is not None else {case.state_qid}
+
+
+def _life(case: Case, prop: str, key: str) -> list[int]:
+    """The years the item and the person's articles give for a birth or a death."""
+    found = [_year({"time": stamp, "precision": precision})
+             for stamp, precision in wikidata.claim_time(case.entity, prop, include_deprecated=False)]
+    found += [_year(propose.time_value(entry.get("value") or "")) for entry in case.extracted.get(key) or []]
+    return [y for y in found if y is not None]
+
+
+def citizenship_before_state(case: Case) -> Disposition | None:
+    """A citizenship of a state the person never lived under.
+
+    An article gives a man who died in 1961 the demonym of a republic that
+    began in 1993: the word says where he was from, not a citizenship he
+    held, and Wikidata editors revert it. Read generously -- the earliest
+    birth and the latest death any source gives -- so only a life plainly
+    outside the state's span is skipped.
+    """
+    if case.property != "P27" or case.state_span is None:
+        return None
+    births, deaths = _life(case, "P569", "birth_date"), _life(case, "P570", "death_date")
+    born, died = min(births, default=None), max(deaths, default=None)
+    if not eras.lived_under(born, died, case.state_span):
+        return _skip("citizenship_before_state")
+    return None
 
 
 def demonym_abroad(case: Case) -> Disposition | None:
@@ -1132,6 +1161,7 @@ RULES: tuple[Rule, ...] = (
     no_quote,
     future_date,
     # Per property, what the evidence has to be.
+    citizenship_before_state,
     minor_wiki_only,
     contested,
     refine_over_sourced,
@@ -1228,6 +1258,7 @@ def person_cases(
     spells: dict[str, list[OfficeSpell]] | None = None,
     dissolved: dict[str, list[dict[str, Any]]] | None = None,
     governments: dict[str, dict[str, Any]] | None = None,
+    state_spans: dict[str, list[int | None]] | None = None,
 ) -> list[tuple[int, Case]]:
     """Build a case for every proposal of one person the policy may decide.
 
@@ -1309,6 +1340,7 @@ def person_cases(
             else dissolved.get(row["value"].get("id"), []),
             government=(governments or {}).get(state_qid or ""),
             polities=polities_of(state_qid) if state_qid else {},
+            state_span=(state_spans or {}).get(row["value"].get("id", "")) if row["property"] == "P27" else None,
             today=today,
         )))
     # Spells are judged against each other only among the rows every other
@@ -1499,6 +1531,18 @@ def offices_of(qids: Sequence[str]) -> list[str]:
     return [row[0] for row in rows if row[0]]
 
 
+def citizenships_of(qids: Sequence[str]) -> list[str]:
+    """The states the P27 proposals of these people name."""
+    if not qids:
+        return []
+    rows = db.conn().execute(
+        "SELECT DISTINCT value->>'id' FROM proposal WHERE person_qid = ANY(%s)"
+        " AND property = 'P27' AND status = ANY(%s)",
+        (list(qids), list(DECIDABLE)),
+    )
+    return [row[0] for row in rows if row[0]]
+
+
 def states_of(qids: Sequence[str]) -> list[str]:
     """The states these people's runs are about."""
     if not qids:
@@ -1538,7 +1582,8 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     kinds were never read has them read once, so `family_conflicts` counts the
     whole table rather than the part that happened to be loaded since. Every
     office's holders and dissolution, and each state's head of government,
-    are read live once per run, for `open_superseded`.
+    are read live once per run, for `open_superseded`; and the states the
+    citizenships name are dated, for `citizenship_before_state`.
     """
     offices = offices_of(qids)
     unfilled = positions.unfilled_polity_inception(offices)
@@ -1553,9 +1598,10 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     spells = office_spells(offices)
     dissolved = positions.dissolutions(offices)
     governments = government_since(states_of(qids))
+    state_spans = eras.span_of(citizenships_of(qids))
     funnel = Funnel()
     for qid in qids:
-        for proposal_id, case in person_cases(qid, today, spells, dissolved, governments):
+        for proposal_id, case in person_cases(qid, today, spells, dissolved, governments, state_spans):
             disposition = decide(case)
             funnel.add(case, disposition)
             if write:

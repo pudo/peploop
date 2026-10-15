@@ -454,7 +454,10 @@ person aside the item's own dates could not; a value nobody quoted has nothing
 to verify; a date after today is a schedule, not a record (a term's planned
 end, a nominee's start). A birth or death date attested by one wiki outside the person's own
 languages is skipped, and so is a refinement over a statement somebody other
-than a Wikipedia import referenced. A citizenship from a demonym passes only
+than a Wikipedia import referenced. A citizenship of a state the person's life
+never reached is skipped (`citizenship_before_state`: the earliest birth and
+latest death any source gives, against the state's best-rank `P571`/`P576`
+from `eras.py`, the span both lanes read). A citizenship from a demonym passes only
 when it names the run's own state. A `P39` passes only on a `same-office`
 verdict at `high` confidence, with a start at year precision or finer, on a
 tenure that ended within a generation (`P39_MAX_ENDED_YEARS`; the loop records

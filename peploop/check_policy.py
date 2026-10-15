@@ -212,6 +212,21 @@ def main() -> int:
     check("an explicit foreign citizenship passes",
           policy.decide(case("P27", abroad, qualifiers=dict(explicit))),
           policy.PENDING, "unverified")
+    check("a state founded after the person died is no citizenship of theirs",
+          policy.decide(case("P27", home, qualifiers=dict(demonym), state_span=[1993, None],
+                             entity=item(claim("P569", time("1893-12-17")), claim("P570", time("1961-03-05"))))),
+          policy.SKIPPED, "citizenship_before_state")
+    check("nor one dissolved before the articles say they were born",
+          policy.decide(case("P27", home, qualifiers=dict(demonym), state_span=[1918, 1992],
+                             extracted={"birth_date": [{"value": "1995"}]})),
+          policy.SKIPPED, "citizenship_before_state")
+    check("a life that reaches into the state's span passes",
+          policy.decide(case("P27", home, qualifiers=dict(demonym), state_span=[1993, None])),
+          policy.PENDING, "unverified")
+    check("the latest death any source gives is the one read",
+          policy.decide(case("P27", home, qualifiers=dict(demonym), state_span=[1993, None],
+                             entity=item(claim("P570", time("1961-03-05")), claim("P570", time("1995-01-02"))))),
+          policy.PENDING, "unverified")
 
     print("positions:")
     check("a medium-confidence match is skipped",

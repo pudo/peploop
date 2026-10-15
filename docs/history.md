@@ -200,6 +200,18 @@ cannot.
   the 900 landed peptree `P31`s were redundant this way (alcalde 163, episcopal
   titles 189, the Brazilian mayoralty classes 15); all 410 were struck and
   removed (QS3 59949), and the rule now holds for every channel.
+- A Wikidata editor reverted two `P27 = Czech Republic` from the cz run
+  (2026-10-15, "no Czech Republic in 1961"): a lead's "český politik" on
+  people who died before 1993. 9 of the 723 `P27`s sent were such (all
+  Czechia); the 7 still live were audited and removed (QS3 60037), and
+  `citizenship_before_state` now skips them, with one era source
+  (`peploop/eras.py`) for both lanes. States' `P571` misleads either way:
+  Russia prefers 1263, Germany 1949, Czechia also carries 1198. Walking each
+  value's own `P155` one step dates states by their regimes (India 2000,
+  New Zealand 1986, Afghanistan 2021), so only a home state's configured
+  chain moves a start. `tenure_before_polity` keeps reading the first
+  `P571` in claim order: best-rank would move 878 of 3,550 offices, mostly
+  the wrong way (Belarus 1991 → 882, Russia 1991 → 1263, Italy 1946 → 476).
 
 ## The campaign toolkit (`old/`)
 

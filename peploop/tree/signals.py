@@ -25,6 +25,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import Any
 
+from peploop.eras import overlaps  # noqa: F401  (re-exported for peptree modules)
 from peploop.tree import country as countries
 from peploop.tree.load import POSITION_METAS, values
 
@@ -172,12 +173,6 @@ def office_span(item: dict[str, Any], lives: bool = True) -> Span:
     if start is None and end is None and not p571 and not tenures:
         return None, None
     return start, end
-
-
-def overlaps(a: Span, b: Span) -> bool:
-    """Whether two year spans share a year; an unknown bound reaches as far as needed."""
-    (s1, e1), (s2, e2) = a, b
-    return not ((e1 is not None and s2 is not None and e1 < s2) or (e2 is not None and s1 is not None and e2 < s1))
 
 
 def known(span: Span | None) -> bool:

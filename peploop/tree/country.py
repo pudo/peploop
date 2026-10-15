@@ -16,13 +16,16 @@ from typing import Any
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territories, get_territory
 
-from peploop import memo, typegraph
+from peploop import eras, memo, typegraph
+from peploop.eras import (  # noqa: F401  (re-exported for peptree modules)
+    PEP_ERA, PRED_PROPS, SOVEREIGN, SUCC_PROPS, entity_span, pushes, time_year, years,
+)
+from peploop.eras import qids as _qids
+from peploop.eras import year as _year
 from peploop.tree import wd
 
 #: Classes that make an item a state, for a predecessor or a federation.
 STATE_CLASSES = {"Q7275", "Q3024240", "Q6256", "Q3624078"}  # state, historical country, country, sovereign state
-#: A predecessor dissolved before this year held no office a PEP list asks about.
-PEP_ERA = 1900
 ADMIN_ENTITY, SETTLEMENT, CITY = "Q56061", "Q486972", "Q515"
 #: Second-level and local place types: those making up this share of a level.
 TYPE_SHARE = 0.2
@@ -340,52 +343,9 @@ def _official(cc: str) -> tuple[str, ...]:
     return tuple(dict.fromkeys(a for a in (iso_639_alpha2(lang) for lang in territory.langs) if a))
 
 
-def time_year(value: Any) -> int | None:
-    """The year of a Wikidata time value or a WDQS date string ("+1909-01-01T…", "-0550-…")."""
-    text = value.get("time") if isinstance(value, dict) else value
-    if not text or not isinstance(text, str):
-        return None
-    m = re.match(r"([+-]?\d+)-", text)
-    return int(m.group(1)) if m else None
-
-
-def years(entity: dict[str, Any], prop: str) -> list[int]:
-    """The years of a time property's best-rank values (preferred if any, else normal)."""
-    claims = [c for c in entity.get("claims", {}).get(prop, []) if c.get("rank") != "deprecated"]
-    best = [c for c in claims if c.get("rank") == "preferred"] or claims
-    out = []
-    for claim in best:
-        y = time_year(claim.get("mainsnak", {}).get("datavalue", {}).get("value"))
-        if y is not None:
-            out.append(y)
-    return out
-
-
-def _year(entity: dict[str, Any], prop: str) -> int | None:
-    found = years(entity, prop)
-    return max(found) if found else None
-
-
-def _qids(entity: dict[str, Any], prop: str) -> list[str]:
-    out = []
-    for claim in entity.get("claims", {}).get(prop, []):
-        if claim.get("rank") == "deprecated":
-            continue
-        v = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
-        if isinstance(v, dict) and "id" in v:
-            out.append(v["id"])
-    return out
-
-
-def entity_span(entity: dict[str, Any]) -> list[int | None]:
-    """[first year, last year] from `P571`/`P576`; either may be None."""
-    start, end = years(entity, "P571"), years(entity, "P576")
-    return [min(start) if start else None, max(end) if end else None]
-
 
 #: How many `replaces`/`follows` steps the predecessor chain is walked.
 CHAIN_DEPTH = 4
-PRED_PROPS, SUCC_PROPS = ("P1365", "P155"), ("P1366", "P156")
 
 
 def _inverse(qid: str) -> list[str]:
@@ -506,64 +466,19 @@ def walk_chain(qid: str, seeds: dict[str, str], parents: dict[str, str],
     return out, {q: found[q] for q in out}
 
 
-#: Typed a sovereign state in its own right: a regime that replaced the state, not a period of it.
-SOVEREIGN = "Q3624078"
-
-
-def pushes(qid: str, pred: str, ents: dict[str, dict[str, Any]], preds: dict[str, str]) -> bool:
-    """Whether a predecessor's end moves the state's start: did today's state begin there?
-
-    Three things look like a predecessor in the chain and are not the state's
-    previous form, so their end says nothing about when the state began:
-
-    - a federation or empire (a colony's `P17`): the British Empire ends in
-      1997 with Hong Kong, which had dated Kenya and Tanzania from 1997;
-    - a polity whose successors are recorded and none is this state, one of
-      its predecessors, or within it (`P17`): the Portuguese Empire, which Cape
-      Verde "follows", is succeeded by Portugal, while the Jamahiriya's
-      successor, the interim "State of Libya", is in Libya;
-    - a period of the state itself: a polity that began on or after the
-      state's own recorded inception (in the PEP era) is a form the state
-      already had -- a Commonwealth realm before the republic, Sudan's
-      "Republic (1985-2019)", or a sideline such as the Egyptian-administered
-      All-Palestine Government -- unless it is typed a sovereign state in its
-      own right (Zaire, the Central African Empire), which is a regime change.
-    """
-    if pred not in preds:
-        return False
-    e = ents.get(pred, {})
-    succ = set(_qids(e, "P1366") + _qids(e, "P156"))
-    ours = {qid} | set(preds)
-    if succ and not succ & ours and not any(qid in _qids(ents.get(x, {}), "P17") for x in succ):
-        return False
-    own = years(ents.get(qid, {}), "P571")
-    began = min(years(e, "P571"), default=None)
-    if own and min(own) >= PEP_ERA and began is not None and began >= min(own) \
-            and SOVEREIGN not in _qids(e, "P31"):
-        return False
-    return True
-
-
 def state_spans(qid: str, preds: dict[str, str], realm: list[str] = ()) -> dict[str, list[int | None]]:
     """When the state, its predecessors and their federations existed.
 
-    A predecessor or federation spans its `P571`-`P576`. The state begins at
-    the latest of its own best-rank `P571` and the `P576` of every predecessor
-    it actually replaced (`pushes`): an item may date its inception to an
-    earlier polity of the same name (a state "since" a date decades before its
-    predecessor republic ended), and an office of that earlier polity is not
-    an office of today's state.
+    A predecessor or federation spans its `P571`-`P576`; the state starts at
+    `eras.state_start` over the whole derived chain, not only its own
+    `P1365`/`P155`, which is all `eras.span_of` reads for another state.
     """
     home = [qid, *preds, *{u for p, u in preds.items() if u != p}]
     ents = wd.fetch_items(home, props="claims")
     spans = {q: entity_span(e) for q, e in ents.items()}
     succ = {x for p in preds for x in _qids(ents.get(p, {}), "P1366") + _qids(ents.get(p, {}), "P156")} - set(ents)
     found = {**ents, **(wd.fetch_items(sorted(succ), props="claims") if succ else {})}
-    ends = [spans[q][1] for q in home if q != qid and q in spans and spans[q][1] is not None
-            and pushes(qid, q, found, preds)]
-    own = years(ents.get(qid, {}), "P571")
-    start = max([*own, *ends]) if own or ends else None
-    spans[qid] = [start, None]
+    spans[qid] = [eras.state_start(qid, preds, found), None]
     spans.update({q: entity_span(e) for q, e in wd.fetch_items(list(realm), props="claims").items()} if realm else {})
     return spans
 

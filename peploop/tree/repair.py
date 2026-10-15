@@ -17,7 +17,7 @@ import requests
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
-from peploop import llm, memo, typegraph
+from peploop import eras, llm, memo, typegraph
 from peploop.tree import country as countries
 from peploop.tree import gaps as gapmod
 from peploop.tree import signals, wd
@@ -131,9 +131,7 @@ class Run:
     def spans_for(self, qids: list[str]) -> None:
         """Read (and cache a month) when each candidate value existed."""
         wanted = sorted(set(qids) - set(self.value_spans) - set(self.country.spans))
-        for chunk in wd.values_chunks(wanted, 50):
-            self.value_spans.update(memo.cached("spans:" + "|".join(chunk), lambda chunk=chunk: {
-                q: countries.entity_span(e) for q, e in wd.fetch_items(chunk, props="claims").items()}))
+        self.value_spans.update(eras.span_of(wanted))
         unread = sorted(set(qids) - self._typed)
         for chunk in wd.values_chunks(unread, 50):
             self.non_states.update(memo.cached("non_states:" + "|".join(chunk), lambda chunk=chunk: sorted(

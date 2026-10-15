@@ -74,6 +74,9 @@ clutter, and a country's thousands of mayoralties rarely clear two channels. Cha
 - `P17` holds only a state. A dependent territory's office takes `P1001` alone.
 - A state's era runs from its first recorded form; only a form the state
   replaced moves its start (an empire's end does not date its colonies).
+  Only the home state's configured chain moves a start; any other value
+  spans its own best-rank `P571`/`P576` (`peploop/eras.py`, shared with
+  peploop's citizenship rule).
 - A country's state is the one its offices use: Denmark is Q35, not the
   Kingdom (Q756617); the Kingdom is a realm lane.
 - A permanent representative to an organisation is the state's post abroad.
