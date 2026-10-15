@@ -158,6 +158,8 @@ def main() -> int:
            "leader of the Supreme Tribunal of Aland", "a party's leader is described by its party")
     expect(offices.describe(judge(archetype="party_secretary"), LABELS),
            "party secretary of the Supreme Tribunal of Aland", "and its secretary the same way")
+    expect(offices.describe(governor(archetype="mayor"), LABELS), "mayor of Bray Province, Aland",
+           "a mayoralty names its state: town names repeat across states")
     expect(offices.describe(judge(archetype="minister", body_qid=None), LABELS),
            "minister in the government of Aland", "a template naming no body is untouched")
     expect(offices.describe(judge(archetype="politburo_member", body_qid=None), {}), None,

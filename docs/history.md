@@ -236,6 +236,9 @@ that still applies:
 | Somaliland | 10-12 | 99 statements (96 rows applied); 6 minted | QS3 59387, 59385 (mint) |
 | Somalia | 10-12 | 237 statements (229 rows applied); nothing minted | QS3 59411 59412 |
 | Australia | 10-12 – 10-14 | 2,196 statements (2,123 rows applied), 43 open tenures taken back; 579 offices minted, 498 of them local | QS3 59669 59690, 59691 (removals), 59594 59621 (mint); peptree 59250 |
+| Northern Cyprus | 10-14 | 119 statements (110 rows applied), 1 taken back; 11 offices minted | QS3 59848, 59850 (removals), 59843 59847 (mint) |
+| Cyprus | 10-14 | 70 statements (67 rows applied), 3 taken back; 3 offices minted | QS3 59849, 59850 (removals), 59846 (mint) |
+| Malta | 10-14 – 10-15 | 242 statements (221 rows applied), 3 taken back; 63 offices minted, 59 of them local council mayoralties | QS3 59858, 59863 (removals), 59856 (mint) |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
 (Colombia), `future_date` and `termed` (Colombia's audit), `recorded_elsewhere`
@@ -279,3 +282,25 @@ calls current (`open_unattested`: of 132 open tenures from 2022 or earlier,
 chunk after a submit, since the state's office list it shows has changed:
 about $20 a pass.
 
+
+Malta, Cyprus and Northern Cyprus ran in one session, Northern Cyprus seeded
+first because both wikis nest its tree inside Cyprus's. Its mayors first
+landed on the Republic's mayoralties of the same towns, kept in exile: a
+rival state's offices (either side of a `P1336` claim) are now off the
+shortlist. rigour reads "Turkish Cypriot" as Turkey; community names are a
+data file of names that resolve to no state. Malta's 68 local councils share
+no class but are exactly its regions' `P150`, which a `per: units` level may
+now name. Mint dropped titles naming the ministry ("…Bakanlığı") and joining
+a deputy's seat as aliases, stopped letting another state's ministry block a
+seat, and passes a census anchor at medium where the verifier agreed with its
+shape (the Supreme Court and Superior Courts judges, a central bank governor).
+`open_unattested` now reads Greek ("Εν ενεργεία") and Turkish ("Görevde",
+"Makama geliş") quotes, measured on the runs' articles; it caught councillors
+of councils the 2024 Cypriot reform abolished. The audits took back seven
+rows and made four rules: a same-year spell two articles date differently is
+held back (`propose` had merged spells by year, citing one wiki against its
+own date), an open ambassadorship older than a term needs an infobox's word
+(two Cypriot stubs said "since 2016 he is"), a citizenship only a minor wiki
+gives is skipped, and a mayoralty's description names its state. The new
+House elected in May 2026 has no Cypriot category yet, and the 2024 merged
+municipalities have no place items, so neither could be reached.

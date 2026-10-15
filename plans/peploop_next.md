@@ -42,6 +42,19 @@ Found by the Cypriot audits (2026-10-14), not yet rules:
   tenures (same name and birth date, one item per wiki): skip, and report
   the pair for a merge.
 
+Found by Malta's audit (2026-10-15), not yet rules:
+
+- a tenure on a term item (its term behind `P2937`) must fall inside the
+  term: a 2013-2017 seat went onto the 13th House (2017-2022);
+- a scheduled end the article states ("set to retire in February 2026")
+  that is already past closes the tenure: a Chief Justice was written open;
+- `open_superseded/chamber` reads a year-precision start as its year's last
+  day, so 2022 seats pass where day-precise ones of the same election skip;
+  and a closed spell goes out while its continuation on the same chamber is
+  skipped (a district move written as the seat's end);
+- a post read from one article loses to another article's narrower title
+  (fi "ambassador" against en/fr/et "Deputy High Commissioner").
+
 ## 3. Mint lanes not yet covered
 
 - **Bilateral ambassadorships** are refused (`offices.bilateral`); every

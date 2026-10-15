@@ -93,7 +93,7 @@ ARCHETYPES: dict[str, Archetype] = {
                           level="region"),
     # `Q30185` is the office itself rather than a class of it, and is what the
     # existing municipal items subclass.
-    "mayor": Archetype("Q30185", description="mayor of {jurisdiction}", single_seat=True,
+    "mayor": Archetype("Q30185", description="mayor of {jurisdiction}, {state}", single_seat=True,
                        level="municipality"),
     # A seat on a local council: one state's 142 measured council seats are
     # "member of X Council", `P279` council member, `P1001` the local area and
