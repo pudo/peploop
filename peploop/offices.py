@@ -1222,13 +1222,15 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
 
 
 def subdivisions(state_qid: str) -> list[tuple[str, dict[str, str]]]:
-    """The state's current first-level subdivisions (`P150`), with every label.
+    """The state's current first-level subdivisions, with every label.
 
-    Current means the `P150` claim is not ended and the subdivision's own item
-    is not `dissolved`: a merger is often recorded only on the merged items.
+    Its `P150` and the items typed a first-level subdivision of it, since
+    either may omit some (`positions.typed_units`). Current means the `P150`
+    claim is not ended and the unit's own item is not `dissolved`: a merger is
+    often recorded only on the merged items.
     """
     state = wikidata.fetch_items([state_qid], props="claims").get(state_qid, {})
-    qids = list(dict.fromkeys(_unended(state, "P150")))
+    qids = list(dict.fromkeys([*_unended(state, "P150"), *positions.typed_units(state_qid)]))
     found = wikidata.fetch_items(qids, props="labels|claims") if qids else {}
     return [(qid, {lang: obj["value"] for lang, obj in found[qid].get("labels", {}).items()})
             for qid in qids if qid in found and not dissolved(found[qid])]

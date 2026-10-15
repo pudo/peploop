@@ -65,6 +65,19 @@ UNITS_QUERY = """SELECT DISTINCT ?u WHERE {
   FILTER NOT EXISTS { ?u wdt:P576 ?gone }
 }"""
 
+#: The class half of that union alone, dissolved units included, for the
+#: readers that take `P150` off the state's own item and judge dissolution
+#: themselves.
+TYPED_UNITS_QUERY = """SELECT DISTINCT ?u WHERE {
+  ?u wdt:P31/wdt:P279? wd:Q10864048 ; wdt:P17 wd:%(country)s .
+}"""
+
+
+def typed_units(state_qid: str) -> list[str]:
+    """The items typed a first-level subdivision of the state, which its `P150` may omit."""
+    rows = wikidata.sparql(TYPED_UNITS_QUERY % {"country": state_qid}, max_age=0)
+    return sorted({row["u"] for row in rows})
+
 #: What is scoped to those units, with its types. A state's governorships and
 #: provincial cabinet seats often carry `P1001` the province and no `P17` at
 #: all, so the descent and usage queries, keyed on the state, miss them and
