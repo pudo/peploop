@@ -23,9 +23,9 @@
 # members of the Republic's 1960 government and House), and stay `cy-trnc`'s.
 #
 # The current era is the House's ΙΒ΄ term (2021-2026) and the 2023 cabinet.
-# The ΙΓ΄ House, elected May 2026, has no category on either wiki yet, and
-# neither election article lists the members: its newcomers are not reached.
-# The House is seeded by its last three terms (2011-2026).
+# The ΙΓ΄ House, elected May 2026, has no category on either wiki yet; en's
+# list article of its members (2026-10-15) seeds the newcomers with articles.
+# The House is seeded by its last three terms (2011-2026) and that list.
 #
 # Left out: en `Political_office-holders_in_Cyprus` (0 own pages; a container
 # over Northern Cyprus's tree), `Cypriot_politician_stubs` (107; 29 of its
@@ -72,6 +72,8 @@
   lang: el
   depth: 0
 - category: Members_of_the_House_of_Representatives_(Cyprus)   # 67, +17
+  lang: en
+- article: List_of_members_of_the_parliament_of_Cyprus,_2026–2031  # 45 links, people among them
   lang: en
 
 # --- European Parliament ---

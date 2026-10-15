@@ -52,6 +52,8 @@
 # --- Parliament: House with its speakers and opposition leaders; MEPs ---
 - category: Members_of_the_House_of_Representatives_of_Malta   # 160, +95
   lang: en
+- article: List_of_members_of_the_parliament_of_Malta,_2026–2031  # 82 links; the House elected in 2026
+  lang: en
 - category: Members_of_the_European_Parliament_for_Malta       # 25, +16; depth 2: by term, by party
   lang: en
   depth: 2

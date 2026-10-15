@@ -171,9 +171,12 @@ def seed(country: str) -> None:
     entries = wikipedia.load_seeds(path)
     members_total, new_total, failed = 0, 0, 0
     for entry in entries:
-        head = f"{entry.lang}:{entry.category} depth {entry.depth}"
+        head = f"{entry.lang}:{entry.category} " + ("links" if entry.article else f"depth {entry.depth}")
         try:
-            members = wikipedia.seed_category(entry.category, entry.lang, entry.depth)
+            if entry.article:
+                members = wikipedia.seed_article(entry.category, entry.lang)
+            else:
+                members = wikipedia.seed_category(entry.category, entry.lang, entry.depth)
         except RuntimeError as exc:
             # One category PetScan cannot serve is a line of output, not the
             # end of the file: the rest of the seed is independent of it.

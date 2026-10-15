@@ -41,7 +41,16 @@ TREE: dict[str, list[dict[str, Any]]] = {
 READS: list[str] = []
 
 
+LIST = [
+    {"ns": 0, "title": "Dana", "pageprops": {"wikibase_item": "Q4"}},
+    {"ns": 0, "title": "Election", "pageprops": {"wikibase_item": "Q5"}},
+    {"ns": 0, "title": "Red link"},
+]
+
+
 def fake_get_json(url: str, params: dict[str, Any] | None = None, **_kw: Any) -> Any:
+    if (params or {}).get("generator") == "links":
+        return {"query": {"pages": {str(i): p for i, p in enumerate(LIST)}}}
     title = (params or {})["gcmtitle"]
     READS.append(title)
     pages = TREE.get(title, [])
@@ -76,6 +85,16 @@ def main() -> int:
           [q for _, q in got] == ["Q1", "Q2", "Q3"])
     check("a category reached through two parents is read once",
           READS.count("Category:Shared") == 1)
+
+    check("a list article seeds every linked article with an item",
+          wikipedia.seed_article("List of members", "xx") == [("Dana", "Q4"), ("Election", "Q5")])
+    import tempfile, pathlib
+    with tempfile.TemporaryDirectory() as tmp:
+        path = pathlib.Path(tmp) / "zz.yml"
+        path.write_text("- article: List_of_members\n  lang: xx\n- category: Root\n  lang: xx\n")
+        entries = wikipedia.load_seeds(path)
+    check("and a seed file names it with `article`",
+          [(e.category, e.article) for e in entries] == [("List_of_members", True), ("Root", False)])
 
     got = wikipedia.seed_category("Root", "xx", 1)
     check("a PetScan failure falls back to the walk", [q for _, q in got] == ["Q1", "Q2"])

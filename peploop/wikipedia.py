@@ -56,18 +56,21 @@ PUNCT_SPACE_RE = re.compile(r"\s+(?=[,.;:)])|(?<=\()\s+")
 
 
 class SeedEntry(NamedTuple):
-    """One line of a seed file: a category tree to ask PetScan for."""
+    """One line of a seed file: a category tree to ask PetScan for, or a list article."""
 
     category: str
     lang: str
     depth: int
+    #: `category` names a list article whose linked articles are the members,
+    #: for a roster no category holds yet (a chamber elected last month).
+    article: bool = False
 
 
 def load_seeds(path: Path) -> list[SeedEntry]:
     """Read a seed file as a list of category trees, in file order.
 
     The file is a YAML list of entries with `category`, `lang` and an
-    optional `depth`. Many narrow categories at shallow depth are preferred
+    optional `depth`, or with `article` and `lang` for a list article. Many narrow categories at shallow depth are preferred
     to one wide category at depth 3, so `depth` defaults to 1.
     """
     entries = yaml.safe_load(path.read_text())
@@ -75,9 +78,36 @@ def load_seeds(path: Path) -> list[SeedEntry]:
         raise TypeError(f"{path}: expected a list of seed entries")
     seeds: list[SeedEntry] = []
     for entry in entries:
+        if "article" in entry:
+            seeds.append(SeedEntry(str(entry["article"]).strip(), str(entry["lang"]), 0, article=True))
+            continue
         category = str(entry["category"]).strip()
         seeds.append(SeedEntry(category, str(entry["lang"]), int(entry.get("depth", 1))))
     return seeds
+
+
+def seed_article(title: str, lang: str, project: str = "wikipedia") -> list[tuple[str, str]]:
+    """(title, QID) of the articles a list article links to.
+
+    A candidate set like a category's: places, parties and elections are
+    linked too, and the caller's `P31 = Q5` check removes them.
+    """
+    api = f"https://{lang}.{project}.org/w/api.php"
+    members: dict[str, str] = {}
+    cont: dict[str, str] = {}
+    while True:
+        data = http.get_json(api, params={
+            "action": "query", "generator": "links", "titles": title.replace("_", " "),
+            "gplnamespace": 0, "gpllimit": 500, "prop": "pageprops", "ppprop": "wikibase_item",
+            "redirects": 1, "format": "json", **cont,
+        })
+        for page in data.get("query", {}).get("pages", {}).values():
+            if page.get("pageprops", {}).get("wikibase_item"):
+                members.setdefault(page["title"], page["pageprops"]["wikibase_item"])
+        if "continue" not in data:
+            break
+        cont = data["continue"]
+    return sorted(members.items())
 
 
 #: Set once PetScan has failed in this process, so a seed file pays for one
