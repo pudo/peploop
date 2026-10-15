@@ -247,6 +247,8 @@ that still applies:
 | Northern Cyprus | 10-14 – 10-15 | 121 statements (112 rows applied), 1 taken back; 11 offices minted | QS3 59848 59871, 59850 (removals), 59843 59847 (mint) |
 | Cyprus | 10-14 – 10-15 | 76 statements (72 rows applied), 3 taken back; 4 offices and 6 municipalities created, a duplicate MP merged | QS3 59849 59869 59951, 59850 (removals), 59846 59950 (mint), 59945 59946 59952 (places) |
 | Malta | 10-14 – 10-15 | 268 statements (247 rows applied), 3 taken back; 63 offices minted, 59 of them local council mayoralties | QS3 59858 59868, 59863 (removals), 59856 (mint) |
+| South Sudan | 10-15 | 148 statements (141 rows applied), 4 taken back before the send; 3 offices minted | QS3 60017, 59989 60008 (mint) |
+| Sudan | 10-15 | 128 statements (117 rows applied), 1 taken back before the send; 6 offices minted, 3 of them the RSF's | QS3 60018, 59990 60010 (mint) |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
 (Colombia), `future_date` and `termed` (Colombia's audit), `recorded_elsewhere`
@@ -325,3 +327,32 @@ user kept those out, as they kept the 2026 MPs who have no article: a later
 re-run of the list-article seed reaches them once their articles exist. A duplicate Cypriot MP (one item per wiki) was merged
 with wikibase-cli at the user's word, and our moved statement removed as a
 duplicate.
+
+South Sudan and Sudan ran in one session, South Sudan seeded first because
+both wikis nest its people under Sudan's; the SPLM's party category, which
+mixes the two, was seeded by neither. Sudan's rival government, the RSF's
+Government of Peace and Unity (`Q132717949`, a government item, not a
+territory), has its offices as items of their own with that government as
+their body: a prime minister, the Presidential Council's president and the
+RSF's commander were minted, which needed two archetypes measured for the
+purpose (`head_of_government`, `council_chair`). Two gaps in reaching a
+state's units were found and fixed. Governorships carrying only `P1001` the
+province, no `P17`, were loaded by no lane but the citizen one (three of
+28): a fifth lane, `subdivision`, reads them. A state's `P150` may name
+only some of its units (South Sudan's: 3 of 13), so the units are its
+`P150` and the items typed a first-level subdivision of it, in discovery
+and in both of mint's readers; until then categorize was not offered
+"Governor of Unity", drafted it anew and the guard refused it, leaving its
+holder unplaced. Showing a candidate's polity (`governs:`) in reconcile did
+not by itself move that verdict. Mint gained three rules: a census anchor
+answered `exists` with no item is the anchor's office (two command anchors
+were lost to the disagreement it caused), an older open tenure an infobox
+calls "Incumbent" counts as current (the RSF commander since 2013), and a
+speakership must name its chamber ("Speaker of the Council of States"
+names chambers of both states). The audit took five open tenures back
+before the send, each from a cause no rule here reads: South Sudan's 2011
+cabinet and assembly left "Incumbent" (a health ministry whose holder
+statements are too polluted to show it is one seat), and a deputy chair of
+the 2019 Transitional Military Council, an office with no end and no body.
+The Justice ministry's twins (`Q136664945`, `Q112325297`) both took
+mentions and neither took a statement; merging them is the user's decision.
