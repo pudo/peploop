@@ -65,6 +65,11 @@ CURRENT_EN = re.compile(r"\bincumbent\b|\bassumed office\b|\bpresent\b|\bcurrent
 NOT_NOW = re.compile(r"\b(?:beat|defeat|unseat|oust)\w*\s+(?:the\s+)?(?:sitting\s+)?incumbent\b"
                      r"|\bagainst\s+(?:the\s+)?(?:sitting\s+)?incumbent\b"
                      r"|\b(?:commenced|began|begun|started)\s+serving\b", re.I)
+#: Local seats, re-elected with their council: one whose article stops at a
+#: "currently serves" is as often lost at the next local election.
+#: A handover's slack before a successor's start counts against a spell.
+OVERLAP_DAYS = 60
+LOCAL_KINDS = frozenset({"Q708492", "Q30185"})  # council member, mayor
 #: What only an infobox says: an office it lists as held now. An ambassador
 #: rotates within a term, and a stub's "since 2016 he is" is never revised.
 INFOBOX = {
@@ -817,7 +822,9 @@ def open_unattested(case: Case) -> Disposition | None:
     2008, a judge since elevated to a higher court, a councillor of one term
     all came back open. Read only where every quote is in a language whose
     present-tense markers are listed (`CURRENT`), setting aside a minor wiki's
-    quote beside a home one; an ambassadorship needs an infobox's (`INFOBOX`).
+    quote beside a home one. An ambassadorship or a council seat needs an
+    infobox's (`INFOBOX`): a council's elections are rarely written up in its
+    members' articles, so "where he currently serves" outlives the seat.
     """
     if case.property != "P39" or case.tenure("P582") is not None:
         return None
@@ -832,11 +839,41 @@ def open_unattested(case: Case) -> Disposition | None:
                or (s.get("lang") or "en") in allowed]
     if not sources or any((s.get("lang") or "en") not in CURRENT for s in sources):
         return None
-    markers = INFOBOX if (case.position or {}).get("diplomatic") else CURRENT
+    position = case.position or {}
+    local = set(position.get("kind_qids") or ()) & LOCAL_KINDS
+    markers = INFOBOX if position.get("diplomatic") or local else CURRENT
     if any(markers[s.get("lang") or "en"].search(NOT_NOW.sub("", s.get("quote") or ""))
            for s in sources):
         return None
     return _skip("open_unattested")
+
+
+def overlaps_holder(case: Case) -> Disposition | None:
+    """A closed spell of a one-person office that somebody else took up well inside it.
+
+    An article can give the end of the person's career for the end of one of
+    its offices: a state minister written out to the day he left parliament,
+    four years after two successors had taken the portfolio. Read only at day
+    precision on both starts and the end, with `OVERLAP_DAYS` of slack for a
+    handover, so a year-precise record never decides it.
+    """
+    if (case.property != "P39" or case.position is None or case.office_spells is None
+            or seat_kind(case.position, case.office_spells) != "single"):
+        return None
+    start, end = case.tenure("P580"), case.tenure("P582")
+    if not (start and end and start.get("precision", 0) >= 11 and end.get("precision", 0) >= 11):
+        return None
+    slack = OVERLAP_DAYS / 365.25
+    began, ended = _bound(start, 0), _bound(end, 1)
+    me = case.entity.get("id")
+    for spell in case.office_spells:
+        other = spell.span.get("P580")
+        if spell.person == me or not spell.live or not other or other.get("precision", 0) < 11:
+            continue
+        took = _bound(other, 0)
+        if took is not None and began + slack < took < ended - slack:
+            return _skip("overlaps_holder")
+    return None
 
 
 def undated_tenure(case: Case) -> Disposition | None:
@@ -1195,6 +1232,7 @@ RULES: tuple[Rule, ...] = (
     tenure_before_polity,
     tenure_before_record,
     open_superseded,
+    overlaps_holder,
     sibling_spell,
     # Only then the model, and only as one more gate.
     unverified,

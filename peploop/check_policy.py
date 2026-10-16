@@ -271,6 +271,14 @@ def main() -> int:
     check("an ambassadorship older than a term needs an infobox's word, not a stub's 'since'",
           policy.decide(case(qualifiers=stub, lang="en", seed_lang="en", position=office(diplomatic=True))),
           policy.SKIPPED, "open_unattested")
+    deputy = {**opened, "_sources": [{"lang": "en", "quote": "In 2008 he was elected to the council, where he currently serves as Deputy Mayor"}]}
+    check("a council seat older than a term needs an infobox's word too",
+          policy.decide(case(qualifiers=deputy, lang="en", seed_lang="en", position=office(kind_qids=["Q708492"]))),
+          policy.SKIPPED, "open_unattested")
+    check("which it has",
+          policy.decide(case(qualifiers={**opened, "_sources": [{"lang": "en", "quote": "Member of the Council Incumbent Assumed office 2008"}]},
+                             lang="en", seed_lang="en", position=office(kind_qids=["Q708492"]))),
+          policy.PENDING, "unverified")
     check("while 'since' still serves any other office",
           policy.decide(case(qualifiers=stub, lang="en", seed_lang="en")), policy.PENDING, "unverified")
     check("and so does one quoted in an unlisted language",
@@ -679,6 +687,22 @@ def main() -> int:
           policy.decide(case(entity=me, office_spells=[spell("Q0000009", "2021-01-01")],
                              qualifiers=open_from("2018-03-01"))),
           policy.PENDING, "unverified")
+    def closed(start: str, end: str) -> dict[str, Any]:
+        return {"P580": time(start), "P582": time(end), "_sources": [{"lang": "aa", "quote": "q"}]}
+
+    successors = [spell("Q203", "2013-03-21", "2016-09-22"), spell("Q204", "2016-09-22", "2017-03-17")]
+    check("a minister's spell running past two successors' starts is skipped",
+          policy.decide(case(entity=me, office_spells=successors,
+                             qualifiers=closed("2008-09-23", "2017-03-11"))),
+          policy.SKIPPED, "overlaps_holder")
+    check("one handed over to its successor is kept",
+          policy.decide(case(entity=me, office_spells=successors,
+                             qualifiers=closed("2008-09-23", "2013-03-21"))),
+          policy.PENDING, "unverified")
+    check("and a year-precise spell decides nothing",
+          policy.decide(case(entity=me, office_spells=successors,
+                             qualifiers={**closed("2008-09-23", "2017-03-11"), "P582": time("2017")})),
+          policy.PENDING, "unverified")
     shared = [spell("Q300", "2012-01-01", "2019-01-01"), spell("Q301", "2014-01-01", "2020-01-01")]
     check("an office two held at once for years is not one seat",
           policy.decide(case(entity=me, office_spells=[*shared, spell("Q302", "2022-01-01")],
@@ -709,7 +733,7 @@ def main() -> int:
                              qualifiers=open_from("2024-04-25"))),
           policy.PENDING, "unverified")
     check("a closed tenure is never superseded",
-          policy.decide(case(entity=me, office_spells=ministry)),
+          policy.decide(case(entity=me, office_spells=[spell("Q201", "2022-05-13")])),
           policy.PENDING, "unverified")
     cabinet = office(kinds=["foreign minister"])
     check("a minister open since before the head of government took office is skipped",
