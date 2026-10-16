@@ -330,8 +330,10 @@ def entity_data(spec: Spec) -> dict[str, Any]:
     claims = [
         _statement("P31", spec.metaclass),
         _statement("P279", spec.kind),
-        _statement("P17", spec.state_qid),
     ]
+    # P17 only beside a narrower jurisdiction: P1001 the state already says it.
+    if not spec.shape.scoped or spec.jurisdiction != spec.state_qid:
+        claims.append(_statement("P17", spec.state_qid))
     if spec.shape.scoped:
         claims.append(_statement("P1001", spec.jurisdiction))
     if spec.body_qid:

@@ -229,6 +229,20 @@ def decide(slot: Slot) -> tuple[str, str]:
     raise AssertionError("the last rule always matches")
 
 
+def p17_same_as_jurisdiction(decisions: list[dict[str, Any]], live_entity: dict[str, Any] | None) -> None:
+    """Skip an applied `P17` that repeats the item's `P1001`, live or applied beside it.
+
+    A national office's `P1001` already names its state; `P17` is written only
+    beside a narrower jurisdiction (a region of the state). The slots are
+    decided one at a time, so this runs over one item's decisions together.
+    """
+    scope = set(values(live_entity or {}, "P1001"))
+    scope |= {d["value"] for d in decisions if d["prop"] == "P1001" and d["disposition"] == "apply"}
+    for d in decisions:
+        if d["prop"] == "P17" and d["disposition"] == "apply" and d["value"] in scope:
+            d["disposition"], d["rule"] = "skip", "p17_same_as_jurisdiction"
+
+
 def source_of(answer: dict[str, Any]) -> str | None:
     """`article_<lang>` for an article quote (the language rides in `article`), else the source as given."""
     source = answer.get("source")
@@ -256,6 +270,7 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
         item = run.by_qid[r["qid"]]
         facts = run.facts(item)
         ent = live.get(r["qid"])
+        start = len(out)
         for prop, cands in r["candidates"].items():
             gap, _cat = run.gaps[r["qid"]][prop]
             slot = Slot(qid=r["qid"], prop=prop, gap=gap, candidates=cands, answer=answer[prop],
@@ -269,6 +284,7 @@ def run_rules(cc: str, reqs: list[dict[str, Any]], run: Any, log: Any = print) -
                         "confidence": slot.answer.get("confidence"), "quote": slot.answer.get("quote"),
                         "source": source_of(slot.answer), "decline_reason": slot.answer.get("decline_reason"),
                         "key": r["key"], "articles": dict(r.get("articles") or [])})
+        p17_same_as_jurisdiction(out[start:], ent)
     classes = polity_classes([v for slot, _ in generic for v in values(slot.facts.item["entity"], "P1001")])
     record_generic(cc, [(slot.qid, slot.facts.item, slot.scope, key) for slot, key in generic
                         if judged_generic(slot, classes)], log)

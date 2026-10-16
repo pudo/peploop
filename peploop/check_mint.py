@@ -367,11 +367,13 @@ def main() -> int:
     expect(snak["datavalue"]["type"], "wikibase-entityid", "snaks shaped as apply writes them")
     data = offices.entity_data(judge())
     expect(statement(data, "P1001"), [STATE], "a national office governs the state")
+    expect(statement(data, "P17"), [], "and carries no P17: its P1001 already names the state")
     expect(statement(data, "P2389"), [BODY], "and sits in its body through the archetype's property")
     offices.ARCHETYPES["t_unscoped"] = offices.Archetype("Q484876", description="head of {body}", scoped=False)
     try:
         data = offices.entity_data(judge(archetype="t_unscoped"))
         expect(statement(data, "P1001"), [], "an unscoped office carries no P1001")
+        expect(statement(data, "P17"), [STATE], "so its P17 names the state")
     finally:
         del offices.ARCHETYPES["t_unscoped"]
 

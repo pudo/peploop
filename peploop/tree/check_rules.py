@@ -200,6 +200,26 @@ def main() -> None:
     expect(signals.channels("P17", "Q900003", facts(pred)) == ["label", "holders"],
            "holders who are the federation's citizens support the federation as P17")
     eras()
+    p17_beside_p1001()
+
+
+def p17_beside_p1001() -> None:
+    """P17 is written only beside a jurisdiction narrower than the state."""
+    def ds(*rows: tuple[str, str, str]) -> list[dict]:
+        return [{"prop": p, "value": v, "disposition": d, "rule": "two_channels"} for p, v, d in rows]
+    both = ds(("P17", "Q900001", "apply"), ("P1001", "Q900001", "apply"))
+    rules.p17_same_as_jurisdiction(both, ent({"en": "x"}))
+    expect((both[0]["disposition"], both[0]["rule"]) == ("skip", "p17_same_as_jurisdiction")
+           and both[1]["disposition"] == "apply", "a P17 repeating the P1001 applied beside it is skipped")
+    live = ds(("P17", "Q900001", "apply"))
+    rules.p17_same_as_jurisdiction(live, ent({"en": "x"}, P1001=["Q900001"]))
+    expect(live[0]["disposition"] == "skip", "and so is one repeating a live P1001")
+    region = ds(("P17", "Q900001", "apply"), ("P1001", "Q900020", "apply"))
+    rules.p17_same_as_jurisdiction(region, ent({"en": "x"}))
+    expect(region[0]["disposition"] == "apply", "a P17 beside a narrower P1001 still applies")
+    declined = ds(("P17", "Q900001", "apply"), ("P1001", "Q900001", "skip"))
+    rules.p17_same_as_jurisdiction(declined, None)
+    expect(declined[0]["disposition"] == "apply", "a P1001 not written does not stand in for P17")
 
 
 def eras() -> None:

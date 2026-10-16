@@ -184,7 +184,7 @@ class Context:
         seeds = values(ent, "P31") + values(ent, "P279")
         out: list[tuple[str, str, str | None]] = []
         detected = self.detected(item)
-        if not has(ent, "P17") and wants_p17(self.country, item):
+        if not has(ent, "P17") and wants_p17(self.country, item) and not p17_in_p1001(self.country, ent):
             out.append(("P17", "missing", None))
         if not has(ent, "P1001") and item["kind"] != "ambassador":
             out.append(("P1001", "missing", None))
@@ -234,8 +234,17 @@ def wants_p17(c: countries.Country, item: dict[str, Any]) -> bool:
     return c.is_state or item["kind"] in ("predecessor", "ambassador")
 
 
+def p17_in_p1001(c: countries.Country, ent: dict[str, Any]) -> bool:
+    """Whether `P1001` already names a state `P17` would: then `P17` adds nothing.
+
+    `P17` earns its place beside a narrower jurisdiction (a region of the state),
+    not beside the state itself.
+    """
+    return bool(set(values(ent, "P1001")) & set(c.p17_values))
+
+
 def well_formed(item: dict[str, Any], ent: dict[str, Any], c: countries.Country) -> bool:
-    return ((has(ent, "P17") or not wants_p17(c, item)) and (has(ent, "P1001") or item["kind"] == "ambassador") and has(ent, "P279")
+    return ((has(ent, "P17") or not wants_p17(c, item) or p17_in_p1001(c, ent)) and (has(ent, "P1001") or item["kind"] == "ambassador") and has(ent, "P279")
             and bool(set(values(ent, "P31")) & POSITION_METAS) and item["holders"] > 0)
 
 

@@ -475,8 +475,8 @@ def check_build_spec(expect: Any) -> None:
     none, problems = mint.build_spec(cand(draft={"archetype": "ambassador"}), ctx())
     expect(none is None and problems == ["archetype/ambassador"], "no archetype, no spec")
     data = offices.entity_data(spec)
-    expect([c["mainsnak"]["property"] for c in data["claims"]] == ["P31", "P279", "P17", "P1001", "P361"],
-           "the payload carries the five structural claims")
+    expect([c["mainsnak"]["property"] for c in data["claims"]] == ["P31", "P279", "P1001", "P361"],
+           "the payload carries four structural claims: P1001 the state stands in for P17")
     expect(mint.spec_from(mint.asdict(spec)) == spec, "a stored spec reads back equal")
 
     # A town comes back from categorize as a name; one live hit resolves it.

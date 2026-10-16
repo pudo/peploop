@@ -54,6 +54,13 @@ def main() -> None:
            "a predecessor's office in a territory is still asked P17")
     expect(("P17", "missing", None) in ctx.gaps(item("Q6", "national", bare), {"Q83307"}),
            "a state's office is asked P17")
+    national = ent({"en": "Speaker of the House of Assembly of Ruritania"}, P31=["Q294414"], P279=["Q83307"],
+                   P1001=[XX.qid])
+    expect(ctx.gaps(item("Q8", "national", national), {"Q83307"}) == [],
+           "an office whose P1001 is the state is not asked P17")
+    regional = ent({"en": "Governor of Zenda"}, P31=["Q294414"], P279=["Q83307"], P1001=["Q900098"])
+    expect(ctx.gaps(item("Q9", "subnational", regional), {"Q83307"}) == [("P17", "missing", None)],
+           "one whose P1001 is narrower than the state still is")
     swapped = item("Q7", "subnational", ent({"en": "mayor of Zenda"}, P31=["Q30185"], P279=["Q17279032", "Q294414"]))
     expect(ctx.gaps(swapped, {"Q30185"}) == [("P17", "missing", None), ("P1001", "missing", None)],
            "a type/class-swapped item is asked P17/P1001 and never P31/P279")

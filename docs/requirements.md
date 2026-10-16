@@ -25,3 +25,6 @@
 - 2026-10-15: "let's design an era rule for country-related statements"
 - 2026-10-15: The era rule "is also for positions: if the position was created or
   dissolved outside the country's existence, etc."
+- 2026-10-16: "if a position has jurisdiction X, we don't also need to put
+  country X. country X only makes sense if the stated jurisdiction is more
+  specific (eg. region Y of country X)."

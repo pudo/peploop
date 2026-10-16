@@ -72,6 +72,10 @@ clutter, and a country's thousands of mayoralties rarely clear two channels. Cha
 ## Modelling rules the code holds
 
 - `P17` holds only a state. A dependent territory's office takes `P1001` alone.
+- `P17` goes only beside a jurisdiction narrower than the state: an office
+  whose `P1001` is the state itself is not asked `P17`, and a `P17` answer
+  repeating `P1001` is skipped (`p17_same_as_jurisdiction`). peploop's `mint`
+  follows the same rule.
 - A state's era runs from its first recorded form; only a form the state
   replaced moves its start (an empire's end does not date its colonies).
   Only the home state's configured chain moves a start; any other value
