@@ -172,6 +172,25 @@ def _foreign_p17(slot: Slot) -> bool:
     return bool(set(values(slot.live_entity or {}, "P17")) - slot.facts.country.home)
 
 
+#: A party's offices: a party governs no polity, whatever state its branch is in.
+PARTY_POSTS = frozenset({"Q1553195", "Q5261098"})  # party leader, deputy party leader
+#: The deputy of a Westminster federation's subdivision head, never a deputy prime
+#: minister: "Deputy Premier of Victoria", "Deputy Chief Minister of the ACT".
+SUBDIVISION_DEPUTY = re.compile(r"\bdeputy (?:premier|chief minister)\b", re.I)
+DEPUTY_PM = "Q877955"
+
+
+def _party_post(slot: Slot) -> bool:
+    return slot.prop == "P1001" and bool(set(values(slot.live_entity or {}, "P279", any_rank=True)) & PARTY_POSTS)
+
+
+def _subdivision_deputy(slot: Slot) -> bool:
+    if slot.prop != "P279" or slot.value != DEPUTY_PM:
+        return False
+    labels = (slot.live_entity or {}).get("labels", {}).values()
+    return any(SUBDIVISION_DEPUTY.search(label.get("value", "")) for label in labels)
+
+
 #: (rule, predicate, disposition). First match wins.
 RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     ("item_gone", lambda s: s.live_entity is None, "skip"),
@@ -185,6 +204,8 @@ RULES: list[tuple[str, Callable[[Slot], bool], str]] = [
     # when one wiki recorded every holder: holders say who documented it.
     ("generic_role", lambda s: s.prop in ("P17", "P1001") and not one_polity(s), "skip"),
     ("era_mismatch", era_mismatch, "skip"),
+    ("party_post_no_jurisdiction", _party_post, "skip"),
+    ("deputy_head_of_a_subdivision", _subdivision_deputy, "skip"),
     # A territory or a region is a jurisdiction, never a country: it goes in P1001.
     ("p17_not_a_state", lambda s: s.prop == "P17" and s.facts is not None and s.value in s.facts.non_states, "skip"),
     ("label_conflict", lambda s: signals.conflict(s.prop, s.value, s.facts), "skip"),

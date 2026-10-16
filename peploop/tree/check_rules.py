@@ -87,8 +87,23 @@ def generic_role() -> None:
            != "generic_role", "a generic role still has a kind")
 
 
+def party_and_deputy() -> None:
+    party = item("Q61", "national", ent({"en": "Leader of the Labor Party in Queensland"},
+                                        P31=["Q4164871"], P279=["Q1553195"]), 9, {"Q900001": 9})
+    expect(rules.decide(slot(party, "P1001", ["Q900020", "R1"], 0, quote="Leader of the Labor Party in Queensland"))
+           == ("skip", "party_post_no_jurisdiction"), "a party's leader governs no polity")
+    deputy = item("Q62", "national", ent({"en": "Deputy Chief Minister of the Karelian Territory"},
+                                         P31=["Q4164871"]), 5, {"Q900001": 5})
+    expect(rules.decide(slot(deputy, "P279", ["Q877955"], 0, quote="Deputy Chief Minister"))
+           == ("skip", "deputy_head_of_a_subdivision"), "a subdivision's deputy head is no deputy prime minister")
+    vice = item("Q63", "national", ent({"en": "Vice Premier of Ruritania"}, P31=["Q4164871"]), 5, {"Q900001": 5})
+    expect(rules.decide(slot(vice, "P279", ["Q877955"], 0, quote="Vice Premier"))[1] != "deputy_head_of_a_subdivision",
+           "while a state's vice premier may be one")
+
+
 def main() -> None:
     generic_role()
+    party_and_deputy()
     raion = DISTRICTS[2]
     quote = "chairman of the Karelia District Council"
     expect(signals.convention(SIB, "Q12", "p279") == "Q900060", "siblings agree on a district chairman's class")
