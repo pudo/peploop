@@ -261,6 +261,7 @@ that still applies:
 | Malta | 10-14 – 10-15 | 268 statements (247 rows applied), 3 taken back; 63 offices minted, 59 of them local council mayoralties | QS3 59858 59868, 59863 (removals), 59856 (mint) |
 | South Sudan | 10-15 | 148 statements (141 rows applied), 4 taken back before the send; 3 offices minted | QS3 60017, 59989 60008 (mint) |
 | Sudan | 10-15 | 128 statements (117 rows applied), 1 taken back before the send; 6 offices minted, 3 of them the RSF's | QS3 60018, 59990 60010 (mint) |
+| Australia (second) | 10-15 – 10-16 | 226 statements (196 P39 for 171 people, 98 of them new to the ledger); 18 offices minted; 10 of our statements taken back | QS3 60256, 60250 (mint), 60258 60266 (removals); peptree 60285 |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
 (Colombia), `future_date` and `termed` (Colombia's audit), `recorded_elsewhere`
@@ -370,3 +371,41 @@ The Justice ministry's twins (`Q136664945`, `Q112325297`) both took
 mentions and neither took a statement; the user had the first merged into
 the second with wikibase-cli, which waited out a query-service lag of up to
 18 s. Their holder lists still disagree over 1998-2008.
+
+Australia's second run re-read the first under every rule added since, and
+was judged by people gained rather than offices: of the 498 current holders
+of offices mint had not created, those of the parliamentary leadership (52),
+parliamentary secretaries and assistant ministers (131) all held a `P39`
+already, so neither class was minted for its own sake; what reached new
+people was seeding the state public services and the defence leadership
+(+177 in scope) and the current chambers' list articles. Reconcile re-asked
+all 13,406 mentions (the shortlist line now names a candidate's polity) and
+each mint dry run re-asked categorize whole, three times, because each
+run's `found` feed changed the groups. Rules: a portfolio-named junior seat
+("Assistant Minister for X") takes the parent of the state's seats of the
+same title (38 of 40 subclass minister); a census entry may name the
+subdivision its office governs (the District Court of Queensland carries no
+`P1001`, and its seat was drafted as Australia's); `open_unattested` sets
+aside a minor wiki's unread quote beside an English one and does not read
+"beating incumbent X" or "commenced serving" as held now; a council seat
+older than a term needs an infobox's word; and `overlaps_holder` refuses a
+closed spell of a one-person office that a successor took up inside it (a
+WA minister ended on the day he left parliament, four years after two
+successors). `mint --submit` sends the payload its dry run printed, so the
+five federal offices guarded before the `P17`-beside-`P1001` rule landed
+went out with both; their `P17`s were removed. Re-deciding the first run's
+applied rows under the new rules flagged 48 open tenures; read against
+court rosters and council results, 32 were over or wrong (retired or elevated
+judges, ministers of fallen governments, councillors who left, a justice
+of the peace, a UN goodwill ambassadorship), of which
+the first run's audit had already removed 28. Residue: about 13 current
+ambassadors and permanent representatives (bilateral posts are not minted:
+the archetype puts the receiver in `P17` and the sender in `P137`, which no
+stage handles), department secretaries (5 holders, sorted as an
+occupation), state auditors-general, DPPs and ombudsmen (no body items and
+no attested holder), deputy mayors and the parliamentary leadership (by
+the user's word, no coverage gain), and Queensland's mayoralties at 35% of
+its local government areas. peptree's re-run (its holder reads take about
+an hour, bisecting query-service timeouts on the chambers' thousand-holder
+seats) would have scoped six party leaderships to a polity and typed the
+ACT's Deputy Chief Minister a deputy prime minister; both are rules now.
