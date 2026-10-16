@@ -467,6 +467,15 @@ def main() -> int:
            "another seat's kind is not")
     expect(offices.seat_parent("Minister of State at the Ministry of Education", kinded, ("Q2632935",)), None,
            "nor one the archetype does not allow")
+    assistants = Siblings(label_kinds={
+        "Assistant Minister for Women": ["Q83307"], "Assistant Minister for Tourism": ["Q83307"],
+        "Assistant Minister to the Deputy Prime Minister": ["Q83307"], "Minister for Health": ["Q83307"],
+        "Assistant Minister for Science": ["Q2632935"],
+    })
+    expect(offices.seat_parent("Assistant Minister for Resources", assistants, allowed), "Q83307",
+           "a seat named by its portfolio follows the state's seats of the same title")
+    expect(offices.seat_parent("Parliamentary Secretary for Resources", assistants, allowed), None,
+           "and not a seat of another title")
 
     print("a live search hit, judged:")
     office = entity("Q70", "President of Aland", p31="Q294414", p17=STATE,

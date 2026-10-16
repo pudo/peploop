@@ -607,6 +607,17 @@ ATTACHED = re.compile(
     re.IGNORECASE,
 )
 
+#: The other way a junior seat is named: by its portfolio, "Assistant Minister
+#: for X", "Parliamentary Secretary to the Minister for Y". Only `seat_parent`
+#: reads it; the preposition here is not one states vary.
+PORTFOLIO = re.compile(r"^(?P<head>.+?)\s+(?:for|to)\s+(?P<tail>.+)$", re.IGNORECASE)
+
+
+def seat_head(label: str) -> str | None:
+    """The seat a label names, without the ministry or portfolio it is attached to."""
+    found = ATTACHED.match(label.strip()) or PORTFOLIO.match(label.strip())
+    return _norm(found["head"]) if found else None
+
 
 def sibling_form(label: str, sibling_labels: Iterable[str], min_agree: int = 2,
                  share: float = 2 / 3) -> str:
@@ -639,21 +650,20 @@ def seat_parent(label: str, siblings: Siblings, allowed: Collection[str], min_ag
                 share: float = 2 / 3) -> str | None:
     """The `P279` the state's offices of the same seat agree on, when it is an allowed kind.
 
-    The same seat is read off the label, as `sibling_form` reads it: a state's
-    ten "Minister of State at the Ministry of X" may all subclass minister, which
-    the archetype tally files under `minister` and so cannot offer to a new
+    The same seat is read off the label, as `sibling_form` reads it, or by its
+    portfolio form: a state's ten "Minister of State at the Ministry of X", or
+    its forty "Assistant Minister for X", may all subclass minister, which the
+    archetype tally files under `minister` and so cannot offer to a new
     minister of state. None unless at least `min_agree` such offices exist and
     `share` of them declare one kind among `allowed`.
     """
-    found = ATTACHED.match(label.strip())
-    if not found:
+    head = seat_head(label)
+    if not head:
         return None
-    head = _norm(found["head"])
     tally: Counter[str] = Counter()
     seats = 0
     for other, kinds in siblings.label_kinds.items():
-        match = ATTACHED.match(other.strip())
-        if match and _norm(match["head"]) == head:
+        if seat_head(other) == head:
             seats += 1
             tally.update(set(kinds))
     for kind, n in tally.most_common(1):
