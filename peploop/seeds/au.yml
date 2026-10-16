@@ -39,6 +39,13 @@
 - category: Members_of_the_Australian_Senate                   # 660, +487
   lang: en
 
+# Members elected since the categories were measured, reached through the
+# term's list article (2026-10-15: +6 and +2 people over the categories).
+- article: Members_of_the_Australian_House_of_Representatives,_2025–2028  # 151 people
+  lang: en
+- article: Members_of_the_Australian_Senate,_2025–2028                    # 82 people
+  lang: en
+
 # --- Federal courts ---
 - category: Justices_of_the_High_Court_of_Australia            # 56, +47
   lang: en
@@ -53,8 +60,9 @@
 - category: Ambassadors_of_Australia                           # 349, +283; depth 2: by host country
   lang: en
   depth: 2
-- category: Australian_public_servants                         # 669, +602
+- category: Australian_public_servants                         # 669, +602; depth 2 (2026-10-15): 1,539, +423, 38 of them living and born after 1940 -- the state public services, DPPs, electoral commissioners
   lang: en
+  depth: 2
 - category: Secretaries_of_Australian_Government_departments   # 107, +60
   lang: en
 - category: Governors_of_the_Reserve_Bank_of_Australia         # 9, +9
@@ -68,6 +76,17 @@
   lang: en
   depth: 0
 - category: Chiefs_of_Air_Force_(Australia)                    # 28, +23
+  lang: en
+  depth: 0
+- category: Leadership_of_the_Australian_Defence_Force         # 109, +30 (2026-10-15); vice chiefs, joint commanders
+  lang: en
+- category: Australian_generals                                # 224, +171, 21 living born after 1940 (2026-10-15); the commands below the chiefs
+  lang: en
+  depth: 0
+- category: Royal_Australian_Navy_admirals                     # 79, +60, 16 living born after 1940
+  lang: en
+  depth: 0
+- category: Royal_Australian_Air_Force_air_marshals            # 52, +28, 11 living born after 1940
   lang: en
   depth: 0
 - category: Commissioners_of_the_Australian_Federal_Police     # 9, +8
@@ -129,6 +148,15 @@
 - category: Members_of_the_Australian_Capital_Territory_Legislative_Assembly  # 112, +84
   lang: en
 - category: Members_of_the_Northern_Territory_Legislative_Assembly       # 168, +130
+  lang: en
+
+# The current terms' list articles, where they reach members no category
+# holds yet (2026-10-15; +1 each). The other chambers' lists add nobody.
+- article: Members_of_the_South_Australian_Legislative_Council,_2026–2030  # 22 people
+  lang: en
+- article: Members_of_the_Western_Australian_Legislative_Council,_2025–2029  # 37 people
+  lang: en
+- article: Members_of_the_Northern_Territory_Legislative_Assembly,_2024–2028  # 28 people
   lang: en
 
 # --- State and territory courts ---
