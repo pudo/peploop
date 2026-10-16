@@ -16,11 +16,13 @@
 # `Q132717321`), Zhejiang (`Q17280145` / `Q132717333`), Liaoning (`Q17279690`
 # / `Q133154523`) and Jiangxi (`Q46321961` / `Q133155103`).
 #
-# Absent and not listed, for want of a body item: the Party secretaries of
-# Harbin, Changchun, Shenyang, Dalian, Ningbo, Shijiazhuang, Hohhot, Nanchang,
-# Zhengzhou, Nanning, Haikou, Lhasa, Lanzhou, Xining, Yinchuan and Ürümqi (no
-# municipal committee item; `party_secretary` requires its body), and the
-# provincial discipline commission secretaries (bodies not measured).
+# Sixteen cities had no item for their municipal Party committee, which
+# `party_secretary` requires as its body; the committees were created
+# 2026-10-16 (QS3 batch 60265, `Q141749447`–`Q141749475`) and their
+# secretaryships are listed below with the others.
+#
+# Absent and not listed, for want of a body item: the provincial discipline
+# commission secretaries (bodies not measured).
 #
 # `per: subdivisions` is not used: Q148's P150 also holds Hong Kong, Macau and
 # eight Ming and Qing provincial commissions (`Q10447355`, `Q10946792`, …),
@@ -1273,7 +1275,7 @@
     zh: 新疆维吾尔自治区人民检察院检察长
     en: Chief Procurator of the Xinjiang People's Procuratorate
 
-# --- Major cities: Party secretaries where the committee has an item ---
+# --- Major cities: Party secretaries ---
 - key: q16666_party_secretary
   class: subnational.executive
   archetype: party_secretary
@@ -1409,6 +1411,149 @@
     zh: 中国共产党昆明市委员会书记
     en: Party Secretary of Kunming
 
+- key: q42956_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q42956
+  body: Q141749447         # 中国共产党哈尔滨市委员会
+  labels:
+    zh: 中国共产党哈尔滨市委员会书记
+    en: Party Secretary of Harbin
+
+- key: q92161_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q92161
+  body: Q141749448         # 中国共产党长春市委员会
+  labels:
+    zh: 中国共产党长春市委员会书记
+    en: Party Secretary of Changchun
+
+- key: q11720_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q11720
+  body: Q141749449         # 中国共产党沈阳市委员会
+  labels:
+    zh: 中国共产党沈阳市委员会书记
+    en: Party Secretary of Shenyang
+
+- key: q74881_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q74881
+  body: Q141749450         # 中国共产党大连市委员会
+  labels:
+    zh: 中国共产党大连市委员会书记
+    en: Party Secretary of Dalian
+
+- key: q42780_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q42780
+  body: Q141749451         # 中国共产党宁波市委员会
+  labels:
+    zh: 中国共产党宁波市委员会书记
+    en: Party Secretary of Ningbo
+
+- key: q58401_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q58401
+  body: Q141749452         # 中国共产党石家庄市委员会
+  labels:
+    zh: 中国共产党石家庄市委员会书记
+    en: Party Secretary of Shijiazhuang
+
+- key: q535534_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q535534
+  body: Q141749453         # 中国共产党呼和浩特市委员会
+  labels:
+    zh: 中国共产党呼和浩特市委员会书记
+    en: Party Secretary of Hohhot
+
+- key: q171943_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q171943
+  body: Q141749454         # 中国共产党南昌市委员会
+  labels:
+    zh: 中国共产党南昌市委员会书记
+    en: Party Secretary of Nanchang
+
+- key: q30340_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q30340
+  body: Q141749455         # 中国共产党郑州市委员会
+  labels:
+    zh: 中国共产党郑州市委员会书记
+    en: Party Secretary of Zhengzhou
+
+- key: q179608_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q179608
+  body: Q141749465         # 中国共产党南宁市委员会
+  labels:
+    zh: 中国共产党南宁市委员会书记
+    en: Party Secretary of Nanning
+
+- key: q189823_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q189823
+  body: Q141749467         # 中国共产党海口市委员会
+  labels:
+    zh: 中国共产党海口市委员会书记
+    en: Party Secretary of Haikou
+
+- key: q5869_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q5869
+  body: Q141749468         # 中国共产党拉萨市委员会
+  labels:
+    zh: 中国共产党拉萨市委员会书记
+    en: Party Secretary of Lhasa
+
+- key: q183584_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q183584
+  body: Q141749469         # 中国共产党兰州市委员会
+  labels:
+    zh: 中国共产党兰州市委员会书记
+    en: Party Secretary of Lanzhou
+
+- key: q69060_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q69060
+  body: Q141749471         # 中国共产党西宁市委员会
+  labels:
+    zh: 中国共产党西宁市委员会书记
+    en: Party Secretary of Xining
+
+- key: q211243_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q211243
+  body: Q141749474         # 中国共产党银川市委员会
+  labels:
+    zh: 中国共产党银川市委员会书记
+    en: Party Secretary of Yinchuan
+
+- key: q16959_party_secretary
+  class: subnational.executive
+  archetype: party_secretary
+  jurisdiction: Q16959
+  body: Q141749475         # 中国共产党乌鲁木齐市委员会
+  labels:
+    zh: 中国共产党乌鲁木齐市委员会书记
+    en: Party Secretary of Ürümqi
 # --- Major cities: mayors with no item ---
 - key: q42956_mayor
   class: subnational.municipal
