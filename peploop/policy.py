@@ -59,6 +59,12 @@ OPEN_TERM_YEARS = 4
 #: "Incumbent" and "Assumed office", or prose in the present.
 CURRENT_EN = re.compile(r"\bincumbent\b|\bassumed office\b|\bpresent\b|\bcurrent(?:ly)?\b|\bsince\b|"
                         r"\b(?:is|serves|sits) (?:as )?(?:the|a|an)\b|\bserving\b", re.I)
+#: Marker words that tell of the start, not of now: the rival a person beat
+#: ("beating incumbent Brett Svendsen") and the day they began ("commenced
+#: serving as the Division 2 councillor").
+NOT_NOW = re.compile(r"\b(?:beat|defeat|unseat|oust)\w*\s+(?:the\s+)?(?:sitting\s+)?incumbent\b"
+                     r"|\bagainst\s+(?:the\s+)?(?:sitting\s+)?incumbent\b"
+                     r"|\b(?:commenced|began|begun|started)\s+serving\b", re.I)
 #: What only an infobox says: an office it lists as held now. An ambassador
 #: rotates within a term, and a stub's "since 2016 he is" is never revised.
 INFOBOX = {
@@ -810,8 +816,8 @@ def open_unattested(case: Case) -> Disposition | None:
     was appointed far more often than that they left: a planning minister of
     2008, a judge since elevated to a higher court, a councillor of one term
     all came back open. Read only where every quote is in a language whose
-    present-tense markers are listed (`CURRENT`); an ambassadorship needs
-    an infobox's (`INFOBOX`).
+    present-tense markers are listed (`CURRENT`), setting aside a minor wiki's
+    quote beside a home one; an ambassadorship needs an infobox's (`INFOBOX`).
     """
     if case.property != "P39" or case.tenure("P582") is not None:
         return None
@@ -819,11 +825,16 @@ def open_unattested(case: Case) -> Disposition | None:
     today = case.today or date.today()
     if start is None or start > today.year - OPEN_TERM_YEARS:
         return None
-    sources = case.sources
-    if any((s.get("lang") or "en") not in CURRENT for s in sources):
+    # A minor wiki's quote in a language not read here is set aside beside a
+    # home or English one: it translates the article that is read.
+    allowed = _allowed_langs(case)
+    sources = [s for s in case.sources if (s.get("lang") or "en") in CURRENT
+               or (s.get("lang") or "en") in allowed]
+    if not sources or any((s.get("lang") or "en") not in CURRENT for s in sources):
         return None
     markers = INFOBOX if (case.position or {}).get("diplomatic") else CURRENT
-    if any(markers[s.get("lang") or "en"].search(s.get("quote") or "") for s in sources):
+    if any(markers[s.get("lang") or "en"].search(NOT_NOW.sub("", s.get("quote") or ""))
+           for s in sources):
         return None
     return _skip("open_unattested")
 

@@ -276,6 +276,18 @@ def main() -> int:
     check("and so does one quoted in an unlisted language",
           policy.decide(case(qualifiers={**opened, "_sources": [{"lang": "aa", "quote": "nommé en 2008"}]})),
           policy.PENDING, "unverified")
+    translated = {**opened, "_sources": [opened["_sources"][0], {"lang": "aa", "quote": "nommé en 2008"}]}
+    check("but a minor wiki's unread quote beside an English one does not",
+          policy.decide(case(qualifiers=translated, lang="en", seed_lang="en")),
+          policy.SKIPPED, "open_unattested")
+    beaten = {**opened, "_sources": [{"lang": "en", "quote": "He won the seat in 2008, beating incumbent Jo Bloggs"}]}
+    begun = {**opened, "_sources": [{"lang": "en", "quote": "In 2008 he commenced serving as the Division 2 councillor"}]}
+    check("nor is the day he commenced serving",
+          policy.decide(case(qualifiers=begun, lang="en", seed_lang="en")),
+          policy.SKIPPED, "open_unattested")
+    check("an 'incumbent' he beat is not his own seat held now",
+          policy.decide(case(qualifiers=beaten, lang="en", seed_lang="en")),
+          policy.SKIPPED, "open_unattested")
     check("and a mention naming no polity says nothing",
           policy.decide(case(resolution=said("the capital"), polities=polities,
                              position=office(jurisdiction_qid="Q0000010"))),
