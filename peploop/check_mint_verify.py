@@ -384,6 +384,12 @@ def check_build_spec(expect: Any) -> None:
         [mint.Attestation(person=f"Q{i}", title=t, lang=lang, current=True) for i, (t, lang) in enumerate([
             ("Sağlık Bakanlığı", "tr"), ("Sağlık Bakanı", "tr"), ("Υπουργείο Υγείας", "el")])],
         {"en": "Minister of Health", "tr": "Alvania Sağlık Bakanı"}, ["Alvania"])
+    verbal = mint.attested_aliases(
+        [mint.Attestation(person="Q1", title="led the Unity Party", lang="en", current=True),
+         mint.Attestation(person="Q2", title="Leader of the Unity Party", lang="en", current=True)],
+        {"en": "President of the Unity Party"}, ["Alvania"], "party_leader")
+    expect(verbal == {"en": ["Leader of the Unity Party"]},
+           f"a title that opens on its verb is the sentence, not an alias: {verbal}")
     expect(ministry == {"tr": ["Sağlık Bakanı"]},
            f"a title naming the ministry is the body's, not the minister's: {ministry}")
     expect(joint.get("tr") == ["Maliye Bakanı"],

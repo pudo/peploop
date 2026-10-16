@@ -55,6 +55,15 @@ Found by Malta's audit (2026-10-15), not yet rules:
 - a post read from one article loses to another article's narrower title
   (fi "ambassador" against en/fr/et "Deputy High Commissioner").
 
+Found by Zambia's audit (2026-10-16), not yet a rule:
+
+- a cabinet seat open from before the head of state's latest re-election,
+  where ministers vacate office when the President assumes it: the
+  September 2026 cabinet re-formed every seat, but Hichilema's `P39` is one
+  statement from 2021, so `open_superseded/government` cannot see the new
+  term (four 2024 appointees taken back by hand). Needs the term's start
+  from somewhere other than the head's `P39`, such as the election item.
+
 ## 3. Mint lanes not yet covered
 
 - **Empty offices, "if well-justified"** (requirements, 2026-10-12). The user

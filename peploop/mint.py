@@ -1777,18 +1777,24 @@ MINISTRY = re.compile(
 #: a name the office goes by.
 INSTRUMENTAL_LANGS = frozenset({"pl", "ru", "uk", "be"})
 INSTRUMENTAL = re.compile(r"^\S+(em|om|ym|im)\b")
+#: An English title that opens on a verb is the sentence it was lifted from
+#: ("led UNITA"), not a name for the office.
+VERB_LED = re.compile(r"^(?:led|leads|headed|heads|chaired|chairs|served|serves|became|was|is)\b")
 
 
 def lifted(folded: str, lang: str, labels: dict[str, str], state: set[str]) -> bool:
     """Whether a folded title is not a name for the office but a fragment of one.
 
-    Either a title declined as a sentence declines it (`INSTRUMENTAL`), or a
+    Either a title declined as a sentence declines it (`INSTRUMENTAL`) or
+    opening on its verb (`VERB_LED`), or a
     label cut short of more than the state's name ("Président de l'Assemblée"
     drops "nationale"), which names the seat of every body of its kind. A label
     less only the state ("Minister of Health") is how the state's own articles
     name it, and stays.
     """
     if lang in INSTRUMENTAL_LANGS and INSTRUMENTAL.match(folded):
+        return True
+    if lang == "en" and VERB_LED.match(folded):
         return True
     for text in labels.values():
         label = _fold(text)

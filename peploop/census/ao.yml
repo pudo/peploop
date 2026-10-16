@@ -96,3 +96,47 @@
   labels:
     en: Chairman of Sonangol
     pt: Presidente do Conselho de Administração da Sonangol
+
+# --- Parties: the leaders of the five parties in the 5th National Assembly ---
+# The verifier agreed with the drafted shape of MPLA's, UNITA's and FNLA's
+# leaderships at medium confidence (no sibling party-leader items in Angola
+# to compare with); as census anchors their bodies are measured here.
+- key: mpla_leader
+  class: political.parties
+  archetype: party_leader
+  body: Q28551             # MPLA, P31 political party, P17 Q916
+  labels:
+    en: President of the MPLA
+    pt: Presidente do MPLA
+
+- key: unita_leader
+  class: political.parties
+  archetype: party_leader
+  body: Q28699             # UNITA, P31 political party, P17 Q916
+  labels:
+    en: President of UNITA
+    pt: Presidente da UNITA
+
+- key: fnla_leader
+  class: political.parties
+  archetype: party_leader
+  body: Q907051            # FNLA, P31 political party, P17 Q916
+  labels:
+    en: President of the FNLA
+    pt: Presidente da FNLA
+
+- key: prs_leader
+  class: political.parties
+  archetype: party_leader
+  body: Q1674856           # Social Renewal Party, P31 political party, P17 Q916
+  labels:
+    en: President of the Social Renewal Party
+    pt: Presidente do Partido de Renovação Social
+
+- key: pha_leader
+  class: political.parties
+  archetype: party_leader
+  body: Q113624556         # Humanist Party of Angola, P31 political party, P17 Q916
+  labels:
+    en: President of the Humanist Party of Angola
+    pt: Presidente do Partido Humanista de Angola

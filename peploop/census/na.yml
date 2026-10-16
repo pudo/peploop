@@ -114,3 +114,41 @@
   body: Q1964276           # NamPower, P17 Q1030
   labels:
     en: Managing Director of NamPower
+
+# --- Parties: the leaders of the opposition parties in the 8th National Assembly ---
+# SWAPO's presidency has an item (`Q124422214`). The Popular Democratic
+# Movement's item carries `P17` Seychelles; it is still the party's only item.
+- key: ipc_leader
+  class: political.parties
+  archetype: party_leader
+  body: Q98081326          # Independent Patriots for Change, P17 Q1030
+  labels:
+    en: President of the Independent Patriots for Change
+
+- key: pdm_leader
+  class: political.parties
+  archetype: party_leader
+  body: Q23690626          # Popular Democratic Movement
+  labels:
+    en: President of the Popular Democratic Movement
+
+- key: lpm_leader
+  class: political.parties
+  archetype: party_leader
+  body: Q60518792          # Landless People's Movement, P17 Q1030
+  labels:
+    en: Leader of the Landless People's Movement
+
+- key: ar_leader
+  class: political.parties
+  archetype: party_leader
+  body: Q19891949          # Affirmative Repositioning, P17 Q1030
+  labels:
+    en: Leader of Affirmative Repositioning
+
+- key: nudo_leader
+  class: political.parties
+  archetype: party_leader
+  body: Q1126019           # National Unity Democratic Organisation, P17 Q1030
+  labels:
+    en: President of the National Unity Democratic Organisation
