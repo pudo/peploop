@@ -267,6 +267,17 @@ def main() -> int:
     serving = {**opened, "_sources": [{"lang": "tr", "quote": "Milletvekili Görevde Makama geliş 2013"}]}
     check("while a Turkish infobox saying it is held passes",
           policy.decide(case(qualifiers=serving, lang="tr", seed_lang="tr")), policy.PENDING, "unverified")
+    periodo = {**opened, "_sources": [{"lang": "pt", "quote": "Governador de Huambo Período: 2008 a atualidade"}]}
+    check("a Portuguese infobox's period to the present passes",
+          policy.decide(case(qualifiers=periodo, lang="pt", seed_lang="pt")), policy.PENDING, "unverified")
+    nomeado = {**opened, "_sources": [{"lang": "pt", "quote": "Em 2008 foi nomeado Ministro do Planeamento"}]}
+    check("while a Portuguese quote only of the appointment is skipped",
+          policy.decide(case(qualifiers=nomeado, lang="pt", seed_lang="pt")),
+          policy.SKIPPED, "open_unattested")
+    presentes = {**opened, "_sources": [{"lang": "pt", "quote": "Em 2008 foram presentes em tribunal"}]}
+    check("and 'presente' outside a period is no word of now",
+          policy.decide(case(qualifiers=presentes, lang="pt", seed_lang="pt")),
+          policy.SKIPPED, "open_unattested")
     stub = {**opened, "_sources": [{"lang": "en", "quote": "Since June 2016 he is Ambassador to Ruritania"}]}
     check("an ambassadorship older than a term needs an infobox's word, not a stub's 'since'",
           policy.decide(case(qualifiers=stub, lang="en", seed_lang="en", position=office(diplomatic=True))),

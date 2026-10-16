@@ -76,14 +76,20 @@ INFOBOX = {
     "en": re.compile(r"\bincumbent\b|\bassumed office\b", re.I),
     "el": re.compile(r"εν ενεργεία", re.I),
     "tr": re.compile(r"görevde|makama geliş", re.I),
+    "pt": re.compile(r"\bem exercício\b|\ba[c]?tualidade\b|(?:[–-]|\d{4})\s*presente\b", re.I),
 }
 #: The same, per language whose articles were measured: Greek infoboxes
 #: write "Εν ενεργεία", Turkish ones "Görevde" and "Makama geliş" (assumed
-#: office); prose says "σήμερα" / "halen", "günümüz" (today, still).
+#: office), Portuguese ones "Período: 2022 a atualidade" or "– presente";
+#: prose says "σήμερα" / "halen", "günümüz" / "atualmente", "é o atual"
+#: (today, still, the current one).
 CURRENT = {
     "en": CURRENT_EN,
     "el": re.compile(r"εν ενεργεία|σήμερα|διατελεί|υπηρετεί", re.I),
     "tr": re.compile(r"görevde|makama geliş|halen|hâlâ|günümüz|devam ediyor|sürdürüyor", re.I),
+    "pt": re.compile(r"\bem exercício\b|\ba[c]?tualidade\b|(?:[–-]|\d{4})\s*presente\b|"
+                     r"\ba[c]?tualmente\b|\bé (?:o|a) a[c]?tual\b|\bdesde\b|\bem funções\b|"
+                     r"\bocupa o (?:cargo|posto)\b", re.I),
 }
 #: Tags `positions.tags_for` derives that rule an office out as the value of
 #: a P39: the item is not an office, is a class of office, is another state's

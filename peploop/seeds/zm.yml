@@ -1,0 +1,134 @@
+# Wikipedia categories seeding the Zambia run: one PetScan query per entry.
+#
+# OpenSanctions' wd_categories.yml has no Zambia entry, so every entry below
+# is measured here (PetScan, 2026-10-16) and nothing is inherited. Counts are
+# distinct sitelinked items reached, then how many no earlier entry reached;
+# a list article's count is its links, people among them. The whole seed is
+# ~700 candidates.
+#
+# en.wikipedia is the regular wiki: `Political office-holders in Zambia`
+# holds the presidents, vice-presidents, 30 portfolio subcats (provincial
+# ministers among them), the National Assembly and the mayors.
+#
+# The current era is the August 2026 general election: the National
+# Assembly's 2026-2031 list article and Hichilema's second cabinet reach the
+# newcomers, the 2021-2026 list and first cabinet the members just ended.
+# The National Assembly category is one flat bag back to 1964; the scope gate
+# takes its history at fetch.
+#
+# Left out: `Governors of Northern Rhodesia` and `Members of the Legislative
+# Council of Northern Rhodesia` (colonial); `United Federal Party`, `UNIP`
+# and the small parties' categories (0-2 new each, history);
+# `Forum for Democracy and Development`, `Independent politicians`,
+# `Heritage Party`, `21st-century women politicians` and `Zambian
+# politicians` (0 new).
+
+# --- Head of state and government ---
+- category: Presidents_of_Zambia                               # 8
+  lang: en
+  depth: 0
+- category: Vice-presidents_of_Zambia                          # 14, 11 new
+  lang: en
+  depth: 0
+- category: Prime_ministers_of_Zambia                          # 1964-1991; 7, 5 new
+  lang: en
+  depth: 0
+
+# --- Cabinet: the two Hichilema cabinets, then 30 portfolio subcats ---
+- article: Second_cabinet_of_Hakainde_Hichilema                # 43 links, 41 new
+  lang: en
+- article: First_Hichilema_Cabinet                             # 90 links, 56 new
+  lang: en
+- category: Government_ministers_of_Zambia                     # 139, 96 new; provincial ministers inside
+  lang: en
+
+# --- National Assembly ---
+- article: List_of_members_of_the_National_Assembly_of_Zambia_(2026–2031)  # 355 links, 305 new
+  lang: en
+- article: List_of_members_of_the_National_Assembly_of_Zambia_(2021–2026)  # 323 links, 63 new
+  lang: en
+- category: Members_of_the_National_Assembly_of_Zambia         # flat, to 1964; 216, 58 new
+  lang: en
+  depth: 0
+- category: Speakers_of_the_National_Assembly_of_Zambia        # 6, 3 new
+  lang: en
+  depth: 0
+
+# --- Courts, central bank, military, diplomatic service, local ---
+- category: Chief_justices_of_Zambia                           # 6, 1 new
+  lang: en
+  depth: 0
+- category: 21st-century_Zambian_judges                        # 5, 3 new
+  lang: en
+  depth: 0
+- category: Governors_of_the_Bank_of_Zambia                    # 4, 1 new
+  lang: en
+  depth: 0
+- category: Zambian_generals                                   # 11, 11 new
+  lang: en
+  depth: 0
+- category: Ambassadors_of_Zambia                              # per receiver, high commissioners nested; 30, 14 new
+  lang: en
+  depth: 2
+- category: Mayors_of_places_in_Zambia                         # 7, 2 new
+  lang: en
+
+# --- Parties: the ones in the 2021 and 2026 Assemblies ---
+- category: Patriotic_Front_(Zambia)_politicians               # 82, 4 new
+  lang: en
+  depth: 0
+- category: United_Party_for_National_Development_politicians  # 70, 4 new
+  lang: en
+  depth: 0
+- category: Movement_for_Multi-Party_Democracy_politicians     # 63, 2 new
+  lang: en
+  depth: 0
+
+# --- Catch-alls ---
+- category: 21st-century_Zambian_politicians                   # 70, 10 new
+  lang: en
+  depth: 0
+- category: Zambian_politician_stubs                           # 83, 6 new
+  lang: en
+  depth: 0
+
+# --- Wide: the rest of the government tree and the office-holding professions ---
+# Measured 2026-10-16 against everything above. `Government of Zambia` at depth
+# 3 adds 289 more, of which `Foreign relations of Zambia` (150) is mostly
+# foreign ambassadors to Zambia and is left out; its other branches are here.
+- category: Zambian_politicians                                # whole tree; 320, 39 new
+  lang: en
+  depth: 3
+- category: Local_government_in_Zambia                         # councils, mayors, chiefs; 153, 94 new
+  lang: en
+  depth: 2
+- category: Law_of_Zambia                                      # courts, judges, AGs, DPPs; 67, 40 new
+  lang: en
+  depth: 2
+- category: Law_enforcement_in_Zambia                          # police, DEC, ACC; 13, 11 new
+  lang: en
+  depth: 2
+- category: Zambian_civil_servants                             # 47, 6 new
+  lang: en
+  depth: 2
+- category: Zambian_lawyers                                    # 29, 13 new
+  lang: en
+- category: Zambian_businesspeople                             # SOE and bank heads among them; 62, 26 new
+  lang: en
+  depth: 2
+- category: Zambian_economists                                 # 16, 5 new
+  lang: en
+- category: Zambian_activists                                  # 36, 16 new
+  lang: en
+- category: Zambian_journalists                                # state media heads among them; 17, 13 new
+  lang: en
+- category: Zambian_military_personnel                         # 19, 2 new
+  lang: en
+  depth: 2
+
+# --- Church: bishops are in scope ---
+- category: Roman_Catholic_bishops_in_Zambia                   # 30, 30 new
+  lang: en
+  depth: 2
+- category: Anglican_bishops_in_Zambia                         # 13, 12 new
+  lang: en
