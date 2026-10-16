@@ -104,6 +104,11 @@ CENSUS = """
   archetype: court_president
   labels: {en: President of the High Court, xx: Presidente de la Corte}
   source: https://example.org/court
+- key: district_court
+  class: judiciary.specialised
+  archetype: judge
+  jurisdiction: Q12
+  labels: {en: Judge of the District Court of Ostra}
 - key: governor
   class: subnational.executive
   archetype: governor
@@ -120,7 +125,7 @@ def check_census(expect: Any) -> None:
         anchors = mint.census("fr", path=path, subdivisions=lambda _s: ["Q11", "Q12", "Q13"],
                               labels_of=lambda qids: {q: labels[q] for q in qids})
         by_key = {a.key: a for a in anchors}
-        expect(set(by_key) == {"court", "governor/Q11", "governor/Q12"},
+        expect(set(by_key) == {"court", "district_court", "governor/Q11", "governor/Q12"},
                "a subdivision entry expands once per P150, and an unnamed one is dropped")
         expect(by_key["governor/Q11"].labels == {"en": "Governor of Bray", "xx": "Gobernador de Brai"},
                "each label is filled from the subdivision's label in that language")
@@ -128,6 +133,8 @@ def check_census(expect: Any) -> None:
                "a missing language falls back to en, then mul")
         expect(by_key["governor/Q11"].jurisdiction == "Q11" and by_key["court"].jurisdiction is None,
                "an expanded anchor is scoped to its subdivision")
+        expect(by_key["district_court"].jurisdiction == "Q12",
+               "and a single entry to the subdivision it names")
         for bad, message in (("judiciary.apex", "unknown archetype"), ("judiciary.top", "unknown class")):
             path.write_text(f"- {{key: x, class: {bad}, archetype: "
                             f"{'nonesuch' if 'archetype' in message else 'governor'}, labels: {{en: X}}}}")

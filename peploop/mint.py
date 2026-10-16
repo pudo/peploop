@@ -333,8 +333,9 @@ def census(
     reconcile misses only show what the seeded people held. The file is
     `census/<cc>.yml`, a list of entries with `key`, `class` (one of
     `INSTITUTION_CLASSES`), `archetype` (one of `offices.ARCHETYPES`),
-    `labels` by language, and optionally `body`, `source` and
-    `per: subdivisions`. The last expands one entry per current `P150` of the
+    `labels` by language, and optionally `body`, `source`, `jurisdiction` (the
+    subdivision a single entry's office governs, where its body names none)
+    and `per: subdivisions`. The last expands one entry per current `P150` of the
     state, read live, with `{name}` in each label filled from the
     subdivision's label in that language (or `en`, then `mul`; `{Name}` capitalises
     it); an optional
@@ -362,7 +363,8 @@ def census(
         if per == "units":
             continue  # a level's offices, built from its units' articles: `mint_units`
         if per is None:
-            out.append(Anchor(key=entry["key"], labels=labels, **base))
+            out.append(Anchor(key=entry["key"], labels=labels,
+                              jurisdiction=entry.get("jurisdiction"), **base))
             continue
         if per != "subdivisions":
             raise ValueError(f"{entry['key']}: unknown expansion {per!r}")
