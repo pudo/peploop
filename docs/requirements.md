@@ -23,3 +23,5 @@
 - 2026-10-14: For a country sweep on the national and subnational levels: "We
   want all FATF positions, broad holders, and rich Wikidata personal details."
 - 2026-10-15: "let's design an era rule for country-related statements"
+- 2026-10-15: The era rule "is also for positions: if the position was created or
+  dissolved outside the country's existence, etc."
