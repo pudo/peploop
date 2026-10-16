@@ -353,7 +353,12 @@ def feed_one(cand: dict[str, Any], stats: FeedStats, log: Callable[[str], None])
         stats.retrieved[bool(retrieved)] += 1
         if not retrieved or att["reopened_id"] is not None:
             continue
-        verdict, _sent = reconcile.reopen(eid, idx, mention, state, qid)
+        try:
+            verdict, _sent = reconcile.reopen(eid, idx, mention, state, qid)
+        except Exception as exc:  # noqa: BLE001 — one bad answer is a line; the next feed asks again
+            stats.failed.append(f"{eid}#{idx}: {type(exc).__name__}: {str(exc)[:200]}")
+            log(f"  {eid}#{idx} re-ask failed: {type(exc).__name__}")
+            continue
         stats.reopened[verdict.kind] += 1
         db.conn().execute(
             "UPDATE office_attestation SET reopened_id = %s WHERE candidate_id = %s"
