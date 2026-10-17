@@ -1778,7 +1778,7 @@ MINISTRY = re.compile(
 INSTRUMENTAL_LANGS = frozenset({"pl", "ru", "uk", "be"})
 INSTRUMENTAL = re.compile(r"^\S+(em|om|ym|im)\b")
 #: An English title that opens on a verb is the sentence it was lifted from
-#: ("led UNITA"), not a name for the office.
+#: ("led the Unity Party"), not a name for the office.
 VERB_LED = re.compile(r"^(?:led|leads|headed|heads|chaired|chairs|served|serves|became|was|is)\b")
 #: A title that says when its holder held it describes the holder, not the
 #: office: "former minister", Hausa "Gwamna na yanzu" (the current governor).
