@@ -116,6 +116,11 @@ def dates() -> None:
            "a seat said current with an end is contradictory")
     expect(rules.seat_rule(seat(current=False), t("1990"), t("1995"), TODAY) == "tenure_ended",
            "a seat that ended a generation ago is a biography")
+    expect(rules.seat_rule(seat(), t("2026-11-01"), None, TODAY) == "future",
+           "a head from next month is not written, though the year is this one")
+    expect(rules.seat_rule(seat(), t("2026"), None, TODAY) is None and rules.seat_rule(seat(), t("2026-10"), None, TODAY) is None,
+           "a start this year or this month, at that precision, is not future")
+    expect(rules.seat_rule(seat(current=False), t("2020"), t("2027-03"), TODAY) == "future", "nor is a term's future end")
     expect(rules.seat_rule(seat(current=False), t("2015"), None, TODAY) == "open_unattested",
            "an open seat older than a term must be said to be current")
     expect(rules.seat_rule(seat(current=True, start=None), None, None, TODAY) is None,

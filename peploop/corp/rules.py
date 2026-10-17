@@ -251,13 +251,25 @@ def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, s
     return None, [], []
 
 
+def later(t: dict[str, Any], today: date) -> bool:
+    """Whether a time lies after today, compared at its own precision (year 9, month 10, day 11)."""
+    y, m, d = int(t["time"][1:5]), int(t["time"][6:8]), int(t["time"][9:11])
+    precision = t.get("precision", 11)
+    if precision <= 9:
+        return y > today.year
+    if precision == 10:
+        return (y, m) > (today.year, today.month)
+    return (y, m, d) > (today.year, today.month, today.day)
+
+
 def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str, Any] | None,
               today: date) -> str | None:
     """Why a seat is not written, from its dates and currency alone."""
     year = lambda t: int(t["time"][1:5]) if t else None  # noqa: E731
     if start and end and end["time"] < start["time"]:
         return "bad_dates"
-    if start and year(start) > today.year:
+    if start and later(start, today) or end and later(end, today):
+        # A tenure that starts, or a term that ends, after today is not a fact yet.
         return "future"
     if seat["current"] and end:
         return "current_ended"
