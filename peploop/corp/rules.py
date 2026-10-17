@@ -404,6 +404,12 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     hop = wd.fetch_items(sorted(set().union(*linked_now.values())), props="claims") if linked_now else {}
     reached = {qid: {v for t in targets for p in ("P127", "P749") for v in wd.values(hop.get(t) or {}, p)} - targets
                for qid, targets in linked_now.items()}
+    # So would a link to what this run's own answers put over its other
+    # controllers: a transport company owned by a state holding that the
+    # same run puts under the state gets the holding, not the state too.
+    planned = {qid: controllers(r, named.get(qid)) for qid, r in passed.items()}
+    for qid, via in through_planned(planned, linked_now).items():
+        reached[qid] = reached.get(qid, set()) | via
     lines: list[str] = []
     decisions: list[dict[str, Any]] = []
     removals: list[dict[str, Any]] = []
@@ -440,7 +446,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": "enterprise_unowned", "call_key": r.get("key")})
             continue
-        if links and not any(row["_rule"] in (None, "chain_reaches") for row in links):
+        if links and not any(row["_rule"] in (None, "chain_reaches", "chain_existing") for row in links):
             # Every body the answer names over it is no state body: the
             # control it claims runs through someone else's company.
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
@@ -449,6 +455,28 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
         rows += seat_rows(r, humans, today, spec.roles, entity, dead)
         lines += settle(r, entity, rows, decisions)
     return lines, decisions, removals
+
+
+def through_planned(planned: dict[str, set[str]], linked_now: dict[str, set[str]]) -> dict[str, set[str]]:
+    """Per body, the controllers this run puts over its other controllers, old or planned."""
+    out = {}
+    for qid, mine in planned.items():
+        via = {v for t in mine | linked_now.get(qid, set()) for v in planned.get(t, set())} - {qid}
+        # Two controllers each over the other is a loop, not a chain: neither goes.
+        out[qid] = via - {v for v in via if planned.get(v, set()) & mine}
+    return out
+
+
+def controllers(req: dict[str, Any], named: dict[str, str] | None) -> set[str]:
+    """The bodies an answer names over its body, chosen or resolved by name."""
+    offered = req["offered"]
+    out = set()
+    for o in req["answer"]["control"]["owners"]:
+        idx = o["controller"]
+        qid = offered[idx] if idx is not None and 0 <= idx < len(offered) else (named or {}).get(o["name"] or "")
+        if qid:
+            out.add(qid)
+    return out
 
 
 def queue_removals(cc: str, removals: list[dict[str, Any]]) -> int:

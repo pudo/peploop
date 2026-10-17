@@ -238,6 +238,10 @@ def crawler_cases() -> None:
     owner = {**base, "answer": answer(kind="institution", owners=((0, "owner"),))}
     expect(rules.control_rows(owner, ent(), None, state, {}, government=frozenset({"Q900100"}))[0]["_rule"] == "owner_ministry",
            "a ministry is never written as owner")
+    via = rules.through_planned({"Q1": {"Q2", "Q3"}, "Q2": {"Q3"}, "Q4": {"Q5", "Q6"}, "Q5": {"Q6"}, "Q6": {"Q5"}},
+                                {"Q7": set()})
+    expect(via["Q1"] == {"Q3"}, "an owner this run also puts over the body's other owner is a shortcut")
+    expect(via["Q4"] == set(), "two owners each planned over the other are a loop: neither is dropped")
     expect(rules.control_rows(owner, ent(), None, state, {}, reached=frozenset({"Q900100"}))[0]["_rule"] == "chain_existing",
            "no link that shortcuts a chain the item already has")
     line = qs.describe("pepcorp", ["+Q900000", "P31", "Q270791"])
