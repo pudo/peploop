@@ -1,0 +1,42 @@
+# Luxembourg. Unitary: twelve cantons, without government of their own.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. EU institutions in Luxembourg
+# carry it as country, so the tree makes them Luxembourg government bodies.
+not_government:
+  - {qid: Q4936585, name: body of the European Union}  # 2 live, e.g. Q5413070 European Public Prosecutor's Office
+  - {qid: Q107671432, name: service department of the European Commission}  # 1 live, e.g. Q480222 Office des publications de l'Union européenne
+  - {qid: Q112842785, name: Interinstitutional Service of the European Union}  # 1 live, e.g. Q480222 Office des publications de l'Union européenne
+  - {qid: Q64623553, name: joint undertaking of the European Union}  # 1 live, e.g. Q60983149 European High-Performance Computing Joint Undertak
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. The
+# EU's own bodies, the chambres professionnelles and the bar; schools come
+# in through the education ministry (33).
+exclude:
+  - {qid: Q4936585, name: body of the European Union}  # 2 live, e.g. Q5413070 European Public Prosecutor's Office
+  - {qid: Q107671432, name: service department of the European Commission}  # 1 live, e.g. Q480222 Office des publications de l'Union européenne
+  - {qid: Q112842785, name: Interinstitutional Service of the European Union}  # 1 live, e.g. Q480222 Office des publications de l'Union européenne
+  - {qid: Q64623553, name: joint undertaking of the European Union}  # 1 live, e.g. Q60983149 European High-Performance Computing Joint Undertak
+  - {qid: Q56036548, name: chambre professionnelle}  # 5 live, e.g. Q59155788 Chambre d'agriculture
+  - {qid: Q1865205, name: barreau}  # 1 live, e.g. Q13102203
+  - {qid: Q10729872, name: medical association}  # 2 live, e.g. Q130214581 Collège médical
+  - {qid: Q3914, name: school}  # 5 live, e.g. Q31274989 Luxembourg Estonian School
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets.
+forms:
+  - {qid: Q69787585, kind: institution, name: public sector establishment}  # 9 (50 live)
+  - {qid: Q107549239, kind: institution, name: staatlech Verwaltung}  # 2 (2 live)
+  - {qid: Q122762732, kind: institution, name: Luxembourg National Cultural Institutions}  # 4 (7 live)
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Ministère des Finances, participations de l'État, https://mfin.gouvernement.lu/"
+    entries: []

@@ -1,0 +1,33 @@
+# Bulgaria. Unitary: 28 oblasts, run by state-appointed governors (no
+# regional self-government).
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. None
+# measured.
+exclude: []
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. The administrative structure
+# class (48) is left out: regional directorates and inspectorates of the
+# ministries, without boards. Еднолично акционерно дружество is left out:
+# any single owner.
+forms:
+  - {qid: Q121881025, kind: institution, name: изпълнителна агенция}  # 0 (32 live)
+  - {qid: Q12279293, kind: institution, name: държавна агенция}  # 0 (10 live)
+  - {qid: Q136410955, kind: institution, name: независима административна структура}  # 0 (16 live)
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Агенция за публичните предприятия и контрол (АППК), регистър на публичните предприятия, https://appk.government.bg/"
+    entries: []

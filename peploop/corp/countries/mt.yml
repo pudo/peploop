@@ -1,0 +1,28 @@
+# Malta. Unitary: five regions and local councils.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. The
+# medical association administers itself.
+exclude:
+  - {qid: Q10729872, name: medical association}  # 1 live, e.g. Q25100610 Medical Association of Malta
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Measured thin: 24 live items
+# with a seat statement, no state-only form among them.
+forms: []
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Ministry for Finance, public sector entities; Malta Government Investments, https://finance.gov.mt/"
+    entries: []

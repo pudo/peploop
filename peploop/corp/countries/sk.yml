@@ -1,0 +1,31 @@
+# Slovakia. Unitary: eight kraje, self-governing regions.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. None
+# measured.
+exclude:
+  - {qid: Q130268327, name: Komora (s výnimkou profesných komôr)}  # 1 live, e.g. Q118673541 Slovenská obchodná a priemyselná komora
+  - {qid: Q897399, name: chamber of commerce and industry}  # 1 live, e.g. Q1201852 Slovensko-nemecká obchodná a priemyselná komora
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Štátny podnik is in the
+# Q270791 tree. Rozpočtová and príspevková organizácia are shared with
+# regions and municipalities; verejná výskumná inštitúcia is founded by the
+# Academy.
+forms: []
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Ministerstvo financií SR, majetkové účasti štátu, https://www.mfsr.sk/"
+    entries: []

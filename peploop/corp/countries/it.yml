@@ -1,0 +1,48 @@
+# Italy. Unitary: 20 regioni, the regional tier (province and comuni are
+# not).
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. Church fabrics (fabbricerie,
+# Q28466087), land-reclamation consortia and chambers of commerce are filed
+# as government bodies and read as state actors.
+not_government:
+  - {qid: Q2993760, name: fabbriceria}  # 4 live, e.g. Q28466087 Opera di Santa Maria del Fiore
+  - {qid: Q3687557, name: Consorzio di bonifica}  # 8 live, e.g. Q115692829 Consorzio di bonifica 1 Toscana Nord
+  - {qid: Q3651286, name: "Camera di commercio, industria, artigianato e agricoltura"}  # 4 live, e.g. Q108375799 Camera di commercio della Maremma e del Tirreno
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items.
+# Libraries flood the reach (804 school libraries, 423 special libraries,
+# ministry and state libraries): no boards. Church fabrics, chambers of
+# commerce, professional orders and land-reclamation consortia administer
+# themselves; savings banks are private.
+exclude:
+  - {qid: Q7075, name: library}  # 1281 live, e.g. Q124360479 Curia Vescovile, Museo d'Arte Sacra, L'Aquila (I-L
+  - {qid: Q2993760, name: fabbriceria}  # 4 live, e.g. Q28466087 Opera di Santa Maria del Fiore
+  - {qid: Q3651286, name: "Camera di commercio, industria, artigianato e agricoltura"}  # 4 live, e.g. Q108375799 Camera di commercio della Maremma e del Tirreno
+  - {qid: Q3355775, name: professional order}  # 6 live, e.g. Q122360005 Consiglio Nazionale degli Ingegneri
+  - {qid: Q3687557, name: Consorzio di bonifica}  # 8 live, e.g. Q115692829 Consorzio di bonifica 1 Toscana Nord
+  - {qid: Q157963, name: savings bank}  # 2 live, e.g. Q111983331 Cassa di Risparmio di Castiglione dei Pepoli
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Aziende socio-sanitarie
+# territoriali are in the Q270791 tree. Italian national museums and state
+# archives (hundreds, without boards) and ente pubblico italiano are left
+# out.
+forms:
+  - {qid: Q121076356, kind: institution, name: Istituto museale ad autonomia speciale}  # 12 (52 live)
+  - {qid: Q3631467, kind: institution, name: azienda sanitaria locale}  # 0 (21 live)
+  - {qid: Q42328074, kind: institution, name: Autorità di sistema portuale}  # 1 (9 live)
+  - {qid: Q3630770, kind: institution, name: autorità amministrativa indipendente}  # 4 (9 live)
+  - {qid: Q3726242, kind: enterprise, name: ente pubblico economico}  # 1 (2 live)
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "MEF, Dipartimento del Tesoro, partecipazioni pubbliche, https://www.dt.mef.gov.it/"
+    entries: []

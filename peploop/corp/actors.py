@@ -19,7 +19,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Iterable
 
-from peploop import policy, positions, typegraph
+from peploop import policy, typegraph
 from peploop.corp import country as countries
 from peploop.corp import wd
 
@@ -54,8 +54,8 @@ NOT_GOVERNMENT = frozenset({
 SIDES = ("?i wdt:P17 wd:%(s)s .", "?o wdt:P17 wd:%(s)s .")
 PAIRS = """SELECT DISTINCT ?i ?o WHERE { %(side)s ?i p:%(p)s ?st . ?st ps:%(p)s ?o . }"""
 TARGET_TYPES = """SELECT DISTINCT ?o ?t WHERE { %(side)s ?i p:%(p)s ?st . ?st ps:%(p)s ?o . ?o wdt:P31 ?t . }"""
-TARGET_PLACES = """SELECT DISTINCT ?o ?c WHERE { %(side)s ?i p:%(p)s ?st . ?st ps:%(p)s ?o .
-                   { ?o wdt:P17 ?c } UNION { ?o wdt:P1001 ?c } }"""
+TARGET_PLACES = """SELECT DISTINCT ?o ?c WHERE { %(side)s ?i p:%(p)s ?st . ?st ps:%(p)s ?o . ?o wdt:P17 ?c . }"""
+TARGET_JURISDICTIONS = """SELECT DISTINCT ?o ?c WHERE { %(side)s ?i p:%(p)s ?st . ?st ps:%(p)s ?o . ?o wdt:P1001 ?c . }"""
 TARGET_ENDED = """SELECT DISTINCT ?o WHERE { %(side)s ?i p:%(p)s ?st . ?st ps:%(p)s ?o . ?o wdt:P576 ?d . }"""
 
 
@@ -97,51 +97,67 @@ class Actors:
             return set()
         ents = wd.fetch_items(wanted, props="claims")
         types = {q: set(wd.values(e, "P31")) for q, e in ents.items()}
-        places = {q: set(wd.values(e, "P17")) | set(wd.values(e, "P1001")) for q, e in ents.items()}
+        places = {q: set(wd.values(e, "P17")) for q, e in ents.items()}
+        jurisdictions = {q: set(wd.values(e, "P1001")) for q, e in ents.items()}
         closure = typegraph.of_classes({t for ts in types.values() for t in ts})
-        found = classify(self.state, set(self.polities), types, places, closure, self.not_government)
+        found = classify(self.state, set(self.polities), types, places, closure, self.not_government, jurisdictions)
         return {q for q in wanted if q in found}
 
 
 def classify(state: str, polities: set[str], types: dict[str, set[str]], places: dict[str, set[str]],
-             closure: dict[str, set[str]], not_government: frozenset[str] = NOT_GOVERNMENT) -> dict[str, str]:
-    """Which linked bodies are state actors: the polities, and the government bodies placed in one of them."""
+             closure: dict[str, set[str]], not_government: frozenset[str] = NOT_GOVERNMENT,
+             jurisdictions: dict[str, set[str]] | None = None) -> dict[str, str]:
+    """Which linked bodies are state actors: the polities, and the government bodies placed in one of them.
+
+    A body's own jurisdiction (`P1001`) decides where it has one: a town's
+    administration names its country as `P17` but governs the town, and is
+    no state actor.
+    """
     kinds = {q: ("state" if q == state else "subdivision") for q in polities}
     for target, ts in types.items():
         if target in kinds:
             continue
         reached = set().union(*(closure.get(t, {t}) for t in ts)) if ts else set()
-        if reached & GOVERNMENT and not reached & not_government and places.get(target, set()) & polities:
+        where = (jurisdictions or {}).get(target) or places.get(target, set())
+        if reached & GOVERNMENT and not reached & not_government and where & polities:
             kinds[target] = "government"
     return kinds
 
 
 def read(cc: str) -> Actors:
     """Read a country's ownership and parent links and work out its state actors."""
-    state = positions.country_qid(cc)
+    state = countries.state_qid(cc)
     spec = countries.get(cc)
     polities = set(policy.polities_of(state))
     links: dict[str, dict[str, set[str]]] = {}
     types: dict[str, set[str]] = defaultdict(set)
     places: dict[str, set[str]] = defaultdict(set)
+    jurisdictions: dict[str, set[str]] = defaultdict(set)
     # A dissolved ministry or agency (a predecessor state's) is no actor now.
     ended: set[str] = set()
+    names = countries.current_qids(cc)
     for prop in LINKS:
         pairs: dict[str, set[str]] = defaultdict(set)
-        for side in SIDES:
-            args = {"side": side % {"s": state}, "p": prop}
+        for side, name in ((side, name) for side in SIDES for name in names):
+            args = {"side": side % {"s": name}, "p": prop}
             for r in wd.qlever(PAIRS % args):
                 pairs[r["o"]].add(r["i"])
             for r in wd.qlever(TARGET_TYPES % args):
                 types[r["o"]].add(r["t"])
             for r in wd.qlever(TARGET_PLACES % args):
                 places[r["o"]].add(r["c"])
+            for r in wd.qlever(TARGET_JURISDICTIONS % args):
+                jurisdictions[r["o"]].add(r["c"])
             ended.update(r["o"] for r in wd.qlever(TARGET_ENDED % args))
         links[prop] = dict(pairs)
     closure = typegraph.of_classes({t for ts in types.values() for t in ts})
     not_government = NOT_GOVERNMENT | spec.not_government
+    # Every current QID of the country is the state; the polity is the one
+    # whose subdivisions are the regional tier.
+    polities |= set(names)
     kinds = classify(state, polities, {q: ts for q, ts in types.items() if q not in ended}, places, closure,
-                     not_government)
+                     not_government, jurisdictions)
+    kinds.update({q: "state" for q in names})
     return Actors(state=state, kinds=kinds, links=links, polities=frozenset(polities), not_government=not_government)
 
 

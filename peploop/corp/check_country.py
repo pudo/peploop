@@ -28,6 +28,7 @@ def main() -> int:
         expect(all(PID.match(p) and (q is None or QID.match(q)) for p, q in spec.roles.values()),
                f"{cc}: extra seats map to a property and an optional QID")
         expect(set(spec.tiers) <= TIERS, f"{cc}: tiers are known")
+        expect(spec.state is None or bool(QID.match(spec.state)), f"{cc}: the state override is a QID")
     return 0
 
 

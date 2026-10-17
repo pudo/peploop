@@ -1,0 +1,32 @@
+# Lithuania. Unitary: ten apskritys (counties, administrative only since
+# 2010) and 60 municipalities, which peploop counts first-level.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. The
+# notaries' and agricultural chambers administer themselves.
+exclude:
+  - {qid: Q1757539, name: Notarų rūmai}  # 1 live, e.g. Q2001817 Lietuvos notarų rūmai
+  - {qid: Q59155876, name: Žemės ūkio rūmai}  # 1 live, e.g. Q12663237 Lietuvos Respublikos žemės ūkio rūmai
+  - {qid: Q10729872, name: medical association}  # 1 live, e.g. Q67201777 Lithuanian Medical Association
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Valstybės įmonė is in the
+# Q270791 tree. Biudžetinė įstaiga and viešoji įstaiga are left out: shared
+# with municipalities.
+forms: []
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Valdymo koordinavimo centras (Governance Coordination Centre), valstybės valdomos įmonės, https://governance.lt/"
+    entries: []

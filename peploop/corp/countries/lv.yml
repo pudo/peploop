@@ -1,0 +1,207 @@
+# Latvia. Unitary: 43 local governments, the only subdivisions, which
+# peploop counts first-level.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. None
+# measured.
+exclude:
+  - {qid: Q897399, name: chamber of commerce and industry}  # 1 live, e.g. Q103820404 Amerikas Tirdzniecības palāta Latvijā
+  - {qid: Q10729872, name: medical association}  # 1 live, e.g. Q106114302 Latvian Medical Association
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Pastarpinātās pārvaldes
+# iestāde (508, municipal libraries and schools among them) and atvasināta
+# publiska persona (municipalities, universities) are left out.
+forms:
+  - {qid: Q110855268, kind: institution, name: direct regulatory authority}  # 6 (96 live)
+
+roles: []
+
+# Official list of central-government holdings; entries via lv.wikipedia
+# (Valsts kapitālsabiedrības, list with the holding ministry); Latvijas
+# Radio and Latvijas Televīzija merged into LSM. QIDs from the list's own
+# links, kept only when the item is a live organisation. An entry without a
+# QID is a holding with no item.
+holdings:
+  - source: "Pārresoru koordinācijas centrs, valsts kapitālsabiedrības, https://www.pkc.gov.lv/"
+    entries:
+      - name: "AS “Latvenergo”"
+        qid: Q3736450
+        holder: "Latvijas valsts, kapitāla daļu turētājs Ekonomikas ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "SIA “Tet”"
+        qid: Q404542
+        holder: "Latvijas valsts, kapitāla daļu turētājs Ekonomikas ministrija (51 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "SIA “Publisko aktīvu pārvaldītājs Possessor”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Ekonomikas ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VAS “Latvijas dzelzceļš”"
+        qid: Q327094
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "AS “Air Baltic Corporation”"
+        qid: Q300924
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (97,97 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VAS Starptautiskā lidosta “Rīga”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VAS “Latvijas Pasts”"
+        qid: Q1807088
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "AS “Pasažieru vilciens”"
+        qid: Q7142587
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VAS “Latvijas Valsts radio un televīzijas centrs” (LVRTC)"
+        qid: Q116265936
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "SIA “Latvijas Mobilais Telefons” (LMT)"
+        qid: Q4993620
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (28 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VAS “Latvijas gaisa satiksme”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Latvijas Valsts ceļi”"
+        qid: Q125420619
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Autotransporta direkcija”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VAS “Ceļu satiksmes drošības direkcija” (CSDD)"
+        qid: Q27055983
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "AS “LAU Infra Grupa” (agrāk VAS \"Latvijas autoceļu uzturētājs\")"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (89 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "AS “Augstsprieguma tīkls”"
+        qid: Q16822050
+        holder: "Latvijas valsts, kapitāla daļu turētājs Finanšu ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "AS “Latvijas Loto”"
+        qid: Q20563085
+        holder: "Latvijas valsts, kapitāla daļu turētājs Finanšu ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "AS “Attīstības finanšu institūcija Altum”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Finanšu ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "AS “Valsts nekustamie īpašumi”"
+        qid: Q16355300
+        holder: "Latvijas valsts, kapitāla daļu turētājs Finanšu ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "AS “Rīgas Austrumu klīniskā universitātes slimnīca”"
+        qid: Q20404308
+        holder: "Latvijas valsts, kapitāla daļu turētājs Veselības ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Paula Stradiņa klīniskā universitātes slimnīca”"
+        qid: Q2034327
+        holder: "Latvijas valsts, kapitāla daļu turētājs Veselības ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Bērnu klīniskā universitātes slimnīca”"
+        qid: Q16353601
+        holder: "Latvijas valsts, kapitāla daļu turētājs Veselības ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Nacionālais psihiskās veselības centrs”"
+        qid: Q97232624
+        holder: "Latvijas valsts, kapitāla daļu turētājs Veselības ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Traumatoloģijas un ortopēdijas slimnīca”"
+        qid: Q20565545
+        holder: "Latvijas valsts, kapitāla daļu turētājs Veselības ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Latvijas Nacionālā opera un balets”"
+        qid: Q555773
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Latvijas Nacionālais teātris”"
+        qid: Q1821247
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Dailes teātris”"
+        qid: Q968871
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Mihaila Čehova Rīgas Krievu teātris”"
+        qid: Q4394568
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Jaunais Rīgas teātris”"
+        qid: Q2791785
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Valmieras Drāmas teātris”"
+        qid: Q2791909
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Daugavpils teātris”"
+        qid: Q18707373
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Latvijas Leļļu teātris”"
+        qid: Q4254898
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Rīgas cirks”"
+        qid: Q4394570
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Latvijas Koncerti”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Latvijas Nacionālais simfoniskais orķestris”"
+        qid: Q6497391
+        holder: "Latvijas valsts, kapitāla daļu turētājs Kultūras ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "AS “Latvijas valsts meži”"
+        qid: Q8413552
+        holder: "Latvijas valsts, kapitāla daļu turētājs Zemkopības ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Latvijas Vēstnesis”"
+        qid: Q27056014
+        holder: "Latvijas valsts, kapitāla daļu turētājs Tieslietu ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "AS “Tiesu namu aģentūra”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Tieslietu ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Latvijas Radio”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Sabiedrisko elektronisko plašsaziņas līdzekļu padome (SEPLP) (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA “Latvijas Televīzija”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Sabiedrisko elektronisko plašsaziņas līdzekļu padome (SEPLP) (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "SIA “Valsts aizsardzības korporācija”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Aizsardzības ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "SIA “Diplomātiskā servisa aģentūra”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Ārlietu ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
+      - name: "VSIA Sporta centrs “Mežaparks”"
+        qid: null
+        holder: "Latvijas valsts, kapitāla daļu turētājs Izglītības un zinātnes ministrija (100 %)"
+        source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278

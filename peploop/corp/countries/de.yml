@@ -13,6 +13,13 @@ not_government:
 exclude:
   - {qid: Q13601825, name: Sparkasse}
   - {qid: Q1515218, name: Kassenärztliche Vereinigung}
+  - {qid: Q15855960, name: Ärztekammer}
+# Branch offices and departments, whose heads are middle-ranking: the
+# authority at the top stays in.
+  - {qid: Q1585248, name: Landesvertretung beim Bund}
+  - {qid: Q956034, name: Wasserstraßen- und Schifffahrtsamt}
+  - {qid: Q1221119, name: Dienststelle}
+  - {qid: Q334453, name: Abteilung}
   - {qid: Q2948379, name: Handwerkskammer}
   - {qid: Q897399, name: Industrie- und Handelskammer}
 

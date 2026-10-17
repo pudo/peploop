@@ -21,11 +21,12 @@ def run(cc: str, limit: int | None = None, no_ask: bool = False, reload: bool = 
         # pass must not drop what an earlier one decided.
         answered = decide.from_ledger(cc)
     items = {it["qid"]: it for it in load.items(cc)}
-    lines, decisions = rules.decide(cc, answered, items, actormod.read(cc))
+    lines, decisions, removals = rules.decide(cc, answered, items, actormod.read(cc))
     errors = qs.validate(lines)
     if errors:
         raise SystemExit("refused: " + "; ".join(errors[:5]))
     rules.store(cc, decisions)
+    queued = rules.queue_removals(cc, removals)
     path = qs.write(cc, lines)
-    log(f"{path}: {len(lines)} lines from {len(answered)} answered enterprises")
+    log(f"{path}: {len(lines)} lines from {len(answered)} answered bodies; {queued} contradicted markers proposed for removal")
     return report.write(cc)

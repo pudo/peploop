@@ -1,0 +1,37 @@
+# Portugal. Unitary: the autonomous regions of the Azores and Madeira are
+# the regional tier; the 18 districts have no government.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. The municipal executive
+# (câmara municipal), a later tier: seven are read as state actors, as the
+# global list keeps municipalities out as places.
+not_government:
+  - {qid: Q5202369, name: Câmara Municipal}  # 31 live, e.g. Q139572370 Câmara Municipal de Cascais
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items.
+# Chambers of commerce and professional orders administer themselves; the
+# Santas Casas da Misericórdia are left in (Lisbon's is the state's).
+exclude:
+  - {qid: Q897399, name: chamber of commerce and industry}  # 24 live, e.g. Q107110423 Associação dos Industriais de Cordoaria e Redes
+  - {qid: Q3355775, name: professional order}  # 1 live, e.g. Q10341343 Ordem dos Psicólogos Portugueses
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Measured thin: these forms
+# carry no seat statement yet. Unidade de Saúde Familiar (26, health centres
+# within ULS) is left out.
+forms:
+  - {qid: Q10273129, kind: enterprise, name: Entidade pública empresarial}  # 0 (4 live)
+  - {qid: Q10302978, kind: institution, name: Instituto público}  # 0 (2 live)
+  - {qid: Q124748578, kind: institution, name: Unidade Local de Saúde}  # 0 (39 live)
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "DGTF (Direção-Geral do Tesouro e Finanças), Setor Empresarial do Estado; Parpública, https://www.dgtf.gov.pt/"
+    entries: []

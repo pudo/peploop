@@ -1,0 +1,289 @@
+# Hungary. Unitary: 19 megyék and Budapest.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items.
+# Köztestület covers the chambers and the academies, which administer
+# themselves.
+exclude:
+  - {qid: Q1126018, name: köztestület}  # 8 live, e.g. Q1301877 Széchenyi Academy of Literature and Arts
+  - {qid: Q897399, name: chamber of commerce and industry}  # 6 live, e.g. Q60165998 Budapesti Kereskedelmi és Iparkamara
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Költségvetési szerv
+# (budgetary organ, central and local) and közalapítvány are left out:
+# shared with local government.
+forms:
+  - {qid: Q30570183, kind: institution, name: központi hivatal}  # 3 (9 live)
+  - {qid: Q30559398, kind: institution, name: autonóm államigazgatási szerv}  # 2 (4 live)
+  - {qid: Q30564537, kind: institution, name: önálló szabályozó szerv}  # 2 (2 live)
+
+roles: []
+
+# Official list of central-government holdings; entries via hu.wikipedia
+# (Tartós állami tulajdonú társasági részesedéssel működő társaságok, the
+# statute's annex); most rows link no article. QIDs from the list's own
+# links, kept only when the item is a live organisation. An entry without a
+# QID is a holding with no item.
+holdings:
+  - source: "MNV Zrt. (Magyar Nemzeti Vagyonkezelő); 2011. évi CXCVI. törvény 2. melléklet (tartós állami tulajdon), https://www.mnv.hu/"
+    entries:
+      - name: "Magyar Villamos Művek Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (75%+1 szavazat)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Bakonyerdő Erdészeti és Faipari Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "DALERD Délalföldi Erdészeti Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "ÉSZAKERDŐ Erdőgazdasági Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Gemenci Erdő- és Vadgazdaság Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "GYULAI Erdészeti és Vadászati Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Ipoly Erdő Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Kisalföldi Erdőgazdasági Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "KEFAG Kiskunsági Erdészeti és Faipari Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "EGERERDŐ Erdészeti Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Mecsekerdő Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "NEFAG Nagykunsági Erdészeti és Faipari Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "NYÍRERDŐ Nyírségi Erdészeti Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Pilisi Parkerdő Zrt."
+        qid: Q1236007
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "SEFAG Erdészeti és Faipari Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Szombathelyi Erdészeti Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "TAEG Tanulmányi Erdőgazdaság Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "VADEX Mezőföldi Erdő- és Vadgazdálkodási Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Vértesi Erdészeti és Faipari Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Zalaerdő Erdészeti Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Budapesti Erdőgazdaság Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Kaszó Erdőgazdaság Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "VERGA Veszprémi Erdőgazdaság Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "HM Armcom Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "HM Currus Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "HM Arzenál Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Magyar Export-Import Bank Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Magyar Exporthitel Biztosító Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Magyar Posta Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (75%+1 szavazat)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "MÁV Magyar Államvasutak Zrt."
+        qid: Q168082
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Győr–Sopron–Ebenfurti Vasút Zrt."
+        qid: Q181697
+        holder: "Magyar Állam, tartós állami tulajdon (65,6%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "HungaroControl Magyar Légiforgalmi Szolgálat Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Magyar Fejlesztési Bank Zrt."
+        qid: Q1161893
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Hortobágyi Természetvédelmi és Génmegőrző Nonprofit Kft."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "HM Elektronikai, Logisztikai és Vagyonkezelő Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Államadósság Kezelő Központ Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Garantiqa Hitelgarancia Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (25%+1 szavazat)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Regionális Fejlesztési Holding Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Nemzeti Infokommunikációs Szolgáltató Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Tiszavíz Vízerőmű Energetikai Kft."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Concordia Közraktár Kereskedelmi Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Radioaktív Hulladékokat Kezelő Közhasznú Nonprofit Kft."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Szerencsejáték Zrt."
+        qid: Q7664603
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Bábolna Nemzeti Ménesbirtok Kft."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Mezőhegyesi Állami Ménes Lótenyésztő- és Értékesítő Kft."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Dunamenti Regionális Vízmű Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (75%+1 szavazat)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Dunántúli Regionális Vízmű Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (75%+1 szavazat)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Észak-dunántúli Regionális Vízmű Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (75%+1 szavazat)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Észak-magyarországi Regionális Vízművek Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (75%+1 szavazat)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Tiszamenti Regionális Vízművek Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (75%+1 szavazat)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Herendi Porcelánmanufaktúra Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (25%+1 szavazat)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Országos Hulladékgazdasági Ügynökség Nonprofit Kft."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Kincsem Nemzeti Lóverseny és Lovas Stratégiai Kft."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Magyar Lóversenyfogadást Szervező Kft."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Diákhitel Központ Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Magyar Nemzeti Vagyonkezelő Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Állami Autópálya Kezelő Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Nemzeti Infrastruktúra Fejlesztő Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Magyar Közút Nonprofit Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Magyar Turizmus Zrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Vasúti Pályakapacitás-elosztó Kft."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (100%)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "Hollóházi Hungarikum Nonprofit Kft."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (50%+1 szavazat)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595
+      - name: "RÁBA Járműipari Holding Nyrt."
+        qid: null
+        holder: "Magyar Állam, tartós állami tulajdon (50%+1 szavaz)"
+        source: https://hu.wikipedia.org/w/index.php?title=Tart%C3%B3s_%C3%A1llami_tulajdon%C3%BA_t%C3%A1rsas%C3%A1gi_r%C3%A9szesed%C3%A9ssel_m%C5%B1k%C3%B6d%C5%91_t%C3%A1rsas%C3%A1gok&oldid=28677595

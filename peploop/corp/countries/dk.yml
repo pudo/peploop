@@ -1,0 +1,39 @@
+# Denmark. Unitary: five regioner. peploop resolves dk to the Danish Realm
+# (Q756617), whose subdivisions are Denmark, the Faroes and Greenland;
+# Danish items carry P17 Denmark (Q35).
+
+# The polity whose subdivisions are the regional tier: rigour's main QID is
+# the realm around it. (All current QIDs count as the country either way.)
+state: Q35
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items.
+# Prosecution offices are the judiciary's (peploop's), 15 of them reached
+# through Rigsadvokaten.
+exclude:
+  - {qid: Q1092499, name: public prosecutor's office}  # 23 live, e.g. Q11997819 Rigsadvokaten
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Measured with P17 = Denmark
+# (Q35): the formed and typed lanes query P17 = Q756617 and find almost
+# nothing until the state is Q35.
+forms:
+  - {qid: Q21268738, kind: institution, name: statslig administrativ enhed}  # 29 (131 live)
+  - {qid: Q23000150, kind: enterprise, name: selvstændig offentlig virksomhed}  # 2 (8 live)
+  - {qid: Q111628618, kind: institution, name: dansk styrelse}  # 10 (63 live)
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Finansministeriet, Statens selskaber (statens ejerskabspolitik og årlig oversigt), https://fm.dk/"
+    entries: []

@@ -10,8 +10,15 @@ it is, and the measurements behind it, are in `docs/soe_peps.md`.
 The logic is global. What differs by country lives in its spec,
 `countries/<cc>.yml` (`country.py`): official holdings lists, the state-only
 legal forms that mark a body, classes the type tree misfiles as government,
-seats beyond the global table, and the tiers written. A new country is a new
-spec, not a code change.
+seats beyond the global table, the tiers written, and where rigour's main
+QID is a realm around the state, the polity whose subdivisions are the
+regional tier. A new country is a new spec, not a code change.
+
+A country is all its current QIDs: rigour's main one and its alternates,
+less the predecessor states (typed historical and ended before 1990-12-26,
+the policy OpenSanctions' crawlers use). Every query placing a body in the
+country runs once per QID, and each counts as the state when a link points
+to it.
 
 ## The pattern it writes
 
@@ -20,10 +27,13 @@ whatever their legal form) and **institutions** (museums, theatres, research
 centres, broadcasters, hospitals, agencies, administrative units run like a
 business). Ministries, legislatures and courts are peploop's, as positions.
 
-- A link to each public body over it that the article names: `P127` owned
-  by, for an owner (a shareholder, founder or carrier); `P749` parent
-  organization, for a ministry or government it is part of or subordinate
-  to. A chain of these links to the state, a first-level subdivision or a
+- A link to each public body the article presents as owning, carrying or
+  running it: `P127` owned by, for the holder (the state or a subdivision
+  itself, a state holding or fund, another enterprise); `P749` parent
+  organization, for a ministry, government or agency it is part of or
+  subordinate to. A co-owner with a mere stake gets no link: consumers read
+  these links as control. The split follows usage: `P749` points to a
+  government body, `P127` to the polity. A chain of these links to the state, a first-level subdivision or a
   government body of either is the evidence of control. No shares, sizes or
   control arithmetic: the links and the article's word are the evidence.
 - `P31 Q270791` state-owned enterprise, on an enterprise only: the marker,
@@ -38,15 +48,26 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   | member of the supervisory body | `P5052` | `P5052` |
   | deputy chair of the supervisory body | `P5052` + `P2868 Q1127270` | same |
   | chair / deputy / member of a one-tier board | `P488` / `P3320` + `P2868 Q1127270` / `P3320` | same |
-  | member of the executive body | `P3320` + `P2868 Q2824523` | same |
+  | member of the executive body | `P3320` + `P2868 Q141755781` | same |
   | a managing director, not the chair | `P3320` + `P2868 Q19940089` | same |
   | a party committee secretary | only where the country's spec maps it | |
+
+  A head is written once: not as `P169` where the same person is already
+  `P1037` on the item, nor the other way round. "Executive board member"
+  (`Q141755781`) is a role item created for pepcorp, because "board member" (`Q2824523`) means a
+  one-tier board in some languages and an executive board in others.
 
   A supervisory body is whatever oversees the executive: a supervisory board,
   an administrative council, a board of trustees, a broadcasting council; all
   its named members are written. The model translates a country's titles
   into these roles by function, so the table is global and the prompt names
   no country.
+
+- **Corrections.** A body whose article shows it municipal, while the
+  municipal tier is not written, gains the municipal marker `Q1780371`; a
+  body shown private gains nothing. Either way, its contradicted `Q270791`
+  (or `Q1780371`) statements are proposed for removal and wait for
+  `removals approve`, being other editors'.
 
 The rule is the EU AMLR: every member of the administrative, management and
 supervisory bodies of an enterprise the state controls; regional and
@@ -61,7 +82,8 @@ are written by default; a spec names its own.
    steps to a state actor, read from QLever, from the country's items and
    into them), parented (`P749` to a state actor), seed (the spec's
    holdings). Dropped: dissolved, not an organisation, no article in the
-   country's languages or English.
+   country's languages or English; never sports clubs, military units,
+   diplomatic missions, courts or places, nor the spec's `exclude`.
 2. **decide** (`decide.py`, `prompts/decide.md`): one request per body with
    its statements, chain, candidate controllers and articles. The answer:
    what it is, whether a state controls it and the bodies over it (chosen or

@@ -8,7 +8,7 @@ enterprises whose control the articles leave unclear.
 from collections import Counter, defaultdict
 from typing import Any
 
-from peploop import memo, positions
+from peploop import memo
 from peploop.corp import country as countries
 from peploop.corp import decide, load, qs, wd
 
@@ -27,8 +27,11 @@ def report(cc: str) -> str:
     gates = Counter(r[5] for r in rows if r[1] == "-")
     applied = Counter(r[1] for r in rows if r[4] == "apply")
     skipped = Counter(r[5] for r in rows if r[1] != "-" and r[4] == "skip")
+    seats = [r for r in rows if r[4] == "apply" and r[1] not in ("P31", "P127", "P749")]
+    undated_total = Counter(r[1] for r in seats)
+    undated = Counter(r[1] for r in seats if "P580" not in r[3] and "P582" not in r[3])
     refs = {r[0] for r in rows} | {r[2] for r in rows if r[2]}
-    info = memo.labels_of(sorted(refs), load.label_langs(load.langs(positions.country_qid(cc))))
+    info = memo.labels_of(sorted(refs), load.label_langs(load.langs(countries.state_qid(cc))))
     name = lambda q: next(iter((info.get(q) or {}).get("labels", {}).values()), "")  # noqa: E731
     path = qs.latest(cc)
     n_lines = len(path.read_text().splitlines()) if path else 0
@@ -40,17 +43,21 @@ def report(cc: str) -> str:
            f"- written on: {len(by_qid) - sum(gates.values())} enterprises",
            "- statements applied: " + ", ".join(f"{k} {v}" for k, v in applied.most_common()),
            "- statements skipped: " + ", ".join(f"{k} {v}" for k, v in skipped.most_common()),
+           f"- seats written without a start or end: " + ", ".join(
+               f"{p} {n}/{undated_total[p]}" for p, n in sorted(undated.items())),
+           f"- contradicted markers proposed for removal: {sum(1 for r in rows if r[4] == 'remove')}",
            f"- run file: {path} ({n_lines} lines)", ""]
     out += ["## Enterprises written on", ""]
     for qid, rs in by_qid.items():
-        if any(r[1] == "-" for r in rs):
+        if any(r[1] == "-" for r in rs) and not any(r[4] in ("apply", "remove") for r in rs):
             continue
         out.append(f"### {qid} {name(qid)} ({kinds.get(qid, '?')})")
         for _, prop, value, detail, disp, rule in rs:
             what = f"{value} {name(value)}" if value else detail.get("name", "")
             extra = "; ".join(f"{k} {v.get('id') or v.get('time', '')[1:11] or v.get('amount')}"
                               for k, v in detail.items() if isinstance(v, dict))
-            out.append(f"- {'✓' if disp == 'apply' else '·'} {prop} {what}" + (f" ({extra})" if extra else "")
+            mark = {"apply": "✓", "remove": "✗"}.get(disp, "·")
+            out.append(f"- {mark} {prop} {what}" + (f" ({extra})" if extra else "")
                        + ("" if disp == "apply" else f" — {rule}"))
         out.append("")
     out += ["## Residue", "", "### Seats whose person has no linked item", ""]

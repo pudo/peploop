@@ -401,7 +401,8 @@ def send_(country: str | None, qid: Sequence[str], submit: bool, show_status: bo
 @cli.command("removals")
 @click.argument("action", type=click.Choice(["list", "approve", "reject"]), default="list")
 @click.argument("guids", nargs=-1)
-@click.option("--tool", type=click.Choice([outbox.TOOL, tree_outbox.TOOL]), help="List one tool's removals only.")
+@click.option("--tool", type=click.Choice([outbox.TOOL, tree_outbox.TOOL, corp_outbox.TOOL]),
+              help="List one tool's removals only.")
 def removals_(action: str, guids: Sequence[str], tool: str | None) -> None:
     """List statements to take back off Wikidata, or approve/reject them: `removals [approve|reject GUID…]`.
 

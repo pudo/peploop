@@ -13,7 +13,9 @@ pepcorp's logic is global. What differs by country lives in
   municipal savings bank, a professional chamber);
 - `roles`: seats beyond the global table, `role` → `property` and an
   optional `qualifier` (a party committee secretary in a party state);
-- `tiers`: the control tiers whose bodies are written.
+- `tiers`: the control tiers whose bodies are written;
+- `state`: the item the country's items name as their country (`P17`), where
+  it is not the one rigour gives (a realm or kingdom around the state).
 """
 
 from dataclasses import dataclass, field
@@ -22,9 +24,19 @@ from typing import Any
 
 import yaml
 
+from rigour.territories import get_territory
+
+from peploop import memo, positions, wikidata
+
 DIR = Path(__file__).resolve().parent / "countries"
 #: The tiers written when a spec does not say: the state and its first-level subdivisions.
 DEFAULT_TIERS = ("national", "regional")
+#: A predecessor state that ended before this date is no longer the country
+#: (the cutoff OpenSanctions' crawlers use for abolished positions).
+HISTORICAL_CUTOFF = "1990-12-26"
+#: Types that, with an end before the cutoff, make an alternate QID historical:
+#: historical country, former administrative territorial entity.
+HISTORICAL_TYPES = frozenset({"Q3024240", "Q19953632"})
 
 
 @dataclass(frozen=True)
@@ -38,6 +50,7 @@ class Spec:
     #: role → (property, qualifier or None).
     roles: dict[str, tuple[str, str | None]] = field(default_factory=dict)
     tiers: tuple[str, ...] = DEFAULT_TIERS
+    state: str | None = None
 
     def seeded(self) -> dict[str, dict[str, Any]]:
         """QID → holdings entry, for the entries that name an item."""
@@ -61,4 +74,35 @@ def get(cc: str) -> Spec:
         exclude=frozenset(str(q["qid"]) for q in data.get("exclude") or []),
         roles={str(r["role"]): (str(r["property"]), r.get("qualifier")) for r in data.get("roles") or []},
         tiers=tuple(data.get("tiers") or DEFAULT_TIERS),
+        state=str(data["state"]) if data.get("state") else None,
     )
+
+
+def state_qid(cc: str) -> str:
+    """The polity whose subdivisions are the regional tier: the spec's state, else rigour's main QID."""
+    return get(cc).state or positions.country_qid(cc)
+
+
+def historical(entity: dict[str, Any]) -> bool:
+    """Whether an item is a predecessor state that ended before the cutoff.
+
+    Only both together count: typed historical, and ended before the cutoff.
+    A live state wrongly dropped loses living PEPs; a dead one wrongly kept
+    only adds candidates the decision stage filters.
+    """
+    if not set(wikidata.claim_qids(entity, "P31", include_deprecated=False)) & HISTORICAL_TYPES:
+        return False
+    ends = [t for p in ("P576", "P582") for t, _ in wikidata.claim_time(entity, p, include_deprecated=False)]
+    return bool(ends) and max(ends).lstrip("+")[:10] < HISTORICAL_CUTOFF
+
+
+def current_qids(cc: str) -> list[str]:
+    """Every QID that names the country now: rigour's main and alternate QIDs and the
+    spec's state, less the historical alternates. Bodies name any of them as their country."""
+    territory = get_territory(cc)
+    qids = sorted({*(territory.qids if territory else ()), *([get(cc).state] if get(cc).state else [])})
+    def read() -> list[str]:
+        ents = wikidata.fetch_items(qids, props="claims")
+        main = territory.qid if territory else None
+        return [q for q in qids if q == main or not historical(ents.get(q) or {})]
+    return memo.cached(f"pcorp_current_qids:{cc}:{'|'.join(qids)}", read)

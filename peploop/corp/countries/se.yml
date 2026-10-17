@@ -1,0 +1,32 @@
+# Sweden. Unitary: 21 län, whose regions are the regional tier.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. Open
+# data portals (220, 59 reached) are no body.
+exclude:
+  - {qid: Q27031827, name: open data portal}  # 220 live, e.g. Q101096527 Solnas  Öppna Data portal
+  - {qid: Q897399, name: chamber of commerce and industry}  # 3 live, e.g. Q10517084 Handelskammaren i Gävle
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Statlig utredning (state
+# inquiries, temporary) is left out. Statlig enhet is not under organization
+# in the type tree; the formed lane keeps it anyway.
+forms:
+  - {qid: Q68295960, kind: institution, name: Swedish government agency}  # 17 (250 live)
+  - {qid: Q108514063, kind: institution, name: statlig enhet}  # 17 (240 live)
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Regeringskansliet, Verksamhetsberättelse för bolag med statligt ägande, https://www.regeringen.se/regeringens-politik/bolag-med-statligt-agande/"
+    entries: []

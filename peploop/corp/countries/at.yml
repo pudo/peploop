@@ -1,0 +1,86 @@
+# Austria. Federal: nine Bundesländer, whose holdings and bodies are the
+# regional tier.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. Chambers, churches and fire
+# brigades carry these classes; three Wirtschaftskammern typed Industrie-
+# und Handelskammer are state actors without it (Q14859362).
+not_government:
+  - {qid: Q1796671, name: Körperschaft des öffentlichen Rechts (Österreich)}  # 41 live, e.g. Q98640761 Versorgungsanstalt des österreichischen Notariates
+  - {qid: Q15734684, name: Körperschaft des öffentlichen Rechts}  # 13 live, e.g. Q107102817
+  - {qid: Q897399, name: chamber of commerce and industry}  # 11 live, e.g. Q14859362
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items.
+# Savings banks belong to their foundations or municipalities; the chambers
+# and social insurers administer themselves.
+exclude:
+  - {qid: Q157963, name: savings bank}  # 31 live, e.g. Q1118950 Sparkasse Rattenberg
+  - {qid: Q897399, name: chamber of commerce and industry}  # 11 live, e.g. Q1203098 Deutsche Handelskammer in Österreich
+  - {qid: Q15855960, name: Ärztekammer}  # 1 live, e.g. Q136375090 Ärztekammer für Salzburg
+  - {qid: Q59155876, name: Landwirtschaftskammer}  # 1 live, e.g. Q1804786 Landwirtschaftskammer (Österreich)
+  - {qid: Q635047, name: Architektenkammer}  # 1 live, e.g. Q134519736 Ingenieur- und Architektenkammer Wien
+  - {qid: Q563787, name: health insurance company}  # 3 live, e.g. Q53939971 Österreichische Gesundheitskasse
+  - {qid: Q2306006, name: Sozialversicherungsträger}  # 1 live, e.g. Q63808458 Sozialversicherungsanstalt der Selbständigen
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Körperschaft des öffentlichen
+# Rechts (chambers, churches, fire brigades) and Fonds des öffentlichen
+# Rechts (a chamber's school fund among them) are left out: not state-only.
+forms:
+  - {qid: Q89651395, kind: institution, name: Bundesanstalt öffentlichen Rechts}  # 0 (4 live)
+  - {qid: Q1008763, kind: institution, name: Bundestheater}  # 0 (1 live)
+
+roles: []
+
+# Official list of central-government holdings; entries via de.wikipedia
+# (Österreichische Beteiligungs AG, the current holdings list); a holding
+# linked to a dissolved predecessor has no QID. QIDs from the list's own
+# links, kept only when the item is a live organisation. An entry without a
+# QID is a holding with no item.
+holdings:
+  - source: "ÖBAG (Österreichische Beteiligungs AG), Beteiligungen der Republik, https://www.oebag.gv.at/"
+    entries:
+      - name: "OMV"
+        qid: Q168238
+        holder: "Republik Österreich, über ÖBAG (31,50 %)"
+        source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
+      - name: "Österreichische Post"
+        qid: Q1763505
+        holder: "Republik Österreich, über ÖBAG (52,85 %)"
+        source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
+      - name: "Telekom Austria"
+        qid: Q688755
+        holder: "Republik Österreich, über ÖBAG (28,42 %)"
+        source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
+      - name: "EuroTeleSites"
+        qid: Q135551988
+        holder: "Republik Österreich, über ÖBAG (28,42 %)"
+        source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
+      - name: "Casinos Austria"
+        qid: Q464579
+        holder: "Republik Österreich, über ÖBAG (33,24 %)"
+        source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
+      - name: "APK-Pensionskasse"
+        qid: null
+        holder: "Republik Österreich, über ÖBAG (32,97 %)"
+        source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
+      - name: "GKB-Bergbau GmbH"
+        qid: null
+        holder: "Republik Österreich, über ÖBAG (100,00 %)"
+        source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
+      - name: "IMIB Immobilien- und Industriebeteiligungen GmbH"
+        qid: Q689750
+        holder: "Republik Österreich, über ÖBAG (100,00 %)"
+        source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
+      - name: "Schoeller-Bleckmann GmbH"
+        qid: null
+        holder: "Republik Österreich, über ÖBAG (100,00 %)"
+        source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
+      - name: "Bundesimmobiliengesellschaft"
+        qid: Q1006210
+        holder: "Republik Österreich, über ÖBAG (100,00 %)"
+        source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466

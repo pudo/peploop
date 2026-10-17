@@ -1,0 +1,50 @@
+# Czechia. Unitary: 14 kraje, self-governing regions whose bodies are the
+# regional tier.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. The economic and agrarian
+# chambers' legal form and the volunteer fire brigades (Q101015672) are
+# filed as government bodies.
+not_government:
+  - {qid: Q129261513, name: "Komora (hospodářská, agrární)"}  # 2 live, e.g. Q67807998 Okresní agrární komora Jičín
+  - {qid: Q285852, name: sbor dobrovolných hasičů}  # 41 live, e.g. Q61905584 Hasiči Klášterec nad Ohří
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items.
+# Regions own their schools and children's homes as contributory
+# organisations: 568 secondary schools, 277 primary schools, 196 art schools
+# and 128 children's homes come in through P127/P749 to a kraj. Also the
+# professional and economic chambers and the employee health insurers (VZP
+# itself is kept).
+exclude:
+  - {qid: Q56440908, name: stavovská organizace – profesní komora}  # 10 live, e.g. Q12041098 Notářská komora České republiky
+  - {qid: Q129261513, name: "Komora (hospodářská, agrární)"}  # 2 live, e.g. Q67807998 Okresní agrární komora Jičín
+  - {qid: Q129261534, name: Zdravotní pojišťovna (mimo VZP)}  # 5 live, e.g. Q11283532 Česká průmyslová zdravotní pojišťovna
+  - {qid: Q897399, name: chamber of commerce and industry}  # 5 live, e.g. Q29373497 Česko-izraelská smíšená obchodní komora
+  - {qid: Q3914, name: school}  # 71 live, e.g. Q28870307 Vyšší odborná škola, Střední odborná škola a Střed
+  - {qid: Q9311671, name: residential child care community}  # 134 live, e.g. Q113104774 Chovánek - dětské centrum rodinného typu
+  - {qid: Q11448829, name: school cafeteria}  # 194 live, e.g. Q61486711 Dětský diagnostický ústav, středisko výchovné péče
+  - {qid: Q11863339, name: dům dětí a mládeže}  # 134 live, e.g. Q61484565 Dům dětí a mládeže, Žatec, Obránců míru 638
+  - {qid: Q61941563, name: pedagogicko-psychologická poradna}  # 35 live, e.g. Q61488727 Středisko služeb školám
+  - {qid: Q78187793, name: výchovný ústav}  # 24 live, e.g. Q61484580 Výchovný ústav, dětský domov se školou, základní š
+  - {qid: Q124660793, name: středisko výchovné péče}  # 22 live, e.g. Q61484568 Výchovný ústav, středisko výchovné péče a střední 
+  - {qid: Q61941618, name: Středisko volného času}  # 36 live, e.g. Q61666713 SVČ Mozaika Polička
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Státní podnik is in the
+# Q270791 tree. Příspěvková organizace (7184, mostly regional and municipal
+# schools) and veřejná výzkumná instituce (founded by the state, the Academy
+# or regions) are left out: not state-only.
+forms:
+  - {qid: Q12042877, kind: institution, name: organizační složka státu}  # 17 (246 live)
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Ministerstvo financí, majetkové účasti státu (státní podniky a společnosti s účastí státu), https://www.mfcr.cz/"
+    entries: []

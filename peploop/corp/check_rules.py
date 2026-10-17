@@ -6,7 +6,7 @@
 from datetime import date
 
 from peploop import propose, qs
-from peploop.corp import actors, load, rules
+from peploop.corp import actors, country, load, rules
 from peploop.tree.check_filter import expect
 
 TODAY = date(2026, 10, 17)
@@ -65,8 +65,8 @@ TABLE = {
     ("institution", "supervisory", "member"): ("P5052", None),
     ("enterprise", "supervisory", "deputy_chair"): ("P5052", "Q1127270"),
     ("enterprise", "board", "deputy_chair"): ("P3320", "Q1127270"),
-    ("enterprise", "executive", "member"): ("P3320", "Q2824523"),
-    ("institution", "executive", "member"): ("P3320", "Q2824523"),
+    ("enterprise", "executive", "member"): ("P3320", "Q141755781"),
+    ("institution", "executive", "member"): ("P3320", "Q141755781"),
     ("enterprise", "board", "member"): ("P3320", None),
     ("enterprise", "executive", "managing_director"): ("P3320", "Q19940089"),
     ("institution", "executive", "managing_director"): ("P3320", "Q19940089"),
@@ -154,6 +154,71 @@ def control() -> None:
            "no shortcut to a controller the chain reaches through another owner")
 
 
+def claim(prop: str, value: str, guid: str) -> dict:
+    return {"id": guid, "rank": "normal", "mainsnak": {"property": prop, "datavalue": {"value": {"id": value}}}}
+
+
+def crawler_cases() -> None:
+    """The cases OpenSanctions' crawler runs got wrong, pinned."""
+    arts = [{"lang": "xx", "url": "https://xx.wikipedia.org/wiki/Q", "rev": 1}]
+    base = {"offered": ["Q900100", "Q900101", "Q900102"], "articles": arts, "message": MESSAGE, "links": {}}
+    state = {"Q900100", "Q900600"}
+    # A private co-owner beside the state owner is not linked; the state one is.
+    req = {**base, "answer": answer(owners=((0, "owner"), (1, "owner")))}
+    links = [r for r in rules.control_rows(req, ent(), None, state, {}) if r["property"] == "P127"]
+    expect([(o["value"]["id"], o["_rule"]) for o in links] == [("Q900100", None), ("Q900101", "controller_not_state")],
+           "a co-owner that is no state body gets no link")
+    # A sovereign fund's holding is written only on its own verdict, not the fund's.
+    held = {**base, "offered": ["Q900600"], "answer": answer(verdict="unclear", owners=((0, "owner"),))}
+    expect(rules.gate(held["answer"], MESSAGE) == "control:unclear", "a fund's minority holding is not written")
+    controlled = {**base, "offered": ["Q900600"], "answer": answer(owners=((0, "owner"),))}
+    rows = rules.control_rows(controlled, ent(), None, state, {})
+    expect([r["property"] for r in rows] == ["P31", "P127"] and all(r["_rule"] is None for r in rows),
+           "a company the fund controls gets the marker and the link")
+    # A subsidiary of an enterprise this run finds state-controlled is itself marked.
+    sub = {**base, "offered": ["Q900700"], "answer": answer(owners=((0, "owner"),))}
+    rows = rules.control_rows(sub, ent(), ["Q900800", "Q900700", "Q900100"], state | {"Q900700"}, {})
+    expect(rows[0]["property"] == "P31" and rows[0]["_rule"] is None, "a state enterprise's subsidiary gets the marker")
+    # A municipal verdict on an item marked as a state enterprise: municipal marker added, the wrong one proposed.
+    muni = {**base, "answer": answer(level="municipal")}
+    marked = {"claims": {"P31": [claim("P31", "Q900900", "Q1$A")]}}
+    kind, add, wrong = rules.correction(muni, marked, {"Q900900": {"Q900900", "Q270791"}}, ("national", "regional"))
+    expect(kind == "municipal" and [a["value"]["id"] for a in add] == [rules.MUNICIPAL] and [c["id"] for c in wrong] == ["Q1$A"],
+           "a municipal body marked state-owned gains the municipal marker and loses the state one")
+    kind, add, wrong = rules.correction(muni, marked, {"Q900900": {"Q900900", "Q270791"}},
+                                        ("national", "regional", "municipal"))
+    expect(kind is None, "where the municipal tier is written, a municipal body is no correction")
+    priv = {**base, "answer": answer(verdict="private")}
+    kind, add, wrong = rules.correction(priv, marked, {"Q900900": {"Q900900", "Q270791"}}, ("national", "regional"))
+    expect(kind == "private" and not add and [c["id"] for c in wrong] == ["Q1$A"], "a private body's marker is proposed for removal only")
+    unq = {**base, "answer": answer(verdict="private", quote="Nobody said this.")}
+    expect(rules.correction(unq, marked, {"Q900900": {"Q900900", "Q270791"}}, ("national", "regional"))[0] is None,
+           "no correction without a quote")
+    # The head is written once: not as CEO where the same person is already director.
+    links = {"xx": {"Max Probe": "Q901000"}}
+    head = {**base, "links": links, "message": MESSAGE + " Max Probe runs it.",
+            "answer": answer(seats=[seat(name="Max Probe", body="executive", role="head", quote="Max Probe runs it.")])}
+    rows = rules.seat_rows(head, {"Q901000"}, TODAY, None, ent(P1037=["Q901000"]))
+    expect(rows[0]["property"] == "P169" and rows[0]["_rule"] == "head_other", "a head already recorded as director is not written again")
+    rows = rules.seat_rows(head, {"Q901000"}, TODAY, None, ent())
+    expect(rows[0]["_rule"] is None, "a head recorded under neither property is written")
+    # Never candidates: sports clubs, diplomatic missions, places; and a country's chambers.
+    expect({"Q476028", "Q847017", "Q7843791", "Q3917681", "Q56061", "Q192350", "Q7188"} <= load.EXCLUDED,
+           "clubs, missions, places, ministries and governments are never candidates")
+
+
+def historic() -> None:
+    def state(types: list[str], end: str | None = None) -> dict:
+        e = ent(P31=types)
+        if end:
+            e["claims"]["P576"] = [{"rank": "normal", "mainsnak": {"datavalue": {"value": {"time": end, "precision": 9}}}}]
+        return e
+    expect(country.historical(state(["Q3024240"], "+1945-05-08T00:00:00Z")), "a predecessor state that ended before 1991 is historical")
+    expect(not country.historical(state(["Q3024240"])), "a historical type with no end date counts as current")
+    expect(not country.historical(state(["Q3024240"], "+2011-01-01T00:00:00Z")), "an end after the cutoff counts as current")
+    expect(not country.historical(state(["Q6256"], "+1945-05-08T00:00:00Z")), "an end date alone, without the type, is not enough")
+
+
 def reach() -> None:
     a = actors.Actors(state="Q900000", kinds={"Q900000": "state"},
                       links={"P127": {"Q900000": {"Q1"}, "Q1": {"Q2"}, "Q3": {"Q4"}}, "P749": {"Q2": {"Q3"}}})
@@ -170,6 +235,11 @@ def reach() -> None:
     kinds = actors.classify("Q900000", {"Q900000"}, {"Q900012": {"Q900021"}}, {"Q900012": {"Q900000"}},
                             {"Q900021": {"Q900021", "Q2659904", "Q56061"}})
     expect("Q900012" not in kinds, "a municipality the type tree calls a government organization is no actor")
+    kinds = actors.classify("Q900000", {"Q900000", "Q900001"}, {"Q900013": {"Q900020"}, "Q900014": {"Q900020"}},
+                            {"Q900013": {"Q900000"}, "Q900014": {"Q900000"}}, {"Q900020": {"Q900020", "Q35798"}},
+                            jurisdictions={"Q900013": {"Q900050"}, "Q900014": {"Q900001"}})
+    expect("Q900013" not in kinds, "a town's administration, placed in the country but governing a town, is no actor")
+    expect(kinds.get("Q900014") == "government", "a body governing a first-level subdivision is one")
 
 
 def filters() -> None:
@@ -189,6 +259,8 @@ def main() -> None:
     names()
     dates()
     control()
+    crawler_cases()
+    historic()
     reach()
     filters()
 

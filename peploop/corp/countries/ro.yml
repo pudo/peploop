@@ -1,0 +1,33 @@
+# Romania. Unitary: 41 județe and Bucharest.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items.
+# Prosecution offices are the judiciary's (peploop's): 58 reached through
+# the Public Ministry; the bar and the chambers administer themselves.
+exclude:
+  - {qid: Q1092499, name: public prosecutor's office}  # 61 live, e.g. Q141473920 Parchetul de pe lângă Curtea de Apel Timișoara
+  - {qid: Q141473894, name: parchet din România}  # 58 live, e.g. Q141473941 Parchetul de pe lângă Tribunalul Galați
+  - {qid: Q1865205, name: bar association}  # 4 live, e.g. Q139906003 Baroul Cluj
+  - {qid: Q897399, name: chamber of commerce and industry}  # 3 live, e.g. Q141186916 Camera de Comerț, Industrie și Agricultură Arad
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Regie autonomă is left out:
+# national and local. Agenție guvernamentală is a global class.
+forms:
+  - {qid: Q141497398, kind: institution, name: autoritate administrativă independentă}  # 3 (5 live)
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Ministerul Finanțelor, AMEPIP, monitorizarea întreprinderilor publice, https://mfinante.gov.ro/"
+    entries: []

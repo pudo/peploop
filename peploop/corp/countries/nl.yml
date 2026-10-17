@@ -1,0 +1,45 @@
+# The Netherlands. Unitary: twelve provinces. peploop resolves nl to the
+# Kingdom (Q29999), whose subdivisions are the four countries; Dutch items
+# carry P17 the Netherlands (Q55).
+
+# The polity whose subdivisions are the regional tier: rigour's main QID is
+# the realm around it. (All current QIDs count as the country either way.)
+state: Q55
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. School associations
+# (stichtingen) and the EU agencies in the Netherlands are filed as
+# government bodies.
+not_government:
+  - {qid: Q138573992, name: scholenkoepel}  # 336 live, e.g. Q121875133 West Openbaar Onderwijs
+  - {qid: Q112827555, name: decentralised agency of the European Union}  # 3 live, e.g. Q130146 European Medicines Agency
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items.
+# School associations and boards, schools, and the EU agencies.
+exclude:
+  - {qid: Q138573992, name: scholenkoepel}  # 336 live, e.g. Q121875133 West Openbaar Onderwijs
+  - {qid: Q399541, name: board of education}  # 5 live, e.g. Q106748018 Stichting Interregionaal Onderwijs Zaanstad
+  - {qid: Q112827555, name: decentralised agency of the European Union}  # 3 live, e.g. Q130146 European Medicines Agency
+  - {qid: Q3914, name: school}  # 594 live, e.g. Q110781045 Scholengemeenschap De Die
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Measured with P17 = the
+# Netherlands (Q55): the formed and typed lanes query P17 = Q29999 and find
+# almost nothing until the state is Q55. Publiekrechtelijke rechtspersoon
+# (municipalities, water boards, the bar) is left out.
+forms:
+  - {qid: Q32798322, kind: institution, name: Nederlands zelfstandig bestuursorgaan}  # 6 (37 live)
+  - {qid: Q135734549, kind: institution, name: Nederlands agentschap}  # 1 (30 live)
+  - {qid: Q138643360, kind: institution, name: inspectie}  # 0 (14 live)
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Ministerie van Financiën, Jaarverslag beheer staatsdeelnemingen, https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen"
+    entries: []

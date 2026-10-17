@@ -1,0 +1,91 @@
+# Greece. Unitary: 13 periphéries with elected regional government, and
+# Mount Athos.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. The
+# bar, the medical association and the chambers administer themselves.
+exclude:
+  - {qid: Q897399, name: chamber of commerce and industry}  # 3 live, e.g. Q104884272 German-Greek Chamber of Industry and Commerce
+  - {qid: Q1865205, name: bar association}  # 1 live, e.g. Q112672185 Δικηγορικός Σύλλογος Αθηνών
+  - {qid: Q10729872, name: medical association}  # 2 live, e.g. Q106114250 Panhellenic Medical Association
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Νομικό Πρόσωπο Δημοσίου
+# Δικαίου (bar associations, chambers, municipal agencies) and the Ephorates
+# of Antiquities (ministry branches without boards) are left out.
+forms:
+  - {qid: Q25536112, kind: institution, name: ανεξάρτητη διοικητική αρχή}  # 0 (2 live)
+
+roles: []
+
+# Official list of central-government holdings; entries via el.wikipedia
+# (Εθνικό Αναπτυξιακό Ταμείο, portfolio table). QIDs from the list's own
+# links, kept only when the item is a live organisation. An entry without a
+# QID is a holding with no item.
+holdings:
+  - source: "Υπερταμείο (Growthfund, Ελληνική Εταιρεία Συμμετοχών και Περιουσίας), χαρτοφυλάκιο, https://www.growthfund.gr/en/our-portfolio/"
+    entries:
+      - name: "Ταμείο Αξιοποίησης Ιδιωτικής Περιουσίας Δημοσίου (ΤΑΙΠΕΔ)"
+        qid: Q1602750
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (100%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Εταιρεία Ακινήτων Δημοσίου (ΕΤΑΔ)"
+        qid: Q118178032
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (100%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Συμμετοχές 5G"
+        qid: null
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (100%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Ελληνικά Σιδηροδρομικά Ακίνητα Α.Ε. (πρώην ΓΑΙΑ ΟΣΕ Α.Ε.)"
+        qid: Q125421748
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (100%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Ανώνυμος Εταιρεία Διώρυγας Κορίνθου (ΑΕΔΙΚ)"
+        qid: null
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (100%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Ελληνικά Ταχυδρομεία"
+        qid: Q1275135
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (100%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Όμιλος ΟΑΣΑ – Συγκοινωνίες Αθηνών"
+        qid: Q141627886
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (100%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Οργανισμός Κεντρικών Αγορών και Αλιείας (Ο.Κ.Α.Α.)"
+        qid: null
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (100%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Κεντρική Αγορά Θεσσαλονίκης (Κ.Α.Θ.)"
+        qid: null
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (100%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "ΔΕΘ-HELEXPO"
+        qid: null
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (100%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Ελληνικές Αλυκές"
+        qid: null
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (80%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "ΕΤΒΑ Επιχειρηματικά και Βιομηχανικά Πάρκα (ΕΤΒΑ ΒΙ.ΠΕ.)"
+        qid: null
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (35%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Δημόσια Επιχείρηση Ηλεκτρισμού (ΔΕΗ)"
+        qid: Q326345
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (34,12%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
+      - name: "Διεθνής Αερολιμένας Αθηνών (ΔΑΑ)"
+        qid: null
+        holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (25,5%)"
+        source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877

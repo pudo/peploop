@@ -17,6 +17,10 @@ so every claim you make must rest on a verbatim quote from an article shown.
     run like a business (a state forestry or roads operation), a foundation.
   - `government`: a ministry, cabinet, legislature, court or the government
     itself.
+  - A local or lower office of an authority -- a tax office, a district or
+    branch office, a regional office under a higher authority, a state's
+    representation office -- is `other`: its head is no senior official. The
+    authority at the top stays `institution`.
   - `other`: anything else: a building, a brand, a television channel or
     programme, a club, a collection of objects.
 - `active`: false when the articles say it was dissolved, merged into
@@ -42,15 +46,23 @@ body, carries it, runs it or has it as part of itself.
   share control, the level of the one the articles present as leading.
 - `control.quote` and `control.article`: the sentence that says who owns,
   carries or runs it, verbatim, and the language code of its article.
-- `control.owners`: every public body the articles name as owning or being
-  over this one, each once:
-  - `relation`: `owner` for a body that holds it, as shareholder, founder or
-    carrier; `parent` for a ministry, government or other body that it is
-    part of or subordinate to. A body that only oversees it (legal
-    supervision, a regulator) is neither and is left out.
+- `control.owners`: the public bodies the articles present as owning,
+  carrying or running this one, or as the body it is part of, each once. A
+  public body the articles mention only as holding a stake, beside a
+  different owner that runs the body, is left out: these links tell readers
+  who controls the body.
+  - `relation`: `owner` for the holder: the state or subdivision itself, a
+    state holding company, a state fund or another enterprise named as
+    owning or carrying it. `parent` for a ministry, government or agency it
+    is part of or subordinate to. A ministry that only represents the state
+    as shareholder is not the owner: the state is. A body that only oversees
+    it (legal supervision, a regulator) is neither and is left out.
+  - An authority or agency is never owned: its only link is `parent`, to the
+    ministry or government body the articles name it under. When they name
+    none, list no owner for it. That a body sits at the state level, or is
+    an authority of a state or region, is no ownership statement.
   - `controller`: its index in the list of candidate controllers, when it is
-    listed. Choose the direct owner or parent the articles name (a ministry,
-    a holding enterprise, a state fund); otherwise the polity behind it.
+    listed; otherwise null.
   - `name`: when it is not listed, its name exactly as the article writes it
     and links it; null when it is listed.
   - `quote` and `article`: the passage that states this relation, verbatim.
@@ -98,7 +110,8 @@ by country and legal form, and the body it sits in decides the role.
 For every seat:
 - `name`: the person's name exactly as the article writes it.
 - `start`, `end`: `YYYY`, `YYYY-MM` or `YYYY-MM-DD`, only as precise as the
-  article says; null when it does not say.
+  article says; null when it does not say. Where several passages name the
+  person in the seat, quote the one that gives when they took it or left it.
 - `current`: true only when the article says the person holds the seat now
   (present tense, or the infobox lists them as the current holder).
 - `quote`: the passage that names the person in the seat, verbatim, and

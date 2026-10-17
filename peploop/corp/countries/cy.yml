@@ -1,0 +1,32 @@
+# Cyprus. Unitary: six districts, administered by the state (no regional
+# self-government).
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. None
+# measured.
+exclude:
+  - {qid: Q10729872, name: medical association}  # 1 live, e.g. Q60743351 Cyprus Medical Association
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Measured thin: no item
+# carries a seat statement. Semi-government organisations (νομικά πρόσωπα
+# δημοσίου δικαίου) have no class on Wikidata.
+forms:
+  - {qid: Q135905403, kind: institution, name: Cypriot government department}  # 0 (72 live)
+  - {qid: Q135489653, kind: institution, name: government agency of Cyprus}  # 0 (63 live)
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Υπουργείο Οικονομικών, Ημικρατικοί Οργανισμοί (semi-government organisations), https://www.mof.gov.cy/"
+    entries: []

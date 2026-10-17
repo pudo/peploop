@@ -1,0 +1,166 @@
+# Estonia. Unitary: 15 maakonnad, without regional self-government since
+# 2018.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. The
+# notaries' chamber, the bar and the medical association administer
+# themselves.
+exclude:
+  - {qid: Q1757539, name: notarite koda}  # 2 live, e.g. Q1436614 Notarite Koda
+  - {qid: Q1865205, name: bar association}  # 1 live, e.g. Q16408959 Eesti Advokatuur
+  - {qid: Q10729872, name: medical association}  # 2 live, e.g. Q16409064 Eesti Arstide Liit
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Avalik-õiguslik juriidiline
+# isik (universities, the broadcaster, the bar and notaries) and kohaliku
+# omavalitsuse asutus (municipal) are left out; valitsusasutus covers the
+# ministries.
+forms:
+  - {qid: Q68660394, kind: institution, name: ministeeriumi hallatav riigiasutus}  # 2 (159 live)
+  - {qid: Q25521581, kind: institution, name: amet}  # 0 (30 live)
+  - {qid: Q16410503, kind: institution, name: inspektsioon}  # 0 (7 live)
+  - {qid: Q131353826, kind: institution, name: ameti hallatav riigiasutus}  # 0 (3 live)
+  - {qid: Q69026707, kind: institution, name: täidesaatva riigivõimu asutus või riigi muu institutsioon}  # 0 (11 live)
+  - {qid: Q69747485, kind: enterprise, name: riigitulundusasutus}  # 0 (1 live)
+
+roles: []
+
+# Official list of central-government holdings; entries via et.wikipedia
+# (Riigi äriühing, list of companies with state participation). QIDs from
+# the list's own links, kept only when the item is a live organisation. An
+# entry without a QID is a holding with no item.
+holdings:
+  - source: "Rahandusministeerium, riigi osalusega äriühingud, https://www.fin.ee/"
+    entries:
+      - name: "AS A. L. A. R. A."
+        qid: Q12357984
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Eesti Kaardikeskus"
+        qid: Q12361231
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Eesti Liinirongid"
+        qid: Q1326458
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Eesti Loots"
+        qid: Q25516783
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Eesti Loto"
+        qid: Q16409839
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Eesti Post"
+        qid: Q282457
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Eesti Raudtee"
+        qid: Q116014
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Eesti Teed"
+        qid: null
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Eesti Vanglatööstus"
+        qid: Q42900925
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Eesti Vedelkütusevaru Agentuur"
+        qid: Q113577075
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS EVR Cargo"
+        qid: Q9249971
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Hoolekandeteenused"
+        qid: Q65261525
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Levira"
+        qid: Q12368660
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Metrosert"
+        qid: Q42900926
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Nordic Aviation Group"
+        qid: Q21406312
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Saarte Liinid"
+        qid: Q16412119
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Tallinna Lennujaam"
+        qid: Q12358024
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Tallinna Sadam"
+        qid: Q980219
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Teede Tehnokeskus"
+        qid: Q31278228
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Vireen"
+        qid: Q42900927
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "AS Ökosil"
+        qid: Q61389658
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "Eesti Energia AS"
+        qid: Q1295560
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "Eesti Keskkonnauuringute Keskus OÜ"
+        qid: Q16409468
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "Eesti Põllumajandusloomade Jõudluskontrolli AS"
+        qid: Q132154217
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "Elering AS"
+        qid: Q5359452
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "Kredex Krediidikindlustus AS"
+        qid: null
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "Lennuliiklusteeninduse AS"
+        qid: Q522812
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "OÜ Eesti Geoloogiakeskus"
+        qid: null
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "OÜ Transpordi Varahaldus"
+        qid: null
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "Rail Baltic Estonia OÜ"
+        qid: null
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035
+      - name: "Riigi Kinnisvara AS"
+        qid: Q16418795
+        holder: "Eesti Vabariik"
+        source: https://et.wikipedia.org/w/index.php?title=Riigi_%C3%A4ri%C3%BChing&oldid=7035035

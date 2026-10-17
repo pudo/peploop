@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict
 
 from peploop import db, llm, memo, positions, wikidata, wikipedia
 from peploop.corp import actors as actormod
+from peploop.corp import country as countries
 from peploop.corp import load as loadmod
 from peploop.corp import wd
 
@@ -198,7 +199,7 @@ def ask(message: str, model: str = MODEL) -> tuple[Answer, dict[str, int]]:
 def prepare(cc: str, log: Callable[[str], None], only: set[str] | None = None,
             limit: int | None = None) -> list[dict[str, Any]]:
     """Build every request for a country's kept bodies, or these, or the first `limit` (no model calls)."""
-    state = positions.country_qid(cc)
+    state = countries.state_qid(cc)
     actors = actormod.read(cc)
     wikis = loadmod.langs(state)
     reqs, failed = [], 0

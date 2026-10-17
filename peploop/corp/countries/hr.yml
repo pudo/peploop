@@ -1,0 +1,28 @@
+# Croatia. Unitary: 20 županije and the City of Zagreb.
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization or government
+# agency that are not government bodies here. None measured: no misfiled
+# class among the state actors read 2026-10-17.
+not_government: []
+
+# Never candidates here, beyond the global exclusions. Measured 2026-10-17
+# from the state actors' P127/P749 reach and the country's live items. None
+# measured.
+exclude: []
+
+# State-only legal forms and types, matched exactly as P31 or P1454.
+# Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+# statement, then all live items, in brackets. Measured thin: 93 live items
+# with a seat statement, no state-only form among them. Javna ustanova
+# (public institution) is shared with counties and municipalities.
+forms: []
+
+roles: []
+
+# Official list of central-government holdings. No list article to resolve
+# QIDs from reliably: entries left empty.
+holdings:
+  - source: "Vlada RH, Odluka o popisu trgovačkih društava od posebnog interesa; CERP (Centar za restrukturiranje i prodaju), https://www.cerp.hr/"
+    entries: []

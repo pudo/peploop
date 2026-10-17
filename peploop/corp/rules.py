@@ -30,15 +30,19 @@ from typing import Any
 
 from psycopg.types.json import Jsonb
 
-from peploop import policy, propose, route, typegraph
+from peploop import ledger, policy, propose, route, typegraph
 from peploop.corp import actors as actormod
 from peploop.corp import country as countries
 from peploop.corp import wd
 
 #: The state-owned enterprise class: the marker written for the national and regional tiers.
 MARKER = "Q270791"
+#: The municipal company class: the municipal tier's marker.
+MUNICIPAL = "Q1780371"
 #: Markers that already make an item findable as a public enterprise, through any subclass.
-MARKED = frozenset({MARKER, "Q1780371"})
+MARKED = frozenset({MARKER, MUNICIPAL})
+#: The tool name the send ledger records pepcorp's edits and removals under.
+TOOL = "pepcorp"
 #: The link property for each relation an answer names.
 RELATIONS = {"owner": "P127", "parent": "P749"}
 #: The kinds of body that are written on: a state's businesses, and the
@@ -56,7 +60,7 @@ SEATS: dict[tuple[str, str, str], tuple[str, str | None]] = {
     ("*", "supervisory", "member"): ("P5052", None),  # supervisory board member
     ("*", "supervisory", "deputy_chair"): ("P5052", "Q1127270"),  # deputy chairperson
     ("*", "*", "deputy_chair"): ("P3320", "Q1127270"),
-    ("*", "executive", "member"): ("P3320", "Q2824523"),  # board member
+    ("*", "executive", "member"): ("P3320", "Q141755781"),  # executive board member (pepcorp's own role item)
     ("*", "board", "member"): ("P3320", None),
     ("*", "*", "managing_director"): ("P3320", "Q19940089"),  # managing director
 }
@@ -171,6 +175,43 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
     return rows
 
 
+#: Why a marker is proposed for removal, as the edit summary says it.
+REMOVAL_REASONS = {
+    "municipal": "a municipal company, not a state-owned enterprise (its Wikipedia article)",
+    "private": "not state-controlled: its Wikipedia article says it is privately owned",
+}
+
+
+def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, set[str]],
+               tiers: tuple[str, ...]) -> tuple[str | None, list[dict[str, Any]], list[dict[str, Any]]]:
+    """A marker the answer contradicts: (kind of correction, rows to add, statements to propose removing).
+
+    A body the article shows to be municipal, while the tier is not written,
+    keeps no state-enterprise marker and gains the municipal one; a body it
+    shows to be private keeps neither. Nothing else is written on either.
+    """
+    answer = req["answer"]
+    control = answer["control"]
+    if answer["kind"] not in WRITTEN or not answer["active"] or not quoted(control["quote"], req["message"]):
+        return None, [], []
+    def marked(claim: dict[str, Any], roots: frozenset[str]) -> bool:
+        v = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
+        return isinstance(v, dict) and bool(closure.get(v.get("id"), {v.get("id")}) & roots)
+    claims = [c for c in entity.get("claims", {}).get("P31", []) if c.get("rank") != "deprecated"]
+    if control["verdict"] == "state" and control["level"] == "municipal" and "municipal" not in tiers:
+        wrong = [c for c in claims if marked(c, frozenset({MARKER})) and not marked(c, frozenset({MUNICIPAL}))]
+        if not wrong:
+            return None, [], []
+        add = [] if any(marked(c, frozenset({MUNICIPAL})) for c in claims) else [
+            {"property": "P31", "value": item(MUNICIPAL), "qualifiers": {"_sources": source(req, control["article"])},
+             "_rule": None}]
+        return "municipal", add, wrong
+    if control["verdict"] == "private" and answer["kind"] == "enterprise":
+        wrong = [c for c in claims if marked(c, MARKED)]
+        return ("private", [], wrong) if wrong else (None, [], [])
+    return None, [], []
+
+
 def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str, Any] | None,
               today: date) -> str | None:
     """Why a seat is not written, from its dates and currency alone."""
@@ -191,9 +232,15 @@ def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str,
     return None
 
 
+#: The two properties a body's head is written with; a person holds one of them, never both.
+HEADS = ("P169", "P1037")
+
+
 def seat_rows(req: dict[str, Any], humans: set[str], today: date,
-              extra: dict[str, tuple[str, str | None]] | None = None) -> list[dict[str, Any]]:
+              extra: dict[str, tuple[str, str | None]] | None = None,
+              entity: dict[str, Any] | None = None) -> list[dict[str, Any]]:
     """One leadership row per seat the answer lists."""
+    heads = {p: set(wd.values(entity or {}, p)) for p in HEADS}
     rows = []
     for seat in req["answer"]["seats"]:
         statement = seat_statement(req["answer"]["kind"], seat["body"], seat["role"], extra)
@@ -214,6 +261,10 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
             rule = "person_ambiguous"
         elif found[0] not in humans:
             rule = "not_human"
+        elif prop in HEADS and any(found[0] in heads[p] for p in HEADS if p != prop):
+            # The head already recorded under the other head property: a
+            # second statement would read as a second seat.
+            rule = "head_other"
         else:
             rule = seat_rule(seat, start, end, today)
         quals: dict[str, Any] = {"_sources": source(req, seat["article"])}
@@ -228,14 +279,47 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
     return rows
 
 
+def settle(r: dict[str, Any], entity: dict[str, Any], rows: list[dict[str, Any]],
+           decisions: list[dict[str, Any]]) -> list[str]:
+    """Plan a body's surviving rows against its live item, record every row's decision, return the lines."""
+    for n, row in enumerate(rows):
+        row["id"] = n
+    planned = [row for row in rows if row["_rule"] is None]
+    routed = route.route(r["qid"], entity, planned) if planned else route.Routed(qid=r["qid"])
+    skipped = dict(routed.skipped)
+    written = {i for _, ids in routed.edits for i in ids}
+    for row in rows:
+        n = row["id"]
+        if row["_rule"] is not None:
+            disposition, rule = "skip", row["_rule"]
+        elif n in written:
+            disposition, rule = "apply", "write"
+        elif n in routed.deferred:
+            disposition, rule = "skip", "deferred"
+        else:
+            disposition, rule = "skip", f"plan:{skipped.get(n, 'unrouted')}"
+        value = (row["value"] or {}).get("id")
+        detail = {k: v for k, v in row["qualifiers"].items() if not k.startswith("_")}
+        if row.get("_name"):
+            detail["name"] = row["_name"]
+        decisions.append({"qid": r["qid"], "prop": row["property"], "value": value, "detail": detail,
+                          "disposition": disposition, "rule": rule, "call_key": r.get("key")})
+    return routed.lines
+
+
 def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, Any]],
-           actors: actormod.Actors, spec: countries.Spec | None = None,
-           today: date | None = None) -> tuple[list[str], list[dict[str, Any]]]:
-    """Plan every answered body against its live item: (lines, decision rows)."""
+           actors: actormod.Actors, spec: countries.Spec | None = None, today: date | None = None,
+           ) -> tuple[list[str], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Plan every answered body against its live item: (lines, decision rows, proposed removals)."""
     today = today or date.today()
     spec = spec or countries.get(cc)
     passed = {r["qid"]: r for r in answered if gate(r["answer"], r["message"], spec.tiers) is None}
-    entities = wd.fetch_items(sorted(passed)) if passed else {}
+    # Bodies the answer gates out but whose existing marker it contradicts.
+    marked_now = {qid for qid, it in items.items()
+                  if wd.values(it.get("entity") or {}, "P31") or wd.values(it.get("entity") or {}, "P1454")}
+    contradicted = {r["qid"] for r in answered if r["qid"] not in passed and r["qid"] in marked_now
+                    and (r["answer"]["control"]["level"] == "municipal" or r["answer"]["control"]["verdict"] == "private")}
+    entities = wd.fetch_items(sorted(set(passed) | contradicted)) if passed or contradicted else {}
     marks = {v for e in entities.values() for p in ("P31", "P1454") for v in wd.values(e, p)}
     closure = typegraph.of_classes(marks)
     names = sorted({q for r in passed.values() for s in r["answer"]["seats"]
@@ -257,11 +341,22 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     state = set(passed) | set(actors.kinds) | government
     lines: list[str] = []
     decisions: list[dict[str, Any]] = []
+    removals: list[dict[str, Any]] = []
     for r in answered:
         why = gate(r["answer"], r["message"], spec.tiers)
         if why is not None:
+            kind, add, wrong = (correction(r, entities[r["qid"]], closure, spec.tiers)
+                                if r["qid"] in contradicted and r["qid"] in entities else (None, [], []))
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": why, "call_key": r.get("key")})
+            if kind:
+                lines += settle(r, entities[r["qid"]], add, decisions)
+                for claim in wrong:
+                    value = claim["mainsnak"]["datavalue"]["value"]["id"]
+                    removals.append({"guid": claim["id"], "qid": r["qid"], "prop": "P31", "value": value,
+                                     "reason": REMOVAL_REASONS[kind]})
+                    decisions.append({"qid": r["qid"], "prop": "P31", "value": value, "detail": {"guid": claim["id"]},
+                                      "disposition": "remove", "rule": f"correction:{kind}", "call_key": r.get("key")})
             continue
         entity = entities.get(r["qid"])
         if entity is None:
@@ -277,31 +372,17 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": "no_state_owner", "call_key": r.get("key")})
             continue
-        rows += seat_rows(r, humans, today, spec.roles)
-        for n, row in enumerate(rows):
-            row["id"] = n
-        planned = [row for row in rows if row["_rule"] is None]
-        routed = route.route(r["qid"], entity, planned) if planned else route.Routed(qid=r["qid"])
-        skipped = dict(routed.skipped)
-        written = {i for _, ids in routed.edits for i in ids}
-        for row in rows:
-            n = row["id"]
-            if row["_rule"] is not None:
-                disposition, rule = "skip", row["_rule"]
-            elif n in written:
-                disposition, rule = "apply", "write"
-            elif n in routed.deferred:
-                disposition, rule = "skip", "deferred"
-            else:
-                disposition, rule = "skip", f"plan:{skipped.get(n, 'unrouted')}"
-            value = (row["value"] or {}).get("id")
-            detail = {k: v for k, v in row["qualifiers"].items() if not k.startswith("_")}
-            if row.get("_name"):
-                detail["name"] = row["_name"]
-            decisions.append({"qid": r["qid"], "prop": row["property"], "value": value, "detail": detail,
-                              "disposition": disposition, "rule": rule, "call_key": r.get("key")})
-        lines += routed.lines
-    return lines, decisions
+        rows += seat_rows(r, humans, today, spec.roles, entity)
+        lines += settle(r, entity, rows, decisions)
+    return lines, decisions, removals
+
+
+def queue_removals(cc: str, removals: list[dict[str, Any]]) -> int:
+    """Queue each contradicted marker for removal: it waits for `removals approve`, being another editor's."""
+    for x in removals:
+        ledger.propose_removal(TOOL, x["guid"], x["qid"], x["prop"], x["value"], cc, x["reason"],
+                               "correction", False)
+    return len(removals)
 
 
 def store(cc: str, decisions: list[dict[str, Any]]) -> None:
