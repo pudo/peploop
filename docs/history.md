@@ -213,6 +213,51 @@ cannot.
   `P571` in claim order: best-rank would move 878 of 3,550 offices, mostly
   the wrong way (Belarus 1991 → 882, Russia 1991 → 1263, Italy 1946 → 476).
 
+## pepcorp
+
+First built and run 2026-10-17 on Germany (prototype), the Netherlands,
+Norway and Zambia (validation); 26 more EU specs written, not run.
+
+- **The type tree takes "business" up to "position".** peploop's organisation
+  test (`positions.organisations`) rejects anything whose closure touches a
+  position class, so railway and grid operators (NS, TenneT) were dropped as
+  offices. pepcorp tests the item's own `P31` against the position classes.
+- **Municipal administrations read as government.** In France 34,961
+  "administration municipale" items fall under executive branch and reached
+  201,439 items; Spain's ayuntamientos the same. A government body is a state
+  actor only where its own `P1001`, when it has one, is the state or a
+  first-level subdivision (France then: 2,711 reached).
+- **A country's QIDs.** Organisations name Denmark `Q35` and the Netherlands
+  `Q55` as `P17`; citizens name the realm and the kingdom (rigour's main
+  QIDs). pepcorp sweeps all current QIDs, less predecessor states ended
+  before 1990-12-26, as `wd_peps` does (opensanctions#5939).
+- **Categories lack their class.** The Dutch "Government-owned companies"
+  and "Government agencies" categories carried only the country in `P971`;
+  the class was added (QS3 60476) and 856 members came in.
+- **Existing owners prove nothing.** Deutsche Telekom carries `P127`
+  Germany, a minority holder; an enterprise is written on only when its
+  article names a public owner. Share figures are never read: they go stale.
+- **Idioms measured, not assumed.** `P488` + chairman of the supervisory
+  board has 0 uses; the supervisory chair is `P5052` + `P2868`. `P3320` +
+  `Q63858690` has 0 uses beside 345 `P5052` on German items. "Board member"
+  `Q2824523` reads as a one-tier board in French, an executive board in
+  German, hence the role item `Q141755781`.
+- **Funding is not ownership.** The decision call took grants, a body's
+  working level and supervision for control; a second, narrow call on each
+  link's quote (`verify.py`) refuses about a quarter of links, mostly rightly.
+- **Labels from `jsonb` come back re-sorted.** A label picked as "the first"
+  changed between runs ("Nederland" / "Netherlands"), changed the request and
+  made the content-keyed ledger pay again; labels are picked by language
+  order.
+- **QS3 fails whole items when combining many lines.** The first batch's four
+  items with 6–11 lines failed with no reason; uncombined, all 34 landed.
+  pepcorp sends uncombined.
+
+| country | when | written | batches |
+|---|---|---|---|
+| Germany | 10-17 | first batch: 51 statements on 10 bodies (DB, KfW, Autobahn GmbH, FBB, dena, Rothaus, SKD, Meyer Werft, Hypo Real Estate); run file 1,022 lines | QS3 60510, 60511 (retry); 60476, 60487 (categories, role item) |
+| Netherlands | 10-17 | nothing yet; run file 179 lines | — |
+
 ## The campaign toolkit (`old/`)
 
 Before peploop, `wd/` ran one hand-built campaign per country. What it learned

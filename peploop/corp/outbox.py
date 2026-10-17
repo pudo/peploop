@@ -57,4 +57,7 @@ def run(cc: str, log: Callable[[str], None] = print, submit: bool = False, qids:
     log(f"{PENDING}: {len(lines)} lines")
     if not submit:
         return []
-    return send.dispatch(TOOL, [(cc, ledger.key(line), line, []) for line in lines], log)
+    # Uncombined: an enterprise gets many statements at once, and QS3 failed
+    # whole items of 6 to 11 lines when it folded them into one edit, with no
+    # reason given; each line on its own landed.
+    return send.dispatch(TOOL, [(cc, ledger.key(line), line, []) for line in lines], log, combine=False)
