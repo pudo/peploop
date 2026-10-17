@@ -1,0 +1,451 @@
+# Germany. The prototype country: federal and Land holdings, Landesbanken
+# in; Sparkassen and municipal enterprises later (municipal tier not written).
+
+tiers: [national, regional]
+
+# Classes the type tree files under government organization that are not
+# government bodies here.
+not_government:
+  - {qid: Q15734684, name: Körperschaft des öffentlichen Rechts}  # chambers, churches, universities, municipalities
+
+# Never candidates here: municipal savings banks (a later tier) and the
+# professional chambers and associations, which administer themselves.
+exclude:
+  - {qid: Q13601825, name: Sparkasse}
+  - {qid: Q1515218, name: Kassenärztliche Vereinigung}
+  - {qid: Q2948379, name: Handwerkskammer}
+  - {qid: Q897399, name: Industrie- und Handelskammer}
+
+# State-only legal forms and types, matched exactly as P31 or P1454. Measured
+# 2026-10-17: German items with any seat statement in brackets. Körperschaft
+# des öffentlichen Rechts and gemeinnützige GmbH are left out: too broad.
+forms:
+  - {qid: Q1802122, kind: institution, name: Landesbehörde}  # 106
+  - {qid: Q99934885, kind: institution, name: Bundesoberbehörde}  # 38
+  - {qid: Q1005420, kind: institution, name: Bundesamt}  # 19
+  - {qid: Q314024, kind: institution, name: Bundesbehörde}  # 16
+  - {qid: Q67207116, kind: institution, name: Anstalt des öffentlichen Rechts}  # 52
+  - {qid: Q20050667, kind: institution, name: Stiftung des öffentlichen Rechts}  # 27
+  - {qid: Q1507070, kind: institution, name: Landesbetrieb}  # 2
+
+roles: []
+
+# Official lists of state holdings. The federal list: German Wikipedia's list
+# of companies with federal participation, drawn from the Beteiligungsbericht
+# des Bundes 2025; QIDs from the list's own links, resolved through redirects.
+# An entry without a QID is a holding with no item. Länder holdings: not yet.
+holdings:
+  - source: Beteiligungsbericht des Bundes 2025, via de.wikipedia (Liste privatrechtlicher Unternehmen mit deutscher Bundesbeteiligung)
+    entries:
+      - name: 50Hertz Transmission
+        qid: Q241331
+        holder: Bund, managed by BMWE (20 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Agentur für Innovation in der Cybersicherheit (Cyberagentur)
+        qid: Q97666165
+        holder: Bund, managed by BMI und BMVg (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Agentur für Internationale Museumskooperation
+        qid: null
+        holder: Bund, managed by AA (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: ALDB
+        qid: Q92203068
+        holder: Bund, managed by BMI (100 % indirect via BDBOS)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Airbus
+        qid: Q2311
+        holder: Bund, managed by BMWE (10,9 % indirect via GZBV)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Autobahn GmbH des Bundes
+        qid: Q31840061
+        holder: Bund, managed by BMV (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Bayreuther Festspiele
+        qid: Q157596
+        holder: Bund, managed by BKM (29 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Berliner Energieagentur
+        qid: null
+        holder: Bund (25 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: BGZ Gesellschaft für Zwischenlagerung
+        qid: Q60983360
+        holder: Bund, managed by BMUKN (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: BGE TECHNOLOGY
+        qid: null
+        holder: Bund, managed by BMUKN (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Biontech
+        qid: Q30256699
+        holder: Bund, managed by BMWE (0,6–0,7 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Brückeninstitut DREI
+        qid: null
+        holder: Bund (100 % indirect via Restrukturierungsfonds für Institute (RSF))
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Bundesagentur für Sprunginnovationen (SprinD)
+        qid: Q72975645
+        holder: Bund, managed by BMWE und BMFTR (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Bundesdruckerei Gruppe
+        qid: Q317215
+        holder: Bund, managed by BMF (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Bundesgesellschaft für Endlagerung
+        qid: Q26794436
+        holder: Bund, managed by BMUKN (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Bundesrepublik Deutschland – Finanzagentur
+        qid: Q1202537
+        holder: Bund, managed by BMF (100 %[4] direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: BVVG Bodenverwertungs- und -verwaltungs
+        qid: Q797153
+        holder: Bund, managed by BMF (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Bw Bekleidungsmanagement
+        qid: Q31839114
+        holder: Bund, managed by BMVg (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: BwConsulting
+        qid: Q1518438
+        holder: Bund, managed by BMVg (100 %[5] direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: BwFuhrparkService
+        qid: Q1018426
+        holder: Bund, managed by BMVg (75,1 % direct; 24,9 % indirect via Deutsche Bahn[6])
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: BWI
+        qid: Q34561213
+        holder: Bund, managed by BMVg (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: CISPA – Helmholtz-Zentrum für Informationssicherheit
+        qid: Q55436361
+        holder: Bund, managed by BMFTR (90 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Commerzbank
+        qid: Q157617
+        holder: Bund, managed by BMF (15,6 % indirect via SoFFin)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: coparion
+        qid: null
+        holder: Bund, managed by BMWE (65,467 % indirect via ERP-Sondervermögen)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: DBFZ Deutsches Biomasseforschungszentrum
+        qid: Q1205569
+        holder: Bund, managed by BMLEH (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: DEGES Deutsche Einheit Fernstraßenplanungs- und -bau
+        qid: Q1202325
+        holder: Bund, managed by BMV (29,08 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: DeepTech & Climate Fonds
+        qid: null
+        holder: Bund, managed by BMWE (100 % indirect via ERP-Sondervermögen)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsche Akkreditierungsstelle (DAkkS)
+        qid: Q26897764
+        holder: Bund, managed by BMWE (33,3 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsche Bahn
+        qid: Q9322
+        holder: Bund, managed by BMV (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsche Energie-Agentur (dena)
+        qid: Q1202384
+        holder: Bund, managed by BMWE (50 % direct; 26 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsche LNG Terminal
+        qid: null
+        holder: Bund, managed by BMVg (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsche Gesellschaft für Internationale Zusammenarbeit
+        qid: Q462763
+        holder: Bund, managed by BMZ (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsche Investitions- und Entwicklungsgesellschaft
+        qid: Q1203175
+        holder: Bund (100 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsche Lufthansa
+        qid: Q9325
+        holder: Bund, managed by BMWE (14,09 % indirect via Wirtschaftsstabilisierungsfonds[9])
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsche Post
+        qid: Q5266289
+        holder: Bund, managed by BMF (20,488 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsche Telekom
+        qid: Q9396
+        holder: Bund, managed by BMF (13,83 % direct; 16,63 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsches Evaluierungsinstitut der Entwicklungszusammenarbeit (DEval)
+        qid: Q41791404
+        holder: Bund, managed by BMZ (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsches Zentrum für Hochschul- und Wissenschaftsforschung
+        qid: Q15805617
+        holder: Bund, managed by BMFTR (70,37 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: DigitalService GmbH des Bundes
+        qid: null
+        holder: Bund, managed by BMDS (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Deutsches Primatenzentrum
+        qid: Q1205899
+        holder: Bund, managed by BMFTR (50 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: DFS Deutsche Flugsicherung GmbH (DFS)
+        qid: Q636838
+        holder: Bund, managed by BMV (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Engagement Global
+        qid: Q43302028
+        holder: Bund, managed by BMZ (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Europäischer Investitionsfonds
+        qid: Q768264
+        holder: Bund (2,27 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: EWN Entsorgungswerk für Nuklearanlagen
+        qid: Q1341488
+        holder: Bund, managed by BMF (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Fernleitungs-Betriebsgesellschaft
+        qid: Q87647495
+        holder: Bund, managed by BMVg (51 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Finanzierungs- und Beratungsgesellschaft
+        qid: null
+        holder: Bund (100 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: FIZ Karlsruhe – Leibniz-Institut für Informationsinfrastruktur
+        qid: Q1388737
+        holder: Bund, managed by BMFTR (50 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Flughafen Berlin Brandenburg
+        qid: Q160556
+        holder: Bund, managed by BMV (26 %[10] direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Flughafen Köln/Bonn
+        qid: Q157741
+        holder: Bund, managed by BMV (30,94 %[11] direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Flughafen München
+        qid: Q131402
+        holder: Bund, managed by BMV (26 %[12] direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Flughafenkoordination Deutschland
+        qid: Q1433342
+        holder: Bund, managed by BMV (100 %[13] direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: FMS VV
+        qid: null
+        holder: Bund (100 % indirect via SoFFin)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Forschungszentrum Jülich
+        qid: Q697111
+        holder: Bund, managed by BMFTR (90 %[14] direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Futurium
+        qid: Q20829682
+        holder: Bund, managed by BMFTR (86 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Gästehaus Petersberg
+        qid: Q152933
+        holder: Bund, managed by BMF (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: German Institute of Development and Sustainability (IDOS)
+        qid: Q317284
+        holder: Bund, managed by BMZ (75 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Germany Trade and Invest – Gesellschaft für Außenwirtschaft und Standortmarketing
+        qid: Q1514244
+        holder: Bund, managed by BMWE (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Gesellschaft für Anlagen- und Reaktorsicherheit
+        qid: Q1518415
+        holder: Bund, managed by BMUKN (46,16 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Gesellschaft für Telematikanwendungen der Gesundheitskarte (gematik)
+        qid: Q1499925
+        holder: Bund, managed by BMG (51 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Gesellschaft zur Entsorgung von chemischen Kampfstoffen und Rüstungsaltlasten (GEKA)
+        qid: Q10501798
+        holder: Bund, managed by BMVg (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: GSI Helmholtzzentrum für Schwerionenforschung
+        qid: Q703993
+        holder: Bund, managed by BMFTR (90 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Helmholtz Zentrum München
+        qid: Q878592
+        holder: Bund, managed by BMFTR (90 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Helmholtz-Zentrum Berlin für Materialien und Energie
+        qid: Q314578
+        holder: Bund, managed by BMFTR (90 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Helmholtz-Zentrum für Infektionsforschung
+        qid: Q1603242
+        holder: Bund, managed by BMFTR (90 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Helmholtz-Zentrum für Umweltforschung – UFZ
+        qid: Q880999
+        holder: Bund, managed by BMFTR (90 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Helmholtz-Zentrum Hereon
+        qid: Q127124139
+        holder: Bund, managed by BMFTR (70,62 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Hensoldt
+        qid: Q21236526
+        holder: Bund, managed by BMVg (25,1 %[16] indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: High-Tech Gründerfonds
+        qid: null
+        holder: Bund, managed by BMWE (88,24 % indirect via ERP-Sondervermögen)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: High-Tech Gründerfonds II
+        qid: null
+        holder: Bund, managed by BMWE (72,37 % indirect via ERP-Sondervermögen)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: High-Tech Gründerfonds III
+        qid: null
+        holder: Bund, managed by BMWE (53,22 % indirect via ERP-Sondervermögen)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: High-Tech Gründerfonds IV
+        qid: null
+        holder: Bund, managed by BMWE (100 % indirect via ERP-Sondervermögen)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: HIL Heeresinstandsetzungslogistik
+        qid: Q1593565
+        holder: Bund, managed by BMVg (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Hypo Real Estate Holding
+        qid: Q701237
+        holder: Bund (100 % indirect via SoFFin)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Internationale Mosel-Gesellschaft
+        qid: null
+        holder: Bund, managed by BMV (49,02 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: juris – Juristisches Informationssystem für die Bundesrepublik Deutschland
+        qid: Q1703172
+        holder: Bund, managed by BMJV (50,01 %[17] direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: KfW IPEX-Bank
+        qid: Q1740379
+        holder: Bund, managed by BMF (100 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Kreditanstalt für Wiederaufbau
+        qid: Q658270
+        holder: Bund (32,814 % indirect via ERP-Sondervermögen)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Kulturveranstaltungen des Bundes in Berlin GmbH (KBB)
+        qid: null
+        holder: Bund, managed by BKM (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Kunst- und Ausstellungshalle der Bundesrepublik Deutschland
+        qid: Q879960
+        holder: Bund, managed by BKM (60,98 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Lausitzer und Mitteldeutsche Bergbau-Verwaltungsgesellschaft
+        qid: Q1406725
+        holder: Bund, managed by BMF (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Meyer Werft
+        qid: Q705377
+        holder: Bund, managed by BMWE (40,4 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: NOW GmbH Nationale Organisation Wasserstoff- und Brennstoffzellentechnologie
+        qid: Q1449899
+        holder: Bund, managed by BMV (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: PD – Berater der öffentlichen Hand
+        qid: Q19963764
+        holder: Bund, managed by BMF (29,86 % direct; 0,2 % indirect via BImA)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Rundfunk-Orchester und -Chöre
+        qid: Q2176059
+        holder: Bund, managed by BKM (35 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Sachverständigenrat für Integration und Migration (SVR)
+        qid: null
+        holder: Bund, managed by BMI (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: SEFE Securing Energy for Europe (ehem. Gazprom Germania)
+        qid: Q1496677
+        holder: Bund, managed by BMWE (100 % indirect via SEEHG Securing Energy for Europe Holding GmbH)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Stiftung Juve – Jugend verbindet Deutschland mit Osteuropa und Zentralasien (ehem. Stiftung Deutsch-Russischer Jugendaustausch)
+        qid: Q2348911
+        holder: Bund, managed by BMBFSFJ (35 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Toll Collect
+        qid: Q314055
+        holder: Bund, managed by BMV (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: TransnetBW
+        qid: Q1672772
+        holder: Bund, managed by BMWE (24,95 % indirect via KfW)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Uniper
+        qid: Q19839259
+        holder: Bund, managed by BMWE (99,12 % indirect via UBG Uniper Beteiligungsholding GmbH)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: VEBEG
+        qid: Q1670690
+        holder: Bund, managed by BMF (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: WIK Wissenschaftliches Institut für Infrastruktur und Kommunikationsdienste
+        qid: null
+        holder: Bund, managed by BMWE (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Wismut
+        qid: Q314111
+        holder: Bund, managed by BMWE (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Wissenschaftszentrum Berlin für Sozialforschung
+        qid: Q475602
+        holder: Bund, managed by BMFTR (75 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: ZESAR – Zentrale Stelle zur Abrechnung von Arzneimittelrabatten
+        qid: null
+        holder: Bund, managed by BMI (10 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Zentrum für Digitale Souveränität der Öffentlichen Verwaltung (ZenDiS)
+        qid: Q130385289
+        holder: Bund, managed by BMI (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Zentrale Stelle zur Abrechnung von Arzneimittelrabatten
+        qid: null
+        holder: Bund, managed by BMI (10 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Zentrum für Internationale Friedenseinsätze (ZIF)
+        qid: Q191211
+        holder: Bund, managed by AA (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Zukunft-Umwelt-Gesellschaft
+        qid: null
+        holder: Bund, managed by BMUKN (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Zukunftszentrum für Deutsche Einheit und Europäische Transformation
+        qid: null
+        holder: Bund, managed by BMF (100 % direct)
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Bundesanstalt für Immobilienaufgaben
+        qid: Q1005535
+        holder: Bund, federal public-law institution
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Bundesanstalt für vereinigungsbedingte Sonderaufgaben
+        qid: Q1005550
+        holder: Bund, federal public-law institution
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461
+      - name: Kreditanstalt für Wiederaufbau
+        qid: Q658270
+        holder: Bund, federal public-law institution
+        source: https://de.wikipedia.org/w/index.php?title=Liste_privatrechtlicher_Unternehmen_mit_deutscher_Bundesbeteiligung&oldid=271286461

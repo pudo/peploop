@@ -42,7 +42,8 @@ def writer_lock(who: str) -> Iterator[None]:
 # --- how a batch reads on Wikidata ---------------------------------------------------
 
 #: What each tool's batches are for. Nobody on Wikidata knows the tools by name.
-OBJECTIVES = {"peploop": "person profiles", "peptree": "positions hierarchy"}
+OBJECTIVES = {"peploop": "person profiles", "peptree": "positions hierarchy",
+              "pepcorp": "state enterprise profiles"}
 
 
 def batch_name(tool: str, op: str, batch_id: int) -> str:

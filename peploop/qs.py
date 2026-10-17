@@ -90,6 +90,16 @@ PERSON_PROPS = {
     "P27": "country of citizenship",
     "P39": "position held",
 }
+#: Wikidata's labels for the properties an enterprise edit writes.
+ENTERPRISE_PROPS = {
+    "P127": "owned by",
+    "P169": "chief executive officer",
+    "P488": "chairperson",
+    "P3320": "board member",
+    "P1037": "director / manager",
+    "P5052": "supervisory board member",
+    "P749": "parent organization",
+}
 WIKI_RE = re.compile(r"https://([a-z0-9-]+)\.wikipedia\.org/")
 #: Source wikis named before the rest are counted, so a summary stays short.
 MAX_WIKIS = 6
@@ -113,7 +123,7 @@ def describe(tool: str, cols: list[str]) -> str:
         else:
             verb, prop = ("add" if cols[0].startswith("+") else "complete"), cols[1]
         if prop.startswith("P"):
-            name = PERSON_PROPS.get(prop, prop)
+            name = PERSON_PROPS.get(prop) or ENTERPRISE_PROPS.get(prop, prop)
         else:
             name = {"L": "label", "D": "description", "A": "alias"}.get(prop[:1], prop)
         what = f"{verb} {name}"

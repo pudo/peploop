@@ -1,0 +1,9 @@
+# Zambia. A validation country: English articles, sparse coverage, a
+# unitary state. Empty on purpose: it tests the global defaults alone.
+
+tiers: [national, regional]
+forms: []
+not_government: []
+exclude: []
+roles: []
+holdings: []

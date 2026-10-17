@@ -21,6 +21,9 @@ from peploop import extract as extraction
 from peploop import mint_write as minting
 from peploop import mint_units
 from peploop import outbox
+from peploop.corp import outbox as corp_outbox
+from peploop.corp import run as corp_run
+from peploop.corp import wd as corp_wd
 from peploop.tree import audit as tree_audit
 from peploop.tree import outbox as tree_outbox
 from peploop.tree import place as tree_place
@@ -1093,6 +1096,44 @@ def tree_strike_(qid: str, prop: str, value: str, reason: str, country: str | No
         click.echo(tree_outbox.strike(qid, prop, value, reason, country, log=lambda m: click.echo(m, err=True)))
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
+
+
+# --- pepcorp: state enterprise profiles, one country at a time ----------------------
+
+
+@cli.group("corp")
+def corp() -> None:
+    """Give each country's state enterprises their owner, type marker and leadership."""
+    corp_wd.init()
+
+
+@corp.command("run")
+@click.argument("cc")
+@click.option("--no-ask", is_flag=True, help="Re-decide from the ledger; no model calls, no reload.")
+@click.option("--no-reload", is_flag=True, help="Ask about the enterprises the last load kept.")
+@click.option("--limit", type=int, default=None, help="Ask about the first N enterprises only.")
+@click.option("--qid", "qids", multiple=True, help="Ask about these enterprises only.")
+def corp_run_(cc: str, no_ask: bool, no_reload: bool, limit: int | None, qids: Sequence[str]) -> None:
+    """Load a country's enterprises, decide them, and write its run file and report."""
+    path = corp_run.run(cc, limit, no_ask, reload=not no_reload, only=set(qids) or None,
+                        log=lambda m: click.echo(m, err=True))
+    click.echo(path)
+
+
+@corp.command("send")
+@click.argument("cc", required=False)
+@click.option("--submit", is_flag=True, help="Send it as a QuickStatements 3.0 batch; without it nothing leaves here.")
+@click.option("--status", "show_status", is_flag=True, help="Print the send ledger: batches, failures, strikes, removals.")
+@click.option("--qid", "qids", multiple=True, help="Only these enterprises' lines.")
+def corp_send_(cc: str | None, submit: bool, show_status: bool, qids: Sequence[str]) -> None:
+    """Send what a country's latest run proposes and has not gone out yet, then the approved removals."""
+    if show_status:
+        click.echo(sending.status(corp_outbox.TOOL))
+        return
+    if cc is None:
+        raise click.UsageError("send needs a country")
+    sent = corp_outbox.run(cc, lambda m: click.echo(m, err=True), submit=submit, qids=set(qids) or None)
+    click.echo(f"QS3 batches {' '.join(map(str, sent))}" if sent else f"nothing sent; review {corp_outbox.PENDING}")
 
 
 if __name__ == "__main__":

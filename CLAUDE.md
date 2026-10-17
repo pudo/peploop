@@ -1,7 +1,7 @@
 # Wikidata PEP workbench
 
 One package, `peploop/`, that improves Wikidata's coverage of politically
-exposed persons so OpenSanctions can read them back. Two lanes:
+exposed persons so OpenSanctions can read them back. Three lanes:
 
 - **peploop** (`peploop.cli <command>`): people one at a time, from their
   Wikipedia articles to `P39` and `P569 P570 P21 P27 P19`; `mint` creates
@@ -10,6 +10,11 @@ exposed persons so OpenSanctions can read them back. Two lanes:
 - **peptree** (`peploop.cli tree <verb>`): a country's position items, filling
   `P31`/`P279`/`P17`/`P1001`; it creates nothing, so whatever must exist is
   peploop's `mint`. Spec `peploop/tree/design.md`, sweep `peploop/tree/sweep.md`.
+- **pepcorp** (`peploop.cli corp <verb>`): a country's state enterprises and
+  institutions, to `P127`/`P749` links, the `P31 Q270791` marker and board
+  seats on the body; creates nothing. Global logic, country data in
+  `peploop/corp/countries/<cc>.yml`. Spec `peploop/corp/design.md`,
+  background `docs/soe_peps.md`.
 
 Open work: `plans/peploop_next.md`, `plans/peptree_next.md`; what was learned:
 `docs/history.md` (read before re-measuring). `old/` is retired: never use it.

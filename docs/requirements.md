@@ -28,3 +28,12 @@
 - 2026-10-16: "if a position has jurisdiction X, we don't also need to put
   country X. country X only makes sense if the stated jurisdiction is more
   specific (eg. region Y of country X)."
+- 2026-10-17: For state-owned enterprises: "follow EU AMLR".
+- 2026-10-17: "it's ok for wd_peps to go too wide, because position
+  classification can serve as a final filter"
+- 2026-10-17: On state museums, theatres, research centres, broadcasters and
+  Landesbetriebe: "these are essential institutions and their leadership is
+  PEP."
+- 2026-10-17: "in general I feel we shouldn't get too deep into percentages,
+  sizes and control because WD is a weird place to source and store that.
+  [...] We want heuristics, not math on fake numbers."
