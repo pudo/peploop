@@ -7,9 +7,11 @@ the `http_cache` table; Wikidata items and Wikipedia articles do not go
 through here, because they are state invalidated by revision.
 """
 
+import fcntl
 import json
 import threading
 import time
+from pathlib import Path
 from functools import partial
 from typing import Any
 from urllib.parse import urlsplit
@@ -46,6 +48,9 @@ DEFAULT_RATE = 2.0
 #: its own, being a different cluster with its own limit.
 WIKIMEDIA_RATE = 4.0
 WIKIMEDIA_SUFFIXES = ("wikipedia.org", "www.wikidata.org")
+#: Where processes on this machine share the Wikimedia pacer: the limit is the
+#: IP's, so several runs at once must split one rate, not each take it whole.
+SHARED_PACER = Path(__file__).resolve().parents[1] / "data" / ".wikimedia-pacer"
 
 #: How often, and how patiently, a GET whose body was cut off is sent again.
 BODY_RETRIES = 3
@@ -74,6 +79,33 @@ class _Pacer:
             time.sleep(wait)
 
 
+class _SharedPacer(_Pacer):
+    """A pacer whose next slot lives in a locked file, so every process on the machine draws from it."""
+
+    def __init__(self, rate: float, path: Path) -> None:
+        super().__init__(rate)
+        self.path = path
+
+    def take(self) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self.lock, open(self.path, "a+") as f:
+            fcntl.flock(f, fcntl.LOCK_EX)
+            f.seek(0)
+            try:
+                next_at = float(f.read() or 0)
+            except ValueError:
+                next_at = 0.0
+            now = time.time()
+            wait = max(0.0, next_at - now)
+            f.seek(0)
+            f.truncate()
+            f.write(repr(max(now, next_at) + self.interval))
+            f.flush()
+            fcntl.flock(f, fcntl.LOCK_UN)
+        if wait > 0:
+            time.sleep(wait)
+
+
 def _bucket(host: str) -> tuple[str, float]:
     """Name the pacer a host draws from, and that pacer's rate."""
     if host in HOST_RATES:
@@ -88,7 +120,7 @@ def _pacer(url: str) -> _Pacer:
     key, rate = _bucket(urlsplit(url).hostname or "")
     with _buckets_lock:
         if key not in _buckets:
-            _buckets[key] = _Pacer(rate)
+            _buckets[key] = _SharedPacer(rate, SHARED_PACER) if key == "wikimedia" else _Pacer(rate)
         return _buckets[key]
 
 

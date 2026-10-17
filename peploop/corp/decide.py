@@ -86,6 +86,7 @@ def fetch_articles(qid: str, entity: dict[str, Any], wikis: list[str]) -> list[d
     links = entity.get("sitelinks", {})
     fresh = {r[0] for r in db.conn().execute(
         f"SELECT lang FROM article WHERE qid = %s AND fetched_at > now() - interval '{ARTICLE_MAX_AGE}'", (qid,))}
+    html: dict[str, str] = {}
     for lang in wikis:
         site = links.get(f"{lang}wiki")
         if site is None or lang in fresh:
@@ -96,8 +97,11 @@ def fetch_articles(qid: str, entity: dict[str, Any], wikis: list[str]) -> list[d
             continue
         db.upsert_article(qid, lang, site["title"], article["rev_id"], article["url"],
                           wikipedia.html_to_text(article["html"]))
+        html[lang] = article["html"]
     rows = db.conn().execute("SELECT lang, title, rev_id, url, text FROM article WHERE qid = %s", (qid,)).fetchall()
-    found = {r[0]: {"lang": r[0], "title": r[1], "rev": r[2], "url": r[3], "text": r[4]} for r in rows}
+    # The page just read is kept for its links, so they cost no second fetch.
+    found = {r[0]: {"lang": r[0], "title": r[1], "rev": r[2], "url": r[3], "text": r[4], "html": html.get(r[0])}
+             for r in rows}
     return [found[lang] for lang in wikis if lang in found and f"{lang}wiki" in links]
 
 
@@ -109,11 +113,11 @@ def article_links(articles: list[dict[str, Any]]) -> dict[str, dict[str, str]]:
     "Janem Kowalskim") resolves through its link as well as one in the title's
     form. An anchor text the article links to two different items is left out.
     """
-    return {a["lang"]: names_linked(a["lang"], a["title"]) for a in articles}
+    return {a["lang"]: names_linked(a["lang"], a["title"], a.get("html")) for a in articles}
 
 
-def names_linked(lang: str, title: str) -> dict[str, str]:
-    html = wikipedia.fetch_article(lang, title)["html"]
+def names_linked(lang: str, title: str, html: str | None = None) -> dict[str, str]:
+    html = html or wikipedia.fetch_article(lang, title)["html"]
     return link_names(html, lambda titles: page_items(lang, titles))
 
 
