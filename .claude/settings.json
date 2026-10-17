@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(set -a)",
+      "Bash(set +a)",
+      "Bash(source .envrc)",
+      "Bash(.venv/bin/python -m peploop.cli:*)",
+      "Bash(.venv/bin/python -m peploop.check_:*)",
+      "Bash(.venv/bin/python -m peploop.tree.check_:*)"
+    ]
+  }
+}
