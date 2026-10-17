@@ -94,6 +94,11 @@ law sets up:
   broadcasting council. A council that only advises -- an advisory board, a
   parliamentary or expert advisory council -- is no such body: leave its
   members out.
+  When the body you read about is itself a council, commission or college
+  whose members are its whole substance -- an electoral council, a council
+  of state, a regulatory commission -- its members are not seats on a
+  supervisory body of it: list only its chair, as `head` of the `executive`
+  body, and leave the other members out.
 - `board`: a single board of directors, in a one-tier system.
 
 A management team, group executive committee or leadership circle that is

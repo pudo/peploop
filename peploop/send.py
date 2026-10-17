@@ -13,6 +13,7 @@ import re
 import sys
 from collections import Counter, defaultdict
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Any, Callable, Iterator
 
 from peploop import db, ledger, qs, qs3
@@ -24,6 +25,8 @@ IsLive = Callable[[list[str]], set[str]]
 #: QS3 batch status code → our batch status.
 FINISHED = {qs3.DONE: "done", qs3.BLOCKED: "stopped", qs3.STOPPED: "stopped"}
 LOCK = "wd-send"
+#: A tool whose data directory holds this file sends nothing: a dry run of all its stages.
+HOLD = Path(__file__).resolve().parents[1] / "data" / "{tool}" / "HOLD"
 GUID_RE = re.compile(r"^[Qq]\d+\$[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$")
 
 
@@ -56,8 +59,14 @@ def batch_name(tool: str, op: str, batch_id: int) -> str:
     return f"Politically exposed persons: {objective} ({batch_id})"
 
 
+def held(tool: str) -> bool:
+    return Path(str(HOLD).format(tool=tool)).exists()
+
+
 def _open(tool: str, op: str) -> tuple[int, str]:
-    """Record a new batch in the ledger; returns its id and name."""
+    """Record a new batch in the ledger; returns its id and name. Refuses a held tool."""
+    if held(tool):
+        raise RuntimeError(f"{tool} is held: {str(HOLD).format(tool=tool)} exists, nothing is sent")
     batch_id = ledger.open_batch(tool, op, "")
     name = batch_name(tool, op, batch_id)
     ledger.rename_batch(batch_id, name)
