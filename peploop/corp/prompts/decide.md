@@ -98,7 +98,8 @@ law sets up:
   whose members are its whole substance -- an electoral council, a council
   of state, a regulatory commission -- its members are not seats on a
   supervisory body of it: list only its chair, as `head` of the `executive`
-  body, and leave the other members out.
+  body, and leave the other members out. This holds when the commission has
+  a secretariat or office of its own: the head of that office is not listed.
 - `board`: a single board of directors, in a one-tier system.
 
 A management team, group executive committee or leadership circle that is
@@ -121,12 +122,16 @@ and a `role`:
   the body, where the articles name one.
 
 Translate titles by function, not by wording: what a title is called differs
-by country and legal form, and the body it sits in decides the role.
+by country and legal form, and the body it sits in decides the role. Where an
+infobox field and the person's own title disagree, the person's title
+decides: a board's president listed under a field "director general" is the
+`chair` of the supervisory body, not the `head`.
 
 For every seat:
 - `name`: the person's name exactly as the article writes it.
 - `start`, `end`: `YYYY`, `YYYY-MM` or `YYYY-MM-DD`, only as precise as the
-  article says; null when it does not say. Where several passages name the
+  article says; null when it does not say. Never estimate a date, nor take
+  it from the body's founding or another person's term. Where several passages name the
   person in the seat, quote the one that gives when they took it or left it.
 - `current`: true only when the article says the person holds the seat now
   (present tense, or the infobox lists them as the current holder).
