@@ -25,6 +25,8 @@ def main() -> int:
         expect(all(QID.match(q) and k in KINDS for q, k in spec.forms.items()), f"{cc}: forms are QIDs with a kind")
         expect(all(QID.match(q) for q in spec.not_government), f"{cc}: misfiled classes are QIDs")
         expect(all(QID.match(q) for q in spec.exclude), f"{cc}: excluded classes are QIDs")
+        expect(all(QID.match(q) and k in ("state", "government") for q, k in spec.actors.items()),
+               f"{cc}: extra actors are QIDs of kind state or government")
         expect(all(PID.match(p) and (q is None or QID.match(q)) for p, q in spec.roles.values()),
                f"{cc}: extra seats map to a property and an optional QID")
         expect(set(spec.tiers) <= TIERS, f"{cc}: tiers are known")

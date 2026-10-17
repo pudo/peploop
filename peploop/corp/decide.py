@@ -13,12 +13,14 @@ import hashlib
 import os
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional
+from urllib.parse import unquote
 
 import requests
+from lxml import html as lxml_html
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
-from peploop import db, llm, memo, positions, wikidata, wikipedia
+from peploop import db, http, llm, memo, positions, wikidata, wikipedia
 from peploop.corp import actors as actormod
 from peploop.corp import country as countries
 from peploop.corp import load as loadmod
@@ -100,8 +102,64 @@ def fetch_articles(qid: str, entity: dict[str, Any], wikis: list[str]) -> list[d
 
 
 def article_links(articles: list[dict[str, Any]]) -> dict[str, dict[str, str]]:
-    """lang → {linked page title: QID}: how a seat's name is resolved to a person's item."""
-    return {a["lang"]: dict(wikipedia.seed_article(a["title"], a["lang"])) for a in articles}
+    """lang → {name: QID}: how a seat's or an owner's name is resolved to an item.
+
+    A name is a linked page's title or the text the article links it under,
+    so a name the article writes inflected ("Ministerstwu Infrastruktury",
+    "Janem Kowalskim") resolves through its link as well as one in the title's
+    form. An anchor text the article links to two different items is left out.
+    """
+    return {a["lang"]: names_linked(a["lang"], a["title"]) for a in articles}
+
+
+def names_linked(lang: str, title: str) -> dict[str, str]:
+    html = wikipedia.fetch_article(lang, title)["html"]
+    return link_names(html, lambda titles: page_items(lang, titles))
+
+
+def link_names(html: str, resolve: Callable[[list[str]], dict[str, str]]) -> dict[str, str]:
+    """{title or anchor text: QID} of a Parsoid page's article links, titles resolved by `resolve`."""
+    root = lxml_html.fromstring(html)
+    anchors: list[tuple[str, str]] = []
+    for a in root.iter("a"):
+        href = a.get("href") or ""
+        if "mw:WikiLink" not in (a.get("rel") or "") or not href.startswith("./"):
+            continue
+        target = unquote(href[2:].split("#")[0]).replace("_", " ")
+        if target:
+            anchors.append((target, " ".join(a.text_content().split())))
+    items = resolve(sorted({t for t, _ in anchors}))
+    out = dict(items)
+    by_text: dict[str, set[str]] = {}
+    for target, text in anchors:
+        if target in items and text:
+            by_text.setdefault(text, set()).add(items[target])
+    for text, qids in by_text.items():
+        if len(qids) == 1:
+            out.setdefault(text, next(iter(qids)))
+    return out
+
+
+def page_items(lang: str, titles: list[str]) -> dict[str, str]:
+    """Article title → QID for these titles, a redirect's title included; other namespaces left out."""
+    api = f"https://{lang}.wikipedia.org/w/api.php"
+    out: dict[str, str] = {}
+    for i in range(0, len(titles), 50):
+        data = http.get_json(api, params={"action": "query", "titles": "|".join(titles[i:i + 50]), "prop": "pageprops",
+                                          "ppprop": "wikibase_item", "redirects": 1, "format": "json"})
+        query = data.get("query", {})
+        found = {p["title"]: p["pageprops"]["wikibase_item"] for p in query.get("pages", {}).values()
+                 if p.get("ns") == 0 and p.get("pageprops", {}).get("wikibase_item")}
+        out.update(found)
+        # A link's title may be normalised, then redirected: follow both hops.
+        hops = {h["from"]: h["to"] for step in ("normalized", "redirects") for h in query.get(step, [])}
+        for start in hops:
+            to = start
+            for _ in range(3):
+                to = hops.get(to, to)
+            if to in found:
+                out.setdefault(start, found[to])
+    return out
 
 
 # --- rendering --------------------------------------------------------------------

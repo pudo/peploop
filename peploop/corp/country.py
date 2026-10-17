@@ -15,7 +15,11 @@ pepcorp's logic is global. What differs by country lives in
   optional `qualifier` (a party committee secretary in a party state);
 - `tiers`: the control tiers whose bodies are written;
 - `state`: the item the country's items name as their country (`P17`), where
-  it is not the one rigour gives (a realm or kingdom around the state).
+  it is not the one rigour gives (a realm or kingdom around the state);
+- `actors`: items that stand for the state or its government here but that
+  the type tree cannot place, each with its `kind`: `state` for a legal
+  person the items name as owner in the state's place (a state treasury),
+  `government` for a government body whose own statements miss the country.
 """
 
 from dataclasses import dataclass, field
@@ -51,6 +55,8 @@ class Spec:
     roles: dict[str, tuple[str, str | None]] = field(default_factory=dict)
     tiers: tuple[str, ...] = DEFAULT_TIERS
     state: str | None = None
+    #: QID → actor kind ("state" or "government").
+    actors: dict[str, str] = field(default_factory=dict)
 
     def seeded(self) -> dict[str, dict[str, Any]]:
         """QID → holdings entry, for the entries that name an item."""
@@ -75,6 +81,7 @@ def get(cc: str) -> Spec:
         roles={str(r["role"]): (str(r["property"]), r.get("qualifier")) for r in data.get("roles") or []},
         tiers=tuple(data.get("tiers") or DEFAULT_TIERS),
         state=str(data["state"]) if data.get("state") else None,
+        actors={str(a["qid"]): str(a["kind"]) for a in data.get("actors") or []},
     )
 
 

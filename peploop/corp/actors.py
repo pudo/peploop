@@ -46,6 +46,7 @@ NOT_GOVERNMENT = frozenset({
     "Q31855",  # research institute
     "Q270791",  # state-owned enterprise
     "Q1780371",  # municipal company
+    "Q245065",  # intergovernmental organization: of several states, never one's
 })
 
 #: The two sides a link is read from: the country's items, and links into
@@ -135,7 +136,8 @@ def read(cc: str) -> Actors:
     jurisdictions: dict[str, set[str]] = defaultdict(set)
     # A dissolved ministry or agency (a predecessor state's) is no actor now.
     ended: set[str] = set()
-    names = countries.current_qids(cc)
+    # A state treasury stands in the state's place: its links are read like the state's.
+    names = [*countries.current_qids(cc), *sorted(q for q, k in spec.actors.items() if k == "state")]
     for prop in LINKS:
         pairs: dict[str, set[str]] = defaultdict(set)
         for side, name in ((side, name) for side in SIDES for name in names):
@@ -158,6 +160,7 @@ def read(cc: str) -> Actors:
     kinds = classify(state, polities, {q: ts for q, ts in types.items() if q not in ended}, places, closure,
                      not_government, jurisdictions)
     kinds.update({q: "state" for q in names})
+    kinds.update(spec.actors)
     return Actors(state=state, kinds=kinds, links=links, polities=frozenset(polities), not_government=not_government)
 
 

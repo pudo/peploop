@@ -6,7 +6,7 @@
 from datetime import date
 
 from peploop import propose, qs
-from peploop.corp import actors, country, load, rules
+from peploop.corp import actors, country, decide, load, rules
 from peploop.tree.check_filter import expect
 
 TODAY = date(2026, 10, 17)
@@ -91,6 +91,17 @@ def names() -> None:
     expect(rules.linked("Dr. Max Probe", "xx", links) == ["Q900002"], "a title and a disambiguator fall away")
     expect(rules.linked("Hans Beispiel", "xx", links) == ["Q900004"], "another language's link is the fallback")
     expect(rules.linked("Fritz Fremd", "xx", links) == [], "an unlinked name resolves to nothing")
+    page = ('<p><a rel="mw:WikiLink" href="./Ministerstwo_Zdrowia_(Polska)">Ministerstwa Zdrowia</a>'
+            '<a rel="mw:WikiLink" href="./Jan_Kowalski#Kariera">Janem Kowalskim</a>'
+            '<a rel="mw:WikiLink" href="./Prezes_A">prezes</a><a rel="mw:WikiLink" href="./Prezes_B">prezes</a>'
+            '<a rel="mw:WikiLink" href="./Kategoria:X">X</a><a rel="mw:ExtLink" href="https://x.org">Y</a></p>')
+    items = {"Ministerstwo Zdrowia (Polska)": "Q900010", "Jan Kowalski": "Q900011", "Prezes A": "Q900012",
+             "Prezes B": "Q900013"}
+    found = decide.link_names(page, lambda titles: {t: items[t] for t in titles if t in items})
+    expect(rules.linked("Ministerstwa Zdrowia", "xx", {"xx": found}) == ["Q900010"],
+           "an owner named in an inflected form resolves through the link's anchor text")
+    expect(rules.linked("Janem Kowalskim", "xx", {"xx": found}) == ["Q900011"], "so does a person")
+    expect("prezes" not in found, "an anchor text linked to two items resolves to nothing")
 
 
 def dates() -> None:

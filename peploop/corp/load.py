@@ -150,7 +150,8 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     # A category lists buildings and brands too, so its members pass the
     # organisation test like the owned lane's; a typed, formed or listed item
     # is a body by its type or by the list.
-    keep = [q for q in sorted(lanes) if "excluded" not in lanes[q] and (q in orgs or lanes[q] & {"seed", "typed", "formed"})]
+    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "formed"}}
+    keep = [q for q in sorted(lanes) if "excluded" not in lanes[q] and q in bodies]
     entities = wd.fetch_items(keep)
     wikis = langs(state)
     counts: dict[str, int] = {}
@@ -160,7 +161,7 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
         for qid in sorted(lanes):
             entity = entities.get(qid)
             reason = ("excluded" if "excluded" in lanes[qid]
-                      else classify(entity, qid in orgs, wikis) if qid in keep else "not_organisation")
+                      else classify(entity, qid in bodies, wikis) if qid in keep else "not_organisation")
             counts[reason or "kept"] = counts.get(reason or "kept", 0) + 1
             if reason == "not_organisation" and "owned" in lanes[qid] and len(lanes[qid]) == 1:
                 continue  # the wide lane's buildings and artworks: not worth a row
