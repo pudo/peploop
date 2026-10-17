@@ -262,6 +262,9 @@ that still applies:
 | South Sudan | 10-15 | 148 statements (141 rows applied), 4 taken back before the send; 3 offices minted | QS3 60017, 59989 60008 (mint) |
 | Sudan | 10-15 | 128 statements (117 rows applied), 1 taken back before the send; 6 offices minted, 3 of them the RSF's | QS3 60018, 59990 60010 (mint) |
 | Australia (second) | 10-15 – 10-16 | 226 statements (196 P39 for 171 people, 98 of them new to the ledger); 18 offices minted; 10 of our statements taken back | QS3 60256, 60250 (mint), 60258 60266 (removals); peptree 60285 |
+| Zambia | 10-16 – 10-17 | 282 statements (261 rows applied: 131 P39), 4 taken back before the send; 6 offices minted | QS3 60336 60350, 60334 (mint) |
+| Angola | 10-16 – 10-17 | 110 statements (100 rows applied: 55 P39), 0 taken back; 4 offices minted | QS3 60342, 60341 (mint) |
+| Namibia | 10-16 – 10-17 | 353 statements (330 rows applied: 204 P39), 3 taken back before the send; 15 offices minted | QS3 60349 60351, 60347 (mint) |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
 (Colombia), `future_date` and `termed` (Colombia's audit), `recorded_elsewhere`
@@ -409,3 +412,40 @@ its local government areas. peptree's re-run (its holder reads take about
 an hour, bisecting query-service timeouts on the chambers' thousand-holder
 seats) would have scoped six party leaderships to a polity and typed the
 ACT's Deputy Chief Minister a deputy prime minister; both are rules now.
+
+Zambia, Angola and Namibia ran in one session: the network and model
+stages (load, fetch, extract, reconcile) of the three concurrently, then
+mint, propose, verify and send one country at a time, since that is where
+rules change. The seed was first cut to the political tiers and then
+widened, at the user's word, to each country's whole office-holding tree:
+the politician trees at depth 3 and the branches of `Government of X`
+that hold officials (local government, law and courts, law enforcement,
+the military), bishops, civil servants and businesspeople. Measured
+against every living citizen with an article, the unseeded remainder is
+mostly sport. `Foreign relations of X` (inbound ambassadors) and Namibia's
+`Apartheid government` (South Africans) were left out. Angola is seeded
+from en and pt, the first pt-home run: `open_unattested` and the infobox
+rule now read Portuguese ("Período: 2022 a atualidade", "– presente",
+"atualmente"), measured on 697 pt articles, and held 30 Angolan open
+tenures back. Mint made the census's provincial heads where a current
+holder is attested: three of Zambia's ten provincial ministries (the rest
+had no holder since the May 2026 dissolution, the post-election
+appointees having no articles yet), seven Namibian regional governorships,
+none of Angola's four 2024 provinces (no article names their governors).
+The leaderships of the parliamentary parties became census anchors after
+the verifier agreed with their shape at medium: UNITA, FNLA and the PHA,
+IPC, NUDO and LPM were minted; MPLA's was refused because categorize had
+folded its secretary-general into the group. Two alias rules: a title
+opening on its verb ("led the party") and one dating its holder
+("current", Hausa "na yanzu") are not aliases. A degenerate model answer
+in mint's feed re-ask no longer kills the feed. The audits took back
+seven open tenures, each of a class no rule reads yet (plans): Zambian
+2024 ministers whose seats the September 2026 cabinet re-formed (the
+President's `P39` is one statement from 2021), and Namibian mid-term
+entrants to the 7th Assembly absent from the 8th. Residue: seven Zambian
+provincial ministries and Angola's new provinces' governorships (no
+attested current holder), deputy ministers and secretaries of state
+(medium or unclear verdicts, no national class), bilateral
+ambassadorships, auditors-general, anti-corruption heads and ombudsmen
+(no body item, no attested holder), and the Supreme Court of Zambia's
+item, which carries `P17` India.

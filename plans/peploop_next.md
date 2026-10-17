@@ -63,6 +63,11 @@ Found by Zambia's audit (2026-10-16), not yet a rule:
   statement from 2021, so `open_superseded/government` cannot see the new
   term (four 2024 appointees taken back by hand). Needs the term's start
   from somewhere other than the head's `P39`, such as the election item.
+- an open chamber seat taken up mid-term (a by-election or list
+  replacement) escapes `open_superseded/chamber`, whose test is a measured
+  term after the start: Namibia's 2022 and 2024 entrants to the 7th
+  Assembly stayed open after the 8th's March 2025 cohort (two taken back by
+  hand). A new term's cohort after the start should be enough.
 
 ## 3. Mint lanes not yet covered
 
