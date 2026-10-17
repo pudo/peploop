@@ -388,6 +388,11 @@ def check_build_spec(expect: Any) -> None:
         [mint.Attestation(person="Q1", title="led the Unity Party", lang="en", current=True),
          mint.Attestation(person="Q2", title="Leader of the Unity Party", lang="en", current=True)],
         {"en": "President of the Unity Party"}, ["Alvania"], "party_leader")
+    dated = mint.attested_aliases(
+        [mint.Attestation(person="Q1", title="Gwamna na yanzu na Yankin Lindo", lang="ha", current=True),
+         mint.Attestation(person="Q2", title="former Governor of Lindo Region", lang="en", current=False)],
+        {"en": "Governor of Lindo Region"}, ["Alvania"], "governor")
+    expect(dated == {}, f"a title that dates its holder is no alias: {dated}")
     expect(verbal == {"en": ["Leader of the Unity Party"]},
            f"a title that opens on its verb is the sentence, not an alias: {verbal}")
     expect(ministry == {"tr": ["Sağlık Bakanı"]},
