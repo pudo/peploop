@@ -262,7 +262,7 @@ that still applies:
 | South Sudan | 10-15 | 148 statements (141 rows applied), 4 taken back before the send; 3 offices minted | QS3 60017, 59989 60008 (mint) |
 | Sudan | 10-15 | 128 statements (117 rows applied), 1 taken back before the send; 6 offices minted, 3 of them the RSF's | QS3 60018, 59990 60010 (mint) |
 | Australia (second) | 10-15 – 10-16 | 226 statements (196 P39 for 171 people, 98 of them new to the ledger); 18 offices minted; 10 of our statements taken back | QS3 60256, 60250 (mint), 60258 60266 (removals); peptree 60285 |
-| Zambia | 10-16 – 10-17 | 282 statements (261 rows applied: 131 P39), 4 taken back before the send; 6 offices minted | QS3 60336 60350, 60334 (mint) |
+| Zambia | 10-16 – 10-17 | 282 statements (261 rows applied: 131 P39), 4 taken back before the send; 6 offices minted; the Supreme Court's country corrected | QS3 60336 60350, 60334 (mint), 60418 (court) |
 | Angola | 10-16 – 10-17 | 110 statements (100 rows applied: 55 P39), 0 taken back; 4 offices minted | QS3 60342, 60341 (mint) |
 | Namibia | 10-16 – 10-17 | 353 statements (330 rows applied: 204 P39), 3 taken back before the send; 15 offices minted | QS3 60349 60351, 60347 (mint) |
 
@@ -447,5 +447,6 @@ provincial ministries and Angola's new provinces' governorships (no
 attested current holder), deputy ministers and secretaries of state
 (medium or unclear verdicts, no national class), bilateral
 ambassadorships, auditors-general, anti-corruption heads and ombudsmen
-(no body item, no attested holder), and the Supreme Court of Zambia's
-item, which carries `P17` India.
+(no body item, no attested holder). The Supreme Court of Zambia's item
+carried `P17` India; at the user's word its value was switched to Zambia in
+place (QS3 60418).
