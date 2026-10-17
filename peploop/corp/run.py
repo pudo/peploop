@@ -3,7 +3,7 @@
 from typing import Callable
 
 from peploop.corp import actors as actormod
-from peploop.corp import decide, load, qs, report, rules
+from peploop.corp import decide, load, qs, report, rules, verify
 
 
 def run(cc: str, limit: int | None = None, no_ask: bool = False, reload: bool = True,
@@ -21,7 +21,13 @@ def run(cc: str, limit: int | None = None, no_ask: bool = False, reload: bool = 
         # pass must not drop what an earlier one decided.
         answered = decide.from_ledger(cc)
     items = {it["qid"]: it for it in load.items(cc)}
-    lines, decisions, removals = rules.decide(cc, answered, items, actormod.read(cc))
+    actors = actormod.read(cc)
+    lines, decisions, removals = rules.decide(cc, answered, items, actors)
+    # Every link the rules would write is checked against its quote, and the
+    # body planned again without the ones the check refuses.
+    refused = verify.refused(cc, decisions, answered, log)
+    if refused:
+        lines, decisions, removals = rules.decide(cc, answered, items, actors, refused=refused)
     errors = qs.validate(lines)
     if errors:
         raise SystemExit("refused: " + "; ".join(errors[:5]))

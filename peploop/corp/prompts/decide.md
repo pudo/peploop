@@ -22,26 +22,34 @@ so every claim you make must rest on a verbatim quote from an article shown.
     representation office -- is `other`: its head is no senior official. The
     authority at the top stays `institution`.
   - `other`: anything else: a building, a brand, a television channel or
-    programme, a club, a collection of objects.
+    programme, a club, a collection of objects. A site, venue or location of
+    a body -- a hospital's campus, a beer hall, a branch, a plant -- is
+    `other` too: the body that runs it is the one to judge.
 - `active`: false when the articles say it was dissolved, merged into
   another, privatised out of existence or renamed into a different item.
 
 ## 2. State control
 
-Read control from what the articles say, not from arithmetic: who owns the
-body, carries it, runs it or has it as part of itself.
+Read control from what the articles say in words, never from figures:
+whether they call the body state-owned or say a public body owns, carries or
+runs it. Do not read, compare or add up shares or percentages; they go stale
+and an article lags them.
 
 - `control.verdict`:
-  - `state`: the articles say a state, a subdivision of one (a province, a
-    federal state, a region) or a government body of either owns the body,
-    carries or sponsors it, runs it, or has it as one of its own subordinate
-    bodies; or they call it state-owned, publicly owned or a public body.
+  - `state`: the articles say the body is state-owned, publicly owned,
+    state-controlled or a public body, or that a state, a subdivision of one
+    (a province, a federal state, a region) or a government body of either
+    owns it, carries or sponsors it, runs it, or has it as one of its own
+    subordinate bodies.
   - `private`: the articles say it is privately owned, or listed without a
     public owner that runs it.
-  - `unclear`: the articles do not say, or only mention a public stake.
+  - `unclear`: the articles do not say; or they only report a public stake
+    or holding (of whatever size, or "the largest shareholder") without
+    saying the public owner controls or runs the body.
 - `control.level`: `national` for the state itself or its government bodies,
-  `regional` for a first-level subdivision or its bodies, `municipal` for a
-  city, district, municipality or an association of them, `foreign` for
+  `regional` for a first-level subdivision or its bodies (a city that is
+  itself a first-level subdivision, a city-state, is `regional`),
+  `municipal` for a city, district, municipality or an association of them, `foreign` for
   another country's state, `none` otherwise. Where several public bodies
   share control, the level of the one the articles present as leading.
 - `control.quote` and `control.article`: the sentence that says who owns,
@@ -81,8 +89,11 @@ law sets up:
 - `executive`: the body that runs it: a management board, an executive
   board, the managing directors, a director's or director general's office,
   the direction of a museum, theatre or broadcaster.
-- `supervisory`: the body that oversees the executive: a supervisory board,
-  an administrative council, a board of trustees, a broadcasting council.
+- `supervisory`: the body that oversees the executive or appoints it: a
+  supervisory board, an administrative council, a board of trustees, a
+  broadcasting council. A council that only advises -- an advisory board, a
+  parliamentary or expert advisory council -- is no such body: leave its
+  members out.
 - `board`: a single board of directors, in a one-tier system.
 
 A management team, group executive committee or leadership circle that is

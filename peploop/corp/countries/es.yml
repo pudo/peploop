@@ -10,8 +10,6 @@ tiers: [national, regional]
 # link; the global list keeps municipalities out as places, these are the
 # same bodies typed as government.
 not_government:
-  - {qid: Q22996476, name: ayuntamiento}  # 8132 live, e.g. Q126480852 Ayuntamiento de Garcibuey
-  - {qid: Q3044930, name: diputación provincial}  # 39 live, e.g. Q5807845 Diputación Provincial de Cáceres
 
 # Never candidates here, beyond the global exclusions. Measured 2026-10-17
 # from the state actors' P127/P749 reach and the country's live items.

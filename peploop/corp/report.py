@@ -54,7 +54,7 @@ def report(cc: str) -> str:
         out.append(f"### {qid} {name(qid)} ({kinds.get(qid, '?')})")
         for _, prop, value, detail, disp, rule in rs:
             what = f"{value} {name(value)}" if value else detail.get("name", "")
-            extra = "; ".join(f"{k} {v.get('id') or v.get('time', '')[1:11] or v.get('amount')}"
+            extra = "; ".join(f"{k} {v.get('id') or v.get('time', '')[1:11]}"
                               for k, v in detail.items() if isinstance(v, dict))
             mark = {"apply": "✓", "remove": "✗"}.get(disp, "·")
             out.append(f"- {mark} {prop} {what}" + (f" ({extra})" if extra else "")

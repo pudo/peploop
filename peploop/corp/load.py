@@ -134,9 +134,14 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
         + ", ".join(f"{lane} {count(lane)}" for lane in ("typed", "formed", "owned", "parented", "category", "seed")))
     # Owned is the wide lane: stations, buildings and artworks a state body
     # owns come with it, and the organisation test is what drops them.
-    closure = typegraph.of_items(sorted(lanes))
+    typed = wd.fetch_items(sorted(lanes), props="claims")
+    own = {q: typegraph.targets(typed.get(q, {})) for q in lanes}
+    closure = typegraph.close(own)
+    # An office is an item whose own type is a position class. Whether some
+    # ancestor of its type is one says nothing: the type tree takes "business"
+    # up to "position", which made every railway and grid operator an office.
     orgs = {q for q in lanes if positions.ORGANISATION in closure.get(q, set())
-            and not closure[q] & positions.POSITION_METACLASSES}
+            and not set(own[q]) & positions.POSITION_METACLASSES}
     excluded = EXCLUDED | spec.exclude
     for qid in lanes:
         if closure.get(qid, set()) & excluded:

@@ -11,7 +11,6 @@ tiers: [national, regional]
 # the same bodies typed as government. Chambers of commerce are
 # self-administering public-law bodies.
 not_government:
-  - {qid: Q86442081, name: administration municipale en France}  # 35019 live, e.g. Q118787450 commune de Saint-Désir
   - {qid: Q2948359, name: chambre de commerce et d'industrie}  # 52 live, e.g. Q114877918 Chambre de commerce et d'industrie (CCI) - Alsace 
   - {qid: Q897399, name: chamber of commerce and industry}  # 13 live, e.g. Q598576 Chambre franco-allemande de commerce et d'industri
 

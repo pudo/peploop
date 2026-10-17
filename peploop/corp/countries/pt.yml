@@ -8,7 +8,6 @@ tiers: [national, regional]
 # (câmara municipal), a later tier: seven are read as state actors, as the
 # global list keeps municipalities out as places.
 not_government:
-  - {qid: Q5202369, name: Câmara Municipal}  # 31 live, e.g. Q139572370 Câmara Municipal de Cascais
 
 # Never candidates here, beyond the global exclusions. Measured 2026-10-17
 # from the state actors' P127/P749 reach and the country's live items.

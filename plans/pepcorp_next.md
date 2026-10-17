@@ -14,25 +14,36 @@ The tool as it is: `peploop/corp/design.md`; why it has this shape:
 
 Nothing new until the first German batch has landed and been read back.
 
-1. Pre-run cleanup, no prompt change: exclude ministries (`Q192350`) and
-   governments (`Q7188`) globally (about 120 German ministries come in
-   through the agencies category and are always `government`); apply the
-   organisation check to category members (17 built structures); in the de
-   spec, exclude Landesvertretung bei Bund, Wasserstraßen- und
-   Schifffahrtsamt, Dienststelle, Abteilung and Ärztekammer.
-2. Commit everything since the push.
-3. Re-decide Germany under the final prompt (~$33; the last pass decided
-   2,124 bodies at about $0.016 each).
-4. Diff against `data/pepcorp/de/baseline-*` on the 20 reviewed bodies:
-   authorities linked only by `P749` to a named ministry, local offices
-   gone, owners as polity `P127`, no stake-only links, head written once.
-5. Precision sample of 40 applied statements; list every proposed marker
-   removal for the user (`removals --tool pepcorp`).
-6. First batch: `corp send de --qid …` for ~10 reviewed bodies (DB, KfW,
+Done (2026-10-17): the pre-run cleanup (ministries, governments, branch
+offices, the organisation check on category members and its fix for the
+polluted type tree); Germany and the Netherlands re-decided; the link check
+against each quote (`verify.py`); the pre-send review's fixes (supervisory
+chair as `P5052` + role, advisory councils out, control from the article's
+words never from share figures, bodies not sites, city-states regional, no
+open seat for a dead person, no shortcut links, no ministry as owner, no
+polity as parent, corrections removing only `Q270791` itself); three wrong
+removal proposals rejected (Deutsche Oper am Rhein, SAGA, Elbe-Werkstätten);
+the role item `Q141755781` linked as different from `Q2824523` and part of
+`Q897395`.
+
+Left:
+
+1. Recount the run files against the review (no `P488` with `Q15818143`, no
+   `P127` to a ministry, no open seat for a dead holder, Deutsche Telekom
+   and ABN AMRO without the marker).
+2. Precision sample of 20 per country.
+3. The four municipal removals awaiting approval (Hallesche Verkehrs-AG,
+   Verkehrsbetrieb Potsdam, Bremer Straßenbahn, OOWV): `removals --tool
+   pepcorp`.
+4. First batch: `corp send de --qid …` for ~10 reviewed bodies (DB, KfW,
    Autobahn GmbH, FBB, dena, Rothaus, Staatliche Kunstsammlungen Dresden,
    Charité, Meyer Werft, Hypo Real Estate); reconcile; read the items live.
-   Then the rest of Germany.
-7. The history.md line.
+   Then the rest of Germany and the Netherlands.
+5. The history.md line.
+
+Accepted with the review: undated `P169`/`P488` seats are written when the
+article says they are held now, against the constraint asking for a start
+date; `P749` raises its inverse-constraint (`P355`) warning on ministries.
 
 ## 2. Person resolution: the biggest recall lever
 
@@ -64,21 +75,36 @@ Ceiling: about 400 more German seats. Each accept and refuse class gets a
 fixture in `check_rules`; the report counts seats by how their person was
 resolved.
 
-## 3. Countries
+## 3. More data back to Wikidata
+
+Where the German funnel loses statements, besides unlinked people (§2):
+
+- **Dissolution dates.** 287 German bodies were found inactive (dissolved,
+  merged) and carry no `P576`; the answer already holds the verdict and the
+  quote. Cheap, real data, uncontroversial.
+- **Official sources.** The federal Beteiligungsbericht and the Länder
+  reports name every supervisory board member of each holding; as a second
+  source (`P854`) they reach seats Wikipedia never mentions (still bounded by
+  person items).
+- **History.** 625 German seats ended more than 20 years ago and are left out
+  by the PEP cutoff; for Wikidata they are correct facts. A policy question.
+- **People without items.** About 40 % of unlinked seats have no human item.
+  Creating them is ruled out today; Wikidata's structural-need notability
+  might cover board members of notable bodies, a question for the community
+  first.
+
+## 4. Countries
 
 - 26 EU specs (`countries/<cc>.yml`) were written by measurement. Holdings
   with QIDs: at ee es fi fr gr hu ie lv; no state-only legal form yet: hr ie
   mt si sk. None has been run.
-- fr, es and pt list municipal administrations under `not_government`; the
-  global jurisdiction rule (a government body governs where its `P1001`
-  says) now covers them, so those entries can go.
 - Zambia needs a holdings list (the IDC portfolio): its Wikidata has almost
   no state links and its category three members.
 - Norway beyond the 30-body trial.
 - Some of rigour's alternate QIDs are not the country (Navajo Nation for us,
   Mecca for sa, Bali for id, Nigerian states): a fix upstream in rigour.
 
-## 4. Parked
+## 5. Parked
 
 - The municipal tier, Sparkassen included, with the `Q1780371` marker.
 - Employee representatives on co-determined supervisory boards, tagged on
@@ -89,7 +115,7 @@ resolved.
   132) in the last pass. The report counts them; the prompt already prefers
   passages that give the tenure.
 
-## 5. OpenSanctions side
+## 6. OpenSanctions side
 
 - `wd_soe` (opensanctions#5937) reads lane A (the `Q270791` tree) and lane B
   (`P127`/`P749` to a territory, or to a government body of one, with a

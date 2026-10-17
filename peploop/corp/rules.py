@@ -54,8 +54,10 @@ SEATS: dict[tuple[str, str, str], tuple[str, str | None]] = {
     ("enterprise", "executive", "chair"): ("P169", None),  # the chair of the executive body is its head
     ("institution", "*", "head"): ("P1037", None),  # director / manager
     ("institution", "executive", "chair"): ("P1037", None),
-    ("enterprise", "supervisory", "chair"): ("P488", "Q15818143"),  # chairman of the supervisory board
-    ("institution", "supervisory", "chair"): ("P488", None),
+    # The chair of a supervisory body is one of its members, with the role:
+    # `P5052` qualified, the idiom Wikidata uses (`P488` is a one-tier chair).
+    ("enterprise", "supervisory", "chair"): ("P5052", "Q15818143"),  # chairman of the supervisory board
+    ("institution", "supervisory", "chair"): ("P5052", "Q140686"),  # chairperson
     ("*", "board", "chair"): ("P488", None),
     ("*", "supervisory", "member"): ("P5052", None),  # supervisory board member
     ("*", "supervisory", "deputy_chair"): ("P5052", "Q1127270"),  # deputy chairperson
@@ -133,7 +135,10 @@ def source(req: dict[str, Any], lang: str | None) -> list[dict[str, Any]]:
 
 def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] | None,
                  state: set[str], closure: dict[str, set[str]],
-                 named: dict[str, str] | None = None) -> list[dict[str, Any]]:
+                 named: dict[str, str] | None = None, polities: frozenset[str] = frozenset(),
+                 refused: set[tuple[str, str, str]] | frozenset = frozenset(),
+                 reached: set[str] | frozenset = frozenset(),
+                 government: set[str] | frozenset = frozenset()) -> list[dict[str, Any]]:
     """The marker and link rows of a body that passed its gates.
 
     The marker goes on an enterprise only: a museum or a broadcaster is no
@@ -170,6 +175,20 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
             rule = "controller_not_state"
         elif chain and qid in chain[2:]:
             rule = "chain_reaches"
+        elif prop == "P127" and qid in government:
+            # A ministry or agency is a parent, never an owner: the owner is
+            # the state it belongs to.
+            rule = "owner_ministry"
+        elif qid in reached:
+            # One of the item's own links already leads there one step on.
+            rule = "chain_existing"
+        elif (req.get("qid", ""), prop, qid) in refused:
+            # The narrow check (`verify.py`) found the quote does not state it.
+            rule = "link_unverified"
+        elif prop == "P749" and qid in polities:
+            # A parent organization is a ministry or government body; a state
+            # or a province as parent is all but unused on Wikidata.
+            rule = "parent_polity"
         rows.append({"property": prop, "value": item(qid),
                      "qualifiers": {"_sources": source(req, owner["article"])}, "_rule": rule})
     return rows
@@ -183,7 +202,8 @@ REMOVAL_REASONS = {
 
 
 def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, set[str]],
-               tiers: tuple[str, ...]) -> tuple[str | None, list[dict[str, Any]], list[dict[str, Any]]]:
+               tiers: tuple[str, ...], subdivisions: frozenset[str] = frozenset(),
+               ) -> tuple[str | None, list[dict[str, Any]], list[dict[str, Any]]]:
     """A marker the answer contradicts: (kind of correction, rows to add, statements to propose removing).
 
     A body the article shows to be municipal, while the tier is not written,
@@ -194,12 +214,24 @@ def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, s
     control = answer["control"]
     if answer["kind"] not in WRITTEN or not answer["active"] or not quoted(control["quote"], req["message"]):
         return None, [], []
+    offered = req.get("offered") or []
+    owners = {offered[o["controller"]] for o in control["owners"]
+              if o["controller"] is not None and 0 <= o["controller"] < len(offered)}
+    if owners & subdivisions:
+        # A city that is also a first-level subdivision (a city-state)
+        # controls at the regional tier: nothing to correct.
+        return None, [], []
     def marked(claim: dict[str, Any], roots: frozenset[str]) -> bool:
         v = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
         return isinstance(v, dict) and bool(closure.get(v.get("id"), {v.get("id")}) & roots)
+    def exactly(claim: dict[str, Any], values: frozenset[str]) -> bool:
+        # Only the marker itself is ever proposed for removal: a subclass
+        # someone chose (a mixed public company) may well be right.
+        v = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
+        return isinstance(v, dict) and v.get("id") in values
     claims = [c for c in entity.get("claims", {}).get("P31", []) if c.get("rank") != "deprecated"]
     if control["verdict"] == "state" and control["level"] == "municipal" and "municipal" not in tiers:
-        wrong = [c for c in claims if marked(c, frozenset({MARKER})) and not marked(c, frozenset({MUNICIPAL}))]
+        wrong = [c for c in claims if exactly(c, frozenset({MARKER}))]
         if not wrong:
             return None, [], []
         add = [] if any(marked(c, frozenset({MUNICIPAL})) for c in claims) else [
@@ -207,7 +239,7 @@ def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, s
              "_rule": None}]
         return "municipal", add, wrong
     if control["verdict"] == "private" and answer["kind"] == "enterprise":
-        wrong = [c for c in claims if marked(c, MARKED)]
+        wrong = [c for c in claims if exactly(c, MARKED)]
         return ("private", [], wrong) if wrong else (None, [], [])
     return None, [], []
 
@@ -238,7 +270,7 @@ HEADS = ("P169", "P1037")
 
 def seat_rows(req: dict[str, Any], humans: set[str], today: date,
               extra: dict[str, tuple[str, str | None]] | None = None,
-              entity: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+              entity: dict[str, Any] | None = None, dead: set[str] | frozenset = frozenset()) -> list[dict[str, Any]]:
     """One leadership row per seat the answer lists."""
     heads = {p: set(wd.values(entity or {}, p)) for p in HEADS}
     rows = []
@@ -261,6 +293,9 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
             rule = "person_ambiguous"
         elif found[0] not in humans:
             rule = "not_human"
+        elif not end and found[0] in dead:
+            # A seat with no end, held by someone who has died, ended then.
+            rule = "holder_dead"
         elif prop in HEADS and any(found[0] in heads[p] for p in HEADS if p != prop):
             # The head already recorded under the other head property: a
             # second statement would read as a second seat.
@@ -309,6 +344,7 @@ def settle(r: dict[str, Any], entity: dict[str, Any], rows: list[dict[str, Any]]
 
 def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, Any]],
            actors: actormod.Actors, spec: countries.Spec | None = None, today: date | None = None,
+           refused: set[tuple[str, str, str]] | frozenset = frozenset(),
            ) -> tuple[list[str], list[dict[str, Any]], list[dict[str, Any]]]:
     """Plan every answered body against its live item: (lines, decision rows, proposed removals)."""
     today = today or date.today()
@@ -326,6 +362,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
                     for q in linked(s["name"], s["article"], r["links"])})
     people = wd.fetch_items(names, props="claims") if names else {}
     humans = {q for q, e in people.items() if "Q5" in wd.values(e, "P31")}
+    dead = {q for q, e in people.items() if e.get("claims", {}).get("P570")}
     # Controllers the answers named rather than chose, resolved through the
     # article's links, count when they are a government body of the country.
     named: dict[str, dict[str, str]] = {}
@@ -339,13 +376,22 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     # A body this run finds state-controlled is a state owner in its own right:
     # a state bank's subsidiary is held through the bank.
     state = set(passed) | set(actors.kinds) | government
+    polities = frozenset(q for q, k in actors.kinds.items() if k in ("state", "subdivision"))
+    subdivisions = frozenset(q for q, k in actors.kinds.items() if k == "subdivision")
+    bodies = frozenset(q for q, k in actors.kinds.items() if k == "government") | government
+    # What each item's existing owners and parents link to in turn: a link to
+    # one of those would only shortcut a chain already on Wikidata.
+    linked_now = {qid: {v for p in ("P127", "P749") for v in wd.values(e, p)} for qid, e in entities.items()}
+    hop = wd.fetch_items(sorted(set().union(*linked_now.values())), props="claims") if linked_now else {}
+    reached = {qid: {v for t in targets for p in ("P127", "P749") for v in wd.values(hop.get(t) or {}, p)} - targets
+               for qid, targets in linked_now.items()}
     lines: list[str] = []
     decisions: list[dict[str, Any]] = []
     removals: list[dict[str, Any]] = []
     for r in answered:
         why = gate(r["answer"], r["message"], spec.tiers)
         if why is not None:
-            kind, add, wrong = (correction(r, entities[r["qid"]], closure, spec.tiers)
+            kind, add, wrong = (correction(r, entities[r["qid"]], closure, spec.tiers, subdivisions)
                                 if r["qid"] in contradicted and r["qid"] in entities else (None, [], []))
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": why, "call_key": r.get("key")})
@@ -364,7 +410,8 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
                               "disposition": "skip", "rule": "missing", "call_key": r.get("key")})
             continue
         chain = items.get(r["qid"], {}).get("chain")
-        rows = control_rows(r, entity, chain, state, closure, named.get(r["qid"]))
+        rows = control_rows(r, entity, chain, state, closure, named.get(r["qid"]), polities, refused,
+                            reached.get(r["qid"], set()), bodies)
         links = [row for row in rows if row["property"] in RELATIONS.values() and row["value"] is not None]
         if links and not any(row["_rule"] in (None, "chain_reaches") for row in links):
             # Every body the answer names over it is no state body: the
@@ -372,7 +419,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": "no_state_owner", "call_key": r.get("key")})
             continue
-        rows += seat_rows(r, humans, today, spec.roles, entity)
+        rows += seat_rows(r, humans, today, spec.roles, entity, dead)
         lines += settle(r, entity, rows, decisions)
     return lines, decisions, removals
 

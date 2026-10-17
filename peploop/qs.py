@@ -122,11 +122,13 @@ def describe(tool: str, cols: list[str]) -> str:
             verb, prop = "refine", cols[2]
         else:
             verb, prop = ("add" if cols[0].startswith("+") else "complete"), cols[1]
-        if prop.startswith("P"):
+        if tool == "pepcorp" and prop == "P31" and len(cols) > 2 and cols[2] == "Q270791":
+            name = None
+        elif prop.startswith("P"):
             name = PERSON_PROPS.get(prop) or ENTERPRISE_PROPS.get(prop, prop)
         else:
             name = {"L": "label", "D": "description", "A": "alias"}.get(prop[:1], prop)
-        what = f"{verb} {name}"
+        what = "mark as a state-owned enterprise" if name is None else f"{verb} {name}"
         wikis = sorted(set(WIKI_RE.findall("\t".join(cols))))
         if wikis:
             more = f" and {len(wikis) - MAX_WIKIS} more" if len(wikis) > MAX_WIKIS else ""

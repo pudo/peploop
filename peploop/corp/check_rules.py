@@ -57,8 +57,8 @@ TABLE = {
     ("enterprise", "executive", "chair"): ("P169", None),
     ("institution", "executive", "head"): ("P1037", None),
     ("institution", "executive", "chair"): ("P1037", None),
-    ("enterprise", "supervisory", "chair"): ("P488", "Q15818143"),
-    ("institution", "supervisory", "chair"): ("P488", None),
+    ("enterprise", "supervisory", "chair"): ("P5052", "Q15818143"),
+    ("institution", "supervisory", "chair"): ("P5052", "Q140686"),
     ("enterprise", "board", "chair"): ("P488", None),
     ("institution", "board", "chair"): ("P488", None),
     ("enterprise", "supervisory", "member"): ("P5052", None),
@@ -128,6 +128,11 @@ def control() -> None:
     parent = {**req, "answer": answer(kind="institution", owners=((2, "parent"),))}
     expect([(r["property"], r["value"]["id"]) for r in rules.control_rows(parent, ent(), None, state, {})]
            == [("P749", "Q900102")], "a parent body is written as P749, never P127")
+    expect(rules.control_rows(parent, ent(), None, state, {}, None, frozenset({"Q900102"}))[0]["_rule"] == "parent_polity",
+           "a state or province as parent organization is not written")
+    checked = {**req, "qid": "Q900999"}
+    expect(rules.control_rows(checked, ent(), None, state, {}, refused={("Q900999", "P127", "Q900100")})[1]["_rule"]
+           == "link_unverified", "a link the quote check refuses is not written")
     two = {**req, "answer": answer(owners=((0, "owner"), (2, "owner")))}
     links = [r for r in rules.control_rows(two, ent(), None, state, {}) if r["property"] == "P127"]
     expect([o["value"]["id"] for o in links] == ["Q900100", "Q900102"] and all(o["_rule"] is None for o in links),
@@ -181,19 +186,25 @@ def crawler_cases() -> None:
     expect(rows[0]["property"] == "P31" and rows[0]["_rule"] is None, "a state enterprise's subsidiary gets the marker")
     # A municipal verdict on an item marked as a state enterprise: municipal marker added, the wrong one proposed.
     muni = {**base, "answer": answer(level="municipal")}
-    marked = {"claims": {"P31": [claim("P31", "Q900900", "Q1$A")]}}
-    kind, add, wrong = rules.correction(muni, marked, {"Q900900": {"Q900900", "Q270791"}}, ("national", "regional"))
+    marked = {"claims": {"P31": [claim("P31", "Q270791", "Q1$A")]}}
+    kind, add, wrong = rules.correction(muni, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))
     expect(kind == "municipal" and [a["value"]["id"] for a in add] == [rules.MUNICIPAL] and [c["id"] for c in wrong] == ["Q1$A"],
            "a municipal body marked state-owned gains the municipal marker and loses the state one")
-    kind, add, wrong = rules.correction(muni, marked, {"Q900900": {"Q900900", "Q270791"}},
+    kind, add, wrong = rules.correction(muni, marked, {"Q270791": {"Q270791"}},
                                         ("national", "regional", "municipal"))
     expect(kind is None, "where the municipal tier is written, a municipal body is no correction")
     priv = {**base, "answer": answer(verdict="private")}
-    kind, add, wrong = rules.correction(priv, marked, {"Q900900": {"Q900900", "Q270791"}}, ("national", "regional"))
+    kind, add, wrong = rules.correction(priv, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))
     expect(kind == "private" and not add and [c["id"] for c in wrong] == ["Q1$A"], "a private body's marker is proposed for removal only")
     unq = {**base, "answer": answer(verdict="private", quote="Nobody said this.")}
-    expect(rules.correction(unq, marked, {"Q900900": {"Q900900", "Q270791"}}, ("national", "regional"))[0] is None,
+    expect(rules.correction(unq, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))[0] is None,
            "no correction without a quote")
+    sub = {"claims": {"P31": [claim("P31", "Q900900", "Q1$B")]}}
+    expect(rules.correction(muni, sub, {"Q900900": {"Q900900", "Q270791"}}, ("national", "regional"))[0] is None,
+           "a subclass someone chose, such as a mixed public company, is never proposed for removal")
+    city = {**base, "answer": answer(level="municipal", owners=((0, "owner"),))}
+    expect(rules.correction(city, marked, {"Q270791": {"Q270791"}}, ("national", "regional"), frozenset({"Q900100"}))[0] is None,
+           "a company of a city-state, which is a first-level subdivision, is not corrected to municipal")
     # The head is written once: not as CEO where the same person is already director.
     links = {"xx": {"Max Probe": "Q901000"}}
     head = {**base, "links": links, "message": MESSAGE + " Max Probe runs it.",
@@ -202,6 +213,16 @@ def crawler_cases() -> None:
     expect(rows[0]["property"] == "P169" and rows[0]["_rule"] == "head_other", "a head already recorded as director is not written again")
     rows = rules.seat_rows(head, {"Q901000"}, TODAY, None, ent())
     expect(rows[0]["_rule"] is None, "a head recorded under neither property is written")
+    rows = rules.seat_rows(head, {"Q901000"}, TODAY, None, ent(), frozenset({"Q901000"}))
+    expect(rows[0]["_rule"] == "holder_dead", "no open seat for a person who has died")
+    # A ministry is a parent, never an owner; a link one step past an existing one is a shortcut.
+    owner = {**base, "answer": answer(kind="institution", owners=((0, "owner"),))}
+    expect(rules.control_rows(owner, ent(), None, state, {}, government=frozenset({"Q900100"}))[0]["_rule"] == "owner_ministry",
+           "a ministry is never written as owner")
+    expect(rules.control_rows(owner, ent(), None, state, {}, reached=frozenset({"Q900100"}))[0]["_rule"] == "chain_existing",
+           "no link that shortcuts a chain the item already has")
+    line = qs.describe("pepcorp", ["+Q900000", "P31", "Q270791"])
+    expect(line.endswith("mark as a state-owned enterprise"), "the marker says what it marks")
     # Never candidates: sports clubs, diplomatic missions, places; and a country's chambers.
     expect({"Q476028", "Q847017", "Q7843791", "Q3917681", "Q56061", "Q192350", "Q7188"} <= load.EXCLUDED,
            "clubs, missions, places, ministries and governments are never candidates")

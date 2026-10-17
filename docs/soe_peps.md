@@ -21,8 +21,10 @@ forward, not the model.
   official holdings list, legal forms, parent links), decides each once,
   and writes `P127` or `P749` links, the `P31 Q270791` marker on
   enterprises, and the board seats on
-  the body: `P169`/`P1037` for the head, `P488` and `P5052` for the
-  supervisory body, `P3320` role-qualified for the rest. State institutions
+  the body: `P169`/`P1037` for the head, `P5052` for the supervisory body
+  (its chair with the role), `P488` for a one-tier board's chair, `P3320`
+  role-qualified for the rest; every link is checked against its quote
+  before it is written. State institutions
   (museums, broadcasters, research centres, hospitals, agencies) are written
   too, without the marker. Germany is the prototype: federal and Land holdings,
   Landesbanken in, Sparkassen and municipal enterprises later.

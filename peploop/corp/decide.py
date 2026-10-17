@@ -129,9 +129,19 @@ def claim_text(claim: dict[str, Any], info: dict[str, dict[str, Any]]) -> str | 
     return main + (f" ({'; '.join(quals)})" if quals else "") + rank
 
 
+#: The label languages of the request being rendered, best first. A label
+#: is picked by this order, never by the order the cache returns: `jsonb`
+#: re-sorts keys, and a name that changes between runs changes the request
+#: and makes the ledger pay for it again.
+LABEL_ORDER: tuple[str, ...] = ("en", "mul")
+
+
 def memo_name(info: dict[str, Any] | None) -> str:
     labels = (info or {}).get("labels", {})
-    return next(iter(labels.values()), "") if labels else ""
+    for lang in LABEL_ORDER:
+        if lang in labels:
+            return labels[lang]
+    return next(iter(sorted(labels.items())), ("", ""))[1]
 
 
 def render(item: dict[str, Any], offered: list[str], kinds: dict[str, str], articles: list[dict[str, Any]],
@@ -144,7 +154,9 @@ def render(item: dict[str, Any], offered: list[str], kinds: dict[str, str], arti
                 v = snak.get("datavalue", {}).get("value")
                 if isinstance(v, dict) and "id" in v:
                     refs.add(v["id"])
-    info = memo.labels_of(sorted(refs), loadmod.label_langs(wikis))
+    global LABEL_ORDER
+    LABEL_ORDER = loadmod.label_langs(wikis)
+    info = memo.labels_of(sorted(refs), LABEL_ORDER)
     p = [f"# Item {item['qid']}", "", "## Labels"]
     p += [f"- {lg}: {ent['labels'][lg]['value']}" for lg in loadmod.label_langs(wikis) if lg in ent.get("labels", {})]
     descs = [f"- {lg}: {ent['descriptions'][lg]['value']}" for lg in loadmod.label_langs(wikis) if lg in ent.get("descriptions", {})]

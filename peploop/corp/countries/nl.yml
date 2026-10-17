@@ -41,5 +41,81 @@ roles: []
 # Official list of central-government holdings. No list article to resolve
 # QIDs from reliably: entries left empty.
 holdings:
+  # The central government's holdings as the annual report on state holdings
+  # names them, matched to items by name, each checked to be a live Dutch
+  # organisation (2026-10-17). Minority stakes are listed too: the decision
+  # stage judges control. Invest-NL and NLFI have no item.
   - source: "Ministerie van Financiën, Jaarverslag beheer staatsdeelnemingen, https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen"
-    entries: []
+    entries:
+      - name: BNG Bank
+        qid: Q2623882
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: COVRA
+        qid: Q1138139
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: de Volksbank
+        qid: Q1857899
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: Energie Beheer Nederland
+        qid: Q2390497
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: FMO
+        qid: Q16765325
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: Gasunie
+        qid: Q918239
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: Havenbedrijf Rotterdam
+        qid: Q2187039
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: Holland Casino
+        qid: Q361554
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: Invest-NL
+        qid: null
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: NLFI
+        qid: null
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: Nederlandse Spoorwegen
+        qid: Q23076
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: Nederlandse Waterschapsbank
+        qid: Q13534432
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: ProRail
+        qid: Q2316882
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: Royal Schiphol Group
+        qid: Q4290932
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: TenneT
+        qid: Q1127569
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: Urenco
+        qid: Q1432506
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: ABN AMRO
+        qid: Q287471
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+      - name: Thales Nederland
+        qid: Q3913196
+        holder: Staat der Nederlanden
+        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)

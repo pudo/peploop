@@ -33,9 +33,11 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   organization, for a ministry, government or agency it is part of or
   subordinate to. A co-owner with a mere stake gets no link: consumers read
   these links as control. The split follows usage: `P749` points to a
-  government body, `P127` to the polity. A chain of these links to the state, a first-level subdivision or a
-  government body of either is the evidence of control. No shares, sizes or
-  control arithmetic: the links and the article's word are the evidence.
+  government body, `P127` to the polity; a ministry is never an owner, a
+  polity never a parent. A chain of these links to the state, a first-level
+  subdivision or a government body of either is the evidence of control.
+  No shares, sizes or control arithmetic: control is what the article says
+  in words, never read from share figures, which go stale.
 - `P31 Q270791` state-owned enterprise, on an enterprise only: the marker,
   unless the item already reaches `Q270791` or `Q1780371` through `P31` or
   `P1454`. An institution's links are what find it.
@@ -44,7 +46,7 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   | seat | enterprise | institution |
   |---|---|---|
   | head of the executive body | `P169` | `P1037` |
-  | chair of the supervisory body | `P488` + `P2868 Q15818143` | `P488` |
+  | chair of the supervisory body | `P5052` + `P2868 Q15818143` | `P5052` + `P2868 Q140686` |
   | member of the supervisory body | `P5052` | `P5052` |
   | deputy chair of the supervisory body | `P5052` + `P2868 Q1127270` | same |
   | chair / deputy / member of a one-tier board | `P488` / `P3320` + `P2868 Q1127270` / `P3320` | same |
@@ -57,17 +59,21 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   (`Q141755781`) is a role item created for pepcorp, because "board member" (`Q2824523`) means a
   one-tier board in some languages and an executive board in others.
 
-  A supervisory body is whatever oversees the executive: a supervisory board,
-  an administrative council, a board of trustees, a broadcasting council; all
-  its named members are written. The model translates a country's titles
+  A supervisory body is whatever oversees or appoints the executive: a
+  supervisory board, an administrative council, a board of trustees, a
+  broadcasting council; all its named members are written, its chair as a
+  member with the role (the idiom on Wikidata; `P488` is a one-tier
+  board's chair). A council that only advises is no supervisory body. The model translates a country's titles
   into these roles by function, so the table is global and the prompt names
   no country.
 
 - **Corrections.** A body whose article shows it municipal, while the
   municipal tier is not written, gains the municipal marker `Q1780371`; a
-  body shown private gains nothing. Either way, its contradicted `Q270791`
-  (or `Q1780371`) statements are proposed for removal and wait for
-  `removals approve`, being other editors'.
+  body shown private gains nothing. Either way, a contradicted `Q270791`
+  (or `Q1780371`) statement is proposed for removal and waits for
+  `removals approve`, being another editor's. Only the marker itself is
+  proposed, never a subclass someone chose; a city-state's company is
+  regional, never corrected to municipal.
 
 The rule is the EU AMLR: every member of the administrative, management and
 supervisory bodies of an enterprise the state controls; regional and
@@ -92,8 +98,15 @@ are written by default; a spec names its own.
    state-controlled by a quote, at a tier the spec writes), then the marker,
    the links and the seats, each with its rule. A link needs a state body:
    a state actor, a government body (a named one resolved through the
-   article's links), or one the run finds state-controlled. A seat needs a
-   person the article links to a human's item: pepcorp creates no people.
+   article's links), or one the run finds state-controlled; it is skipped
+   when it would shortcut a chain the item already has (`chain_existing`),
+   point a parent at a polity (`parent_polity`) or an owner at a ministry
+   (`owner_ministry`). Every link left is then checked once more against its
+   quote alone (`verify.py`, `prompts/verify_link.md`): funding, a working
+   level or supervision is no control, and a refused link is skipped
+   (`link_unverified`). A seat needs a person the article links to a human's
+   item (pepcorp creates no people), and no open seat is written for a
+   person who has died (`holder_dead`).
    What survives is planned against the live item by peploop's planner
    (`route.route`), which merges dates, role and reference into a statement
    that is there and writes a `+` line only for a new one.
@@ -120,6 +133,8 @@ peploop/corp/
   schema.sql   pcorp_item, pcorp_call, pcorp_decision
   prompts/decide.md
   countries/<cc>.yml
+  verify.py    the link check against its quote
+  prompts/verify_link.md
   check_rules.py, check_neutral.py, check_country.py
 ```
 
