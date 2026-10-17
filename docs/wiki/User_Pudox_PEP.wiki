@@ -1,0 +1,27 @@
+Edits summarized as '''PEP coverage''' record who holds or held public office, and who leads state enterprises and public institutions, one country at a time.
+
+== What the edits add ==
+
+; Person profiles
+: {{P|39}} with start and end dates, and {{P|569}}, {{P|570}}, {{P|21}}, {{P|27}} and {{P|19}}, for people who hold or held a public office. Each value is read from the person's Wikipedia articles.
+; Positions hierarchy
+: {{P|31}}, {{P|279}}, {{P|17}} and {{P|1001}} on position items that are tied to one country. Generic roles that exist in many countries (such as "minister" or "mayor") get no country.
+; Missing positions
+: A new item for an office that Wikipedia articles name and that has no item yet. Where the office needs a body or a place that has no item, that item is created too. People are never created.
+; State enterprises and institutions
+: {{P|127}} or {{P|749}} to the public body that owns or runs the enterprise or institution, {{P|31}} {{Q|Q270791}} on enterprises, and the head and board members ({{P|169}}, {{P|1037}}, {{P|488}}, {{P|5052}}, {{P|3320}}). Each value is read from the body's Wikipedia articles.
+
+== How the edits are made ==
+* '''Source:''' Wikipedia articles in any language, and nothing else. Statements read from an article cite the article revision ({{P|143}}, {{P|4656}}, {{P|813}}). Statements that follow from Wikidata itself, such as the country of a position, cite nothing.
+* '''Extraction:''' a language model reads the article and proposes each statement together with the sentences it relies on. A second, separate model call checks each edit as it would be saved and rejects it if the article does not state it.
+* '''Matching:''' an office or place named in an article is matched to an existing item, checking its type and country. A new position item is created only when no existing item fits.
+* '''Rules:''' code rejects known kinds of mistakes, such as dates outside the period in which an office or a country existed, or a country on a generic role.
+* '''Existing statements:''' items are read again just before each batch. A statement with the same value gets the missing dates or reference; no duplicate is added. A conflicting value is left alone. Ranks are not changed and items are not merged. A statement added by someone else is removed only after I have checked it.
+* '''Batches:''' every edit goes through [[Wikidata:QuickStatements|QuickStatements]] in a named batch, tracked as an [[Wikidata:Edit groups|edit group]].
+* '''Corrections:''' a database records every statement sent and the analysis behind it. When a rule turns out wrong, the analysis is repeated under the corrected rule and the statements the old rule produced are removed. A removed statement is not added again.
+
+== Who uses the data ==
+[https://www.opensanctions.org OpenSanctions], where I work, reads this data from Wikidata to list politically exposed persons (people in senior public positions) for anti-money-laundering checks. It is used commercially.
+
+== Problems ==
+If an edit is wrong, please revert it and leave a note on [[User talk:Pudox]].

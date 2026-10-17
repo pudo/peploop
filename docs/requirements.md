@@ -78,6 +78,20 @@ git history. Instructions for a single task go into that task's plan.
 
 ## Log
 
+- 2026-10-17: On talking to the Wikidata community: "we don't want to drown
+  them in the technical terms used in this codebase: peploop, peptree, pepcorp
+  etc. - that's our lingo, Wikidata need not understand it."
+- 2026-10-17: "we do want to be transparent about the fact that inference is
+  used."
+- 2026-10-17: "we want to highlight that we're doing very systematic
+  enhancement of specific properties, not broad random edits"
+- 2026-10-17: "we want to highlight that the enhancements we do are rooted in
+  wikipedia content"
+- 2026-10-17: "we want to highlight that there is a good amount of
+  verification: multiple, different LLM calls, cross-checks, code rules, etc."
+- 2026-10-17: On framing for the community: "the goal here is to enable
+  transparency of who holds what political office where, and who is managing
+  state funds in positions that control state enterprises"
 - 2026-10-25: On the purpose: "OpenSanctions needs this data, and one of the
   ways we're exploring to build it out is via Wikidata. However this is not a
   corporate push: I've chosen to use the Pudox over the OpenSanctions account

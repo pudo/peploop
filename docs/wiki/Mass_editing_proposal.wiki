@@ -1,0 +1,49 @@
+== Public office holders and state bodies, from Wikipedia articles ==
+{{ping|Ainali}}
+
+'''Summary:''' statements on people who hold or held public office, on the position items for those offices, and on state enterprises and public institutions. All of them are read from Wikipedia articles. Details are on [[User:Pudox/PEP]].
+
+'''Why:''' to record who holds which public office and where, and who leads state enterprises and public institutions. Some office holders lack {{P|39}}. Some position items lack {{P|17}} or {{P|1001}}. Most state enterprises are not linked to the state that owns them.
+
+'''Source:''' Wikipedia articles in any language; nothing else. Each statement read from an article cites the article revision ({{P|143}}, {{P|4656}}, {{P|813}}). Statements inferred from Wikidata itself, such as the country of a position, cite nothing.
+
+'''Modelling:'''
+
+* People: {{P|39}} with {{P|580}} and {{P|582}}, and {{P|569}}, {{P|570}}, {{P|21}}, {{P|27}}, {{P|19}}.
+* Positions: {{P|31}}, {{P|279}}, {{P|17}}, {{P|1001}} on position items tied to one country. Generic roles such as "minister" or "mayor" get no country.
+* New positions: an item for an office that Wikipedia articles name and Wikidata lacks. Where the office needs a body or a place that has no item, that item is created too. So far that was 16 Chinese municipal party committees and 6 Cypriot municipalities from the 2024 reform. No people are created.
+* State bodies: {{P|127}} or {{P|749}} to the owning public body, {{P|31}} {{Q|Q270791}} on enterprises, and the head and board members ({{P|169}}, {{P|1037}}, {{P|488}}, {{P|5052}}, {{P|3320}}) (This part has only just started).
+
+'''Method:''' a language model reads each article and proposes statements with the sentences they rest on. A second, separate (bigger/more powerful) model call checks each edit as it would be saved, and rejects it unless the article states it. Offices and places are matched to existing items by type and country. Code rules reject known kinds of mistakes, such as dates outside the period an office or a country existed. Items are read again just before each batch.
+
+'''Existing data:''' if a statement with the same value exists, it gets the missing dates or reference. If a value conflicts, it is left alone. Ranks are not changed and items are not merged. A statement added by someone else is removed only after I have checked it.
+
+'''Number of edits:''' between 11 and 17 October, about 13,600 statements:
+
+* 4,776 on 3,111 people in 14 countries, 2,977 of them {{P|39}}
+* 8,058 on 7,285 position items in 173 countries
+* 741 new position items
+
+These were sent after the [[Wikidata:Mass-editing policy]] was adopted on 9 October. I learned of the policy when Ainali pointed me to it on 13 October, and this proposal follows from that. Earlier edits on this account came from earlier versions of the same work. All of them are open for review.
+
+The next country is China: about 15,000–20,000 statements on 5,000–6,500 people, and a few hundred new position items. Most of those are provincial governors, congress and CPPCC chairs, heads of high courts and procuratorates, city party secretaries and mayors.
+
+'''Quality:''' no random sample yet. Checks so far found 80 wrong statements of my own, all removed:
+
+* 55 {{P|39}}, or 1.8% of those sent, mostly a term given as ongoing without the article saying so
+* 19 {{P|17}} on generic positions
+* 7 {{P|27}} for a state founded after the person died
+
+Another 410 {{P|31}} statements were redundant and removed after Ainali noticed them. These figures are a lower bound on errors, not a precision rate. Before China starts, a random sample of each kind of edit is checked by hand and reported here.
+
+'''One-off or recurring:''' recurring, one country at a time.
+
+'''Corrections:''' every batch is a named [[Wikidata:Edit groups|edit group]]. A database records each statement sent and the analysis behind it. When a rule turns out wrong, the analysis is repeated under the corrected rule and the statements the old rule produced are removed. A removed statement is not added again.
+
+'''Test edits:''' one recent batch of each kind:
+
+* People: [https://editgroups.toolforge.org/b/QSv3/60342/ batch 60342], 110 edits: positions held, citizenship and dates of birth
+* Positions: [https://editgroups.toolforge.org/b/QSv3/60285/ batch 60285], 8 edits
+* New positions: [https://editgroups.toolforge.org/b/QSv3/60334/ batch 60334], 53 edits
+
+Comments are welcome here or on [[User talk:Pudox]]. [[User:Pudox|Pudox]] ([[User talk:Pudox|<span class="signature-talk">{{int:Talkpagelinktext}}</span>]]) 18:49, 17 October 2026 (UTC)
