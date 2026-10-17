@@ -228,6 +228,14 @@ def crawler_cases() -> None:
            "clubs, missions, places, ministries and governments are never candidates")
 
 
+def unowned() -> None:
+    """An enterprise with no public owner named is not written on, whatever the item already says."""
+    import inspect
+    src = inspect.getsource(rules.decide)
+    expect('kind"] == "enterprise" and not links' in src and "enterprise_unowned" in src,
+           "an enterprise whose article names no public owner is gated out")
+
+
 def historic() -> None:
     def state(types: list[str], end: str | None = None) -> dict:
         e = ent(P31=types)
@@ -281,6 +289,7 @@ def main() -> None:
     dates()
     control()
     crawler_cases()
+    unowned()
     historic()
     reach()
     filters()

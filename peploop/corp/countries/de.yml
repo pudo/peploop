@@ -14,6 +14,9 @@ exclude:
   - {qid: Q13601825, name: Sparkasse}
   - {qid: Q1515218, name: Kassenärztliche Vereinigung}
   - {qid: Q15855960, name: Ärztekammer}
+# A head of government's office is the government itself: its head is
+# peploop's, as a position, like a minister's.
+  - {qid: Q1415691, name: Staatskanzlei}
 # Branch offices and departments, whose heads are middle-ranking: the
 # authority at the top stays in.
   - {qid: Q1585248, name: Landesvertretung beim Bund}

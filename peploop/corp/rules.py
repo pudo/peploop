@@ -413,6 +413,14 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
         rows = control_rows(r, entity, chain, state, closure, named.get(r["qid"]), polities, refused,
                             reached.get(r["qid"], set()), bodies)
         links = [row for row in rows if row["property"] in RELATIONS.values() and row["value"] is not None]
+        if r["answer"]["kind"] == "enterprise" and not links:
+            # An enterprise whose article names no public owner stands on
+            # wording alone ("partly state-owned"): no marker, no seats. An
+            # owner already on the item proves nothing: it may record a
+            # minority holder.
+            decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
+                              "disposition": "skip", "rule": "enterprise_unowned", "call_key": r.get("key")})
+            continue
         if links and not any(row["_rule"] in (None, "chain_reaches") for row in links):
             # Every body the answer names over it is no state body: the
             # control it claims runs through someone else's company.
