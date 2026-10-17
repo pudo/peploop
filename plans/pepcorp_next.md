@@ -26,20 +26,21 @@ removal proposals rejected (Deutsche Oper am Rhein, SAGA, Elbe-Werkstätten);
 the role item `Q141755781` linked as different from `Q2824523` and part of
 `Q897395`.
 
+First batch landed 2026-10-17: 51 statements on 10 German bodies (QS3
+60510, 60511 retry uncombined). Precision samples before it: Germany 20/20,
+Netherlands 17/20.
+
 Left:
 
-1. Recount the run files against the review (no `P488` with `Q15818143`, no
-   `P127` to a ministry, no open seat for a dead holder, Deutsche Telekom
-   and ABN AMRO without the marker).
-2. Precision sample of 20 per country.
-3. The four municipal removals awaiting approval (Hallesche Verkehrs-AG,
+1. The four municipal removals awaiting approval (Hallesche Verkehrs-AG,
    Verkehrsbetrieb Potsdam, Bremer Straßenbahn, OOWV): `removals --tool
    pepcorp`.
-4. First batch: `corp send de --qid …` for ~10 reviewed bodies (DB, KfW,
-   Autobahn GmbH, FBB, dena, Rothaus, Staatliche Kunstsammlungen Dresden,
-   Charité, Meyer Werft, Hypo Real Estate); reconcile; read the items live.
-   Then the rest of Germany and the Netherlands.
-5. The history.md line.
+2. Council institutions: where the institution is itself a council
+   (Kiesraad, Raad voor het Openbaar Bestuur), its members and chair are
+   written as supervisory board members; they are the body, peploop's
+   collegial-body positions. A prompt rule for the next round.
+3. The rest of Germany (~970 lines) and the Netherlands (179), sent
+   uncombined; reload Germany first for the state-chancellery exclusion.
 
 Accepted with the review: undated `P169`/`P488` seats are written when the
 article says they are held now, against the constraint asking for a start
