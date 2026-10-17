@@ -68,6 +68,8 @@ SEATS: dict[tuple[str, str, str], tuple[str, str | None]] = {
 }
 #: Short tokens with a full stop that are titles, not names: "Dr.", "Prof.".
 HONORIFIC = re.compile(r"^\w{1,5}\.$")
+#: Degrees written after a name ("Ing. Jan Novák, Ph.D.", "Petra Horvát MBA"), compared without dots.
+POSTNOMINAL = frozenset({"phd", "csc", "drsc", "mba", "llm", "msc", "bsc", "dis", "mpa", "dba", "artd", "thd"})
 
 
 def seat_statement(kind: str, body: str, role: str,
@@ -85,7 +87,12 @@ def norm(text: str) -> str:
     """A name or page title reduced to what both write the same: no disambiguator, no title, no case."""
     text = unicodedata.normalize("NFKC", text).casefold()
     text = re.sub(r"\(.*?\)", " ", text)
+    head, _, tail = text.partition(",")
+    if tail and all(re.sub(r"[^\w]", "", t) in POSTNOMINAL | {"ma"} or HONORIFIC.match(t) for t in tail.split()):
+        text = head
     tokens = [t for t in text.split() if not HONORIFIC.match(t)]
+    while tokens and re.sub(r"[^\w]", "", tokens[-1]) in POSTNOMINAL:
+        tokens.pop()
     return " ".join(re.sub(r"[^\w-]", "", t) for t in tokens if re.sub(r"[^\w-]", "", t))
 
 

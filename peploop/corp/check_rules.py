@@ -91,6 +91,9 @@ def names() -> None:
     expect(rules.linked("Dr. Max Probe", "xx", links) == ["Q900002"], "a title and a disambiguator fall away")
     expect(rules.linked("Hans Beispiel", "xx", links) == ["Q900004"], "another language's link is the fallback")
     expect(rules.linked("Fritz Fremd", "xx", links) == [], "an unlinked name resolves to nothing")
+    expect(rules.norm("JUDr. Ing. Erika Muster, Ph.D.") == rules.norm("Ing. Erika Muster, CSc., MBA")
+           == rules.norm("Mgr. Erika Muster MBA") == "erika muster", "degrees after a name fall away")
+    expect(rules.norm("Charles, Prince of Wales") == "charles prince of wales", "a comma before a title stays")
     page = ('<p><a rel="mw:WikiLink" href="./Ministerstwo_Zdrowia_(Polska)">Ministerstwa Zdrowia</a>'
             '<a rel="mw:WikiLink" href="./Jan_Kowalski#Kariera">Janem Kowalskim</a>'
             '<a rel="mw:WikiLink" href="./Prezes_A">prezes</a><a rel="mw:WikiLink" href="./Prezes_B">prezes</a>'
