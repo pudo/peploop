@@ -138,28 +138,28 @@ def check_rules(expect: Any) -> None:
          ("skipped", "archetype/none")),
         ("6 nobody attested", cand(attestations=[]), verdict(), [], None,
          ("skipped", "holders/0")),
-        ("12 one current person clears rule 6 and is decided by the model",
+        ("13 one current person clears rule 6 and is decided by the model",
          cand(attestations=[att("Q1", True), att("Q1", True)]), verdict(), [], None,
          ("guarded", "mint:agreed")),
         ("6 nobody current", cand(attestations=[att("Q1"), att("Q2")]), verdict(), [], None,
          ("skipped", "not-current")),
-        ("7 a live duplicate beats a mint verdict", cand(), verdict(), ["duplicate/Q960"], "Q960",
+        ("8 a live duplicate beats a mint verdict", cand(), verdict(), ["duplicate/Q960"], "Q960",
          ("found", "guard:duplicate")),
-        ("8 the verifier names the item", cand(), verdict(verdict="exists", exists_qid="Q950"),
+        ("9 the verifier names the item", cand(), verdict(verdict="exists", exists_qid="Q950"),
          [], None, ("found", "verify:exists")),
-        ("9 the verifier refuses", cand(), verdict(verdict="not-distinct"), [], None,
+        ("10 the verifier refuses", cand(), verdict(verdict="not-distinct"), [], None,
          ("skipped", "verify:not-distinct")),
-        ("9 a mint that says it is not missing", cand(), verdict(missing=False), [], None,
+        ("10 a mint that says it is not missing", cand(), verdict(missing=False), [], None,
          ("skipped", "verify:mint/not-missing")),
-        ("9 no verdict at all", cand(), None, [], None, ("skipped", "verify:none")),
-        ("10 a shape disagreement", cand(),
+        ("10 no verdict at all", cand(), None, [], None, ("skipped", "verify:none")),
+        ("11 a shape disagreement", cand(),
          verdict(shape="correct", corrections={**{f: None for f in mint.CORRECTION_FIELDS},
                                                "parent_qid": "Q83307"}),
          [], None, ("skipped", "disagree/shape:parent_qid")),
-        ("11 a guard reason", cand(), verdict(), ["body-word/Q910", "label/es"], None,
+        ("12 a guard reason", cand(), verdict(), ["body-word/Q910", "label/es"], None,
          ("skipped", "guard:body-word/Q910")),
-        ("12 all three agree", cand(), verdict(), [], None, ("guarded", "mint:agreed")),
-        ("12 agreed at medium confidence", cand(), verdict(confidence="medium"), [], None,
+        ("13 all three agree", cand(), verdict(), [], None, ("guarded", "mint:agreed")),
+        ("13 agreed at medium confidence", cand(), verdict(confidence="medium"), [], None,
          ("skipped", "verify:confidence/medium")),
     ]
     statuses = set()
@@ -172,7 +172,7 @@ def check_rules(expect: Any) -> None:
     got = mint.disposition(cand(), spec, verdict(verdict="exists", exists_qid="Q953"), [], None,
                            verify_exists_problem="exists-unscoped/Q953")
     expect(got == ("skipped", "verify:exists"),
-           f"rule 8 a verifier's exists that is not this state's office is a skip: {got}")
+           f"rule 9 a verifier's exists that is not this state's office is a skip: {got}")
     for name, c, v, reasons, dup, want in cases:
         spec, _p = mint.build_spec(c, ctx())
         # Rules 1-6 are handed a `mint` verdict: they must win over it.
@@ -183,6 +183,21 @@ def check_rules(expect: Any) -> None:
         if number <= 6:
             early = mint._first(mint.Case(c, spec, None, [], None), mint.MODEL_FREE)
             expect(early == want, f"rule {name} is decided without the model")
+    # Rule 7: below the first level, a census that lists units is the run's depth.
+    spec, _p = mint.build_spec(cand(), ctx())
+    got = mint.disposition(cand(), spec, verdict(), [], None, unlisted_unit=True)
+    early = mint._first(mint.Case(cand(), spec, None, [], None, unlisted_unit=True), mint.MODEL_FREE)
+    expect(got == early == ("skipped", "scope/unlisted-unit"),
+           f"rule 7 a unit the census leaves out is skipped without the model: {got} {early}")
+    city = mint.Anchor("mayor/Q902", "subnational.municipal", "mayor", {"en": "Mayor of Port"},
+                       jurisdiction="Q902")
+    listed = ctx(anchors=[*ctx().anchors.values(), city])
+    expect(listed.unlisted_unit("Q903") and not listed.unlisted_unit("Q902")
+           and not listed.unlisted_unit("Q901") and not listed.unlisted_unit(STATE)
+           and not listed.unlisted_unit(None),
+           "only a unit below the first level that the census leaves out is beyond the run")
+    expect(not ctx().unlisted_unit("Q903"),
+           "a census that names no unit below the first level sets no depth")
     expect(statuses <= set(mint.DISPOSITION_STATUSES),
            f"no status but skipped/found/guarded: {sorted(statuses)}")
     expect(mint.DISPOSITION_STATUSES == ("skipped", "found", "guarded"),

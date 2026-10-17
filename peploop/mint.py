@@ -1592,6 +1592,22 @@ class Context:
             self._anchors = {a.key: a for a in census(self.country)}
         return self._anchors
 
+    @property
+    def listed_units(self) -> set[str]:
+        """The units below the first level the census names an office for.
+
+        A census that names any lists every one the run goes down to: the
+        major cities of a state whose seeds stop there, not its every town.
+        """
+        return {a.jurisdiction for a in self.anchors.values()
+                if a.jurisdiction and a.jurisdiction not in self.levels}
+
+    def unlisted_unit(self, jurisdiction: str | None) -> bool:
+        """Whether an office's unit lies below the run's depth, as `listed_units` draws it."""
+        listed = self.listed_units
+        return bool(listed and jurisdiction and jurisdiction not in self.levels
+                    and jurisdiction not in listed)
+
     def exists_problem(self, qid: str | None, jurisdiction: str | None = None) -> str | None:
         """Why an item named as already existing is not this state's office, or None.
 
@@ -2333,6 +2349,9 @@ class Case:
     #: The verifier's English label, filled into a draft that had none, moved a
     #: statement: the item it agreed to is not the one that would be created.
     fill_moved: bool = False
+    #: The office governs a unit below the first level that the census, where it
+    #: names such units one by one, leaves out.
+    unlisted_unit: bool = False
 
 
 Decision = tuple[str, str]
@@ -2377,6 +2396,10 @@ def no_archetype(case: Case) -> Decision | None:
 def below_floor(case: Case) -> Decision | None:
     refused = floor(case.cand)
     return (SKIPPED, refused) if refused else None
+
+
+def unlisted_unit(case: Case) -> Decision | None:
+    return (SKIPPED, "scope/unlisted-unit") if case.unlisted_unit else None
 
 
 def live_duplicate(case: Case) -> Decision | None:
@@ -2448,21 +2471,23 @@ RULES: tuple[Rule, ...] = (
                          #    of this state and not a class; else fall through
     no_archetype,        # 5. no fixed shape to build
     below_floor,         # 6. one attested holder, and a current one
+    unlisted_unit,       # 7. a unit below the first level the census leaves out,
+                         #    where it lists such units: the run's depth
     # Decided on the live search and the model, in that order: a duplicate
     # beats any verdict, and an item the verifier names is taken as found.
-    live_duplicate,      # 7. a live item of this state already has the name
-    verify_exists,       # 8. the verifier named the item it is
-    verify_refused,      # 9. real, current and missing, or skip
-    shape_disagree,      # 10. the verifier would shape it otherwise. A future
+    live_duplicate,      # 8. a live item of this state already has the name
+    verify_exists,       # 9. the verifier named the item it is
+    verify_refused,      # 10. real, current and missing, or skip
+    shape_disagree,      # 11. the verifier would shape it otherwise. A future
                          #     rule may accept a correction naming a measured
                          #     sibling parent; the corrections are kept for it.
-    fill_moved,          # 11. the English label the verifier filled in moved
+    fill_moved,          # 12. the English label the verifier filled in moved
                          #     a statement it never saw
-    guard_refused,       # 12. every static reason not to create
-    agreed,              # 13. only on high confidence
+    guard_refused,       # 13. every static reason not to create
+    agreed,              # 14. only on high confidence
 )
 #: The rules that read neither the live search nor the model.
-MODEL_FREE = RULES[:6]
+MODEL_FREE = RULES[:7]
 
 
 def _first(case: Case, rules: Sequence[Rule]) -> Decision | None:
@@ -2477,7 +2502,7 @@ def disposition(cand: Candidate, spec: offices.Spec | None, verdict: MintVerdict
                 guard_reasons: Sequence[str], dup: str | None, *,
                 exists_problem: str | None = None,
                 verify_exists_problem: str | None = None,
-                fill_moved: bool = False) -> Decision:
+                fill_moved: bool = False, unlisted_unit: bool = False) -> Decision:
     """Decide one candidate: the first rule in `RULES` that applies, as (status, rule).
 
     The status is `skipped`, `found` or `guarded` and nothing else: every case
@@ -2485,7 +2510,7 @@ def disposition(cand: Candidate, spec: offices.Spec | None, verdict: MintVerdict
     a `guarded` row is one categorize, verify and the guard all agree on.
     """
     case = Case(cand, spec, verdict, list(guard_reasons), dup, exists_problem,
-                verify_exists_problem, fill_moved)
+                verify_exists_problem, fill_moved, unlisted_unit)
     found = _first(case, RULES)
     assert found is not None  # `agreed` always answers
     return found
@@ -2693,7 +2718,9 @@ def verify(
                                                           spec.jurisdiction if spec else None)
             if exists_problems[cand.id]:
                 problems.append(exists_problems[cand.id])
-        early = _first(Case(cand, spec, None, [], None, exists_problems.get(cand.id)), MODEL_FREE)
+        early = _first(Case(cand, spec, None, [], None, exists_problems.get(cand.id),
+                            unlisted_unit=ctx.unlisted_unit(spec.jurisdiction if spec else None)),
+                       MODEL_FREE)
         planned.append((cand, spec, problems, early))
     ask = [(c, s) for c, s, _p, early in planned if early is None]
     if limit is not None:
