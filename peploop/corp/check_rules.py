@@ -120,7 +120,6 @@ def dates() -> None:
            "a head from next month is not written, though the year is this one")
     expect(rules.seat_rule(seat(), t("2026"), None, TODAY) is None and rules.seat_rule(seat(), t("2026-10"), None, TODAY) is None,
            "a start this year or this month, at that precision, is not future")
-    expect(rules.seat_rule(seat(current=False), t("2020"), t("2027-03"), TODAY) == "future", "nor is a term's future end")
     expect(rules.seat_rule(seat(current=False), t("2015"), None, TODAY) == "open_unattested",
            "an open seat older than a term must be said to be current")
     expect(rules.seat_rule(seat(current=True, start=None), None, None, TODAY) is None,
@@ -234,6 +233,11 @@ def crawler_cases() -> None:
     expect(rows[0]["_rule"] is None, "a head recorded under neither property is written")
     rows = rules.seat_rows(head, {"Q901000"}, TODAY, None, ent(), frozenset({"Q901000"}))
     expect(rows[0]["_rule"] == "holder_dead", "no open seat for a person who has died")
+    term = {**head, "answer": answer(seats=[seat(name="Max Probe", body="executive", role="head", start="2022",
+                                                  end="2027", current=False, quote="Max Probe runs it.")])}
+    rows = rules.seat_rows(term, {"Q901000"}, TODAY, None, ent())
+    expect(rows[0]["_rule"] is None and "P582" not in rows[0]["qualifiers"],
+           "a fixed term running past today is written as held, without its end")
     # A ministry is a parent, never an owner; a link one step past an existing one is a shortcut.
     owner = {**base, "answer": answer(kind="institution", owners=((0, "owner"),))}
     expect(rules.control_rows(owner, ent(), None, state, {}, government=frozenset({"Q900100"}))[0]["_rule"] == "owner_ministry",

@@ -268,8 +268,8 @@ def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str,
     year = lambda t: int(t["time"][1:5]) if t else None  # noqa: E731
     if start and end and end["time"] < start["time"]:
         return "bad_dates"
-    if start and later(start, today) or end and later(end, today):
-        # A tenure that starts, or a term that ends, after today is not a fact yet.
+    if start and later(start, today):
+        # A tenure that starts after today is not a fact yet.
         return "future"
     if seat["current"] and end:
         return "current_ended"
@@ -302,6 +302,9 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
         prop, role = statement
         start = propose.time_value(seat["start"]) if seat["start"] else None
         end = propose.time_value(seat["end"]) if seat["end"] else None
+        if end and later(end, today) and not (start and later(start, today)):
+            # A fixed term that runs past today is held now: its end is not a fact yet.
+            end, seat = None, {**seat, "current": True}
         found = linked(seat["name"], seat["article"], req["links"])
         rule = None
         if not quoted(seat["quote"], req["message"]):
