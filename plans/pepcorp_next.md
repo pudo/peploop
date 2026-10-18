@@ -46,35 +46,41 @@ Accepted with the review: undated `P169`/`P488` seats are written when the
 article says they are held now, against the constraint asking for a start
 date; `P749` raises its inverse-constraint (`P355`) warning on ministries.
 
-## 2. Person resolution: the biggest recall lever
+## 2. Person matching: the biggest recall lever
 
-A seat is written only when the article links the person under the exact
-name it writes (`rules.linked`: link titles, normalised). The last German
-pass left 1,385 seats unlinked against about 1,000 written. A sample of 60
-unlinked names:
+A seat is written only when the article links the person (`rules.linked`).
+Since 2026-10-18 a name resolves through a link's title or its anchor text,
+with titles and degrees after the name dropped ("JUDr. … , Ph.D.").
+What is left is people the article does not link at all: about 4,900 seats
+in the EU + Switzerland dry run (fr 650, es 489, pl 418, it 314, at 297, ch
+296, se 288, ro 271, fi 225, be 202 …) beside ~1,500 written, and 1,385 in
+the last German pass. Greek and Maltese boards are almost never linked.
 
-- 40 % have no human item at all: true residue, as pepcorp creates no people;
-- 30 % match exactly one human item by name (Almut Wieland-Karimi,
-  `Q2649808`, is named in the ZIF article without a resolvable link), but
-  only 1 of 18 such items already mentions the body;
-- 30 % match several (homonyms).
+A German sample of 60 unlinked names: 40 % have no human item (residue:
+pepcorp creates no people), 30 % match exactly one human item by name, 30 %
+several (homonyms). Agent samples in the EU run found the same: people with
+items the article leaves as plain text or red links (Simone Quilici, Rui
+Santos Ivo, Michela Spagnuolo, Almut Wieland-Karimi).
 
-Two steps, in order:
+The step: **verified unique names.** For a seat whose name the article does
+not link:
 
-1. **Anchor text.** Read the article's links from its Parsoid HTML with their
-   anchor text, and match the written name against anchors as well as
-   titles. Safe and cheap; catches people linked under another form of their
-   name.
-2. **Verified unique names.** For a name with no link and exactly one human
-   item, one cheap model call showing the item (labels, description, birth
-   and death, occupations, employers, positions) beside the article passage;
-   only a clear match is accepted, the way peploop's `verify` checks an edit
-   against its article. Homonyms stay out unless the same call picks one
-   with confidence.
+1. Search human items (`P31 Q5`) by exact label or alias in the article's
+   language and `mul`, after `rules.norm`; keep the name only when one
+   item matches.
+2. One cheap model call shows that item (labels, description, birth and
+   death, occupations, employers `P108`, positions `P39`, citizenship) beside
+   the article passage that names the seat; accepted only on a clear match,
+   as peploop's `verify` checks an edit against its article.
+3. Homonyms (several items) stay out, unless the same call picks one with
+   confidence from the item details; a living-person check (`holder_dead`)
+   and the date rules apply as for linked people.
 
-Ceiling: about 400 more German seats. Each accept and refuse class gets a
-fixture in `check_rules`; the report counts seats by how their person was
-resolved.
+Each accept and refuse class gets a fixture in `check_rules`; the report
+counts seats by how their person was resolved (link, anchor, matched). The
+statement keeps the article as its reference; the match itself is an
+inference and carries none. Ceiling, by the sample: about a third of the
+unlinked seats, ~1,500 in the EU run, ~400 in Germany.
 
 ## 3. More data back to Wikidata
 

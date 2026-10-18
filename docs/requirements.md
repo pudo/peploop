@@ -37,3 +37,5 @@
 - 2026-10-17: "in general I feel we shouldn't get too deep into percentages,
   sizes and control because WD is a weird place to source and store that.
   [...] We want heuristics, not math on fake numbers."
+- 2026-10-18: On statutory bodies with no owner (public broadcasters,
+  independent regulators, central banks): "should be typed appropriately"

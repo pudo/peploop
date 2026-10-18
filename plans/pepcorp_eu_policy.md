@@ -27,6 +27,14 @@ What each call decides, by how much it moves.
    is written. Proposal: a body set up by statute whose leadership a state
    organ appoints is state at its level, no owner link; its council is its
    supervisory body. ~100–150 bodies, the most visible ones.
+   **User, 2026-10-18: "should be typed appropriately".** Measured on 30 of
+   them: public broadcaster `Q1126006` on 6 of 10 broadcasters (SRG SSR
+   only "broadcaster", MRT "company", TG4 "business"); central bank
+   `Q66344` on all 3; regulators split across national classes (Italian
+   `Q3630770` ×4, French `Q2872764`/`Q18558685`, Spanish `Q104601620`,
+   regulatory agency `Q1639780`, financial regulatory agency `Q105062392`)
+   or untyped beyond organization / government agency / quango (CRE,
+   HATVP, CNIL, Arcep, Fiskalrat, ComCom, ERA).
 2. *An official list or a state-only legal form as proof* (33, 46): bodies
    on a holdings register (Luxembourg's 26, the Swiss EFV list, ÖBAG) or
    carrying a spec state-only form (Italian autonomous museums) whose
