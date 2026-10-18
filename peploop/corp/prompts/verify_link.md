@@ -14,6 +14,9 @@ about the public body and the other:
   responsibility or authority in the administration.
 
 Whether the passage says owner or parent does not matter: either is control.
+When the public body is a state and you are told the passage names it as one
+of its ministries, its government or its treasury, a holding by that
+ministry, government or treasury is the state's own.
 
 It does not support the link when it only says that the public body funds
 the other, gives it money, grants or a budget; that the other works at the

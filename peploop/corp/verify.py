@@ -32,10 +32,12 @@ class Verdict(BaseModel):
     reason: str
 
 
-def message(body: str, target: str, relation: str, quote: str, names: dict[str, str]) -> str:
+def message(body: str, target: str, relation: str, quote: str, names: dict[str, str],
+            via: str | None = None) -> str:
     return "\n".join([
         f"Body: {body} ({names.get(body, '')})",
         f"Public body: {target} ({names.get(target, '')})",
+        *([f"Named in the passage as: {via} ({names.get(via, '')}), a ministry or government of it"] if via else []),
         f"Link: {relation}",
         "Passage:",
         quote,
@@ -61,25 +63,34 @@ def refused(cc: str, decisions: list[dict[str, Any]], answered: list[dict[str, A
              if d["disposition"] == "apply" and d["prop"] in RELATIONS]
     if not links:
         return set()
-    names = {q: decide.memo_name(i) for q, i in memo.labels_of(sorted({x for l in links for x in (l[0], l[2])}),
-                                                               ("en", "mul")).items()}
+    named = {x for l in links for x in (l[0], l[2])} | {
+        reqs[q]["offered"][o["controller"]] for q, _, _ in links for o in reqs[q]["answer"]["control"]["owners"]
+        if o["controller"] is not None and 0 <= o["controller"] < len(reqs[q]["offered"])}
+    names = {q: decide.memo_name(i) for q, i in memo.labels_of(sorted(named), ("en", "mul")).items()}
     _, prompt_hash = llm.system_prompt(PROMPT_PATH)
     # Each link is checked against the owner's own quote, then, if that one
     # is refused, against the answer's control quote: an answer sometimes
     # gives the plain sentence ("belongs wholly to the canton") as the
     # control quote and a weaker one for the owner.
     quotes: dict[tuple[str, str, str], list[str]] = {}
+    vias: dict[tuple[str, str, str], str] = {}
     for qid, prop, target in links:
         req = reqs[qid]
         control = req["answer"]["control"]
-        quote = next((o["quote"] for o in control["owners"]
-                      if o["relation"] == RELATIONS[prop]
-                      and (o["controller"] is not None and 0 <= o["controller"] < len(req["offered"])
-                           and req["offered"][o["controller"]] == target or o["controller"] is None)), "")
+        offered = req["offered"]
+        mine = [o for o in control["owners"] if o["relation"] == RELATIONS[prop]]
+        chosen = lambda o: offered[o["controller"]] if o["controller"] is not None and 0 <= o["controller"] < len(offered) else None  # noqa: E731
+        owner = (next((o for o in mine if chosen(o) == target), None)
+                 or next((o for o in mine if o["controller"] is None), None)
+                 # A ministry or government the rules wrote as its state.
+                 or next((o for o in mine if chosen(o) is not None), None))
+        if owner is not None and chosen(owner) not in (None, target):
+            vias[(qid, prop, target)] = chosen(owner)
+        quote = owner["quote"] if owner else ""
         quotes[(qid, prop, target)] = list(dict.fromkeys(q for q in (quote, control.get("quote") or "") if q)) or [""]
 
     def key_text(link: tuple[str, str, str], quote: str) -> tuple[str, str]:
-        text = message(link[0], link[2], RELATIONS[link[1]], quote, names)
+        text = message(link[0], link[2], RELATIONS[link[1]], quote, names, vias.get(link))
         return decide.content_key(MODEL, prompt_hash, text), text
 
     def one(link: tuple[str, str, str], key: str, text: str) -> None:
