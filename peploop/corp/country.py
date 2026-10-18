@@ -39,8 +39,9 @@ DEFAULT_TIERS = ("national", "regional")
 #: (the cutoff OpenSanctions' crawlers use for abolished positions).
 HISTORICAL_CUTOFF = "1990-12-26"
 #: Types that, with an end before the cutoff, make an alternate QID historical:
-#: historical country, former administrative territorial entity.
-HISTORICAL_TYPES = frozenset({"Q3024240", "Q19953632"})
+#: historical country, former administrative territorial entity, historical
+#: unrecognized state.
+HISTORICAL_TYPES = frozenset({"Q3024240", "Q19953632", "Q99541706"})
 
 
 @dataclass(frozen=True)
@@ -112,4 +113,4 @@ def current_qids(cc: str) -> list[str]:
         ents = wikidata.fetch_items(qids, props="claims")
         main = territory.qid if territory else None
         return [q for q in qids if q == main or not historical(ents.get(q) or {})]
-    return memo.cached(f"pcorp_current_qids:{cc}:{'|'.join(qids)}", read)
+    return memo.cached(f"pcorp_current_qids:{cc}:{'|'.join(qids)}:{'|'.join(sorted(HISTORICAL_TYPES))}", read)
