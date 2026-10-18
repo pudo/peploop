@@ -18,6 +18,16 @@ not_government:
 # Chambers of commerce administer themselves.
 exclude:
   - {qid: Q897399, name: chamber of commerce and industry}  # 9 live, e.g. Q4738890 Amcham Finland
+# Counted among the kept bodies 2026-10-17. Mills, factories and manors are
+# sites, not bodies (the company that runs them is); the regional emergency
+# centres are branch offices of their agency; municipal transport
+# corporations are the municipal tier, not written.
+  - {qid: Q83405, name: factory}  # 7 kept, e.g. Q11894488 Stora Enso Imatra Mill
+  - {qid: Q918088, name: paper mill}  # 5 kept, e.g. Q11900519 Varkaus Paper Mills
+  - {qid: Q879050, name: manor house}  # 4 kept, e.g. Q11893682 Sippolan kartano
+  - {qid: Q510646, name: public-safety answering point}  # 5 kept, e.g. Q132717599 Turun hätäkeskus
+  - {qid: Q11875790, name: municipal transport corporation}  # 4 kept, e.g. Q1433158 Helsingin kaupungin liikennelaitos
+  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

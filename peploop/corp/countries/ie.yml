@@ -3,15 +3,23 @@
 
 tiers: [national, regional]
 
+# Government bodies the type tree misses, read from the controllers the
+# 2026-10-18 answers chose: the Health Service Executive, the statutory
+# body that runs the public hospitals, is typed business/nonprofit.
+actors:
+  - {qid: Q5690681, kind: government, name: Health Service Executive}
+
 # Classes the type tree files under government organization or government
 # agency that are not government bodies here. None measured: no misfiled
 # class among the state actors read 2026-10-17.
 not_government: []
 
 # Never candidates here, beyond the global exclusions. Measured 2026-10-17
-# from the state actors' P127/P749 reach and the country's live items. None
-# measured.
-exclude: []
+# from the state actors' P127/P749 reach and the country's live items.
+# Garda units are branches of the police (counted among the kept bodies).
+exclude:
+  - {qid: Q28648855, name: police unit}  # 2 kept, e.g. Q7309171 Garda Armed Support Unit
+  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

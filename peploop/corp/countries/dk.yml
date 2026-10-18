@@ -8,6 +8,24 @@ state: Q35
 
 tiers: [national, regional]
 
+# Government bodies the type tree misses: Danish ministry items carry their
+# P31 only deprecated (modelled as classes through P279) or a class outside
+# the government tree, so the agencies under them fell to no_state_owner
+# (the 2026-10-18 full run: 30 styrelser). Read from the controllers the
+# answers named; each live, P1001 Denmark.
+actors:
+  - {qid: Q4294734, kind: government, name: Transportministeriet}
+  - {qid: Q4294704, kind: government, name: Socialministeriet}
+  - {qid: Q3376586, kind: government, name: Indenrigs- og Sundhedsministeriet}
+  - {qid: Q20638217, kind: government, name: Udlændinge- og Integrationsministeriet}
+  - {qid: Q11989566, kind: government, name: Børne- og Undervisningsministeriet}
+  - {qid: Q944762, kind: government, name: Miljøministeriet}
+  - {qid: Q3430357, kind: government, name: Ministeriet for Fødevarer, Landbrug og Fiskeri}
+  - {qid: Q12341974, kind: government, name: Økonomiministeriet}
+  - {qid: Q1438081, kind: government, name: Uddannelses- og Forskningsministeriet}
+  - {qid: Q115714352, kind: government, name: Digitaliseringsministeriet}
+  - {qid: Q11989565, kind: government, name: Kirkeministeriet}
+
 # Classes the type tree files under government organization or government
 # agency that are not government bodies here. None measured: no misfiled
 # class among the state actors read 2026-10-17.
@@ -19,6 +37,14 @@ not_government: []
 # through Rigsadvokaten.
 exclude:
   - {qid: Q1092499, name: public prosecutor's office}  # 23 live, e.g. Q11997819 Rigsadvokaten
+# Counted among the kept bodies 2026-10-17. Radio channels are no body (DR
+# is; TV 2 Danmark is typed a television station, so that class stays);
+# police districts are the police's branch offices; government committees
+# are the cabinet's (peploop's).
+  - {qid: Q14350, name: radio station}  # 10 kept, e.g. Q1796582 DR P1
+  - {qid: Q4992061, name: police district}  # 10 kept, e.g. Q11982824 Københavns Politi
+  - {qid: Q74562105, name: government committee}  # 4 kept, e.g. Q135443524 Regeringens koordinationsudvalg
+  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
@@ -32,8 +58,42 @@ forms:
 
 roles: []
 
-# Official list of central-government holdings. No list article to resolve
-# QIDs from reliably: entries left empty.
+# Official list of central-government holdings: the state's companies as
+# the Ministry of Finance organises them (27 January 2021), via
+# da.wikipedia (Statsejede virksomheder i Danmark). QIDs from the list's
+# own links, checked live; three links fixed by hand (TV 2 and Ørsted
+# linked a disambiguation, Fjordforbindelsen a road). EKF, Vækstfonden and
+# IFU merged into EIFO in 2022. An entry without a QID is a holding with no
+# item.
 holdings:
-  - source: "Finansministeriet, Statens selskaber (statens ejerskabspolitik og årlig oversigt), https://fm.dk/"
-    entries: []
+  - source: "Finansministeriet, Organisering af statens selskaber, via da.wikipedia https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"
+    entries:
+      - {name: "Bornholmstrafikken Holding A/S", qid: Q893983, holder: "Staten (Transportministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Danmarks Genopretningsfond A/S", qid: null, holder: "Staten (Finansministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Dansk Jagtforsikring A/S", qid: Q12307466, holder: "Staten (Miljøministeriet), 51 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Danske Spil A/S", qid: Q3430548, holder: "Staten (Finansministeriet), 80 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Det Danske Klasselotteri A/S", qid: Q11981110, holder: "Staten (Finansministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Eksport Kredit Finansiering A/S", qid: null, holder: "Staten (Erhvervsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Evida Holding A/S", qid: null, holder: "Staten (Finansministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Statens og Kommunernes Indkøbsservice A/S", qid: Q12334276, holder: "Staten (Finansministeriet), 55 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Statens Ejendomssalg A/S", qid: null, holder: "Staten (Finansministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Sund & Bælt Holding A/S", qid: Q12337680, holder: "Staten (Transportministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "TV2 DANMARK A/S", qid: Q1616154, holder: "Staten (Kulturministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Ørsted A/S", qid: Q1241260, holder: "Staten (Finansministeriet), 50,1 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Kalaallit Airports International A/S", qid: null, holder: "Staten (Finansministeriet), 33,3 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Københavns Lufthavne A/S", qid: Q3429574, holder: "Staten (Finansministeriet), 39,2 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "NORDUnet A/S", qid: Q3480188, holder: "Staten (Uddannelses- og Forskningsministeriet), 24,2 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "PostNord AB", qid: Q3181430, holder: "Staten (Transportministeriet), 40 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "SAS AB", qid: Q1345441, holder: "Staten (Finansministeriet), 21,8 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "DanPilot", qid: Q12307097, holder: "Staten (Erhvervsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "DSB", qid: Q83824, holder: "Staten (Transportministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "EKF Danmarks Eksportkredit", qid: Q105404842, holder: "Staten (Erhvervsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Energinet.dk", qid: Q1341529, holder: "Staten (Klima-, Energi- og Bygningsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Finansiel Stabilitet A/S", qid: Q12311337, holder: "Staten (Erhvervsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Fjordforbindelsen Frederikssund", qid: null, holder: "Staten (Transportministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Investeringsfonden for udviklingslande", qid: Q12318260, holder: "Staten (Udenrigsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Naviair", qid: Q1783727, holder: "Staten (Transportministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Nordsøenheden", qid: Q114443640, holder: "Staten (Erhvervsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Vækstfonden", qid: Q12341341, holder: "Staten (Erhvervsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Metroselskabet I/S", qid: Q11989204, holder: "Staten (Transportministeriet), 42 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Udviklingsselskabet By & Havn I/S", qid: Q5003760, holder: "Staten (Transportministeriet), 5 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
