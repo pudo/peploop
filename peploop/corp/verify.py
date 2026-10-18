@@ -3,8 +3,9 @@
 The decision call reads a whole article and sometimes takes funding, a
 body's working level or supervision for ownership. A link is what readers
 take as control, so each one the rules would write gets a second, narrow
-look: the two bodies and the quote, nothing else. A link the check refuses
-is skipped; the rest of the body's answer stands. Answers are kept in
+look: the two bodies and the quote, nothing else. A link refused on its own
+quote is checked again against the answer's control quote; one refused on
+both is skipped; the rest of the body's answer stands. Answers are kept in
 `pcorp_call` by content, like the decisions, so a re-run pays only for new
 links.
 """
@@ -63,18 +64,25 @@ def refused(cc: str, decisions: list[dict[str, Any]], answered: list[dict[str, A
     names = {q: decide.memo_name(i) for q, i in memo.labels_of(sorted({x for l in links for x in (l[0], l[2])}),
                                                                ("en", "mul")).items()}
     _, prompt_hash = llm.system_prompt(PROMPT_PATH)
-    todo: dict[tuple[str, str, str], tuple[str, str]] = {}
+    # Each link is checked against the owner's own quote, then, if that one
+    # is refused, against the answer's control quote: an answer sometimes
+    # gives the plain sentence ("belongs wholly to the canton") as the
+    # control quote and a weaker one for the owner.
+    quotes: dict[tuple[str, str, str], list[str]] = {}
     for qid, prop, target in links:
         req = reqs[qid]
-        quote = next((o["quote"] for o in req["answer"]["control"]["owners"]
+        control = req["answer"]["control"]
+        quote = next((o["quote"] for o in control["owners"]
                       if o["relation"] == RELATIONS[prop]
                       and (o["controller"] is not None and 0 <= o["controller"] < len(req["offered"])
                            and req["offered"][o["controller"]] == target or o["controller"] is None)), "")
-        text = message(qid, target, RELATIONS[prop], quote, names)
-        todo[(qid, prop, target)] = (decide.content_key(MODEL, prompt_hash, text), text)
+        quotes[(qid, prop, target)] = list(dict.fromkeys(q for q in (quote, control.get("quote") or "") if q)) or [""]
 
-    def one(link: tuple[str, str, str]) -> None:
-        key, text = todo[link]
+    def key_text(link: tuple[str, str, str], quote: str) -> tuple[str, str]:
+        text = message(link[0], link[2], RELATIONS[link[1]], quote, names)
+        return decide.content_key(MODEL, prompt_hash, text), text
+
+    def one(link: tuple[str, str, str], key: str, text: str) -> None:
         if decide.recorded(key) is not None:
             return
         verdict, usage = ask(text)
@@ -84,16 +92,18 @@ def refused(cc: str, decisions: list[dict[str, Any]], answered: list[dict[str, A
             (key, cc, link[0], MODEL, prompt_hash, Jsonb({"message": text, "link": list(link)}),
              Jsonb(verdict.model_dump()), Jsonb(usage)))
 
-    with cf.ThreadPoolExecutor(decide.WORKERS) as ex:
-        for fut in cf.as_completed([ex.submit(one, link) for link in todo]):
-            try:
-                fut.result()
-            except Exception as exc:  # one failed check leaves its link unwritten, not the run
-                log(f"  link check failed: {exc}")
-    out = set()
-    for link, (key, _) in todo.items():
-        verdict = decide.recorded(key)
-        if verdict is None or not verdict.get("supports"):
-            out.add(link)
-    log(f"{len(todo)} links checked against their quotes; {len(out)} refused")
+    out = set(links)
+    for attempt in range(2):
+        jobs = {link: key_text(link, qs[attempt]) for link, qs in quotes.items() if link in out and len(qs) > attempt}
+        with cf.ThreadPoolExecutor(decide.WORKERS) as ex:
+            for fut in cf.as_completed([ex.submit(one, link, *kt) for link, kt in jobs.items()]):
+                try:
+                    fut.result()
+                except Exception as exc:  # one failed check leaves its link unwritten, not the run
+                    log(f"  link check failed: {exc}")
+        for link, (key, _) in jobs.items():
+            verdict = decide.recorded(key)
+            if verdict is not None and verdict.get("supports"):
+                out.discard(link)
+    log(f"{len(quotes)} links checked against their quotes; {len(out)} refused")
     return out
