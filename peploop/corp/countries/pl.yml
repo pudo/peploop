@@ -3,6 +3,11 @@
 
 tiers: [national, regional]
 
+# Items that stand for the state here: the State Treasury is the legal
+# owner of the central government's companies (73 links name it).
+actors:
+  - {qid: Q15706520, kind: state, name: Skarb Państwa}
+
 # Classes the type tree files under government organization or government
 # agency that are not government bodies here. Volunteer fire brigades,
 # historic German public-law corporations in Polish territory, and Frontex
@@ -18,6 +23,13 @@ not_government:
 exclude:
   - {qid: Q112827555, name: decentralised agency of the European Union}  # 1 live, e.g. Q21786841 European Border and Coast Guard Agency
   - {qid: Q897399, name: chamber of commerce and industry}  # 8 live, e.g. Q9344175 Staropolska Izba Przemysłowo-Handlowa
+# Dry load 2026-10-17: the armed forces (officers are peploop's), the
+# cultural institutes abroad typed as diplomatic missions, the municipal
+# city guard and the European Commission's own offices.
+  - {qid: Q772547, name: armed forces}  # e.g. Q282696 Polish Armed Forces
+  - {qid: Q213283, name: diplomatic mission}  # e.g. Q11713167 Polish Institute
+  - {qid: Q1758690, name: municipal police}  # e.g. Q5123552 City Guard
+  - {qid: Q4002650, name: representation office of the European Commission}  # e.g. Q24943570 Wrocław
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
@@ -32,8 +44,241 @@ forms:
 
 roles: []
 
-# Official list of central-government holdings. No list article to resolve
-# QIDs from reliably: entries left empty.
+# Official and Wikipedia-sourced lists of state holdings. QIDs resolved
+# from the articles' links and checked live (no P576); minority holdings
+# such as Pekao and private successors such as Mennica Polska left out.
 holdings:
-  - source: "Ministerstwo Aktywów Państwowych, wykaz spółek z udziałem Skarbu Państwa, https://www.gov.pl/web/aktywa-panstwowe"
-    entries: []
+  - source: "Ministerstwo Aktywów Państwowych, spółki o istotnym znaczeniu dla gospodarki państwa (2025), via pl.wikipedia (Spółka strategiczna)"
+    entries:
+      - name: "Agencja Rozwoju Przemysłu SA"
+        qid: Q9142034
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Enea SA"
+        qid: Q1341068
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Exatel SA"
+        qid: Q9257077
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Giełda Papierów Wartościowych w Warszawie SA"
+        qid: Q59551
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Grupa Azoty SA"
+        qid: Q24737009
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Jastrzębska Spółka Węglowa SA"
+        qid: Q3507748
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "KGHM Polska Miedź SA"
+        qid: Q1476710
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Krajowa Grupa Spożywcza SA"
+        qid: Q671526
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "ORLEN SA"
+        qid: Q971649
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "PGE Polska Grupa Energetyczna SA"
+        qid: Q787714
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Poczta Polska SA"
+        qid: Q168833
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Polska Grupa Górnicza SA"
+        qid: Q24948555
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Polska Grupa Zbrojeniowa SA"
+        qid: Q19401271
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Polski Fundusz Rozwoju SA"
+        qid: Q11822677
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Polski Holding Nieruchomości SA"
+        qid: Q11822493
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Polski Holding Obronny SA"
+        qid: Q1004746
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Powszechna Kasa Oszczędności Bank Polski SA"
+        qid: Q578832
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Powszechny Zakład Ubezpieczeń SA"
+        qid: Q1807170
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "TAURON Polska Energia SA"
+        qid: Q2397198
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "Totalizator Sportowy Sp. z o.o."
+        qid: Q9360300
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+      - name: "WĘGLOKOKS SA"
+        qid: Q7979677
+        holder: "Skarb Państwa, nadzór Ministra Aktywów Państwowych"
+        source: https://pl.wikipedia.org/w/index.php?title=Sp%C3%B3%C5%82ka_strategiczna&oldid=79349697
+  - source: "Other central-government companies and state legal persons, articles on pl.wikipedia (owner as the article states it); checked 2026-10-17"
+    entries:
+      - name: "Telewizja Polska SA"
+        qid: Q129110
+        holder: "Skarb Państwa (public broadcaster)"
+        source: https://www.wikidata.org/wiki/Q129110
+      - name: "Polskie Radio SA"
+        qid: Q1067189
+        holder: "Skarb Państwa (public broadcaster)"
+        source: https://www.wikidata.org/wiki/Q1067189
+      - name: "Polska Agencja Prasowa SA"
+        qid: Q1484980
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q1484980
+      - name: "Grupa PKP (PKP SA)"
+        qid: Q15221308
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q15221308
+      - name: "PKP Polskie Linie Kolejowe SA"
+        qid: Q1344677
+        holder: "PKP SA"
+        source: https://www.wikidata.org/wiki/Q1344677
+      - name: "PKP Intercity SA"
+        qid: Q590406
+        holder: "PKP SA"
+        source: https://www.wikidata.org/wiki/Q590406
+      - name: "PKP Cargo SA"
+        qid: Q742422
+        holder: "PKP SA (minority listed)"
+        source: https://www.wikidata.org/wiki/Q742422
+      - name: "Polskie Sieci Elektroenergetyczne SA"
+        qid: Q1749435
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q1749435
+      - name: "Operator Gazociągów Przesyłowych Gaz-System SA"
+        qid: Q5528948
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q5528948
+      - name: "PERN SA"
+        qid: Q7119013
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q7119013
+      - name: "Bank Gospodarstwa Krajowego"
+        qid: Q9164984
+        holder: "Skarb Państwa (state development bank)"
+        source: https://www.wikidata.org/wiki/Q9164984
+      - name: "Polska Wytwórnia Papierów Wartościowych SA"
+        qid: Q649403
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q649403
+      - name: "Polska Agencja Żeglugi Powietrznej"
+        qid: Q7118171
+        holder: "Skarb Państwa (state legal person)"
+        source: https://www.wikidata.org/wiki/Q7118171
+      - name: "Port Polska (Centralny Port Komunikacyjny) sp. z o.o."
+        qid: Q48840381
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q48840381
+      - name: "Polskie Porty Lotnicze"
+        qid: Q11828383
+        holder: "Skarb Państwa (state enterprise)"
+        source: https://www.wikidata.org/wiki/Q11828383
+      - name: "Energa SA"
+        qid: Q9253957
+        holder: "Orlen SA"
+        source: https://www.wikidata.org/wiki/Q9253957
+      - name: "Polskie Elektrownie Jądrowe sp. z o.o."
+        qid: Q111937971
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q111937971
+      - name: "Państwowe Gospodarstwo Leśne Lasy Państwowe"
+        qid: Q7603225
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q7603225
+      - name: "Państwowe Gospodarstwo Wodne Wody Polskie"
+        qid: Q48084447
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q48084447
+      - name: "Polskie Linie Lotnicze LOT SA"
+        qid: Q204268
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q204268
+      - name: "Polska Żegluga Morska"
+        qid: Q6369046
+        holder: "Skarb Państwa (state enterprise)"
+        source: https://www.wikidata.org/wiki/Q6369046
+      - name: "Bank Ochrony Środowiska SA"
+        qid: Q4855958
+        holder: "Narodowy Fundusz Ochrony Środowiska"
+        source: https://www.wikidata.org/wiki/Q4855958
+      - name: "Krajowy Ośrodek Wsparcia Rolnictwa"
+        qid: Q48862535
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q48862535
+      - name: "Polski Instytut Ekonomiczny"
+        qid: Q60855450
+        holder: "Skarb Państwa"
+        source: https://www.wikidata.org/wiki/Q60855450
+      - name: "PZU Życie SA"
+        qid: Q11802052
+        holder: "PZU SA"
+        source: https://www.wikidata.org/wiki/Q11802052
+      - name: "Huta Stalowa Wola SA"
+        qid: Q4899048
+        holder: "Polska Grupa Zbrojeniowa"
+        source: https://www.wikidata.org/wiki/Q4899048
+      - name: "Rosomak SA"
+        qid: Q9377492
+        holder: "Polska Grupa Zbrojeniowa"
+        source: https://www.wikidata.org/wiki/Q9377492
+      - name: "Fabryka Broni Łucznik – Radom"
+        qid: Q3064033
+        holder: "Polska Grupa Zbrojeniowa"
+        source: https://www.wikidata.org/wiki/Q3064033
+      - name: "PGE Górnictwo i Energetyka Konwencjonalna SA"
+        qid: Q60980173
+        holder: "PGE SA"
+        source: https://www.wikidata.org/wiki/Q60980173
+      - name: "Krajowy Zasób Nieruchomości"
+        qid: Q26185466
+        holder: "Skarb Państwa (state legal person)"
+        source: https://www.wikidata.org/wiki/Q26185466
+  - source: "Regional rail operators owned by the voivodeships, articles on pl.wikipedia; checked 2026-10-17"
+    entries:
+      - name: "Koleje Mazowieckie"
+        qid: Q847966
+        holder: "Województwo mazowieckie"
+        source: https://www.wikidata.org/wiki/Q847966
+      - name: "Koleje Śląskie"
+        qid: Q776749
+        holder: "Województwo śląskie"
+        source: https://www.wikidata.org/wiki/Q776749
+      - name: "Koleje Dolnośląskie"
+        qid: Q597307
+        holder: "Województwo dolnośląskie"
+        source: https://www.wikidata.org/wiki/Q597307
+      - name: "Koleje Wielkopolskie"
+        qid: Q11741120
+        holder: "Województwo wielkopolskie"
+        source: https://www.wikidata.org/wiki/Q11741120
+      - name: "Łódzka Kolej Aglomeracyjna"
+        qid: Q9395008
+        holder: "Województwo łódzkie"
+        source: https://www.wikidata.org/wiki/Q9395008
+      - name: "Polregio"
+        qid: Q1139703
+        holder: "województwa and Agencja Rozwoju Przemysłu"
+        source: https://www.wikidata.org/wiki/Q1139703

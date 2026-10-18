@@ -14,6 +14,10 @@ not_government: []
 exclude:
   - {qid: Q897399, name: chamber of commerce and industry}  # 1 live, e.g. Q103820404 Amerikas Tirdzniecības palāta Latvijā
   - {qid: Q10729872, name: medical association}  # 1 live, e.g. Q106114302 Latvian Medical Association
+# Dry load 2026-10-17: channels and stations; the broadcaster (LSM) stays.
+  - {qid: Q1616075, name: television station}  # e.g. Q4042491 LTV1
+  - {qid: Q14350, name: radio station}  # e.g. Q18615317 Latvijas Radio 5
+  - {qid: Q3914, name: school}  # 6 kept, e.g. Q58465397 Nacionālā Mākslu vidusskola
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

@@ -16,6 +16,14 @@ exclude:
   - {qid: Q1757539, name: notarite koda}  # 2 live, e.g. Q1436614 Notarite Koda
   - {qid: Q1865205, name: bar association}  # 1 live, e.g. Q16408959 Eesti Advokatuur
   - {qid: Q10729872, name: medical association}  # 2 live, e.g. Q16409064 Eesti Arstide Liit
+# Dry load 2026-10-17: the ministries' schools (about 120 kept through the
+# agency form: state upper secondary, vocational and special schools),
+# prisons and care homes; heads are no state function.
+  - {qid: Q3914, name: school}  # e.g. Q111818378 Paide Upper Secondary School
+  - {qid: Q17567322, name: prison organization}  # 9 kept, e.g. Q12376213 Tallinn Prison
+  - {qid: Q40357, name: prison}
+  - {qid: Q25510280, name: social welfare institution}  # 4 kept, e.g. Q12358036 Aa nursing home
+  - {qid: Q772547, name: armed forces}  # e.g. Q327827 Kaitsevägi (its commander is peploop's)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

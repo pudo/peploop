@@ -31,6 +31,17 @@ exclude:
   - {qid: Q78187793, name: výchovný ústav}  # 24 live, e.g. Q61484580 Výchovný ústav, dětský domov se školou, základní š
   - {qid: Q124660793, name: středisko výchovné péče}  # 22 live, e.g. Q61484568 Výchovný ústav, středisko výchovné péče a střední 
   - {qid: Q61941618, name: Středisko volného času}  # 36 live, e.g. Q61666713 SVČ Mozaika Polička
+# Dry load 2026-10-17: prisons and custody prisons (32 kept, wardens are
+# no state function) and the cultural centres abroad typed as missions.
+  - {qid: Q40357, name: prison}  # 23 kept, e.g. Q110072527 Teplice Detention Prison
+  - {qid: Q4579153, name: arrest custody}  # 9 kept, e.g. Q110072282 Vazební věznice Olomouc
+  - {qid: Q213283, name: diplomatic mission}
+# Full run 2026-10-17: the broadcasting councils have items of their own,
+# and seats were written on the council instead of the broadcaster it
+# supervises; the government's councils only advise.
+  - {qid: Q90398247, name: mediální rada}  # 3 kept, e.g. Q12048475 Rada Českého rozhlasu
+  - {qid: Q58235902, name: government council in the Czech Republic}  # 6 kept, e.g. Q12048469 Rada pro výzkum, vývoj a inovace
+  - {qid: Q4686866, name: advisory board}  # 3 kept, e.g. Q12032881 Legislativní rada vlády
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
@@ -43,8 +54,175 @@ forms:
 
 roles: []
 
-# Official list of central-government holdings. No list article to resolve
-# QIDs from reliably: entries left empty.
+# State holdings: the Ministry of Finance reports the state's holdings; no
+# list article resolves QIDs reliably, so entries are the major state
+# companies, státní podniky and national cultural institutions, QIDs
+# resolved from their cs.wikipedia articles or Wikidata search and checked
+# live 2026-10-17.
 holdings:
-  - source: "Ministerstvo financí, majetkové účasti státu (státní podniky a společnosti s účastí státu), https://www.mfcr.cz/"
-    entries: []
+  - source: "Ministerstvo financí, majetkové účasti státu (https://www.mfcr.cz/); entries from cs.wikipedia articles, checked 2026-10-17"
+    entries:
+      - name: "ČEZ, a. s."
+        qid: Q336735
+        holder: "Česká republika (Ministerstvo financí)"
+        source: https://www.wikidata.org/wiki/Q336735
+      - name: "ČEPS, a.s."
+        qid: Q11089927
+        holder: "Česká republika (Ministerstvo průmyslu a obchodu)"
+        source: https://www.wikidata.org/wiki/Q11089927
+      - name: "OTE, a.s."
+        qid: Q10380001
+        holder: "Česká republika (Ministerstvo průmyslu a obchodu)"
+        source: https://www.wikidata.org/wiki/Q10380001
+      - name: "Severočeské doly a.s."
+        qid: Q12051564
+        holder: "ČEZ"
+        source: https://www.wikidata.org/wiki/Q12051564
+      - name: "České dráhy, a.s."
+        qid: Q304944
+        holder: "Česká republika (Ministerstvo dopravy)"
+        source: https://www.wikidata.org/wiki/Q304944
+      - name: "ČD Cargo, a.s."
+        qid: Q336717
+        holder: "České dráhy"
+        source: https://www.wikidata.org/wiki/Q336717
+      - name: "Správa železnic, státní organizace"
+        qid: Q1848025
+        holder: "Česká republika (Ministerstvo dopravy)"
+        source: https://www.wikidata.org/wiki/Q1848025
+      - name: "Česká pošta, s.p."
+        qid: Q341090
+        holder: "Česká republika (Ministerstvo vnitra)"
+        source: https://www.wikidata.org/wiki/Q341090
+      - name: "Ředitelství silnic a dálnic"
+        qid: Q10513470
+        holder: "Česká republika (Ministerstvo dopravy)"
+        source: https://www.wikidata.org/wiki/Q10513470
+      - name: "Řízení letového provozu ČR, s.p."
+        qid: Q10530834
+        holder: "Česká republika (Ministerstvo dopravy)"
+        source: https://www.wikidata.org/wiki/Q10530834
+      - name: "Letiště Praha, a. s."
+        qid: Q28549001
+        holder: "Česká republika (Ministerstvo financí)"
+        source: https://www.wikidata.org/wiki/Q28549001
+      - name: "Budějovický Budvar, národní podnik"
+        qid: Q1001644
+        holder: "Česká republika (Ministerstvo zemědělství)"
+        source: https://www.wikidata.org/wiki/Q1001644
+      - name: "Lesy České republiky, s.p."
+        qid: Q12033072
+        holder: "Česká republika (Ministerstvo zemědělství)"
+        source: https://www.wikidata.org/wiki/Q12033072
+      - name: "Povodí Vltavy, státní podnik"
+        qid: Q12046609
+        holder: "Česká republika (Ministerstvo zemědělství)"
+        source: https://www.wikidata.org/wiki/Q12046609
+      - name: "Povodí Labe, státní podnik"
+        qid: Q12046598
+        holder: "Česká republika (Ministerstvo zemědělství)"
+        source: https://www.wikidata.org/wiki/Q12046598
+      - name: "Povodí Moravy, s.p."
+        qid: Q12046601
+        holder: "Česká republika (Ministerstvo zemědělství)"
+        source: https://www.wikidata.org/wiki/Q12046601
+      - name: "Povodí Odry, státní podnik"
+        qid: Q12046603
+        holder: "Česká republika (Ministerstvo zemědělství)"
+        source: https://www.wikidata.org/wiki/Q12046603
+      - name: "Povodí Ohře, státní podnik"
+        qid: Q12046604
+        holder: "Česká republika (Ministerstvo zemědělství)"
+        source: https://www.wikidata.org/wiki/Q12046604
+      - name: "ČEPRO, a.s."
+        qid: Q11171518
+        holder: "Česká republika (Ministerstvo financí)"
+        source: https://www.wikidata.org/wiki/Q11171518
+      - name: "MERO ČR, a.s."
+        qid: Q21685676
+        holder: "Česká republika (Ministerstvo financí)"
+        source: https://www.wikidata.org/wiki/Q21685676
+      - name: "Česká exportní banka, a.s."
+        qid: Q11179646
+        holder: "Česká republika"
+        source: https://www.wikidata.org/wiki/Q11179646
+      - name: "Exportní garanční a pojišťovací společnost, a.s."
+        qid: Q20851639
+        holder: "Česká republika"
+        source: https://www.wikidata.org/wiki/Q20851639
+      - name: "Národní rozvojová banka, a.s."
+        qid: Q11177437
+        holder: "Česká republika"
+        source: https://www.wikidata.org/wiki/Q11177437
+      - name: "Česká televize"
+        qid: Q341134
+        holder: "Česká republika (public broadcaster)"
+        source: https://www.wikidata.org/wiki/Q341134
+      - name: "Český rozhlas"
+        qid: Q341323
+        holder: "Česká republika (public broadcaster)"
+        source: https://www.wikidata.org/wiki/Q341323
+      - name: "Česká tisková kancelář"
+        qid: Q341118
+        holder: "Česká republika (public-law institution)"
+        source: https://www.wikidata.org/wiki/Q341118
+      - name: "Státní tiskárna cenin, s.p."
+        qid: Q27910080
+        holder: "Česká republika (Ministerstvo financí)"
+        source: https://www.wikidata.org/wiki/Q27910080
+      - name: "DIAMO, s.p."
+        qid: Q11812039
+        holder: "Česká republika (Ministerstvo průmyslu a obchodu)"
+        source: https://www.wikidata.org/wiki/Q11812039
+      - name: "Vojenské lesy a statky ČR, s.p."
+        qid: Q11863366
+        holder: "Česká republika (Ministerstvo obrany)"
+        source: https://www.wikidata.org/wiki/Q11863366
+      - name: "LOM Praha s.p."
+        qid: Q12032407
+        holder: "Česká republika (Ministerstvo obrany)"
+        source: https://www.wikidata.org/wiki/Q12032407
+      - name: "VOP CZ, s.p."
+        qid: Q30258814
+        holder: "Česká republika (Ministerstvo obrany)"
+        source: https://www.wikidata.org/wiki/Q30258814
+      - name: "Explosia a.s."
+        qid: Q1443995
+        holder: "Česká republika (Ministerstvo financí)"
+        source: https://www.wikidata.org/wiki/Q1443995
+      - name: "VZLU Aerospace"
+        qid: Q4168662
+        holder: "Česká republika (Ministerstvo průmyslu a obchodu)"
+        source: https://www.wikidata.org/wiki/Q4168662
+      - name: "Centrum výzkumu Řež s.r.o."
+        qid: Q30284610
+        holder: "ČEZ"
+        source: https://www.wikidata.org/wiki/Q30284610
+      - name: "Správa úložišť radioaktivních odpadů"
+        qid: Q26492956
+        holder: "Česká republika (Ministerstvo průmyslu a obchodu)"
+        source: https://www.wikidata.org/wiki/Q26492956
+      - name: "Všeobecná zdravotní pojišťovna České republiky"
+        qid: Q12006431
+        holder: "Česká republika (public-law institution)"
+        source: https://www.wikidata.org/wiki/Q12006431
+      - name: "Národní divadlo"
+        qid: Q732697
+        holder: "Česká republika (Ministerstvo kultury)"
+        source: https://www.wikidata.org/wiki/Q732697
+      - name: "Národní galerie v Praze"
+        qid: Q1419555
+        holder: "Česká republika (Ministerstvo kultury)"
+        source: https://www.wikidata.org/wiki/Q1419555
+      - name: "Národní muzeum"
+        qid: Q188112
+        holder: "Česká republika (Ministerstvo kultury)"
+        source: https://www.wikidata.org/wiki/Q188112
+      - name: "Národní knihovna České republiky"
+        qid: Q1967876
+        holder: "Česká republika (Ministerstvo kultury)"
+        source: https://www.wikidata.org/wiki/Q1967876
+      - name: "Česká filharmonie"
+        qid: Q316549
+        holder: "Česká republika (Ministerstvo kultury)"
+        source: https://www.wikidata.org/wiki/Q316549
