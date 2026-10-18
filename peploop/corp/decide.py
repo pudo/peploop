@@ -13,7 +13,7 @@ import hashlib
 import os
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 
 import requests
 from lxml import html as lxml_html
@@ -127,9 +127,10 @@ def link_names(html: str, resolve: Callable[[list[str]], dict[str, str]]) -> dic
     anchors: list[tuple[str, str]] = []
     for a in root.iter("a"):
         href = a.get("href") or ""
-        if "mw:WikiLink" not in (a.get("rel") or "") or not href.startswith("./"):
-            continue
-        target = unquote(href[2:].split("#")[0]).replace("_", " ")
+        if ("mw:WikiLink" not in (a.get("rel") or "") or not href.startswith("./")
+                or "redlink=1" in href or "new" in (a.get("class") or "").split()):
+            continue  # a red link names no item
+        target = unquote(href[2:].split("#")[0].split("?")[0]).replace("_", " ")
         if target:
             anchors.append((target, " ".join(a.text_content().split())))
     items = resolve(sorted({t for t, _ in anchors}))
@@ -144,12 +145,26 @@ def link_names(html: str, resolve: Callable[[list[str]], dict[str, str]]) -> dic
     return out
 
 
+def title_chunks(titles: list[str], most: int = 50, length: int = 6000) -> list[list[str]]:
+    """Titles in batches the API takes: at most `most`, and short enough once percent-encoded (Cyrillic or Greek take six bytes a letter)."""
+    chunks: list[list[str]] = [[]]
+    size = 0
+    for title in titles:
+        n = len(quote(title)) + 3
+        if chunks[-1] and (len(chunks[-1]) >= most or size + n > length):
+            chunks.append([])
+            size = 0
+        chunks[-1].append(title)
+        size += n
+    return [c for c in chunks if c]
+
+
 def page_items(lang: str, titles: list[str]) -> dict[str, str]:
     """Article title → QID for these titles, a redirect's title included; other namespaces left out."""
     api = f"https://{lang}.wikipedia.org/w/api.php"
     out: dict[str, str] = {}
-    for i in range(0, len(titles), 50):
-        data = http.get_json(api, params={"action": "query", "titles": "|".join(titles[i:i + 50]), "prop": "pageprops",
+    for chunk in title_chunks(titles):
+        data = http.get_json(api, params={"action": "query", "titles": "|".join(chunk), "prop": "pageprops",
                                           "ppprop": "wikibase_item", "redirects": 1, "format": "json"})
         query = data.get("query", {})
         found = {p["title"]: p["pageprops"]["wikibase_item"] for p in query.get("pages", {}).values()

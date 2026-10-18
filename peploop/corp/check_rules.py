@@ -105,6 +105,13 @@ def names() -> None:
            "an owner named in an inflected form resolves through the link's anchor text")
     expect(rules.linked("Janem Kowalskim", "xx", {"xx": found}) == ["Q900011"], "so does a person")
     expect("prezes" not in found, "an anchor text linked to two items resolves to nothing")
+    red = '<a rel="mw:WikiLink" href="./Jan_Nowak?action=edit&amp;redlink=1" class="new">Jan Nowak</a>'
+    asked: list[str] = []
+    decide.link_names(red, lambda titles: asked.extend(titles) or {})
+    expect(asked == [], "a red link is not looked up")
+    chunks = decide.title_chunks(["Национален статистически институт"] * 120)
+    expect(all(len(c) <= 50 and sum(len(decide.quote(t)) + 3 for t in c) <= 6000 for c in chunks)
+           and sum(map(len, chunks)) == 120, "Cyrillic titles are batched by their encoded length")
 
 
 def dates() -> None:
