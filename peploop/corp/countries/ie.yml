@@ -19,7 +19,6 @@ not_government: []
 # Garda units are branches of the police (counted among the kept bodies).
 exclude:
   - {qid: Q28648855, name: police unit}  # 2 kept, e.g. Q7309171 Garda Armed Support Unit
-  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

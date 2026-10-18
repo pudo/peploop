@@ -25,7 +25,6 @@ exclude:
   - {qid: Q40357, name: prison}  # 35 kept, e.g. Q1242106 Pálhalma National Prison
   - {qid: Q1616075, name: television station}  # 15 kept, e.g. Q288964 M1
   - {qid: Q14350, name: radio station}  # 8 kept, e.g. Q502613 Kossuth Rádió
-  - {qid: Q772547, name: armed forces}  # e.g. Q1161970 Hungarian Defence Force
   - {qid: Q35535, name: police}  # e.g. Q1001785 Police in Rijeka
 
 # State-only legal forms and types, matched exactly as P31 or P1454.

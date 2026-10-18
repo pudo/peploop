@@ -27,7 +27,6 @@ exclude:
   - {qid: Q879050, name: manor house}  # 4 kept, e.g. Q11893682 Sippolan kartano
   - {qid: Q510646, name: public-safety answering point}  # 5 kept, e.g. Q132717599 Turun hätäkeskus
   - {qid: Q11875790, name: municipal transport corporation}  # 4 kept, e.g. Q1433158 Helsingin kaupungin liikennelaitos
-  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

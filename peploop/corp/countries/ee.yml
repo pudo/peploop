@@ -23,7 +23,6 @@ exclude:
   - {qid: Q17567322, name: prison organization}  # 9 kept, e.g. Q12376213 Tallinn Prison
   - {qid: Q40357, name: prison}
   - {qid: Q25510280, name: social welfare institution}  # 4 kept, e.g. Q12358036 Aa nursing home
-  - {qid: Q772547, name: armed forces}  # e.g. Q327827 Kaitsevägi (its commander is peploop's)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

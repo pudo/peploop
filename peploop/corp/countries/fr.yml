@@ -3,6 +3,19 @@
 
 tiers: [national, regional]
 
+# Items standing for the state or its government that the type tree cannot
+# place. Measured 2026-10-18 from the controllers the full run's answers
+# chose but the rules could not place: the French State as a legal person
+# (owner of EDF, SNCF, France Télévisions, the Caisse des dépôts), the Prime
+# Minister's services, a labour ministry typed as a position, and two
+# ministry directorates without P1001.
+actors:
+  - {qid: Q3591845, kind: state, name: État français}
+  - {qid: Q54293525, kind: government, name: services du Premier ministre}
+  - {qid: Q1408517, kind: government, name: ministère du Travail et de l'Emploi}
+  - {qid: Q3029570, kind: government, name: direction générale des Infrastructures, des Transports et de la Mer}
+  - {qid: Q1227512, kind: government, name: direction générale de l'Aviation civile}
+
 # Classes the type tree files under government organization or government
 # agency that are not government bodies here. Municipal administrations
 # (administration municipale, under executive branch) are municipal
@@ -32,6 +45,24 @@ exclude:
   - {qid: Q111302220, name: établissement public local à caractère industriel ou commercial}  # 1284 live, e.g. Q115457588 Office de tourisme intercommunal Lot Tolzac
   - {qid: Q112176670, name: régie d'une collectivité locale à caractère industriel ou commercial}  # 516 live, e.g. Q115579362 Régie d'équipement et Gestion de l'assainissement 
   - {qid: Q112177100, name: régime général de la sécurité sociale}  # 8 live, e.g. Q123200558 caisse d'allocations familiales de Paris
+# Units inside a body, whose heads are middle-ranking: Radio France's local
+# stations, the BnF's departments, CNRS joint research units, and the joint
+# services of the armed forces (officers are peploop's). Measured 2026-10-17
+# among the kept candidates.
+  - {qid: Q1868541, name: local radio station}  # 29 kept, e.g. Q13629025 Ici Nord
+# Individual radio stations and channels; the broadcaster (Radio France,
+# France Médias Monde, France Télévisions) stays. Television station is left
+# in: Arte France, a holding, is typed one; the decision drops channels.
+  - {qid: Q14350, name: radio station}  # 35 kept, e.g. Q19905 France Inter
+  - {qid: Q561068, name: specialty channel}  # 2 kept, e.g. Q166180 France 24
+  - {qid: Q334453, name: division}  # 16 kept, e.g. Q3044762 Département des manuscrits de la BnF
+  - {qid: Q3550864, name: unité mixte de recherche}  # 16 kept, e.g. Q21619458 Institut de biologie structurale
+  - {qid: Q3356149, name: organisme interarmées}  # 12 kept, e.g. Q335814 direction du renseignement militaire
+# Prisons, which the État français owns by P127: their directors are civil
+# servants of the prison administration. Measured 2026-10-18 once the État
+# français became a state actor (107 kept).
+  - {qid: Q40357, name: prison}  # e.g. Q22932360 maison d'arrêt du Puy-en-Velay
+  - {qid: Q3403998, name: établissement pénitentiaire en France}  # e.g. Q112574395 Centre pénitentiaire de Majicavo
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

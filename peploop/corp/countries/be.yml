@@ -58,7 +58,6 @@ exclude:
 # Programmatory federal public services are ministries like the FOD/SPF
 # (their heads are peploop's); the full run wrote P127 Belgium on one.
   - {qid: Q21004446, name: Programmatorische Federale Overheidsdienst}  # 3 kept, e.g. Q105502204 POD Maatschappelijke Integratie
-  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

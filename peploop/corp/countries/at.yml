@@ -29,7 +29,6 @@ exclude:
   - {qid: Q635047, name: Architektenkammer}  # 1 live, e.g. Q134519736 Ingenieur- und Architektenkammer Wien
   - {qid: Q563787, name: health insurance company}  # 3 live, e.g. Q53939971 Österreichische Gesundheitskasse
   - {qid: Q2306006, name: Sozialversicherungsträger}  # 1 live, e.g. Q63808458 Sozialversicherungsanstalt der Selbständigen
-  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
   # A permanent mission is diplomatic, its head an ambassador (peploop's);
   # the class is not under diplomatic mission in the type tree.
   - {qid: Q2360219, name: permanent mission}  # 4 kept 2026-10-17, e.g. Q15849545 Ständige Vertretung Österreichs bei der EU

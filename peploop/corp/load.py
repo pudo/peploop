@@ -44,6 +44,7 @@ TYPED = """SELECT DISTINCT ?i WHERE { ?c wdt:P279* wd:%s . { ?i wdt:P31 ?c } UNI
 #: state enterprise owns the club. A country adds its own in its spec (`exclude`).
 EXCLUDED = frozenset({
     "Q176799",  # military unit
+    "Q772547",  # armed forces: its chief is a position, peploop's
     "Q3917681",  # embassy
     "Q7843791",  # diplomatic mission
     "Q41487",  # court

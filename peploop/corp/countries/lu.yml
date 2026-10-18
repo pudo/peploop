@@ -29,7 +29,6 @@ exclude:
   - {qid: Q1865205, name: barreau}  # 1 live, e.g. Q13102203
   - {qid: Q10729872, name: medical association}  # 2 live, e.g. Q130214581 Collège médical
   - {qid: Q3914, name: school}  # 5 live, e.g. Q31274989 Luxembourg Estonian School
-  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

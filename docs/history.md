@@ -216,7 +216,8 @@ cannot.
 ## pepcorp
 
 First built and run 2026-10-17 on Germany (prototype), the Netherlands,
-Norway and Zambia (validation); 26 more EU specs written, not run.
+Norway and Zambia (validation); then a dry run of the other 25 EU states and
+Switzerland (2026-10-17/18), nothing sent.
 
 - **The type tree takes "business" up to "position".** peploop's organisation
   test (`positions.organisations`) rejects anything whose closure touches a
@@ -252,11 +253,42 @@ Norway and Zambia (validation); 26 more EU specs written, not run.
 - **QS3 fails whole items when combining many lines.** The first batch's four
   items with 6–11 lines failed with no reason; uncombined, all 34 landed.
   pepcorp sends uncombined.
+- **Inflected languages hide links.** Polish, Czech or Hungarian articles
+  write "Ministerstwa Zdrowia", "Janem Kowalskim": matching link titles only
+  lost 7 of 10 named owners in the Polish pilot. Names now resolve through a
+  link's anchor text too, and degrees after a name ("Ph.D.", "MBA") drop.
+- **Wikimedia's limit is the IP's.** Five runs pacing 4/s each stalled on
+  429s for an hour; the pacer is shared across processes (a locked file),
+  one corp run at a time per session.
+- **A state stands behind other items.** Owners are named as Skarb Państwa,
+  Magyar Állam, État français, Belgische Staat, a Danish ministry typed only
+  by deprecated `P31`: none was a state actor, and EDF, SNCF and Danish
+  agencies lost their links. A spec's `actors` names them. Adding one
+  changes every request's candidates, so the whole country is asked again
+  (France: $40 on top of $18).
+- **The rules lost bodies the articles plainly put under the state.**
+  "Owner: Government of Ireland" was refused as a ministry (now the
+  polity); a link refused on the owner's weak quote is checked again on the
+  control quote; a ministry's shareholding mapped to the state is checked
+  with the ministry named; an institution named under an office ("the Prime
+  Minister") keeps its seats. Re-planning from cached answers took Austria's
+  no_state_owner from 33 to 4, Belgium's from 41 to 2.
+- **Statutory bodies with no owner write nothing.** Public broadcasters,
+  independent authorities and central banks set up by law come back
+  `unclear`: the largest visible gap, with bodies on official holdings lists
+  whose articles never say who owns them.
+
+The dry run: 3,938 lines on 26 countries for about $185 of model calls
+(pilots and superseded runs included); precision samples 18–20 of 20 per
+country after spec fixes; 10 marker removals proposed (municipal or
+privatised); about 4,900 seats skipped for want of a linked person. 52
+interim policy calls were logged for the user before one re-run.
 
 | country | when | written | batches |
 |---|---|---|---|
 | Germany | 10-17 | first batch: 51 statements on 10 bodies (DB, KfW, Autobahn GmbH, FBB, dena, Rothaus, SKD, Meyer Werft, Hypo Real Estate); run file 1,022 lines | QS3 60510, 60511 (retry); 60476, 60487 (categories, role item) |
 | Netherlands | 10-17 | nothing yet; run file 179 lines | — |
+| EU-25 + Switzerland | 10-17 – 10-18 | dry run, nothing sent: 3,938 lines (se 610, fr 487, pl 366, fi 256, at 255, es 230, it 223, cz 212, be 170, ch 162, dk 122, ee 115, ro 100, lt 97, hu 89, bg 84, lu 58, hr 51, lv 51, pt 44, ie 39, si 34, sk 32, gr 26, mt 16, cy 9) | — |
 
 ## The campaign toolkit (`old/`)
 

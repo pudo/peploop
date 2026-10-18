@@ -21,8 +21,54 @@ forms: []
 
 roles: []
 
-# Official list of central-government holdings. No list article to resolve
-# QIDs from reliably: entries left empty.
+# Official list of central-government holdings: public sector entities,
+# resolved 2026-10-17 to items with an article; no lane reached them. Bank of
+# Valletta (a government stake, not control) is left out. Control is still
+# read from each article.
 holdings:
-  - source: "Ministry for Finance, public sector entities; Malta Government Investments, https://finance.gov.mt/"
-    entries: []
+  - source: "Ministry for Finance, public sector entities; Malta Government Investments, https://finance.gov.mt/; QIDs via en.wikipedia and the bodies' own articles"
+    entries:
+      - name: "Enemalta"
+        qid: Q1341101
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/Enemalta
+      - name: "KM Malta Airlines"
+        qid: Q123144232
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/KM_Malta_Airlines
+      - name: "Central Bank of Malta"
+        qid: Q74690
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/Central_Bank_of_Malta
+      - name: "Malta Financial Services Authority"
+        qid: Q4279484
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/Malta_Financial_Services_Authority
+      - name: "Public Broadcasting Services"
+        qid: Q731913
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/Public_Broadcasting_Services
+      - name: "Heritage Malta"
+        qid: Q3785211
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/Heritage_Malta
+      - name: "Gozo Channel Line"
+        qid: Q1540576
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/Gozo_Channel_Line
+      - name: "Mater Dei Hospital"
+        qid: Q6786508
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/Mater_Dei_Hospital
+      - name: "Malta Philharmonic Orchestra"
+        qid: Q4279483
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/Malta_Philharmonic_Orchestra
+      - name: "Manoel Theatre"
+        qid: Q576800
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/Manoel_Theatre
+      - name: "Malta Gaming Authority"
+        qid: Q55621923
+        holder: "Government of Malta (public sector entity)"
+        source: https://en.wikipedia.org/wiki/Malta_Gaming_Authority

@@ -25,6 +25,21 @@ exclude:
   - {qid: Q3355775, name: professional order}  # 6 live, e.g. Q122360005 Consiglio Nazionale degli Ingegneri
   - {qid: Q3687557, name: Consorzio di bonifica}  # 8 live, e.g. Q115692829 Consorzio di bonifica 1 Toscana Nord
   - {qid: Q157963, name: savings bank}  # 2 live, e.g. Q111983331 Cassa di Risparmio di Castiglione dei Pepoli
+# A ministry's or the presidency's own units, whose heads are peploop's as
+# positions (capo dipartimento, direttore generale). Measured 2026-10-17
+# among the kept candidates.
+  - {qid: Q3708659, name: dipartimento della Repubblica Italiana}  # 27 kept, e.g. Q206936 dipartimento della Protezione Civile
+  - {qid: Q105945817, name: direzione generale}  # 14 kept, e.g. Q1109298 Direzione generale per la cooperazione allo sviluppo
+# Individual radio and television channels and Rai's regional seats; Rai
+# itself is typed a broadcaster and stays.
+  - {qid: Q1616075, name: television station}  # 33 kept, e.g. Q258131 Rai 1
+  - {qid: Q14350, name: radio station}  # 13 kept, e.g. Q2245880 Rai Radio 2
+  - {qid: Q561068, name: specialty channel}  # 5 kept, e.g. Q125875 Rai News 24
+# Prisons, under the Ministry of Justice: their directors are civil servants
+# of the prison administration. Measured 2026-10-18 in the full run.
+  - {qid: Q40357, name: prison}  # e.g. Q64816445 Casa circondariale di Grosseto
+# Poste Italiane's post office buildings, which pass as organisations.
+  - {qid: Q35054, name: post office}  # 10 kept, e.g. Q102289707 Edificio postale di Roma Prati
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
@@ -41,8 +56,32 @@ forms:
 
 roles: []
 
-# Official list of central-government holdings. No list article to resolve
-# QIDs from reliably: entries left empty.
+# Official list of central-government holdings (MEF's direct holdings and
+# their main subsidiaries). The lanes already reach Eni, Enel, Leonardo,
+# Poste, FS, Rai, CDP, ENAV, Fincantieri, Terna, Snam, Anas, ITA Airways and
+# the in-house companies with a link; the entries are the holdings no lane
+# reached, resolved 2026-10-17. Monte dei Paschi (a stake now sold down) is
+# left out.
 holdings:
   - source: "MEF, Dipartimento del Tesoro, partecipazioni pubbliche, https://www.dt.mef.gov.it/"
-    entries: []
+    entries:
+      - name: "Invitalia"
+        qid: Q1671811
+        holder: "MEF"
+        source: https://it.wikipedia.org/wiki/Invitalia
+      - name: "Sogin"
+        qid: Q3943803
+        holder: "MEF"
+        source: https://it.wikipedia.org/wiki/Sogin
+      - name: "Gestore dei servizi energetici (GSE)"
+        qid: Q3761400
+        holder: "MEF"
+        source: https://it.wikipedia.org/wiki/Gestore_dei_servizi_energetici
+      - name: "Gestore dei mercati energetici (GME)"
+        qid: Q3761403
+        holder: "MEF, via GSE"
+        source: https://it.wikipedia.org/wiki/Gestore_dei_mercati_energetici
+      - name: "Difesa Servizi"
+        qid: Q3707354
+        holder: "Ministero della Difesa"
+        source: https://it.wikipedia.org/wiki/Difesa_Servizi

@@ -20,7 +20,6 @@ exclude:
   - {qid: Q2986700, name: parliamentary committee}  # 1 kept, Q111568242 Aussenpolitische Kommissionen
   - {qid: Q14350, name: radio station}  # 2 kept, e.g. Q1648398 Radio Swiss Jazz
   - {qid: Q55043, name: gymnasium}  # 2 kept, e.g. Q689852 Gymnasium Alpenstrasse
-  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items with P17 Switzerland, with any seat

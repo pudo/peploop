@@ -26,7 +26,6 @@ exclude:
 # Dry load 2026-10-17: the armed forces (officers are peploop's), the
 # cultural institutes abroad typed as diplomatic missions, the municipal
 # city guard and the European Commission's own offices.
-  - {qid: Q772547, name: armed forces}  # e.g. Q282696 Polish Armed Forces
   - {qid: Q213283, name: diplomatic mission}  # e.g. Q11713167 Polish Institute
   - {qid: Q1758690, name: municipal police}  # e.g. Q5123552 City Guard
   - {qid: Q4002650, name: representation office of the European Commission}  # e.g. Q24943570 Wrocław

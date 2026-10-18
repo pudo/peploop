@@ -96,14 +96,22 @@ Where the German funnel loses statements, besides unlinked people (§2):
 
 ## 4. Countries
 
-- 26 EU specs (`countries/<cc>.yml`) were written by measurement. Holdings
-  with QIDs: at ee es fi fr gr hu ie lv; no state-only legal form yet: hr ie
-  mt si sk. None has been run.
+- EU-25 and Switzerland: dry run done 2026-10-17/18, nothing sent
+  (`data/pepcorp/HOLD` holds every pepcorp send until removed). 3,938 lines
+  in `data/pepcorp/<cc>/<cc>-2026-10-18.qs`, 10 marker removals proposed.
+  The interim policy calls and the ranked calls for the user are in
+  `plans/pepcorp_eu_policy.md`; their answers drive one re-run of all 26
+  (prompt and rules changed once, then re-ask), then sends country by
+  country.
+- Thin countries (sk, si, cy, mt) rest on holdings lists; mt/cy/it/pt
+  holdings came from knowledge and an enwiki category, QIDs checked, not
+  against the official pages.
 - Zambia needs a holdings list (the IDC portfolio): its Wikidata has almost
   no state links and its category three members.
-- Norway beyond the 30-body trial.
+- Norway beyond the 30-body trial; Greenland and Faroe as their own specs.
 - Some of rigour's alternate QIDs are not the country (Navajo Nation for us,
-  Mecca for sa, Bali for id, Nigerian states): a fix upstream in rigour.
+  Mecca for sa, Bali for id, Nigerian states, the island of Ireland for ie):
+  a fix upstream in rigour.
 
 ## 5. Parked
 

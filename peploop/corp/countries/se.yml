@@ -29,7 +29,6 @@ exclude:
 # A prison is a local office of the Prison and Probation Service: its
 # governor is no senior official (the full run wrote one).
   - {qid: Q40357, name: prison}  # 2 kept, e.g. Q1797668 Anstalten Kumla
-  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

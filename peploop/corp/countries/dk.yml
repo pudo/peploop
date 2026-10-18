@@ -44,7 +44,6 @@ exclude:
   - {qid: Q14350, name: radio station}  # 10 kept, e.g. Q1796582 DR P1
   - {qid: Q4992061, name: police district}  # 10 kept, e.g. Q11982824 Københavns Politi
   - {qid: Q74562105, name: government committee}  # 4 kept, e.g. Q135443524 Regeringens koordinationsudvalg
-  - {qid: Q772547, name: armed forces}  # the chief of the armed forces is peploop's position (interim, 2026-10-17)
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
