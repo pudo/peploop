@@ -273,6 +273,16 @@ Switzerland (2026-10-17/18), nothing sent.
   with the ministry named; an institution named under an office ("the Prime
   Minister") keeps its seats. Re-planning from cached answers took Austria's
   no_state_owner from 33 to 4, Belgium's from 41 to 2.
+- **Unlinked people, matched by their own page.** Of ~3,900 seats left for
+  want of a linked person (EU+CH), half have no human item and a quarter
+  only page-less ones (mostly ORCID author records); a name search plus a
+  check of the candidate's own page against the seat (`match.py`) resolved
+  199 (+7 already on Wikidata) for $5. Names fit loosely (order, script,
+  middle names), so the page carries the proof: 41 hand-judged cases agreed
+  with the check, and the one error found in reading ~110 matches was a
+  namesake in the same field abroad (a rail company's CEO matched to a
+  former chancellor who once ran a railway): a field-only match now needs
+  the country's citizenship where the item states one.
 - **Statutory bodies with no owner write nothing.** Public broadcasters,
   independent authorities and central banks set up by law come back
   `unclear`: the largest visible gap, with bodies on official holdings lists

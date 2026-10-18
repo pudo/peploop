@@ -1,9 +1,10 @@
-"""Run one country end to end: load, decide, rules, run file, report."""
+"""Run one country end to end: load, decide, rules, link check, person match, run file, report."""
 
 from typing import Callable
 
 from peploop.corp import actors as actormod
-from peploop.corp import decide, load, qs, report, rules, verify
+from peploop.corp import country as countries
+from peploop.corp import decide, load, match, qs, report, rules, verify
 
 
 def run(cc: str, limit: int | None = None, no_ask: bool = False, reload: bool = True,
@@ -28,6 +29,15 @@ def run(cc: str, limit: int | None = None, no_ask: bool = False, reload: bool = 
     refused = verify.refused(cc, decisions, answered, log)
     if refused:
         lines, decisions, removals = rules.decide(cc, answered, items, actors, refused=refused)
+    # A seat the rules would write but for a link to its person: the name is
+    # searched, and the candidate's own page checked against the seat.
+    seats = match.unlinked(decisions, answered)
+    if seats:
+        found = match.resolve(cc, seats, load.langs(countries.state_qid(cc)), log,
+                              citizens=frozenset(countries.current_qids(cc)))
+        matched = {k: o["qid"] for k, o in found.items() if o["qid"]}
+        if matched:
+            lines, decisions, removals = rules.decide(cc, answered, items, actors, refused=refused, matched=matched)
     errors = qs.validate(lines)
     if errors:
         raise SystemExit("refused: " + "; ".join(errors[:5]))

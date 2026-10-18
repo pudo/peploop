@@ -12,7 +12,8 @@ spec writes -- or nothing is written on it. Then three kinds of statement:
   actor, a government body, or one this run finds state-controlled; a body
   whose named owners and parents are all something else is not written on;
 - one leadership statement per seat (`SEATS`, by kind, body and role, plus
-  the spec's `roles`), for a person the article links to an item of a human.
+  the spec's `roles`), for a person the article links to an item of a human,
+  or one found by name whose own page places them at the body (`match.py`).
 
 No shares, sizes or control arithmetic: the links and the article's word
 are the evidence.
@@ -309,8 +310,17 @@ HEADS = ("P169", "P1037")
 
 def seat_rows(req: dict[str, Any], humans: set[str], today: date,
               extra: dict[str, tuple[str, str | None]] | None = None,
-              entity: dict[str, Any] | None = None, dead: set[str] | frozenset = frozenset()) -> list[dict[str, Any]]:
-    """One leadership row per seat the answer lists."""
+              entity: dict[str, Any] | None = None, dead: set[str] | frozenset = frozenset(),
+              matched: dict[tuple[str, str], str] | None = None,
+              titles: dict[str, set[str]] | None = None) -> list[dict[str, Any]]:
+    """One leadership row per seat the answer lists.
+
+    A person is the item the article links under the seat's name; failing
+    that, the one `match.py` found by name and checked against their own
+    page (`matched`, by body and name). Each row says how (`_via`): `link`
+    when the name is the linked page's title (`titles`, QID → its page
+    titles), `anchor` when only the link's text, `matched`.
+    """
     heads = {p: set(wd.values(entity or {}, p)) for p in HEADS}
     rows = []
     for seat in req["answer"]["seats"]:
@@ -326,11 +336,18 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
             # A fixed term that runs past today is held now: its end is not a fact yet.
             end, seat = None, {**seat, "current": True}
         found = linked(seat["name"], seat["article"], req["links"])
+        via = None
+        if found:
+            via = "link" if any(norm(t) == norm(seat["name"]) for q in found for t in (titles or {}).get(q, ())) else "anchor"
+        elif (req.get("qid", ""), seat["name"]) in (matched or {}):
+            found, via = [(matched or {})[(req.get("qid", ""), seat["name"])]], "matched"
         rule = None
         if not quoted(seat["quote"], req["message"]):
             rule = "seat_unquoted"
         elif not found:
-            rule = "person_unlinked"
+            # A seat its dates rule out is no work for the matcher: only
+            # the ones that would be written wait for a person.
+            rule = seat_rule(seat, start, end, today) or "person_unlinked"
         elif len(found) > 1:
             rule = "person_ambiguous"
         elif found[0] not in humans:
@@ -352,7 +369,7 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
         if role:
             quals["P2868"] = item(role)
         rows.append({"property": prop, "value": item(found[0]) if len(found) == 1 else None,
-                     "qualifiers": quals, "_rule": rule, "_name": seat["name"]})
+                     "qualifiers": quals, "_rule": rule, "_name": seat["name"], "_via": via})
     return rows
 
 
@@ -379,6 +396,8 @@ def settle(r: dict[str, Any], entity: dict[str, Any], rows: list[dict[str, Any]]
         detail = {k: v for k, v in row["qualifiers"].items() if not k.startswith("_")}
         if row.get("_name"):
             detail["name"] = row["_name"]
+        if row.get("_via"):
+            detail["via"] = row["_via"]
         decisions.append({"qid": r["qid"], "prop": row["property"], "value": value, "detail": detail,
                           "disposition": disposition, "rule": rule, "call_key": r.get("key")})
     return routed.lines
@@ -387,8 +406,13 @@ def settle(r: dict[str, Any], entity: dict[str, Any], rows: list[dict[str, Any]]
 def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, Any]],
            actors: actormod.Actors, spec: countries.Spec | None = None, today: date | None = None,
            refused: set[tuple[str, str, str]] | frozenset = frozenset(),
+           matched: dict[tuple[str, str], str] | None = None,
            ) -> tuple[list[str], list[dict[str, Any]], list[dict[str, Any]]]:
-    """Plan every answered body against its live item: (lines, decision rows, proposed removals)."""
+    """Plan every answered body against its live item: (lines, decision rows, proposed removals).
+
+    `refused` are the links the quote check refused (`verify.py`),
+    `matched` the unlinked seats' people found by name (`match.py`).
+    """
     today = today or date.today()
     spec = spec or countries.get(cc)
     passed = {r["qid"]: r for r in answered if gate(r["answer"], r["message"], spec.tiers) is None}
@@ -401,8 +425,9 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     marks = {v for e in entities.values() for p in ("P31", "P1454") for v in wd.values(e, p)}
     closure = typegraph.of_classes(marks)
     names = sorted({q for r in passed.values() for s in r["answer"]["seats"]
-                    for q in linked(s["name"], s["article"], r["links"])})
-    people = wd.fetch_items(names, props="claims") if names else {}
+                    for q in linked(s["name"], s["article"], r["links"])} | set((matched or {}).values()))
+    people = wd.fetch_items(names, props="claims|sitelinks") if names else {}
+    titles = {q: {s["title"] for s in e.get("sitelinks", {}).values()} for q, e in people.items()}
     humans = {q for q, e in people.items() if "Q5" in wd.values(e, "P31")}
     dead = {q for q, e in people.items() if e.get("claims", {}).get("P570")}
     # Controllers the answers named rather than chose, resolved through the
@@ -479,7 +504,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": "no_state_owner", "call_key": r.get("key")})
             continue
-        rows += seat_rows(r, humans, today, spec.roles, entity, dead)
+        rows += seat_rows(r, humans, today, spec.roles, entity, dead, matched, titles)
         lines += settle(r, entity, rows, decisions)
     return lines, decisions, removals
 

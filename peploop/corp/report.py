@@ -1,8 +1,8 @@
 """Write a country's run report: the funnel, what each enterprise gets, and the residue.
 
 The residue is what a run cannot write and does not ask about: listed holdings
-without an item, seats whose person has no item the article links, and
-enterprises whose control the articles leave unclear.
+without an item, seats whose person neither the article links nor the match
+by name finds, and enterprises whose control the articles leave unclear.
 """
 
 from collections import Counter, defaultdict
@@ -30,6 +30,7 @@ def report(cc: str) -> str:
     seats = [r for r in rows if r[4] == "apply" and r[1] not in ("P31", "P127", "P749")]
     undated_total = Counter(r[1] for r in seats)
     undated = Counter(r[1] for r in seats if "P580" not in r[3] and "P582" not in r[3])
+    via = Counter(r[3].get("via", "?") for r in seats)
     refs = {r[0] for r in rows} | {r[2] for r in rows if r[2]}
     info = memo.labels_of(sorted(refs), load.label_langs(load.langs(countries.state_qid(cc))))
     name = lambda q: next(iter((info.get(q) or {}).get("labels", {}).values()), "")  # noqa: E731
@@ -43,6 +44,8 @@ def report(cc: str) -> str:
            f"- written on: {len(by_qid) - sum(gates.values())} enterprises",
            "- statements applied: " + ", ".join(f"{k} {v}" for k, v in applied.most_common()),
            "- statements skipped: " + ", ".join(f"{k} {v}" for k, v in skipped.most_common()),
+           "- seats written, by how the person was found: " + ", ".join(
+               f"{k} {via[k]}" for k in ("link", "anchor", "matched", "?") if via[k]),
            f"- seats written without a start or end: " + ", ".join(
                f"{p} {n}/{undated_total[p]}" for p, n in sorted(undated.items())),
            f"- contradicted markers proposed for removal: {sum(1 for r in rows if r[4] == 'remove')}",
@@ -54,13 +57,15 @@ def report(cc: str) -> str:
         out.append(f"### {qid} {name(qid)} ({kinds.get(qid, '?')})")
         for _, prop, value, detail, disp, rule in rs:
             what = f"{value} {name(value)}" if value else detail.get("name", "")
+            if detail.get("via") == "matched":
+                what += f" (matched by name: {detail.get('name')})"
             extra = "; ".join(f"{k} {v.get('id') or v.get('time', '')[1:11]}"
                               for k, v in detail.items() if isinstance(v, dict))
             mark = {"apply": "✓", "remove": "✗"}.get(disp, "·")
             out.append(f"- {mark} {prop} {what}" + (f" ({extra})" if extra else "")
                        + ("" if disp == "apply" else f" — {rule}"))
         out.append("")
-    out += ["## Residue", "", "### Seats whose person has no linked item", ""]
+    out += ["## Residue", "", "### Seats whose person has no linked or matched item", ""]
     for qid, rs in by_qid.items():
         for r in rs:
             if r[5] == "person_unlinked":

@@ -104,15 +104,28 @@ are written by default; a spec names its own.
    (`owner_ministry`). Every link left is then checked once more against its
    quote alone (`verify.py`, `prompts/verify_link.md`): funding, a working
    level or supervision is no control, and a refused link is skipped
-   (`link_unverified`). A seat needs a person the article links to a human's
-   item (pepcorp creates no people), and no open seat is written for a
-   person who has died (`holder_dead`).
+   (`link_unverified`). A seat needs a human's item (pepcorp creates no
+   people): the one the article links under the name, or else one found by
+   name (`persons.py`, `match.py`, `prompts/match_person.md`). The name is
+   searched fuzzily (accents, script, order, titles, middle names) among
+   human items with a Wikipedia page whose life can hold the seat, and each
+   candidate's own page is checked against the seat: a page that names or
+   links the body and ties them to it is a match; one that only places them
+   in the body's own field, or confirms a detail the passage gives (party,
+   former office), is a match only for the sole such candidate among at
+   most three namesakes, and never for a citizen of other countries only;
+   a career elsewhere or anything contradicting is
+   none, and an item without a page is never matched. Only seats the dates
+   would let through are searched. No open seat is written for a person who
+   has died (`holder_dead`).
    What survives is planned against the live item by peploop's planner
    (`route.route`), which merges dates, role and reference into a statement
    that is there and writes a `+` line only for a new one.
 4. **qs + report** (`qs.py`, `report.py`): `data/pepcorp/<cc>/<cc>-<date>.qs`
-   and `.md`, with the funnel and the residue: holdings without an item,
-   seats whose person has no linked item, control the articles leave unclear.
+   and `.md`, with the funnel, the seats by how their person was found
+   (link, anchor text, match), and the residue: holdings without an item,
+   seats whose person is neither linked nor matched, control the articles
+   leave unclear.
 5. **send** (`outbox.py`): the latest run file through the joint send ledger,
    once per line; `--qid` limits a batch to chosen bodies.
 
@@ -135,7 +148,10 @@ peploop/corp/
   countries/<cc>.yml
   verify.py    the link check against its quote
   prompts/verify_link.md
-  check_rules.py, check_neutral.py, check_country.py
+  persons.py   name folding and fitting, candidate search, a person's page
+  match.py     the unlinked seat's person, checked against their own page
+  prompts/match_person.md
+  check_rules.py, check_persons.py, check_neutral.py, check_country.py
 ```
 
 Shared with peploop: `plan.py` and `route.py` (planning and lines),
