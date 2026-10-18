@@ -39,3 +39,7 @@
   [...] We want heuristics, not math on fake numbers."
 - 2026-10-18: On statutory bodies with no owner (public broadcasters,
   independent regulators, central banks): "should be typed appropriately"
+- 2026-10-18: On person matching for seats the article does not link: "my
+  ambition would be that we check by name in a fuzzy manner but then set
+  pretty strict standards for the resulting wikipedia pages. They need to
+  mention at least the industry or domain, ideally the institution"
