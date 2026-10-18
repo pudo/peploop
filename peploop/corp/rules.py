@@ -507,7 +507,14 @@ def controllers(req: dict[str, Any], named: dict[str, str] | None) -> set[str]:
 
 
 def queue_removals(cc: str, removals: list[dict[str, Any]]) -> int:
-    """Queue each contradicted marker for removal: it waits for `removals approve`, being another editor's."""
+    """Queue each contradicted marker for removal: it waits for `removals approve`, being another editor's.
+
+    A proposal an earlier run made and this one no longer makes is withdrawn
+    while still undecided: the answer behind it has changed.
+    """
+    wd.conn().execute(
+        "DELETE FROM wd_removal WHERE tool = %s AND country = %s AND origin = 'correction'"
+        " AND status = 'proposed' AND NOT (guid = ANY(%s))", (TOOL, cc, [x["guid"] for x in removals]))
     for x in removals:
         ledger.propose_removal(TOOL, x["guid"], x["qid"], x["prop"], x["value"], cc, x["reason"],
                                "correction", False)
