@@ -310,6 +310,14 @@ def check_offices_fixes(expect: Any) -> None:
                    ref="court_president")
     dspec, _p = mint.build_spec(drafted, ctx(anchors=[court]))
     expect(dspec.body_qid == "Q911", f"but never replaces the body a draft named: {dspec.body_qid}")
+    secretary = mint.Anchor("sec/Q902", "subnational.executive", "party_secretary",
+                            {"en": "Party Secretary of Port"}, body=BODY, jurisdiction="Q902",
+                            parent="Q933")
+    sec = cand(draft={"archetype": "party_secretary", "parent_qid": None}, census_key="sec/Q902",
+               ref="sec/Q902")
+    secspec, _p = mint.build_spec(sec, ctx(anchors=[secretary]))
+    expect(secspec.parent == "Q933",
+           f"a census anchor's measured parent outranks the archetype's default: {secspec.parent}")
     cabinet = siblings()
     cabinet.bodies_by_archetype = {"minister": Counter({COUNCIL: 12, BODY: 1})}
     cabinet.bodies_by_scope = {("minister", STATE): Counter({COUNCIL: 12, BODY: 1}),

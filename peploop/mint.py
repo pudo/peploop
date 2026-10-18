@@ -285,6 +285,9 @@ class Anchor:
     source: str | None = None
     #: The subdivision a `per: subdivisions` entry was expanded for.
     jurisdiction: str | None = None
+    #: The class the office subclasses, measured live, where the state's own
+    #: offices of the kind use one the archetype's default is not.
+    parent: str | None = None
 
 
 def _subdivisions(state_qid: str, dissolved: bool = False) -> list[str]:
@@ -333,7 +336,7 @@ def census(
     reconcile misses only show what the seeded people held. The file is
     `census/<cc>.yml`, a list of entries with `key`, `class` (one of
     `INSTITUTION_CLASSES`), `archetype` (one of `offices.ARCHETYPES`),
-    `labels` by language, and optionally `body`, `source`, `jurisdiction` (the
+    `labels` by language, and optionally `body`, `parent`, `source`, `jurisdiction` (the
     subdivision a single entry's office governs, where its body names none)
     and `per: subdivisions`. The last expands one entry per current `P150` of the
     state, read live, with `{name}` in each label filled from the
@@ -356,7 +359,7 @@ def census(
             raise ValueError(f"{entry['key']}: unknown archetype {archetype!r}")
         base = dict(
             institution_class=klass, archetype=archetype,
-            body=entry.get("body"), source=entry.get("source"),
+            body=entry.get("body"), source=entry.get("source"), parent=entry.get("parent"),
         )
         labels = dict(entry.get("labels") or {})
         per = entry.get("per")
@@ -1963,7 +1966,11 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
     # The state's own offices of the same seat, read by label, outrank the
     # draft among the kinds the archetype allows.
     seat = offices.seat_parent(labels.get("en", ""), sibs, shape.parents or (shape.parent,))
-    if seat:
+    if anchor and anchor.parent:
+        # Measured for the census, where the state's offices of the kind are
+        # too thinly scoped for the tally to find.
+        parent = anchor.parent
+    elif seat:
         parent = seat
     elif drafted and (drafted in shape.parents or drafted in measured):
         parent = drafted

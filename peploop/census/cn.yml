@@ -11,6 +11,11 @@
 # secretary, and the mayors of Changchun, Shenyang, Nanjing, Qingdao,
 # Guangzhou, Shenzhen, Shijiazhuang, Changsha and Haikou.
 #
+# The city secretaryships subclass `Q988456` (committee secretary of the
+# CCP), which the provincial class `Q30067901` subclasses; the archetype's
+# default, general secretary (`Q6501749`), is a party's leader, not a
+# committee's. Measured 2026-10-18: `Q988456` reaches `Q836971` and position.
+#
 # Twins, a merge decision for the closing report, not written onto: the Party
 # secretaries of Beijing (`Q17279089` / `Q132717324`), Shanghai (`Q17281246` /
 # `Q132717321`), Zhejiang (`Q17280145` / `Q132717333`), Liaoning (`Q17279690`
@@ -1281,6 +1286,7 @@
   archetype: party_secretary
   jurisdiction: Q16666
   body: Q48895146          # 中国共产党南京市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党南京市委员会书记
     en: Party Secretary of Nanjing
@@ -1290,6 +1296,7 @@
   archetype: party_secretary
   jurisdiction: Q68744
   body: Q122666579         # 中国共产党厦门市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党厦门市委员会书记
     en: Party Secretary of Xiamen
@@ -1299,6 +1306,7 @@
   archetype: party_secretary
   jurisdiction: Q170247
   body: Q122666461         # 中国共产党济南市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党济南市委员会书记
     en: Party Secretary of Jinan
@@ -1308,6 +1316,7 @@
   archetype: party_secretary
   jurisdiction: Q170322
   body: Q30949792          # 中国共产党青岛市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党青岛市委员会书记
     en: Party Secretary of Qingdao
@@ -1317,6 +1326,7 @@
   archetype: party_secretary
   jurisdiction: Q11746
   body: Q85874186          # 中国共产党武汉市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党武汉市委员会书记
     en: Party Secretary of Wuhan
@@ -1326,6 +1336,7 @@
   archetype: party_secretary
   jurisdiction: Q16572
   body: Q10873203          # 中国共产党广州市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党广州市委员会书记
     en: Party Secretary of Guangzhou
@@ -1335,6 +1346,7 @@
   archetype: party_secretary
   jurisdiction: Q15174
   body: Q22098486          # 中国共产党深圳市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党深圳市委员会书记
     en: Party Secretary of Shenzhen
@@ -1344,6 +1356,7 @@
   archetype: party_secretary
   jurisdiction: Q30002
   body: Q122666605         # 中国共产党成都市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党成都市委员会书记
     en: Party Secretary of Chengdu
@@ -1353,6 +1366,7 @@
   archetype: party_secretary
   jurisdiction: Q5826
   body: Q10873265          # 中国共产党西安市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党西安市委员会书记
     en: Party Secretary of Xi'an
@@ -1362,6 +1376,7 @@
   archetype: party_secretary
   jurisdiction: Q72778
   body: Q122666548         # 中国共产党太原市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党太原市委员会书记
     en: Party Secretary of Taiyuan
@@ -1371,6 +1386,7 @@
   archetype: party_secretary
   jurisdiction: Q185684
   body: Q48929152          # 中国共产党合肥市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党合肥市委员会书记
     en: Party Secretary of Hefei
@@ -1380,6 +1396,7 @@
   archetype: party_secretary
   jurisdiction: Q68481
   body: Q109343979         # 中国共产党福州市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党福州市委员会书记
     en: Party Secretary of Fuzhou
@@ -1389,6 +1406,7 @@
   archetype: party_secretary
   jurisdiction: Q174091
   body: Q85874196          # 中国共产党长沙市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党长沙市委员会书记
     en: Party Secretary of Changsha
@@ -1398,6 +1416,7 @@
   archetype: party_secretary
   jurisdiction: Q192271
   body: Q141155777         # 中国共产党贵阳市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党贵阳市委员会书记
     en: Party Secretary of Guiyang
@@ -1407,6 +1426,7 @@
   archetype: party_secretary
   jurisdiction: Q182852
   body: Q122666455         # 中国共产党昆明市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党昆明市委员会书记
     en: Party Secretary of Kunming
@@ -1416,6 +1436,7 @@
   archetype: party_secretary
   jurisdiction: Q42956
   body: Q141749447         # 中国共产党哈尔滨市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党哈尔滨市委员会书记
     en: Party Secretary of Harbin
@@ -1425,6 +1446,7 @@
   archetype: party_secretary
   jurisdiction: Q92161
   body: Q141749448         # 中国共产党长春市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党长春市委员会书记
     en: Party Secretary of Changchun
@@ -1434,6 +1456,7 @@
   archetype: party_secretary
   jurisdiction: Q11720
   body: Q141749449         # 中国共产党沈阳市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党沈阳市委员会书记
     en: Party Secretary of Shenyang
@@ -1443,6 +1466,7 @@
   archetype: party_secretary
   jurisdiction: Q74881
   body: Q141749450         # 中国共产党大连市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党大连市委员会书记
     en: Party Secretary of Dalian
@@ -1452,6 +1476,7 @@
   archetype: party_secretary
   jurisdiction: Q42780
   body: Q141749451         # 中国共产党宁波市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党宁波市委员会书记
     en: Party Secretary of Ningbo
@@ -1461,6 +1486,7 @@
   archetype: party_secretary
   jurisdiction: Q58401
   body: Q141749452         # 中国共产党石家庄市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党石家庄市委员会书记
     en: Party Secretary of Shijiazhuang
@@ -1470,6 +1496,7 @@
   archetype: party_secretary
   jurisdiction: Q535534
   body: Q141749453         # 中国共产党呼和浩特市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党呼和浩特市委员会书记
     en: Party Secretary of Hohhot
@@ -1479,6 +1506,7 @@
   archetype: party_secretary
   jurisdiction: Q171943
   body: Q141749454         # 中国共产党南昌市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党南昌市委员会书记
     en: Party Secretary of Nanchang
@@ -1488,6 +1516,7 @@
   archetype: party_secretary
   jurisdiction: Q30340
   body: Q141749455         # 中国共产党郑州市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党郑州市委员会书记
     en: Party Secretary of Zhengzhou
@@ -1497,6 +1526,7 @@
   archetype: party_secretary
   jurisdiction: Q179608
   body: Q141749465         # 中国共产党南宁市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党南宁市委员会书记
     en: Party Secretary of Nanning
@@ -1506,6 +1536,7 @@
   archetype: party_secretary
   jurisdiction: Q189823
   body: Q141749467         # 中国共产党海口市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党海口市委员会书记
     en: Party Secretary of Haikou
@@ -1515,6 +1546,7 @@
   archetype: party_secretary
   jurisdiction: Q5869
   body: Q141749468         # 中国共产党拉萨市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党拉萨市委员会书记
     en: Party Secretary of Lhasa
@@ -1524,6 +1556,7 @@
   archetype: party_secretary
   jurisdiction: Q183584
   body: Q141749469         # 中国共产党兰州市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党兰州市委员会书记
     en: Party Secretary of Lanzhou
@@ -1533,6 +1566,7 @@
   archetype: party_secretary
   jurisdiction: Q69060
   body: Q141749471         # 中国共产党西宁市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党西宁市委员会书记
     en: Party Secretary of Xining
@@ -1542,6 +1576,7 @@
   archetype: party_secretary
   jurisdiction: Q211243
   body: Q141749474         # 中国共产党银川市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党银川市委员会书记
     en: Party Secretary of Yinchuan
@@ -1551,6 +1586,7 @@
   archetype: party_secretary
   jurisdiction: Q16959
   body: Q141749475         # 中国共产党乌鲁木齐市委员会
+  parent: Q988456           # Committee secretary of the Chinese Communist Party
   labels:
     zh: 中国共产党乌鲁木齐市委员会书记
     en: Party Secretary of Ürümqi
