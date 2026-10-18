@@ -271,6 +271,8 @@ def unowned() -> None:
     src = inspect.getsource(rules.decide)
     expect('kind"] == "enterprise" and not links' in src and "enterprise_unowned" in src,
            "an enterprise whose article names no public owner is gated out")
+    expect('if (r["answer"]["kind"] == "enterprise" and links' in src and "no_state_owner" in src,
+           "only an enterprise is gated out when no body named over it is the state's; an institution keeps its seats")
 
 
 def historic() -> None:

@@ -469,9 +469,13 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": "enterprise_unowned", "call_key": r.get("key")})
             continue
-        if links and not any(row["_rule"] in (None, "chain_reaches", "chain_existing", "owner_ministry") for row in links):
+        if (r["answer"]["kind"] == "enterprise" and links
+                and not any(row["_rule"] in (None, "chain_reaches", "chain_existing", "owner_ministry") for row in links)):
             # Every body the answer names over it is no state body: the
-            # control it claims runs through someone else's company.
+            # control it claims runs through someone else's company. An
+            # institution named under an office ("the Prime Minister") or
+            # the polity itself keeps its seats: it would keep them had the
+            # answer named no parent at all.
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": "no_state_owner", "call_key": r.get("key")})
             continue
