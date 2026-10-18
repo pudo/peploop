@@ -145,7 +145,8 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
                  named: dict[str, str] | None = None, polities: frozenset[str] = frozenset(),
                  refused: set[tuple[str, str, str]] | frozenset = frozenset(),
                  reached: set[str] | frozenset = frozenset(),
-                 government: set[str] | frozenset = frozenset()) -> list[dict[str, Any]]:
+                 government: set[str] | frozenset = frozenset(),
+                 country: str | None = None) -> list[dict[str, Any]]:
     """The marker and link rows of a body that passed its gates.
 
     The marker goes on an enterprise only: a museum or a broadcaster is no
@@ -172,6 +173,10 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
         if qid is None:
             rows.append({"property": prop, "value": None, "qualifiers": {}, "_rule": "no_controller"})
             continue
+        if prop == "P127" and qid in government and country and control["level"] == "national":
+            # "Owner: Government of X": the owner is the state the government
+            # is of, the polity, never the government body itself.
+            qid = country
         rule = None
         if not quoted(owner["quote"], req["message"]):
             rule = "owner_unquoted"
@@ -198,7 +203,22 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
             rule = "parent_polity"
         rows.append({"property": prop, "value": item(qid),
                      "qualifiers": {"_sources": source(req, owner["article"])}, "_rule": rule})
-    return rows
+    # One row per link: a government rewritten to its state may meet the state named too.
+    seen: dict[tuple[str, str], dict[str, Any]] = {}
+    out = []
+    for row in rows:
+        if row["value"] is None or row["property"] not in RELATIONS.values():
+            out.append(row)
+            continue
+        k = (row["property"], row["value"]["id"])
+        if k in seen:
+            if seen[k]["_rule"] is not None and row["_rule"] is None:
+                out[out.index(seen[k])] = row
+                seen[k] = row
+            continue
+        seen[k] = row
+        out.append(row)
+    return out
 
 
 #: Why a marker is proposed for removal, as the edit summary says it.
@@ -439,7 +459,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             continue
         chain = items.get(r["qid"], {}).get("chain")
         rows = control_rows(r, entity, chain, state, closure, named.get(r["qid"]), polities, refused,
-                            reached.get(r["qid"], set()), bodies)
+                            reached.get(r["qid"], set()), bodies, actors.state)
         links = [row for row in rows if row["property"] in RELATIONS.values() and row["value"] is not None]
         if r["answer"]["kind"] == "enterprise" and not links:
             # An enterprise whose article names no public owner stands on
@@ -449,7 +469,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": "enterprise_unowned", "call_key": r.get("key")})
             continue
-        if links and not any(row["_rule"] in (None, "chain_reaches", "chain_existing") for row in links):
+        if links and not any(row["_rule"] in (None, "chain_reaches", "chain_existing", "owner_ministry") for row in links):
             # Every body the answer names over it is no state body: the
             # control it claims runs through someone else's company.
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},

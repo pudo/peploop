@@ -242,6 +242,16 @@ def crawler_cases() -> None:
     owner = {**base, "answer": answer(kind="institution", owners=((0, "owner"),))}
     expect(rules.control_rows(owner, ent(), None, state, {}, government=frozenset({"Q900100"}))[0]["_rule"] == "owner_ministry",
            "a ministry is never written as owner")
+    national = {**base, "answer": answer(kind="enterprise", owners=((0, "owner"),))}
+    rows = [r for r in rules.control_rows(national, ent(), None, state | {"Q900001"}, {}, government=frozenset({"Q900100"}),
+                                          country="Q900001") if r["property"] == "P127"]
+    expect([(r["value"]["id"], r["_rule"]) for r in rows] == [("Q900001", None)],
+           "a national government named as owner is written as its state")
+    both = {**base, "offered": ["Q900100", "Q900001"],
+            "answer": answer(kind="enterprise", owners=((0, "owner"), (1, "owner")))}
+    rows = [r for r in rules.control_rows(both, ent(), None, state | {"Q900001"}, {}, government=frozenset({"Q900100"}),
+                                          country="Q900001") if r["property"] == "P127"]
+    expect(len(rows) == 1, "the government and its state named together make one owner")
     via = rules.through_planned({"Q1": {"Q2", "Q3"}, "Q2": {"Q3"}, "Q4": {"Q5", "Q6"}, "Q5": {"Q6"}, "Q6": {"Q5"}},
                                 {"Q7": set()})
     expect(via["Q1"] == {"Q3"}, "an owner this run also puts over the body's other owner is a shortcut")
