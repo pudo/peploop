@@ -17,7 +17,7 @@ import requests
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
-from peploop import eras, llm, memo, typegraph
+from peploop import eras, llm, memo, typegraph, wikipedia
 from peploop.tree import country as countries
 from peploop.tree import gaps as gapmod
 from peploop.tree import signals, wd
@@ -233,11 +233,13 @@ def holders(qids: list[str]) -> dict[str, list[dict[str, str]]]:
     return out
 
 
-def leads(entity: dict[str, Any], langs: tuple[str, ...]) -> list[tuple[str, str, str]]:
-    """(lang, url, lead) for the articles in the country's languages and English that exist.
+def leads(entity: dict[str, Any], langs: tuple[str, ...]) -> list[tuple[str, str, str, int | None]]:
+    """(lang, url, lead, revision) for the articles in the country's languages and English that exist.
 
     One per language, its own wiki first, then a script variant's
     (`<lang>_...wiki`); the URL is the one Wikidata gives for the sitelink.
+    The prompt shows the page URL, so a new revision of an unchanged lead
+    does not re-ask; the revision is what a statement cites.
     """
     out = []
     links = entity.get("sitelinks", {})
@@ -248,7 +250,8 @@ def leads(entity: dict[str, Any], langs: tuple[str, ...]) -> list[tuple[str, str
                 title = links[site]["title"]
                 url = links[site].get("url") or f"https://{lang}.wikipedia.org/wiki/{title.replace(' ', '_')}"
                 host = url.split("/")[2].split(".")[0]
-                out.append((lang, url, memo.lead(host, title)))
+                text, rev = memo.lead(host, title)
+                out.append((lang, url, text, rev))
                 break
     return out
 
@@ -261,7 +264,7 @@ def years_text(span: list[int | None] | tuple[int | None, int | None] | None) ->
 
 
 def render(run: Run, item: dict[str, Any], cands: dict[str, list[str]], held: list[dict[str, str]],
-           articles: list[tuple[str, str, str]]) -> str:
+           articles: list[tuple[str, str, str, int | None]]) -> str:
     ent = item["entity"]
     run.spans_for([q for prop in ("P17", "P1001") for q in cands.get(prop, [])])
     refs = {v for p in SHOWN_PROPS for v in values(ent, p)} | {v for vs in cands.values() for v in vs}
@@ -313,7 +316,7 @@ def render(run: Run, item: dict[str, Any], cands: dict[str, list[str]], held: li
         r = life.get(h["qid"], {})
         lived = f"; lived {r.get('b') or '?'}–{r.get('d') or ''}" if r.get("b") or r.get("d") else ""
         p.append(f"- {h['name']} ({h['qid']}) {h['start'] or '?'} – {h['end'] or '?'}{lived}; citizenship: {h['cit'] or '?'}")
-    for lang, url, text in articles:
+    for lang, url, text, _ in articles:
         p += ["", f"## Article lead ({lang}: {url})", text or "(empty)"]
     if not articles:
         p += ["", "## Article: none"]
@@ -392,7 +395,7 @@ def prepare(run: Run, log: Any = print) -> list[dict[str, Any]]:
             log(f"  {it['qid']}: not prepared ({exc.__class__.__name__}); the next run asks it")
             continue
         reqs.append({"qid": it["qid"], "candidates": cands, "message": message,
-                     "articles": [(lg, url) for lg, url, _ in articles]})
+                     "articles": [(lg, wikipedia.revision_url(url, rev)) for lg, url, _, rev in articles]})
     if failed:
         log(f"{failed} items not prepared after read errors")
     return reqs

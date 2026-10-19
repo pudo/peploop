@@ -55,6 +55,9 @@ cannot.
   agreed (one diff had eight): 470 of 4,585 referenced statements we added had
   two or more (331 two, 78 three, 61 four to ten). A statement now cites one
   article, home wiki first, and none is added to a statement already referenced.
+  peptree moved from the page URL (`P854`) to the same reference; its 1,433
+  earlier `P854` references stay, and requests stored before the change cite
+  the page in `P4656`.
 
 ## Operating peploop
 

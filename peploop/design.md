@@ -593,7 +593,8 @@ English, then the rest longest article first; two revisions of one wiki go to
 the first. The other sources stay in `_sources`. A merge or a switch into a
 live statement adds our reference only when that statement has none at all;
 one already referenced, by anyone, gets a plain line carrying just the
-qualifiers.
+qualifiers, or none after a switch when there are none to add. peptree and
+pepcorp cite in this one shape.
 
 Additions go out **uncombined**, one edit per line: a combined edit fails
 whole when one of its commands does, with no reason given. A row moves `accepted` → `sent` when its line is

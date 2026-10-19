@@ -59,8 +59,8 @@ log.
    unquoted, low confidence, a generic role given a country, outside the state's era, a non-state or the realm
    in `P17`, a label that contradicts it, a class or list article given `P31`),
    then `two_channels` applies and `one_channel` skips. Applied slots render to
-   `data/peptree/<cc>/<cc>-<date>.qs` (article-derived values carry `S854` +
-   `S813`), with the report beside it.
+   `data/peptree/<cc>/<cc>-<date>.qs` (an article-derived value cites its
+   article as peploop does: `P143` the wiki, `P4656` the revision read, `P813`), with the report beside it.
 
 The repair asks only about items someone holds or that a FATF category
 names (`repair.held_or_categorised`), and never about a mayoralty: an office

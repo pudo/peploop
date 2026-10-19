@@ -68,13 +68,18 @@ def names_of(qids: Iterable[str], langs: Sequence[str] | None = None) -> dict[st
     return out
 
 
-def lead(lang: str, title: str, limit: int = 1500) -> str:
-    """The plain-text lead of a Wikipedia article, kept a week."""
-    def fetch() -> str:
+def lead(lang: str, title: str, limit: int = 1500) -> tuple[str, int | None]:
+    """The plain-text lead of a Wikipedia article and the revision it was read at, kept a week.
+
+    The revision is what a statement read from the lead cites.
+    """
+    def fetch() -> list[Any]:
         data = http.get_json(f"https://{lang}.wikipedia.org/w/api.php", params={
-            "action": "query", "prop": "extracts", "exintro": 1, "explaintext": 1,
-            "redirects": 1, "titles": title, "format": "json"}, max_age=0)
+            "action": "query", "prop": "extracts|revisions", "exintro": 1, "explaintext": 1,
+            "rvprop": "ids", "redirects": 1, "titles": title, "format": "json"}, max_age=0)
         for page in data.get("query", {}).get("pages", {}).values():
-            return (page.get("extract") or "")[:limit]
-        return ""
-    return cached(f"lead:{lang}:{title}", fetch, 7 * DAY)
+            revs = page.get("revisions") or [{}]
+            return [(page.get("extract") or "")[:limit], revs[0].get("revid")]
+        return ["", None]
+    text, rev = cached(f"lead-rev:{lang}:{title}", fetch, 7 * DAY)
+    return text, rev

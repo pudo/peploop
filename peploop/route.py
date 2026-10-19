@@ -9,7 +9,7 @@ statement of the plan becomes the one line that does exactly what was planned:
 - dates or a reference for a statement that is the only one with its value: a
   plain line carrying only what it lacks;
 - a coarse imported date sharpened in place: `SWITCH_VALUE`, then a plain line
-  adding the new reference to it.
+  carrying the dates or reference it still lacks, if any.
 
 `plan.plan_claim` has already refused what no line can aim (`ambiguous-statement`).
 A statement no line can render -- a Julian date, a string with a quote or a tab --
@@ -70,13 +70,15 @@ def render(qid: str, entity: dict[str, Any], statement: dict[str, Any]) -> tuple
     refs = qs.references((statement.get("references") or [])[len(live.get("references") or []):])
     if quals is None or refs is None:
         return None
-    merge = qs.described(TOOL, [qid, prop, value, *quals, *refs])
+    # A statement already referenced takes no reference of ours, so a switch
+    # may leave nothing for the plain line to carry: then there is none.
+    merge = [qs.described(TOOL, [qid, prop, value, *quals, *refs])] if quals or refs else []
     old = qs.snak_value(live.get("mainsnak", {}))
     if old is None:
         return None
     if old == value:
-        return "merge", [merge]
-    return "switch", [qs.described(TOOL, [qs.SWITCH, qid, prop, old, value]), merge]
+        return ("merge", merge) if merge else ("exists", [])
+    return "switch", [qs.described(TOOL, [qs.SWITCH, qid, prop, old, value]), *merge]
 
 
 def route(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) -> Routed:
@@ -90,6 +92,10 @@ def route(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) -> Route
         if found is None:
             out.skipped += [(i, qs.UNRENDERABLE) for i in ids]
             out.routes[qs.UNRENDERABLE] += 1
+            continue
+        if not found[1]:
+            out.skipped += [(i, found[0]) for i in ids]
+            out.routes[found[0]] += 1
             continue
         rendered.append((found[0], found[1], ids))
     # A value a plain line names: a `+` line for it in the same batch could be

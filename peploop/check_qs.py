@@ -105,8 +105,7 @@ def main() -> int:
     expect(qs.columns(out.lines[0]),
            [qs.SWITCH, PERSON, "P569", "+1950-00-00T00:00:00Z/9", "+1950-03-04T00:00:00Z/11"],
            "by SWITCH_VALUE, which keeps the statement's id")
-    expect(qs.columns(out.lines[1]), [PERSON, "P569", "+1950-03-04T00:00:00Z/11"],
-           "then a plain line that adds no reference: the statement already has one")
+    expect(len(out.lines), 1, "and nothing after it: the statement already has a reference")
     unsourced = born(year, IMPORTED)
     del unsourced["claims"]["P569"][0]["references"]
     out = route.route(PERSON, unsourced, [row("P569", day("1950-03-04"))])

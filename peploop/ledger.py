@@ -22,8 +22,8 @@ from peploop import db, qs
 from peploop.wikidata import fetch_items
 
 ANY = "*"
-#: The reference properties that name a URL we read: peptree cites the page
-#: (`P854`), peploop the revision (`P4656`).
+#: The reference properties that name a URL we read: every lane cites the
+#: revision (`P4656`); peptree's earlier sends cited the page (`P854`).
 URL_PROPS = ("P854", "P4656")
 RETRIEVED = re.compile(r"\tS813\t\+\S+")
 

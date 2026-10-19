@@ -8,30 +8,26 @@ import datetime as dt
 from pathlib import Path
 from typing import Any
 
-from peploop import qs
+from peploop import plan, qs
 
 OUT_DIR = Path(__file__).resolve().parents[2] / "data" / "peptree"
 
 
-def today() -> str:
-    return dt.date.today().strftime("+%Y-%m-%dT00:00:00Z/11")
-
-
-def line(d: dict[str, Any], retrieved: str) -> str:
-    """One statement. Article-derived values carry S854 + S813; structural ones nothing."""
+def line(d: dict[str, Any]) -> str:
+    """One statement. An article-derived value cites its article as peploop does; a structural one nothing."""
     cols = [d["qid"], d["prop"], d["value"]]
     source = d.get("source") or ""
     lang = source.removeprefix("article_") if source.startswith("article_") else None
     url = (d.get("articles") or {}).get(lang) if lang else None
-    if url:
+    ref = plan.reference(lang, url.replace('"', "%22"), None) if url else None
+    if ref is not None:
         # A quote would end the string column; percent-encoded it is the same URL.
-        cols += ["S854", qs.qs_value(url.replace('"', "%22")), "S813", retrieved]
+        cols += qs.references([ref]) or []
     return qs.described("peptree", cols)
 
 
 def render(decisions: list[dict[str, Any]]) -> list[str]:
-    retrieved = today()
-    lines = [line(d, retrieved) for d in decisions if d["disposition"] == "apply"]
+    lines = [line(d) for d in decisions if d["disposition"] == "apply"]
     return sorted(dict.fromkeys(lines))
 
 
@@ -51,8 +47,8 @@ def validate(lines: list[str]) -> list[str]:
         if key in seen and cols[1] != "P279":
             errors.append(f"{n}: second {cols[1]} on {cols[0]} ({seen[key]} and {cols[2]})")
         seen[key] = cols[2]
-        if "S854" in cols and "S813" not in cols:
-            errors.append(f"{n}: S854 without S813")
+        if "S4656" in cols and "S813" not in cols:
+            errors.append(f"{n}: S4656 without S813")
     return errors
 
 
