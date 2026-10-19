@@ -4,6 +4,11 @@
 
 tiers: [national, regional]
 
+# The parliament, as the body that elects and oversees statutory bodies
+# (named as controller in the 2026-10-18 answers).
+actors:
+  - {qid: Q684719, kind: government, name: Federal Assembly of Switzerland}
+
 # Classes the type tree files under government organization or government
 # agency that are not government bodies here. Read from the state actors
 # 2026-10-17: a collegiate chapter (Q18019059 Kollegiatstift St. Michael) is

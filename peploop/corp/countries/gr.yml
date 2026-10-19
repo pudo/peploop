@@ -94,6 +94,7 @@ holdings:
         source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
       - name: "Δημόσια Επιχείρηση Ηλεκτρισμού (ΔΕΗ)"
         qid: Q326345
+        minority: true
         holder: "Ελληνικό Δημόσιο, μέσω Υπερταμείου (34,12%)"
         source: https://el.wikipedia.org/w/index.php?title=%CE%95%CE%B8%CE%BD%CE%B9%CE%BA%CF%8C_%CE%91%CE%BD%CE%B1%CF%80%CF%84%CF%85%CE%BE%CE%B9%CE%B1%CE%BA%CF%8C_%CE%A4%CE%B1%CE%BC%CE%B5%CE%AF%CE%BF&oldid=11875877
       - name: "Διεθνής Αερολιμένας Αθηνών (ΔΑΑ)"

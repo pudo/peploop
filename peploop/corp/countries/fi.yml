@@ -88,6 +88,7 @@ holdings:
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Fingrid Oyj"
         qid: Q1417185
+        minority: true
         holder: "valtio, omistajaohjaus VM (28,2 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Finnair Oyj"
@@ -256,69 +257,86 @@ holdings:
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Anora Group Oyj"
         qid: Q108180696
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (19,4 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Elisa Oyj"
         qid: Q965268
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (10,0 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Hevosopisto Oy"
         qid: Q3152795
+        minority: true
         holder: "valtio, omistajaohjaus OKM (25,0 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Kemira Oyj"
         qid: Q905801
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (5,0 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Konecranes Oyj"
         qid: Q1781308
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (10,1 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Kuntarahoitus Oyj"
         qid: Q11873497
+        minority: true
         holder: "valtio, omistajaohjaus VNK (16,0 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Metso Outotec Oyj"
         qid: Q97206558
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (14,9 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Neste Oyj"
         qid: Q616376
+        minority: true
         holder: "valtio, omistajaohjaus VNK (44,7 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Nokia Oyj"
         qid: Q1418
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (5,3 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Nokian Renkaat Oyj"
         qid: Q1481634
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (10,1 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Outokumpu Oyj"
         qid: Q26694
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (15,5 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Sampo Oyj"
         qid: Q1640495
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (6,4 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "SSAB AB"
         qid: Q54075
+        minority: true
         holder: "valtio, omistajaohjaus VNK (6,3 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Stora Enso Oyj"
         qid: Q747265
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (10,7 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Suomen Siemenperunakeskus Oy"
         qid: Q16860924
+        minority: true
         holder: "valtio, omistajaohjaus VNK (22,0 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Tieto-Evry Oyj"
         qid: Q1423707
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (10,9 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047
       - name: "Valmet Oyj"
         qid: Q1197161
+        minority: true
         holder: "valtio, omistajaohjaus Solidium Oy (10,1 %)"
         source: https://fi.wikipedia.org/w/index.php?title=Luettelo_Suomen_valtionyhti%C3%B6ist%C3%A4&oldid=23878047

@@ -34,13 +34,26 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   subordinate to. A co-owner with a mere stake gets no link: consumers read
   these links as control. The split follows usage: `P749` points to a
   government body, `P127` to the polity; a ministry is never an owner, a
-  polity never a parent. A chain of these links to the state, a first-level
+  polity never a parent. A legal person standing for the state (a state
+  treasury, "the State") named as owner is written as the polity too; an
+  item that already names it keeps it. A chain of these links to the state, a first-level
   subdivision or a government body of either is the evidence of control.
   No shares, sizes or control arithmetic: control is what the article says
-  in words, never read from share figures, which go stale.
+  in words, never read from share figures, which go stale. Where the
+  articles say nothing about who owns a body, the spec's official holdings
+  list (cited by `P854`, unless the entry is a minority stake) or a
+  state-only legal form proves it the state's at the national tier: an
+  enterprise is then owned by the polity, an institution gets its seats and
+  no link.
+- A statutory body with no owner -- a public broadcaster, a central bank, a
+  regulator, set up by law with its leadership appointed by a state organ
+  -- is the state's by statute: its seats are written, and its class
+  (`Q1126006`, `Q66344`, `Q1639780`) when the item has none and no
+  state-only form of the spec.
 - `P31 Q270791` state-owned enterprise, on an enterprise only: the marker,
   unless the item already reaches `Q270791` or `Q1780371` through `P31` or
-  `P1454`. An institution's links are what find it.
+  `P1454`, and only when the control quote says so in words (a share figure
+  does not). An institution's links are what find it.
 - Leadership on the body, never as position items:
 
   | seat | enterprise | institution |
@@ -61,19 +74,21 @@ business). Ministries, legislatures and courts are peploop's, as positions.
 
   A supervisory body is whatever oversees or appoints the executive: a
   supervisory board, an administrative council, a board of trustees, a
-  broadcasting council; all its named members are written, its chair as a
+  broadcasting council, a board of directors over a separate chief
+  executive (a one-tier board is one that itself runs the body); all its named members are written, its chair as a
   member with the role (the idiom on Wikidata; `P488` is a one-tier
   board's chair). A council that only advises is no supervisory body. The model translates a country's titles
   into these roles by function, so the table is global and the prompt names
   no country.
 
 - **Corrections.** A body whose article shows it municipal, while the
-  municipal tier is not written, gains the municipal marker `Q1780371`; a
-  body shown private gains nothing. Either way, a contradicted `Q270791`
-  (or `Q1780371`) statement is proposed for removal and waits for
+  municipal tier is not written, gains the municipal marker `Q1780371`, and
+  its contradicted `Q270791` statement is proposed for removal and waits for
   `removals approve`, being another editor's. Only the marker itself is
   proposed, never a subclass someone chose; a city-state's company is
-  regional, never corrected to municipal.
+  regional, never corrected to municipal. A body shown privatised keeps its
+  marker, ended with `P582` at the date the article gives; without a date
+  nothing is written.
 
 The rule is the EU AMLR: every member of the administrative, management and
 supervisory bodies of an enterprise the state controls; regional and
@@ -82,9 +97,10 @@ are written by default; a spec names its own.
 
 ## The run, per country
 
-1. **load** (`load.py`, `actors.py`): five lanes, wide on purpose -- typed
+1. **load** (`load.py`, `actors.py`): six lanes, wide on purpose -- typed
    (`P31`/`P1454` in the `Q270791` tree), formed (`P31`/`P1454` exactly one
-   of the spec's forms), owned (a chain of `P127`/`P749` links of up to three
+   of the spec's forms), statutory (`P31` exactly a public broadcaster,
+   central bank or regulatory agency), owned (a chain of `P127`/`P749` links of up to three
    steps to a state actor, read from QLever, from the country's items and
    into them), parented (`P749` to a state actor), seed (the spec's
    holdings). Dropped: dissolved, not an organisation, no article in the
@@ -104,7 +120,8 @@ are written by default; a spec names its own.
    (`owner_ministry`). Every link left is then checked once more against its
    quote alone (`verify.py`, `prompts/verify_link.md`): funding, a working
    level or supervision is no control, and a refused link is skipped
-   (`link_unverified`). A seat needs a human's item (pepcorp creates no
+   (`link_unverified`); so is the marker, against the control quote
+   (`marker_unverified`). A seat needs a human's item (pepcorp creates no
    people): the one the article links under the name, or else one found by
    name (`persons.py`, `match.py`, `prompts/match_person.md`). The name is
    searched fuzzily (accents, script, order, titles, middle names) among

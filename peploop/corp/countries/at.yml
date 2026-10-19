@@ -54,6 +54,7 @@ holdings:
     entries:
       - name: "OMV"
         qid: Q168238
+        minority: true
         holder: "Republik Österreich, über ÖBAG (31,50 %)"
         source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
       - name: "Österreichische Post"
@@ -62,14 +63,17 @@ holdings:
         source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
       - name: "Telekom Austria"
         qid: Q688755
+        minority: true
         holder: "Republik Österreich, über ÖBAG (28,42 %)"
         source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
       - name: "EuroTeleSites"
         qid: Q135551988
+        minority: true
         holder: "Republik Österreich, über ÖBAG (28,42 %)"
         source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
       - name: "Casinos Austria"
         qid: Q464579
+        minority: true
         holder: "Republik Österreich, über ÖBAG (33,24 %)"
         source: https://de.wikipedia.org/w/index.php?title=%C3%96sterreichische_Beteiligungs_AG&oldid=270586466
       - name: "APK-Pensionskasse"

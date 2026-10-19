@@ -46,6 +46,15 @@ MARKED = frozenset({MARKER, MUNICIPAL})
 TOOL = "pepcorp"
 #: The link property for each relation an answer names.
 RELATIONS = {"owner": "P127", "parent": "P749"}
+#: What a statutory body is, as the answer says, → the class written when its item lacks one.
+STATUTORY = {
+    "broadcaster": "Q1126006",  # public broadcaster
+    "central_bank": "Q66344",  # central bank
+    "regulator": "Q1639780",  # regulatory agency
+}
+#: Classes that already type a statutory body, through any subclass. A
+#: country's own class for its regulators is one of its spec's `forms`.
+STATUTORY_TYPED = frozenset(STATUTORY.values())
 #: The kinds of body that are written on: a state's businesses, and the
 #: institutions it runs (museums, broadcasters, research centres, agencies).
 WRITTEN = ("enterprise", "institution")
@@ -119,13 +128,22 @@ def item(qid: str) -> dict[str, str]:
     return {"entity-type": "item", "id": qid, "numeric-id": int(qid[1:])}
 
 
-def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countries.DEFAULT_TIERS) -> str | None:
-    """Why nothing is written on this body, or None when it passes."""
+def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countries.DEFAULT_TIERS,
+         proof: str | None = None) -> str | None:
+    """Why nothing is written on this body, or None when it passes.
+
+    `proof` is what shows the body the state's when its articles say nothing
+    about who owns it (`proven`): an official holdings list or a state-only
+    legal form. It never overrides an article that names a stake or a
+    private owner.
+    """
     control = answer["control"]
     if answer["kind"] not in WRITTEN:
         return f"kind:{answer['kind']}"
     if not answer["active"]:
         return "inactive"
+    if control["verdict"] == "unstated" and proof and "national" in tiers:
+        return None
     if control["verdict"] != "state":
         return f"control:{control['verdict']}"
     if control["level"] not in tiers:
@@ -133,6 +151,29 @@ def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countrie
     if not quoted(control["quote"], message):
         return "control_unquoted"
     return None
+
+
+def proven(item: dict[str, Any] | None, spec: countries.Spec) -> str | None:
+    """What proves a body the state's apart from its articles: `list` or `form`, else None.
+
+    A holdings list proves it unless the entry is marked a minority stake; a
+    state-only legal form (the spec's `forms`, the item's own `P31` or
+    `P1454`, exactly) proves it by itself.
+    """
+    if not item:
+        return None
+    seed = item.get("seed")
+    if seed and not seed.get("minority"):
+        return "list"
+    entity = item.get("entity") or {}
+    if {v for p in ("P31", "P1454") for v in wd.values(entity, p)} & set(spec.forms):
+        return "form"
+    return None
+
+
+def list_source(seed: dict[str, Any]) -> list[dict[str, Any]]:
+    """A holdings list as a statement's source: its URL, cited with `P854`."""
+    return [{"reference_url": seed["source"]}] if seed.get("source") else []
 
 
 def source(req: dict[str, Any], lang: str | None) -> list[dict[str, Any]]:
@@ -147,23 +188,47 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
                  refused: set[tuple[str, str, str]] | frozenset = frozenset(),
                  reached: set[str] | frozenset = frozenset(),
                  government: set[str] | frozenset = frozenset(),
-                 country: str | None = None) -> list[dict[str, Any]]:
-    """The marker and link rows of a body that passed its gates.
+                 country: str | None = None, standins: frozenset[str] = frozenset(),
+                 proof: str | None = None, seed: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    """The type and link rows of a body that passed its gates.
 
     The marker goes on an enterprise only: a museum or a broadcaster is no
-    state-owned enterprise, and its links are what find it. One `P127` or
-    `P749` per public body the answer names over it, each with its quote.
-    `state` is every body that counts as the state's; `named` resolves a
-    controller the answer named rather than chose (name → QID).
+    state-owned enterprise, and its links are what find it. A statutory body
+    (a public broadcaster, a central bank, a regulator) gets its class when
+    its item has none. One `P127` or `P749` per public body the answer names
+    over it, each with its quote. `state` is every body that counts as the
+    state's; `named` resolves a controller the answer named rather than
+    chose (name → QID); `standins` are the legal persons standing for the
+    state (a state treasury), whose ownership is written as the polity's.
+    A body proven the state's by a list or a form alone (`proof`) is an
+    enterprise owned by the polity, cited to the list, or an institution
+    with no link.
     """
     answer = req["answer"]
     control = answer["control"]
     rows = []
+    marks = {t for p in ("P31", "P1454") for v in wd.values(entity, p) for t in closure.get(v, {v})}
+    by_proof = control["verdict"] == "unstated" and proof is not None
+    proof_sources = list_source(seed or {}) if proof == "list" else []
     if answer["kind"] == "enterprise":
-        marks = {t for p in ("P31", "P1454") for v in wd.values(entity, p) for t in closure.get(v, {v})}
+        rule = "marked" if marks & MARKED else None
+        if rule is None and (req.get("qid", ""), "P31", MARKER) in refused:
+            # The control quote does not say the state controls it (a share figure).
+            rule = "marker_unverified"
         rows.append({"property": "P31", "value": item(MARKER),
+                     "qualifiers": {"_sources": proof_sources if by_proof else source(req, control["article"])},
+                     "_rule": rule})
+    statutory = STATUTORY.get(answer.get("statutory") or "")
+    if statutory:
+        rows.append({"property": "P31", "value": item(statutory),
                      "qualifiers": {"_sources": source(req, control["article"])},
-                     "_rule": "marked" if marks & MARKED else None})
+                     "_rule": "typed" if marks & STATUTORY_TYPED or proof == "form" else None})
+    if by_proof:
+        if answer["kind"] == "enterprise" and country:
+            rows.append({"property": "P127", "value": item(country), "qualifiers": {"_sources": proof_sources},
+                         "_rule": "standin_existing" if set(wd.values(entity, "P127")) & (standins | {country})
+                         else None})
+        return rows
     offered = req["offered"]
     if not control["owners"]:
         rows.append({"property": "P127", "value": None, "qualifiers": {}, "_rule": "no_controller"})
@@ -174,10 +239,11 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
         if qid is None:
             rows.append({"property": prop, "value": None, "qualifiers": {}, "_rule": "no_controller"})
             continue
-        if prop == "P127" and qid in government and country and control["level"] == "national":
-            # "Owner: Government of X": the owner is the state the government
-            # is of, the polity, never the government body itself.
-            qid = country
+        standin = qid in standins
+        if prop == "P127" and (qid in government or standin) and country and control["level"] == "national":
+            # "Owner: Government of X", "owner: the State Treasury": the owner
+            # is the state itself, the polity, never the body acting for it.
+            qid, standin = country, True
         rule = None
         if not quoted(owner["quote"], req["message"]):
             rule = "owner_unquoted"
@@ -195,6 +261,10 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
         elif qid in reached:
             # One of the item's own links already leads there one step on.
             rule = "chain_existing"
+        elif standin and set(wd.values(entity, "P127")) & standins:
+            # The item already names the state's stand-in as owner: that is
+            # the state, and a second owner statement would read as two.
+            rule = "standin_existing"
         elif (req.get("qid", ""), prop, qid) in refused:
             # The narrow check (`verify.py`) found the quote does not state it.
             rule = "link_unverified"
@@ -225,7 +295,6 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
 #: Why a marker is proposed for removal, as the edit summary says it.
 REMOVAL_REASONS = {
     "municipal": "a municipal company, not a state-owned enterprise (its Wikipedia article)",
-    "private": "not state-controlled: its Wikipedia article says it is privately owned",
 }
 
 
@@ -235,8 +304,10 @@ def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, s
     """A marker the answer contradicts: (kind of correction, rows to add, statements to propose removing).
 
     A body the article shows to be municipal, while the tier is not written,
-    keeps no state-enterprise marker and gains the municipal one; a body it
-    shows to be private keeps neither. Nothing else is written on either.
+    keeps no state-enterprise marker and gains the municipal one. A body it
+    shows to be private, and dates when the state gave it up, keeps its
+    marker with that end (`P582`): the item records its state past too.
+    Nothing else is written on either.
     """
     answer = req["answer"]
     control = answer["control"]
@@ -267,8 +338,14 @@ def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, s
              "_rule": None}]
         return "municipal", add, wrong
     if control["verdict"] == "private" and answer["kind"] == "enterprise":
-        wrong = [c for c in claims if exactly(c, MARKED)]
-        return ("private", [], wrong) if wrong else (None, [], [])
+        ended = control.get("ended")
+        values = {c["mainsnak"]["datavalue"]["value"]["id"] for c in claims if exactly(c, MARKED)}
+        if not ended or not values:
+            return None, [], []
+        return "private", [{"property": "P31", "value": item(v),
+                            "qualifiers": {"_sources": source(req, control["article"]),
+                                           "P582": propose.time_value(ended)},
+                            "_rule": None} for v in sorted(values)], []
     return None, [], []
 
 
@@ -415,7 +492,8 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     """
     today = today or date.today()
     spec = spec or countries.get(cc)
-    passed = {r["qid"]: r for r in answered if gate(r["answer"], r["message"], spec.tiers) is None}
+    proofs = {r["qid"]: proven(items.get(r["qid"]), spec) for r in answered}
+    passed = {r["qid"]: r for r in answered if gate(r["answer"], r["message"], spec.tiers, proofs[r["qid"]]) is None}
     # Bodies the answer gates out but whose existing marker it contradicts.
     marked_now = {qid for qid, it in items.items()
                   if wd.values(it.get("entity") or {}, "P31") or wd.values(it.get("entity") or {}, "P1454")}
@@ -446,6 +524,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     polities = frozenset(q for q, k in actors.kinds.items() if k in ("state", "subdivision"))
     subdivisions = frozenset(q for q, k in actors.kinds.items() if k == "subdivision")
     bodies = frozenset(q for q, k in actors.kinds.items() if k == "government") | government
+    standins = frozenset(q for q, k in actors.kinds.items() if k == "state" and q != actors.state)
     # What each item's existing owners and parents link to in turn: a link to
     # one of those would only shortcut a chain already on Wikidata.
     linked_now = {qid: {v for p in ("P127", "P749") for v in wd.values(e, p)} for qid, e in entities.items()}
@@ -462,7 +541,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     decisions: list[dict[str, Any]] = []
     removals: list[dict[str, Any]] = []
     for r in answered:
-        why = gate(r["answer"], r["message"], spec.tiers)
+        why = gate(r["answer"], r["message"], spec.tiers, proofs[r["qid"]])
         if why is not None:
             kind, add, wrong = (correction(r, entities[r["qid"]], closure, spec.tiers, subdivisions)
                                 if r["qid"] in contradicted and r["qid"] in entities else (None, [], []))
@@ -484,7 +563,8 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             continue
         chain = items.get(r["qid"], {}).get("chain")
         rows = control_rows(r, entity, chain, state, closure, named.get(r["qid"]), polities, refused,
-                            reached.get(r["qid"], set()), bodies, actors.state)
+                            reached.get(r["qid"], set()), bodies, actors.state, standins,
+                            proofs[r["qid"]], items.get(r["qid"], {}).get("seed"))
         links = [row for row in rows if row["property"] in RELATIONS.values() and row["value"] is not None]
         if r["answer"]["kind"] == "enterprise" and not links:
             # An enterprise whose article names no public owner stands on
@@ -495,7 +575,8 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
                               "disposition": "skip", "rule": "enterprise_unowned", "call_key": r.get("key")})
             continue
         if (r["answer"]["kind"] == "enterprise" and links
-                and not any(row["_rule"] in (None, "chain_reaches", "chain_existing", "owner_ministry") for row in links)):
+                and not any(row["_rule"] in (None, "chain_reaches", "chain_existing", "owner_ministry", "standin_existing")
+                            for row in links)):
             # Every body the answer names over it is no state body: the
             # control it claims runs through someone else's company. An
             # institution named under an office ("the Prime Minister") or

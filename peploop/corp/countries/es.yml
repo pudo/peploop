@@ -25,15 +25,10 @@ exclude:
   - {qid: Q897399, name: chamber of commerce and industry}  # 46 live, e.g. Q8353073 Cámara Oficial de Comercio, Industria y Navegación
   - {qid: Q2917176, name: caja de ahorros}  # 29 live, e.g. Q105764431 Caja de Ahorros Provincial de Albacete
   - {qid: Q10729872, name: medical association}  # 11 live, e.g. Q108409080 Colegio de Médicos de Guipúzcoa
-# A ministry's own units, whose heads are peploop's as positions (secretario
-# de estado, subsecretario, secretario general, director general); archives;
-# police forces, whose chiefs are officers; the provincial diputaciones,
-# government at a tier not written. Measured 2026-10-17 among the kept
-# candidates.
-  - {qid: Q36835995, name: dirección general}  # 135 kept, e.g. Q111593394 Dirección General del Español en el Mundo
-  - {qid: Q41062250, name: secretaría de estado}  # 34 kept, e.g. Q16629585 Secretaría de Estado de Hacienda
-  - {qid: Q59562118, name: secretaría general}  # 28 kept, e.g. Q104598167 Secretaría General de Fondos Europeos
-  - {qid: Q6134903, name: subsecretaría}  # 14 kept, e.g. Q38230108 Subsecretaría de Interior
+# Archives; police forces, whose chiefs are officers; the provincial
+# diputaciones, government at a tier not written. Measured 2026-10-17 among
+# the kept candidates. A ministry's own units (dirección general, secretaría
+# de estado, secretaría general, subsecretaría) are institutions.
   - {qid: Q166118, name: archives}  # 36 kept, e.g. Q15714810 Archivo General de Andalucía
   - {qid: Q35535, name: police}  # 6 kept, e.g. Q1143194 Cuerpo Nacional de Policía
   - {qid: Q3044930, name: diputación provincial}  # 6 kept, e.g. Q2917971 Diputación Provincial de Zaragoza
@@ -48,6 +43,7 @@ forms:
   - {qid: Q2881199, kind: institution, name: organismo público en España}  # 18 (192 live)
   - {qid: Q537929, kind: institution, name: organismo autónomo}  # 13 (45 live)
   - {qid: Q5659726, kind: institution, name: agencia estatal}  # 5 (14 live)
+  - {qid: Q104601620, kind: institution, name: autoridad administrativa independiente}  # 6 live, e.g. Agencia Española de Protección de Datos (2026-10-19)
 
 roles: []
 
@@ -120,18 +116,22 @@ holdings:
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "Airbus Group"
         qid: Q2311
+        minority: true
         holder: "Estado, a través de SEPI (4,09 %)"
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "Ebro Foods"
         qid: Q1280101
+        minority: true
         holder: "Estado, a través de SEPI (10,36 %)"
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "Enagás"
         qid: Q1124060
+        minority: true
         holder: "Estado, a través de SEPI (5 %)"
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "ENRESA"
         qid: Q5831737
+        minority: true
         holder: "Estado, a través de SEPI (20 %)"
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "EPICOM"
@@ -140,25 +140,31 @@ holdings:
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "Hispasat"
         qid: Q1425548
+        minority: true
         holder: "Estado, a través de SEPI (7,41 %)"
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "Indra"
         qid: Q1661823
+        minority: true
         holder: "Estado, a través de SEPI (28%)"
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "International Airlines Group"
         qid: Q8774
+        minority: true
         holder: "Estado, a través de SEPI (2,53 %)"
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "Redeia"
         qid: Q1551220
+        minority: true
         holder: "Estado, a través de SEPI (20 %)"
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "Telefónica"
         qid: Q160229
+        minority: true
         holder: "Estado, a través de SEPI (10 %)"
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239
       - name: "Talgo"
         qid: Q1100969
+        minority: true
         holder: "Estado, a través de SEPI (7,8 %)"
         source: https://es.wikipedia.org/w/index.php?title=Sociedad_Estatal_de_Participaciones_Industriales&oldid=172886239

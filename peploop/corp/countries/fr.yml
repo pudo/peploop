@@ -14,6 +14,7 @@ actors:
   - {qid: Q54293525, kind: government, name: services du Premier ministre}
   - {qid: Q1408517, kind: government, name: ministère du Travail et de l'Emploi}
   - {qid: Q3029570, kind: government, name: direction générale des Infrastructures, des Transports et de la Mer}
+  - {qid: Q124032419, kind: government, name: direction générale des Infrastructures, des Transports et des Mobilités}  # the same DG's newer item, named twice 2026-10-18
   - {qid: Q1227512, kind: government, name: direction générale de l'Aviation civile}
 
 # Classes the type tree files under government organization or government
@@ -97,10 +98,12 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Engie (anciennement GDF Suez)"
         qid: Q13416787
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Eramet"
         qid: Q1347990
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Laboratoire français du fractionnement et des biotechnologies (LFB)"
@@ -113,6 +116,7 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Airbus Group SE"
         qid: Q2311
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Alcatel Submarine Networks"
@@ -133,10 +137,12 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Civipol"
         qid: Q2974901
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Dassault Aviation"
         qid: Q460487
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Défense conseil international (DCI)"
@@ -145,6 +151,7 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Eutelsat"
         qid: Q848336
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "GIAT Industries"
@@ -165,14 +172,17 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Orange (anciennement France Télécom)"
         qid: Q1431486
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Renault SA"
         qid: Q6686
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Safran"
         qid: Q1886126
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Société nationale des poudres et des explosifs (SNPE)"
@@ -193,6 +203,7 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Thales"
         qid: Q1161666
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Aéroport de Bordeaux-Mérignac"
@@ -229,6 +240,7 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Air France-KLM"
         qid: Q407237
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Société aéroportuaire de Guadeloupe Pôle Caraïbes"
@@ -333,6 +345,7 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Dexia"
         qid: Q313966
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "France Médias Monde (TV5 Monde, RFI, France 24, Monte Carlo Doualiya)"
@@ -349,6 +362,7 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "FDJ United"
         qid: Q1450805
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "La Poste"
@@ -361,6 +375,7 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Semmaris"
         qid: Q54488438
+        minority: true
         holder: "État, portefeuille de l'APE"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Société de prise de participation de l'État (SPPE)"
@@ -373,6 +388,7 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Adit"
         qid: Q2826693
+        minority: true
         holder: "État, portefeuille de l'APE (participation indirecte)"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Airbus Defence and Space Holding France SAS"
@@ -385,14 +401,17 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "ArianeGroup SAS"
         qid: Q19951610
+        minority: true
         holder: "État, portefeuille de l'APE (participation indirecte)"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Aubert & Duval"
         qid: Q2870587
+        minority: true
         holder: "État, portefeuille de l'APE (participation indirecte)"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Compagnie industrielle des lasers (CILAS)"
         qid: Q2990202
+        minority: true
         holder: "État, portefeuille de l'APE (participation indirecte)"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "GEAST"
@@ -405,6 +424,7 @@ holdings:
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Safran Ceramics"
         qid: Q3133378
+        minority: true
         holder: "État, portefeuille de l'APE (participation indirecte)"
         source: https://fr.wikipedia.org/w/index.php?title=Agence_des_participations_de_l%27%C3%89tat&oldid=240357771
       - name: "Société nationale maritime Corse Méditerranée (SNCM)"

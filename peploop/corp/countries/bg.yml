@@ -3,6 +3,11 @@
 
 tiers: [national, regional]
 
+# The parliament, as the body that elects and oversees statutory bodies
+# (named as controller 10 times in the 2026-10-18 answers).
+actors:
+  - {qid: Q639704, kind: government, name: National Assembly of Bulgaria}
+
 # Classes the type tree files under government organization or government
 # agency that are not government bodies here. None measured: no misfiled
 # class among the state actors read 2026-10-17.

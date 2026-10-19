@@ -1,6 +1,6 @@
 """Find a country's candidate state bodies and keep the ones worth a decision.
 
-Six lanes, each going wide on purpose: what the decision stage and, after
+Seven lanes, each going wide on purpose: what the decision stage and, after
 it, OpenSanctions' position classification filter out costs less than a body
 never found.
 
@@ -9,6 +9,9 @@ never found.
 - `formed`: its `P31` or `P1454` is one of the country's state-only legal
   forms (the spec's `forms`), matched exactly: an authority, a public-law
   institution or foundation, which carries no SOE marker and often no owner.
+- `statutory`: its `P31` is a class of statutory body -- public broadcaster,
+  central bank, regulator (`rules.STATUTORY_TYPED`), matched exactly --
+  which no owner links to the state: it is the state's by law.
 - `owned`: a chain of `P127` or `P749` links reaches a state actor
   (`actors.py`).
 - `parented`: its parent organization is a state actor: a body a ministry or
@@ -33,7 +36,7 @@ from rigour.territories import get_territory_by_qid
 from peploop import positions, typegraph, wikipedia
 from peploop.corp import actors as actormod
 from peploop.corp import country as countries
-from peploop.corp import wd
+from peploop.corp import rules, wd
 
 #: The markers whose subclass trees the typed lane reads.
 TYPED_ROOTS = ("Q270791",)
@@ -120,6 +123,9 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
         for name in names:
             for r in wd.sparql(FORMED % (wd.values_block(sorted(spec.forms)), name)):
                 lanes.setdefault(r["i"], set()).add("formed")
+    for name in names:
+        for r in wd.sparql(FORMED % (wd.values_block(sorted(rules.STATUTORY_TYPED)), name)):
+            lanes.setdefault(r["i"], set()).add("statutory")
     chains = actors.reach()
     for qid in chains:
         lanes.setdefault(qid, set()).add("owned")
@@ -132,7 +138,7 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
         lanes.setdefault(qid, set()).add("seed")
     count = lambda lane: sum(lane in v for v in lanes.values())  # noqa: E731
     log(f"{cc}: {len(actors.kinds)} state actors; {len(lanes)} candidates "
-        + ", ".join(f"{lane} {count(lane)}" for lane in ("typed", "formed", "owned", "parented", "category", "seed")))
+        + ", ".join(f"{lane} {count(lane)}" for lane in ("typed", "formed", "statutory", "owned", "parented", "category", "seed")))
     # Owned is the wide lane: stations, buildings and artworks a state body
     # owns come with it, and the organisation test is what drops them.
     typed = wd.fetch_items(sorted(lanes), props="claims")
@@ -149,9 +155,9 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
             orgs.discard(qid)
             lanes[qid].add("excluded")
     # A category lists buildings and brands too, so its members pass the
-    # organisation test like the owned lane's; a typed, formed or listed item
+    # organisation test like the owned lane's; a typed, formed, statutory or listed item
     # is a body by its type or by the list.
-    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "formed"}}
+    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "formed", "statutory"}}
     keep = [q for q in sorted(lanes) if "excluded" not in lanes[q] and q in bodies]
     entities = wd.fetch_items(keep)
     wikis = langs(state)

@@ -75,6 +75,7 @@ holdings:
         source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
       - name: "SIA “Latvijas Mobilais Telefons” (LMT)"
         qid: Q4993620
+        minority: true
         holder: "Latvijas valsts, kapitāla daļu turētājs Satiksmes ministrija (28 %)"
         source: https://lv.wikipedia.org/w/index.php?title=Valsts_kapit%C4%81lsabiedr%C4%ABbas&oldid=4487278
       - name: "VAS “Latvijas gaisa satiksme”"

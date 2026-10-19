@@ -161,6 +161,7 @@ holdings:
         source: https://www.wikidata.org/wiki/Q590406
       - name: "PKP Cargo SA"
         qid: Q742422
+        minority: true
         holder: "PKP SA (minority listed)"
         source: https://www.wikidata.org/wiki/Q742422
       - name: "Polskie Sieci Elektroenergetyczne SA"

@@ -122,6 +122,10 @@ def cited_source(row: dict[str, Any], entity: dict[str, Any]) -> dict[str, Any]:
 def references(row: dict[str, Any], entity: dict[str, Any]) -> list[dict[str, Any]]:
     """Build the reference a new statement for this proposal carries: at most one."""
     source = cited_source(row, entity)
+    if source.get("reference_url"):
+        # A source that is no Wikipedia article (an official list): its URL.
+        snaks = {"P854": [_snak("P854", source["reference_url"])], "P813": [_snak("P813", today())]}
+        return [{"snaks": snaks, "snaks-order": list(snaks)}]
     built = reference(source.get("lang"), source.get("url"), source.get("rev"))
     return [] if built is None else [built]
 

@@ -219,8 +219,12 @@ def crawler_cases() -> None:
                                         ("national", "regional", "municipal"))
     expect(kind is None, "where the municipal tier is written, a municipal body is no correction")
     priv = {**base, "answer": answer(verdict="private")}
+    expect(rules.correction(priv, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))[0] is None,
+           "a private body whose article does not date the sale keeps its marker untouched")
+    priv["answer"]["control"]["ended"] = "1998-05"
     kind, add, wrong = rules.correction(priv, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))
-    expect(kind == "private" and not add and [c["id"] for c in wrong] == ["Q1$A"], "a private body's marker is proposed for removal only")
+    expect(kind == "private" and not wrong and [(a["value"]["id"], a["qualifiers"]["P582"]["time"]) for a in add]
+           == [("Q270791", "+1998-05-00T00:00:00Z")], "a privatised body's marker is ended, never removed")
     unq = {**base, "answer": answer(verdict="private", quote="Nobody said this.")}
     expect(rules.correction(unq, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))[0] is None,
            "no correction without a quote")
@@ -270,6 +274,68 @@ def crawler_cases() -> None:
     # Never candidates: sports clubs, diplomatic missions, places; and a country's chambers.
     expect({"Q476028", "Q847017", "Q7843791", "Q3917681", "Q56061", "Q192350", "Q7188"} <= load.EXCLUDED,
            "clubs, missions, places, ministries and governments are never candidates")
+
+
+def policy() -> None:
+    """Statutory bodies, lists and forms as proof, the state's stand-ins, the marker check."""
+    arts = [{"lang": "xx", "url": "https://xx.wikipedia.org/wiki/Q", "rev": 1}]
+    base = {"qid": "Q900999", "offered": ["Q900100", "Q900200"], "articles": arts, "message": MESSAGE, "links": {}}
+    state = {"Q900100", "Q900200", "Q900001"}
+    # A public broadcaster set up by law, with no owner: state, typed, seats.
+    tv = {**base, "answer": {**answer(kind="institution", owners=()), "statutory": "broadcaster"}}
+    expect(rules.gate(tv["answer"], MESSAGE) is None, "a statutory institution with no owner passes")
+    rows = rules.control_rows(tv, ent(), None, state, {})
+    typed = [r for r in rows if r["property"] == "P31"]
+    expect([(r["value"]["id"], r["_rule"]) for r in typed] == [("Q1126006", None)],
+           "a public broadcaster without its class gets it")
+    rows = rules.control_rows(tv, ent(P31=["Q900500"]), None, state, {"Q900500": {"Q900500", "Q1126006"}})
+    expect([r["_rule"] for r in rows if r["property"] == "P31"] == ["typed"], "an item already typed is left alone")
+    reg = {**base, "answer": {**answer(kind="institution", owners=()), "statutory": "regulator"}}
+    rows = rules.control_rows(reg, ent(P31=["Q900801"]), None, state, {"Q900801": {"Q900801"}}, proof="form")
+    expect([r["_rule"] for r in rows if r["property"] == "P31"] == ["typed"],
+           "a regulator of a country's own state-only form is typed already")
+    # Proof by list or form, only where the articles say nothing.
+    silent = answer(verdict="unstated", owners=(), quote=None)
+    expect(rules.gate(silent, MESSAGE) == "control:unstated", "silence alone proves nothing")
+    expect(rules.gate(silent, MESSAGE, proof="list") is None, "silence with a holdings entry passes")
+    expect(rules.gate(answer(verdict="unclear"), MESSAGE, proof="list") == "control:unclear",
+           "an article naming a mere stake overrides the list")
+    spec = country.Spec(cc="xx", forms={"Q900800": "institution"})
+    expect(rules.proven({"seed": {"source": "https://list"}, "entity": {}}, spec) == "list", "a listed body is proven")
+    expect(rules.proven({"seed": {"source": "https://list", "minority": True}, "entity": {}}, spec) is None,
+           "a minority stake on the list proves nothing")
+    expect(rules.proven({"seed": None, "entity": ent(P31=["Q900800"])}, spec) == "form", "a state-only form proves it")
+    expect(rules.proven({"seed": None, "entity": ent(P31=["Q900801"])}, spec) is None, "another form does not")
+    listed = {**base, "answer": silent}
+    rows = rules.control_rows(listed, ent(), None, state, {}, country="Q900001", proof="list",
+                              seed={"source": "https://list"})
+    expect([(r["property"], r["value"]["id"], r["_rule"], r["qualifiers"]["_sources"]) for r in rows]
+           == [("P31", "Q270791", None, [{"reference_url": "https://list"}]),
+               ("P127", "Q900001", None, [{"reference_url": "https://list"}])],
+           "a listed enterprise is marked and owned by the polity, both cited to the list")
+    formed = {**base, "answer": answer(kind="institution", verdict="unstated", owners=(), quote=None)}
+    expect(rules.control_rows(formed, ent(), None, state, {}, country="Q900001", proof="form") == [],
+           "an institution proven by its form gets seats only, no link")
+    ref = propose_refs({"qualifiers": {"_sources": [{"reference_url": "https://list"}]}})
+    expect(ref == ["S854", '"https://list"', "S813"], "a list is cited by its URL")
+    # The state's stand-in named as owner is written as the polity.
+    treasury = {**base, "answer": answer(owners=((1, "owner"),))}
+    links = [r for r in rules.control_rows(treasury, ent(), None, state, {}, country="Q900001",
+                                           standins=frozenset({"Q900200"})) if r["property"] == "P127"]
+    expect([(r["value"]["id"], r["_rule"]) for r in links] == [("Q900001", None)], "the state treasury as owner is the polity")
+    links = [r for r in rules.control_rows(treasury, ent(P127=["Q900200"]), None, state, {}, country="Q900001",
+                                           standins=frozenset({"Q900200"})) if r["property"] == "P127"]
+    expect([r["_rule"] for r in links] == ["standin_existing"], "an item already owned by the stand-in gets no second owner")
+    # A marker whose quote the check refuses.
+    expect(rules.control_rows(treasury, ent(), None, state, {}, refused={("Q900999", "P31", "Q270791")})[0]["_rule"]
+           == "marker_unverified", "a marker the quote check refuses is not written")
+
+
+def propose_refs(row: dict) -> list:
+    """The reference columns a planned row would carry, without the date's value."""
+    from peploop import plan
+    cols = qs.references(plan.references(row, {}))
+    return [c for c in cols if not c.startswith("+")] if cols else []
 
 
 def unowned() -> None:
@@ -335,6 +401,7 @@ def main() -> None:
     dates()
     control()
     crawler_cases()
+    policy()
     unowned()
     historic()
     reach()

@@ -49,10 +49,11 @@ class Owner(Strict):
 
 
 class Control(Strict):
-    verdict: Literal["state", "private", "unclear"]
+    verdict: Literal["state", "private", "unclear", "unstated"]
     level: Literal["national", "regional", "municipal", "foreign", "none"]
     quote: Optional[str]
     article: Optional[str]
+    ended: Optional[str]
     owners: list[Owner]
 
 
@@ -69,6 +70,7 @@ class Seat(Strict):
 
 class Answer(Strict):
     kind: Literal["enterprise", "institution", "government", "other"]
+    statutory: Optional[Literal["broadcaster", "central_bank", "regulator"]]
     active: bool
     control: Control
     seats: list[Seat]

@@ -109,13 +109,16 @@ holdings:
         source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
       - name: Urenco
         qid: Q1432506
+        minority: true
         holder: Staat der Nederlanden
         source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
       - name: ABN AMRO
         qid: Q287471
+        minority: true
         holder: Staat der Nederlanden
         source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
       - name: Thales Nederland
         qid: Q3913196
+        minority: true
         holder: Staat der Nederlanden
         source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)

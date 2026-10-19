@@ -80,10 +80,10 @@ holdings:
       - {name: "TV2 DANMARK A/S", qid: Q1616154, holder: "Staten (Kulturministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
       - {name: "Ørsted A/S", qid: Q1241260, holder: "Staten (Finansministeriet), 50,1 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
       - {name: "Kalaallit Airports International A/S", qid: null, holder: "Staten (Finansministeriet), 33,3 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
-      - {name: "Københavns Lufthavne A/S", qid: Q3429574, holder: "Staten (Finansministeriet), 39,2 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
-      - {name: "NORDUnet A/S", qid: Q3480188, holder: "Staten (Uddannelses- og Forskningsministeriet), 24,2 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
-      - {name: "PostNord AB", qid: Q3181430, holder: "Staten (Transportministeriet), 40 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
-      - {name: "SAS AB", qid: Q1345441, holder: "Staten (Finansministeriet), 21,8 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Københavns Lufthavne A/S", qid: Q3429574, holder: "Staten (Finansministeriet), 39,2 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062", minority: true}
+      - {name: "NORDUnet A/S", qid: Q3480188, holder: "Staten (Uddannelses- og Forskningsministeriet), 24,2 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062", minority: true}
+      - {name: "PostNord AB", qid: Q3181430, holder: "Staten (Transportministeriet), 40 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062", minority: true}
+      - {name: "SAS AB", qid: Q1345441, holder: "Staten (Finansministeriet), 21,8 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062", minority: true}
       - {name: "DanPilot", qid: Q12307097, holder: "Staten (Erhvervsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
       - {name: "DSB", qid: Q83824, holder: "Staten (Transportministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
       - {name: "EKF Danmarks Eksportkredit", qid: Q105404842, holder: "Staten (Erhvervsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
@@ -94,5 +94,5 @@ holdings:
       - {name: "Naviair", qid: Q1783727, holder: "Staten (Transportministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
       - {name: "Nordsøenheden", qid: Q114443640, holder: "Staten (Erhvervsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
       - {name: "Vækstfonden", qid: Q12341341, holder: "Staten (Erhvervsministeriet), 100 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
-      - {name: "Metroselskabet I/S", qid: Q11989204, holder: "Staten (Transportministeriet), 42 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
-      - {name: "Udviklingsselskabet By & Havn I/S", qid: Q5003760, holder: "Staten (Transportministeriet), 5 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062"}
+      - {name: "Metroselskabet I/S", qid: Q11989204, holder: "Staten (Transportministeriet), 42 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062", minority: true}
+      - {name: "Udviklingsselskabet By & Havn I/S", qid: Q5003760, holder: "Staten (Transportministeriet), 5 % (2015)", source: "https://da.wikipedia.org/w/index.php?title=Statsejede_virksomheder_i_Danmark&oldid=12024062", minority: true}

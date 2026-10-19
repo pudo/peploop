@@ -60,7 +60,7 @@ holdings:
       - {name: "Apoteket", qid: Q1785637, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
       - {name: "Arlandabanan", qid: Q1047610, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
       - {name: "Dramaten", qid: Q1140265, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
-      - {name: "Eurofima", qid: Q1374986, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+      - {name: "Eurofima", qid: Q1374986, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745", minority: true}
       - {name: "Green Cargo", qid: Q1028092, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
       - {name: "Göta kanalbolag", qid: Q10512727, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
       - {name: "Infranord", qid: Q10535401, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
@@ -88,7 +88,7 @@ holdings:
       - {name: "Swedfund", qid: Q10686496, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
       - {name: "Swedish Space Corporation", qid: Q3270281, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
       - {name: "Systembolaget", qid: Q1476113, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
-      - {name: "Telia Company", qid: Q862303, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+      - {name: "Telia Company", qid: Q862303, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745", minority: true}
       - {name: "Teracom AB", qid: Q7476318, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
       - {name: "Vasallen", qid: Q10713262, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
       - {name: "Vattenfall (företag)", qid: Q157675, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}

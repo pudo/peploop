@@ -6,8 +6,9 @@ evidence.
 The passage supports the link if it says, in its own words, any of these
 about the public body and the other:
 
-- it owns the other, holds all or most of its shares, founded it, or
-  carries or sponsors it as its legal carrier;
+- it owns the other, holds all or most of its shares (said in words: a
+  percentage or a list of the largest shareholders alone says nothing about
+  control), founded it, or carries or sponsors it as its legal carrier;
 - the other is one of its own institutions, alone or jointly with other
   public bodies;
 - the other is part of it, subordinate to it, or falls under its
@@ -25,5 +26,11 @@ supervises, regulates or oversees it while the other is independent of it;
 that a treaty or law between public bodies sets up its task; that the public
 body holds a minority stake beside other owners; that it chairs a body of
 it; or when the passage is about a different body.
+
+When you are given a claim instead of a public body -- that the other is a
+state-owned enterprise -- the passage supports it if it says so in words: the
+body is state-owned or publicly owned, or a state, a subdivision of one or a
+public body of either owns, controls or runs it as above. A share figure or
+a ranking of shareholders is not such a statement.
 
 Answer `supports` true or false, and give the reason in one short sentence.

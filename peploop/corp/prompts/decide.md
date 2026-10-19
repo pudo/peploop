@@ -16,15 +16,25 @@ so every claim you make must rest on a verbatim quote from an article shown.
     hospital, university clinic, agency, authority, an administrative unit
     run like a business (a state forestry or roads operation), a foundation.
   - `government`: a ministry, cabinet, legislature, court or the government
-    itself.
+    itself; a regional government's ministry or department; the office of a
+    head of state or government (a presidency, a chancellery, a state
+    chancellery). A unit inside a ministry -- a directorate-general, a
+    department, a state secretariat, a general secretariat -- is an
+    `institution`, its director its `head`, its ministry its `parent`.
   - A local or lower office of an authority -- a tax office, a district or
     branch office, a regional office under a higher authority, a state's
     representation office -- is `other`: its head is no senior official. The
     authority at the top stays `institution`.
   - `other`: anything else: a building, a brand, a television channel or
-    programme, a club, a collection of objects. A site, venue or location of
+    programme, a club, a collection of objects, a news agency no state owns
+    in words. A site, venue or location of
     a body -- a hospital's campus, a beer hall, a branch, a plant -- is
     `other` too: the body that runs it is the one to judge.
+- `statutory`: what the articles call the body, when it is one of these:
+  `broadcaster` (a public broadcaster), `central_bank` (a country's central
+  or national bank), `regulator` (an independent authority or agency that
+  regulates a sector or market, supervises finance, protects data or
+  competition). Null for anything else.
 - `active`: false when the articles say it was dissolved, merged into
   another, privatised out of existence or renamed into a different item.
 
@@ -40,12 +50,17 @@ and an article lags them.
     state-controlled or a public body, or that a state, a subdivision of one
     (a province, a federal state, a region) or a government body of either
     owns it, carries or sponsors it, runs it, or has it as one of its own
-    subordinate bodies.
+    subordinate bodies. So is a body a law sets up whose leadership or
+    supervisory body a state organ (its parliament, government or head of
+    state) appoints -- a public broadcaster, a central bank, an independent
+    authority -- with no owner: it is the state's by statute.
   - `private`: the articles say it is privately owned, or listed without a
     public owner that runs it.
-  - `unclear`: the articles do not say; or they only report a public stake
-    or holding (of whatever size, or "the largest shareholder") without
-    saying the public owner controls or runs the body.
+  - `unclear`: they only report a public stake or holding (of whatever
+    size, or "the largest shareholder") without saying the public owner
+    controls or runs the body.
+  - `unstated`: the articles say nothing about who owns, carries or runs
+    the body.
 - `control.level`: `national` for the state itself or its government bodies,
   `regional` for a first-level subdivision or its bodies (a city that is
   itself a first-level subdivision, a city-state, is `regional`),
@@ -53,7 +68,12 @@ and an article lags them.
   another country's state, `none` otherwise. Where several public bodies
   share control, the level of the one the articles present as leading.
 - `control.quote` and `control.article`: the sentence that says who owns,
-  carries or runs it, verbatim, and the language code of its article.
+  carries or runs it, verbatim, and the language code of its article. An
+  infobox field naming its owner or parent company says so as a sentence
+  would.
+- `control.ended`: when the state gave up control (a privatisation, a sale),
+  as the articles date it: `YYYY`, `YYYY-MM` or `YYYY-MM-DD`; null when they
+  do not say or it is still the state's.
 - `control.owners`: the public bodies the articles present as owning,
   carrying or running this one, or as the body it is part of, each once. A
   public body the articles mention only as holding a stake, beside a
@@ -75,7 +95,8 @@ and an article lags them.
     and links it; null when it is listed.
   - `quote` and `article`: the passage that states this relation, verbatim.
     A passage about another party's stake, or that only says the body is
-    public, is no evidence for this owner.
+    public, is no evidence for this owner. The owner of the building a body
+    is housed in is not the owner of the body.
 
 ## 3. Leadership
 
@@ -91,16 +112,18 @@ law sets up:
   the direction of a museum, theatre or broadcaster.
 - `supervisory`: the body that oversees the executive or appoints it: a
   supervisory board, an administrative council, a board of trustees, a
-  broadcasting council. A council that only advises -- an advisory board, a
+  broadcasting council, or a board of directors that oversees a separate
+  chief executive. A council that only advises -- an advisory board, a
   parliamentary or expert advisory council -- is no such body: leave its
   members out.
   When the body you read about is itself a council, commission or college
   whose members are its whole substance -- an electoral council, a council
-  of state, a regulatory commission -- its members are not seats on a
-  supervisory body of it: list only its chair, as `head` of the `executive`
-  body, and leave the other members out. This holds when the commission has
+  of state, a regulatory commission, an ombudsman board -- its members are
+  not seats of it, in whatever body they would be filed: list only its
+  chair, as `head` of the `executive` body, and leave the other members out. This holds when the commission has
   a secretariat or office of its own: the head of that office is not listed.
-- `board`: a single board of directors, in a one-tier system.
+- `board`: a single board of directors that itself runs the body, with no
+  separate chief executive under it.
 
 A management team, group executive committee or leadership circle that is
 not such a body is not one: list only its head, as `head` of the `executive`
