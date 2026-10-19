@@ -1387,8 +1387,8 @@ def person_cases(
     )
     if any((row["source_lang"] or "").startswith("zh") for row in rows if row["property"] == "P39"):
         names = memo.names_of(list(offices), ZH_LANGS)
-        for qid, office in offices.items():
-            office["names_zh"] = names.get(qid) or []
+        for office_qid, office in offices.items():
+            office["names_zh"] = names.get(office_qid) or []
     state_qid = _state_qid(person["country"])
     seed_lang = _seed_lang(qid)
     keys = {
