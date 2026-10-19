@@ -46,6 +46,21 @@ What each call decides, by how much it moves.
    (employer, positions, dates), as in pepcorp_next §2. The biggest recall
    lever (est. +20–30 % seats).
 
+**Answered 2026-10-19:** (1) type and count as state: being typed public
+broadcaster, central bank or regulatory agency is national state with no
+owner link; pepcorp writes the missing `P31` from the article's words; news
+agencies out; the council is the supervisory body. (2) an official list
+(cited `P854`) or a state-only form proves control; minority stakes still
+not. (4) the owner is always the polity; a stand-in item already linked
+still counts as the state. (5) a one-tier board over a separate CEO stays
+supervisory (`P5052`); the design table is to say so.
+(6) a privatised enterprise keeps its marker with a `P582` end date; no
+removal. (7) ministry units are written as institutions with `P1037` heads
+(es DGs and secretarías, it dipartimenti, fr divisions); prisons, schools,
+archives, parks stay out; (8) academies, committees, internal units stay
+in; (10) a minister named as owner still writes nothing. The big re-run
+re-asks de and nl with everyone.
+
 **B. Modelling idioms**
 
 4. *Owner = the state-as-legal-person item or the country?* (19): Skarb
