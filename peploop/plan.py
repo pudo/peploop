@@ -7,8 +7,10 @@ including by our own earlier writes -- may have moved since. The plan is what
 already there, a conflict, a statement QuickStatements cannot single out) are
 dispositions recorded against the row.
 
-The reference shape is `P143` the wiki it was imported from, `P4656` the
-permanent URL of the revision read, `P813` today.
+A statement carries one reference: `P143` the wiki it was imported from,
+`P4656` the permanent URL of the revision read, `P813` today. The wiki is the
+person's home wiki where one attests the value (`cited_source`), and a live
+statement that already has a reference is given none of ours.
 """
 
 import datetime
@@ -17,7 +19,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any
 
-from peploop import db, policy, propose, wikidata, wikipedia
+from peploop import db, policy, prompt, propose, wikidata, wikipedia
 
 # A reference built only from these says "imported from a Wikipedia article",
 # which is the one provenance a refinement may overwrite in place.
@@ -84,9 +86,9 @@ def reference(lang: str | None, url: str | None, rev: int | None) -> dict[str, A
 def row_sources(row: dict[str, Any]) -> list[dict[str, Any]]:
     """List the articles one proposal was read in, newest shape first.
 
-    `propose` writes every attesting article into `_sources`, because a value
-    three wikis agree on is one statement with three references. A row stored
-    before that grouping carries its one source in its own columns.
+    `propose` writes every attesting article into `_sources`, the evidence
+    behind the value; `cited_source` picks the one a statement cites. A row
+    stored before that grouping carries its one source in its own columns.
     """
     stored = (row.get("qualifiers") or {}).get("_sources")
     if stored:
@@ -100,13 +102,38 @@ def row_sources(row: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
-def references(row: dict[str, Any]) -> list[dict[str, Any]]:
-    """Build one reference per article a proposal's value was read in."""
-    built = [
-        reference(source.get("lang"), source.get("url"), source.get("rev"))
-        for source in row_sources(row)
-    ]
-    return [ref for ref in built if ref is not None]
+def cited_source(row: dict[str, Any], entity: dict[str, Any]) -> dict[str, Any]:
+    """Pick the one article a statement cites among those attesting its value.
+
+    Several `P143` references on one statement, one per wiki that agrees, are
+    noise to Wikidata's editors: one is cited, the person's home wiki first
+    (`prompt.wiki_order` with `home_first`), and the rest stay in `_sources`
+    as evidence. `accepted_rows` gives each row the person's seed language and
+    article sizes the ranking needs; two sources in one language go to the first.
+    """
+    sources = row_sources(row)
+    order = prompt.wiki_order(
+        (source.get("lang") or "" for source in sources), row.get("seed_lang"), entity,
+        home_first=True, sizes=row.get("article_chars"),
+    )
+    return min(sources, key=lambda source: order.index(source.get("lang") or ""))
+
+
+def references(row: dict[str, Any], entity: dict[str, Any]) -> list[dict[str, Any]]:
+    """Build the reference a new statement for this proposal carries: at most one."""
+    source = cited_source(row, entity)
+    built = reference(source.get("lang"), source.get("url"), source.get("rev"))
+    return [] if built is None else [built]
+
+
+def _cited(claim: dict[str, Any], refs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The references a live statement carries once we have written to it.
+
+    Ours only where it has none: a statement somebody already sourced -- or
+    that we sourced before -- needs no second Wikipedia import beside it, and
+    the line merging dates into it carries the qualifiers alone.
+    """
+    return list(claim.get("references") or []) or list(refs)
 
 
 def same_value(existing: dict[str, Any], proposed: dict[str, Any]) -> bool:
@@ -210,7 +237,7 @@ def plan_claim(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[s
     matching = [(claim, found) for claim, found in values if same_value(found, value)]
     if prop in propose.SINGLE_VALUED and len(matching) < len(values):
         return "conflict", None
-    refs = references(row)
+    refs = references(row, entity)
     qualifiers, order = _qualifiers(row)
     if "id" in value and propose.span_of({"qualifiers": qualifiers}):
         return plan_tenure(prop, value, matching, qualifiers, order, refs, row,
@@ -225,7 +252,7 @@ def plan_claim(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[s
                 return AMBIGUOUS, None
             refined = dict(claim)
             refined["mainsnak"] = _snak(prop, value)
-            refined["references"] = [*(claim.get("references") or []), *refs]
+            refined["references"] = _cited(claim, refs)
             return "refine", _with_qualifiers(refined, qualifiers)
         if sharper:
             # Somebody else's sourcing on a coarser value: ours goes beside it,
@@ -242,7 +269,7 @@ def plan_claim(entity: dict[str, Any], row: dict[str, Any]) -> tuple[str, dict[s
         if holding(entity, prop, found) != 1:
             return AMBIGUOUS, None
         refined = dict(claim)
-        refined["references"] = [*(claim.get("references") or []), *refs]
+        refined["references"] = _cited(claim, refs)
         return "refine", _with_qualifiers(refined, added)
     route = "preferred" if superseding else "new"
     rank = "preferred" if superseding else "normal"
@@ -361,13 +388,13 @@ def plan_tenure(
         if not unique:
             return AMBIGUOUS, None
         refined = dict(claim)
-        refined["references"] = [*(claim.get("references") or []), *refs]
+        refined["references"] = _cited(claim, refs)
         return "refine", _with_qualifiers(refined, missing)
     if undated is not None:
         if not unique:
             return AMBIGUOUS, None
         refined = dict(undated)
-        refined["references"] = [*(undated.get("references") or []), *refs]
+        refined["references"] = _cited(undated, refs)
         return "refine", _with_qualifiers(refined, qualifiers)
     if termed:
         return "termed", None
@@ -390,8 +417,8 @@ def _statement_key(prop: str, statement: dict[str, Any]) -> str:
     """Identify the statement a row lands on, so two rows cannot both create it.
 
     A `+` line de-duplicates nothing, so the same citizenship attested in two
-    languages would otherwise go out as two identical statements. They are the same
-    statement with two references, and that is what this collapses them into.
+    languages would otherwise go out as two identical statements. They are the
+    same statement, and that is what this collapses them into.
 
     **The qualifiers are part of the identity.** Keyed on the value alone, a
     person's two spells in one office are one statement and the second one's
@@ -409,21 +436,30 @@ def _statement_key(prop: str, statement: dict[str, Any]) -> str:
     ))
 
 
-def _further_term(row: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+def _live_claim(entity: dict[str, Any], prop: str, guid: str | None) -> dict[str, Any] | None:
+    """The live statement a planned refinement was copied from, by its id."""
+    if guid is None:
+        return None
+    return next((c for c in entity.get("claims", {}).get(prop, []) if c.get("id") == guid), None)
+
+
+def _further_term(row: dict[str, Any], entity: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     """A row's proposal as a statement of its own, beside whatever the item holds."""
     qualifiers, order = _qualifiers(row)
-    return "new", _statement(row["property"], row["value"], qualifiers, order, references(row))
+    return "new", _statement(row["property"], row["value"], qualifiers, order, references(row, entity))
 
 
 def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) -> Plan:
     """Turn one person's accepted proposals into the edit they imply.
 
-    Rows attesting the same thing from two wikis become one statement with two
-    references, and both are recorded as applied against the one it produced.
+    Rows attesting the same thing from two wikis become one statement citing
+    one of them (`cited_source` over both rows' sources), and both are recorded
+    as applied against the one it produced.
     """
     plan = Plan(qid=qid)
     statements: dict[str, dict[str, Any]] = {}
     members: dict[str, list[int]] = {}
+    pooled: dict[str, list[dict[str, Any]]] = {}
     for row in rows:
         route, statement = plan_claim(entity, row)
         if statement is None:
@@ -438,19 +474,26 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
             # A second spell landing on the one undated statement a sibling has
             # just taken: once that edit is in, the statement carries the
             # sibling's dates and this spell overlaps nothing, so it is a
-            # further term. Folded in as references it would be lost, and
+            # further term. Folded into the sibling it would be lost, and
             # recorded as applied.
-            route, statement = _further_term(row)
+            route, statement = _further_term(row, entity)
             key = _statement_key(row["property"], statement)
             already = statements.get(key)
         if already is None:
             statements[key] = statement
             members[key] = []
+            pooled[key] = []
             plan.routes[route] += 1
         else:
-            already.setdefault("references", []).extend(statement.get("references") or [])
             plan.routes["merged"] += 1
         members[key].append(row["id"])
+        pooled[key].extend(row_sources(row))
+        if already is not None:
+            # The citation is chosen over every folded row's sources, not
+            # taken from whichever row came first.
+            refs = references({**row, "qualifiers": {"_sources": pooled[key]}}, entity)
+            live = _live_claim(entity, row["property"], already.get("id"))
+            already["references"] = refs if live is None else _cited(live, refs)
     if statements:
         plan.data["claims"] = list(statements.values())
         plan.members = list(members.values())
@@ -458,7 +501,7 @@ def plan_person(qid: str, entity: dict[str, Any], rows: list[dict[str, Any]]) ->
 
 
 def accepted_rows(qid: str) -> list[dict[str, Any]]:
-    """Read one person's accepted proposals, oldest first."""
+    """Read one person's accepted proposals, oldest first, with what their citation is ranked by."""
     columns = (
         "id",
         "property",
@@ -469,12 +512,22 @@ def accepted_rows(qid: str) -> list[dict[str, Any]]:
         "source_rev",
         "item_rev",
     )
-    rows = db.conn().execute(
+    conn = db.conn()
+    rows = conn.execute(
         f"SELECT {', '.join(columns)} FROM proposal WHERE person_qid = %s"
         " AND status = 'accepted' ORDER BY id",
         (qid,),
     )
-    return [dict(zip(columns, row)) for row in rows]
+    # What `cited_source` ranks by, as `extract` ranked the articles it read.
+    seed = conn.execute(
+        "SELECT lang FROM membership WHERE qid = %s ORDER BY seen_at, lang LIMIT 1", (qid,)
+    ).fetchone()
+    sizes = dict(conn.execute(
+        "SELECT lang, length(text) FROM article WHERE qid = %s", (qid,)).fetchall())
+    return [
+        {**dict(zip(columns, row)), "seed_lang": seed[0] if seed else None, "article_chars": sizes}
+        for row in rows
+    ]
 
 
 def people(qids: list[str], country: str | None = None) -> list[str]:

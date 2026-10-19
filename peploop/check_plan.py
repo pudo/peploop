@@ -15,7 +15,7 @@ import sys
 from typing import Any
 
 from peploop import plan as planner
-from peploop import propose, wikipedia
+from peploop import prompt, propose, wikipedia
 
 OFFICE = "Q0000001"
 OTHER = "Q0000002"
@@ -83,6 +83,11 @@ def span(start: str | None = None, end: str | None = None) -> dict[str, Any]:
     return {prop: day(text) for prop, text in (("P580", start), ("P582", end)) if text}
 
 
+def cited_wikis(claim: dict[str, Any]) -> list[str]:
+    return [snak["datavalue"]["value"]["id"] for ref in claim.get("references") or []
+            for snak in ref["snaks"].get("P143", [])]
+
+
 def refs(claim: dict[str, Any]) -> set[str]:
     return {prop for ref in claim.get("references") or [] for prop in ref["snaks"]}
 
@@ -126,8 +131,39 @@ def main() -> int:
     plan = planner.plan_person(PERSON, item(), rows)
     made = (plan.data or {}).get("claims", [])
     expect(len(made), 1, "is one statement, because the API de-duplicates nothing")
-    expect(len(made[0]["references"]), 2, "carrying both articles as references")
+    expect(len(made[0]["references"]), 1, "citing one of the articles, never one reference per wiki")
     expect(plan.routes["merged"], 1, "and the second row is recorded as merged")
+    rows = [office(quals=span("2020-10-15"), id=1, seed_lang="ab"),
+            office(quals=span("2020-10-15"), id=2, seed_lang="ab",
+                   source_lang="ab", source_url="https://ab.wikipedia.org/wiki/X")]
+    made = planner.plan_person(PERSON, item(), rows).data["claims"]
+    expect(cited_wikis(made[0]), ["Q0000102"],
+           "the folded rows cite the home wiki, though the other row came first")
+
+    print("which wiki a statement cites:")
+    expect(prompt.wiki_order(["aa", "en", "ab", "ac"], "ab", {}, sizes={"aa": 10, "ac": 99}),
+           ["en", "ab", "ac", "aa"], "for reading: English, the home languages, the rest longest first")
+    expect(prompt.wiki_order(["aa", "en", "ab", "ac"], "ab", {}, home_first=True, sizes={"aa": 10, "ac": 99}),
+           ["ab", "en", "ac", "aa"], "for citing: the home languages before English")
+    expect(prompt.wiki_order(["aa", "aa", "ac"], None, {}), ["aa", "ac"],
+           "each language once, ties in the order given")
+    home = {"lang": "ab", "url": "https://ab.wikipedia.org/wiki/X", "rev": 3}
+    english = {"lang": "en", "url": "https://en.wikipedia.org/wiki/X", "rev": 4}
+    small = {"lang": "aa", "url": "https://aa.wikipedia.org/wiki/X", "rev": 5}
+    large = {"lang": "ac", "url": "https://ac.wikipedia.org/wiki/X", "rev": 6}
+    sizes = {"aa": 10, "ac": 99}
+
+    def cites(*sources: dict[str, Any]) -> Any:
+        one = office(quals={"_sources": list(sources)}, seed_lang="ab", article_chars=sizes)
+        return planner.cited_source(one, item())
+    expect(cites(english, small, home), home, "the home wiki where it attests the value")
+    expect(cites(small, english), english, "English where the home wiki does not")
+    expect(cites(small, large), large, "and otherwise the longest article")
+    later = {**small, "rev": 9}
+    expect(cites(small, later), small, "two revisions of one wiki: the first")
+    made = planner.plan_person(PERSON, item(), [office(quals={**span("2020-10-15"), "_sources": [small, english, home]},
+                                                       seed_lang="ab")]).data["claims"]
+    expect(len(made[0]["references"]), 1, "one reference for a row three wikis attest")
 
     print("a tenure the item records without dates:")
     live = item(claim(OFFICE))
@@ -136,6 +172,13 @@ def main() -> int:
     expect(dict(plan.routes), {"refine": 1}, "is a refinement, not a second statement")
     expect(made[0].get("id"), GUID, "sent back under the id of the statement it sharpens")
     expect(sorted(made[0].get("qualifiers") or {}), ["P580", "P582"], "now carrying the dates")
+    expect(len(made[0].get("references") or []), 1, "and our reference, since it had none")
+    sourced = {"snaks": {"P248": [{"snaktype": "value", "property": "P248",
+                                   "datavalue": {"type": "wikibase-entityid", "value": {"id": "Q36578"}}}]}}
+    live = item(claim(OFFICE, references=[sourced]))
+    made = planner.plan_person(PERSON, live, [office(quals=span("1997-02-01", "2000-06-30"))]).data["claims"]
+    expect(made[0].get("references"), [sourced],
+           "one that already has a reference takes the dates and none of ours")
 
     print("two spells, and one undated statement to land on:")
     live = item(claim(OFFICE))

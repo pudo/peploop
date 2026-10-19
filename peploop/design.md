@@ -421,8 +421,9 @@ visible. The reasons:
 A value is proposed once per *value*, not once per article: the citizenship
 three wikis attest, or the birth date two of them give at different precisions,
 is one row whose `qualifiers._sources` lists every `{lang, url, rev, quote}`
-behind it. The writer reads that list, one reference per source on one
-statement, and `_basis` carries the strongest grounds any of them gave.
+behind it. The list is the evidence; the writer cites one of its sources on
+the statement (below), and `_basis` carries the strongest grounds any of them
+gave.
 
 `unquoted` comes last and overrides whatever the comparison found: a value
 whose every quote `extract` could not find in the article text has no evidence
@@ -559,7 +560,7 @@ article's whole. For everything else:
 |---|---|
 | no statement with this value | a new statement: a `+` line |
 | the value, at the same or a finer precision | nothing |
-| the value more coarsely, referenced only by `P143`/`P4656`/`P813` | `SWITCH_VALUE` on that statement, then a plain line adding our reference |
+| the value more coarsely, referenced only by `P143`/`P4656`/`P813` or not at all | `SWITCH_VALUE` on that statement, then a plain line adding our reference if it has none |
 | the value more coarsely, referenced to anything else | a `+` line with `R+`, the old one left alone |
 | a differing value on a `SINGLE_VALUED` property | nothing; it is a conflict |
 
@@ -581,10 +582,18 @@ though it agrees with the coarse value at the precision they share. A
 
 The rows are grouped by the statement they land on before anything is
 rendered, because a `+` line de-duplicates nothing: the same citizenship
-attested in two languages is one statement carrying two references (joined
-with `!S` on one line), not two identical claims. Every statement gets the
-same reference: `P143` imported from the item of the source wiki, `P4656` the
-permanent URL of the revision that was read, `P813` today.
+attested in two languages is one statement, not two identical claims.
+
+A statement cites **one** article, however many attest it: `P143` imported
+from the item of the source wiki, `P4656` the permanent URL of the revision
+that was read, `P813` today. The article is the first of the statement's
+sources (every folded row's) in `prompt.wiki_order` with `home_first`: the
+country's own languages (the seed category's, then those of each `P27`), then
+English, then the rest longest article first; two revisions of one wiki go to
+the first. The other sources stay in `_sources`. A merge or a switch into a
+live statement adds our reference only when that statement has none at all;
+one already referenced, by anyone, gets a plain line carrying just the
+qualifiers.
 
 Additions go out **uncombined**, one edit per line: a combined edit fails
 whole when one of its commands does, with no reason given. A row moves `accepted` → `sent` when its line is
@@ -746,7 +755,7 @@ hash and these article revisions is skipped without a request.
 - No bot account: `send` writes what the policy accepted, and the edits
   appear under the user's own name. The plan groups the same (person,
   property, value) attested from two languages by statement and sends one
-  statement with both references; the day two attestations carry different
+  statement citing one of them; the day two attestations carry different
   qualifiers, that grouping is what has to notice.
 - No roster pages, no Wikipedia lists, no non-Wikimedia sources. The prompt
   material is one person's own articles.

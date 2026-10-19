@@ -50,6 +50,11 @@ cannot.
   rows, all House of Representatives members recorded once per Diet term —
   accepted as a skip over remove-and-recreate. Congo: 4.5% (5 of 111), each a
   legislator holding one bare and one termed (`P2937`) statement for the seat.
+- **One reference per wiki was too many** (2026-10-19). A Wikidata admin
+  objected to statements carrying a `P143` reference for every wiki that
+  agreed (one diff had eight): 470 of 4,585 referenced statements we added had
+  two or more (331 two, 78 three, 61 four to ten). A statement now cites one
+  article, home wiki first, and none is added to a statement already referenced.
 
 ## Operating peploop
 

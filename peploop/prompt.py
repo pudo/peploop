@@ -9,7 +9,7 @@ import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable, Mapping
 
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
@@ -157,33 +157,51 @@ def country_langs(seed_lang: str | None, entity: dict[str, Any]) -> list[str]:
     return list(dict.fromkeys(lang for lang in langs if lang and lang != "en"))
 
 
+def wiki_order(
+    langs: Iterable[str], seed_lang: str | None, entity: dict[str, Any], *,
+    home_first: bool = False, sizes: Mapping[str, int] | None = None,
+) -> list[str]:
+    """Order a person's wikis by how much they are worth reading or citing.
+
+    The one ranking behind both which articles the model reads and which one
+    a written statement cites. English, then the country's own languages
+    (`country_langs`), then the rest longest article first (`sizes`, in
+    characters). `home_first` puts English after the country's languages:
+    a statement cites the person's home wiki where one attests it. Each
+    language appears once; ties keep the order given.
+    """
+    home = country_langs(seed_lang, entity)
+    preferred = [*home, "en"] if home_first else ["en", *home]
+    distinct = list(dict.fromkeys(langs))
+    known = [lang for lang in preferred if lang in distinct]
+    rest = sorted((lang for lang in distinct if lang not in preferred),
+                  key=lambda lang: -(sizes or {}).get(lang, 0))
+    return known + rest
+
+
 def select_articles(
     qid: str, seed_lang: str | None, entity: dict[str, Any]
 ) -> tuple[list[Article], list[str]]:
     """Order this person's articles and pack them into the token budget.
 
-    English first where it exists, then the country's own languages, then the
-    rest longest first. The English article and the first country-language
-    article go regardless of budget, because they are the two the extraction
-    is worth doing at all on; after them packing stops at the first article
-    that does not fit rather than skipping ahead to a shorter one. An article
-    left out is dropped whole, never truncated, and its language is returned
-    so the extraction row records what was left out.
+    In `wiki_order`: English first where it exists, then the country's own
+    languages, then the rest longest first. The English article and the first
+    country-language article go regardless of budget, because they are the two
+    the extraction is worth doing at all on; after them packing stops at the
+    first article that does not fit rather than skipping ahead to a shorter
+    one. An article left out is dropped whole, never truncated, and its
+    language is returned so the extraction row records what was left out.
     """
     rows = db.conn().execute(
         "SELECT lang, title, rev_id, url, text FROM article WHERE qid = %s", (qid,)
     )
     articles = [Article(*row) for row in rows]
-    preferred = ["en"] + country_langs(seed_lang, entity)
-
-    def rank(article: Article) -> tuple[int, int]:
-        if article.lang in preferred:
-            return (preferred.index(article.lang), 0)
-        return (len(preferred), -len(article.text))
-
-    ordered = sorted(articles, key=rank)
+    order = wiki_order((a.lang for a in articles), seed_lang, entity,
+                       sizes={a.lang: len(a.text) for a in articles})
+    ordered = sorted(articles, key=lambda article: order.index(article.lang))
+    home = set(country_langs(seed_lang, entity))
     first_en = next((a for a in ordered if a.lang == "en"), None)
-    first_own = next((a for a in ordered if a.lang in preferred[1:]), None)
+    first_own = next((a for a in ordered if a.lang in home), None)
     mandatory = {id(a) for a in (first_en, first_own) if a is not None}
 
     kept: list[Article] = []

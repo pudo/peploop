@@ -11,7 +11,7 @@ import sys
 from typing import Any
 
 from peploop import ledger, plan, qs, route
-from peploop.check_plan import GUID, OFFICE, OTHER, PERSON, claim, day, item, office, row, span
+from peploop.check_plan import GUID, OFFICE, OTHER, PERSON, STATE, claim, day, item, office, row, span
 
 IMPORTED = {"snaks": {"P143": [{"snaktype": "value", "property": "P143",
                                 "datavalue": {"type": "wikibase-entityid", "value": {"id": "Q328"}}}]}}
@@ -41,8 +41,15 @@ def main() -> int:
             office(quals=span("2020-10-15"), id=2, source_lang="ab", source_url="https://ab.wikipedia.org/wiki/X")]
     out = route.route(PERSON, item(), rows)
     expect(len(out.lines), 1, "is one line, never one per reference: each `+` line is a statement")
-    expect(out.lines[0].count("\t!S143\t"), 1, "the second reference opens its own block with `!S`")
+    expect("\t!S" in out.lines[0], False, "carrying a single reference block")
+    expect(out.lines[0].count("\tS143\t"), 1, "citing one wiki")
     expect(out.edits[0][1], [1, 2], "and the line carries both rows")
+    rows = [office(quals=span("2020-10-15"), seed_lang="ab"),
+            office(quals=span("2020-10-15"), id=2, seed_lang="ab",
+                   source_lang="ab", source_url="https://ab.wikipedia.org/wiki/X")]
+    out = route.route(PERSON, item(), rows)
+    expect("\tS143\tQ0000102\t" in out.lines[0] and "\tS143\tQ0000101\t" not in out.lines[0], True,
+           "the one it cites is the home wiki, by `wiki_order`")
 
     print("two spells of one office, and a spell beside a recorded one:")
     out = route.route(PERSON, item(), [office(quals=span("2001-01-01", "2003-01-01")),
@@ -58,6 +65,13 @@ def main() -> int:
     expect(out.lines[0].split("\t")[:7],
            [PERSON, "P39", OFFICE, "P580", "+1997-02-01T00:00:00Z/11", "P582", "+2000-06-30T00:00:00Z/11"],
            "a plain line: QS3 merges it into the only statement with the value")
+    expect("\tS143\t" in out.lines[0], True, "adding our reference to a statement that had none")
+    sourced = {"snaks": {"P248": [{"snaktype": "value", "property": "P248",
+                                   "datavalue": {"type": "wikibase-entityid", "value": {"id": "Q36578"}}}]}}
+    out = route.route(PERSON, item(claim(OFFICE, references=[sourced])), [office(quals=span("1997-02-01", "2000-06-30"))])
+    expect(qs.columns(out.lines[0]),
+           [PERSON, "P39", OFFICE, "P580", "+1997-02-01T00:00:00Z/11", "P582", "+2000-06-30T00:00:00Z/11"],
+           "while one already referenced gets the dates alone, no reference column at all")
     out = route.route(PERSON, item(claim(OFFICE, span("2018-06-22"))), [office(quals=span("2018-06-22", "2022-05-13"))])
     expect(qs.qualifier_pairs(out.lines[0]), [("P582", "+2022-05-13T00:00:00Z/11")],
            "and it carries only what the statement lacks, never a qualifier it has")
@@ -91,9 +105,12 @@ def main() -> int:
     expect(qs.columns(out.lines[0]),
            [qs.SWITCH, PERSON, "P569", "+1950-00-00T00:00:00Z/9", "+1950-03-04T00:00:00Z/11"],
            "by SWITCH_VALUE, which keeps the statement's id")
-    expect(out.lines[1].split("\t")[:3], [PERSON, "P569", "+1950-03-04T00:00:00Z/11"],
-           "then a plain line adds our reference to the sharpened statement")
-    expect("S143\tQ328" in out.lines[1], False, "without re-sending the reference it already has")
+    expect(qs.columns(out.lines[1]), [PERSON, "P569", "+1950-03-04T00:00:00Z/11"],
+           "then a plain line that adds no reference: the statement already has one")
+    unsourced = born(year, IMPORTED)
+    del unsourced["claims"]["P569"][0]["references"]
+    out = route.route(PERSON, unsourced, [row("P569", day("1950-03-04"))])
+    expect("\tS143\tQ0000101\t" in out.lines[1], True, "an unreferenced one gets ours")
 
     print("a merge and a creation for one office in one edit:")
     live = item(claim(OFFICE))
@@ -102,6 +119,22 @@ def main() -> int:
     expect(dict(out.routes), {"merge": 1, "deferred": 1},
            "the creation waits: in one batch the merge could land on the statement it makes")
     expect(out.deferred, [2], "and its row stays accepted for the next send")
+
+    print("a statement an earlier send wrote with a reference per wiki:")
+    three = [office(quals=span("2020-10-15", "2022-06-01"), id=n, source_lang=lang,
+                    source_url=f"https://{lang}.wikipedia.org/wiki/X") for n, lang in ((1, "aa"), (2, "ab"), (3, "ac"))]
+    old = plan.plan_person(PERSON, item(), three).data["claims"][0]
+    old["references"] = [plan.reference(r["source_lang"], r["source_url"], 7) for r in three]
+    old["id"] = GUID
+    out = route.route(PERSON, item(old), [office(quals=span("2020-10-15", "2022-06-01"), id=4)])
+    expect((out.lines, out.skipped), ([], [(4, "exists")]),
+           "is already there: nothing is planned, so a ledger key without its extra references never resends it")
+    citizen = {"id": f"{PERSON}$c", "rank": "normal", "references": old["references"],
+               "mainsnak": {"snaktype": "value", "property": "P27",
+                            "datavalue": {"type": "wikibase-entityid", "value": {"entity-type": "item", "id": STATE}}}}
+    out = route.route(PERSON, {"lastrevid": 1, "claims": {"P27": [citizen]}},
+                      [row("P27", {"entity-type": "item", "id": STATE}, id=5)])
+    expect((out.lines, out.skipped), ([], [(5, "exists")]), "and the same for a value with no qualifiers")
 
     print("a batch:")
     line = f"+{PERSON}\tP39\t{OFFICE}\tP580\t+2001-00-00T00:00:00Z/9 /* t */"
