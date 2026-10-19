@@ -16,9 +16,10 @@ so every claim you make must rest on a verbatim quote from an article shown.
     hospital, university clinic, agency, authority, an administrative unit
     run like a business (a state forestry or roads operation), a foundation.
   - `government`: a ministry, cabinet, legislature, court or the government
-    itself; a regional government's ministry or department; the office of a
-    head of state or government (a presidency, a chancellery, a state
-    chancellery). A unit inside a ministry -- a directorate-general, a
+    itself; a regional government's ministry or department; the office or
+    support structure of a head of state, a head of government or a council
+    of ministers (a presidency, a chancellery, a cabinet office, the
+    presidency of a council of ministers), whatever its own legal status. A unit inside a ministry -- a directorate-general, a
     department, a state secretariat, a general secretariat -- is an
     `institution`, its director its `head`, its ministry its `parent`.
   - A local or lower office of an authority -- a tax office, a district or
@@ -32,9 +33,11 @@ so every claim you make must rest on a verbatim quote from an article shown.
     `other` too: the body that runs it is the one to judge.
 - `statutory`: what the articles call the body, when it is one of these:
   `broadcaster` (a public broadcaster), `central_bank` (a country's central
-  or national bank), `regulator` (an independent authority or agency that
-  regulates a sector or market, supervises finance, protects data or
-  competition). Null for anything else.
+  or national bank), `regulator` (an authority that regulates a sector or
+  market, supervises financial institutions, or enforces data protection or
+  competition law). An ombudsman, an audit office, an election body or an
+  authority that only investigates, inspects or advises is none of these.
+  Null for anything else.
 - `active`: false when the articles say it was dissolved, merged into
   another, privatised out of existence or renamed into a different item.
 
@@ -50,7 +53,9 @@ and an article lags them.
     state-controlled or a public body, or that a state, a subdivision of one
     (a province, a federal state, a region) or a government body of either
     owns it, carries or sponsors it, runs it, or has it as one of its own
-    subordinate bodies. So is a body a law sets up whose leadership or
+    subordinate bodies. So is a body owned by another enterprise or holding
+    that the candidate controllers list as a state body or that the articles
+    call state-owned: name that one as its owner. So is a body a law sets up whose leadership or
     supervisory body a state organ (its parliament, government or head of
     state) appoints -- a public broadcaster, a central bank, an independent
     authority -- with no owner: it is the state's by statute.
@@ -60,7 +65,8 @@ and an article lags them.
     size, or "the largest shareholder") without saying the public owner
     controls or runs the body.
   - `unstated`: the articles say nothing about who owns, carries or runs
-    the body.
+    the body. A name or title alone ("national museum", "state theatre") is
+    no such statement: `unstated`, not `unclear`.
 - `control.level`: `national` for the state itself or its government bodies,
   `regional` for a first-level subdivision or its bodies (a city that is
   itself a first-level subdivision, a city-state, is `regional`),
@@ -120,7 +126,8 @@ law sets up:
   whose members are its whole substance -- an electoral council, a council
   of state, a regulatory commission, an ombudsman board -- its members are
   not seats of it, in whatever body they would be filed: list only its
-  chair, as `head` of the `executive` body, and leave the other members out. This holds when the commission has
+  chair, as `head` of the `executive` body, and leave the other members out;
+  when the articles name no chair, list nobody. This holds when the commission has
   a secretariat or office of its own: the head of that office is not listed.
 - `board`: a single board of directors that itself runs the body, with no
   separate chief executive under it.

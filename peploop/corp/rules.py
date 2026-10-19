@@ -144,6 +144,12 @@ def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countrie
         return "inactive"
     if control["verdict"] == "unstated" and proof and "national" in tiers:
         return None
+    if answer.get("statutory") in STATUTORY and control["verdict"] in ("unclear", "unstated"):
+        # A public broadcaster, central bank or regulator is the state's by
+        # statute, whatever its legal form (an association with a licence, a
+        # bank with private shareholders): at its level, else national.
+        level = control["level"] if control["level"] in ("national", "regional") else "national"
+        return None if level in tiers else f"level:{level}"
     if control["verdict"] != "state":
         return f"control:{control['verdict']}"
     if control["level"] not in tiers:

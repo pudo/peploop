@@ -47,7 +47,9 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   no link.
 - A statutory body with no owner -- a public broadcaster, a central bank, a
   regulator, set up by law with its leadership appointed by a state organ
-  -- is the state's by statute: its seats are written, and its class
+  -- is the state's by statute, whatever its legal form (an association
+  holding a licence, a bank with private shareholders), unless its articles
+  call it private: its seats are written, and its class
   (`Q1126006`, `Q66344`, `Q1639780`) when the item has none and no
   state-only form of the spec.
 - `P31 Q270791` state-owned enterprise, on an enterprise only: the marker,

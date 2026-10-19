@@ -284,6 +284,11 @@ def policy() -> None:
     # A public broadcaster set up by law, with no owner: state, typed, seats.
     tv = {**base, "answer": {**answer(kind="institution", owners=()), "statutory": "broadcaster"}}
     expect(rules.gate(tv["answer"], MESSAGE) is None, "a statutory institution with no owner passes")
+    licensed = {**tv["answer"], "control": {**tv["answer"]["control"], "verdict": "unclear", "level": "none"}}
+    expect(rules.gate(licensed, MESSAGE) is None, "a public broadcaster that is a licensed association still passes")
+    expect(rules.gate({**licensed, "statutory": None}, MESSAGE) == "control:unclear", "an unclear body that is no statutory one does not")
+    expect(rules.gate({**licensed, "control": {**licensed["control"], "verdict": "private"}}, MESSAGE) == "control:private",
+           "a statutory-sounding body its articles call private does not")
     rows = rules.control_rows(tv, ent(), None, state, {})
     typed = [r for r in rows if r["property"] == "P31"]
     expect([(r["value"]["id"], r["_rule"]) for r in typed] == [("Q1126006", None)],
