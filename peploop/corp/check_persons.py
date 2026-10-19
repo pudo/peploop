@@ -63,6 +63,24 @@ def choosing() -> None:
            "the body named but the person not the same (a conflict): no match")
     expect(match.choose({"Q901": v("none"), "Q902": v("conflict")}) == (None, "rejected"), "no evidence: no match")
     expect(match.choose({}) == (None, "no_candidate"), "no candidate checked")
+    item = {"evidence": "item", "same_person": True, "reason": "", "foreign": False}
+    expect(match.choose({"Q901": item, "Q902": v("domain")}) == ("Q901", "item"),
+           "an item whose own data names the body counts like a page that does")
+    expect(match.choose({"Q901": item, "Q902": v("institution")}) == (None, "ambiguous"),
+           "an item and a page naming the body for two namesakes cannot be told apart")
+    claim = lambda prop, value, quals=None: {"mainsnak": {"datavalue": {"value": {"id": value}}},  # noqa: E731
+                                             "qualifiers": quals or {}}
+    body = "Q900500"
+    expect(match.item_ties({"claims": {"P108": [claim("P108", body)]}}, body, []) is not None,
+           "an employer statement naming the body ties the item")
+    expect(match.item_ties({"claims": {"P39": [claim("P39", "Q900501", {"P642": [{"datavalue": {"value": {"id": body}}}]})]}},
+                           body, []) is not None, "so does a position held of the body")
+    expect(match.item_ties({"descriptions": {"en": {"value": "Director of the Office of Probes"}}},
+                           body, ["Office of Probes"]) is not None, "so does a description naming it")
+    expect(match.item_ties({"descriptions": {"en": {"value": "Swiss engineer"}}, "claims": {"P108": [claim("P108", "Q9")]}},
+                           body, ["Probe", "Office of Probes"]) is None, "nothing naming the body: no tie")
+    expect(match.item_ties({"descriptions": {"en": {"value": "SBB engineer"}}}, body, ["SBB"]) is None,
+           "a short abbreviation in a description is too ambiguous")
     foreign = {**v("domain"), "foreign": True}
     expect(match.choose({"Q901": foreign}) == (None, "rejected"),
            "a citizen of another country only, in the body's field: no match (namesakes share fields across borders)")

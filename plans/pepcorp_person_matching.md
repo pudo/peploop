@@ -141,9 +141,10 @@ in the same field would pass. Cost: ~$0.005 per candidate checked.
 ## Open questions
 
 - Page-less items whose description or `P108`/`P39` names the body (seen:
-  FOEN's director, Vattenfall's chair). Item statements naming the body
-  would be an "institution" tier without a page; outside the standard as
-  stated, so not matched.
+  FOEN's director, Vattenfall's chair): the user ruled 2026-10-19 that item
+  data counts as evidence. Now the `item` tier, equal to `institution`,
+  decided in code without a call (`match.item_ties`); Switzerland went from
+  10 to 47 matched seats.
 - People without items (half the seats) stay residue: pepcorp creates no
   people.
 

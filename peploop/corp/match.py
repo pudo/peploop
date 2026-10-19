@@ -10,7 +10,10 @@ its field? A seat resolves only to the one candidate the check accepts:
 - the page names or links the body (`institution`): accepted;
 - the page shows a career in the body's field, nothing contradicts, no
   other candidate is accepted and the namesakes are few (`domain`): accepted;
-- anything else, a page-less item included, is not.
+- an item with no page whose own statements name the body (an employer, a
+  position or membership of it, or its name in the description; `item`):
+  accepted, like the institution tier, without a call;
+- anything else is not.
 
 Answers are kept in `pcorp_call` by content, like the decisions, so a re-run
 pays only for seats or pages that changed.
@@ -32,6 +35,11 @@ PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "match_person.md"
 MODEL = os.environ.get("PEPCORP_MATCH_MODEL", "claude-sonnet-5-5")
 #: The tiers of evidence a person's page can give for a seat, strongest first.
 TIERS = ("institution", "domain", "none", "conflict")
+#: An item's statements that tie a person to a body when their value, or a
+#: qualifier's, is the body: employer, position held, member of, affiliation.
+TIE_PROPS = ("P108", "P39", "P463", "P1416")
+#: A body's name shorter than this is too ambiguous to find in a description.
+NAME_MIN = 5
 #: Seat roles as the check reads them.
 ROLES = {"head": "head of the executive", "chair": "chair", "deputy_chair": "deputy chair", "member": "member",
          "managing_director": "managing director", "party_secretary": "party secretary"}
@@ -93,6 +101,23 @@ def body_names(entity: dict[str, Any], langs: list[str]) -> list[str]:
     out = [entity.get("labels", {}).get(lg, {}).get("value") for lg in langs]
     out += [a["value"] for lg in langs for a in entity.get("aliases", {}).get(lg, [])]
     return list(dict.fromkeys(n for n in out if n))
+
+
+def item_ties(entity: dict[str, Any], body: str, names: list[str]) -> str | None:
+    """How an item's own data names the body, or None: a statement (or its qualifier) or the description."""
+    for prop in TIE_PROPS:
+        for claim in entity.get("claims", {}).get(prop, []):
+            values = [claim.get("mainsnak", {}).get("datavalue", {}).get("value")]
+            values += [q.get("datavalue", {}).get("value") for qs in claim.get("qualifiers", {}).values() for q in qs]
+            if any(isinstance(v, dict) and v.get("id") == body for v in values):
+                return f"{prop} names the body"
+    folded = [" ".join(persons.fold(n)) for n in names if len(n) >= NAME_MIN]
+    for desc in entity.get("descriptions", {}).values():
+        text = f" {' '.join(persons.fold(desc.get('value', '')))} "
+        for name in folded:
+            if name and f" {name} " in text:
+                return f"its description names the body: {desc.get('value', '')!r}"
+    return None
 
 
 def facts(entity: dict[str, Any], labels: dict[str, str]) -> list[str]:
@@ -165,16 +190,17 @@ def choose(verdicts: dict[str, dict[str, Any]]) -> tuple[str | None, str]:
     country's namesakes.
     """
     passed = {q: v["evidence"] for q, v in verdicts.items()
-              if v.get("same_person") and v.get("evidence") in ("institution", "domain")
+              if v.get("same_person") and v.get("evidence") in ("institution", "item", "domain")
               and not (v["evidence"] == "domain" and v.get("foreign"))}
     if not passed:
         return None, "rejected" if verdicts else "no_candidate"
-    for tier in ("institution", "domain"):
-        at = sorted(q for q, t in passed.items() if t == tier)
+    # A page or an item that names the body is the same strength of evidence.
+    for tiers in (("institution", "item"), ("domain",)):
+        at = sorted(q for q, t in passed.items() if t in tiers)
         if len(at) > 1:
             return None, "ambiguous"
-        if len(at) == 1 and (tier == "institution" or len(verdicts) <= DOMAIN_MAX):
-            return at[0], tier
+        if len(at) == 1 and (tiers[0] == "institution" or len(verdicts) <= DOMAIN_MAX):
+            return at[0], passed[at[0]]
     return None, "crowded_domain"
 
 
@@ -197,9 +223,8 @@ def resolve(cc: str, seats: list[dict[str, Any]], wikis: list[str], log: Callabl
         seat = s["seat"]
         start = int(seat["start"][:4]) if seat["start"] and seat["start"][:4].isdigit() else None
         end = int(seat["end"][:4]) if seat["end"] and seat["end"][:4].isdigit() else None
-        found = [c for c in persons.candidates(seat["name"], wikis, s["qid"]) if c["pages"]
-                 and dates_fit(c["entity"], start, end, seat["current"], today)]
-        return found
+        return [c for c in persons.candidates(seat["name"], wikis, s["qid"])
+                if dates_fit(c["entity"], start, end, seat["current"], today)]
 
     jobs: list[tuple[dict[str, Any], dict[str, Any]]] = []
     outcome: dict[tuple[str, str], dict[str, Any]] = {}
@@ -217,13 +242,29 @@ def resolve(cc: str, seats: list[dict[str, Any]], wikis: list[str], log: Callabl
             except Exception as exc:  # one failed search leaves its seat unresolved, not the run
                 log(f"  {s['qid']} {s['seat']['name']}: search failed ({exc.__class__.__name__})")
                 found_by[id(s)] = []
+    # An item with no page is judged by its own data, without a call: it
+    # counts when its statements or description name the body.
+    tied: dict[tuple[str, str], dict[str, dict[str, Any]]] = {}
+    for s in seats:
+        names = body_names(bodies.get(s["qid"], {}), wikis)
+        for c in found_by[id(s)]:
+            why = None if c["pages"] else item_ties(c["entity"], s["qid"], names)
+            if why:
+                tied.setdefault((s["qid"], s["seat"]["name"]), {})[c["qid"]] = {
+                    "evidence": "item", "same_person": True, "reason": why, "foreign": False}
+        found_by[id(s)] = [c for c in found_by[id(s)] if c["pages"]]
     for s in seats:
         found = found_by[id(s)]
         key = (s["qid"], s["seat"]["name"])
-        if not found:
+        if key in tied and not found:
+            qid, why = choose(tied[key])
+            outcome[key] = {"qid": qid, "outcome": why, "verdicts": tied[key]}
+        elif not found:
             outcome[key] = {"qid": None, "outcome": "no_candidate", "verdicts": {}}
         elif len(found) > persons.MAX_CANDIDATES:
-            outcome[key] = {"qid": None, "outcome": "crowd", "verdicts": {}}
+            # Too many paged namesakes to check; an item tied to the body still counts.
+            qid, why = choose(tied[key]) if key in tied else (None, "crowd")
+            outcome[key] = {"qid": qid, "outcome": why, "verdicts": tied.get(key, {})}
         else:
             for c in found:
                 jobs.append((s, c))
@@ -277,7 +318,7 @@ def resolve(cc: str, seats: list[dict[str, Any]], wikis: list[str], log: Callabl
         key = (s["qid"], s["seat"]["name"])
         if key in outcome:
             continue
-        vs = verdicts.get(key, {})
+        vs = {**verdicts.get(key, {}), **tied.get(key, {})}
         # A namesake left unchecked might have passed too: the seat waits for the next run.
         qid, why = (None, "check_failed") if key in failed else choose(vs)
         outcome[key] = {"qid": qid, "outcome": why, "verdicts": vs}

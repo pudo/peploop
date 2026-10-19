@@ -108,14 +108,16 @@ are written by default; a spec names its own.
    people): the one the article links under the name, or else one found by
    name (`persons.py`, `match.py`, `prompts/match_person.md`). The name is
    searched fuzzily (accents, script, order, titles, middle names) among
-   human items with a Wikipedia page whose life can hold the seat, and each
-   candidate's own page is checked against the seat: a page that names or
-   links the body and ties them to it is a match; one that only places them
+   human items whose life can hold the seat, and each candidate's own page
+   is checked against the seat: a page that names or links the body and
+   ties them to it is a match, and so is an item without a page whose own
+   data names the body (employer, position held or membership of it, or
+   its name in the description); one that only places them
    in the body's own field, or confirms a detail the passage gives (party,
    former office), is a match only for the sole such candidate among at
    most three namesakes, and never for a citizen of other countries only;
-   a career elsewhere or anything contradicting is
-   none, and an item without a page is never matched. Only seats the dates
+   a career elsewhere or anything contradicting is none, and an item
+   without a page whose data does not name the body is never matched. Only seats the dates
    would let through are searched. No open seat is written for a person who
    has died (`holder_dead`).
    What survives is planned against the live item by peploop's planner
