@@ -278,6 +278,13 @@ def main() -> int:
     check("and 'presente' outside a period is no word of now",
           policy.decide(case(qualifiers=presentes, lang="pt", seed_lang="pt")),
           policy.SKIPPED, "open_unattested")
+    promoted = {**opened, "_sources": [{"lang": "zh", "quote": "2009年，升任部长助理。"}]}
+    check("a Chinese quote only of the promotion is skipped",
+          policy.decide(case(qualifiers=promoted, lang="zh", seed_lang="zh")),
+          policy.SKIPPED, "open_unattested")
+    incumbent = {**opened, "_sources": [{"lang": "zh", "quote": "部长助理 现任 就任日期 2009年"}]}
+    check("while a Chinese infobox's 现任 passes",
+          policy.decide(case(qualifiers=incumbent, lang="zh", seed_lang="zh")), policy.PENDING, "unverified")
     stub = {**opened, "_sources": [{"lang": "en", "quote": "Since June 2016 he is Ambassador to Ruritania"}]}
     check("an ambassadorship older than a term needs an infobox's word, not a stub's 'since'",
           policy.decide(case(qualifiers=stub, lang="en", seed_lang="en", position=office(diplomatic=True))),
@@ -307,6 +314,29 @@ def main() -> int:
     check("an 'incumbent' he beat is not his own seat held now",
           policy.decide(case(qualifiers=beaten, lang="en", seed_lang="en")),
           policy.SKIPPED, "open_unattested")
+    head = office(names_zh=["中华人民共和国国家监察委员会主任"])
+    titled = lambda title: {"kind": "same-office", "confidence": "high", "qid": OFFICE, "title": title}
+    check("a deputy placed on the head's seat is skipped",
+          policy.decide(case(resolution=titled("国家监察委员会副主任"), position=head)),
+          policy.SKIPPED, "office/lower-seat")
+    check("and so is a member",
+          policy.decide(case(resolution=titled("国家监察委员会委员"), position=head)),
+          policy.SKIPPED, "office/lower-seat")
+    check("while the head's own title passes",
+          policy.decide(case(resolution=titled("国家监察委员会主任"), position=head)),
+          policy.PENDING, "unverified")
+    check("and a deputy on a deputy's seat",
+          policy.decide(case(resolution=titled("外交部副部长"),
+                             position=office(names_zh=["中华人民共和国外交部副部长"]))),
+          policy.PENDING, "unverified")
+    check("and a member on a seat of members",
+          policy.decide(case(resolution=titled("全国政协委员"),
+                             position=office(names_zh=["中国人民政治协商会议全国委员会委员"]))),
+          policy.PENDING, "unverified")
+    check("a title of several posts names more than the one placed",
+          policy.decide(case(resolution=titled("第十四屆全國政協常委、全國政協外事委員會副主任"),
+                             position=office(names_zh=["全国政协常务委员"]))),
+          policy.PENDING, "unverified")
     check("and a mention naming no polity says nothing",
           policy.decide(case(resolution=said("the capital"), polities=polities,
                              position=office(jurisdiction_qid="Q0000010"))),

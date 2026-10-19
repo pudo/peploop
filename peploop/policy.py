@@ -29,7 +29,7 @@ from psycopg.rows import dict_row
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import db, eras, positions, prompt, propose, scope, verify, wikidata
+from peploop import db, eras, memo, positions, prompt, propose, scope, verify, wikidata
 
 ACCEPTED = "accepted"
 SKIPPED = "skipped"
@@ -77,12 +77,15 @@ INFOBOX = {
     "el": re.compile(r"εν ενεργεία", re.I),
     "tr": re.compile(r"görevde|makama geliş", re.I),
     "pt": re.compile(r"\bem exercício\b|\ba[c]?tualidade\b|(?:[–-]|\d{4})\s*presente\b", re.I),
+    "zh": re.compile(r"[现現]任|就任日期"),
 }
 #: The same, per language whose articles were measured: Greek infoboxes
 #: write "Εν ενεργεία", Turkish ones "Görevde" and "Makama geliş" (assumed
 #: office), Portuguese ones "Período: 2022 a atualidade" or "– presente";
 #: prose says "σήμερα" / "halen", "günümüz" / "atualmente", "é o atual"
-#: (today, still, the current one).
+#: (today, still, the current one). Chinese infoboxes write "现任" over
+#: "就任日期" (incumbent, assumed office: 549 of 7,847 Chinese articles, every
+#: one with both), prose "现任" and "至今" (to this day).
 CURRENT = {
     "en": CURRENT_EN,
     "el": re.compile(r"εν ενεργεία|σήμερα|διατελεί|υπηρετεί", re.I),
@@ -90,7 +93,17 @@ CURRENT = {
     "pt": re.compile(r"\bem exercício\b|\ba[c]?tualidade\b|(?:[–-]|\d{4})\s*presente\b|"
                      r"\ba[c]?tualmente\b|\bé (?:o|a) a[c]?tual\b|\bdesde\b|\bem funções\b|"
                      r"\bocupa o (?:cargo|posto)\b", re.I),
+    "zh": re.compile(r"[现現]任|就任日期|至今|迄今"),
 }
+#: A Chinese title of one post, read for its rank: a deputy (副) or a member
+#: (委员) placed on the seat its body's head holds. Several posts in one title
+#: ("全国政协常委、外事委员会副主任") name more than the office placed.
+#: The Chinese label languages `lower_seat` reads an office's names in.
+ZH_LANGS = ("zh", "zh-hans", "zh-hant", "zh-cn", "zh-tw", "zh-hk")
+SEAT_SEPARATORS = re.compile(r"[、，,；;]")
+SEAT_MEMBER = re.compile(r"委[员員]$")
+SEAT_HEADS = ("主任", "主席", "书记", "書記", "部长", "部長", "院长", "院長",
+              "省长", "省長", "市长", "市長", "检察长", "檢察長", "局长", "局長")
 #: Tags `positions.tags_for` derives that rule an office out as the value of
 #: a P39: the item is not an office, is a class of office, is another state's
 #: mission to this one, or did not exist when the tenure ran.
@@ -784,6 +797,30 @@ def resolution_weak(case: Case) -> Disposition | None:
     return None
 
 
+def lower_seat(case: Case) -> Disposition | None:
+    """A deputy or a member placed on the seat of the body's head.
+
+    The reconciler took "国家监察委员会副主任" (deputy director) and
+    "国家监察委员会委员" (member) for the director's item, whose English label
+    ("Officer responsible of the National Supervisory Commission") names no
+    rank. Read only on a Chinese title of one post, against the office's
+    Chinese names: a deputy where none of them is one, or a member where they
+    name a head.
+    """
+    if case.property != "P39" or not case.resolution or not case.position:
+        return None
+    title = (case.resolution.get("title") or "").strip()
+    names = case.position.get("names_zh") or []
+    if not title or not names or SEAT_SEPARATORS.search(title):
+        return None
+    if "副" in title and not any("副" in n for n in names):
+        return _skip("office/lower-seat")
+    if (SEAT_MEMBER.search(title) and not any(SEAT_MEMBER.search(n) for n in names)
+            and any(n.endswith(SEAT_HEADS) for n in names)):
+        return _skip("office/lower-seat")
+    return None
+
+
 def _names_in(text: str, name: str) -> bool:
     return bool(re.search(rf"(?<!\w){re.escape(name.lower())}(?!\w)", text.lower()))
 
@@ -1221,6 +1258,7 @@ RULES: tuple[Rule, ...] = (
     refine_over_sourced,
     demonym_abroad,
     resolution_weak,
+    lower_seat,
     other_polity,
     tenure_ended,
     open_unattested,
@@ -1333,7 +1371,7 @@ def person_cases(
         rows = cur.execute(
             "SELECT p.id, p.property, p.value, p.qualifiers, p.status, p.proposed_status,"
             " p.quote, p.source_lang, e.response_json,"
-            " r.kind, r.confidence, r.qid AS office, r.jurisdiction,"
+            " r.kind, r.confidence, r.qid AS office, r.jurisdiction, r.title,"
             " (SELECT v.decision FROM verdict v WHERE v.proposal_id = p.id"
             "  ORDER BY v.id DESC LIMIT 1) AS review"
             " FROM proposal p"
@@ -1347,6 +1385,10 @@ def person_cases(
     offices = _position_rows(
         [row["value"].get("id") for row in rows if row["property"] == "P39"]
     )
+    if any((row["source_lang"] or "").startswith("zh") for row in rows if row["property"] == "P39"):
+        names = memo.names_of(list(offices), ZH_LANGS)
+        for qid, office in offices.items():
+            office["names_zh"] = names.get(qid) or []
     state_qid = _state_qid(person["country"])
     seed_lang = _seed_lang(qid)
     keys = {
@@ -1369,7 +1411,7 @@ def person_cases(
         if row["kind"] is not None:
             resolution = {
                 "kind": row["kind"], "confidence": row["confidence"], "qid": row["office"],
-                "jurisdiction": row["jurisdiction"],
+                "jurisdiction": row["jurisdiction"], "title": row["title"],
             }
         out.append((row["id"], Case(
             property=row["property"],
