@@ -50,75 +50,75 @@ holdings:
       - name: BNG Bank
         qid: Q2623882
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: COVRA
         qid: Q1138139
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: de Volksbank
         qid: Q1857899
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: Energie Beheer Nederland
         qid: Q2390497
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: FMO
         qid: Q16765325
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: Gasunie
         qid: Q918239
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: Havenbedrijf Rotterdam
         qid: Q2187039
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: Holland Casino
         qid: Q361554
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: Invest-NL
         qid: null
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: NLFI
         qid: null
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: Nederlandse Spoorwegen
         qid: Q23076
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: Nederlandse Waterschapsbank
         qid: Q13534432
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: ProRail
         qid: Q2316882
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: Royal Schiphol Group
         qid: Q4290932
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: TenneT
         qid: Q1127569
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: Urenco
         qid: Q1432506
         minority: true
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: ABN AMRO
         qid: Q287471
         minority: true
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen
       - name: Thales Nederland
         qid: Q3913196
         minority: true
         holder: Staat der Nederlanden
-        source: Jaarverslag beheer staatsdeelnemingen (rijksoverheid.nl/onderwerpen/staatsdeelnemingen)
+        source: https://www.rijksoverheid.nl/onderwerpen/staatsdeelnemingen

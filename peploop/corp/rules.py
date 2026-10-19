@@ -162,19 +162,26 @@ def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countrie
 def proven(item: dict[str, Any] | None, spec: countries.Spec) -> str | None:
     """What proves a body the state's apart from its articles: `list` or `form`, else None.
 
-    A holdings list proves it unless the entry is marked a minority stake; a
+    An official holdings list proves it unless the entry is marked a minority
+    stake; a wiki page or query is no official list, however it was seeded. A
     state-only legal form (the spec's `forms`, the item's own `P31` or
     `P1454`, exactly) proves it by itself.
     """
     if not item:
         return None
     seed = item.get("seed")
-    if seed and not seed.get("minority"):
+    if seed and not seed.get("minority") and official(seed.get("source")):
         return "list"
     entity = item.get("entity") or {}
     if {v for p in ("P31", "P1454") for v in wd.values(entity, p)} & set(spec.forms):
         return "form"
     return None
+
+
+def official(url: str | None) -> bool:
+    """Whether a holdings entry's source is a list someone answers for: a URL, not a wiki's."""
+    m = re.match(r"https?://([^/\s]+)", url or "")
+    return bool(m) and not re.search(r"(^|\.)(wikipedia|wikidata)\.org$", m.group(1))
 
 
 def list_source(seed: dict[str, Any]) -> list[dict[str, Any]]:
@@ -258,6 +265,10 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
             # through a minority stake, and the body must itself be a state
             # actor, a government body or one this run finds state-controlled.
             rule = "controller_not_state"
+        elif (prop == "P127" and control["level"] == "national" and qid in polities and qid != country
+              and country is not None):
+            # A province beside the national holder that leads: a co-owner, whose stake is no control.
+            rule = "co_owner"
         elif chain and qid in chain[2:]:
             rule = "chain_reaches"
         elif prop == "P127" and qid in government:
@@ -529,7 +540,10 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     state = set(passed) | set(actors.kinds) | government
     polities = frozenset(q for q, k in actors.kinds.items() if k in ("state", "subdivision"))
     subdivisions = frozenset(q for q, k in actors.kinds.items() if k == "subdivision")
-    bodies = frozenset(q for q, k in actors.kinds.items() if k == "government") | government
+    # A government body this run writes as an enterprise or institution (a
+    # central bank, an agency holding shares) owns in its own right; only a
+    # ministry or a government is written as the state it acts for.
+    bodies = (frozenset(q for q, k in actors.kinds.items() if k == "government") | government) - set(passed)
     standins = frozenset(q for q, k in actors.kinds.items() if k == "state" and q != actors.state)
     # What each item's existing owners and parents link to in turn: a link to
     # one of those would only shortcut a chain already on Wikidata.

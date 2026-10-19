@@ -307,6 +307,10 @@ def policy() -> None:
            "an article naming a mere stake overrides the list")
     spec = country.Spec(cc="xx", forms={"Q900800": "institution"})
     expect(rules.proven({"seed": {"source": "https://list"}, "entity": {}}, spec) == "list", "a listed body is proven")
+    expect(rules.proven({"seed": {"source": "https://xx.wikipedia.org/wiki/List"}, "entity": {}}, spec) is None
+           and rules.proven({"seed": {"source": "https://www.wikidata.org/wiki/Q1"}, "entity": {}}, spec) is None
+           and rules.proven({"seed": {"source": "Annual report"}, "entity": {}}, spec) is None,
+           "a wiki page, a query or a bare title is no official list")
     expect(rules.proven({"seed": {"source": "https://list", "minority": True}, "entity": {}}, spec) is None,
            "a minority stake on the list proves nothing")
     expect(rules.proven({"seed": None, "entity": ent(P31=["Q900800"])}, spec) == "form", "a state-only form proves it")
@@ -328,6 +332,13 @@ def policy() -> None:
     links = [r for r in rules.control_rows(treasury, ent(), None, state, {}, country="Q900001",
                                            standins=frozenset({"Q900200"})) if r["property"] == "P127"]
     expect([(r["value"]["id"], r["_rule"]) for r in links] == [("Q900001", None)], "the state treasury as owner is the polity")
+    # Provinces named beside the national holder that leads are co-owners.
+    shared = {**base, "offered": ["Q900100", "Q900002"], "answer": answer(owners=((0, "owner"), (1, "owner")))}
+    links = [r for r in rules.control_rows(shared, ent(), None, state | {"Q900002"}, {},
+                                           polities=frozenset({"Q900001", "Q900002"}), country="Q900001")
+             if r["property"] == "P127"]
+    expect([(r["value"]["id"], r["_rule"]) for r in links] == [("Q900100", None), ("Q900002", "co_owner")],
+           "a province beside a national holder gets no owner link")
     links = [r for r in rules.control_rows(treasury, ent(P127=["Q900200"]), None, state, {}, country="Q900001",
                                            standins=frozenset({"Q900200"})) if r["property"] == "P127"]
     expect([r["_rule"] for r in links] == ["standin_existing"], "an item already owned by the stand-in gets no second owner")
