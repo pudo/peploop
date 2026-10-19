@@ -55,7 +55,8 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   holding a licence, a bank with private shareholders), unless its articles
   call it private: its seats are written, and its class
   (`Q1126006`, `Q66344`, `Q1639780`) when the item has none and no
-  state-only form of the spec.
+  state-only form of the spec, cited to the article whose control quote
+  carries it (none, no class).
 - `P31 Q270791` state-owned enterprise, on an enterprise only: the marker,
   unless the item already reaches `Q270791` or `Q1780371` through `P31` or
   `P1454`, and only when the control quote says so in words (a share figure
@@ -142,7 +143,9 @@ are written by default; a spec names its own.
    a career elsewhere or anything contradicting is none, and an item
    without a page whose data does not name the body is never matched. Only seats the dates
    would let through are searched. No open seat is written for a person who
-   has died (`holder_dead`).
+   has died (`holder_dead`), nor for a head the article does not call current
+   who started before another head it names (`superseded`: an interim, a
+   predecessor).
    What survives is planned against the live item by peploop's planner
    (`route.route`), which merges dates, role and reference into a statement
    that is there and writes a `+` line only for a new one.

@@ -233,9 +233,11 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
                      "_rule": rule})
     statutory = STATUTORY.get(answer.get("statutory") or "")
     if statutory:
-        rows.append({"property": "P31", "value": item(statutory),
-                     "qualifiers": {"_sources": source(req, control["article"])},
-                     "_rule": "typed" if marks & STATUTORY_TYPED or proof == "form" else None})
+        # The class is read in the article: with no control quote, nothing cites it.
+        cited = source(req, control["article"])
+        rows.append({"property": "P31", "value": item(statutory), "qualifiers": {"_sources": cited},
+                     "_rule": "typed" if marks & STATUTORY_TYPED or proof == "form"
+                     else None if cited else "statutory_unsourced"})
     if by_proof:
         if answer["kind"] == "enterprise" and country:
             rows.append({"property": "P127", "value": item(country), "qualifiers": {"_sources": proof_sources},
@@ -416,6 +418,10 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
     titles), `anchor` when only the link's text, `matched`.
     """
     heads = {p: set(wd.values(entity or {}, p)) for p in HEADS}
+    # The latest start among the answer's heads: an earlier head left open
+    # (an interim, a predecessor) was followed by that one.
+    starts = [s["start"] for s in req["answer"]["seats"] if s["role"] == "head" and s["start"]]
+    last_head = max(starts, key=lambda t: t.ljust(10, "0")) if starts else None
     rows = []
     for seat in req["answer"]["seats"]:
         statement = seat_statement(req["answer"]["kind"], seat["body"], seat["role"], extra)
@@ -449,6 +455,9 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
         elif not end and found[0] in dead:
             # A seat with no end, held by someone who has died, ended then.
             rule = "holder_dead"
+        elif (seat["role"] == "head" and not seat["current"] and not end and last_head
+              and (seat["start"] or "").ljust(10, "0") < last_head.ljust(10, "0")):
+            rule = "superseded"
         elif prop in HEADS and any(found[0] in heads[p] for p in HEADS if p != prop):
             # The head already recorded under the other head property: a
             # second statement would read as a second seat.

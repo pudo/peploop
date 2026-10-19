@@ -249,6 +249,11 @@ def crawler_cases() -> None:
     rows = rules.seat_rows(term, {"Q901000"}, TODAY, None, ent())
     expect(rows[0]["_rule"] is None and "P582" not in rows[0]["qualifiers"],
            "a fixed term running past today is written as held, without its end")
+    interim = {**head, "answer": answer(seats=[
+        seat(name="Max Probe", body="executive", role="head", start="2024-07", current=False, quote="Max Probe runs it."),
+        seat(name="Erika Muster", body="executive", role="head", start="2024-10", current=True)])}
+    rows = rules.seat_rows(interim, {"Q901000"}, TODAY, None, ent())
+    expect(rows[0]["_rule"] == "superseded", "a head left open before a later head is not written as current")
     # A ministry is a parent, never an owner; a link one step past an existing one is a shortcut.
     owner = {**base, "answer": answer(kind="institution", owners=((0, "owner"),))}
     expect(rules.control_rows(owner, ent(), None, state, {}, government=frozenset({"Q900100"}))[0]["_rule"] == "owner_ministry",
@@ -295,6 +300,10 @@ def policy() -> None:
            "a public broadcaster without its class gets it")
     rows = rules.control_rows(tv, ent(P31=["Q900500"]), None, state, {"Q900500": {"Q900500", "Q1126006"}})
     expect([r["_rule"] for r in rows if r["property"] == "P31"] == ["typed"], "an item already typed is left alone")
+    bare = {**base, "answer": {**answer(kind="institution", verdict="unstated", owners=(), quote=None), "statutory": "regulator"}}
+    bare["answer"]["control"]["article"] = None
+    expect([r["_rule"] for r in rules.control_rows(bare, ent(), None, state, {}) if r["property"] == "P31"]
+           == ["statutory_unsourced"], "a class no control quote cites is not written")
     reg = {**base, "answer": {**answer(kind="institution", owners=()), "statutory": "regulator"}}
     rows = rules.control_rows(reg, ent(P31=["Q900801"]), None, state, {"Q900801": {"Q900801"}}, proof="form")
     expect([r["_rule"] for r in rows if r["property"] == "P31"] == ["typed"],
