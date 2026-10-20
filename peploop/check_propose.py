@@ -222,6 +222,7 @@ def main() -> int:
     out = propose._positions(item(), {"positions": [mention(acting=True)]}, placed, set())
     expect([p.status for p in out], [propose.FILTERED],
            "an acting tenure is filtered, not asserted")
+
     expect((out[0].qualifiers or {}).get("_reason"), "acting",
            "and it says which rule filtered it")
 
@@ -232,6 +233,75 @@ def main() -> int:
                              {"took office on 15 October 2020"})
     expect([p.status for p in out], ["unquoted"],
            "a mention whose only quote is bad is unquoted")
+
+    print("several terms of one office:")
+
+    def terms(entity: dict[str, Any], *starts: str, end: str | None = None) -> list[Any]:
+        mentions = [mention(start=start, end=None, quotes=[f"elected in {start}"])
+                    for start in starts]
+        if end is not None:
+            mentions[-1]["end"] = end
+        found = propose._positions(entity, {"positions": mentions},
+                                   {i: (OFFICE, i + 1) for i in range(len(mentions))}, set())
+        return sorted(found, key=lambda p: p.qualifiers["P580"]["time"])
+
+    def spans(found: list[Any]) -> list[str]:
+        return [propose.span_text({k: v for k, v in p.qualifiers.items() if k.startswith("P")})
+                for p in found]
+
+    # Sun Jianguo: the 13th congress from 2018 and the 14th from 2023, both open.
+    sun = terms(item(), "2018", "2023")
+    expect(spans(sun), ["2018..2023", "2023.."],
+           "an open term ends where the next one starts")
+    expect([(s.lang, s.quote, s.dates) for s in sun[0].sources],
+           [("aa", "elected in 2018", None), ("aa", "elected in 2023", "P582")],
+           "citing the next term's quote for that end")
+    # Wang Suilian: the 13th congress from 2018 and nothing after.
+    expect(spans(terms(item(), "2018-02-24")), ["2018-02-24.."],
+           "a single open term stays open")
+    expect(spans(terms(item(), "2013", "2018", "2023")), ["2013..2018", "2018..2023", "2023.."],
+           "a chain of three closes each at the next")
+    other_wiki = [mention(start="2018", end=None, quotes=["elected in 2018"]),
+                  mention(start="2023", end=None, lang="ab", quotes=["elected in 2023"])]
+    expect(spans(sorted(propose._positions(item(), {"positions": other_wiki},
+                                           {0: (OFFICE, 1), 1: (OFFICE, 2)}, set()),
+                        key=lambda p: p.qualifiers["P580"]["time"])),
+           ["2018..", "2023.."], "only the same article's next term closes one")
+    expect([(spans([p]), p.status) for p in terms(item(), "2017-08-01", "2017-09-01")],
+           [(["2017-08-01.."], propose.FILTERED)],
+           "and only in a later year: weeks apart is one appointment dated twice")
+    expect(spans(terms(item(statement("2010-03-05", "2013-03-05")), "2013", "2018")),
+           ["2013..2018", "2018.."], "a dated statement beside them changes nothing of this")
+
+    def termed(*terms_: str, start: str | None = None) -> dict[str, Any]:
+        claim = statement(start)
+        claim.setdefault("qualifiers", {})["P2937"] = [
+            {"property": "P2937", "snaktype": "value", "datatype": "wikibase-item",
+             "datavalue": {"type": "wikibase-entityid",
+                           "value": {"entity-type": "item", "id": term_}}}
+            for term_ in terms_]
+        return item(claim)
+
+    career = terms(termed("Q0000021", "Q0000022"), "2013", "2018")
+    expect([(spans(career), p.status, p.qualifiers.get("_terms"),
+             p.qualifiers.get("_last_start", {}).get("time")) for p in career[:1]] + [len(career)],
+           [(["2013.."], "refine", 2, day("2018")["time"]), 1],
+           "a statement holding two terms is one row dating it, judged by the last start")
+    expect(sorted(s.quote for s in career[0].sources), ["elected in 2013", "elected in 2018"],
+           "resting on every term's quote")
+    expect(spans(terms(termed("Q0000021", "Q0000022"), "2013", "2018", end="2023")),
+           ["2013..2023"], "ending where the last term ended")
+    expect(spans(terms(item(statement()), "2013", "2018")), ["2013.."],
+           "so is an undated statement the article gives several terms for")
+    months = [mention(start=start, end=start, quotes=[f"president in {start}"])
+              for start in ("2013-11-01", "2015-02-01")]
+    expect(len(propose._positions(item(statement()), {"positions": months},
+                                  {0: (OFFICE, 1), 1: (OFFICE, 2)}, set())), 2,
+           "but terms with years between them are not one career: the span would claim the gap")
+    expect(spans(terms(item(statement()), "2013")), ["2013.."],
+           "while one term on it is that term")
+    expect(spans(terms(termed("Q0000021"), "2013", "2018")), ["2013..2018", "2018.."],
+           "and a statement of one term is that term, the others beside it")
 
     print("what identifies a stored proposal:")
     value = {"entity-type": "item", "id": OFFICE}

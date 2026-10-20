@@ -123,6 +123,20 @@ class Edit:
     quotes: list[tuple[str | None, str]] = field(default_factory=list)
     article_lang: str | None = None
     article: str | None = None
+    #: How the dates were put together, where no one sentence gives them:
+    #: a career dated from several terms. None on every other edit, whose
+    #: rendering it leaves as it was.
+    note: str | None = None
+
+
+#: The note a career statement's edit carries: the prompt reads an edit
+#: joining terms as wrong, and here joining them is the point.
+CAREER_NOTE = (
+    "The item keeps one statement for this office, for the whole career; the edit"
+    " dates it across the {terms} terms the article gives, from the first term's"
+    " start{end}, and any terms it names stay on it. Judge whether the article"
+    " supports that span of service, not whether each term is a statement of its own."
+)
 
 
 @dataclass
@@ -153,12 +167,19 @@ def content_key(
     question, and the same value in a re-inserted row is not.
     """
     attested = (qualifiers or {}).get("_sources") or []
+    # A source dating one endpoint, and a career's note, change what the
+    # verifier is shown, so they change the question; on every other row the
+    # key is what it was.
     sources = sorted(
         (str(source.get("lang") or ""), str(source.get("rev") or ""))
+        + ((str(source["dates"]),) if source.get("dates") else ())
         for source in attested
     )
     proposal = propose.proposal_key(prop, value, qualifiers)
-    blob = "\n".join([person_qid, proposal, json.dumps(sources)])
+    parts = [person_qid, proposal, json.dumps(sources)]
+    if (qualifiers or {}).get("_terms"):
+        parts.append(f"terms {qualifiers['_terms']}")
+    blob = "\n".join(parts)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
@@ -200,6 +221,8 @@ def render_edit(edit: Edit) -> str:
         if prop.startswith("P")
     ]
     parts.append("qualifiers: " + ("; ".join(qualifiers) or "none"))
+    if edit.note:
+        parts.append(f"note: {edit.note}")
     if edit.office is not None:
         parts.extend(["", "# The office, as an item", "", edit.office.line()])
     if edit.mention is not None:
@@ -387,7 +410,14 @@ def edit_for(row: dict[str, Any]) -> Edit:
     sources = qualifiers.get("_sources") or [
         {"lang": row.get("source_lang"), "quote": row.get("quote")}
     ]
-    quotes = [(s.get("lang"), s["quote"]) for s in sources if s.get("quote")]
+    # A sentence that dates only one endpoint says which, so the end taken from
+    # the next term's start is read as that and not as a second start.
+    quotes = [
+        (s.get("lang") if not s.get("dates") else
+         f"{s.get('lang') or '?'}; gives {s['dates']}: the next term's start ends this one",
+         s["quote"])
+        for s in sources if s.get("quote")
+    ]
     lang = next((s.get("lang") for s in sources if s.get("lang")), row.get("source_lang"))
     article = None
     if lang:
@@ -413,6 +443,9 @@ def edit_for(row: dict[str, Any]) -> Edit:
         quotes=quotes,
         article_lang=lang,
         article=article,
+        note=None if not qualifiers.get("_terms") else CAREER_NOTE.format(
+            terms=qualifiers["_terms"],
+            end=" to the last term's end" if "P582" in qualifiers else ", open as the last term is"),
     )
 
 

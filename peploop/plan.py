@@ -361,12 +361,20 @@ def plan_tenure(
     A spell overlapping nothing is a further term, and new. Either merge needs
     the office on that one statement alone (`unique`), or QuickStatements
     cannot aim it: `ambiguous-statement`.
+
+    A career dated from several terms (`_terms`, `propose._career`) is meant
+    for the one statement that stands for them all, so its terms do not keep
+    the dates off it; they stay on it beside the dates.
     """
     proposed = propose.span_of({"qualifiers": qualifiers})
+    career = bool((row.get("qualifiers") or {}).get("_terms"))
     undated = None
     termed = False
     for claim, _found in matching:
         recorded = propose.span_of(claim)
+        if not recorded and career:
+            undated = undated or claim
+            continue
         if not recorded:
             # An undated statement that still carries qualifiers -- a term, a
             # district, an ordinal -- is a specific tenure the article's dates

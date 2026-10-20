@@ -21,6 +21,7 @@ Run it as `python -m peploop.check_verify` from the repository root.
 
 import hashlib
 import sys
+from dataclasses import replace
 
 from pydantic import ValidationError
 
@@ -162,6 +163,12 @@ def main() -> int:
                                           value={"entity-type": "item", "id": "Q2"}))
     expect("- nothing" in bare and "- none" in bare and "article not available" in bare,
            "an edit with nothing behind it says so in every section")
+    noted = verify.render_edit(replace(POSITION, note=verify.CAREER_NOTE.format(
+        terms=2, end=", open as the last term is")))
+    expect("note: The item keeps one statement for this office" in noted
+           and "\n".join(line for line in noted.split("\n")
+                          if not line.startswith("note: ")) == EXPECTED_POSITION,
+           "a career's note is one line after the qualifiers, and nothing else moves")
 
     print("the key:")
     quals = {"P580": propose.time_value("2018"), "_sources": [{"lang": "aa", "rev": 7}]}
@@ -177,6 +184,11 @@ def main() -> int:
            "a different tenure is a different question")
     expect(key != verify.content_key("Q0000010", "P39", POSITION.value, quals),
            "and so is the same edit on another person")
+    expect(key != verify.content_key(PERSON, "P39", POSITION.value, {**quals, "_terms": 2}),
+           "and a career dated from its terms, which the verifier is told about")
+    expect(key != verify.content_key(PERSON, "P39", POSITION.value,
+                                     {**quals, "_sources": [{"lang": "aa", "rev": 7, "dates": "P582"}]}),
+           "and a source shown as dating the end")
 
     print("the answer shape:")
     answer = verify.Answer(verdict="supported", confidence="high", evidence="e", reason="r")

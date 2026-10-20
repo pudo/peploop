@@ -658,14 +658,11 @@ def load_country(
     Incremental and additive: a second country leaves the first one's rows
     alone, a re-run updates in place, and an item this run did not find keeps
     its row. Nothing is deleted, because absence from one query is not
-    evidence that an office is gone. Every office found has its holders'
-    statements counted afresh (`fill_repeat_holders`).
+    evidence that an office is gone.
     """
     qid = country_qid(cc)
     found = discover(qid, sources, log=log, page=page)
-    counts = load_items(found, log=log)
-    fill_repeat_holders(sorted({q for qids in found.values() for q in qids}), log=log)
-    return counts
+    return load_items(found, log=log)
 
 
 #: The source an item carries when it was created by this loop rather than
@@ -1214,58 +1211,6 @@ def fill_first_held(qids: Sequence[str], log: Any = lambda _m: None) -> dict[str
         )
     log(f"first holder dated for {len(years)} of {len(wanted)} offices")
     return years
-
-
-#: Each office's holders, and how many of them carry two or more
-#: non-deprecated `P39` statements for it. `p:P39/ps:P39`, because a preferred
-#: term would hide the others.
-REPEAT_HOLDERS_QUERY = """SELECT ?pos (COUNT(?h) AS ?n) (SUM(?again) AS ?r) WHERE {
-  { SELECT ?pos ?h (IF(COUNT(?st) > 1, 1, 0) AS ?again) WHERE {
-      VALUES ?pos { %(values)s }
-      ?h p:P39 ?st . ?st ps:P39 ?pos ; wikibase:rank ?rank .
-      FILTER(?rank != wikibase:DeprecatedRank)
-    } GROUP BY ?pos ?h }
-} GROUP BY ?pos"""
-
-
-def fill_repeat_holders(qids: Sequence[str], log: Any = lambda _m: None) -> dict[str, tuple[int, int]]:
-    """Count each office's holders, and those Wikidata gives two or more statements for it.
-
-    Reach for this before writing a person's several spells of an office: the
-    Bundestag keeps a statement per term and the National People's Congress
-    one per deputy, and the share of holders with a second statement is what
-    tells the two apart (`policy.per_holder`). Every asked office gets a
-    timestamp, so one nobody holds reads as counted rather than as never asked.
-    """
-    wanted = [qid for qid in dict.fromkeys(qids) if qid]
-    if not wanted:
-        return {}
-    rows = wikidata.bisect(
-        lambda chunk: wikidata.sparql(
-            REPEAT_HOLDERS_QUERY % {"values": wikidata.values_block(chunk)}, max_age=0
-        ),
-        wanted, size=BACKFILL_CHUNK,
-    )
-    counts = {row["pos"]: (int(row["n"]), int(row.get("r") or 0)) for row in rows}
-    with db.conn().cursor() as cur:
-        cur.executemany(
-            "UPDATE position SET statement_holders = %s, repeat_holders = %s,"
-            " repeat_holders_at = now() WHERE qid = %s",
-            [(*counts.get(qid, (0, 0)), qid) for qid in wanted],
-        )
-    log(f"repeat holders counted for {len(counts)} of {len(wanted)} offices")
-    return counts
-
-
-def unfilled_repeat_holders(qids: Sequence[str]) -> list[str]:
-    """The offices among these whose holders' statements nobody has counted yet."""
-    if not qids:
-        return []
-    rows = db.conn().execute(
-        "SELECT qid FROM position WHERE qid = ANY(%s) AND repeat_holders_at IS NULL",
-        (list(dict.fromkeys(qids)),),
-    )
-    return [row[0] for row in rows]
 
 
 #: Every non-deprecated `P39` statement on an office, with its dates and their

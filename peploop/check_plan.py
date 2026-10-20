@@ -216,6 +216,31 @@ def main() -> int:
     expect(dict(plan.routes), {"termed": 1}, "while one inside that term stays termed")
     planner._TERM_SPANS.clear()
 
+    print("one statement for a career of several terms:")
+    two = {"P2937": [{**term["P2937"][0], "datavalue": {"type": "wikibase-entityid",
+                                                         "value": {"entity-type": "item", "id": q}}}
+                     for q in ("Q0000077", "Q0000078")]}
+    live = item(claim(OFFICE, qualifiers=two))
+    career = {**span("2013-03-05"), "_terms": 2, "_last_start": day("2018-03-05")}
+    plan = planner.plan_person(PERSON, live, [office(quals=career)])
+    made = (plan.data or {}).get("claims", [])
+    expect((dict(plan.routes), made[0].get("id") if made else None,
+            sorted(made[0].get("qualifiers", {})) if made else None),
+           ({"refine": 1}, GUID, ["P2937", "P580"]),
+           "the dates go on it, its terms kept, nothing beside it")
+    expect(len(made[0]["qualifiers"]["P2937"]) if made else 0, 2, "both terms stay")
+    dated = item(claim(OFFICE, qualifiers={**two, "P580": [
+        {"property": "P580", "snaktype": "value", "datatype": "time",
+         "datavalue": {"type": "time", "value": day("2010-03-05")}}]}))
+    plan = planner.plan_person(PERSON, dated, [office(quals={**span("2013-03-05", "2023-03-05"), "_terms": 2})])
+    expect(dict(plan.routes), {"exists": 1}, "a start it already has is never changed")
+    plan = planner.plan_person(PERSON, dated, [office(quals={**span("2010-03-05", "2023-03-05"), "_terms": 2})])
+    made = (plan.data or {}).get("claims", [])
+    expect((dict(plan.routes), [s["datavalue"]["value"]["time"]
+                                for s in made[0]["qualifiers"].get("P580", [])] if made else None),
+           ({"refine": 1}, [day("2010-03-05")["time"]]),
+           "while the end it lacks is added beside the start it has")
+
     print("a tenure the item already dates:")
     live = item(claim(OFFICE, {"P580": day("1997-02-01")}))
     plan = planner.plan_person(PERSON, live, [office(quals=span("1999-01-01", "2000-06-30"))])

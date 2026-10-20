@@ -418,6 +418,26 @@ carries, and `send` could write neither. Overlap is judged against the same
 office only: a spell overlapping a *different* office is a minister keeping
 their parliamentary seat. `peploop/positions.md` has the measured counts.
 
+Every office is written one statement per term. An article lists a
+legislator's terms each with its start and rarely an end, so an open spell
+the same article's later spell of the same office follows, in a later year,
+ends where that one starts, at its start's precision (`propose.close_at_next`;
+another wiki's start, or one weeks off, is more often the same appointment
+dated twice), and the later spell's quote joins the row's `_sources` marked
+as dating `P582`: the
+verifier reads it as the end's evidence, and the plan still cites one
+article. Spells the articles date against each other are left to the
+policy's spell rules. The exception is an item that already keeps one
+statement for the whole career -- the office's only statement for the
+person, carrying two or more terms (`P2937`), or carrying nothing while the
+article gives several spells (`propose.multi_term`). Where the spells follow
+one another with no gap (`propose.continuous`), they are one row dating that
+statement (`_terms`): the first term's start, and the
+last term's end unless the last is open, when `_last_start` is the start the
+open-tenure rules judge. The plan adds only the endpoints it lacks, keeps
+its terms, and writes nothing beside it; the verifier is told in a note on
+that edit alone that the span covers the terms on purpose.
+
 `filtered` and `overlapping` are what a rule decided so a human does not have
 to, with the rule's name in `qualifiers._reason`. Neither is ever rendered,
 reviewed or applied, and `report` counts both so each rule's volume stays
@@ -479,27 +499,6 @@ who holds office now), on an office the ranking tags neither
 generic item its community uses *with* a scoping qualifier this pipeline does
 not yet write. Every threshold is a constant at the top of `policy.py`, and
 `check_policy` fabricates one case per rule.
-
-Before any of them, a person's spells of one office are folded where the
-office's community keeps one statement per holder rather than one per term.
-`load-positions` (and the policy, for an office never counted) records how
-many of the office's holders Wikidata has and how many of them carry two or
-more statements for it (`position.statement_holders`, `repeat_holders`);
-under a tenth (`PER_TERM_SHARE`), with at least `PER_HOLDER_MIN_HOLDERS`
-holders, the office is per-holder -- the National People's Congress and the
-CPPCC at about 0.1%, against the Bundestag's 65%. There, the spells every
-rule but the still-held ones (`tenure_ended`, `open_unattested`,
-`open_superseded`) lets through are joined into one span from the earliest
-start to the latest end, open when the newest spell is, on the earliest
-spell's row, carrying every member's sources; the others are skipped as
-`folded`. Spells join only while each continues the one before -- starting
-by the year after it ended, or within `FOLD_GAP_YEARS` of an open one's
-start -- and two closed readings of one term in dispute join nothing. The
-still-held rules judge a span by its newest spell's start, so a deputy of the
-13th and 14th congresses is one statement from 2018 that passes on the 2023
-election; a span they refuse loses its newest spell until it passes or is a
-single spell again. The span is verified as the edit it now is, and the plan
-treats it like any other tenure.
 
 Four rules read a proposal against its *siblings*, which no single reading
 can: a single-valued value another wiki disagrees with is `contested`; among a

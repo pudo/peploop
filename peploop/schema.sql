@@ -519,14 +519,12 @@ CREATE TABLE IF NOT EXISTS title_en (
 -- Wikidata reads it.
 ALTER TABLE position ADD COLUMN IF NOT EXISTS title_en TEXT;
 
--- How many people Wikidata records in the office, and how many of them with
--- two or more statements for it, and when that was counted: whether the
--- community keeps one statement per term or one per holder, which decides
--- whether a person's several spells are written apart or as one span. Null
--- is "not counted yet".
-ALTER TABLE position ADD COLUMN IF NOT EXISTS statement_holders INTEGER;
-ALTER TABLE position ADD COLUMN IF NOT EXISTS repeat_holders INTEGER;
-ALTER TABLE position ADD COLUMN IF NOT EXISTS repeat_holders_at TIMESTAMPTZ;
+-- A per-office count of holders with repeat statements, read once to choose
+-- between one statement per term and one per holder. Every office is now
+-- written one statement per term, so the count has no reader.
+ALTER TABLE position DROP COLUMN IF EXISTS statement_holders;
+ALTER TABLE position DROP COLUMN IF EXISTS repeat_holders;
+ALTER TABLE position DROP COLUMN IF EXISTS repeat_holders_at;
 
 -- What peploop and peptree have sent to Wikidata, what they must never send,
 -- and what they should take back (`ledger.py`).

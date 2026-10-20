@@ -60,6 +60,9 @@ class Source:
 
     lang: str | None
     quote: str | None
+    #: The one endpoint this sentence dates, when it is not the whole spell:
+    #: `P582` for the next term's start closing an open one.
+    dates: str | None = None
 
 
 @dataclass
@@ -515,6 +518,78 @@ def tenure_key(qid: str, span: dict[str, Any]) -> tuple[str, str, str]:
     )
 
 
+def close_at_next(spells: list[tuple[dict[str, Any], dict[str, Any]]]) -> dict[int, int]:
+    """End each open spell of one office where the person's next spell of it starts.
+
+    An article lists a deputy's 13th and 14th congresses each with its year
+    and no end, because the next election is the end; written open, the older
+    one claims a seat held to this day and is refused for it, and the item
+    keeps only the newer term. The next start, at its own precision, is the
+    end the article implies. Only the same article's next spell, in a later
+    year, says so: another wiki's start a few weeks or years off is more
+    often the same appointment dated differently. `spells` is (entry, span)
+    per placed mention; returns, by position in it, the spell whose start
+    closes each open one.
+    """
+    out: dict[int, int] = {}
+    for i, (entry, span) in enumerate(spells):
+        start = span.get("P580")
+        if start is None or "P582" in span:
+            continue
+        year = at_precision(start["time"], 9) or ""
+        later = [(j, other["P580"]) for j, (e, other) in enumerate(spells)
+                 if j != i and "P580" in other and e.get("lang") == entry.get("lang")
+                 and (at_precision(other["P580"]["time"], 9) or "") > year]
+        if later:
+            nearest = min(later, key=lambda item: (
+                at_precision(item[1]["time"], 9) or "", -item[1].get("precision", 0)))
+            out[i] = nearest[0]
+    return out
+
+
+def multi_term(entity: dict[str, Any], qid: str, spells: int) -> dict[str, Any] | None:
+    """The item's one statement for an office, when it stands for several terms.
+
+    A statement carrying two or more terms (`P2937`), or one with no dates
+    at all where the article gives several spells, is the record of the whole
+    career in the office: the community keeps it as one. The article's dates
+    belong on it, and term statements beside it would record the career twice.
+    """
+    claims = [
+        claim for claim in entity.get("claims", {}).get("P39", [])
+        if claim.get("rank") != "deprecated"
+        and (claim.get("mainsnak", {}).get("datavalue", {}).get("value") or {}).get("id") == qid
+    ]
+    if len(claims) != 1:
+        return None
+    qualifiers = claims[0].get("qualifiers") or {}
+    if len(qualifiers.get("P2937", [])) >= 2:
+        return claims[0]
+    if not qualifiers and spells >= 2:
+        return claims[0]
+    return None
+
+
+def continuous(spans: list[dict[str, Any]]) -> bool:
+    """Whether a person's spells of an office follow one another with no gap.
+
+    A career statement dated from first start to last end claims every year
+    between: a rotating presidency held four separate months, or a vice-
+    ministry left in 1999 and taken up again in 2008, is not one span. Each
+    spell but the last must have an end, and the next start by the year after
+    it; an open one before another says nothing about the years between.
+    """
+    ordered = sorted(spans, key=lambda span: at_precision(span["P580"]["time"], 9) or "")
+    for one, other in zip(ordered, ordered[1:]):
+        end = one.get("P582")
+        if end is None:
+            return False
+        ended = int(at_precision(end["time"], 9) or 0)
+        if int(at_precision(other["P580"]["time"], 9) or 0) > ended + 1:
+            return False
+    return True
+
+
 def _positions(
     entity: dict[str, Any], data: dict[str, Any],
     resolved: dict[int, tuple[str, int]], bad: set[str],
@@ -527,53 +602,128 @@ def _positions(
     judged again here. An acting tenure is kept out: Wikidata says "acting"
     with a qualifier this pipeline does not yet write, and a P39 that omits it
     asserts more than the article did.
+
+    An open spell followed by a later one of the same office ends where that
+    one starts (`close_at_next`), citing its quote for the end. Where the item
+    keeps one statement for the whole career (`multi_term`) and the spells
+    follow one another (`continuous`), they are one proposal dating it: the first start, and the last end unless the last
+    spell is open, with `_terms` counting them and `_last_start` the start
+    the open-tenure rules judge.
     """
-    out: dict[tuple[str, str, str], Proposal] = {}
+    placed: dict[str, list[tuple[dict[str, Any], dict[str, Any], int]]] = {}
     for index, entry in enumerate(data.get("positions") or []):
-        placed = resolved.get(index)
-        if placed is None:
+        found = resolved.get(index)
+        if found is None:
             continue
-        qid, resolution_id = placed
+        qid, resolution_id = found
         span = {}
         for key, prop in SPAN:
             value = time_value(entry.get(key) or "")
             if value is not None:
                 span[prop] = value
-        quotes = entry.get("quotes") or []
-        # Both deliberate non-proposals name the rule that decided them, so
-        # each one's volume stays countable from the table alone.
-        qualifiers: dict[str, Any] = dict(span)
-        if entry.get("acting"):
-            status = FILTERED
-            qualifiers["_reason"] = "acting"
-        else:
-            recorded = held(entity, qid)
-            status = quote_status(tenure_status(recorded, span), quotes, bad)
-            if status == OVERLAPPING:
-                qualifiers["_reason"] = f"overlaps {span_text(clashing(recorded, span) or {})}"
-        key = tenure_key(qid, span)
-        existing = out.get(key)
-        if existing is not None:
-            # The same spell read in a second language: one statement with two
-            # references, not two rows asking a reviewer the same question.
-            # Dates that differ within the year are two spells, or one wiki's
-            # error; either way no source is cited against its own value.
-            if not same_span(existing.qualifiers or {}, span) and existing.status != FILTERED:
-                existing.status = FILTERED
-                existing.qualifiers = {**(existing.qualifiers or {}), "_reason": "sources_disagree"}
-            existing.sources.extend(attestations([entry]))
-            continue
-        out[key] = Proposal(
-            property="P39",
-            value={"entity-type": "item", "id": qid},
-            status=status,
-            qualifiers=qualifiers or None,
-            quote=quotes[0] if quotes else None,
-            lang=entry.get("lang"),
-            resolution_id=resolution_id,
-            sources=attestations([entry]),
-        )
+        placed.setdefault(qid, []).append((entry, span, resolution_id))
+    out: dict[tuple[str, str, str], Proposal] = {}
+    for qid, spells in placed.items():
+        # A spell with no quote left standing is no evidence of when another ended.
+        quoted = [(entry, span) for entry, span, _r in spells
+                  if quote_status("new", entry.get("quotes") or [], bad) != "unquoted"]
+        closers = close_at_next(quoted)
+        closed: dict[int, Source] = {}
+        for i, j in closers.items():
+            entry, span = quoted[i]
+            later, other = quoted[j]
+            span["P582"] = dict(other["P580"])
+            quotes = later.get("quotes") or []
+            closed[id(entry)] = Source(later.get("lang"), quotes[0] if quotes else None, "P582")
+        terms = [(entry, span, r) for entry, span, r in spells
+                 if not entry.get("acting") and "P580" in span]
+        record = multi_term(entity, qid, len({tenure_key(qid, span) for _e, span, _r in terms}))
+        if record is not None and terms and continuous([span for _e, span, _r in terms]):
+            out[(qid, "terms", "")] = _career(entity, qid, terms, bad)
+            spells = [(entry, span, r) for entry, span, r in spells if entry.get("acting")
+                      or "P580" not in span]
+        for entry, span, resolution_id in spells:
+            quotes = entry.get("quotes") or []
+            # Both deliberate non-proposals name the rule that decided them, so
+            # each one's volume stays countable from the table alone.
+            qualifiers: dict[str, Any] = dict(span)
+            if entry.get("acting"):
+                status = FILTERED
+                qualifiers["_reason"] = "acting"
+            else:
+                recorded = held(entity, qid)
+                status = quote_status(tenure_status(recorded, span), quotes, bad)
+                if status == OVERLAPPING:
+                    qualifiers["_reason"] = f"overlaps {span_text(clashing(recorded, span) or {})}"
+            sources = attestations([entry])
+            if id(entry) in closed:
+                sources.append(closed[id(entry)])
+            key = tenure_key(qid, span)
+            existing = out.get(key)
+            if existing is not None:
+                # The same spell read in a second language: one statement with two
+                # references, not two rows asking a reviewer the same question.
+                # Dates that differ within the year are two spells, or one wiki's
+                # error; either way no source is cited against its own value.
+                if not same_span(existing.qualifiers or {}, span) and existing.status != FILTERED:
+                    existing.status = FILTERED
+                    existing.qualifiers = {**(existing.qualifiers or {}), "_reason": "sources_disagree"}
+                existing.sources.extend(sources)
+                continue
+            out[key] = Proposal(
+                property="P39",
+                value={"entity-type": "item", "id": qid},
+                status=status,
+                qualifiers=qualifiers or None,
+                quote=quotes[0] if quotes else None,
+                lang=entry.get("lang"),
+                resolution_id=resolution_id,
+                sources=sources,
+            )
     return list(out.values())
+
+
+def _career(
+    entity: dict[str, Any], qid: str,
+    terms: list[tuple[dict[str, Any], dict[str, Any], int]], bad: set[str],
+) -> Proposal:
+    """One proposal dating the item's career statement for an office from all its terms.
+
+    The start is the first term's; the end is the last term's, unless the
+    last is open and so, by the article, current. `tenure_status` judges it
+    against the record like any spell, and the plan adds only the endpoints
+    the statement lacks.
+    """
+    ordered = sorted(terms, key=lambda t: (at_precision(t[1]["P580"]["time"], 9) or "",
+                                           -t[1]["P580"].get("precision", 0)))
+    first, last = ordered[0], ordered[-1]
+    newest = at_precision(last[1]["P580"]["time"], 9)
+    # Of terms starting in the newest year, one the article gave an end closes the career.
+    ends = [span["P582"] for _e, span, _r in ordered
+            if "P582" in span and at_precision(span["P580"]["time"], 9) == newest]
+    qualifiers: dict[str, Any] = {"P580": first[1]["P580"]}
+    if ends:
+        qualifiers["P582"] = max(ends, key=lambda v: (v["time"], v.get("precision", 0)))
+    else:
+        qualifiers["_last_start"] = last[1]["P580"]
+    qualifiers["_terms"] = len({tenure_key(qid, span) for _e, span, _r in ordered})
+    quotes = [q for entry, _s, _r in ordered for q in entry.get("quotes") or []]
+    status = quote_status(tenure_status(held(entity, qid), qualifiers), quotes, bad)
+    sources: list[Source] = []
+    for entry, _span, _r in ordered:
+        entry_quotes = entry.get("quotes") or []
+        sources.append(Source(entry.get("lang"), entry_quotes[0] if entry_quotes else None))
+    first_quotes = first[0].get("quotes") or []
+    return Proposal(
+        property="P39",
+        value={"entity-type": "item", "id": qid},
+        status=status,
+        qualifiers=qualifiers,
+        quote=first_quotes[0] if first_quotes else None,
+        lang=first[0].get("lang"),
+        resolution_id=first[2],
+        sources=sources,
+    )
 
 
 def build(
@@ -699,6 +849,7 @@ def _store(
                         "url": urls.get(source.lang or "", (None, None))[0],
                         "rev": urls.get(source.lang or "", (None, None))[1],
                         "quote": source.quote,
+                        **({"dates": source.dates} if source.dates else {}),
                     }
                     for source in proposal.sources
                 ]

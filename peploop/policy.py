@@ -21,12 +21,11 @@ from __future__ import annotations
 import re
 from collections import Counter
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
 from psycopg.rows import dict_row
-from psycopg.types.json import Jsonb
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
@@ -225,20 +224,6 @@ NEW_TERM_COHORT = 2
 #: The proposal statuses whose spells count as on record for the office: what
 #: `propose` left and the policy has not set aside, and what went out.
 LIVE_SPELL_STATUSES = PROPOSED + (PENDING, ACCEPTED, "applied", "sent")
-#: The share of an office's holders on Wikidata with two or more statements
-#: for it at which the community is read as keeping one statement per term.
-#: Below it -- the National People's Congress at 0.1%, against the Bundestag's
-#: 65% -- it keeps one per holder, and a person's spells are one span
-#: (`per_holder`).
-PER_TERM_SHARE = 0.10
-#: The fewest holders an office needs before its share is read at all: below
-#: ten, one holder with a second statement is already a tenth of them, so the
-#: share says more about one person than about the convention.
-PER_HOLDER_MIN_HOLDERS = 10
-#: How far after an open spell's start the next may start and still continue
-#: it in one span: a five-year term and a year's slack. Further on, the
-#: article left the years between undated, and a span would claim them.
-FOLD_GAP_YEARS = 6
 
 
 @dataclass(frozen=True)
@@ -288,12 +273,6 @@ class Case:
     review: str | None = None
     #: The person's other proposals for the same property, as (value, status).
     siblings: list[tuple[dict[str, Any], str]] = field(default_factory=list)
-    #: The person's spells this P39's span folds together on a per-holder
-    #: office (`fold_spells`), each as its article dated it; empty when the
-    #: row is one spell.
-    folded: list[dict[str, Any]] = field(default_factory=list)
-    #: The proposal whose span a P39 was folded into, which carries it now.
-    folded_into: int | None = None
     #: What `spell_conflicts` found for a P39 among the person's other spells
     #: of the same office: `sibling_spell`, `contested`, or None.
     spell_conflict: str | None = None
@@ -328,15 +307,14 @@ class Case:
         value = self.qualifiers.get(prop)
         return value if isinstance(value, dict) and "time" in value else None
 
-    def latest_start(self) -> dict[str, Any] | None:
+    def last_start(self) -> dict[str, Any] | None:
         """The start the rules asking whether a tenure is still held judge by.
 
-        A folded span starts with the person's first term, and a deputy first
-        elected in 2018 and re-elected in 2023 is as current as the 2023
-        election says; the span's own start would read them as long gone.
+        A career statement dated from several terms (`propose._career`)
+        starts with the first, and a deputy re-elected in 2023 is as current
+        as that election; its own start would read the career as long gone.
         """
-        starts = [s["P580"] for s in self.folded if isinstance(s.get("P580"), dict)]
-        return max(starts, key=_start_order) if starts else self.tenure("P580")
+        return self.tenure("_last_start") or self.tenure("P580")
 
 
 @dataclass(frozen=True)
@@ -663,99 +641,6 @@ def _loses(span: dict[str, Any], other: dict[str, Any]) -> bool:
     return not mine_open or _year(span.get("P580")) <= _year(other.get("P580"))
 
 
-def per_holder(position: dict[str, Any] | None) -> bool:
-    """Whether Wikidata keeps one statement per holder of this office, not one per term.
-
-    Reach for this before writing a person's several spells of an office: a
-    deputy of the National People's Congress carries one statement however
-    many congresses they sat in, and one written per term beside it breaks
-    the community's record of the office. Too few holders to measure, or
-    none counted, is read as per-term, the way every office was written
-    before.
-    """
-    holders = (position or {}).get("statement_holders")
-    repeat = (position or {}).get("repeat_holders")
-    if holders is None or repeat is None or holders < PER_HOLDER_MIN_HOLDERS:
-        return False
-    return repeat / holders < PER_TERM_SHARE
-
-
-def _start_order(value: dict[str, Any]) -> tuple[float, int, float]:
-    """Order starts by year, the finer of one year first, then by day."""
-    return (_year(value) or 0, -value.get("precision", 0), _bound(value, 0) or 0.0)
-
-
-def _source_key(source: dict[str, Any]) -> tuple[str, ...]:
-    return tuple(str(source.get(k) or "") for k in ("lang", "url", "rev", "quote"))
-
-
-def _closed(span: dict[str, Any]) -> bool:
-    return isinstance(span.get("P582"), dict)
-
-
-def fold_spells(
-    spells: Sequence[tuple[int, dict[str, Any]]],
-) -> list[tuple[int, dict[str, Any], list[int]]]:
-    """Join a person's spells of a per-holder office into the one span Wikidata records.
-
-    A deputy whose article dates the 13th and the 14th congress apart, each
-    with no end, was written as the 14th alone, since only it passed the
-    open-tenure rule, and the item read as if they took the seat in 2023.
-    Spells join while each starts no later than the year after the one
-    before it ended or, where that one gives no end, within
-    `FOLD_GAP_YEARS` of its start; a gap starts a new span, since one
-    across it would claim years no article dated. Two closed spells that
-    overlap without touching are two readings of one term in dispute, not
-    two terms, and join nothing: `spell_conflicts` judges them as before.
-
-    Returns each span of two or more spells as (carrier, qualifiers,
-    members), members oldest first: the carrier is the earliest spell, the
-    span runs from the earliest start to the latest end, or stays open when
-    the newest spell is (of spells starting in its year, one the article
-    gave an end closes it), and its `_sources` are every member's, so the
-    verifier reads every quote the span rests on. The carrier's own
-    qualifiers are kept in `_unfolded`. A spell with no start joins nothing.
-    """
-    dated = [(pid, span) for pid, span in spells if _year(span.get("P580")) is not None]
-    disputed = {pid for pid, span in dated for other_id, other in dated
-                if other_id != pid and _closed(span) and _closed(other) and _disputed(span, other)}
-    dated = sorted(
-        ((pid, span) for pid, span in dated if pid not in disputed),
-        key=lambda item: (_start_order(item[1]["P580"]), item[0]),
-    )
-    chains: list[list[tuple[int, dict[str, Any]]]] = []
-    reach = 0
-    for pid, span in dated:
-        start = _year(span["P580"]) or 0
-        if not chains or start > reach:
-            chains.append([])
-            reach = start
-        chains[-1].append((pid, span))
-        end = _year(span.get("P582"))
-        reach = max(reach, end + 1 if end is not None else start + FOLD_GAP_YEARS)
-    out = []
-    for chain in chains:
-        if len(chain) < 2:
-            continue
-        carrier, first = chain[0]
-        newest = max(_year(span["P580"]) or 0 for _pid, span in chain)
-        own = {k: v for k, v in first.items() if k != "_unfolded"}
-        qualifiers = {k: v for k, v in own.items() if k not in ("P580", "P582", "_sources")}
-        qualifiers["P580"] = first["P580"]
-        if any(_closed(span) for _pid, span in chain if _year(span["P580"]) == newest):
-            ends = [span["P582"] for _pid, span in chain if _closed(span)]
-            qualifiers["P582"] = max(ends, key=lambda v: (_bound(v, 1) or 0.0, v.get("precision", 0)))
-        sources: dict[tuple[str, ...], dict[str, Any]] = {}
-        for _pid, span in chain:
-            for source in span.get("_sources") or []:
-                sources.setdefault(_source_key(source), source)
-        if sources:
-            qualifiers["_sources"] = list(sources.values())
-        qualifiers["_unfolded"] = own
-        out.append((carrier, qualifiers, [pid for pid, _span in chain]))
-    return out
-
-
 def family_kinds(position: dict[str, Any], use: Counter[str] | dict[str, int]) -> set[str]:
     """The kinds an office declares that name one office, not a class of many.
 
@@ -861,13 +746,6 @@ def family_conflicts(
                 out[pid] = "contested/twin"
                 break
     return out
-
-
-def folded(case: Case) -> Disposition | None:
-    """A spell folded into a sibling's span of the same office, which carries it."""
-    if case.property == "P39" and case.folded_into is not None:
-        return _skip("folded")
-    return None
 
 
 def sibling_spell(case: Case) -> Disposition | None:
@@ -981,7 +859,7 @@ def tenure_ended(case: Case) -> Disposition | None:
     """A tenure that ended a generation ago is a biography, not who holds office now."""
     if case.property != "P39":
         return None
-    latest = _year(case.tenure("P582")) or _year(case.latest_start())
+    latest = _year(case.tenure("P582")) or _year(case.last_start())
     today = case.today or date.today()
     if latest is not None and latest < today.year - P39_MAX_ENDED_YEARS:
         return _skip("tenure_ended")
@@ -999,11 +877,12 @@ def open_unattested(case: Case) -> Disposition | None:
     quote beside a home one. An ambassadorship or a council seat needs an
     infobox's (`INFOBOX`): a council's elections are rarely written up in its
     members' articles, so "where he currently serves" outlives the seat.
-    A folded span is judged by its newest spell's start.
+    A career dated from several terms is judged by its last term's start
+    (`Case.last_start`).
     """
     if case.property != "P39" or case.tenure("P582") is not None:
         return None
-    start = _year(case.latest_start())
+    start = _year(case.last_start())
     today = case.today or date.today()
     if start is None or start > today.year - OPEN_TERM_YEARS:
         return None
@@ -1313,13 +1192,10 @@ def open_superseded(case: Case) -> Disposition | None:
     government took office belongs to an earlier government: a minister kept
     on is reappointed, and the article that has not caught up says
     "incumbent" of the cabinet before.
-
-    A folded span is judged by its newest spell's start, as every one of
-    these asks whether the person still holds the seat.
     """
     if case.property != "P39" or case.position is None:
         return None
-    start = case.latest_start()
+    start = case.last_start()
     if start is None or case.tenure("P582") is not None:
         return None
     today = case.today or date.today()
@@ -1395,7 +1271,6 @@ RULES: tuple[Rule, ...] = (
     resolution_weak,
     lower_seat,
     other_polity,
-    folded,
     tenure_ended,
     open_unattested,
     undated_tenure,
@@ -1420,17 +1295,11 @@ RULES: tuple[Rule, ...] = (
 )
 #: The rule that applies when none of the others does.
 ACCEPT_RULE = "supported"
-#: The rules a spell must pass on its own to join a per-holder span: all but
-#: those that ask whether the tenure is still held, which the span is asked by
-#: its newest spell, and those that run after the fold.
-FOLD_RULES: tuple[Rule, ...] = tuple(rule for rule in RULES if rule not in (
-    tenure_ended, open_unattested, open_superseded, sibling_spell, unverified, verify_refused,
-))
 
 
-def decide(case: Case, rules: Sequence[Rule] = RULES) -> Disposition:
+def decide(case: Case) -> Disposition:
     """Run the rules in order and return the first disposition, or accept."""
-    for rule in rules:
+    for rule in RULES:
         found = rule(case)
         if found is not None:
             return found
@@ -1469,9 +1338,7 @@ def office_spells(offices: Sequence[str]) -> dict[str, list[OfficeSpell]]:
 
     A successor this run is about to write is as much a successor as one on
     record, so the proposals count; one the policy skipped measures the office
-    -- its cohorts, its term -- and is not taken for a successor. A spell
-    folded into a span is still the day its holder took up a new term, and
-    counts as the span does.
+    -- its cohorts, its term -- and is not taken for a successor.
     """
     out: dict[str, list[OfficeSpell]] = {}
     for office, spells in positions.holder_spells(offices).items():
@@ -1479,18 +1346,13 @@ def office_spells(offices: Sequence[str]) -> dict[str, list[OfficeSpell]]:
     if not offices:
         return out
     rows = db.conn().execute(
-        "SELECT p.value->>'id', p.person_qid, p.qualifiers, p.status, p.decided_by,"
-        " (SELECT c.status FROM proposal c WHERE c.person_qid = p.person_qid"
-        "  AND c.value = p.value AND c.qualifiers ? '_unfolded'"
-        "  AND p.decided_by = %s LIMIT 1)"
-        " FROM proposal p"
-        " WHERE p.property = 'P39' AND p.value->>'id' = ANY(%s) AND p.status = ANY(%s)",
-        (DECIDER + folded.__name__, list(offices), [*LIVE_SPELL_STATUSES, SKIPPED]),
+        "SELECT value->>'id', person_qid, qualifiers, status FROM proposal"
+        " WHERE property = 'P39' AND value->>'id' = ANY(%s) AND status = ANY(%s)",
+        (list(offices), [*LIVE_SPELL_STATUSES, SKIPPED]),
     )
-    for office, person, qualifiers, status, _by, carrier in rows:
+    for office, person, qualifiers, status in rows:
         out.setdefault(office, []).append(OfficeSpell(
-            person, _endpoints(unfolded(qualifiers)),
-            live=status in LIVE_SPELL_STATUSES or carrier in LIVE_SPELL_STATUSES,
+            person, _endpoints(qualifiers or {}), live=status in LIVE_SPELL_STATUSES,
         ))
     return out
 
@@ -1540,11 +1402,17 @@ def person_cases(
             office["names_zh"] = names.get(office_qid) or []
     state_qid = _state_qid(person["country"])
     seed_lang = _seed_lang(qid)
+    keys = {
+        row["id"]: verify.content_key(qid, row["property"], row["value"], row["qualifiers"])
+        for row in rows
+    }
+    verified = verify.recorded_many(list(keys.values()))
     by_property: dict[str, list[tuple[dict[str, Any], str]]] = {}
     for row in rows:
         by_property.setdefault(row["property"], []).append((row["value"], row["status"]))
     out = []
     for row in rows:
+        verification = verified.get(keys[row["id"]])
         siblings = [
             (value, status) for value, status in by_property.get(row["property"], [])
             if value != row["value"]
@@ -1556,11 +1424,10 @@ def person_cases(
                 "kind": row["kind"], "confidence": row["confidence"], "qid": row["office"],
                 "jurisdiction": row["jurisdiction"], "title": row["title"],
             }
-        qualifiers = unfolded(row["qualifiers"])
         out.append((row["id"], Case(
             property=row["property"],
             value=row["value"],
-            qualifiers=qualifiers,
+            qualifiers=dict(row["qualifiers"] or {}),
             proposed=proposed if proposed in PROPOSED else "new",
             quote=row["quote"],
             lang=row["source_lang"],
@@ -1570,6 +1437,9 @@ def person_cases(
             seed_lang=seed_lang,
             resolution=resolution,
             position=offices.get(row["value"].get("id")) if row["property"] == "P39" else None,
+            verification=None if verification is None else {
+                "verdict": verification.verdict, "confidence": verification.confidence,
+            },
             review=row["review"],
             siblings=siblings,
             office_spells=None if spells is None or row["property"] != "P39"
@@ -1581,17 +1451,6 @@ def person_cases(
             state_span=(state_spans or {}).get(row["value"].get("id", "")) if row["property"] == "P27" else None,
             today=today,
         )))
-    by_id = {pid: case for pid, case in out}
-    _fold(out)
-    keys = {
-        pid: verify.content_key(qid, case.property, case.value, case.qualifiers)
-        for pid, case in out
-    }
-    verified = verify.recorded_many(list(keys.values()))
-    for pid, case in out:
-        found = verified.get(keys[pid])
-        if found is not None:
-            case.verification = {"verdict": found.verdict, "confidence": found.confidence}
     # Spells are judged against each other only among the rows every other
     # rule lets through: a spell a rule has already set aside -- a rename the
     # reconciler was unsure of, a tenure before the polity -- is not going to
@@ -1600,6 +1459,7 @@ def person_cases(
     # article's account of the tenure, and its twin on another item of the
     # same office is the same tenure, ended as surely.
     spells: dict[str, list[tuple[int, dict[str, Any]]]] = {}
+    by_id = {pid: case for pid, case in out}
     for pid, case in out:
         found = decide(case) if case.property == "P39" else None
         if found is not None and (found.status != SKIPPED
@@ -1613,60 +1473,6 @@ def person_cases(
     ).items():
         by_id[pid].spell_conflict = conflict
     return out
-
-
-def unfolded(qualifiers: dict[str, Any] | None) -> dict[str, Any]:
-    """A proposal's own spell, before any earlier run folded it into a span.
-
-    The span is re-derived every run, so a changed sibling or a re-measured
-    office folds afresh rather than folding the stored span again.
-    """
-    stored = dict(qualifiers or {})
-    return dict(stored.get("_unfolded") or stored)
-
-
-#: The rules that ask whether a tenure is still held. A span they refuse is
-#: cut back to the spells before its newest, which is then judged alone.
-STILL_HELD = ("tenure_ended", "open_unattested", "open_superseded")
-
-
-def _fold(cases: Sequence[tuple[int, Case]]) -> None:
-    """Fold one person's spells of each per-holder office into its spans, in place.
-
-    Only spells every rule but the still-held ones lets through join
-    (`FOLD_RULES`): a rename the reconciler was unsure of is not part of
-    the tenure. A span the still-held rules refuse loses its newest spell
-    until it passes or is one spell: a closed term followed by an open one
-    no article calls current is the closed term, as it was before spells
-    were folded. The carrier takes the span's qualifiers and its spells; the
-    others are pointed at it and skipped as `folded`.
-    """
-    groups: dict[str, list[tuple[int, Case]]] = {}
-    for pid, case in cases:
-        if case.property == "P39" and per_holder(case.position):
-            groups.setdefault(case.value.get("id", ""), []).append((pid, case))
-    for group in groups.values():
-        eligible = [(pid, case) for pid, case in group
-                    if decide(case, FOLD_RULES).status != SKIPPED]
-        by_id = dict(eligible)
-        for _carrier, _qualifiers, members in fold_spells(
-            [(pid, case.qualifiers) for pid, case in eligible]
-        ):
-            while len(members) > 1:
-                (carrier, qualifiers, joined), = fold_spells(
-                    [(pid, by_id[pid].qualifiers) for pid in members])
-                trial = replace(by_id[carrier], qualifiers=qualifiers,
-                                folded=[by_id[pid].qualifiers for pid in joined])
-                found = decide(trial)
-                if found.status == SKIPPED and found.rule.split("/")[0] in STILL_HELD:
-                    members = members[:-1]
-                    continue
-                by_id[carrier].folded = trial.folded
-                by_id[carrier].qualifiers = qualifiers
-                for pid in joined:
-                    if pid != carrier:
-                        by_id[pid].folded_into = carrier
-                break
 
 
 _POLITIES: dict[str, dict[str, list[str]]] = {}
@@ -1793,19 +1599,8 @@ def _strike(rows: list[dict[str, Any]], reason: str, by: str, country: str) -> N
                                    country, reason, AUDITOR + by, ours=False)
 
 
-def record(proposal_id: int, disposition: Disposition,
-           qualifiers: dict[str, Any] | None = None) -> None:
-    """Write one disposition, keeping the status `propose` gave the row.
-
-    `qualifiers`, when given, replace the row's: a folded span is what the
-    verifier reads and `send` writes, and a span no longer folded goes back
-    to the spell it was.
-    """
-    if qualifiers is not None:
-        db.conn().execute(
-            "UPDATE proposal SET qualifiers = %s WHERE id = %s",
-            (Jsonb(qualifiers) if qualifiers else None, proposal_id),
-        )
+def record(proposal_id: int, disposition: Disposition) -> None:
+    """Write one disposition, keeping the status `propose` gave the row."""
     db.conn().execute(
         "UPDATE proposal SET proposed_status = coalesce(proposed_status, status),"
         " status = %s, decided_by = %s, decided_at = now() WHERE id = %s",
@@ -1891,11 +1686,9 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
 
     The one thing here that reaches the network: an office nobody has asked
     the first-holder question about is asked it once, so `tenure_before_record`
-    reads a filled column rather than silence; an office whose holders'
-    statements were never counted is counted once, for `per_holder`; and a
-    state whose offices' kinds were never read has them read once, so
-    `family_conflicts` counts the whole table rather than the part that
-    happened to be loaded since. Every
+    reads a filled column rather than silence; and a state whose offices'
+    kinds were never read has them read once, so `family_conflicts` counts the
+    whole table rather than the part that happened to be loaded since. Every
     office's holders and dissolution, and each state's head of government,
     are read live once per run, for `open_superseded`; and the states the
     citizenships name are dated, for `citizenship_before_state`.
@@ -1907,9 +1700,6 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     unfilled = positions.unfilled_first_held(offices)
     if unfilled:
         positions.fill_first_held(unfilled)
-    unfilled = positions.unfilled_repeat_holders(offices)
-    if unfilled:
-        positions.fill_repeat_holders(unfilled)
     unfilled = positions.unfilled_kinds(states_of(qids))
     if unfilled:
         positions.fill_kinds(unfilled)
@@ -1923,8 +1713,7 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
             disposition = decide(case)
             funnel.add(case, disposition)
             if write:
-                record(proposal_id, disposition,
-                       case.qualifiers if case.property == "P39" else None)
+                record(proposal_id, disposition)
     return funnel
 
 
