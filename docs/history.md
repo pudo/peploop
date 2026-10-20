@@ -296,6 +296,27 @@ Switzerland (2026-10-17/18), nothing sent.
   `unclear`: the largest visible gap, with bodies on official holdings lists
   whose articles never say who owns them.
 
+- **Silence, a stake and a list are three things.** The re-run split
+  `unclear` (a stake named without control) from `unstated` (nothing said):
+  only silence lets an official holdings list or a state-only form prove a
+  body the state's. Lists seeded from Wikipedia or Wikidata are no proof,
+  and a public-law form churches and municipalities share (Anstalt des
+  öffentlichen Rechts) is no state-only form: it wrote a state marker on
+  two church pension funds.
+- **Statutory bodies, written.** Public broadcasters, central banks and
+  regulators now pass whatever their legal form (SRG SSR is an association
+  with a licence); the class is written where the item lacks it. The model
+  stretches "regulator" to watchdogs, patent offices and registries: the
+  residue the samples found most often.
+- **The polity is not every owner.** Rewriting any government body named
+  as owner to the polity also rewrote a holding central bank (Hungarian
+  Mint); provinces listed beside a majority holder came back as owners
+  (Polregio: all 16 voivodeships). A body the run writes as an enterprise
+  or institution owns as itself; a province beside a national holder is a
+  co-owner; no polity beside a state holder the item names.
+- **An infobox head may be an interim's.** 126 heads left open while the
+  article names a later one are now skipped (TV5 Monde's interim CEO).
+
 The dry run: 3,938 lines on 26 countries for about $185 of model calls
 (pilots and superseded runs included); precision samples 18–20 of 20 per
 country after spec fixes; 10 marker removals proposed (municipal or
@@ -306,6 +327,7 @@ interim policy calls were logged for the user before one re-run.
 |---|---|---|---|
 | Germany | 10-17 | first batch: 51 statements on 10 bodies (DB, KfW, Autobahn GmbH, FBB, dena, Rothaus, SKD, Meyer Werft, Hypo Real Estate); run file 1,022 lines | QS3 60510, 60511 (retry); 60476, 60487 (categories, role item) |
 | Netherlands | 10-17 | nothing yet; run file 179 lines | — |
+| EU-27 + Switzerland | 10-19 – 10-20 | re-run on the user's policy answers, nothing sent: 6,189 lines (de 1,164, se 666, fr 588, es 546, pl 425, at 269, it 253, fi 249, nl 239, ch 224, be 210, cz 205, dk 144, ee 135, lt 115, bg 113, ro 111, hu 105, lu 82, hr 52, lv 52, pt 50, ie 47, gr 41, si 41, sk 37, mt 16, cy 10); 13 municipal marker removals proposed; samples 84–90% correct, 2–4% wrong (542 lines); ~$171 | — |
 | EU-25 + Switzerland | 10-17 – 10-18 | dry run, nothing sent: 3,938 lines (se 610, fr 487, pl 366, fi 256, at 255, es 230, it 223, cz 212, be 170, ch 162, dk 122, ee 115, ro 100, lt 97, hu 89, bg 84, lu 58, hr 51, lv 51, pt 44, ie 39, si 34, sk 32, gr 26, mt 16, cy 9) | — |
 
 ## The campaign toolkit (`old/`)

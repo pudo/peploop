@@ -329,3 +329,26 @@ spec `actors` before asking (49).
 11. **Anchor-text name resolution** (C's inflected-language finding: 7 of
     10 unresolved controllers in the Polish pilot). Implemented, not a
     policy call; noted because it also lifts person linking everywhere.
+
+## Re-run 2026-10-19/20: what is still open
+
+6,189 lines on 28 countries, nothing sent; samples 84–90% correct, 2–4%
+wrong. Fixed by rule after the samples: official lists only, a form proves
+its own kind, central bank as holder, co-owning provinces, superseded
+heads, unsourced classes, no polity beside a state holder.
+
+Residue that needs a prompt change (a re-ask) to fix:
+- "regulator" stretched to watchdogs, patent offices, registries, an
+  anti-doping agency (hu Fiscal Council, pt INPI, mt registry);
+- founding or "a state institute" read as `P127` (it FS foundation, lu CNA);
+- undated board snapshots and end dates taken from events (arrests);
+- an artistic director or conductor as head where a manager is named;
+- seats from a link to a namesake (fi Ruokavirasto, mt exchange);
+- a minister's statutory supervision refused as parent (pl NFOŚiGW, ZUS);
+- a one-tier plc board's chair written as supervisory chair (mt).
+
+For the user:
+- 13 municipal marker removals (lv 4, de 4, it 3, at 1, ch 1), all checked
+  right except Bremer Straßenbahn: city of Bremen inside the city-state,
+  which the spec says is never corrected to municipal.
+- es ministry units: 241 lines, 43% of es, mostly 2004–2012 tenures.
