@@ -505,6 +505,92 @@ def main() -> int:
     check("a P39 flagged by its siblings is skipped under that name",
           policy.decide(case(spell_conflict="contested")), policy.SKIPPED, "contested")
 
+    print("several spells of a per-holder office:")
+    per_holder = office(statement_holders=8241, repeat_holders=7)
+    per_term = office(statement_holders=4621, repeat_holders=3021)
+
+    def spell(start: str, end: str | None = None, quote: str = "全国人民代表大会代表") -> dict[str, Any]:
+        out = {"P580": time(start), "_sources": [{"lang": "zh", "url": "u", "rev": 1, "quote": quote}]}
+        if end:
+            out["P582"] = time(end)
+        return out
+
+    def spells(position: dict[str, Any], *spans: dict[str, Any]) -> list[tuple[int, policy.Case]]:
+        cases = [(pid, case(qualifiers=dict(span), lang="zh", seed_lang="zh", position=position))
+                 for pid, span in enumerate(spans, start=1)]
+        policy._fold(cases)
+        return cases
+
+    def outcome(cases: list[tuple[int, policy.Case]]) -> policy.Disposition:
+        rules = [f"{pid}:{policy.decide(c).rule}" for pid, c in cases]
+        return policy.Disposition(policy.PENDING, " ".join(rules))
+
+    # Sun Jianguo: the 13th congress from 2018 and the 14th from 2023, both open.
+    sun = spells(per_holder, spell("2018", quote="2018年当选第十三届全国人大代表"),
+                 spell("2023", quote="2023年当选第十四届全国人大代表"))
+    check("a deputy's two open congresses fold into the first, judged by the newer start",
+          outcome(sun), policy.PENDING, "1:unverified 2:folded")
+    carrier = sun[0][1]
+    ok = ("P582" not in carrier.qualifiers and carrier.qualifiers["P580"] == time("2018")
+          and len(carrier.qualifiers["_sources"]) == 2
+          and carrier.qualifiers["_unfolded"]["P580"] == time("2018"))
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} the span starts in 2018, stays open and quotes both")
+    refolded = [(pid, case(qualifiers=policy.unfolded(c.qualifiers), lang="zh", seed_lang="zh",
+                           position=per_holder)) for pid, c in sun]
+    policy._fold(refolded)
+    ok = refolded[0][1].qualifiers == carrier.qualifiers
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} folding a stored span again gives the same span")
+    # Wang Suilian: the 13th congress from 2018 and nothing after.
+    check("a single old open spell is still refused",
+          outcome(spells(per_holder, spell("2018-02-24"))), policy.PENDING, "1:open_unattested")
+    closed_two = spells(per_holder, spell("2013", "2018"), spell("2018", "2023"))
+    check("two closed terms fold into one closed span",
+          outcome(closed_two), policy.PENDING, "1:unverified 2:folded")
+    ok = closed_two[0][1].qualifiers.get("P582") == time("2023")
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} ending where the later term ends")
+    check("a closed term then an open one nobody calls current is the closed term alone",
+          outcome(spells(per_holder, spell("2013", "2018"), spell("2018"))),
+          policy.PENDING, "1:unverified 2:open_unattested")
+    same = spells(per_holder, spell("2013-06-09", "2017-07-25"), spell("2013"))
+    check("an open reading of a closed term's start folds into it, closed",
+          outcome(same), policy.PENDING, "1:unverified 2:folded")
+    ok = same[0][1].qualifiers.get("P582") == time("2017-07-25")
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} keeping the end the article gave")
+    check("two closed readings of one term in dispute join nothing",
+          outcome(spells(per_holder, spell("2022-08-24", "2024-06-06"), spell("2023-01", "2024-06-06"))),
+          policy.PENDING, "1:unverified 2:unverified")
+    check("a gap between terms is two spans, each judged alone",
+          outcome(spells(per_holder, spell("2003", "2008"), spell("2013", "2018"))),
+          policy.PENDING, "1:unverified 2:unverified")
+    check("as is an open spell followed only after more than a term",
+          outcome(spells(per_holder, spell("2008"), spell("2018"))),
+          policy.PENDING, "1:open_unattested 2:open_unattested")
+    check("a per-term office keeps one statement per spell",
+          outcome(spells(per_term, spell("2018"), spell("2023"))),
+          policy.PENDING, "1:open_unattested 2:unverified")
+    check("at a tenth of holders repeating, the office is per-term",
+          outcome(spells(office(statement_holders=30, repeat_holders=3), spell("2018"), spell("2023"))),
+          policy.PENDING, "1:open_unattested 2:unverified")
+    check("just under a tenth, per-holder",
+          outcome(spells(office(statement_holders=31, repeat_holders=3), spell("2018"), spell("2023"))),
+          policy.PENDING, "1:unverified 2:folded")
+    check("with too few holders to measure, per-term",
+          outcome(spells(office(statement_holders=9, repeat_holders=0), spell("2018"), spell("2023"))),
+          policy.PENDING, "1:open_unattested 2:unverified")
+    check("and so with none counted",
+          outcome(spells(office(), spell("2018"), spell("2023"))),
+          policy.PENDING, "1:open_unattested 2:unverified")
+    refused = [(1, case(qualifiers=spell("2018"), lang="zh", seed_lang="zh",
+                        position=per_holder, resolution=None)),
+               (2, case(qualifiers=spell("2023"), lang="zh", seed_lang="zh", position=per_holder))]
+    policy._fold(refused)
+    check("a spell a rule refuses on its own joins no span",
+          outcome(refused), policy.PENDING, "1:resolution/missing 2:unverified")
+
     print("one office on two items:")
     # One interior-minister tenure accepted on both of its state's items: the
     # pt article's dates on the one typed `P31 = interior minister`, the fr

@@ -469,6 +469,27 @@ generic item its community uses *with* a scoping qualifier this pipeline does
 not yet write. Every threshold is a constant at the top of `policy.py`, and
 `check_policy` fabricates one case per rule.
 
+Before any of them, a person's spells of one office are folded where the
+office's community keeps one statement per holder rather than one per term.
+`load-positions` (and the policy, for an office never counted) records how
+many of the office's holders Wikidata has and how many of them carry two or
+more statements for it (`position.statement_holders`, `repeat_holders`);
+under a tenth (`PER_TERM_SHARE`), with at least `PER_HOLDER_MIN_HOLDERS`
+holders, the office is per-holder -- the National People's Congress and the
+CPPCC at about 0.1%, against the Bundestag's 65%. There, the spells every
+rule but the still-held ones (`tenure_ended`, `open_unattested`,
+`open_superseded`) lets through are joined into one span from the earliest
+start to the latest end, open when the newest spell is, on the earliest
+spell's row, carrying every member's sources; the others are skipped as
+`folded`. Spells join only while each continues the one before -- starting
+by the year after it ended, or within `FOLD_GAP_YEARS` of an open one's
+start -- and two closed readings of one term in dispute join nothing. The
+still-held rules judge a span by its newest spell's start, so a deputy of the
+13th and 14th congresses is one statement from 2018 that passes on the 2023
+election; a span they refuse loses its newest spell until it passes or is a
+single spell again. The span is verified as the edit it now is, and the plan
+treats it like any other tenure.
+
 Four rules read a proposal against its *siblings*, which no single reading
 can: a single-valued value another wiki disagrees with is `contested`; among a
 person's several spells of one office, one another spell covers (the open
