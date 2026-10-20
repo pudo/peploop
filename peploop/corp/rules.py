@@ -159,13 +159,14 @@ def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countrie
     return None
 
 
-def proven(item: dict[str, Any] | None, spec: countries.Spec) -> str | None:
+def proven(item: dict[str, Any] | None, spec: countries.Spec, kind: str | None = None) -> str | None:
     """What proves a body the state's apart from its articles: `list` or `form`, else None.
 
     An official holdings list proves it unless the entry is marked a minority
     stake; a wiki page or query is no official list, however it was seeded. A
     state-only legal form (the spec's `forms`, the item's own `P31` or
-    `P1454`, exactly) proves it by itself.
+    `P1454`, exactly) proves a body of its own kind by itself: an authority's
+    form proves no enterprise.
     """
     if not item:
         return None
@@ -173,7 +174,8 @@ def proven(item: dict[str, Any] | None, spec: countries.Spec) -> str | None:
     if seed and not seed.get("minority") and official(seed.get("source")):
         return "list"
     entity = item.get("entity") or {}
-    if {v for p in ("P31", "P1454") for v in wd.values(entity, p)} & set(spec.forms):
+    if any(spec.forms.get(v) in ((kind,) if kind else ("enterprise", "institution"))
+           for p in ("P31", "P1454") for v in wd.values(entity, p)):
         return "form"
     return None
 
@@ -242,7 +244,7 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
         if answer["kind"] == "enterprise" and country:
             rows.append({"property": "P127", "value": item(country), "qualifiers": {"_sources": proof_sources},
                          "_rule": "standin_existing" if set(wd.values(entity, "P127")) & (standins | {country})
-                         else None})
+                         else "holder_existing" if set(wd.values(entity, "P127")) & state else None})
         return rows
     offered = req["offered"]
     if not control["owners"]:
@@ -284,6 +286,10 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
             # The item already names the state's stand-in as owner: that is
             # the state, and a second owner statement would read as two.
             rule = "standin_existing"
+        elif prop == "P127" and qid == country and set(wd.values(entity, "P127")) & (state - {country} - standins):
+            # The item already names a state holder (a state company, a
+            # transport authority): the polity beside it reads as a second owner.
+            rule = "holder_existing"
         elif (req.get("qid", ""), prop, qid) in refused:
             # The narrow check (`verify.py`) found the quote does not state it.
             rule = "link_unverified"
@@ -518,7 +524,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     """
     today = today or date.today()
     spec = spec or countries.get(cc)
-    proofs = {r["qid"]: proven(items.get(r["qid"]), spec) for r in answered}
+    proofs = {r["qid"]: proven(items.get(r["qid"]), spec, r["answer"]["kind"]) for r in answered}
     passed = {r["qid"]: r for r in answered if gate(r["answer"], r["message"], spec.tiers, proofs[r["qid"]]) is None}
     # Bodies the answer gates out but whose existing marker it contradicts.
     marked_now = {qid for qid, it in items.items()

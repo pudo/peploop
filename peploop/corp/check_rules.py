@@ -324,6 +324,8 @@ def policy() -> None:
            "a minority stake on the list proves nothing")
     expect(rules.proven({"seed": None, "entity": ent(P31=["Q900800"])}, spec) == "form", "a state-only form proves it")
     expect(rules.proven({"seed": None, "entity": ent(P31=["Q900801"])}, spec) is None, "another form does not")
+    expect(rules.proven({"seed": None, "entity": ent(P31=["Q900800"])}, spec, "enterprise") is None,
+           "an authority's form proves no enterprise")
     listed = {**base, "answer": silent}
     rows = rules.control_rows(listed, ent(), None, state, {}, country="Q900001", proof="list",
                               seed={"source": "https://list"})
@@ -341,6 +343,11 @@ def policy() -> None:
     links = [r for r in rules.control_rows(treasury, ent(), None, state, {}, country="Q900001",
                                            standins=frozenset({"Q900200"})) if r["property"] == "P127"]
     expect([(r["value"]["id"], r["_rule"]) for r in links] == [("Q900001", None)], "the state treasury as owner is the polity")
+    # The polity is not added beside a state holder the item already names.
+    held = {**base, "answer": answer(owners=((1, "owner"),))}
+    links = [r for r in rules.control_rows(held, ent(P127=["Q900100"]), None, state, {}, country="Q900001",
+                                           standins=frozenset({"Q900200"})) if r["property"] == "P127"]
+    expect([r["_rule"] for r in links] == ["holder_existing"], "no polity beside an existing state holder")
     # Provinces named beside the national holder that leads are co-owners.
     shared = {**base, "offered": ["Q900100", "Q900002"], "answer": answer(owners=((0, "owner"), (1, "owner")))}
     links = [r for r in rules.control_rows(shared, ent(), None, state | {"Q900002"}, {},

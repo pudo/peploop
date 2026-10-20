@@ -39,14 +39,15 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   item that already names it keeps it. A central bank, an agency or another
   body the run itself writes as an enterprise or institution owns in its own
   right and is linked as itself. A province named beside a national holder
-  that leads is a co-owner and gets no link (`co_owner`). A chain of these links to the state, a first-level
+  that leads is a co-owner and gets no link (`co_owner`); nor is the polity
+  added beside a state holder the item already names (`holder_existing`). A chain of these links to the state, a first-level
   subdivision or a government body of either is the evidence of control.
   No shares, sizes or control arithmetic: control is what the article says
   in words, never read from share figures, which go stale. Where the
   articles say nothing about who owns a body, the spec's official holdings
   list (cited by `P854`, unless the entry is a minority stake; a wiki page
   or a query is no official list) or a
-  state-only legal form proves it the state's at the national tier: an
+  state-only legal form of the body's own kind proves it the state's at the national tier: an
   enterprise is then owned by the polity, an institution gets its seats and
   no link.
 - A statutory body with no owner -- a public broadcaster, a central bank, a

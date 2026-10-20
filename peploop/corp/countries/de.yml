@@ -34,8 +34,7 @@ forms:
   - {qid: Q99934885, kind: institution, name: Bundesoberbehörde}  # 38
   - {qid: Q1005420, kind: institution, name: Bundesamt}  # 19
   - {qid: Q314024, kind: institution, name: Bundesbehörde}  # 16
-  - {qid: Q67207116, kind: institution, name: Anstalt des öffentlichen Rechts}  # 52
-  - {qid: Q20050667, kind: institution, name: Stiftung des öffentlichen Rechts}  # 27
+  # Not Anstalt or Stiftung des öffentlichen Rechts: churches and municipalities use them too.
   - {qid: Q1507070, kind: institution, name: Landesbetrieb}  # 2
 
 roles: []
