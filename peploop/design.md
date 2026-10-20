@@ -329,8 +329,8 @@ queue) has the mechanics; the decisions are these.
   states' items (`docs/research/position_items.md` §10), and the metaclass and
   parent taken from the state's own offices where they agree. A model drafts
   labels and picks a body; it does not invent a data model per item.
-- **Unsupervised, like the rest of the loop.** Categorize clusters and drafts,
-  a verifier of another model family reads each office against its evidence
+- **Unsupervised up to the send, like the rest of the loop.** Categorize
+  clusters and drafts, a verifier of another model family reads each office against its evidence
   and the live duplicates, and `offices.guard` vetoes mechanically. An item is
   created when all three agree; anything else is `skipped` under the rule that
   says which stage disagreed, or `found` when the item turns out to exist. No
@@ -556,7 +556,9 @@ in flight is found again by the batch's name rather than sent twice. It is a
 **dry run by default**: it pre-flights and plans every person with accepted
 rows and writes the lines to `data/peploop/send/<cc>.qs`, counted by route;
 `--submit` sends them, then the approved removals as a batch of their own,
-waits, and settles each row `applied` or `failed` from what is live.
+waits, and settles each row `applied` or `failed` from what is live. Every
+decision before it is unsupervised; the send itself, of every lane, goes out
+in coordination with the user.
 
 Nobody on Wikidata knows these tools, so an edit says what it is for and
 never how it was made. Its batch is named by objective (`Politically exposed

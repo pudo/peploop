@@ -97,8 +97,8 @@ sweeping agent turns each flag that proves real into a rule in `rules.py` with
 a case in `check_rules.py`, or a strike, then marks the batch `reviewed`;
 `tree sweep table` rewrites the other columns.
 
-Only reviewed places go out. `tree send` (`outbox.py`) reconciles the joint send
-ledger, takes every reviewed place's latest run file, drops what went out
+Only reviewed places go out, and only with the user. `tree send` (`outbox.py`)
+reconciles the joint send ledger, takes every reviewed place's latest run file, drops what went out
 before, what a reviewer struck and what is already live, and writes the rest
 to `data/peptree/send/pending.qs`; `tree send --submit` sends it as one QS3 batch,
 then the approved removals as another. A line is plain (no `+`): it merges

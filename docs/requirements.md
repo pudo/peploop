@@ -1,8 +1,7 @@
 # Requirements
 
 - 2026-10-12: The key goal of this package is to run autonomous country
-  sweeps, not to prompt the user every five minutes. No prompting the user
-  for sends, removals and the like.
+  sweeps, not to prompt the user every five minutes.
 - 2026-10-12: Keep this file with only the requirements the user states
   directly, not answers to questions. Every time the user states one, note it
   down. It is a statement of intent: the LLM is not authorized to expand the
@@ -43,3 +42,5 @@
   ambition would be that we check by name in a fuzzy manner but then set
   pretty strict standards for the resulting wikipedia pages. They need to
   mention at least the industry or domain, ideally the institution"
+- 2026-10-20: "sending should be done in coordination with the user, even in
+  cases where an autonomous/unsupervised sweep is being conducted."

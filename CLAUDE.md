@@ -20,15 +20,19 @@ Open work: `plans/peploop_next.md`, `plans/peptree_next.md`,
 `plans/pepcorp_next.md`; what was learned:
 `docs/history.md` (read before re-measuring). `old/` is retired: never use it.
 
-## Sweeps run unattended
+## Sweeps run unattended; sends go with the user
 
-A country sweep runs end to end without checking in -- every stage and
-`--submit`, undoing our own edits, model spend, rule fixes, local commits --
-replacing the global pacing rules here. A git push, merging items, changing
-ranks, or removing a statement not provably ours waits for the closing report,
-asked once. A sweep is done when every stage has run, its sends are audited
-and its history.md line is written; people without an article, offices no
-article attests and units without an item are residue listed there, not asked.
+A country sweep runs every stage to its dry run without checking in -- model
+spend, audits, rule fixes, local commits -- replacing the global pacing rules
+here. Every write to Wikidata (`--submit`, `removals approve`, `wb`) is sent
+in coordination with the user, even inside an unattended sweep: the sweep
+ends with its audited dry-run lines and a send proposal (lines by property,
+flags, tranches), and they go out as the user agrees. A git push, merging
+items, changing ranks, or removing a statement not provably ours joins that
+closing report. A sweep is done when every stage has run, its sends are
+proposed or sent and audited, and its history.md line is written; people
+without an article, offices no article attests and units without an item are
+residue listed there, not asked.
 
 ## Requirements
 

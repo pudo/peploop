@@ -169,7 +169,8 @@ are written by default; a spec names its own.
    seats whose person is neither linked nor matched, control the articles
    leave unclear.
 5. **send** (`outbox.py`): the latest run file through the joint send ledger,
-   once per line; `--qid` limits a batch to chosen bodies.
+   once per line; `--qid` limits a batch to chosen bodies. `--submit` goes
+   out with the user, like every send.
 
 ## Layout
 

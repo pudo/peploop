@@ -183,7 +183,9 @@ a `maxlag` wait is a retry, not a bug.
 | `send` (dry) | routes (create, merge, switch, and what closes without a line: `exists`, `termed`, `ambiguous-statement`, …), lines, rows deferred |
 | `send --submit` | the QS3 batch id and EditGroups link, rows applied and failed (`send --status`); failed lines go again with `--retry` |
 
-Every stage goes straight on to the next. A class the rules do not explain
+Every stage goes straight on to the next, up to the sends: `mint --submit`,
+`send --submit` and `removals approve` go out with the user, after the dry
+run's lines are audited. A class the rules do not explain
 becomes a rule with its check, in the run, before the next spend; for `mint`
 that is a rule in `mint.RULES` with a case in `check_mint`, never a ruling on a
 row.
@@ -214,9 +216,9 @@ What a doubtful class becomes: a rule, with its case, and a re-run of the
 policy. A row already written is taken back by the same `audit proposal`: it
 strikes the statement, and the strike queues its removal by statement id --
 approved at once when the statement is provably only ours, `proposed` for
-`removals approve` otherwise -- which the next `send --submit` sends. A large
-class can still be reverted whole on EditGroups. peploop never removes
-anything nobody approved.
+`removals approve` otherwise, with the user -- which the next `send --submit`
+sends. A large class can still be reverted whole on EditGroups. peploop never
+removes anything nobody approved.
 
 ## 6. Closing a country
 
