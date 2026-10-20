@@ -147,8 +147,10 @@ def main() -> int:
            "a QID in a description is refused")
     expect(offices.describe(judge(), LABELS), "president of the Supreme Tribunal of Aland",
            "describe fills the template from resolved labels")
-    expect(offices.describe(judge(), {STATE: "Aland"}), None,
+    expect(offices.describe(judge(), {}), None,
            "and gives nothing rather than a QID when a label is missing")
+    expect(offices.describe(judge(), {STATE: "Aland"}), "president of a court of Aland",
+           "a body with no English label is described by its polity")
     expect(offices.describe(governor(), {PROVINCE: PROVINCE}), None,
            "or when the label it resolved is itself a QID")
     party = judge(archetype="party_leader", body_qid=None, labels={"en": "President of the Party"})
@@ -166,6 +168,28 @@ def main() -> int:
            "and the fallback still refuses an unresolved polity")
     expect(offices.describe(judge(archetype="soe_head", body_qid=None), LABELS),
            "head of a state enterprise of Aland", "an unscoped enterprise is said of the state")
+    han = {**LABELS, BODY: "布雷省高级人民法院"}
+    court = judge(jurisdiction_qid=PROVINCE)
+    expect(offices.describe(court, han), "president of a court of Bray Province, Aland",
+           "a body labelled in another script is not named: the polity is, then its state")
+    expect(offices.describe(court, {**han, BODY: "Q0000003"}), "president of a court of Bray Province, Aland",
+           "and neither is a body whose only label is its QID")
+    expect(offices.describe(judge(), {**han, STATE: "阿兰"}), None,
+           "with no English name for the body or the polity, there is no description")
+    secretary = judge(archetype="party_secretary", jurisdiction_qid=PROVINCE)
+    expect(offices.describe(secretary, han), "party secretary in Bray Province, Aland",
+           "a party committee labelled only in its own script is described by the polity it sits in")
+    expect(offices.describe(judge(archetype="speaker", jurisdiction_qid=PROVINCE), han),
+           "presiding officer of a legislative body of Bray Province, Aland", "and a chamber's speaker too")
+    expect(offices.describe(replace(secretary, body_qid=None), han), None,
+           "while one with no party at all still has nothing true to be said of it")
+    expect(offices.describe(judge(labels={"en": "President of the Supreme Tribunal of Aland"}), LABELS), None,
+           "a description that repeats the label, any case, is none")
+    expect(offices.describe(governor(labels={"en": "Governor of Bray Province"}), LABELS),
+           "governor of Bray Province, Aland", "unless naming the state after a narrower polity sets it apart")
+    expect(offices.english_name("Ürümqi") and offices.english_name("Chiết Giang")
+           and not offices.english_name("Москва"), True,
+           "Latin script with its diacritics may stand in a description; Cyrillic may not")
     expect(guard(judge(descriptions={})), ["description/en"], "an office with no description is refused")
     expect(guard(judge(), langs=("xx",)), ["label/xx"], "and one missing a label in a state language")
 

@@ -68,6 +68,8 @@ def ctx(**kw: Any) -> Context:
         siblings=siblings(), closure={SIB_PARENT, "Q83307", "Q1501800", "Q140686"},
         index=[PositionRow("Q950", "Minister of Finance of Alvania", ["minister of Alvania"])],
         labels_of=lambda qids: {q: LABELS[q] for q in qids if q in LABELS},
+        terms=lambda qids: {q: {"labels": {"en": {"language": "en", "value": LABELS[q]}}}
+                            for q in qids if q in LABELS},
         resolve=lambda qids: {q: BODY_ITEM for q in qids if q == BODY},
         run_labels=lambda _cand: [],
         lookup=lambda _text, _lang, _state: [], items=lambda _qids: {},
@@ -454,6 +456,62 @@ def check_build_spec(expect: Any) -> None:
            f"and a first deputy keeps only first-deputy titles: {first}")
     minister = mint.attested_aliases(deputies, {"en": "Minister of Health of Alvania"}, ["Alvania"], "minister")
     expect(minister == {}, f"while a minister's item takes no deputy title, Cyrillic either: {minister}")
+
+    def aliases(titles: list[tuple[str, str]], labels: dict[str, str], archetype: str | None = None,
+                place: dict[str, list[str]] | None = None) -> dict[str, list[str]]:
+        return mint.attested_aliases(
+            [mint.Attestation(person=f"Q{i}", title=t, lang=lang, current=True)
+             for i, (t, lang) in enumerate(titles)], labels, ["中华人民共和国", "China"], archetype, place=place)
+
+    procurator = {"en": "Chief Procurator of Tianjin", "zh": "天津市人民检察院检察长"}
+    tianjin = {"zh": ["天津市"], "zh-hant": ["天津市"], "en": ["Tianjin"]}
+    marked = aliases([("天津市人民检察院党组书记", "zh"), ("天津市人民检察院检察长、党组书记", "zh"),
+                      ("天津市人民檢察院代檢察長", "zh"), ("天津市人民检察院代理检察长", "zh"),
+                      ("天津市检察长", "zh")], procurator, "prosecutor_general", tianjin)
+    expect(marked == {"zh": ["天津市检察长"]},
+           f"a Chinese title of the Party group's post, of several posts, or of an acting holder is no alias: {marked}")
+    governor = {"en": "Governor of Zhejiang", "zh": "浙江省人民政府省长"}
+    zhejiang = {"zh": ["浙江省"], "ja": ["浙江省"], "vi": ["Chiết Giang"], "de": ["Zhejiang"], "en": ["Zhejiang"]}
+    acting = aliases([("副省長兼省長代行", "ja"), ("quyền Tỉnh trưởng tỉnh Chiết Giang", "vi"),
+                      ("Phó Tỉnh trưởng Chiết Giang", "vi"), ("Tỉnh trưởng Chiết Giang", "vi"),
+                      ("kommissarischer Gouverneur der Provinz Zhejiang", "de"),
+                      ("stellvertretender Gouverneur von Zhejiang", "de"), ("浙江省长", "zh"),
+                      ("Governor of Zhejiang Province", "zh")], governor, "governor", zhejiang)
+    expect(acting == {"vi": ["Tỉnh trưởng Chiết Giang"], "zh": ["浙江省长"]},
+           f"nor one concurrently acting, acting or deputy in Japanese, Vietnamese or German,"
+           f" nor an English title in a Chinese one: {acting}")
+    congress = aliases([("浙江省人大常委会主任", "zh"), ("浙江省第十届人大常委会主任", "zh")],
+                       {"en": "Chairman of the Standing Committee of the Zhejiang People's Congress",
+                        "zh": "浙江省人民代表大会常务委员会主任"}, "speaker", zhejiang)
+    expect(congress == {"zh": ["浙江省人大常委会主任"]},
+           f"the 代表 of a people's congress is not an acting mark; one term's chair is no alias: {congress}")
+    secretary = {"en": "Party Secretary of Ningbo", "zh": "中国共产党宁波市委员会书记"}
+    ningbo = {"zh": ["宁波市", "甬"], "en": ["Ningbo"], "ru": ["Нинбо"], "de": ["Ningbo"]}
+    bare = aliases([("中共宁波市委书记", "zh"), ("市委书记", "zh"), ("宁波市委书记", "zh"),
+                    ("Party Secretary", "en"), ("party chief of Ningbo", "en"),
+                    ("Sekretär des Parteikomitees", "de"), ("Bí thư Thành ủy", "vi")],
+                   secretary, "party_secretary", ningbo)
+    expect(bare == {"zh": ["中共宁波市委书记", "宁波市委书记"], "en": ["party chief of Ningbo"],
+                    "vi": ["Bí thư Thành ủy"]},
+           f"a title naming no place is no alias where the label names one; a language the place has"
+           f" no name in keeps its titles: {bare}")
+    sichuan = {"zh": ["四川省"], "ru": ["Сычуань"], "cs": ["S'-čchuan"]}
+    inflected = aliases([("四川政协主席", "zh"), ("председатель НПКСК Сычуани", "ru"),
+                         ("předseda s'čchuanského výboru", "cs"), ("政协主席", "zh")],
+                        {"en": "Chairman of the Sichuan Provincial Committee of the CPPCC",
+                         "zh": "中国人民政治协商会议四川省委员会主席"}, "agency_head", sichuan)
+    expect(inflected == {"zh": ["四川政协主席"], "ru": ["председатель НПКСК Сычуани"],
+                         "cs": ["předseda s'čchuanského výboru"]},
+           f"a place named without its 省, or in a case ending, is still named: {inflected}")
+    university = aliases([("清华大学党委书记", "zh")],
+                         {"en": "Party Secretary of Tsinghua University", "zh": "中国共产党清华大学委员会书记"},
+                         "party_secretary")
+    expect(university == {"zh": ["清华大学党委书记"]},
+           f"a Party committee's own secretary may be called by its 党委: {university}")
+    deputy_zh = aliases([("科学技术部副部长", "zh"), ("科学技术部代理副部长", "zh")],
+                        {"en": "Vice Minister of Science and Technology", "zh": "科学技术部副部长"},
+                        "deputy_minister")
+    expect(deputy_zh == {}, f"a deputy's 副 is its own: only the label's title, already taken, or acting: {deputy_zh}")
     sib = siblings()
     sib.bodies_by_archetype = {"minister": Counter({COUNCIL: 12})}
     sib.bodies_by_scope = {("minister", STATE): Counter({COUNCIL: 12})}
@@ -504,8 +562,12 @@ def check_build_spec(expect: Any) -> None:
            "an agency head keeps a director-general title class, and is a position")
     unlabelled, problems = mint.build_spec(
         cand(draft={"archetype": "legislator", "body_qid": "Q999"}), ctx())
-    expect(unlabelled.descriptions == {} and "description" in problems,
-           "an unresolved body label refuses a description rather than writing a QID")
+    expect(unlabelled.descriptions == {"en": "member of a legislature of Alvania"} and "description" not in problems,
+           "a body with no English label is described by its polity rather than by a QID")
+    bare, problems = mint.build_spec(
+        cand(draft={"archetype": "legislator", "body_qid": "Q999"}), ctx(terms=lambda qids: {}))
+    expect(bare.descriptions == {} and "description" in problems,
+           "and with no English label for the polity either, there is none")
     none, problems = mint.build_spec(cand(draft={"archetype": "ambassador"}), ctx())
     expect(none is None and problems == ["archetype/ambassador"], "no archetype, no spec")
     data = offices.entity_data(spec)
@@ -687,6 +749,8 @@ def check_ledger(expect: Any) -> None:
         named_places = {**LABELS, "Q901": "Ostra", "Q902": "Nada"}
         provinces = ctx(subdivisions=["Q901", "Q902"],
                         labels_of=lambda qids: {q: named_places[q] for q in qids if q in named_places},
+                        terms=lambda qids: {q: {"labels": {"en": {"value": named_places[q]}}}
+                                            for q in qids if q in named_places},
                         resolve=lambda qids: {q: places.get(q) or BODY_ITEM for q in qids
                                               if q in places or q == BODY})
         third = mint.verify("zz", ctx=provinces, log=quiet, threads=1, ids=[unit, lone, named])

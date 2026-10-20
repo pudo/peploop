@@ -11,6 +11,7 @@ model is asked about them. Nothing here writes to Wikidata or calls a model.
 import hashlib
 import json
 import re
+import unicodedata
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field, replace
@@ -1557,6 +1558,7 @@ class Context:
         diplomatic: Callable[[str], bool] | None = None,
         types: Callable[[str], set[str]] | None = None,
         places: Callable[[str], list[str]] | None = None,
+        terms: Callable[[Sequence[str]], dict[str, dict[str, Any]]] | None = None,
     ):
         self.country = country
         self.state_qid = state_qid or positions.country_qid(country)
@@ -1580,6 +1582,10 @@ class Context:
         #: The items a place name finds in a live search, best first.
         self._places = places or (lambda name: offices._search_entities(name, "en"))
         self._labels: dict[str, str] = {}
+        #: Labels and aliases in every language, for what an item's own terms
+        #: are written from rather than what a prompt shows.
+        self._terms_of = terms or (lambda qids: wikidata.fetch_items(qids, props="labels|aliases"))
+        self._terms: dict[str, dict[str, Any]] = {}
 
     @property
     def subdivisions(self) -> list[str]:
@@ -1725,6 +1731,34 @@ class Context:
     def label(self, qid: str | None) -> str:
         return self.labels_for([qid]).get(qid or "", "(no label)") if qid else "-"
 
+    def terms(self, qids: Iterable[str | None]) -> dict[str, dict[str, Any]]:
+        wanted = [q for q in dict.fromkeys(qids) if q]
+        missing = [q for q in wanted if q not in self._terms]
+        if missing:
+            found = self._terms_of(missing)
+            self._terms.update({q: found.get(q) or {} for q in missing})
+        return {q: self._terms[q] for q in wanted}
+
+    def english_labels(self, qids: Iterable[str | None]) -> dict[str, str]:
+        """The English or language-neutral label of each item that has one, for a description."""
+        out = {}
+        for qid, entity in self.terms(qids).items():
+            labels = entity.get("labels") or {}
+            text = next((labels[lang]["value"] for lang in ("en", "mul") if lang in labels), None)
+            if text:
+                out[qid] = text
+        return out
+
+    def place_names(self, qid: str | None) -> dict[str, list[str]]:
+        """A polity's labels and aliases per language: what an alias must name it by."""
+        entity = self.terms([qid]).get(qid or "") if qid else None
+        out: dict[str, list[str]] = {}
+        for lang, term in ((entity or {}).get("labels") or {}).items():
+            out.setdefault(lang, []).append(term["value"])
+        for lang, terms in ((entity or {}).get("aliases") or {}).items():
+            out.setdefault(lang, []).extend(t["value"] for t in terms)
+        return out
+
     def items(self, qids: Sequence[str]) -> dict[str, dict[str, Any]]:
         return self._items(qids) if qids else {}
 
@@ -1757,12 +1791,14 @@ def _run_labels(cand: Candidate) -> list[str]:
 #: абавязкі") and deputy forms ("заместитель", "намеснік", "заступник") are
 #: matched transliterated.
 ACTING = re.compile(
-    r"\b(acting|interim|interino|interina|encargad[oa]|ad hoc|provisional"
+    r"\b(acting|interim|interino|interina|encargad[oa]|ad hoc|provisional|en funciones"
+    r"|kommissarisch\w*|geschaftsfuhrend\w*|facente funzion\w*|penjabat|pemangku|plt"
     r"|ispolna\w*|obazannost\w*|vrio|vykonva\w*|abavazk\w*|vremenn\w*|timcasov\w*|tymczasow\w*)\b"
     r"|\bi\. ?o\."
 )
 DEPUTY = re.compile(
     r"\b(substitute|suplente|alternate|co[- ]?judge|conjuez|conjueza|deputy|vice|vice-?\w+"
+    r"|stellvertret\w*|vize\w*|adjoint\w*|wakil(?! rakyat)|timbalan"
     r"|adjunt[oa]|zamestitel\w*|namesnik\w*|zastupnik\w*|yardimci\w*|vekil\w*)\b"
 )
 #: A first deputy is another seat than the deputies of the same ministry.
@@ -1781,6 +1817,137 @@ def not_the_seat(title: str, labels: dict[str, str], archetype: str | None = Non
         return bool(DEPUTY.search(title))
     first = any(FIRST.search(_fold(text)) for text in labels.values())
     return bool(FIRST.search(title)) != first
+
+
+#: Marks of another seat that folding would erase, read on the title as
+#: written: Vietnamese "quyền" (acting) heading a title, and "phó" (deputy),
+#: which folds to the "phố" of "thành phố" (city).
+ANOTHER_SEAT_WRITTEN = {
+    "vi": re.compile(r"^quyền\s|(?<!\w)phó(?!\w)"),
+}
+#: Marks in Han or Hangul script, matched in any language's title, each only
+#: where no label carries it: the office's own name may (a deputy minister's
+#: 副, a party group's secretary's 党组). Transliterated, they would be
+#: syllables that occur everywhere.
+CJK_SEAT_MARKS = {
+    # More than one post: "天津市人民检察院检察长、党组书记".
+    "compound": re.compile(r"[、，；,;／/]"),
+    # Concurrently: "副省長兼省長代行".
+    "concurrent": re.compile(r"兼"),
+    "deputy": re.compile(r"副"),
+    # Acting, but not the 代表 of 人民代表大会 (a people's congress), nor the
+    # 代办 of a chargé d'affaires, nor an era (时代, 当代) or a holder's
+    # number (初代, 第10代: `term`).
+    "acting": re.compile(r"代理|代行|署理|(?<![时時现現当當年世历歷初〇零一二三四五六七八九十百千\d\s])代(?![表办辦])"
+                         r"|대행"),
+    # The body's Party group or Party committee, a post of its own.
+    "party_group": re.compile(r"党组|黨組"),
+    "party_committee": re.compile(r"党委|黨委|党工委|黨工委"),
+    # A member's seat, not its head's: "河北常委" on a secretary.
+    "member": re.compile(r"(?:委[员員]|常委)$"),
+    # One term or holder of the office: "第十届政协主席", "第2任署长",
+    # "（第二次）", Japanese "第10代", "初代" (the first).
+    "term": re.compile(r"第\s*[〇零一二三四五六七八九十百千\d]+\s*[届屆任期次代]|初代"),
+}
+#: A label of a Party committee's own post, whose 党委 is the committee
+#: itself: "清华大学党委书记" for 中国共产党清华大学委员会书记.
+CPC_COMMITTEE = re.compile(r"中国共产党|中國共產黨|中共")
+CJK = re.compile(r"[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff\uac00-\ud7af]")
+
+
+def other_seat_marked(title: str, lang: str, labels: dict[str, str]) -> str | None:
+    """The mark by which a title as written names another post than the labelled one.
+
+    The script-bound counterpart of `not_the_seat`, which reads folded text:
+    a Chinese or Japanese title's acting, deputy, concurrent or Party-group
+    post, or several posts joined, is invisible once transliterated. A mark
+    any label carries is the office's own.
+    """
+    text = unicodedata.normalize("NFC", title).casefold()
+    written = ANOTHER_SEAT_WRITTEN.get(lang)
+    if written is not None and written.search(text):
+        return "written"
+    if not CJK.search(title):
+        return None
+    for name, mark in CJK_SEAT_MARKS.items():
+        if not mark.search(title) or any(mark.search(label) for label in labels.values()):
+            continue
+        if name == "party_committee" and any(CPC_COMMITTEE.search(label) for label in labels.values()):
+            continue
+        return name
+    return None
+
+
+#: The administrative word a Chinese place name ends in, which a title may
+#: leave out: "四川政协主席" for 四川省.
+CJK_PLACE_SUFFIX = re.compile(r"(?:特别行政区|特別行政區|自治区|自治區|自治州|自治县|自治縣|省|市|县|縣|区|區|盟|州)$")
+#: Label languages read as one for place names: Chinese is labelled per variant.
+CHINESE = frozenset(policy.ZH_LANGS) | {"zh-sg", "zh-mo", "zh-my", "wuu", "yue", "lzh"}
+
+
+def _place_forms(names: Iterable[str]) -> tuple[set[str], set[str], list[list[str]]]:
+    """A place's names as Han strings, squeezed folded stems and word stems, to find in a title.
+
+    A case ending is not another place: Russian "Чанши" is of "Чанша", and
+    "Гуанси-Чжуанского автономного района" of "Гуанси-Чжуанский автономный
+    район", so a word is matched on its stem. A name's disambiguator
+    ("Velmora, Alvania") is not needed.
+    """
+    han, squeezed, worded = set(), set(), []
+    for full in names:
+        for name in {full, re.split(r"[,(（]", full)[0].strip()}:
+            if not name:
+                continue
+            if CJK.search(name):
+                han.add(name)
+                core = CJK_PLACE_SUFFIX.sub("", name)
+                if len(core) >= 2:
+                    han.add(core)
+                continue
+            folded = _fold(name)
+            joined = re.sub(r"[^a-z0-9]", "", folded)
+            stem = joined[:-1] if len(joined) >= 5 else joined
+            if len(stem) >= 3:
+                squeezed.add(stem)
+            words = [w if len(w) <= 4 else w[: max(4, len(w) - 2)]
+                     for w in re.findall(r"[a-z0-9]+", folded) if len(w) >= 2]
+            if words:
+                worded.append(words)
+    return han, squeezed, worded
+
+
+def _names_in(title: str, forms: tuple[set[str], set[str], list[list[str]]]) -> bool:
+    han, squeezed, worded = forms
+    folded = _fold(title)
+    joined = re.sub(r"[^a-z0-9]", "", folded)
+    words = re.findall(r"[a-z0-9]+", folded)
+    return (any(name in title for name in han) or any(stem in joined for stem in squeezed)
+            or any(all(any(w.startswith(stem) for w in words) for stem in name) for name in worded))
+
+
+def names_no_place(title: str, lang: str, labels: dict[str, str],
+                   place: dict[str, list[str]] | None) -> bool:
+    """Whether a title leaves out the polity its office's label names.
+
+    A bare "市长", "市委书记" or "Mayor" names every city's office, and a
+    search would place any city's holder here. Read in the title's own
+    language: a language the polity has no name in cannot be told, and its
+    titles stay. An office whose labels name no place has nothing to leave out.
+    """
+    if not place:
+        return False
+    if lang in CHINESE:
+        own = [n for code, names in place.items() if code in CHINESE for n in names]
+    else:
+        own = list(place.get(lang) or [])
+        if lang == "en":
+            own += place.get("mul") or []
+    if not own:
+        return False
+    every = _place_forms(n for names in place.values() for n in names)
+    if not any(_names_in(label, every) for label in labels.values()):
+        return False
+    return not _names_in(title, _place_forms(own))
 
 
 #: A title naming the ministry rather than the minister's seat in it.
@@ -1829,6 +1996,7 @@ def lifted(folded: str, lang: str, labels: dict[str, str], state: set[str]) -> b
 
 def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str],
                      state_names: Iterable[str] = (), archetype: str | None = None,
+                     place: dict[str, list[str]] | None = None,
                      ) -> dict[str, list[str]]:
     """The titles the holders' articles wrote, as aliases, per language.
 
@@ -1837,7 +2005,9 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
     never one of the labels, never a bare seat word ("Governor", "maire": the
     role words and `SEAT_WORDS`), which names every office of its kind and
     would make a live search find them all,
-    and never a title that marks another seat (`not_the_seat`) or names the
+    and never a title that marks another seat (`not_the_seat`,
+    `other_seat_marked`), leaves out the polity the labels name (`place`, its
+    names per language: `names_no_place`), or names the
     ministry (`MINISTRY`) where the labels do not, nor a fragment
     of a name (`lifted`), nor one written in another language than the
     article's: a title whose words all sit in another language's label and not
@@ -1857,6 +2027,10 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
     def misfiled(title: str, lang: str) -> bool:
         # An article quoting a title in another language is attested in its
         # own: the English "Secretary-General of X" from a French article.
+        # Nor is a title in another script than its language's label: an
+        # English "Governor of Jiangxi Province" from a Chinese article.
+        if lang in labels and bool(CJK.search(labels[lang])) != bool(CJK.search(title)):
+            return True
         mine = words(title)
         if not mine or mine <= label_words.get(lang, set()):
             return False
@@ -1871,6 +2045,8 @@ def attested_aliases(attestations: Sequence[Attestation], labels: dict[str, str]
         if not folded or folded in taken or offices.QID.search(a.title):
             continue
         if not _stems(a.title, drop) or not_the_seat(folded, labels, archetype):
+            continue
+        if other_seat_marked(a.title, a.lang, labels) or names_no_place(a.title, a.lang, labels, place):
             continue
         if MINISTRY.search(folded) and not any(MINISTRY.search(_fold(t)) for t in labels.values()):
             continue
@@ -1980,12 +2156,14 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
             problems.append(f"parent-replaced/{drafted}")
     spec = offices.Spec(
         ref=cand.ref, archetype=arch, labels=labels, state_qid=ctx.state_qid,
-        aliases=attested_aliases(cand.attestations, labels, ctx.state_names, arch),
+        aliases=attested_aliases(cand.attestations, labels, ctx.state_names, arch,
+                                 place=ctx.place_names(jurisdiction)
+                                 if jurisdiction and jurisdiction != ctx.state_qid else None),
         metaclass=offices.metaclass_for(sibs, parent, shape.metaclass), parent=parent,
         jurisdiction_qid=jurisdiction, body_qid=body,
         replaces=draft.get("replaces_qid"),
     )
-    text = offices.describe(spec, ctx.labels_for([spec.body_qid, spec.jurisdiction, spec.state_qid]))
+    text = offices.describe(spec, ctx.english_labels([spec.body_qid, spec.jurisdiction, spec.state_qid]))
     if text:
         spec.descriptions = {"en": text}
     else:

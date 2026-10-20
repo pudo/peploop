@@ -58,10 +58,15 @@ class Archetype:
     #: mayor scoped to the state, or to the department its town sits in, is
     #: the default a missing jurisdiction falls to, and reads as plausible.
     level: str = "state"
-    #: The description when a `{body}` template has no body to name: what the
-    #: office is, said of the polity instead. None where no such sentence is
-    #: true of every office of the kind, and `describe` then refuses.
+    #: The description when a `{body}` template has no body to name, or the
+    #: body has no English name: what the office is, said of the polity
+    #: instead. None where no such sentence is true of every office of the
+    #: kind, and `describe` then refuses.
     unbodied: str | None = None
+    #: The same for a body that has an item but no English name, where an
+    #: office without a body has nothing true to be described by (a party's
+    #: leader with no party); `unbodied` when None.
+    unnamed: str | None = None
     #: Other kinds the office may take when its title word names one: a
     #: drafted parent among these is kept, where any other is replaced.
     parents: tuple[str, ...] = ()
@@ -115,6 +120,7 @@ ARCHETYPES: dict[str, Archetype] = {
     "speaker": Archetype(
         "Q1758037", body_property="P2389", description="presiding officer of the {body}",
         single_seat=True, body_required=True,
+        unnamed="presiding officer of a legislative body of {jurisdiction}",
     ),
     # A prime minister or other head of government: 132 of the sovereign
     # states' `P1313` items subclass prime minister and 72 head of government;
@@ -153,6 +159,7 @@ ARCHETYPES: dict[str, Archetype] = {
     "party_leader": Archetype(
         "Q1553195", body_property="P2389", description="leader of the {body}", single_seat=True,
         scoped=False, metaclass=POSITION, body_required=True,
+        unnamed="leader of a political party in {jurisdiction}",
     ),
     # Its general secretary or secretary-general: 29 of 47 subclass `Q6501749`,
     # with the leader's shape otherwise. A seat in a secretariat may take
@@ -160,7 +167,7 @@ ARCHETYPES: dict[str, Archetype] = {
     "party_secretary": Archetype(
         "Q6501749", body_property="P2389", description="party secretary of the {body}",
         single_seat=True, scoped=False, parents=("Q6501749", "Q836971"), metaclass=POSITION,
-        body_required=True,
+        body_required=True, unnamed="party secretary in {jurisdiction}",
     ),
     # "Chief of defence", a subclass of chief of staff, is what 70% of typed
     # items use; the general staff is named under `P2389`, not `P361`.
@@ -351,27 +358,53 @@ def entity_data(spec: Spec) -> dict[str, Any]:
     }
 
 
+#: A letter of a script other than Latin: what an English description must
+#: not carry, whichever language's label it came from.
+NOT_LATIN = re.compile(r"[^\W\d_](?<![A-Za-z\u00c0-\u024f\u1e00-\u1eff])")
+
+
+def english_name(text: str | None) -> bool:
+    """Whether a label may stand in an English sentence: present, no QID, Latin script."""
+    return bool(text) and not QID.search(text) and not NOT_LATIN.search(text)
+
+
 def describe(spec: Spec, labels_of: dict[str, str]) -> str | None:
     """The English description, or None when a label it needs is unresolved.
 
-    A description reading "governor of Q12345" is worse than none, so a
-    missing label, or one that is itself a QID, refuses rather than degrades.
-    A body-templated office with no body is described by its polity instead,
-    where the archetype says how (`Archetype.unbodied`): a party leadership
-    whose party has no item is still a party office in its state.
+    `labels_of` holds the English (or language-neutral) labels of the items
+    the template names. A description reading "governor of Q12345" or
+    "president of the 四川省高级人民法院" is worse than none, so a missing
+    label, one that is itself a QID, or one in another script refuses rather
+    than degrades. A body-templated office whose body has no item or no
+    English name is described by its polity instead, where the archetype says
+    how (`Archetype.unbodied`, `unnamed`), naming the state after a narrower
+    polity: a provincial court whose item is labelled only in Chinese is still "president
+    of a court of Sichuan, People's Republic of China". Never the label itself,
+    which Wikidata refuses as a description: a sentence that repeats it names
+    the state after it, or there is none.
     """
     slots = {"body": spec.body_qid, "jurisdiction": spec.jurisdiction, "state": spec.state_qid}
+    usable = {name: labels_of.get(qid or "") for name, qid in slots.items()}
+    usable = {name: text for name, text in usable.items() if english_name(text)}
     template = spec.shape.description
-    if "{body}" in template and not spec.body_qid and spec.shape.unbodied:
-        template = spec.shape.unbodied
+    fallback = spec.shape.unnamed if spec.body_qid else None
+    fallback = fallback or spec.shape.unbodied
+    if "{body}" in template and "body" not in usable and fallback:
+        template = fallback
+        if (spec.jurisdiction != spec.state_qid and "{state}" not in template
+                and "state" in usable):
+            template += ", {state}"
     wanted = {name for _text, name, _spec, _conv in string.Formatter().parse(template) if name}
-    values: dict[str, str] = {}
-    for name in wanted:
-        label = labels_of.get(slots.get(name) or "")
-        if not label or QID.search(label):
+    if wanted - set(usable):
+        return None
+    text = template.format(**{name: usable[name] for name in wanted})
+    if text.casefold() in {label.casefold() for label in spec.labels.values()}:
+        # "Governor of Hunan" is its label and its template's sentence alike;
+        # the state tells the two apart, where it is not already said.
+        if "state" in wanted or spec.jurisdiction == spec.state_qid or "state" not in usable:
             return None
-        values[name] = label
-    return template.format(**values)
+        text = f"{text}, {usable['state']}"
+    return text
 
 
 @dataclass(frozen=True)

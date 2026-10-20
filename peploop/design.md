@@ -329,6 +329,17 @@ queue) has the mechanics; the decisions are these.
   states' items (`docs/research/position_items.md` §10), and the metaclass and
   parent taken from the state's own offices where they agree. A model drafts
   labels and picks a body; it does not invent a data model per item.
+- **The terms name this one office, in their own language.** The English
+  description is the archetype's sentence over English labels only: a body
+  labelled only in another script is not named, and the office is said of its
+  polity and state instead ("president of a court of Sichuan, People's
+  Republic of China"); without an English name for either there is no
+  description, and a sentence that repeats the label names the state after
+  it. Aliases are the holders' article titles, less every title that names
+  another seat -- acting, deputy, concurrent, a Party group's post, several
+  posts joined, one term's holder, marked per language and per script -- or
+  leaves out the polity the label names ("市长", "Court of Appeal"), read in
+  the title's own language and kept where the polity has no name in it.
 - **Unsupervised up to the send, like the rest of the loop.** Categorize
   clusters and drafts, a verifier of another model family reads each office against its evidence
   and the live duplicates, and `offices.guard` vetoes mechanically. An item is
