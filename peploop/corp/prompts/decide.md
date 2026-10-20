@@ -142,7 +142,10 @@ and a `role`:
 - `head`: leads the executive body: chief executive, chair of the management
   board, chair of the managing directors, a sole managing director, a
   director general, a museum's director, a theatre's or broadcaster's
-  general director.
+  general director. A chief conductor, artistic director, curator or
+  editor-in-chief is `head` only when the articles name no general,
+  administrative or managing director; when they do, that person is `head`,
+  and the artistic lead is left out.
 - `chair`: chairs the supervisory body or the board of directors.
 - `deputy_chair`: deputy or vice chair of either board.
 - `member`: an ordinary member of any of the three bodies.
@@ -163,8 +166,13 @@ For every seat:
   article says; null when it does not say. Never estimate a date, nor take
   it from the body's founding or another person's term. Where several passages name the
   person in the seat, quote the one that gives when they took it or left it.
+  A list or infobox the article dates ("as of 2021", "appointed in 2014")
+  gives that date as `start`; say so in `notes`. `end` is when the article
+  says the tenure ended (resigned, dismissed, replaced, the term ran out);
+  an arrest, a suspension, an investigation or a scandal is no end.
 - `current`: true only when the article says the person holds the seat now
-  (present tense, or the infobox lists them as the current holder).
+  (present tense, or the infobox lists them as the current holder). A list
+  of members with no date anywhere is not current.
 - `quote`: the passage that names the person in the seat, verbatim, and
   `article`: the language code of its article.
 

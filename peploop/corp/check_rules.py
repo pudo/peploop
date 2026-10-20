@@ -358,6 +358,11 @@ def policy() -> None:
     links = [r for r in rules.control_rows(treasury, ent(P127=["Q900200"]), None, state, {}, country="Q900001",
                                            standins=frozenset({"Q900200"})) if r["property"] == "P127"]
     expect([r["_rule"] for r in links] == ["standin_existing"], "an item already owned by the stand-in gets no second owner")
+    # A class the check refuses (a registry called a regulator).
+    expect([r["_rule"] for r in rules.control_rows(reg, ent(), None, state, {}, refused={("Q900999", "P31", "Q1639780")})
+            if r["property"] == "P31"] == ["class_unverified"], "a statutory class the check refuses is not written")
+    expect([r["_rule"] for r in rules.control_rows(reg, ent(), None, state, {}) if r["property"] == "P31"] == [None],
+           "one it accepts is")
     # A marker whose quote the check refuses.
     expect(rules.control_rows(treasury, ent(), None, state, {}, refused={("Q900999", "P31", "Q270791")})[0]["_rule"]
            == "marker_unverified", "a marker the quote check refuses is not written")

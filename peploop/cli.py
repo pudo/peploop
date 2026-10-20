@@ -22,6 +22,7 @@ from peploop import mint_write as minting
 from peploop import mint_units
 from peploop import outbox
 from peploop.corp import outbox as corp_outbox
+from peploop.corp import regress as corp_regress
 from peploop.corp import run as corp_run
 from peploop.corp import wd as corp_wd
 from peploop.tree import audit as tree_audit
@@ -1119,6 +1120,13 @@ def corp_run_(cc: str, no_ask: bool, no_reload: bool, limit: int | None, qids: S
     path = corp_run.run(cc, limit, no_ask, reload=not no_reload, only=set(qids) or None,
                         log=lambda m: click.echo(m, err=True))
     click.echo(path)
+
+
+@corp.command("eval")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+def corp_eval_(path: Path) -> None:
+    """Ask and check a regression set's bodies and print expected against got; writes no run file."""
+    click.echo(corp_regress.table(corp_regress.evaluate(path, log=lambda m: click.echo(m, err=True))))
 
 
 @corp.command("send")

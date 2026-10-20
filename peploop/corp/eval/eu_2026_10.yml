@@ -1,0 +1,163 @@
+# Regression set for the EU + CH re-run of 2026-10-19/20: the precision
+# samples' wrong and doubtful lines, the pilot's cases, the freeze audit's
+# founding cases and lines judged correct.
+#
+# A case names a body (cc, qid) and either a statement (prop, value; value
+# "*" is any) or, without prop, the body's gate. `expect` is `write`,
+# `skip` (anything but written), a rule, or a list of these; for a gate,
+# `pass`, `gated` or the gate's rule. `dated` asks a written seat to carry
+# a date; `forbid` names qualifier dates a written line must not carry.
+
+# --- wrong and doubtful lines, sample A (fr it es pt gr cy mt de) ---
+- {cc: fr, qid: Q16641381, prop: P1037, value: Q132201519, expect: skip, why: undated interim head from a stale infobox}
+- {cc: fr, qid: Q337494, prop: P127, value: Q142, expect: skip, why: a state institute read as owned by the polity}
+- {cc: it, qid: Q15661971, prop: P127, value: Q83823, expect: skip, why: a foundation FS founded is not owned by it}
+- {cc: it, qid: Q3943389, prop: P127, value: Q38, expect: skip, why: polity written beside the named MEF}
+- {cc: it, qid: Q3148829, prop: P31, value: Q270791, expect: skip, why: commissioner administration of a merged article}
+- {cc: es, qid: Q97369315, prop: P127, value: Q29, expect: skip, why: polity past the named holder SEPI}
+- {cc: es, qid: Q5782733, prop: P31, value: Q1639780, expect: skip, why: a river-basin authority is no regulator}
+- {cc: es, qid: Q11949463, prop: P127, value: Q5705, expect: skip, why: a state institute read as owned by the polity}
+- {cc: es, qid: Q56199186, prop: P749, value: Q131898482, expect: skip, why: ministry past the direct parent unit (open class)}
+- {cc: pt, qid: Q2186274, prop: P31, value: Q270791, expect: skip, why: a privately run hotel brand}
+- {cc: pt, qid: Q1925864, prop: P31, value: Q270791, expect: write, why: form proof without a reference, by policy}
+- {cc: pt, qid: Q6973518, prop: P31, value: Q1639780, expect: skip, why: a patent office is no regulator}
+- {cc: gr, qid: Q60633281, prop: P749, value: Q16331895, expect: skip, why: infobox owner field turned into a parent}
+- {cc: gr, qid: Q2867807, prop: P749, value: Q16737276, expect: skip, why: a private federation under state supervision}
+- {cc: gr, qid: Q2867807, prop: P1037, value: Q437648, expect: skip, why: undated seat on a private federation}
+- {cc: gr, qid: Q109331636, prop: P127, value: Q41, expect: skip, why: polity past the named parent OASA}
+- {cc: cy, qid: Q2888321, prop: P127, value: Q229, expect: skip, why: control wording read as ownership}
+- {cc: cy, qid: Q5200482, prop: P5052, value: Q20736316, expect: skip, dated: true, why: undated board snapshot}
+- {cc: mt, qid: Q104855942, prop: P31, value: Q1639780, expect: skip, why: a companies registry is no regulator}
+- {cc: mt, qid: Q24037293, prop: P1037, value: Q1323633, expect: skip, why: a curator as head, undated}
+- {cc: mt, qid: Q2922440, prop: P5052, value: Q135906943, expect: skip, why: a namesake through the article's own link}
+- {cc: de, qid: Q1802638, prop: P127, value: Q1199, expect: skip, why: founded by the Land is not owned by it}
+- {cc: de, qid: Q280017, prop: P127, value: Q64, expect: skip, why: a state institute read as owned by the polity}
+- {cc: de, qid: Q449325, prop: P127, value: Q985, expect: skip, why: the founder read as owner}
+- {cc: de, qid: Q877188, prop: P1037, value: Q20817316, expect: skip, why: artistic director beside a commercial director}
+- {cc: de, qid: Q30285125, prop: P127, value: Q1206, expect: skip, why: a joint authority of four Länder}
+- {cc: de, qid: Q1381215, prop: P31, value: Q270791, expect: skip, why: church pension fund proven by an institution form}
+- {cc: de, qid: Q1743335, prop: P31, value: Q270791, expect: skip, why: church pension fund proven by an institution form}
+
+# --- wrong and doubtful lines, sample B (at ch be lu ie dk se fi nl) ---
+- {cc: fr, qid: Q2138163, prop: P169, value: Q2966496, expect: skip, why: interim CEO left open after a successor}
+- {cc: be, qid: Q1910975, prop: P1037, value: Q19834734, expect: skip, why: chief conductor where an intendant is named}
+- {cc: lu, qid: Q11154055, prop: P127, value: Q32, expect: skip, why: one of the state's cultural institutes}
+- {cc: ie, qid: Q5905522, prop: P31, value: Q1639780, expect: skip, why: regulator class with no reference}
+- {cc: fi, qid: Q65243927, prop: P1037, value: Q134006024, expect: skip, why: a namesake through the article's own link}
+- {cc: at, qid: Q1967937, prop: P31, value: Q1639780, expect: skip, why: an anti-doping agency is no regulator}
+- {cc: at, qid: Q1433222, prop: P5052, value: Q1085147, expect: [write, skip], forbid: {P582: "2010-12"}, why: end taken from an event}
+- {cc: nl, qid: Q5586556, prop: P1037, value: Q81361928, expect: skip, why: council chair as head (open class)}
+- {cc: nl, qid: Q2175873, prop: P749, value: Q1041343, expect: skip, why: ministry past the Openbaar Ministerie (open class)}
+- {cc: ch, qid: Q1528231, prop: P1037, value: Q108750231, expect: [write, skip], forbid: {P580: "2022-01"}, why: start not in the quote}
+- {cc: ch, qid: Q31838664, prop: P1037, value: Q39740894, expect: skip, why: council chair as head (open class)}
+- {cc: ch, qid: Q31838664, prop: P1037, value: Q22212994, expect: skip, why: council chair as head (open class)}
+- {cc: dk, qid: Q18647148, prop: P1037, value: Q12331476, expect: skip, why: council chair as head (open class)}
+- {cc: ie, qid: Q283785, prop: P1037, value: Q704379, expect: skip, why: infobox filled from Wikidata (open class)}
+- {cc: ie, qid: Q283785, prop: P1037, value: Q7184252, expect: skip, why: infobox filled from Wikidata (open class)}
+- {cc: be, qid: Q108461608, prop: P127, value: Q31, expect: write, why: form proof without a reference, by policy}
+- {cc: lu, qid: Q137735334, prop: P5052, value: Q65697934, expect: [write, skip], dated: true, why: undated though the table ends her term}
+
+# --- wrong and doubtful lines, sample C (pl cz sk hu ro bg hr si ee lv lt) ---
+- {cc: pl, qid: Q140774445, prop: P3320, value: Q131909551, expect: skip, why: a deputy ombudsman as a board seat (open class)}
+- {cc: pl, qid: Q11694615, prop: P127, value: Q54150, expect: skip, why: a budgetary unit of the voivodeship}
+- {cc: cz, qid: Q56441310, prop: P127, value: Q1085, expect: skip, why: a contributory organisation of Prague}
+- {cc: cz, qid: Q12041640, prop: P1037, value: Q12059221, expect: [write, skip], forbid: {P580: "2005"}, why: list date against the prose}
+- {cc: cz, qid: Q113146001, prop: P31, value: Q270791, expect: write, why: Prague is a region, regional by the spec}
+- {cc: cz, qid: Q11177437, prop: P169, value: Q24237192, expect: skip, why: key people with no role word}
+- {cc: sk, qid: Q12779145, prop: P31, value: Q270791, expect: write, why: true; the cited revision is the doubt}
+- {cc: sk, qid: Q2437491, prop: P127, value: Q214, expect: skip, why: a public-law news agency with no ownership words}
+- {cc: hu, qid: Q585461, prop: P127, value: Q28, expect: skip, why: polity past the central bank that owns it}
+- {cc: bg, qid: Q3197219, prop: P127, value: Q219, expect: skip, why: polity past the State Consolidation Company}
+- {cc: hu, qid: Q110438701, prop: P31, value: Q270791, expect: skip, why: a Budapest municipal utility}
+- {cc: hu, qid: Q1125236, prop: P31, value: Q1639780, expect: skip, why: a fiscal council is no regulator}
+- {cc: ro, qid: Q967861, prop: P5052, value: Q21422826, expect: [write, skip], dated: true, why: undated board snapshot of 2014}
+- {cc: ro, qid: Q967861, prop: P5052, value: Q12743553, expect: [write, skip], dated: true, why: undated board snapshot of 2014}
+- {cc: ro, qid: Q292773, prop: P127, value: Q218, expect: skip, why: state property in 1938 is no current owner}
+- {cc: bg, qid: Q12287946, prop: P1037, value: Q110878526, expect: [write, skip], dated: true, why: director as of June 2021}
+- {cc: hr, qid: Q1143457, prop: P127, value: Q224, expect: skip, why: the founder of a central bank read as owner}
+- {cc: hr, qid: Q140166896, prop: P31, value: Q1639780, expect: skip, why: an inspectorate is no regulator}
+- {cc: si, qid: Q166873, prop: P31, value: Q270791, expect: skip, why: proof by a Wikidata URL as list}
+- {cc: si, qid: Q20523891, prop: P127, value: Q215, expect: skip, why: polity past the direct owner HSE}
+- {cc: si, qid: Q20521509, prop: P169, value: Q10820628, expect: skip, why: name match without date or tie}
+- {cc: ee, qid: Q980219, prop: P169, value: Q16405788, expect: [write, skip], forbid: {P582: "2015-08-28"}, why: end date is the arrest}
+- {cc: ee, qid: Q16412114, prop: P127, value: Q1295560, expect: skip, why: stale stub (open class)}
+- {cc: ee, qid: Q42900925, prop: P31, value: Q270791, expect: skip, why: proof by a Wikipedia list of any state stake}
+- {cc: lv, qid: Q7212999, prop: P127, value: Q211, expect: skip, why: a state school read as owned}
+- {cc: lv, qid: Q1821247, prop: P127, value: Q211, expect: write, why: true; the cited revision is the doubt}
+- {cc: lv, qid: Q125420619, prop: P749, value: Q6867614, expect: skip, why: shareholder ministry as parent}
+- {cc: lv, qid: Q555773, prop: P1037, value: Q16355747, expect: write, why: true; the cited revision is the doubt}
+- {cc: lv, qid: Q1821247, prop: P1037, value: Q16348282, expect: [write, skip], forbid: {P580: "2006"}, why: start in neither article}
+- {cc: pl, qid: Q1139703, prop: P127, value: Q54150, expect: skip, why: a voivodeship among sixteen co-owners}
+
+# --- a minister's statutory supervision is subordination ---
+- {cc: pl, qid: Q11789709, prop: P749, value: Q4294555, expect: write, why: NFOŚiGW under its minister by statute}
+- {cc: pl, qid: Q144881, prop: P749, value: Q4294766, expect: write, why: ZUS under its minister by statute}
+
+# --- the freeze audit: founding and units of the state read as ownership ---
+- {cc: cz, qid: Q11284991, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q11379403, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q116815413, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q12018444, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q12027934, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q12040609, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q20058195, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q330294, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q3504917, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q4697718, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q97312254, prop: P127, value: Q213, expect: skip, why: an organisational unit of the state}
+- {cc: cz, qid: Q14567740, prop: P127, value: Q213, expect: skip, why: a budgetary organisation of the state}
+- {cc: de, qid: Q114555880, prop: P127, value: "*", expect: skip, why: GGL, carried jointly by the sixteen Länder}
+
+# --- the pilot's cases ---
+- {cc: cz, qid: Q341134, expect: pass, why: Czech TV, statutory}
+- {cc: cz, qid: Q341134, prop: P31, value: Q1126006, expect: [write, typed], why: public broadcaster}
+- {cc: cz, qid: Q341323, prop: P31, value: Q1126006, expect: [write, typed], why: Czech Radio, public broadcaster}
+- {cc: fr, qid: Q1115586, expect: pass, why: CNIL, statutory}
+- {cc: fr, qid: Q1115586, prop: P31, value: Q1639780, expect: [write, typed], why: CNIL is a regulator}
+- {cc: fr, qid: Q2872789, prop: P31, value: Q1639780, expect: [write, typed], why: Arcep is a regulator}
+- {cc: ch, qid: Q651410, expect: pass, why: SRG SSR, statutory}
+- {cc: pl, qid: Q1067189, prop: P31, value: Q1126006, expect: [write, typed], why: Polskie Radio}
+- {cc: at, qid: Q2531604, prop: P31, value: Q1639780, expect: skip, why: an ombudsman board is no regulator}
+- {cc: lu, qid: Q16764885, expect: pass, why: Théâtre National, on the official list}
+- {cc: lu, qid: Q21036415, expect: pass, why: Creos, on the official list}
+- {cc: lu, qid: Q333025, expect: gated, why: SES, a minority stake}
+- {cc: it, qid: Q150066, expect: pass, why: Brera, a state-only form}
+- {cc: it, qid: Q290549, expect: pass, why: Capodimonte, a state-only form}
+- {cc: ee, qid: Q108169051, prop: P127, value: Q1295560, expect: [write, plan:exists], why: owned by Eesti Energia in words}
+- {cc: hu, qid: Q88272702, prop: P127, value: Q1162287, expect: [write, plan:exists], why: MAVIR owned by MVM in words}
+- {cc: lv, qid: Q28058285, prop: P31, value: Q270791, expect: marker_unverified, why: Conexus, a share figure only}
+- {cc: es, qid: Q1143722, prop: P127, value: Q29, expect: skip, why: Dalí, the building's owner}
+- {cc: pt, qid: Q25442437, expect: "kind:government", why: a regional secretariat}
+- {cc: pt, qid: Q25442440, expect: "kind:government", why: a regional secretariat}
+- {cc: it, qid: Q1740905, expect: "kind:government", why: the Presidency of the Council of Ministers}
+- {cc: pl, qid: Q11824017, prop: P31, value: Q270791, expect: write, why: Mikrostyk, the marker ended at privatisation}
+- {cc: es, qid: Q111593394, prop: P749, value: Q6017179, expect: write, why: a ministry unit under its ministry}
+- {cc: it, qid: Q206936, prop: P1037, value: Q130378496, expect: write, why: a ministry department's head}
+- {cc: pl, qid: Q111937971, prop: P127, value: Q36, expect: [write, standin_existing], why: a State Treasury company is Poland's}
+- {cc: ie, qid: Q108824, prop: P31, value: Q270791, expect: write, why: Irish National Stud}
+
+# --- lines judged correct ---
+- {cc: es, qid: Q5163335, prop: P127, value: Q29, expect: write, why: "Propietario: Gobierno de España"}
+- {cc: es, qid: Q113240328, prop: P127, value: Q2476154, expect: write, why: wholly owned by Renfe}
+- {cc: es, qid: Q16629585, prop: P1037, value: Q5751166, expect: write, why: dated list}
+- {cc: de, qid: Q1202384, prop: P31, value: Q270791, expect: write, why: bundeseigen}
+- {cc: de, qid: Q22674699, prop: P127, value: Q64, expect: write, why: landeseigen}
+- {cc: de, qid: Q2491722, prop: P1037, value: Q23061805, expect: write, why: president since 2020}
+- {cc: de, qid: Q66021037, prop: P127, value: Q1206, expect: write, why: landeseigene Stiftung}
+- {cc: fr, qid: Q2985315, prop: P749, value: Q3315187, expect: write, why: under the ministry's tutelle}
+- {cc: fr, qid: Q335827, prop: P1037, value: Q1236962, expect: write, why: dated head}
+- {cc: it, qid: Q1275301, prop: P31, value: Q270791, expect: write, why: controlled by the MEF}
+- {cc: it, qid: Q3761403, prop: P127, value: Q3761400, expect: write, why: wholly held by GSE}
+- {cc: mt, qid: Q74690, prop: P127, value: Q233, expect: write, why: central bank owned by the state}
+- {cc: gr, qid: Q109331707, prop: P127, value: Q41, expect: write, why: sole shareholder the Greek State}
+- {cc: cy, qid: Q1072242, prop: P127, value: Q229, expect: write, why: "Owner: Republic of Cyprus"}
+- {cc: pt, qid: Q7139611, prop: P127, value: Q45, expect: write, why: capital subscribed by the state}
+- {cc: lv, qid: Q16822050, prop: P127, value: Q211, expect: write, why: all shares belong to the Republic}
+- {cc: lt, qid: Q1550538, prop: P127, value: Q37, expect: write, why: owned by the state}
+- {cc: pl, qid: Q9367264, prop: P1037, value: Q9155720, expect: write, why: dated head}
+- {cc: cz, qid: Q341090, prop: P749, value: Q11781499, expect: write, why: parent judged correct}
+- {cc: hu, qid: Q774636, prop: P1037, value: Q221841, expect: write, why: dated governor}
+- {cc: at, qid: Q1433222, prop: P169, value: Q1608578, expect: write, why: dated CEO}
+- {cc: se, qid: Q1819090, prop: P749, value: Q185246, expect: write, why: parent judged correct}
+- {cc: dk, qid: Q7936278, prop: P5052, value: Q12313734, expect: write, why: dated board seat}
+- {cc: ee, qid: Q1370397, prop: P1037, value: Q16404281, expect: write, why: dated head}

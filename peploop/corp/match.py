@@ -15,6 +15,11 @@ its field? A seat resolves only to the one candidate the check accepts:
   accepted, like the institution tier, without a call;
 - anything else is not.
 
+A seat the article does link goes through the same check when nothing ties
+its person to the body -- no statement or description of their item names
+it, and their page neither links nor names it: an article's link can point
+to a namesake (`confirm`).
+
 Answers are kept in `pcorp_call` by content, like the decisions, so a re-run
 pays only for seats or pages that changed.
 """
@@ -216,7 +221,6 @@ def resolve(cc: str, seats: list[dict[str, Any]], wikis: list[str], log: Callabl
     cost a call.
     """
     today = today or date.today().year
-    _, prompt_hash = llm.system_prompt(PROMPT_PATH)
     bodies = wd.fetch_items(sorted({s["qid"] for s in seats}), props="labels|aliases|descriptions")
 
     def gather(s: dict[str, Any]) -> list[dict[str, Any]]:
@@ -280,23 +284,8 @@ def resolve(cc: str, seats: list[dict[str, Any]], wikis: list[str], log: Callabl
         return {"lang": lang, "title": title, "text": text, "links_body": s["qid"] in persons.page_links(lang, title)}
 
     def one(s: dict[str, Any], c: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-        body = bodies.get(s["qid"], {})
-        info = {"qid": s["qid"], "kind": s["kind"], "names": body_names(body, wikis) or [s["qid"]],
-                "description": (body.get("descriptions", {}).get(s["seat"]["article"])
-                                or body.get("descriptions", {}).get("en") or {}).get("value", "")}
-        text = message(s["seat"], info, c, page(s, c), labels)
-        key = decide.content_key(MODEL, prompt_hash, text)
-        verdict = decide.recorded(key)
-        if verdict is None:
-            answer, usage = ask(text)
-            verdict = answer.model_dump()
-            wd.conn().execute(
-                "INSERT INTO pcorp_call (key, country, qid, model, prompt_hash, request, answer, usage)"
-                " VALUES (%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (key) DO NOTHING",
-                (key, cc, s["qid"], MODEL, prompt_hash,
-                 Jsonb({"message": text, "seat": s["seat"]["name"], "candidate": c["qid"]}),
-                 Jsonb(verdict), Jsonb(usage)))
-        return c["qid"], {**verdict, "foreign": foreign(c["entity"])}
+        text = message(s["seat"], body_info(s, bodies.get(s["qid"], {}), wikis), c, page(s, c), labels)
+        return c["qid"], {**checked(cc, s, c["qid"], text), "foreign": foreign(c["entity"])}
 
     verdicts: dict[tuple[str, str], dict[str, dict[str, Any]]] = {}
     failed: set[tuple[str, str]] = set()
@@ -327,6 +316,114 @@ def resolve(cc: str, seats: list[dict[str, Any]], wikis: list[str], log: Callabl
         counts[o["outcome"]] = counts.get(o["outcome"], 0) + 1
     log(f"{len(seats)} unlinked seats matched by name: " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
     return outcome
+
+
+def body_info(s: dict[str, Any], body: dict[str, Any], wikis: list[str]) -> dict[str, Any]:
+    """The body of a seat as the check reads it: its names, kind and description."""
+    return {"qid": s["qid"], "kind": s["kind"], "names": body_names(body, wikis) or [s["qid"]],
+            "description": (body.get("descriptions", {}).get(s["seat"]["article"])
+                            or body.get("descriptions", {}).get("en") or {}).get("value", "")}
+
+
+def checked(cc: str, s: dict[str, Any], candidate: str, text: str) -> dict[str, Any]:
+    """The check's verdict on one candidate for one seat, from the ledger or asked once."""
+    _, prompt_hash = llm.system_prompt(PROMPT_PATH)
+    key = decide.content_key(MODEL, prompt_hash, text)
+    verdict = decide.recorded(key)
+    if verdict is None:
+        answer, usage = ask(text)
+        verdict = answer.model_dump()
+        wd.conn().execute(
+            "INSERT INTO pcorp_call (key, country, qid, model, prompt_hash, request, answer, usage)"
+            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (key) DO NOTHING",
+            (key, cc, s["qid"], MODEL, prompt_hash,
+             Jsonb({"message": text, "seat": s["seat"]["name"], "candidate": candidate}),
+             Jsonb(verdict), Jsonb(usage)))
+    return verdict
+
+
+def confirm(cc: str, seats: list[dict[str, Any]], wikis: list[str],
+            log: Callable[[str], None] = print) -> set[tuple[str, str]]:
+    """The linked seats whose person's own page does not bear them out: {(body QID, name)}.
+
+    `seats` are the seats the rules would write for a person the article
+    links (`linked`). One whose item names the body, or whose page links or
+    names it, stands without a call; the rest are checked like a matched
+    candidate, and stand when the check calls them the same person.
+    """
+    bodies = wd.fetch_items(sorted({s["qid"] for s in seats}), props="labels|aliases|descriptions")
+    people = wd.fetch_items(sorted({s["person"] for s in seats}),
+                            props="labels|aliases|descriptions|claims|sitelinks")
+    jobs: list[tuple[dict[str, Any], dict[str, Any], dict[str, Any]]] = []
+
+    def tie(s: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]] | None:
+        """None when the person is tied to the body; else the candidate and page to check."""
+        entity = people.get(s["person"]) or {}
+        names = body_names(bodies.get(s["qid"], {}), wikis)
+        if item_ties(entity, s["qid"], names):
+            return None
+        langs = [s["seat"]["article"], *wikis]
+        lang = next((lg for lg in langs if f"{lg}wiki" in entity.get("sitelinks", {})), None)
+        if lang is None:
+            return None  # no page to read: the article's link stands
+        title = entity["sitelinks"][f"{lang}wiki"]["title"]
+        links_body = s["qid"] in persons.page_links(lang, title)
+        text = persons.page_text(lang, title)
+        folded = " ".join(persons.fold(text))
+        if links_body or any(f" {' '.join(persons.fold(n))} " in f" {folded} " for n in names if len(n) >= NAME_MIN):
+            return None
+        return ({"qid": s["person"], "entity": entity, "pages": [lang]},
+                {"lang": lang, "title": title, "text": excerpt(text, names), "links_body": False})
+
+    with cf.ThreadPoolExecutor(decide.WORKERS) as ex:
+        futures = {ex.submit(tie, s): s for s in seats}
+        for fut in cf.as_completed(futures):
+            s = futures[fut]
+            try:
+                found = fut.result()
+            except Exception as exc:  # a failed read leaves the seat as the article links it
+                log(f"  {s['qid']} {s['seat']['name']}: page not read ({exc.__class__.__name__})")
+                continue
+            if found:
+                jobs.append((s, *found))
+    refs = sorted({q for _, c, _ in jobs for p in ("P27", "P106", "P108", "P39", "P463", "P69")
+                   for q in wd.values(c["entity"], p)})
+    labels = {q: decide.memo_name(i) for q, i in memo.labels_of(refs, ("en", "mul")).items()}
+    out: set[tuple[str, str]] = set()
+
+    def one(s: dict[str, Any], c: dict[str, Any], page: dict[str, Any]) -> bool:
+        text = message(s["seat"], body_info(s, bodies.get(s["qid"], {}), wikis), c, page, labels)
+        v = checked(cc, s, c["qid"], text)
+        return bool(v.get("same_person") and v.get("evidence") in ("institution", "domain"))
+
+    with cf.ThreadPoolExecutor(decide.WORKERS) as ex:
+        futures2 = {ex.submit(one, *job): job[0] for job in jobs}
+        for fut in cf.as_completed(futures2):
+            s = futures2[fut]
+            try:
+                if not fut.result():
+                    out.add((s["qid"], s["seat"]["name"]))
+            except Exception as exc:  # a failed check leaves the seat as the article links it
+                log(f"  {s['qid']} {s['seat']['name']}: check failed ({exc.__class__.__name__}: {exc})")
+    log(f"{len(seats)} linked seats; {len(jobs)} without a tie to the body checked; {len(out)} not borne out")
+    return out
+
+
+def linked(decisions: list[dict[str, Any]], answered: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The seats the rules would write for a person the article links, with their body's kind, the answer's seat and the person."""
+    reqs = {r["qid"]: r for r in answered}
+    out, seen = [], set()
+    for d in decisions:
+        if (d["disposition"] != "apply" or d["detail"].get("via") not in ("link", "anchor")
+                or d["qid"] not in reqs or not d["value"]):
+            continue
+        name = d["detail"].get("name")
+        seat = next((s for s in reqs[d["qid"]]["answer"]["seats"] if s["name"] == name), None)
+        if seat is None or (d["qid"], name) in seen:
+            continue
+        seen.add((d["qid"], name))
+        out.append({"qid": d["qid"], "kind": reqs[d["qid"]]["answer"]["kind"], "seat": seat, "person": d["value"]})
+    return out
 
 
 def unlinked(decisions: list[dict[str, Any]], answered: list[dict[str, Any]]) -> list[dict[str, Any]]:

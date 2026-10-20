@@ -117,7 +117,10 @@ are written by default; a spec names its own.
 2. **decide** (`decide.py`, `prompts/decide.md`): one request per body with
    its statements, chain, candidate controllers and articles. The answer:
    what it is, whether a state controls it and the bodies over it (chosen or
-   named), every named seat with dates. Kept in `pcorp_call` by content.
+   named), every named seat with dates. Kept in `pcorp_call` by content; a
+   plan reads each body's newest answer under whichever decide prompt asked
+   it (one the current schema reads), so a prompt change is applied by
+   asking again only the bodies it affects (`reask.py` picks them).
 3. **rules** (`rules.py`): the gates (an enterprise or institution, active,
    state-controlled by a quote, at a tier the spec writes), then the marker,
    the links and the seats, each with its rule. A link needs a state body:
@@ -126,10 +129,16 @@ are written by default; a spec names its own.
    when it would shortcut a chain the item already has (`chain_existing`),
    point a parent at a polity (`parent_polity`) or an owner at a ministry
    (`owner_ministry`). Every link left is then checked once more against its
-   quote alone (`verify.py`, `prompts/verify_link.md`): funding, a working
-   level or supervision is no control, and a refused link is skipped
-   (`link_unverified`); so is the marker, against the control quote
-   (`marker_unverified`). A seat needs a human's item (pepcorp creates no
+   quote alone (`verify.py`, `prompts/verify_link.md`), told which property
+   it is: founding, funding, a working level or an independent body's
+   supervision is no control, being one of a state's institutes or units
+   makes a parent and never an owner, and a minister's statutory
+   supervision of a state legal person is subordination; a refused link is
+   skipped (`link_unverified`). So is the marker, against the control quote
+   (`marker_unverified`), and a statutory class, against the control quote
+   and the article's opening (`class_unverified`: a regulator sets rules for
+   a sector, licenses it or supervises its firms; a registry, patent office
+   or watchdog is none). A seat needs a human's item (pepcorp creates no
    people): the one the article links under the name, or else one found by
    name (`persons.py`, `match.py`, `prompts/match_person.md`). The name is
    searched fuzzily (accents, script, order, titles, middle names) among
@@ -143,7 +152,11 @@ are written by default; a spec names its own.
    most three namesakes, and never for a citizen of other countries only;
    a career elsewhere or anything contradicting is none, and an item
    without a page whose data does not name the body is never matched. Only seats the dates
-   would let through are searched. No open seat is written for a person who
+   would let through are searched. A seat whose person the article links
+   goes through the same page check when nothing ties that person to the
+   body (their item does not name it, their page neither links nor names
+   it), and is skipped when the check does not call them the same person
+   (`person_unconfirmed`: the article linked a namesake). No open seat is written for a person who
    has died (`holder_dead`), nor for a head the article does not call current
    who started before another head it names (`superseded`: an interim, a
    predecessor).
@@ -178,9 +191,12 @@ peploop/corp/
   verify.py    the link check against its quote
   prompts/verify_link.md
   persons.py   name folding and fitting, candidate search, a person's page
-  match.py     the unlinked seat's person, checked against their own page
+  match.py     the unlinked seat's person, and the linked one without a tie, checked against their own page
   prompts/match_person.md
-  check_rules.py, check_persons.py, check_neutral.py, check_country.py
+  reask.py     the bodies a decide prompt change affects, to ask again
+  regress.py   a regression set asked and checked, expected against got
+  eval/*.yml   regression sets
+  check_rules.py, check_persons.py, check_verify.py, check_ledger.py, check_neutral.py, check_country.py
 ```
 
 Shared with peploop: `plan.py` and `route.py` (planning and lines),
@@ -189,3 +205,5 @@ table, `positions.organisations`, `policy` (tenure ages).
 
     .venv/bin/python -m peploop.cli corp run <cc> [--no-ask] [--no-reload] [--qid Q…] [--limit N]
     .venv/bin/python -m peploop.cli corp send <cc> [--qid Q…] [--submit]
+    .venv/bin/python -m peploop.cli corp eval peploop/corp/eval/<set>.yml
+    .venv/bin/python -m peploop.corp.reask [cc …]

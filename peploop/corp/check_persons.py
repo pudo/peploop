@@ -118,6 +118,20 @@ def seats() -> None:
     anchor["links"] = {"xx": {"Maxem Probem": "Q901001"}}
     rows = rules.seat_rows(anchor, {"Q901001"}, TODAY, titles={"Q901001": {"Max Probe"}})
     expect(rows[0]["_via"] == "anchor", "a name only the link's text gives resolves by anchor")
+    rows = rules.seat_rows(head, {"Q901001"}, TODAY, titles={"Q901001": {"Max Probe"}},
+                           unconfirmed={("Q900500", "Max Probe")})
+    expect(rows[0]["_rule"] == "person_unconfirmed", "a linked person whose page does not bear out the seat is not written")
+    written = [{"qid": "Q900500", "prop": "P1037", "value": "Q901001", "disposition": "apply", "rule": "write",
+                "detail": {"name": "Max Probe", "via": "link"}},
+               {"qid": "Q900500", "prop": "P5052", "value": "Q901000", "disposition": "apply", "rule": "write",
+                "detail": {"name": "Erika Muster", "via": "matched"}},
+               {"qid": "Q900500", "prop": "P5052", "value": "Q901003", "disposition": "skip", "rule": "tenure_ended",
+                "detail": {"name": "Hans Alt", "via": "anchor"}}]
+    both = {**head, "answer": answer(kind="institution", seats=[seat(name="Max Probe", body="executive", role="head"),
+                                                                 seat(), seat(name="Hans Alt")])}
+    found = match.linked(written, [both])
+    expect([(s["qid"], s["seat"]["name"], s["person"]) for s in found] == [("Q900500", "Max Probe", "Q901001")],
+           "only written seats whose person the article links go to the page check")
     decisions = [{"qid": "Q900500", "rule": "person_unlinked", "detail": {"name": "Erika Muster"}},
                  {"qid": "Q900500", "rule": "tenure_ended", "detail": {"name": "Max Probe"}}]
     found = match.unlinked(decisions, [{**one, "answer": answer(kind="institution", seats=[seat()])}])

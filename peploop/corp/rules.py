@@ -239,7 +239,10 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
         cited = source(req, control["article"])
         rows.append({"property": "P31", "value": item(statutory), "qualifiers": {"_sources": cited},
                      "_rule": "typed" if marks & STATUTORY_TYPED or proof == "form"
-                     else None if cited else "statutory_unsourced"})
+                     else "statutory_unsourced" if not cited
+                     # The narrow check found the article does not make it one (a registry called a regulator).
+                     else "class_unverified" if (req.get("qid", ""), "P31", statutory) in refused
+                     else None})
     if by_proof:
         if answer["kind"] == "enterprise" and country:
             rows.append({"property": "P127", "value": item(country), "qualifiers": {"_sources": proof_sources},
@@ -414,14 +417,17 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
               extra: dict[str, tuple[str, str | None]] | None = None,
               entity: dict[str, Any] | None = None, dead: set[str] | frozenset = frozenset(),
               matched: dict[tuple[str, str], str] | None = None,
-              titles: dict[str, set[str]] | None = None) -> list[dict[str, Any]]:
+              titles: dict[str, set[str]] | None = None,
+              unconfirmed: set[tuple[str, str]] | frozenset = frozenset()) -> list[dict[str, Any]]:
     """One leadership row per seat the answer lists.
 
     A person is the item the article links under the seat's name; failing
     that, the one `match.py` found by name and checked against their own
     page (`matched`, by body and name). Each row says how (`_via`): `link`
     when the name is the linked page's title (`titles`, QID → its page
-    titles), `anchor` when only the link's text, `matched`.
+    titles), `anchor` when only the link's text, `matched`. A linked person
+    whose own page does not bear out the seat (`unconfirmed`, by body and
+    name) is a namesake the article links by mistake.
     """
     heads = {p: set(wd.values(entity or {}, p)) for p in HEADS}
     # The latest start among the answer's heads: an earlier head left open
@@ -458,6 +464,8 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
             rule = "person_ambiguous"
         elif found[0] not in humans:
             rule = "not_human"
+        elif (req.get("qid", ""), seat["name"]) in unconfirmed:
+            rule = "person_unconfirmed"
         elif not end and found[0] in dead:
             # A seat with no end, held by someone who has died, ended then.
             rule = "holder_dead"
@@ -516,11 +524,14 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
            actors: actormod.Actors, spec: countries.Spec | None = None, today: date | None = None,
            refused: set[tuple[str, str, str]] | frozenset = frozenset(),
            matched: dict[tuple[str, str], str] | None = None,
+           unconfirmed: set[tuple[str, str]] | frozenset = frozenset(),
            ) -> tuple[list[str], list[dict[str, Any]], list[dict[str, Any]]]:
     """Plan every answered body against its live item: (lines, decision rows, proposed removals).
 
-    `refused` are the links the quote check refused (`verify.py`),
-    `matched` the unlinked seats' people found by name (`match.py`).
+    `refused` are the links, markers and classes the quote check refused
+    (`verify.py`), `matched` the unlinked seats' people found by name and
+    `unconfirmed` the linked seats their person's page does not bear out
+    (`match.py`).
     """
     today = today or date.today()
     spec = spec or countries.get(cc)
@@ -620,7 +631,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": "no_state_owner", "call_key": r.get("key")})
             continue
-        rows += seat_rows(r, humans, today, spec.roles, entity, dead, matched, titles)
+        rows += seat_rows(r, humans, today, spec.roles, entity, dead, matched, titles, unconfirmed)
         lines += settle(r, entity, rows, decisions)
     return lines, decisions, removals
 

@@ -346,13 +346,32 @@ def decide(cc: str, model: str = MODEL, limit: int | None = None, log: Callable[
 
 
 def from_ledger(cc: str) -> list[dict[str, Any]]:
-    """The latest answered request per enterprise under the current prompt, for re-deciding without asking again."""
-    _, prompt_hash = system_prompt()
+    """Each kept body's newest answer, under whichever decide prompt asked it, for re-deciding without asking again.
+
+    A prompt change then applies body by body: the bodies asked again carry
+    the new prompt's answer, the rest keep theirs. An answer the current
+    schema cannot read (an older prompt's) is passed over; the ledger rows
+    of the narrow checks are no answers (they carry no candidates).
+    """
     rows = wd.conn().execute(
-        "SELECT DISTINCT ON (qid) qid, key, request, answer FROM pcorp_call WHERE country = %s AND prompt_hash = %s"
-        " ORDER BY qid, created_at DESC", (cc, prompt_hash)).fetchall()
+        "SELECT qid, key, answer FROM pcorp_call WHERE country = %s AND request ? 'offered'"
+        " ORDER BY qid, created_at DESC", (cc,)).fetchall()
     kept = {it["qid"] for it in loadmod.items(cc)}
-    return [{"qid": q, "key": k, **req, "answer": ans} for q, k, req, ans in rows if q in kept]
+    newest: dict[str, tuple[str, dict[str, Any]]] = {}
+    for q, k, ans in rows:
+        if q in kept and q not in newest and readable(ans):
+            newest[q] = (k, ans)
+    requests = dict(wd.conn().execute("SELECT key, request FROM pcorp_call WHERE key = ANY(%s)",
+                                      ([k for k, _ in newest.values()],)).fetchall())
+    return [{"qid": q, "key": k, **requests[k], "answer": ans} for q, (k, ans) in newest.items()]
+
+
+def readable(answer: dict[str, Any]) -> bool:
+    try:
+        Answer.model_validate(answer)
+    except ValueError:
+        return False
+    return True
 
 
 def cost(cc: str) -> tuple[float, int]:
