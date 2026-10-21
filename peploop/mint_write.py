@@ -180,6 +180,7 @@ def create(
     country: str,
     limit: int | None = None,
     *,
+    ids: Sequence[int] | None = None,
     recheck: Recheck,
     lookup: Lookup = live_duplicate,
     log: Callable[[str], None] = lambda _m: None,
@@ -192,7 +193,7 @@ def create(
     """
     rows: list[tuple[str, str, list[str], int]] = []
     cands: dict[str, dict[str, Any]] = {}
-    for cand in guarded(country, limit):
+    for cand in guarded(country, limit, ids):
         if qs.create_lines(cand["data"], "") is None:
             _settle_refusal(cand["id"], [qs.UNRENDERABLE])
             continue
@@ -217,6 +218,7 @@ def submit(
     country: str,
     limit: int | None = None,
     *,
+    ids: Sequence[int] | None = None,
     recheck: Recheck,
     lookup: Lookup = live_duplicate,
     username: str = "",
@@ -227,6 +229,7 @@ def submit(
     What `mint --submit` runs. It decides nothing: categorize and verify are
     the dry run's, and a re-run of them here could guard an office nobody was
     shown. Each guarded row is still re-checked live before it is sent.
+    `ids` narrows it to those guarded rows, for a sample batch shown first.
     Returns the outcomes counted and the feed's stats.
     """
     counts: Counter[str] = Counter()
@@ -234,7 +237,7 @@ def submit(
         send.recover(TOOL, username, log)
         for _cid, outcome, _qid in recover(country, lookup=lookup, log=log):
             counts[f"recovered:{outcome}"] += 1
-        for cid, outcome, qid in create(country, limit, recheck=recheck, lookup=lookup, log=log):
+        for cid, outcome, qid in create(country, limit, ids=ids, recheck=recheck, lookup=lookup, log=log):
             counts[outcome] += 1
             log(f"#{cid} -> {qid or '-'} {outcome}")
     return counts, feed(country, log=log)
@@ -540,13 +543,15 @@ def report(country: str) -> str:
     return "\n".join(out) + "\n"
 
 
-def guarded(country: str, limit: int | None = None) -> list[dict[str, Any]]:
-    """The rows `mint` would send, oldest first."""
+def guarded(country: str, limit: int | None = None,
+            ids: Sequence[int] | None = None) -> list[dict[str, Any]]:
+    """The rows `mint` would send, oldest first; only `ids` among them when given."""
     with db.conn().cursor(row_factory=dict_row) as cur:
         return cur.execute(
             "SELECT * FROM office_candidate WHERE country = %s AND status = 'guarded'"
-            " AND qid IS NULL ORDER BY id LIMIT %s",
-            (country, limit)).fetchall()
+            " AND qid IS NULL AND (%s::bigint[] IS NULL OR id = ANY(%s::bigint[]))"
+            " ORDER BY id LIMIT %s",
+            (country, list(ids) if ids else None, list(ids) if ids else None, limit)).fetchall()
 
 
 def labels_of(cand: dict[str, Any]) -> dict[str, str]:

@@ -919,8 +919,9 @@ def report(sections: Sequence[str], country: str) -> None:
 @cli.command("mint")
 @click.option("--country", required=True, help="ISO code of the country to mint for.")
 @click.option("--limit", default=None, type=int, help="Create at most this many items.")
+@click.option("--id", "ids", type=int, multiple=True, help="With --submit, create only these guarded rows.")
 @click.option("--submit", is_flag=True, help="Create the items as a QS3 batch; without it nothing leaves here.")
-def mint_(country: str, limit: int | None, submit: bool) -> None:
+def mint_(country: str, limit: int | None, ids: tuple[int, ...], submit: bool) -> None:
     """Find the offices a country's P39s had nowhere to go, decide each, and create the guarded ones.
 
     Runs when the reconciler's refusals name offices Wikidata lacks; a run
@@ -935,13 +936,13 @@ def mint_(country: str, limit: int | None, submit: bool) -> None:
     `--submit` decides nothing: it creates the offices the last dry run
     guarded and printed, each re-checked live, as one QS3 batch, then feeds
     every item made into the position table and the mentions it was attested
-    by. The holders' P39s go out with the next `send`, after `propose` and
+    by; `--id` narrows it to named rows, for a sample shown to reviewers first. The holders' P39s go out with the next `send`, after `propose` and
     `verify` have seen the new items.
     """
     if submit:
-        if not minting.guarded(country, limit):
+        if not minting.guarded(country, limit, ids):
             click.echo(f"{country}: 0 guarded: run the dry mint first")
-        counts, fed = minting.submit(country, limit, recheck=mint.reguard,
+        counts, fed = minting.submit(country, limit, ids=ids or None, recheck=mint.reguard,
                                      username=os.environ.get("QS_USERNAME", ""), log=click.echo)
         click.echo("  " + fed.line())
         click.echo(f"{country}: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))

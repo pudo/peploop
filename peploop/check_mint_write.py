@@ -160,6 +160,14 @@ def check_create(expect: Any, conn: psycopg.Connection) -> None:
            "a second create sends nothing: no row is guarded")
 
 
+def check_ids(expect: Any, conn: psycopg.Connection) -> None:
+    """A sample batch creates only the guarded rows named, and leaves the rest guarded."""
+    picked, other = candidate(conn, "ids-picked"), candidate(conn, "ids-other")
+    out = mint_write.create(COUNTRY, ids=[picked], recheck=clean, lookup=lambda _c: None)
+    expect([cid for cid, *_ in out] == [picked] and state(conn, other)[0] == "guarded",
+           "only the named row is created; the other stays guarded")
+
+
 def check_submit(expect: Any, conn: psycopg.Connection) -> None:
     """Submit creates what the dry run guarded and decides nothing: no categorize, no verify."""
     def no_model(*_a: Any, **_k: Any) -> Any:
@@ -371,7 +379,7 @@ def main() -> int:
     shadow(conn)
     try:
         for name, check in (
-            ("create", check_create), ("submit", check_submit), ("crash", check_crash), ("lock", check_lock), ("resend", check_resend),
+            ("create", check_create), ("ids", check_ids), ("submit", check_submit), ("crash", check_crash), ("lock", check_lock), ("resend", check_resend),
             ("refusals", check_refusals),
             ("feed", check_feed), ("audit", check_audit), ("report", check_report),
         ):
