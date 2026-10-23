@@ -10,6 +10,7 @@ model is asked about them. Nothing here writes to Wikidata or calls a model.
 
 import hashlib
 import json
+import os
 import re
 import unicodedata
 from collections import Counter
@@ -960,6 +961,15 @@ class Truncated(RuntimeError):
         self.body = body
 
 
+def categorize_params(message: str, model: str) -> dict[str, Any]:
+    """The categorize request for one chunk's message, without its output format."""
+    text, _hash = categorize_prompt()
+    return {"model": model, "max_tokens": CATEGORIZE_MAX_TOKENS, "thinking": {"type": "adaptive"},
+            "output_config": {"effort": CATEGORIZE_EFFORT},
+            "system": [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}],
+            "messages": [{"role": "user", "content": message}]}
+
+
 def ask_categorize(message: str, model: str) -> tuple[CategorizeAnswer, dict[str, int]]:
     """Send one categorize request and return the parsed answer and its usage.
 
@@ -970,6 +980,7 @@ def ask_categorize(message: str, model: str) -> tuple[CategorizeAnswer, dict[str
     """
     text, _hash = categorize_prompt()
     schema = transform_schema(CategorizeAnswer.model_json_schema())
+    llm.guard()
     with llm.client().messages.stream(
         model=model,
         max_tokens=CATEGORIZE_MAX_TOKENS,
@@ -981,6 +992,7 @@ def ask_categorize(message: str, model: str) -> tuple[CategorizeAnswer, dict[str
     ) as stream:
         response = stream.get_final_message()
     usage = llm.usage(response)
+    llm.charge(model, usage)
     body = "".join(block.text for block in response.content if block.type == "text")
     thinking = sum(len(getattr(block, "thinking", "") or "") for block in response.content
                    if block.type == "thinking")
@@ -1248,16 +1260,43 @@ def categorize(
     unassigned: list[tuple[Group, str, int | None]] = [
         (g, "floor/not-current", None) for g in skipped
     ]
+    unknown = [m for m in messages if recorded_call(country, content_key(m), prompt_hash, model) is None]
+    batched: set[str] = set()
+    cut_short: dict[str, Exception] = {}
+    if llm.batches(len(unknown)):
+        def job(message: str) -> llm.Job:
+            key = content_key(message)
+
+            def done(answer: CategorizeAnswer, usage: dict[str, int]) -> None:
+                store_call(country, key, prompt_hash, model, message, answer, usage)
+                batched.add(key)
+                for k in USAGE_KEYS:
+                    stats["usage"][k] += usage.get(k, 0)
+
+            return llm.Job(categorize_params(message, model), CategorizeAnswer, done,
+                           failed=lambda exc: cut_short.__setitem__(key, exc))
+
+        llm.run("mint:categorize", [job(m) for m in dict.fromkeys(unknown)], log, batch=True)
     for i, (chunk, message) in enumerate(zip(cut, messages), 1):
         key = content_key(message)
         known = recorded_call(country, key, prompt_hash, model)
+        if key in cut_short:
+            exc = cut_short[key]
+            stats["failed"] = stats.get("failed", 0) + 1
+            stats.setdefault("truncated", []).append(getattr(exc, "body", ""))
+            log(f"chunk {i}/{len(cut)}: {exc}")
+            continue
         if known is not None:
             call, answer = known
-            stats["recorded"] += 1
+            stats["asked" if key in batched else "recorded"] += 1
         else:
             stats["asked"] += 1
             try:
                 answer, usage = ask_categorize(message, model)
+            except llm.BudgetSpent as exc:
+                stats["failed"] = stats.get("failed", 0) + 1
+                log(f"chunk {i}/{len(cut)}: not asked: {exc}")
+                continue
             except Truncated as exc:
                 for k in USAGE_KEYS:
                     stats["usage"][k] += exc.usage.get(k, 0)
@@ -1306,11 +1345,11 @@ def categorize(
 VERIFY_PROMPT = Path(__file__).resolve().parent / "prompts" / "mint_verify.md"
 
 #: The verifier's model, a different family from categorize's on purpose: the
-#: pass exists to be an independent reading. Shared with the person loop's
-#: verifier through `PEPLOOP_VERIFY_MODEL`.
-VERIFY_MODEL = person_verify.MODEL
+#: pass exists to be an independent reading. Its own settings, apart from the
+#: person loop's verifier's: the two were measured apart.
+VERIFY_MODEL = os.environ.get("PEPLOOP_MINT_VERIFY_MODEL", "claude-opus-5-5")
 VERIFY_MAX_TOKENS = 16_000
-VERIFY_EFFORT = person_verify.EFFORT
+VERIFY_EFFORT = os.environ.get("PEPLOOP_MINT_VERIFY_EFFORT", "high")
 
 #: What the model is shown apart from the prompt. Bumped whenever the rendering
 #: changes without a prompt edit, because an answer is keyed by what was shown.
@@ -2437,10 +2476,19 @@ def settle_verify(answer: VerifyAnswer, ev: Evidence, call: int | None = None) -
     )
 
 
+def verify_params(message: str, model: str) -> dict[str, Any]:
+    """The verify request for one candidate's message, without its output format."""
+    text, _hash = verify_prompt()
+    return {"model": model, "max_tokens": VERIFY_MAX_TOKENS, "thinking": {"type": "adaptive"},
+            "output_config": {"effort": VERIFY_EFFORT},
+            "system": [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}],
+            "messages": [{"role": "user", "content": message}]}
+
+
 def ask_verify(message: str, model: str) -> tuple[VerifyAnswer, dict[str, int]]:
     """Send one verify request and return the parsed answer and its usage."""
     text, _hash = verify_prompt()
-    response = llm.client().messages.parse(
+    response = llm.send(
         output_format=VerifyAnswer,
         model=model,
         max_tokens=VERIFY_MAX_TOKENS,
@@ -2867,6 +2915,42 @@ class _Inline:
         return _Done(fn, *args)
 
 
+def _verify_batched(ask: list[tuple[Candidate, offices.Spec | None]], results: dict[int, Verified],
+                    stats: dict[str, Any], ctx: Context, model: str, threads: int,
+                    log: Callable[[str], None]) -> None:
+    """Gather every candidate's evidence, then ask the unanswered ones as Message Batches.
+
+    Fills `results` with each candidate answered, from the ledger or the
+    batch; one the batch could not answer is left out, for the live pool.
+    """
+    def gather(pair: tuple[Candidate, offices.Spec | None]) -> tuple[Candidate, Verified]:
+        cand, spec = pair
+        return cand, verify_candidate(cand, dry_run=True, ctx=ctx, spec=spec, model=model)
+
+    pool = ThreadPoolExecutor(max_workers=threads) if threads > 1 else None
+    with pool or _Inline() as runner:
+        gathered = [f.result() for f in [runner.submit(gather, pair) for pair in ask]]
+    _text, prompt_hash = verify_prompt()
+    jobs = []
+    for cand, seen in gathered:
+        if seen.verdict is not None:
+            results[cand.id] = seen
+            stats["recorded"] += 1
+            continue
+
+        def done(answer: VerifyAnswer, usage: dict[str, int], cand: Candidate = cand, seen: Verified = seen) -> None:
+            call = store_verify(cand.country, content_key(seen.message), prompt_hash, model, seen.message,
+                                answer, usage)
+            results[cand.id] = Verified(seen.evidence, seen.message, settle_verify(answer, seen.evidence, call),
+                                        asked=True, usage=usage)
+            stats["asked"] += 1
+            for k in USAGE_KEYS:
+                stats["usage"][k] += usage.get(k, 0)
+
+        jobs.append(llm.Job(verify_params(seen.message, model), VerifyAnswer, done))
+    llm.run("mint:verify", jobs, log, threads, batch=True)
+
+
 def verify(
     country: str,
     limit: int | None = None,
@@ -2925,6 +3009,9 @@ def verify(
         return stats
 
     results: dict[int, Verified] = {}
+    if len(ask) >= llm.BATCH_MIN and llm.batches(len(ask)):
+        _verify_batched(ask, results, stats, ctx, model, threads, log)
+        ask = [(c, s) for c, s in ask if c.id not in results]
 
     def run(cand: Candidate, spec: offices.Spec | None) -> tuple[int, Verified]:
         return cand.id, verify_candidate(cand, ctx=ctx, spec=spec, model=model)

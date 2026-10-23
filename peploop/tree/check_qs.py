@@ -5,7 +5,7 @@
 
 from peploop import plan, wikipedia
 from peploop.tree import qs
-from peploop.tree.check_filter import expect
+from peploop.checks import expect
 
 wikipedia.edition_items = lambda: {"xa": "Q0000101"}
 

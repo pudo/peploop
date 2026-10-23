@@ -6,7 +6,7 @@
 from peploop import memo
 from peploop.corp import decide, rules, verify, wd
 from peploop.corp.check_rules import answer
-from peploop.tree.check_filter import expect
+from peploop.checks import expect
 
 MESSAGE = ("# Item Q900999\n\n```article lang=xx title='Probe' url=u\nProbe\nFormed: 2008\n\n"
            "The Probe Office keeps the register of companies and publishes their accounts for anyone to read online.\n"

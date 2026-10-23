@@ -8,8 +8,6 @@ sits in its leading bodies, each with a verbatim quote. The ledger
 only for enterprises whose material changed.
 """
 
-import concurrent.futures as cf
-import hashlib
 import os
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional
@@ -17,7 +15,6 @@ from urllib.parse import quote, unquote
 
 import requests
 from lxml import html as lxml_html
-from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
 from peploop import db, http, llm, memo, positions, wikidata, wikipedia
@@ -267,21 +264,29 @@ def render(item: dict[str, Any], offered: list[str], kinds: dict[str, str], arti
 
 # --- the ledger ------------------------------------------------------------------
 
+#: Every pepcorp answer -- decide's, the link check's, the person match's -- in one table.
+LEDGER = llm.Ledger("pcorp_call")
+
+
 def content_key(model: str, prompt_hash: str, message: str) -> str:
-    return hashlib.sha256(f"{model}\n{prompt_hash}\n{message}".encode()).hexdigest()
+    return LEDGER.key(model, prompt_hash, message)
 
 
 def recorded(key: str) -> dict[str, Any] | None:
-    row = wd.conn().execute("SELECT answer FROM pcorp_call WHERE key = %s", (key,)).fetchone()
-    return None if row is None else row[0]
+    return LEDGER.recorded(key)
+
+
+def params(message: str, model: str = MODEL) -> dict[str, Any]:
+    """The decide request for one message, without its output format."""
+    text, _ = system_prompt()
+    return {"model": model, "max_tokens": MAX_TOKENS, "thinking": {"type": "adaptive"},
+            "output_config": {"effort": "medium"},
+            "system": [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}],
+            "messages": [{"role": "user", "content": message}]}
 
 
 def ask(message: str, model: str = MODEL) -> tuple[Answer, dict[str, int]]:
-    text, _ = system_prompt()
-    response = llm.client().messages.parse(
-        model=model, max_tokens=MAX_TOKENS, thinking={"type": "adaptive"}, output_config={"effort": "medium"},
-        system=[{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}],
-        messages=[{"role": "user", "content": message}], output_format=Answer)
+    response = llm.send(output_format=Answer, **params(message, model))
     if response.parsed_output is None:
         raise RuntimeError(f"no parsed output ({response.stop_reason})")
     return response.parsed_output, llm.usage(response)
@@ -322,24 +327,12 @@ def decide(cc: str, model: str = MODEL, limit: int | None = None, log: Callable[
     todo = [r for r in reqs if recorded(r["key"]) is None]
     log(f"{len(reqs)} requests; {len(reqs) - len(todo)} answered before, {len(todo)} to ask")
 
-    def one(r: dict[str, Any]) -> None:
-        answer, usage = ask(r["message"], model)
-        wd.conn().execute(
-            "INSERT INTO pcorp_call (key, country, qid, model, prompt_hash, request, answer, usage)"
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (key) DO NOTHING",
-            (r["key"], cc, r["qid"], model, prompt_hash,
-             Jsonb({k: r[k] for k in ("message", "offered", "links", "articles")}),
-             Jsonb(answer.model_dump()), Jsonb(usage)))
+    def done(r: dict[str, Any]) -> Callable[[Answer, dict[str, int]], None]:
+        return lambda answer, usage: LEDGER.store(
+            r["key"], cc, r["qid"], model, prompt_hash, {k: r[k] for k in ("message", "offered", "links", "articles")},
+            answer.model_dump(), usage)
 
-    with cf.ThreadPoolExecutor(WORKERS) as ex:
-        futures = {ex.submit(one, r): r["qid"] for r in todo}
-        for i, fut in enumerate(cf.as_completed(futures), 1):
-            try:
-                fut.result()
-            except Exception as exc:  # one failed enterprise must not lose the others
-                log(f"  {futures[fut]}: {exc}")
-            if i % 25 == 0:
-                log(f"  asked {i}/{len(todo)}")
+    llm.run("corp:decide", [llm.Job(params(r["message"], model), Answer, done(r)) for r in todo], log, WORKERS)
     for r in reqs:
         r["answer"] = recorded(r["key"])
     return [r for r in reqs if r["answer"] is not None]
@@ -376,5 +369,4 @@ def readable(answer: dict[str, Any]) -> bool:
 
 def cost(cc: str) -> tuple[float, int]:
     """Total spend on this country's ledger rows at list price, and the number of calls."""
-    rows = wd.conn().execute("SELECT model, usage FROM pcorp_call WHERE country = %s", (cc,)).fetchall()
-    return sum((llm.cost(model, usage) or 0.0 for model, usage in rows), 0.0), len(rows)
+    return LEDGER.cost(cc)

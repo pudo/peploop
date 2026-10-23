@@ -44,3 +44,5 @@
   mention at least the industry or domain, ideally the institution"
 - 2026-10-20: "sending should be done in coordination with the user, even in
   cases where an autonomous/unsupervised sweep is being conducted."
+- 2026-10-23: On which positions to mint: "I think the logic is also completeness:
+  if we have 3 out of 9 governors, let's make the other 6"

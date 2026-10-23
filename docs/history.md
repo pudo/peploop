@@ -330,6 +330,43 @@ interim policy calls were logged for the user before one re-run.
 | EU-27 + Switzerland | 10-19 – 10-20 | re-run on the user's policy answers, nothing sent: 6,189 lines (de 1,164, se 666, fr 588, es 546, pl 425, at 269, it 253, fi 249, nl 239, ch 224, be 210, cz 205, dk 144, ee 135, lt 115, bg 113, ro 111, hu 105, lu 82, hr 52, lv 52, pt 50, ie 47, gr 41, si 41, sk 37, mt 16, cy 10); 13 municipal marker removals proposed; samples 84–90% correct, 2–4% wrong (542 lines); ~$171 | — |
 | EU-25 + Switzerland | 10-17 – 10-18 | dry run, nothing sent: 3,938 lines (se 610, fr 487, pl 366, fi 256, at 255, es 230, it 223, cz 212, be 170, ch 162, dk 122, ee 115, ro 100, lt 97, hu 89, bg 84, lu 58, hr 51, lv 51, pt 44, ie 39, si 34, sk 32, gr 26, mt 16, cy 9) | — |
 
+## Model spending
+
+- **Where it went (2026-10-22, `cost`).** $5,240 at list price over the seven
+  ledgers, none of it batched: resolve $1,423 (166k calls, the person's
+  article re-sent uncached with each of ~6 mentions), peptree $911 (Opus 5,
+  high), extract $727 (output ~3× the answer: thinking), mint verify $701,
+  mint categorize $506 ($0.24 a call, 18.7k output tokens), pepcorp decide
+  $472 (2.8 asks per body, from re-keying after prompt and actor changes),
+  peploop verify $468. The system prompts cached well throughout.
+- **Settled titles.** 19.8k resolve calls (12%) went to titles already
+  answered five or more times to one item with no dissent; one legislature's
+  member title was asked 1,527 times. Hence `reconcile.settled`.
+- **Trimming pepcorp's articles is not worth a re-key.** Link, literature and
+  see-also sections are 3.2% of decide's message text (2.7% on the largest);
+  the reducer already drops footnotes.
+- **Trials (2026-10-22, `trial`, ~$25).** A replayed sample against the stored
+  answers, beside the stored setting asked again; where a question's material
+  has changed since (peploop verify: half its proposals are on Wikidata now,
+  read as already-recorded), only the variant against today's baseline counts.
+  - peptree, Opus 5.5 medium for Opus 5 high: 92% of items agree in all five
+    slots against a 95% floor, 30% cheaper; the gap is P279 and scope.
+  - peploop verify, Opus 5.5 medium: 95% of verdicts agree with Opus 5 high
+    asked the same day, 40% cheaper.
+  - mint verify, Opus 5.5 medium: 64% against an 83% floor -- no. Opus 5.5
+    high: 83% against a 93% floor on its sample, 36% cheaper, and one-sided:
+    4 of Opus 5's 20 `mint` verdicts became `unclear`, never the reverse.
+    As strict, fewer offices.
+  - mint categorize without thinking: 35% cheaper, but its clusters fall
+    apart (13% of co-clustered group pairs kept, against 65% for the stored
+    setting re-asked) -- no.
+  - extract without thinking: 26% cheaper; position titles overlap the
+    stored answer as much as a re-ask does (0.57 against 0.55), dates and
+    citizenships the same. The measure is weak: extraction's own position
+    titles vary between two asks of one setting.
+  - Adopted the same day: Opus 5.5 medium for peptree and peploop verify,
+    Opus 5.5 high for mint verify. Extract and categorize keep their settings.
+
 ## Shared helpers across the lanes
 
 - **One quote gate (2026-10-23).** The three lanes had three gates:

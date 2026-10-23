@@ -4,7 +4,7 @@
 """
 
 from peploop.tree import country, gaps
-from peploop.tree.check_filter import ent, expect
+from peploop.checks import ent, expect
 from peploop.tree.check_fixture import XX
 from peploop.tree.check_rules import item
 

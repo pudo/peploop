@@ -6,15 +6,12 @@ candidate list per asked property; the model answers by index. The ledger
 pays only for items whose material changed.
 """
 
-import concurrent.futures as cf
-import hashlib
 import os
 from collections import Counter
 from pathlib import Path
 from typing import Any, Literal, Optional
 
 import requests
-from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
 from peploop import eras, llm, memo, typegraph, wikipedia
@@ -24,8 +21,9 @@ from peploop.tree import signals, wd
 from peploop.tree.load import GENERIC_META, LIST_ARTICLES, POSITION_METAS, all_labels, items as load_items, place_refs, values
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "repair.md"
-MODEL = os.environ.get("PEPTREE_MODEL", "claude-opus-5")
+MODEL = os.environ.get("PEPTREE_MODEL", "claude-opus-5-5")
 MAX_TOKENS = 16000
+EFFORT = os.environ.get("PEPTREE_EFFORT", "medium")
 WORKERS = int(os.environ.get("PEPTREE_WORKERS", "6"))
 PROPS = ("P17", "P1001", "P279", "P31")
 
@@ -339,21 +337,28 @@ def render(run: Run, item: dict[str, Any], cands: dict[str, list[str]], held: li
 
 # --- the ledger ------------------------------------------------------------------
 
+LEDGER = llm.Ledger("ptree_call")
+
+
 def content_key(model: str, prompt_hash: str, message: str) -> str:
-    return hashlib.sha256(f"{model}\n{prompt_hash}\n{message}".encode()).hexdigest()
+    return LEDGER.key(model, prompt_hash, message)
 
 
 def recorded(key: str) -> dict[str, Any] | None:
-    row = wd.conn().execute("SELECT answer FROM ptree_call WHERE key = %s", (key,)).fetchone()
-    return None if row is None else row[0]
+    return LEDGER.recorded(key)
+
+
+def params(message: str, model: str = MODEL) -> dict[str, Any]:
+    """The repair request for one message, without its output format."""
+    text, _ = system_prompt()
+    return {"model": model, "max_tokens": MAX_TOKENS, "thinking": {"type": "adaptive"},
+            "output_config": {"effort": EFFORT},
+            "system": [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}],
+            "messages": [{"role": "user", "content": message}]}
 
 
 def ask(message: str, model: str = MODEL) -> tuple[Answer, dict[str, int]]:
-    text, _ = system_prompt()
-    response = llm.client().messages.parse(
-        model=model, max_tokens=MAX_TOKENS, thinking={"type": "adaptive"}, output_config={"effort": "high"},
-        system=[{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}],
-        messages=[{"role": "user", "content": message}], output_format=Answer)
+    response = llm.send(output_format=Answer, **params(message, model))
     if response.parsed_output is None:
         raise RuntimeError(f"no parsed output ({response.stop_reason})")
     return response.parsed_output, llm.usage(response)
@@ -413,24 +418,13 @@ def repair(cc: str, model: str = MODEL, limit: int | None = None, log: Any = pri
     todo = [r for r in reqs if recorded(r["key"]) is None]
     log(f"{len(reqs)} requests; {len(reqs) - len(todo)} answered before, {len(todo)} to ask")
 
-    def one(r: dict[str, Any]) -> None:
-        answer, usage = ask(r["message"], model)
-        wd.conn().execute(
-            "INSERT INTO ptree_call (key, country, qid, model, prompt_hash, request, answer, usage)"
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (key) DO NOTHING",
-            (r["key"], cc, r["qid"], model, prompt_hash,
-             Jsonb({"message": r["message"], "candidates": r["candidates"], "articles": r["articles"]}),
-             Jsonb(answer.model_dump()), Jsonb(usage)))
+    def done(r: dict[str, Any]) -> Any:
+        return lambda answer, usage: LEDGER.store(
+            r["key"], cc, r["qid"], model, prompt_hash,
+            {"message": r["message"], "candidates": r["candidates"], "articles": r["articles"]},
+            answer.model_dump(), usage)
 
-    with cf.ThreadPoolExecutor(WORKERS) as ex:
-        futures = {ex.submit(one, r): r["qid"] for r in todo}
-        for i, fut in enumerate(cf.as_completed(futures), 1):
-            try:
-                fut.result()
-            except Exception as exc:  # one failed item must not lose the others
-                log(f"  {futures[fut]}: {exc}")
-            if i % 25 == 0:
-                log(f"  asked {i}/{len(todo)}")
+    llm.run("tree", [llm.Job(params(r["message"], model), Answer, done(r)) for r in todo], log, WORKERS)
     for r in reqs:
         r["answer"] = recorded(r["key"])
     return reqs
@@ -446,10 +440,5 @@ def from_ledger(cc: str) -> list[dict[str, Any]]:
 
 
 def cost(cc: str) -> tuple[float, int]:
-    """Total spend on this country's ledger rows at list price, and the number of calls.
-
-    A call on a model `llm.PRICES` does not list adds no dollars: an unknown
-    price is left out, not guessed.
-    """
-    rows = wd.conn().execute("SELECT model, usage FROM ptree_call WHERE country = %s", (cc,)).fetchall()
-    return sum((llm.cost(model, usage) or 0.0 for model, usage in rows), 0.0), len(rows)
+    """Total spend on this country's ledger rows at list price, and the number of calls."""
+    return LEDGER.cost(cc)

@@ -651,6 +651,8 @@ membership         which seed category found which person
 item               Wikidata items as last fetched, with lastrevid
 article            Wikipedia article text and revision, per person and language
 extraction         the model's answer per person, prompt hash and article set
+llm_batch          a Message Batch a pass submitted, recorded before the request
+llm_batch_result   every result of a collected batch, by the request's content hash
 proposal           one statement to consider: value, qualifiers, sources, status,
                    decided_by, proposed_status, resolution_id, applied_batch
 verdict            a human's ruling on a proposal (review sample or audit)
@@ -721,6 +723,10 @@ report           --country cc [people|positions|proposals|funnel|mint]
 audit            proposal|candidate [ID...] [--ids FILE] --country cc --reason TEXT --by NAME
 prompt           extract|verify|mint-categorize|mint-verify [--qid Q...] [--country cc]
 review           [--country cc] [--qid Q...] [--limit N]
+cost             [--since YYYY-MM-DD] [--by pass|model|country|week]
+
+--budget DOLLARS --live   before any command: cap the run's model spending; send nothing as a batch
+python -m peploop.trial PASS --n N [--baseline N] [--model M] [--effort E] [--no-thinking]
 ```
 
 Every stage works through everything its selection returns, at a fixed
@@ -787,6 +793,36 @@ reason it discarded on lands in `person.error`. `extract` stores the model's
 answer for each `fetched` person; a person already answered under this prompt
 hash and these article revisions is skipped without a request.
 
+### Model calls and spending
+
+Every lane's model questions go out through `llm.py`. A pass that asks many
+independent questions builds them all first, drops what its ledger already
+answered, and hands the rest to `llm.run`: from `BATCH_MIN` (50) on they go
+as Message Batches at half price, below it (and with `--live`) live under the
+pass's pool. A batch is recorded in `llm_batch` before it is submitted and
+bound to the API's id after, as the send ledger does for QuickStatements, and
+its results are kept whole in `llm_batch_result`, so a run that died after
+paying collects its batch instead of asking again; a request that failed in a
+batch is asked once more live. A run's spending is counted as it goes, and
+`--budget` (or `PEPLOOP_RUN_BUDGET`) caps it: past the cap nothing more is
+asked, what was answered is in the ledgers, and the next run carries on.
+Before asking, a pass prints how many questions it has and what they will
+cost, the mean of its own recent calls on that model (`costs.estimate`).
+`cost` prints what every pass of every lane has spent, from all seven
+ledgers; `extract`, `reconcile` and `verify` end with their run's spending.
+`trial` replays a fixed sample of a pass's stored questions under another
+model, effort or thinking setting and compares the answers with the stored
+ones, beside the stored setting asked again: the way a cheaper setting is
+judged before it is switched to.
+
+Resolve keeps its two largest costs down itself. An article that goes in
+whole is the first block of the request, with a cache breakpoint of its own,
+and each person's first mention is asked before their others, so the rest
+read it from the prompt cache. And a title whose earlier answers in the state
+are at least `MEMO_FLOOR` confident matches to one item, with no refusal or
+other item among them, is answered from them (`reconcile.settled`, recorded
+with model `memo`); a re-ask after minting always goes to the model.
+
 ## What is deliberately not here
 
 - No bot account: `send` writes what the policy accepted, and the edits
@@ -843,7 +879,10 @@ peploop/
   send.py        submit to QS3 through the ledger: recover, reconcile, dispatch, retry, removals
   typegraph.py   the P31/P279 closure over `type_edge`, by nomenklatura's rule
   memo.py        slow-moving reads (class labels, gazetteers, leads) kept in `memo`
-  llm.py         the model client, a prompt's hash, a response's token counts
+  llm.py         the model client, a prompt's hash, prices, the run's budget, live and batched runs
+  costs.py       what every pass has spent, from its ledger; what the next run will cost
+  trial.py       replay a pass's stored questions under a cheaper setting, and compare
+  checks.py      what every lane's offline checks share
   qs3.py         the QuickStatements 3.0 API client
   cli.py         the commands; every stage's selection and its concurrency
   positions.py   load a country's offices, search and rank them
@@ -861,6 +900,8 @@ peploop/
   check_seed.py       the category walk seeding falls back to when PetScan is down, offline
   check_policy.py     one fabricated case per rule of the policy, offline
   check_verify.py     the verifier's rendering, key, schema and prompt coverage, offline
+  check_llm.py        prices, the budget, live and batched runs, a batch found again after a crash
+  check_costs.py      the cost tally: dollars per call, grouping, unpriced models, offline
   check_reconcile.py  pins the second turn offline: no network, no key
   check_plan.py       what an accepted row plans to, against a live item, offline
   check_qs.py         the line each route becomes, and what a batch refuses, offline

@@ -35,7 +35,7 @@ from peploop.check_reconcile import PROMPT_DIGEST
 #: The reconcile prompt the ledger is keyed by. A retrieval change must not
 #: move it: moving it re-asks every placed mention.
 RECONCILE_PROMPT_SHA256 = PROMPT_DIGEST
-RECONCILE_RENDER_VERSION = 2
+RECONCILE_RENDER_VERSION = 3
 
 STATE = "Q1"
 

@@ -46,9 +46,9 @@ PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "verify.md"
 #: A different family from the extractor's on purpose: the same model
 #: re-asked reproduced 95% of its own verdicts, which is the noise floor of
 #: re-asking and not an independent reading.
-MODEL = os.environ.get("PEPLOOP_VERIFY_MODEL", "claude-opus-5")
+MODEL = os.environ.get("PEPLOOP_VERIFY_MODEL", "claude-opus-5-5")
 MAX_TOKENS = 4000
-EFFORT = "high"
+EFFORT = os.environ.get("PEPLOOP_VERIFY_EFFORT", "medium")
 
 #: What the model is shown apart from the prompt. Bumped whenever the
 #: rendering changes without a prompt edit, because a verdict is keyed by
@@ -275,7 +275,7 @@ def verify(edit: Edit, model: str = MODEL) -> Verification:
     _text, prompt_hash = system_prompt()
     request = request_for(edit)
     request["model"] = model
-    response = llm.client().messages.parse(output_format=Answer, **request)
+    response = llm.send(output_format=Answer, **request)
     answer = response.parsed_output
     if answer is None:
         raise RuntimeError(
@@ -463,6 +463,23 @@ def pending_rows(qid: str) -> list[dict[str, Any]]:
         (qid,),
     )
     return [dict(zip(ROW_COLUMNS, row)) for row in rows]
+
+
+def job_for(row: dict[str, Any], model: str = MODEL) -> tuple[str, llm.Job] | None:
+    """One pending row's question as a job for `llm.run`, keyed; None when the ledger answered it."""
+    key = content_key(row["person_qid"], row["property"], row["value"], row.get("qualifiers"))
+    if recorded_many([key]).get(key) is not None:
+        return None
+    _text, prompt_hash = system_prompt()
+    request = request_for(edit_for(row))
+    request["model"] = model
+
+    def done(answer: BaseModel, usage: dict[str, int]) -> None:
+        store(key, row["id"], row["person_qid"], row["property"], Verification(
+            verdict=answer.verdict, confidence=answer.confidence, evidence=answer.evidence,
+            reason=answer.reason, prompt_hash=prompt_hash, model=model, usage=usage))
+
+    return key, llm.Job(request, Answer, done)
 
 
 def verify_proposal(row: dict[str, Any], model: str = MODEL) -> tuple[Verification, bool]:

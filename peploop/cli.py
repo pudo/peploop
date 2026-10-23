@@ -16,7 +16,7 @@ from typing import Any
 
 import click
 
-from peploop import db, ledger, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
+from peploop import costs, db, ledger, llm, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
 from peploop import mint_units
@@ -126,9 +126,15 @@ def _process(qid: str, entity: dict[str, Any], force: bool) -> tuple[str, str]:
 
 
 @click.group()
-def cli() -> None:
+@click.option("--budget", type=float, envvar="PEPLOOP_RUN_BUDGET",
+              help="Stop asking the model once this run has spent this many dollars (list price).")
+@click.option("--live", is_flag=True, envvar="PEPLOOP_LIVE",
+              help="Send every model request live; bulk passes otherwise go out as Message Batches.")
+def cli(budget: float | None, live: bool) -> None:
     """Fetch Wikidata items and Wikipedia articles for political office-holders."""
     db.init_schema()
+    llm.set_budget(budget)
+    llm.set_batching(not live)
 
 
 # The country a run is scoped to. It reaches the database as `person.country`,
@@ -226,13 +232,8 @@ def fetch(qid: Sequence[str], country: str | None) -> None:
     click.echo(f"{len(qids)} people: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
 
 
-def _extract_one(qid: str) -> tuple[str, str]:
-    """Extract one person, reporting the new status and a printable line."""
-    try:
-        row = extraction.extract_person(qid)
-    except Exception as exc:  # noqa: BLE001 — a failed person is a row, not a dead run
-        db.set_person_status(qid, "failed", f"{type(exc).__name__}: {exc}")
-        return "failed", f"{qid} failed: {type(exc).__name__}: {exc}"
+def _extract_line(qid: str, row: "extraction.ExtractionRow") -> tuple[str, str]:
+    """Settle one extracted person's status and report it as a printable line."""
     head = f"{row.qid} {(row.label or '?')[:28]:28s} arts={row.articles}"
     reason = _extracted_out_of_scope(qid)
     if reason is not None:
@@ -247,6 +248,19 @@ def _extract_one(qid: str) -> tuple[str, str]:
         f" cache_r={row.cache_read} out={row.output_tokens} bad_quotes={row.bad_quotes}"
         f" positions={row.positions} {row.seconds:.1f}s"
     )
+
+
+def _failed(qid: str, exc: Exception) -> tuple[str, str]:
+    db.set_person_status(qid, "failed", f"{type(exc).__name__}: {exc}")
+    return "failed", f"{qid} failed: {type(exc).__name__}: {exc}"
+
+
+def _prepare_one(qid: str) -> "extraction.Prepared | extraction.ExtractionRow | Exception":
+    """Build one person's request; a failure is the person's, not the run's."""
+    try:
+        return extraction.prepare(qid)
+    except Exception as exc:  # noqa: BLE001 — a failed person is a row, not a dead run
+        return exc
 
 
 def _extracted_out_of_scope(qid: str) -> str | None:
@@ -294,9 +308,28 @@ def extract(qid: Sequence[str], country: str | None) -> None:
     if not qids:
         click.echo("nothing fetched")
         return
-    with ThreadPoolExecutor(max_workers=EXTRACT_THREADS) as pool:
-        for _, line in pool.map(_extract_one, qids):
-            click.echo(line)
+    started = costs.now()
+    with ThreadPoolExecutor(max_workers=FETCH_THREADS) as pool:
+        prepared = dict(zip(qids, pool.map(_prepare_one, qids)))
+    results: dict[str, Any] = {q: p for q, p in prepared.items() if not isinstance(p, extraction.Prepared)}
+
+    def job(prep: "extraction.Prepared") -> llm.Job:
+        qid = prep.row.qid
+        return llm.Job(extraction.params(prep.user), extraction.Extraction,
+                       done=lambda answer, usage: results.__setitem__(qid, extraction.store(prep, answer, usage)),
+                       failed=lambda exc: results.__setitem__(qid, exc))
+
+    llm.run("extract", [job(p) for p in prepared.values() if isinstance(p, extraction.Prepared)],
+            click.echo, EXTRACT_THREADS)
+    for qid in qids:
+        result = results.get(qid)
+        if result is None:
+            click.echo(f"{qid} not asked: the run's budget is spent")
+        elif isinstance(result, Exception):
+            click.echo(_failed(qid, result)[1])
+        else:
+            click.echo(_extract_line(qid, result)[1])
+    click.echo(costs.spent(started, ("extract",)))
 
 
 @cli.command()
@@ -529,7 +562,9 @@ def verify_(qid: Sequence[str], country: str | None) -> None:
     policy.run(run, write=True)
     people = _pending_people(qid, country)
     if people:
+        started = costs.now()
         _verify_people(people)
+        click.echo(costs.spent(started, ("verify",)))
     else:
         click.echo("nothing pending")
     for line in _funnel(run, write=True):
@@ -537,7 +572,27 @@ def verify_(qid: Sequence[str], country: str | None) -> None:
 
 
 def _verify_people(people: Sequence[str]) -> None:
-    """Verify every pending row of these people, re-deciding each person after."""
+    """Verify every pending row of these people, re-deciding each person after.
+
+    Every unanswered row is asked first, together (as batches when they are
+    many); each person is then read back from the ledger and decided.
+    """
+    def jobs_of(person_qid: str) -> list[tuple[str, llm.Job]]:
+        out = []
+        for row in verifying.pending_rows(person_qid):
+            try:
+                found = verifying.job_for(row)
+            except Exception as exc:  # noqa: BLE001 — a row that cannot be rendered is asked below, and fails there
+                click.echo(f"{person_qid} #{row['id']} not prepared: {type(exc).__name__}: {str(exc)[:90]}")
+                continue
+            if found is not None:
+                out.append(found)
+        return out
+
+    with ThreadPoolExecutor(max_workers=FETCH_THREADS) as pool:
+        keyed = dict(pair for pairs in pool.map(jobs_of, people) for pair in pairs)
+    llm.run("verify", list(keyed.values()), click.echo, VERIFY_THREADS)
+    asked = set(keyed)
 
     def one(person_qid: str) -> tuple[list[str], Counter[str]]:
         """Verify one person's pending rows, then re-decide them.
@@ -555,6 +610,8 @@ def _verify_people(people: Sequence[str]) -> None:
                 lines.append(f"{head} failed: {type(exc).__name__}: {str(exc)[:90]}")
                 counts["failed"] += 1
                 continue
+            sent = sent or verifying.content_key(
+                row["person_qid"], row["property"], row["value"], row.get("qualifiers")) in asked
             counts["sent" if sent else "cached"] += 1
             counts[verification.verdict] += 1
             lines.append(
@@ -597,8 +654,8 @@ def _mentions_for(country: str) -> list[tuple[int, int, Any]]:
         (row[0], row[1])
         for row in db.conn().execute(
             "SELECT extraction_id, mention_idx FROM resolution"
-            " WHERE prompt_hash = %s AND render_version = %s",
-            (prompt_hash, reconciling.RENDER_VERSION),
+            " WHERE prompt_hash = %s AND render_version = ANY(%s)",
+            (prompt_hash, list(reconciling.ANSWERING_RENDERS)),
         )
     }
     work: list[tuple[int, int, Any]] = []
@@ -633,6 +690,7 @@ def reconcile(country: str) -> None:
     what has no count yet, so on a re-run they cost nothing.
     """
     state_qid = positions.country_qid(country)
+    started = costs.now()
     _signals(state_qid)
     _translate_titles(state_qid, country)
     work = _mentions_for(country)
@@ -641,52 +699,72 @@ def reconcile(country: str) -> None:
     else:
         click.echo("nothing new to reconcile")
     _reask_gained(country, state_qid)
+    click.echo(costs.spent(started, ("title_en", "resolve")))
 
 
 def _resolve_all(
     work: Sequence[tuple[int, int, Any]], state_qid: str, reopened_for: str = ""
 ) -> None:
-    """Resolve each mention at the stage's concurrency, printing a line and a tally."""
-    def one(item: tuple[int, int, Any]) -> tuple[str, tuple[str, ...]]:
-        """Resolve one mention, returning its line and what it counts towards.
+    """Resolve each mention, printing a line and a tally.
 
-        The tally is returned rather than incremented: `counts[k] += 1` from a
-        pool is a read-modify-write on shared state, and a lost count in a
-        summary is the kind of wrong number nothing later contradicts.
-
-        A mention the model fails on is a line of output, not the end of the
-        run: a response that degenerates until `max_tokens` comes back as
-        truncated JSON and the structured-output parser raises. The verdict is
-        simply not recorded, so the next pass asks again.
-        """
+    Retrieval runs under the stage's pool; the mentions it leaves unanswered
+    are then asked together (`llm.run`: as batches when they are many). Live,
+    each person's first mention goes before the rest, so their article is
+    read from the prompt cache by the others. A mention the model fails on is
+    a line of output, not the end of the run: a response that degenerates
+    until `max_tokens` comes back as truncated JSON. The verdict is simply
+    not recorded, so the next pass asks again.
+    """
+    def prepare(item: tuple[int, int, Any]) -> Any:
         extraction_id, index, mention = item
         try:
-            verdict, sent = reconciling.resolve_mention(
-                extraction_id, index, mention, state_qid, reopened_for=reopened_for
-            )
+            return reconciling.prepare_mention(extraction_id, index, mention, state_qid, reopened_for=reopened_for)
         except Exception as exc:  # noqa: BLE001 — see above
-            return (
-                f"{extraction_id}#{index} {mention.title[:44]!r} failed:"
-                f" {type(exc).__name__}: {str(exc).splitlines()[0][:90]}",
-                ("failed",),
-            )
-        target = verdict.qid or verdict.chosen or "-"
-        line = (
-            f"{extraction_id}#{index} {mention.title[:44]!r} -> {target}"
-            f" {verdict.kind}/{verdict.confidence}"
-            + (f" veto={verdict.veto}" if verdict.veto else "")
-        )
-        return line, (
-            verdict.kind,
-            "matched" if verdict.resolved else "unmatched",
-            "asked" if sent else "recorded",
-        )
+            return exc
+
+    with ThreadPoolExecutor(max_workers=RECONCILE_THREADS) as pool:
+        prepared = list(pool.map(prepare, work))
+    results: dict[int, Any] = {i: p for i, p in enumerate(prepared) if not isinstance(p, reconciling.Asking)}
+    asked: set[int] = set()
+
+    def job(i: int, asking: "reconciling.Asking") -> llm.Job:
+        def done(verdict: "reconciling.Verdict") -> None:
+            results[i] = verdict
+            asked.add(i)
+
+        out = asking.job(done)
+        out.failed = lambda exc: results.__setitem__(i, exc)
+        return out
+
+    pending = [(i, p) for i, p in enumerate(prepared) if isinstance(p, reconciling.Asking)]
+    seen: set[int] = set()
+    first, rest = [], []
+    for i, asking in pending:
+        (rest if asking.extraction_id in seen else first).append(job(i, asking))
+        seen.add(asking.extraction_id)
+    if llm.batches(len(pending)):
+        llm.run("resolve", first + rest, click.echo, RECONCILE_THREADS)
+    else:
+        llm.run("resolve", first, click.echo, RECONCILE_THREADS)
+        llm.run("resolve", rest, click.echo, RECONCILE_THREADS)
 
     counts: Counter[str] = Counter()
-    with ThreadPoolExecutor(max_workers=RECONCILE_THREADS) as pool:
-        for line, tally in pool.map(one, work):
-            counts.update(tally)
-            click.echo(line)
+    for i, (extraction_id, index, mention) in enumerate(work):
+        head = f"{extraction_id}#{index} {mention.title[:44]!r}"
+        result = results.get(i)
+        if result is None:
+            click.echo(f"{head} not asked: the run's budget is spent")
+            counts["unasked"] += 1
+            continue
+        if isinstance(result, Exception):
+            click.echo(f"{head} failed: {type(result).__name__}: {str(result).splitlines()[0][:90]}")
+            counts["failed"] += 1
+            continue
+        target = result.qid or result.chosen or "-"
+        click.echo(f"{head} -> {target} {result.kind}/{result.confidence}"
+                   + (f" veto={result.veto}" if result.veto else ""))
+        counts.update((result.kind, "matched" if result.resolved else "unmatched",
+                       "asked" if i in asked else "settled" if result.model == reconciling.MEMO else "recorded"))
     click.echo(
         f"{len(work)} mentions: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items()))
     )
@@ -908,6 +986,15 @@ def report(sections: Sequence[str], country: str) -> None:
         click.echo(f"## {name}")
         REPORT_SECTIONS[name](country)
         click.echo("")
+
+
+@cli.command("cost")
+@click.option("--since", type=click.DateTime(["%Y-%m-%d"]), help="Only calls made on or after this day.")
+@click.option("--by", type=click.Choice(costs.BY), default="pass", show_default=True, help="What to group calls by.")
+def cost(since: Any, by: str) -> None:
+    """Print what every model pass of every lane has spent, at list price; writes nothing."""
+    for line in costs.render(costs.tally(costs.read(since.date() if since else None), by)):
+        click.echo(line)
 
 
 # --- mint --------------------------------------------------------------------

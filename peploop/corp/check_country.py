@@ -7,7 +7,7 @@ import re
 import sys
 
 from peploop.corp import country
-from peploop.tree.check_filter import expect
+from peploop.checks import expect
 
 QID = re.compile(r"^Q[1-9]\d*$")
 PID = re.compile(r"^P[1-9]\d*$")

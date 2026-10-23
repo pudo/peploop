@@ -20,7 +20,6 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
-from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
 from peploop import llm, memo
@@ -91,7 +90,7 @@ def marker_message(body: str, quote: str, names: dict[str, str]) -> str:
 
 def ask(text: str) -> tuple[Verdict, dict[str, int]]:
     system, _ = llm.system_prompt(PROMPT_PATH)
-    response = llm.client().messages.parse(
+    response = llm.send(
         model=MODEL, max_tokens=1000, output_config={"effort": "low"},
         system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
         messages=[{"role": "user", "content": text}], output_format=Verdict)
@@ -161,11 +160,8 @@ def refused(cc: str, decisions: list[dict[str, Any]], answered: list[dict[str, A
         if decide.recorded(key) is not None:
             return
         verdict, usage = ask(text)
-        wd.conn().execute(
-            "INSERT INTO pcorp_call (key, country, qid, model, prompt_hash, request, answer, usage)"
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (key) DO NOTHING",
-            (key, cc, link[0], MODEL, prompt_hash, Jsonb({"message": text, "link": list(link)}),
-             Jsonb(verdict.model_dump()), Jsonb(usage)))
+        decide.LEDGER.store(key, cc, link[0], MODEL, prompt_hash, {"message": text, "link": list(link)},
+                            verdict.model_dump(), usage)
 
     out = set(quotes)
     for attempt in range(max(len(qs) for qs in quotes.values())):

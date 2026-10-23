@@ -194,7 +194,7 @@ def request_for(batch: Sequence[Title], model: str = MODEL) -> dict[str, Any]:
 
 def ask(batch: Sequence[Title], model: str = MODEL) -> tuple[dict[int, str], dict[str, int]]:
     """Send one batch and return its parsed answer and token usage."""
-    response = llm.client().messages.parse(output_format=TitleAnswer, **request_for(batch, model))
+    response = llm.send(output_format=TitleAnswer, **request_for(batch, model))
     usage = llm.usage(response)
     answer = response.parsed_output
     if answer is None:

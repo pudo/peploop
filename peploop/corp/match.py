@@ -30,7 +30,6 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Callable, Literal
 
-from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
 from peploop import llm, memo
@@ -174,7 +173,7 @@ def wd_label(entity: dict[str, Any], lang: str) -> str:
 
 def ask(text: str) -> tuple[Verdict, dict[str, int]]:
     system, _ = llm.system_prompt(PROMPT_PATH)
-    response = llm.client().messages.parse(
+    response = llm.send(
         model=MODEL, max_tokens=1000, output_config={"effort": "low"},
         system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
         messages=[{"role": "user", "content": text}], output_format=Verdict)
@@ -333,12 +332,8 @@ def checked(cc: str, s: dict[str, Any], candidate: str, text: str) -> dict[str, 
     if verdict is None:
         answer, usage = ask(text)
         verdict = answer.model_dump()
-        wd.conn().execute(
-            "INSERT INTO pcorp_call (key, country, qid, model, prompt_hash, request, answer, usage)"
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (key) DO NOTHING",
-            (key, cc, s["qid"], MODEL, prompt_hash,
-             Jsonb({"message": text, "seat": s["seat"]["name"], "candidate": candidate}),
-             Jsonb(verdict), Jsonb(usage)))
+        decide.LEDGER.store(key, cc, s["qid"], MODEL, prompt_hash,
+                            {"message": text, "seat": s["seat"]["name"], "candidate": candidate}, verdict, usage)
     return verdict
 
 

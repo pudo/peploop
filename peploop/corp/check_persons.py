@@ -7,7 +7,7 @@ from datetime import date
 
 from peploop.corp import match, persons, rules
 from peploop.corp.check_rules import answer, ent, seat
-from peploop.tree.check_filter import expect
+from peploop.checks import expect
 
 TODAY = date(2026, 10, 18)
 

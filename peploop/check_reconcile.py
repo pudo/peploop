@@ -415,6 +415,17 @@ def check_request(expect: Any) -> None:
         request["messages"][0]["content"] == EXPECTED_MENTION,
         "the user turn is the rendering pinned above",
     )
+    with_article = dataclasses.replace(MENTION, article="He was minister. Then he was not.")
+    blocks = reconcile.request_for(with_article, SHORTLIST)["messages"][0]["content"]
+    expect(
+        [b.get("cache_control") for b in blocks] == [{"type": "ephemeral"}, None]
+        and blocks[0]["text"] == "# The article (en)\n\nHe was minister. Then he was not."
+        and "# The article" not in blocks[1]["text"] and with_article.title in blocks[1]["text"],
+        "an article that goes in whole is the first block, cached, and the office follows without it",
+    )
+    over = dataclasses.replace(MENTION, article="x" * (reconcile.ARTICLE_CAP + 1))
+    expect(isinstance(reconcile.request_for(over, SHORTLIST)["messages"][0]["content"], str),
+           "an article over the cap is no block: its omission is named in the one text")
     expect(
         request["thinking"] == {"type": "adaptive"}
         and request["output_config"]["effort"] == reconcile.EFFORT,
@@ -522,18 +533,62 @@ def check_reopen(expect: Any) -> None:
         conn.execute("DROP TABLE IF EXISTS pg_temp.resolution")
 
 
+def check_settled(expect: Any) -> None:
+    """Pin the settled-title memo against a temporary table shadowing `resolution`."""
+    try:
+        conn = db.conn()
+    except psycopg.OperationalError as exc:
+        print(f"  skip no database ({exc.__class__.__name__})")
+        return
+    conn.execute("CREATE TEMP SEQUENCE IF NOT EXISTS check_settled_seq")
+    conn.execute("CREATE TEMP TABLE resolution (LIKE public.resolution INCLUDING DEFAULTS INCLUDING INDEXES)")
+    try:
+        conn.execute("ALTER TABLE pg_temp.resolution ALTER COLUMN id SET DEFAULT nextval('pg_temp.check_settled_seq')")
+        _text, prompt_hash = reconcile.system_prompt()
+        mention = dataclasses.replace(MENTION, article="")
+
+        def answer(eid: int, qid: str | None = "Q99", kind: str = "same-office", confidence: str = "high") -> None:
+            reconcile.store(eid, 0, mention, STATE, reconcile.Verdict(
+                title=mention.title, qid=qid, chosen=qid, kind=kind, confidence=confidence,
+                shortlist=["Q99"], prompt_hash=prompt_hash, model="check"))
+
+        for eid in range(1, reconcile.MEMO_FLOOR):
+            answer(eid)
+        expect(reconcile.settled(mention, STATE) is None, "fewer answers than the floor settle nothing")
+        answer(reconcile.MEMO_FLOOR)
+        memo = reconcile.settled(mention, STATE)
+        expect(memo is not None and memo.qid == "Q99" and memo.model == reconcile.MEMO,
+               "enough confident answers naming one item settle the title, recorded as the memo")
+        other = dataclasses.replace(mention, jurisdiction="Northvale State")
+        expect(reconcile.settled(other, STATE) is None, "the same title in another jurisdiction is not settled")
+        expect(reconcile.settled(mention, "Q0000002") is None, "nor in another state")
+        prepared = reconcile.prepare_mention(100, 0, mention, STATE)
+        expect(isinstance(prepared, reconcile.Verdict) and prepared.model == reconcile.MEMO,
+               "a settled mention is answered without retrieval or a call")
+        expect(isinstance(reconcile.recorded(100, 0, prompt_hash), reconcile.Verdict),
+               "and its verdict is in the ledger")
+        answer(200, qid=None, kind="none", confidence="high")
+        expect(reconcile.settled(mention, STATE) is None, "one refusal among the answers unsettles the title")
+    finally:
+        conn.execute("DROP TABLE IF EXISTS pg_temp.resolution")
+
+
 #: The ledger key a verdict is stored under. Leaving the generic classes out of
 #: the shortlist changed what the model is shown, not how it is asked, so
 #: neither moved. Naming a candidate's narrower polity (`governs:`) did move
 #: it: a verdict from before it is read back by no later run.
 PROMPT_DIGEST = "8a8ad4da606250fca295bdda077bf74784afad4f7538633baa864a2e8292dd7d"
-RENDER_VERSION = 2
+RENDER_VERSION = 3
+#: 3 moved the article into a cached block ahead of the office; a verdict
+#: under 2 still answers the question.
+ANSWERING_RENDERS = (3, 2)
 
 
 def check_generic(expect: Any) -> None:
     """Pin that a listed generic class never reaches a shortlist, under the same ledger key."""
-    expect(reconcile.system_prompt()[1] == PROMPT_DIGEST and reconcile.RENDER_VERSION == RENDER_VERSION,
-           "the prompt hash and RENDER_VERSION are the ones every stored verdict carries")
+    expect(reconcile.system_prompt()[1] == PROMPT_DIGEST and reconcile.RENDER_VERSION == RENDER_VERSION
+           and reconcile.ANSWERING_RENDERS == ANSWERING_RENDERS,
+           "the prompt hash and the renderings are the ones every stored verdict carries")
     try:
         conn = db.conn()
     except psycopg.OperationalError as exc:
@@ -687,6 +742,7 @@ def main() -> int:
         ("retrievable", check_retrievable),
         ("search_title", check_search_title),
         ("reopen", check_reopen),
+        ("settled", check_settled),
         ("reask", check_reask),
         ("generic", check_generic),
         ("structures", check_structures),

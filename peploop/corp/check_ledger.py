@@ -9,7 +9,7 @@ from psycopg.types.json import Jsonb
 
 from peploop.corp import decide, wd
 from peploop.corp.check_rules import answer
-from peploop.tree.check_filter import expect
+from peploop.checks import expect
 
 TABLES = ("pcorp_call", "pcorp_item")
 CC = "zz"

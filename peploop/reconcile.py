@@ -23,13 +23,14 @@ verdict is a row for a later increment to act on.
 """
 
 import logging
+from collections import Counter
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Literal, Optional, Sequence
+from typing import Any, Callable, Literal, Optional, Sequence
 
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
@@ -48,7 +49,13 @@ EFFORT = "medium"
 #: candidate line, the per-office message or the request shape changes
 #: without a prompt edit, because a verdict is keyed by what the model saw
 #: and the prompt hash alone does not cover the rendering.
-RENDER_VERSION = 2
+RENDER_VERSION = 3
+
+#: The renderings whose verdicts still count. 3 moved the article ahead of the
+#: office, as a cached block of its own, so a person's later mentions read it
+#: from the prompt cache; the model is shown the same text in another order,
+#: so a verdict under 2 is still an answer to the question.
+ANSWERING_RENDERS = (3, 2)
 
 #: The longest article that goes into the request whole, in characters. The
 #: median article behind a mention is under 3,000 characters and the longest
@@ -255,8 +262,19 @@ def render_shortlist(candidates: Sequence[Candidate]) -> str:
     return "\n".join(lines) or "- (nothing retrieved)"
 
 
-def render_mention(mention: Mention, candidates: Sequence[Candidate]) -> str:
-    """The per-office half of the request: the evidence, then the candidates."""
+def article_block(mention: Mention) -> str | None:
+    """The article as its own block, when it goes in whole: the part a person's mentions share."""
+    if mention.article is None or len(mention.article) > ARTICLE_CAP:
+        return None
+    return f"# The article ({mention.lang or 'unknown language'})\n\n{mention.article}"
+
+
+def render_mention(mention: Mention, candidates: Sequence[Candidate], with_article: bool = True) -> str:
+    """The per-office half of the request: the evidence, then the candidates.
+
+    `with_article=False` leaves out an article that goes in whole, for a
+    request that carries it as a block of its own (`request_for`).
+    """
     parts = ["# The office as written", "", mention.title]
     if mention.jurisdiction:
         parts.append(f"jurisdiction as written: {mention.jurisdiction}")
@@ -269,7 +287,7 @@ def render_mention(mention: Mention, candidates: Sequence[Candidate]) -> str:
         parts.append("# What the article says")
         parts.append("")
         parts.extend(f"- “{quote}”" for quote in mention.quotes)
-    if mention.article is not None:
+    if mention.article is not None and (with_article or article_block(mention) is None):
         parts.extend(["", f"# The article ({mention.lang or 'unknown language'})", ""])
         if len(mention.article) > ARTICLE_CAP:
             parts.append(
@@ -480,6 +498,16 @@ def request_for(
     shortlist is not.
     """
     text, _hash = system_prompt()
+    article = article_block(mention)
+    if article is None:
+        content: Any = render_mention(mention, candidates)
+    else:
+        # The article first, with a breakpoint of its own: one person's
+        # several mentions share it, and the second on reads it from cache.
+        content = [
+            {"type": "text", "text": article, "cache_control": {"type": "ephemeral"}},
+            {"type": "text", "text": render_mention(mention, candidates, with_article=False)},
+        ]
     return {
         "model": MODEL,
         "max_tokens": MAX_TOKENS,
@@ -488,10 +516,29 @@ def request_for(
         "system": [
             {"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}
         ],
-        "messages": [
-            {"role": "user", "content": render_mention(mention, candidates)}
-        ],
+        "messages": [{"role": "user", "content": content}],
     }
+
+
+def verdict_of(mention: Mention, candidates: Sequence[Candidate], answer: OfficeVerdict,
+               usage: dict[str, int], model: str = MODEL) -> Verdict:
+    """Settle one answer about one office into a verdict, with the gate's veto."""
+    shortlist = [candidate.qid for candidate in candidates]
+    _text, prompt_hash = system_prompt()
+    verdict = Verdict(
+        title=mention.title,
+        kind=answer.kind,
+        confidence=answer.confidence,
+        evidence=answer.evidence,
+        reason=answer.reason,
+        shortlist=shortlist,
+        chosen=answer.qid,
+        prompt_hash=prompt_hash,
+        model=model,
+        usage=usage,
+    )
+    verdict.qid, verdict.veto = settle(verdict.kind, verdict.chosen, shortlist)
+    return verdict
 
 
 def reconcile(
@@ -505,30 +552,15 @@ def reconcile(
     them would put several decisions in one context, which is how a
     judgement pass standardises on whoever answered first.
     """
-    shortlist = [candidate.qid for candidate in candidates]
-    _text, prompt_hash = system_prompt()
     request = request_for(mention, candidates)
     request["model"] = model
-    response = llm.client().messages.parse(output_format=verdict_schema(), **request)
+    response = llm.send(output_format=verdict_schema(), **request)
     answer = response.parsed_output
     if answer is None:
         raise RuntimeError(
             f"{mention.title!r}: no parsed output ({response.stop_reason})"
         )
-    verdict = Verdict(
-        title=mention.title,
-        kind=answer.kind,
-        confidence=answer.confidence,
-        evidence=answer.evidence,
-        reason=answer.reason,
-        shortlist=shortlist,
-        chosen=answer.qid,
-        prompt_hash=prompt_hash,
-        model=model,
-        usage=llm.usage(response),
-    )
-    verdict.qid, verdict.veto = settle(verdict.kind, verdict.chosen, shortlist)
-    return verdict
+    return verdict_of(mention, candidates, answer, llm.usage(response), model)
 
 
 def mention_from(entry: dict[str, Any]) -> Mention:
@@ -564,8 +596,9 @@ def recorded(
     row = db.conn().execute(
         f"SELECT {', '.join(LEDGER_COLUMNS)} FROM resolution"
         " WHERE extraction_id = %s AND mention_idx = %s AND prompt_hash = %s"
-        " AND render_version = %s AND reopened_for = %s",
-        (extraction_id, mention_idx, prompt_hash, render_version, reopened_for),
+        " AND render_version = ANY(%s) AND reopened_for = %s ORDER BY id DESC LIMIT 1",
+        (extraction_id, mention_idx, prompt_hash,
+         list(ANSWERING_RENDERS) if render_version == RENDER_VERSION else [render_version], reopened_for),
     ).fetchone()
     if row is None:
         return None
@@ -699,6 +732,105 @@ def retrievable(mention: Mention, state_qid: str | None, qid: str) -> bool:
     return any(hit.qid == qid for hit in shortlist_hits(mention, state_qid))
 
 
+@dataclass
+class Asking:
+    """One mention retrieved and ready to ask: what the model is shown and how its answer is recorded."""
+
+    extraction_id: int
+    mention_idx: int
+    mention: Mention
+    state_qid: str | None
+    candidates: list[Candidate]
+    retrieval: str | None
+    reopened_for: str = ""
+    model: str = MODEL
+
+    def job(self, done: Callable[[Verdict], None]) -> llm.Job:
+        """This mention as a job for `llm.run`; `done` receives the recorded verdict."""
+        request = request_for(self.mention, self.candidates)
+        request["model"] = self.model
+        return llm.Job(request, verdict_schema(),
+                       lambda answer, usage: done(self.record(verdict_of(
+                           self.mention, self.candidates, answer, usage, self.model))))
+
+    def record(self, verdict: Verdict) -> Verdict:
+        store(self.extraction_id, self.mention_idx, self.mention, self.state_qid, verdict,
+              self.reopened_for, retrieval=self.retrieval)
+        return verdict
+
+
+#: How many earlier answers, all confident and all naming one item, settle a
+#: title in its state: the next mention of it gets that item without a call.
+#: One legislature's member title was asked 1,527 times, the same item every time.
+MEMO_FLOOR = 5
+
+#: The model name a settled verdict is recorded under: no call was made.
+MEMO = "memo"
+
+
+def settled(mention: Mention, state_qid: str | None) -> Verdict | None:
+    """The verdict a title's earlier answers settle, when there are enough and none dissents.
+
+    Every earlier answer about this title (and jurisdiction) in this state
+    must be a confident match to the same item, unvetoed; a single refusal,
+    a lower confidence or another item leaves the mention to the model. The
+    verdict is recorded under `MEMO`, so it is never mistaken for a model's
+    answer, and peploop's verify still judges the statement it leads to.
+    """
+    if state_qid is None:
+        return None
+    rows = db.conn().execute(
+        "SELECT qid, kind, confidence, veto FROM resolution WHERE state_qid = %s AND lower(title) = lower(%s)"
+        " AND coalesce(lower(jurisdiction), '') = coalesce(lower(%s), '') AND model <> %s",
+        (state_qid, mention.title, mention.jurisdiction, MEMO),
+    ).fetchall()
+    if len(rows) < MEMO_FLOOR:
+        return None
+    qids = {r[0] for r in rows}
+    if len(qids) != 1 or None in qids or any(
+            kind not in MATCH_KINDS or confidence != "high" or veto for _q, kind, confidence, veto in rows):
+        return None
+    qid = qids.pop()
+    _text, prompt_hash = system_prompt()
+    kind = Counter(r[1] for r in rows).most_common(1)[0][0]
+    return Verdict(title=mention.title, qid=qid, kind=kind, confidence="high",
+                   evidence=f"{len(rows)} earlier mentions of this title in this state, all resolved to {qid}",
+                   reason="settled by earlier answers", shortlist=[qid], chosen=qid,
+                   prompt_hash=prompt_hash, model=MEMO)
+
+
+def prepare_mention(
+    extraction_id: int,
+    mention_idx: int,
+    mention: Mention,
+    state_qid: str | None,
+    model: str = MODEL,
+    reopened_for: str = "",
+) -> Verdict | Asking:
+    """Everything before the question for one mention: the recorded verdict, or the retrieved shortlist."""
+    _text, prompt_hash = system_prompt()
+    known = recorded(
+        extraction_id, mention_idx, prompt_hash, reopened_for=reopened_for
+    )
+    if known is not None:
+        return known
+    if not reopened_for:
+        memo = settled(mention, state_qid)
+        if memo is not None:
+            store(extraction_id, mention_idx, mention, state_qid, memo, retrieval=MEMO)
+            return memo
+    if mention.article is None and mention.lang:
+        row = db.conn().execute(
+            "SELECT a.text FROM extraction e JOIN article a ON a.qid = e.qid"
+            " AND a.lang = %s WHERE e.id = %s",
+            (mention.lang, extraction_id),
+        ).fetchone()
+        mention.article = None if row is None else row[0]
+    hits, retrieval = retrieve(mention, state_qid)
+    return Asking(extraction_id, mention_idx, mention, state_qid,
+                  list(candidates_for(hits, state_qid)), retrieval, reopened_for, model)
+
+
 def resolve_mention(
     extraction_id: int,
     mention_idx: int,
@@ -720,25 +852,10 @@ def resolve_mention(
 
     `reopened_for` asks again under a key of its own; see `reopen`.
     """
-    _text, prompt_hash = system_prompt()
-    known = recorded(
-        extraction_id, mention_idx, prompt_hash, reopened_for=reopened_for
-    )
-    if known is not None:
-        return known, False
-    if mention.article is None and mention.lang:
-        row = db.conn().execute(
-            "SELECT a.text FROM extraction e JOIN article a ON a.qid = e.qid"
-            " AND a.lang = %s WHERE e.id = %s",
-            (mention.lang, extraction_id),
-        ).fetchone()
-        mention.article = None if row is None else row[0]
-    hits, retrieval = retrieve(mention, state_qid)
-    candidates = candidates_for(hits, state_qid)
-    verdict = reconcile(mention, candidates, model=model)
-    store(extraction_id, mention_idx, mention, state_qid, verdict, reopened_for,
-          retrieval=retrieval)
-    return verdict, True
+    prepared = prepare_mention(extraction_id, mention_idx, mention, state_qid, model, reopened_for)
+    if isinstance(prepared, Verdict):
+        return prepared, False
+    return prepared.record(reconcile(prepared.mention, prepared.candidates, model=model)), True
 
 
 def reopen(
@@ -795,8 +912,8 @@ def refusals(extraction_ids: Sequence[int]) -> dict[tuple[int, int], list[str]]:
         " AND NOT EXISTS (SELECT 1 FROM resolution done"
         "  WHERE done.extraction_id = newest.extraction_id"
         "  AND done.mention_idx = newest.mention_idx AND done.prompt_hash = %s"
-        "  AND done.render_version = %s AND done.reopened_for = %s)",
-        (list(extraction_ids), list(REASKABLE), prompt_hash, RENDER_VERSION,
+        "  AND done.render_version = ANY(%s) AND done.reopened_for = %s)",
+        (list(extraction_ids), list(REASKABLE), prompt_hash, list(ANSWERING_RENDERS),
          RETRIEVAL_REASK),
     ).fetchall()
     return {(r[0], r[1]): list(r[2] or []) for r in rows}

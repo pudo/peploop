@@ -6,12 +6,7 @@
 from typing import Any
 
 from peploop import eras
-
-
-def expect(cond: bool, what: str) -> None:
-    print(("ok   " if cond else "FAIL ") + what)
-    if not cond:
-        raise SystemExit(1)
+from peploop.checks import expect
 
 
 def claim(prop: str, value: Any, rank: str = "normal") -> dict[str, Any]:

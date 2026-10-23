@@ -123,7 +123,9 @@ are written by default; a spec names its own.
    named), every named seat with dates. Kept in `pcorp_call` by content; a
    plan reads each body's newest answer under whichever decide prompt asked
    it (one the current schema reads), so a prompt change is applied by
-   asking again only the bodies it affects (`reask.py` picks them).
+   asking again only the bodies it affects (`reask.py` picks them). The
+   unanswered bodies go out through `llm.run`, as Message Batches when there
+   are many, against the run's `--budget`.
 3. **rules** (`rules.py`): the gates (an enterprise or institution, active,
    state-controlled by a quote, at a tier the spec writes), then the marker,
    the links and the seats, each with its rule. A link needs a state body:
@@ -205,7 +207,8 @@ peploop/corp/
 
 Shared with peploop: `plan.py` and `route.py` (planning and lines),
 `send.py` and `ledger.py` (the write path), `wikipedia.py` and the `article`
-table, `positions.organisations`, `policy` (tenure ages).
+table, `positions.organisations`, `policy` (tenure ages), `llm.py` (the
+answer ledger's key, batches and the budget).
 
     .venv/bin/python -m peploop.cli corp run <cc> [--no-ask] [--no-reload] [--qid Q…] [--limit N]
     .venv/bin/python -m peploop.cli corp send <cc> [--qid Q…] [--submit]

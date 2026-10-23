@@ -312,6 +312,8 @@ CREATE TABLE IF NOT EXISTS resolution (
 );
 
 CREATE INDEX IF NOT EXISTS resolution_qid_idx ON resolution (qid);
+-- A title's earlier answers in its state, read before asking it again (`reconcile.settled`).
+CREATE INDEX IF NOT EXISTS resolution_title_idx ON resolution (state_qid, lower(title));
 
 -- A verdict re-asked because the item its office was missing has since been
 -- minted. `reopened_for` names that item, and is '' on every ordinary verdict;
@@ -595,6 +597,37 @@ CREATE TABLE IF NOT EXISTS wd_removal (
     decided_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- A Message Batch some pass submitted (`llm.run` in batch mode). The row is
+-- written before the request, with `api_id` null, and bound to the API's id
+-- after, so a run that died in between finds it again instead of paying twice.
+-- 'sending' | 'submitted' | 'collected'.
+CREATE TABLE IF NOT EXISTS llm_batch (
+    id bigserial PRIMARY KEY,
+    api_id text UNIQUE,
+    pass text NOT NULL,
+    model text NOT NULL,
+    custom_ids text[] NOT NULL,
+    estimate double precision,
+    status text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    collected_at timestamptz
+);
+
+-- Every result of a collected batch, kept whole: the pass's own ledger stores
+-- the answer it parses, and a run that stopped between collecting and storing
+-- reads it from here rather than asking again.
+CREATE TABLE IF NOT EXISTS llm_batch_result (
+    batch_id bigint NOT NULL REFERENCES llm_batch (id),
+    custom_id text NOT NULL,
+    type text NOT NULL,              -- 'succeeded' | 'errored' | 'expired' | 'canceled'
+    body text,
+    stop_reason text,
+    usage jsonb,
+    error text,
+    PRIMARY KEY (batch_id, custom_id)
+);
+CREATE INDEX IF NOT EXISTS llm_batch_result_custom_id ON llm_batch_result (custom_id);
 
 -- The hash of this file as last applied, so a command start that finds it
 -- unchanged runs none of the `ALTER`s above (`db.init_schema`). One row.

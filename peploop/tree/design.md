@@ -122,7 +122,7 @@ peptree is the `tree` subpackage of peploop and the `tree` command group of
 the type closure (`peploop/typegraph.py`), the slow-read cache
 (`peploop/memo.py`), the QuickStatements codec (`peploop/qs.py`), the send
 ledger and skeleton (`peploop/ledger.py`, `peploop/send.py`) and the model
-client (`peploop/llm.py`).
+layer (`peploop/llm.py`: the answer ledger's key, batches, the budget).
 
 ```
 peploop/tree/

@@ -19,6 +19,8 @@ from peploop import db, evidence, llm, prompt, wikidata
 MODEL = os.environ.get("PEPLOOP_MODEL", "claude-sonnet-5")
 MAX_TOKENS = 16000
 EFFORT = "low"
+#: `adaptive`, or `disabled` through PEPLOOP_EXTRACT_THINKING.
+THINKING = os.environ.get("PEPLOOP_EXTRACT_THINKING", "adaptive")
 
 DateStr = Annotated[str, StringConstraints(pattern=r"^\d{4}(-\d{2}(-\d{2})?)?$")]
 
@@ -173,65 +175,84 @@ def stored_articles(qid: str) -> tuple[dict[str, Any], list[prompt.Article], lis
     return entity, articles, dropped
 
 
-def extract_person(qid: str) -> ExtractionRow:
-    """Extract one person, unless the same prompt already read the same articles."""
+@dataclass
+class Prepared:
+    """One person's request, built and not yet asked: what `store` needs to record its answer."""
+
+    row: ExtractionRow
+    articles: list[prompt.Article]
+    revs: list[str]
+    prompt_hash: str
+    user: str
+    started: float
+
+
+def params(user: str) -> dict[str, Any]:
+    """The extraction request for one person's user turn, without its output format."""
+    text, _ = prompt.system_prompt()
+    return {
+        "model": MODEL,
+        "max_tokens": MAX_TOKENS,
+        "thinking": {"type": THINKING},
+        "output_config": {"effort": EFFORT},
+        "system": [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}],
+        "messages": [{"role": "user", "content": user}],
+    }
+
+
+def prepare(qid: str) -> Prepared | ExtractionRow:
+    """Build one person's request, or return the skipped row when these articles were read under this prompt."""
     started = time.monotonic()
     entity, articles, dropped = stored_articles(qid)
-    result = ExtractionRow(qid, wikidata.best_label(entity), len(articles), dropped)
-
-    text, prompt_hash = prompt.system_prompt()
+    row = ExtractionRow(qid, wikidata.best_label(entity), len(articles), dropped)
+    _text, prompt_hash = prompt.system_prompt()
     revs = sorted(article.key for article in articles)
     done = db.conn().execute(
         "SELECT 1 FROM extraction WHERE qid = %s AND prompt_hash = %s AND article_revs = %s",
         (qid, prompt_hash, revs),
     ).fetchone()
     if done is not None:
-        result.skipped = True
-        result.seconds = time.monotonic() - started
-        return result
+        row.skipped = True
+        row.seconds = time.monotonic() - started
+        return row
+    return Prepared(row, articles, revs, prompt_hash, user_message(entity, articles), started)
 
-    user = user_message(entity, articles)
-    response = llm.client().messages.parse(
-        model=MODEL,
-        max_tokens=MAX_TOKENS,
-        thinking={"type": "adaptive"},
-        output_config={"effort": EFFORT},
-        output_format=Extraction,
-        system=[{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}],
-        messages=[{"role": "user", "content": user}],
-    )
-    extraction = response.parsed_output
-    if extraction is None:
-        raise RuntimeError(f"{qid}: model returned no parsed output ({response.stop_reason})")
 
-    bad = check_quotes(extraction, articles)
+def store(prep: Prepared, extraction: Extraction, usage: dict[str, int]) -> ExtractionRow:
+    """Record one person's answer with its quote check, and return the run's row for them."""
+    bad = check_quotes(extraction, prep.articles)
     payload: dict[str, Any] = json.loads(extraction.model_dump_json())
     payload["_bad_quotes"] = bad
-    usage = llm.usage(response)
-    request = {
-        "model": MODEL,
-        "max_tokens": MAX_TOKENS,
-        "thinking": {"type": "adaptive"},
-        "output_config": {"effort": EFFORT},
-        "messages": [{"role": "user", "content": user}],
-    }
+    request = {k: v for k, v in params(prep.user).items() if k != "system"}
     db.insert_extraction(
-        qid=qid,
-        prompt_hash=prompt_hash,
+        qid=prep.row.qid,
+        prompt_hash=prep.prompt_hash,
         model=MODEL,
-        article_langs=[article.lang for article in articles],
-        article_revs=revs,
-        dropped_langs=dropped,
+        article_langs=[article.lang for article in prep.articles],
+        article_revs=prep.revs,
+        dropped_langs=prep.row.dropped,
         bad_quotes=len(bad),
         request=request,
         response=payload,
         usage=usage,
     )
+    result = prep.row
     result.input_tokens = usage["input_tokens"]
     result.cache_creation = usage["cache_creation_input_tokens"]
     result.cache_read = usage["cache_read_input_tokens"]
     result.output_tokens = usage["output_tokens"]
     result.bad_quotes = len(bad)
     result.positions = len(extraction.positions)
-    result.seconds = time.monotonic() - started
+    result.seconds = time.monotonic() - prep.started
     return result
+
+
+def extract_person(qid: str) -> ExtractionRow:
+    """Extract one person, unless the same prompt already read the same articles."""
+    prep = prepare(qid)
+    if isinstance(prep, ExtractionRow):
+        return prep
+    response = llm.send(output_format=Extraction, **params(prep.user))
+    if response.parsed_output is None:
+        raise RuntimeError(f"{qid}: model returned no parsed output ({response.stop_reason})")
+    return store(prep, response.parsed_output, llm.usage(response))

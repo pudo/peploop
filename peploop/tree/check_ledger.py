@@ -7,7 +7,7 @@ from typing import Any
 
 from peploop import ledger, send
 from peploop.tree import qs
-from peploop.tree.check_filter import expect
+from peploop.checks import expect
 
 URL = "https://de.wikipedia.org/wiki/Kantonsarzt"
 OURS = f'Q1\tP31\tQ294414\tS854\t"{URL}"\tS813\t+2026-10-08T00:00:00Z/11 /* peptree repair ch 2026-10-08 */'

@@ -3,20 +3,9 @@
     .venv/bin/python -m peploop.tree.check_filter
 """
 
+from peploop.checks import ent, expect
 from peploop.tree.check_fixture import XX
 from peploop.tree.load import classify
-
-
-def ent(labels: dict[str, str], **claims: list[str]) -> dict:
-    return {"labels": {lg: {"value": v} for lg, v in labels.items()},
-            "claims": {p: [{"rank": "normal", "mainsnak": {"datavalue": {"value": {"id": q}}}} for q in qs]
-                       for p, qs in claims.items()}}
-
-
-def expect(cond: bool, what: str) -> None:
-    print(("ok   " if cond else "FAIL ") + what)
-    if not cond:
-        raise SystemExit(1)
 
 
 def drop(e: dict, p31_types: set[str] = frozenset(), lanes: tuple = ("descent",), types: set[str] = frozenset(),
