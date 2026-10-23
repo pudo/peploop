@@ -18,7 +18,7 @@ from rigour.territories import get_territories, get_territory
 
 from peploop import eras, memo, typegraph
 from peploop.eras import (  # noqa: F401  (re-exported for peptree modules)
-    PEP_ERA, PRED_PROPS, SOVEREIGN, SUCC_PROPS, entity_span, pushes, time_year, years,
+    PEP_ERA, PRED_PROPS, SOVEREIGN, SUCC_PROPS, entity_span, pushes, years,
 )
 from peploop.eras import qids as _qids
 from peploop.eras import year as _year

@@ -21,7 +21,7 @@ from typing import Any, Callable
 import requests
 from psycopg.types.json import Jsonb
 
-from peploop import memo, positions, typegraph
+from peploop import dates, memo, positions, typegraph
 from peploop.tree import country as countries
 from peploop.tree import wd
 
@@ -220,7 +220,7 @@ def holders(qids: list[str]) -> tuple[dict[str, int], dict[str, dict[str, int]],
     for r in _grouped(HOLDER_DATES, qids):
         if not ITEM.fullmatch(r["h"]):
             continue
-        y = countries.time_year
+        y = dates.year
         rows.setdefault(r["pos"], []).append({
             "h": r["h"], "s": y(r.get("s0")), "e": y(r.get("e0")), "b": y(r.get("b0")), "d": y(r.get("d0")),
             "c": sorted(cit.get((r["pos"], r["h"]), []))})

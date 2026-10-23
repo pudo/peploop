@@ -20,7 +20,7 @@ from dataclasses import dataclass, field, replace
 from datetime import date
 from typing import Any, Callable, Collection, Iterable, Sequence
 
-from peploop import db, http, plan, positions, typegraph, wikidata
+from peploop import dates, db, http, plan, positions, typegraph, wikidata
 from peploop.positions import NOT_AN_OFFICE, POSITION_METACLASSES, fold, tokens
 
 #: What every office reaches through its `P279` chain.
@@ -1159,12 +1159,6 @@ def resolve(qids: Iterable[str]) -> dict[str, dict[str, Any]]:
     return wikidata.fetch_items(wanted, props="labels|aliases|claims") if wanted else {}
 
 
-def _year(text: str | None) -> int | None:
-    """The year of a SPARQL dateTime, or None."""
-    match = re.match(r"^(-?\d{1,6})-", text or "")
-    return int(match.group(1)) if match else None
-
-
 def last_held(qids: Sequence[str]) -> dict[str, int]:
     """The year an office's most recent recorded holder started or ended, read live.
 
@@ -1179,7 +1173,7 @@ def last_held(qids: Sequence[str]) -> dict[str, int]:
     out: dict[str, int] = {}
     for chunk in wikidata.values_chunks(qids):
         for row in wikidata.sparql(query % wikidata.values_block(chunk), max_age=0):
-            year = _year(row.get("last"))
+            year = dates.year(row.get("last"))
             if year is not None:
                 out[row["pos"]] = year
     return out

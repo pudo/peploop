@@ -20,6 +20,9 @@ the policy OpenSanctions' crawlers use). Every query placing a body in the
 country runs once per QID, and each counts as the state when a link points
 to it.
 
+The parts of a rule that the three lanes share are named in
+`peploop/methods.md`.
+
 ## The pattern it writes
 
 pepcorp writes on two kinds of state body: **enterprises** (businesses,

@@ -14,7 +14,7 @@ from typing import Any, Iterable, Mapping
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import db, llm, wikidata
+from peploop import dates, db, llm, wikidata
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "extract.md"
 
@@ -34,7 +34,6 @@ QID_PROPS = {
 TIME_PROPS = {"P569": "date of birth", "P570": "date of death"}
 POSITION_PROP = "P39"
 PRECISION_NAMES = {11: "day", 10: "month", 9: "year", 8: "decade", 7: "century"}
-TIME_RE = re.compile(r"^([+-]?\d+)-(\d{2})-(\d{2})")
 
 
 @dataclass
@@ -67,7 +66,7 @@ def format_time(value: str, precision: int, name_day: bool = True) -> str:
     a full date, where the shape of the value already says what it is; a
     coarser value keeps its name however it is rendered.
     """
-    match = TIME_RE.match(value.lstrip("+"))
+    match = dates.TIME_RE.match(value.lstrip("+"))
     name = PRECISION_NAMES.get(precision, f"precision {precision}")
     if match is None:
         return f"{value} ({name})"

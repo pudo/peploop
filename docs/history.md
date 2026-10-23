@@ -330,6 +330,31 @@ interim policy calls were logged for the user before one re-run.
 | EU-27 + Switzerland | 10-19 – 10-20 | re-run on the user's policy answers, nothing sent: 6,189 lines (de 1,164, se 666, fr 588, es 546, pl 425, at 269, it 253, fi 249, nl 239, ch 224, be 210, cz 205, dk 144, ee 135, lt 115, bg 113, ro 111, hu 105, lu 82, hr 52, lv 52, pt 50, ie 47, gr 41, si 41, sk 37, mt 16, cy 10); 13 municipal marker removals proposed; samples 84–90% correct, 2–4% wrong (542 lines); ~$171 | — |
 | EU-25 + Switzerland | 10-17 – 10-18 | dry run, nothing sent: 3,938 lines (se 610, fr 487, pl 366, fi 256, at 255, es 230, it 223, cz 212, be 170, ch 162, dk 122, ee 115, ro 100, lt 97, hu 89, bg 84, lu 58, hr 51, lv 51, pt 44, ie 39, si 34, sk 32, gr 26, mt 16, cy 9) | — |
 
+## Shared helpers across the lanes
+
+- **One quote gate (2026-10-23).** The three lanes had three gates:
+  - pepcorp folded case, with no floor;
+  - peptree unescaped JSON and stripped wrapping marks, with a floor of 4
+    characters;
+  - peploop collapsed whitespace only.
+
+  The shared `evidence.quoted`, replayed over stored answers:
+  - pepcorp: 7 of 107k quotes gained (JSON escapes, wrapping marks); 5 lost,
+    all "ZDF";
+  - peptree: 6 of 40k gained, all CJK office titles of 2–3 characters
+    (外務卿), which its floor had counted as too short;
+  - peploop: 143 of 247k gained (case, escapes).
+
+  A bare floor of 4 characters cost peploop 365 quotes of Chinese tenure
+  markers (现任). A floor of 2 in dense scripts (rigour's `is_dense_script`)
+  cut that to 153, all 男 or 女. The user's call: a one-character quote is a
+  failed answer, except for a sex. With the floor lifted only for gender quotes, peploop loses one quote:
+  a 男 given for something else.
+- **One future test.** peploop compared a date's string from its first day;
+  pepcorp compared at the value's precision. They differ only for a
+  month-precision value carrying a day. None of 65k stored proposal dates
+  is one.
+
 ## The campaign toolkit (`old/`)
 
 Before peploop, `wd/` ran one hand-built campaign per country. What it learned

@@ -17,7 +17,7 @@ import re
 from collections.abc import Iterable
 from typing import Any
 
-from peploop import memo, wikidata
+from peploop import dates, memo, wikidata
 
 #: A predecessor dissolved before this year held no office a PEP list asks about.
 PEP_ERA = 1900
@@ -28,22 +28,13 @@ PRED_PROPS, SUCC_PROPS = ("P1365", "P155"), ("P1366", "P156")
 Span = list[int | None]
 
 
-def time_year(value: Any) -> int | None:
-    """The year of a Wikidata time value or a WDQS date string ("+1909-01-01T…", "-0550-…")."""
-    text = value.get("time") if isinstance(value, dict) else value
-    if not text or not isinstance(text, str):
-        return None
-    m = re.match(r"([+-]?\d+)-", text)
-    return int(m.group(1)) if m else None
-
-
 def years(entity: dict[str, Any], prop: str) -> list[int]:
     """The years of a time property's best-rank values (preferred if any, else normal)."""
     claims = [c for c in entity.get("claims", {}).get(prop, []) if c.get("rank") != "deprecated"]
     best = [c for c in claims if c.get("rank") == "preferred"] or claims
     out = []
     for claim in best:
-        y = time_year(claim.get("mainsnak", {}).get("datavalue", {}).get("value"))
+        y = dates.year(claim.get("mainsnak", {}).get("datavalue", {}).get("value"))
         if y is not None:
             out.append(y)
     return out
@@ -55,14 +46,7 @@ def year(entity: dict[str, Any], prop: str) -> int | None:
 
 
 def qids(entity: dict[str, Any], prop: str) -> list[str]:
-    out = []
-    for claim in entity.get("claims", {}).get(prop, []):
-        if claim.get("rank") == "deprecated":
-            continue
-        v = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
-        if isinstance(v, dict) and "id" in v:
-            out.append(v["id"])
-    return out
+    return wikidata.claim_qids(entity, prop, include_deprecated=False)
 
 
 def entity_span(entity: dict[str, Any]) -> Span:

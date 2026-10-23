@@ -22,11 +22,9 @@ from psycopg.types.json import Jsonb
 from rigour.territories import get_territory_by_qid, lookup_territory
 
 from peploop import db, scope, wikidata
+from peploop.dates import CALENDAR, at_precision, group_dates, time_value
 
-CALENDAR = "http://www.wikidata.org/entity/Q1985727"
 GENDER_QIDS = {"male": "Q6581097", "female": "Q6581072"}
-DATE_PRECISION = {4: 9, 7: 10, 10: 11}
-TIME_RE = re.compile(r"^([+-]?\d+)-(\d{2})-(\d{2})")
 # Worst first: several dates already on the item make a proposed one
 # `conflict` only when none of them matches it.
 STATUS_RANK = ("exists", "refine", "new", "conflict", "unresolved")
@@ -102,42 +100,6 @@ class ProposeSummary:
         return sum(self.counts.values())
 
 
-def time_value(text: str) -> dict[str, Any] | None:
-    """Render a `YYYY`, `YYYY-MM` or `YYYY-MM-DD` string as a Wikidata time.
-
-    Unknown month and day are padded with `00`, as Wikidata itself stores
-    them; the precision is what says how much of the value to read.
-    """
-    precision = DATE_PRECISION.get(len(text))
-    if precision is None:
-        return None
-    padded = (text + "-00-00")[:10]
-    return {
-        "time": f"+{padded}T00:00:00Z",
-        "precision": precision,
-        "calendarmodel": CALENDAR,
-        "timezone": 0,
-        "before": 0,
-        "after": 0,
-    }
-
-
-def at_precision(text: str, precision: int) -> str | None:
-    """Truncate a time value to a precision, so two dates compare like for like."""
-    match = TIME_RE.match(text)
-    if match is None:
-        return None
-    year, month, day = match.groups()
-    if precision >= 11:
-        return f"{year}-{month}-{day}"
-    if precision == 10:
-        return f"{year}-{month}"
-    if precision == 9:
-        return year
-    scale = 10 ** (9 - precision)
-    return str(int(year) // scale * scale)
-
-
 def time_status(existing: list[tuple[str, int]], value: dict[str, Any]) -> str:
     """Decide what a proposed date adds to the dates already on the item."""
     if not existing:
@@ -196,26 +158,6 @@ def attestations(entries: list[dict[str, Any]]) -> list[Source]:
         quotes = entry.get("quotes") or []
         seen.setdefault(lang or "", Source(lang, quotes[0] if quotes else None))
     return list(seen.values())
-
-
-def group_dates(entries: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
-    """Cluster the date entries that say the same thing, finest value first.
-
-    Two articles giving `1962` and `1962-02-06` are one date one of them knows
-    more exactly, not two candidate values; two giving different days are two
-    rows and a reviewer's decision. The values are `YYYY[-MM[-DD]]` strings, so
-    agreement at the precision they share is a prefix comparison.
-    """
-    groups: list[list[dict[str, Any]]] = []
-    for entry in sorted(entries, key=lambda e: -len(e["value"])):
-        for group in groups:
-            shared = min(len(group[0]["value"]), len(entry["value"]))
-            if group[0]["value"][:shared] == entry["value"][:shared]:
-                group.append(entry)
-                break
-        else:
-            groups.append([entry])
-    return groups
 
 
 def _dates(

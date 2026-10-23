@@ -7,6 +7,9 @@ what the office is and whose it is. The sweep over every country and
 territory is `peploop/tree/sweep.md`; open work is `plans/peptree_next.md`; what was
 tried is `docs/history.md`.
 
+The parts of a rule that the three lanes share are named in
+`peploop/methods.md`.
+
 ## Principles
 
 - **The type hierarchy is polluted and stays polluted.** Mayor is 98% of head

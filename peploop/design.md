@@ -16,6 +16,9 @@ crawlers, and whether it emits an item is never a reason to shape a claim.
 Its one dependency from the OpenSanctions stack is `rigour`, for everything
 about countries: name lookup, QID lookup, and the languages of a territory.
 
+The parts of a rule that the three lanes share are named in
+`peploop/methods.md`.
+
 ## Principles
 
 - **One person, one request.** The unit of work is a Wikidata item. Everything

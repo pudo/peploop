@@ -31,7 +31,7 @@ from typing import Any
 
 from psycopg.types.json import Jsonb
 
-from peploop import ledger, policy, propose, route, typegraph
+from peploop import dates, evidence, ledger, policy, route, typegraph
 from peploop.corp import actors as actormod
 from peploop.corp import country as countries
 from peploop.corp import wd
@@ -106,13 +106,6 @@ def norm(text: str) -> str:
     return " ".join(re.sub(r"[^\w-]", "", t) for t in tokens if re.sub(r"[^\w-]", "", t))
 
 
-def quoted(quote: str | None, message: str) -> bool:
-    """Whether a quote is in the text the model was shown, whitespace and case normalised."""
-    if not quote:
-        return False
-    return " ".join(quote.split()).casefold() in " ".join(message.split()).casefold()
-
-
 def linked(name: str, lang: str, links: dict[str, dict[str, str]]) -> list[str]:
     """The items an article links under this name: its own language's first, else any language's."""
     want = norm(name)
@@ -154,7 +147,7 @@ def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countrie
         return f"control:{control['verdict']}"
     if control["level"] not in tiers:
         return f"level:{control['level']}"
-    if not quoted(control["quote"], message):
+    if not evidence.quoted(control["quote"], message):
         return "control_unquoted"
     return None
 
@@ -265,7 +258,7 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
             # is the state itself, the polity, never the body acting for it.
             qid, standin = country, True
         rule = None
-        if not quoted(owner["quote"], req["message"]):
+        if not evidence.quoted(owner["quote"], req["message"]):
             rule = "owner_unquoted"
         elif qid not in state:
             # Being on the loaded chain is not enough: a chain can run
@@ -339,7 +332,7 @@ def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, s
     """
     answer = req["answer"]
     control = answer["control"]
-    if answer["kind"] not in WRITTEN or not answer["active"] or not quoted(control["quote"], req["message"]):
+    if answer["kind"] not in WRITTEN or not answer["active"] or not evidence.quoted(control["quote"], req["message"]):
         return None, [], []
     offered = req.get("offered") or []
     owners = {offered[o["controller"]] for o in control["owners"]
@@ -372,29 +365,18 @@ def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, s
             return None, [], []
         return "private", [{"property": "P31", "value": item(v),
                             "qualifiers": {"_sources": source(req, control["article"]),
-                                           "P582": propose.time_value(ended)},
+                                           "P582": dates.time_value(ended)},
                             "_rule": None} for v in sorted(values)], []
     return None, [], []
-
-
-def later(t: dict[str, Any], today: date) -> bool:
-    """Whether a time lies after today, compared at its own precision (year 9, month 10, day 11)."""
-    y, m, d = int(t["time"][1:5]), int(t["time"][6:8]), int(t["time"][9:11])
-    precision = t.get("precision", 11)
-    if precision <= 9:
-        return y > today.year
-    if precision == 10:
-        return (y, m) > (today.year, today.month)
-    return (y, m, d) > (today.year, today.month, today.day)
 
 
 def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str, Any] | None,
               today: date) -> str | None:
     """Why a seat is not written, from its dates and currency alone."""
-    year = lambda t: int(t["time"][1:5]) if t else None  # noqa: E731
+    year = dates.year
     if start and end and end["time"] < start["time"]:
         return "bad_dates"
-    if start and later(start, today):
+    if start and dates.after_today(start, today):
         # A tenure that starts after today is not a fact yet.
         return "future"
     if seat["current"] and end:
@@ -442,9 +424,9 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
                          "_name": seat["name"]})
             continue
         prop, role = statement
-        start = propose.time_value(seat["start"]) if seat["start"] else None
-        end = propose.time_value(seat["end"]) if seat["end"] else None
-        if end and later(end, today) and not (start and later(start, today)):
+        start = dates.time_value(seat["start"]) if seat["start"] else None
+        end = dates.time_value(seat["end"]) if seat["end"] else None
+        if end and dates.after_today(end, today) and not (start and dates.after_today(start, today)):
             # A fixed term that runs past today is held now: its end is not a fact yet.
             end, seat = None, {**seat, "current": True}
         found = linked(seat["name"], seat["article"], req["links"])
@@ -454,7 +436,7 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
         elif (req.get("qid", ""), seat["name"]) in (matched or {}):
             found, via = [(matched or {})[(req.get("qid", ""), seat["name"])]], "matched"
         rule = None
-        if not quoted(seat["quote"], req["message"]):
+        if not evidence.quoted(seat["quote"], req["message"]):
             rule = "seat_unquoted"
         elif not found:
             # A seat its dates rule out is no work for the matcher: only

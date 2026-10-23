@@ -7,16 +7,13 @@ agreeing with the model.
 """
 
 import re
-import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-
+from peploop import evidence
 from peploop.tree import country as countries
 from peploop.tree import signals, wd
 from peploop.tree.load import has, values
-
-MIN_QUOTE = 4
 
 
 @dataclass
@@ -37,27 +34,9 @@ class Slot:
     scope: dict[str, Any] | None = None
 
 
-ESCAPE = re.compile(r"\\(u[0-9a-fA-F]{4}|[nrt\"\\/])")
-SIMPLE_ESCAPES = {"n": "\n", "r": "\r", "t": "\t", '"': '"', "\\": "\\", "/": "/"}
-
-
-def _unescape(text: str) -> str:
-    """Undo JSON escapes a model wrote out literally ("\\u00c4kim" for "Äkim")."""
-    def one(m: re.Match) -> str:
-        code = m.group(1)
-        return chr(int(code[1:], 16)) if code[0] == "u" and len(code) == 5 else SIMPLE_ESCAPES.get(code, m.group(0))
-    return ESCAPE.sub(one, text)
-
-
-def _norm(text: str) -> str:
-    text = "".join(" " if unicodedata.category(ch) == "Cc" else ch for ch in text)
-    return re.sub(r"\s+", " ", text).strip().lower()
-
-
 def quoted(slot: Slot, answer: dict[str, Any] | None = None) -> bool:
     """The quote is non-trivial and appears verbatim in what the model was shown."""
-    quote = _norm(_unescape((answer or slot.answer).get("quote") or "")).strip("\"'«»„“”. ")
-    return len(quote) >= MIN_QUOTE and quote in _norm(slot.message)
+    return evidence.quoted((answer or slot.answer).get("quote"), slot.message)
 
 
 def scope_is(slot: Slot, kind: str) -> bool:

@@ -8,19 +8,17 @@ QID, and birthplaces wait for a reconciler of their own.
 
 import json
 import os
-import re
 import time
 from dataclasses import dataclass
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
-from peploop import db, llm, prompt, wikidata
+from peploop import db, evidence, llm, prompt, wikidata
 
 MODEL = os.environ.get("PEPLOOP_MODEL", "claude-sonnet-5")
 MAX_TOKENS = 16000
 EFFORT = "low"
-WHITESPACE = re.compile(r"\s+")
 
 DateStr = Annotated[str, StringConstraints(pattern=r"^\d{4}(-\d{2}(-\d{2})?)?$")]
 
@@ -116,10 +114,6 @@ class ExtractionRow:
 
 
 
-def _norm(text: str) -> str:
-    return WHITESPACE.sub(" ", text).strip()
-
-
 def all_quotes(extraction: Extraction) -> list[str]:
     """List every quote the model returned, across all fields that carry one."""
     quotes: list[str] = []
@@ -141,12 +135,14 @@ def all_quotes(extraction: Extraction) -> list[str]:
 def check_quotes(extraction: Extraction, articles: list[prompt.Article]) -> list[str]:
     """Return the quotes that are not in the text that was sent.
 
-    Whitespace is normalised on both sides, because the reduction that built
-    the article text is the only thing either side could disagree about and
-    still be quoting honestly. Anything left is paraphrase or fabrication.
+    The gate is the one every lane shares (`evidence`). Only a sex may be
+    quoted as one character ("男" in a Chinese infobox); any other quote that
+    short is a failed answer, not evidence.
     """
-    haystack = _norm(" ".join(article.text for article in articles))
-    return [quote for quote in all_quotes(extraction) if _norm(quote) not in haystack]
+    shown = " ".join(article.text for article in articles)
+    gender = set(extraction.gender_quotes)
+    rest = [quote for quote in all_quotes(extraction) if quote not in gender]
+    return evidence.missing(list(gender), shown, min_length=1) + evidence.missing(rest, shown)
 
 
 def _seed_lang(qid: str) -> str | None:

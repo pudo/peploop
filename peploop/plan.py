@@ -19,7 +19,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any
 
-from peploop import db, policy, prompt, propose, wikidata, wikipedia
+from peploop import dates, db, policy, prompt, propose, wikidata, wikipedia
 
 # A reference built only from these says "imported from a Wikipedia article",
 # which is the one provenance a refinement may overwrite in place.
@@ -44,7 +44,7 @@ def today() -> dict[str, Any]:
     return {
         "time": f"+{stamp}T00:00:00Z",
         "precision": 11,
-        "calendarmodel": propose.CALENDAR,
+        "calendarmodel": dates.CALENDAR,
         "timezone": 0,
         "before": 0,
         "after": 0,
@@ -144,7 +144,7 @@ def same_value(existing: dict[str, Any], proposed: dict[str, Any]) -> bool:
     """Say whether two datavalues name the same thing, dates at shared precision."""
     if "time" in proposed and "time" in existing:
         shared = min(existing.get("precision", 11), proposed["precision"])
-        return propose.at_precision(existing["time"], shared) == propose.at_precision(
+        return dates.at_precision(existing["time"], shared) == dates.at_precision(
             proposed["time"], shared
         )
     if "id" in proposed:
@@ -201,8 +201,8 @@ def exact(a: Any, b: Any) -> bool:
         if "id" in a or "id" in b:
             return a.get("id") == b.get("id")
         if "time" in a or "time" in b:
-            return (a.get("time"), a.get("precision"), a.get("calendarmodel", propose.CALENDAR)) == (
-                b.get("time"), b.get("precision"), b.get("calendarmodel", propose.CALENDAR))
+            return (a.get("time"), a.get("precision"), a.get("calendarmodel", dates.CALENDAR)) == (
+                b.get("time"), b.get("precision"), b.get("calendarmodel", dates.CALENDAR))
     return a == b
 
 

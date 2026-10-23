@@ -16,6 +16,8 @@ exposed persons so OpenSanctions can read them back. Three lanes:
   `peploop/corp/countries/<cc>.yml`. Spec `peploop/corp/design.md`,
   background `docs/soe_peps.md`.
 
+What the lanes' rules share, by family: `peploop/methods.md`.
+
 Open work: `plans/peploop_next.md`, `plans/peptree_next.md`,
 `plans/pepcorp_next.md`; what was learned:
 `docs/history.md` (read before re-measuring). `old/` is retired: never use it.

@@ -29,7 +29,7 @@ from psycopg.rows import dict_row
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import db, eras, memo, positions, prompt, propose, scope, verify, wikidata
+from peploop import dates, db, eras, memo, positions, prompt, propose, scope, verify, wikidata
 
 ACCEPTED = "accepted"
 SKIPPED = "skipped"
@@ -336,22 +336,6 @@ def _skip(rule: str) -> Disposition:
     return Disposition(SKIPPED, rule)
 
 
-def _year(value: dict[str, Any] | None) -> int | None:
-    """The year of a time value, or None when it has none worth reading."""
-    if value is None or value.get("precision", 0) < 9:
-        return None
-    text = propose.at_precision(value["time"], 9)
-    if text is None:
-        return None
-    try:
-        return int(text)
-    except ValueError:
-        return None
-
-
-# --- universal gates, in the order they are asked ---------------------------
-
-
 def review_rejected(case: Case) -> Disposition | None:
     """A human who read the row in the review sampler rejected it.
 
@@ -377,24 +361,12 @@ def no_quote(case: Case) -> Disposition | None:
     return None
 
 
-def _dated_after(value: dict[str, Any] | None, today: date) -> bool:
-    """Whether a time value names a day, month or year after today.
-
-    A coarse value compares as its first day ("+2027-00-00" sorts after
-    2026-09-30 and "+2026-00-00" before it), which is the right reading: a
-    year that has begun is not in the future.
-    """
-    if not value or not isinstance(value.get("time"), str):
-        return False
-    return value["time"][1:11] > today.isoformat()
-
-
 def future_date(case: Case) -> Disposition | None:
     """A date after today is a schedule, not a record: a term's planned end, a nominee's start."""
     today = case.today or date.today()
-    dates = [case.value if case.property in ("P569", "P570") else None,
-             case.tenure("P580"), case.tenure("P582")]
-    if any(_dated_after(value, today) for value in dates):
+    values = [case.value if case.property in ("P569", "P570") else None,
+              case.tenure("P580"), case.tenure("P582")]
+    if any(dates.after_today(value, today) for value in values):
         return _skip("future_date")
     return None
 
@@ -451,7 +423,7 @@ def contested(case: Case) -> Disposition | None:
             continue
         if "time" in value and "time" in case.value:
             shared = min(value.get("precision", 11), case.value.get("precision", 11))
-            agree = propose.at_precision(value["time"], shared) == propose.at_precision(
+            agree = dates.at_precision(value["time"], shared) == dates.at_precision(
                 case.value["time"], shared
             )
         else:
@@ -479,7 +451,7 @@ def refine_over_sourced(case: Case) -> Disposition | None:
             continue
         precision = found.get("precision", 0)
         shared = min(precision, value["precision"])
-        agrees = propose.at_precision(found["time"], shared) == propose.at_precision(
+        agrees = dates.at_precision(found["time"], shared) == dates.at_precision(
             value["time"], shared
         )
         if agrees and precision < value["precision"] and not wikidata.is_import(claim):
@@ -499,9 +471,9 @@ def _state_qids(case: Case) -> set[str]:
 
 def _life(case: Case, prop: str, key: str) -> list[int]:
     """The years the item and the person's articles give for a birth or a death."""
-    found = [_year({"time": stamp, "precision": precision})
+    found = [dates.known_year({"time": stamp, "precision": precision})
              for stamp, precision in wikidata.claim_time(case.entity, prop, include_deprecated=False)]
-    found += [_year(propose.time_value(entry.get("value") or "")) for entry in case.extracted.get(key) or []]
+    found += [dates.known_year(dates.time_value(entry.get("value") or "")) for entry in case.extracted.get(key) or []]
     return [y for y in found if y is not None]
 
 
@@ -554,7 +526,7 @@ def _covers(one: dict[str, Any], other: dict[str, Any]) -> bool:
         return False
     for prop, value in theirs.items():
         shared = min(value.get("precision", 11), mine[prop].get("precision", 11))
-        if propose.at_precision(value["time"], shared) != propose.at_precision(
+        if dates.at_precision(value["time"], shared) != dates.at_precision(
             mine[prop]["time"], shared
         ):
             return False
@@ -584,7 +556,7 @@ def _touching(one: dict[str, Any], other: dict[str, Any]) -> bool:
         if not (isinstance(end, dict) and isinstance(start, dict)):
             continue
         shared = min(end.get("precision", 11), start.get("precision", 11))
-        if propose.at_precision(end["time"], shared) == propose.at_precision(start["time"], shared):
+        if dates.at_precision(end["time"], shared) == dates.at_precision(start["time"], shared):
             return True
     return False
 
@@ -638,7 +610,7 @@ def _loses(span: dict[str, Any], other: dict[str, Any]) -> bool:
     theirs_open = "P582" not in _endpoints(other)
     if mine_open != theirs_open:
         return mine_open
-    return not mine_open or _year(span.get("P580")) <= _year(other.get("P580"))
+    return not mine_open or dates.known_year(span.get("P580")) <= dates.known_year(other.get("P580"))
 
 
 def family_kinds(position: dict[str, Any], use: Counter[str] | dict[str, int]) -> set[str]:
@@ -768,7 +740,7 @@ def tenure_before_record(case: Case) -> Disposition | None:
     first = case.position.get("first_held_year")
     if first is None or case.position.get("inception") is not None:
         return None
-    latest = _year(case.tenure("P582")) or _year(case.tenure("P580"))
+    latest = dates.known_year(case.tenure("P582")) or dates.known_year(case.tenure("P580"))
     if latest is not None and latest < first - FIRST_HELD_MARGIN:
         return _skip("tenure_before_record")
     return None
@@ -786,7 +758,7 @@ def tenure_before_polity(case: Case) -> Disposition | None:
     founded = case.position.get("polity_inception_year")
     if founded is None:
         return None
-    latest = _year(case.tenure("P582")) or _year(case.tenure("P580"))
+    latest = dates.known_year(case.tenure("P582")) or dates.known_year(case.tenure("P580"))
     if latest is not None and latest < founded - POLITY_MARGIN:
         return _skip("tenure_before_polity")
     return None
@@ -859,7 +831,7 @@ def tenure_ended(case: Case) -> Disposition | None:
     """A tenure that ended a generation ago is a biography, not who holds office now."""
     if case.property != "P39":
         return None
-    latest = _year(case.tenure("P582")) or _year(case.last_start())
+    latest = dates.known_year(case.tenure("P582")) or dates.known_year(case.last_start())
     today = case.today or date.today()
     if latest is not None and latest < today.year - P39_MAX_ENDED_YEARS:
         return _skip("tenure_ended")
@@ -882,7 +854,7 @@ def open_unattested(case: Case) -> Disposition | None:
     """
     if case.property != "P39" or case.tenure("P582") is not None:
         return None
-    start = _year(case.last_start())
+    start = dates.known_year(case.last_start())
     today = case.today or date.today()
     if start is None or start > today.year - OPEN_TERM_YEARS:
         return None
@@ -965,8 +937,8 @@ def office_tags(case: Case) -> list[str]:
     return positions.tags_for(
         case.position,
         case.state_qid,
-        None if start is None else _year(start),
-        None if end is None else _year(end),
+        None if start is None else dates.known_year(start),
+        None if end is None else dates.known_year(end),
     )
 
 
@@ -1081,7 +1053,7 @@ def _bound(value: dict[str, Any] | None, side: int) -> float | None:
 def _cohorts(spells: Sequence[OfficeSpell]) -> Counter[int]:
     """How many different people started the office in each year."""
     seen = {(spell.person, year) for spell in spells
-            if (year := _year(spell.span.get("P580"))) is not None}
+            if (year := dates.known_year(spell.span.get("P580"))) is not None}
     return Counter(year for _person, year in seen)
 
 
@@ -1130,7 +1102,7 @@ def term_years(spells: Sequence[OfficeSpell]) -> int | None:
     lengths: Counter[int] = Counter()
     seen = set()
     for spell in spells:
-        start, end = _year(spell.span.get("P580")), _year(spell.span.get("P582"))
+        start, end = dates.known_year(spell.span.get("P580")), dates.known_year(spell.span.get("P582"))
         if start is None or end is None or (spell.person, start, end) in seen:
             continue
         seen.add((spell.person, start, end))
@@ -1204,7 +1176,7 @@ def open_superseded(case: Case) -> Disposition | None:
     if abolished is not None:
         ended.append({"time": f"+{abolished}T00:00:00Z", "precision": 11})
     for value in ended:
-        if _later(start, value) and not _dated_after(value, today):
+        if _later(start, value) and not dates.after_today(value, today):
             return _skip("open_superseded/dissolved")
     if (case.government is not None and cabinet_seat(case.position)
             and _later(start, case.government)):

@@ -5,7 +5,7 @@
 
 from datetime import date
 
-from peploop import propose, qs
+from peploop import evidence, propose, qs
 from peploop.corp import actors, country, decide, load, rules
 from peploop.tree.check_filter import expect
 
@@ -47,7 +47,7 @@ def gates() -> None:
            "a country that writes the municipal tier passes it")
     expect(rules.gate(answer(quote="Q is owned by the state."), MESSAGE) == "control_unquoted",
            "a control quote not in the articles is refused")
-    expect(rules.quoted("q is owned by the province.", MESSAGE), "a quote differing only in case counts")
+    expect(evidence.quoted("q is owned by the province.", MESSAGE), "a quote differing only in case counts")
 
 
 #: (kind, body, role) → the statement it becomes, cell by cell.
