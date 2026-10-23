@@ -24,6 +24,10 @@ VERDICTS = (
     "wrong-item",
     "wrong-person",
 )
+#: A narrower check answers from a subset: what a link, a marker or a class can be against its passage.
+LINK_VERDICTS = (SUPPORTED, "unsupported", "contradicted", "wrong-item")
+#: What a candidate's page can say about the person in a seat.
+PERSON_VERDICTS = (SUPPORTED, "unsupported", "wrong-person")
 
 
 def accepts(verdict: str | None, confidence: str | None) -> bool:

@@ -36,10 +36,10 @@ def routing() -> None:
 
     class Conn:
         def execute(self, sql, args):
-            store[args[0]] = {"supports": False}
+            store[args[0]] = {"verdict": "unsupported", "confidence": "high"}
 
     real = verify.ask, decide.recorded, wd.conn, memo.labels_of
-    verify.ask = lambda text: (asked.append(text) or verify.Verdict(supports=False, reason=""), {})  # type: ignore[assignment]
+    verify.ask = lambda text: (asked.append(text) or verify.Verdict(verdict="unsupported", confidence="high", evidence="", reason=""), {})  # type: ignore[assignment]
     decide.recorded = lambda key: store.get(key)  # type: ignore[assignment]
     wd.conn = lambda: Conn()  # type: ignore[assignment]
     memo.labels_of = lambda qids, langs: {}  # type: ignore[assignment]

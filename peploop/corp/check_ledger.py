@@ -35,7 +35,7 @@ def main() -> None:
         call("a-old", "Q900001", "p1", new, "2026-10-01")
         call("a-new", "Q900001", "p2", new, "2026-10-02")
         call("b-old", "Q900002", "p1", new, "2026-10-01")
-        call("b-check", "Q900002", "v1", {"supports": True}, "2026-10-03", {"message": "x", "link": []})
+        call("b-check", "Q900002", "v1", {"verdict": "supported", "confidence": "high"}, "2026-10-03", {"message": "x", "link": []})
         call("c-stale", "Q900003", "p0", answer(), "2026-10-03")
         call("d-dropped", "Q900004", "p2", new, "2026-10-02")
         got = {r["qid"]: r["key"] for r in decide.from_ledger(CC)}

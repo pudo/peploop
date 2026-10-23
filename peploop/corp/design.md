@@ -138,7 +138,9 @@ are written by default; a spec names its own.
    it is: founding, funding, a working level or an independent body's
    supervision is no control, being one of a state's institutes or units
    makes a parent and never an owner, and a minister's statutory
-   supervision of a state legal person is subordination; a refused link is
+   supervision of a state legal person is subordination. Both checks answer
+   in the shared verdict words (`peploop/verdict.py`), and a claim passes only
+   when it is `supported` at better than low confidence. A refused link is
    skipped (`link_unverified`). So is the marker, against the control quote
    (`marker_unverified`), and a statutory class, against the control quote
    and the article's opening (`class_unverified`: a regulator sets rules for

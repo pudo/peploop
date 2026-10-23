@@ -94,8 +94,12 @@ lanes". No code reads them.
 - `classes`: the QIDs that say what sort of thing an item is: position
   metaclasses, not-an-office classes, organisation, territory, the sender
   class of ambassadors.
-- `verdict`: what a check of one claim answers (`VERDICTS`, `Confidence`),
-  and the gate `accepts`: supported, not at low confidence.
+- `verdict`: what a check of one claim answers, and the one gate `accepts`:
+  supported, not at low confidence.
+  - `VERDICTS` is the full set, used by peploop's verifier.
+  - `LINK_VERDICTS` and `PERSON_VERDICTS` are the subsets pepcorp's link and
+    person checks answer from.
+  - `Confidence` is the type every lane's prompts answer in.
 - `eras`: spans of states, offices and values (`span_of`, `state_start`,
   `overlaps`).
 - `typegraph`: subclass closures. Use it for every "is this a kind of X" test.
@@ -114,6 +118,3 @@ lanes". No code reads them.
 - **What is not an office.** peploop's ranking reads `NOT_AN_OFFICE` and
   peptree's load filter `HONOURS_AND_RANKS`. They share 9 classes. Merging
   them changes both lanes' filters and waits for a measurement.
-- **pepcorp's checks** answer `supports: bool` and do not yet use
-  `verdict`. Asking for its words changes their prompts, which re-keys every
-  stored answer, so they move with the next paid re-run.

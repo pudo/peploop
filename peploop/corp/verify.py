@@ -18,12 +18,14 @@ links.
 import concurrent.futures as cf
 import os
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
+
 
 from pydantic import BaseModel, ConfigDict
 
-from peploop import llm, memo
+from peploop import llm, memo, verdict
 from peploop.corp import decide, rules, wd
+from peploop.verdict import LINK_VERDICTS, Confidence
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "verify_link.md"
 MODEL = os.environ.get("PEPCORP_VERIFY_MODEL", "claude-sonnet-5-5")
@@ -44,7 +46,9 @@ OPENING_CHARS = 1200
 
 class Verdict(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    supports: bool
+    verdict: Literal[LINK_VERDICTS]
+    confidence: Confidence
+    evidence: str
     reason: str
 
 
@@ -159,9 +163,9 @@ def refused(cc: str, decisions: list[dict[str, Any]], answered: list[dict[str, A
     def one(link: tuple[str, str, str], key: str, text: str) -> None:
         if decide.recorded(key) is not None:
             return
-        verdict, usage = ask(text)
+        answer, usage = ask(text)
         decide.LEDGER.store(key, cc, link[0], MODEL, prompt_hash, {"message": text, "link": list(link)},
-                            verdict.model_dump(), usage)
+                            answer.model_dump(), usage)
 
     out = set(quotes)
     for attempt in range(max(len(qs) for qs in quotes.values())):
@@ -173,8 +177,8 @@ def refused(cc: str, decisions: list[dict[str, Any]], answered: list[dict[str, A
                 except Exception as exc:  # one failed check leaves its link unwritten, not the run
                     log(f"  link check failed: {exc}")
         for link, (key, _) in jobs.items():
-            verdict = decide.recorded(key)
-            if verdict is not None and verdict.get("supports"):
+            found = decide.recorded(key)
+            if found is not None and verdict.accepts(found.get("verdict"), found.get("confidence")):
                 out.discard(link)
     log(f"{len(quotes)} links, markers and classes checked against their quotes; {len(out)} refused")
     return out

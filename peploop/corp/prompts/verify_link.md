@@ -54,4 +54,18 @@ resource or infrastructure is not a regulator for that. A public broadcaster
 broadcasts radio or television as a public service; a central bank is a
 country's central or national bank.
 
-Answer `supports` true or false, and give the reason in one short sentence.
+Answer `verdict` with one of:
+
+- `supported`: the passage says, in its own words, what is claimed.
+- `contradicted`: the passage says otherwise. Examples: the body is
+  private, independent of the public body, or owned by someone else.
+- `wrong-item`: the passage is about a different body.
+- `unsupported`: anything else, including everything listed above that
+  supports neither.
+
+Give `confidence` as `high`, `medium` or `low`. `low` means another careful
+reader could well answer differently. A `supported` answer at `low` is not
+written.
+
+Copy into `evidence` the words of the passage that decided it, verbatim, or
+leave it empty when no words did. Give the reason in one short sentence.

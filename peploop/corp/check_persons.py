@@ -45,7 +45,8 @@ def lifetimes() -> None:
 
 
 def choosing() -> None:
-    v = lambda tier, same=True: {"evidence": tier, "same_person": same, "reason": ""}  # noqa: E731
+    v = lambda tier, same=True: {"tier": tier, "verdict": "supported" if same else "wrong-person",  # noqa: E731
+                                 "confidence": "high", "evidence": "", "reason": ""}
     expect(match.choose({"Q901": v("institution")}) == ("Q901", "institution"), "the page names the body: matched")
     expect(match.choose({"Q901": v("domain"), "Q902": v("none")}) == ("Q901", "domain"),
            "the one candidate in the body's field among few namesakes: matched")
@@ -62,8 +63,10 @@ def choosing() -> None:
     expect(match.choose({"Q901": v("institution", False)}) == (None, "rejected"),
            "the body named but the person not the same (a conflict): no match")
     expect(match.choose({"Q901": v("none"), "Q902": v("conflict")}) == (None, "rejected"), "no evidence: no match")
+    low = {**v("institution"), "confidence": "low"}
+    expect(match.choose({"Q901": low}) == (None, "rejected"), "the same person at low confidence: no match")
     expect(match.choose({}) == (None, "no_candidate"), "no candidate checked")
-    item = {"evidence": "item", "same_person": True, "reason": "", "foreign": False}
+    item = {"tier": "item", "verdict": "supported", "confidence": "high", "evidence": "", "reason": "", "foreign": False}
     expect(match.choose({"Q901": item, "Q902": v("domain")}) == ("Q901", "item"),
            "an item whose own data names the body counts like a page that does")
     expect(match.choose({"Q901": item, "Q902": v("institution")}) == (None, "ambiguous"),

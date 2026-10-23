@@ -46,7 +46,12 @@ All seven steps are done and every check passes. The measurements are in
 Still open:
 - **Merge the two not-office sets.** Measure what each lane would filter
   differently first.
-- **pepcorp's checks onto `verdict`.** This goes with the paid re-run.
+- **pepcorp's checks are on `verdict`** (the user approved the re-key,
+  2026-10-23). `verify_link` and `match_person` now answer a verdict word, a
+  confidence and the quoted evidence. `match_person` keeps its tiers under
+  `tier`. Their prompts changed, so the next `corp run` asks them again:
+  about $5 for the 3–5k link, marker and class checks, and $9 for the ~2,000
+  person matches, at the stored calls' mean cost.
 - **Position items in pepcorp.** The 24 seats on position items are not
   explained by the metaclass sets: pepcorp's load gate already reads the
   wide set, and Q1259952 passed it. This is the rerun's §1.1.

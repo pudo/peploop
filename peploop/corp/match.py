@@ -32,8 +32,9 @@ from typing import Any, Callable, Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from peploop import llm, memo
+from peploop import llm, memo, verdict
 from peploop.corp import decide, persons, wd
+from peploop.verdict import PERSON_VERDICTS, Confidence
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "match_person.md"
 MODEL = os.environ.get("PEPCORP_MATCH_MODEL", "claude-sonnet-5-5")
@@ -54,9 +55,18 @@ BODIES = {"executive": "executive body", "supervisory": "supervisory board or co
 
 class Verdict(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    evidence: Literal["institution", "domain", "none", "conflict"]
-    same_person: bool
+    tier: Literal[TIERS]
+    verdict: Literal[PERSON_VERDICTS]
+    confidence: Confidence
+    evidence: str
     reason: str
+
+
+def counts(v: dict[str, Any]) -> str | None:
+    """The tier a candidate counts at: the check calls them the person, on a tier that can say so."""
+    if v.get("tier") in ("institution", "item", "domain") and verdict.accepts(v.get("verdict"), v.get("confidence")):
+        return v["tier"]
+    return None
 
 
 def year(claims: list[dict[str, Any]]) -> int | None:
@@ -193,9 +203,8 @@ def choose(verdicts: dict[str, dict[str, Any]]) -> tuple[str | None, str]:
     of other countries only (`foreign`), where a field is shared by every
     country's namesakes.
     """
-    passed = {q: v["evidence"] for q, v in verdicts.items()
-              if v.get("same_person") and v.get("evidence") in ("institution", "item", "domain")
-              and not (v["evidence"] == "domain" and v.get("foreign"))}
+    passed = {q: t for q, v in verdicts.items()
+              if (t := counts(v)) and not (t == "domain" and v.get("foreign"))}
     if not passed:
         return None, "rejected" if verdicts else "no_candidate"
     # A page or an item that names the body is the same strength of evidence.
@@ -254,7 +263,8 @@ def resolve(cc: str, seats: list[dict[str, Any]], wikis: list[str], log: Callabl
             why = None if c["pages"] else item_ties(c["entity"], s["qid"], names)
             if why:
                 tied.setdefault((s["qid"], s["seat"]["name"]), {})[c["qid"]] = {
-                    "evidence": "item", "same_person": True, "reason": why, "foreign": False}
+                    "tier": "item", "verdict": verdict.SUPPORTED, "confidence": "high", "evidence": why,
+                    "reason": why, "foreign": False}
         found_by[id(s)] = [c for c in found_by[id(s)] if c["pages"]]
     for s in seats:
         found = found_by[id(s)]
@@ -389,7 +399,7 @@ def confirm(cc: str, seats: list[dict[str, Any]], wikis: list[str],
     def one(s: dict[str, Any], c: dict[str, Any], page: dict[str, Any]) -> bool:
         text = message(s["seat"], body_info(s, bodies.get(s["qid"], {}), wikis), c, page, labels)
         v = checked(cc, s, c["qid"], text)
-        return bool(v.get("same_person") and v.get("evidence") in ("institution", "domain"))
+        return counts(v) in ("institution", "domain")
 
     with cf.ThreadPoolExecutor(decide.WORKERS) as ex:
         futures2 = {ex.submit(one, *job): job[0] for job in jobs}
