@@ -9,7 +9,6 @@ data is thin gets fewer matches, never a wrong rule written for another country.
 """
 
 import re
-import unicodedata
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -22,11 +21,13 @@ from peploop.eras import (  # noqa: F401  (re-exported for peptree modules)
 )
 from peploop.eras import qids as _qids
 from peploop.eras import year as _year
+from peploop.classes import CITY
+from peploop.text import strip_marks
 from peploop.tree import wd
 
 #: Classes that make an item a state, for a predecessor or a federation.
 STATE_CLASSES = {"Q7275", "Q3024240", "Q6256", "Q3624078"}  # state, historical country, country, sovereign state
-ADMIN_ENTITY, SETTLEMENT, CITY = "Q56061", "Q486972", "Q515"
+ADMIN_ENTITY, SETTLEMENT = "Q56061", "Q486972"
 #: Second-level and local place types: those making up this share of a level.
 TYPE_SHARE = 0.2
 FORMER = "Q19953632"  # former administrative territorial entity
@@ -147,12 +148,6 @@ class Country:
 TOKEN = re.compile(r"\w+", re.U)
 
 
-def fold(text: str) -> str:
-    """Lowercase with diacritics removed, so "Río" and "Rio", "Ä" and "A" meet."""
-    decomposed = unicodedata.normalize("NFKD", text)
-    return "".join(ch for ch in decomposed if not unicodedata.combining(ch)).casefold()
-
-
 def stems(text: str, drop: set[str] | frozenset[str] = frozenset()) -> set[str]:
     """Inflection-tolerant prefixes of a name's words, minus `drop`.
 
@@ -204,7 +199,7 @@ def deputy_lead(c: "Country", stems_: list[str]) -> int:
 
 
 def tokens(text: str) -> list[str]:
-    return TOKEN.findall(fold(text))
+    return TOKEN.findall(strip_marks(text))
 
 
 def has_stems(need: set[str], toks: list[str]) -> bool:
@@ -230,7 +225,7 @@ def words(text: str, drop: set[str] | frozenset[str] | list[str] = frozenset()) 
     """
     out = set()
     for tok in TOKEN.findall(text):
-        low = fold(tok)
+        low = strip_marks(tok)
         if low.isdigit():
             continue
         if len(low) >= (2 if _short_script(low) else 3) or (len(tok) == 2 and tok.isalpha() and tok.isupper()):

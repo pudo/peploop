@@ -31,7 +31,7 @@ from typing import Any
 
 from psycopg.types.json import Jsonb
 
-from peploop import dates, evidence, ledger, policy, route, typegraph
+from peploop import dates, evidence, ledger, route, tenure, typegraph
 from peploop.corp import actors as actormod
 from peploop.corp import country as countries
 from peploop.corp import wd
@@ -373,8 +373,7 @@ def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, s
 def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str, Any] | None,
               today: date) -> str | None:
     """Why a seat is not written, from its dates and currency alone."""
-    year = dates.year
-    if start and end and end["time"] < start["time"]:
+    if tenure.bad_dates(start, end):
         return "bad_dates"
     if start and dates.after_today(start, today):
         # A tenure that starts after today is not a fact yet.
@@ -383,10 +382,9 @@ def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str,
         return "current_ended"
     if not start and not end and not seat["current"]:
         return "undated_former"
-    latest = year(end) or year(start)
-    if latest is not None and latest < today.year - policy.P39_MAX_ENDED_YEARS:
+    if tenure.ended_long_ago(start, end, today):
         return "tenure_ended"
-    if not end and not seat["current"] and start and year(start) <= today.year - policy.OPEN_TERM_YEARS:
+    if not end and not seat["current"] and tenure.open_too_long(start, today):
         return "open_unattested"
     return None
 

@@ -5,7 +5,8 @@
 
 from datetime import date
 
-from peploop import evidence, propose, qs
+from peploop import evidence, qs
+from peploop.dates import time_value
 from peploop.corp import actors, country, decide, load, rules
 from peploop.checks import expect
 
@@ -115,7 +116,7 @@ def names() -> None:
 
 
 def dates() -> None:
-    t = propose.time_value
+    t = time_value
     expect(rules.seat_rule(seat(), t("2021"), None, TODAY) is None, "a current seat since 2021 is written")
     expect(rules.seat_rule(seat(current=False, start=None), None, None, TODAY) == "undated_former",
            "a former seat with no dates is not")

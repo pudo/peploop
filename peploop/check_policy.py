@@ -16,7 +16,7 @@ import sys
 from datetime import date
 from typing import Any
 
-from peploop import offices, policy, positions, propose
+from peploop import dates, offices, policy, positions, propose
 
 OFFICE = "Q0000001"
 STATE = "Q0000003"
@@ -27,7 +27,7 @@ TODAY = date(2026, 6, 15)
 
 def time(text: str) -> dict[str, Any]:
     """A time value at the precision its text carries."""
-    value = propose.time_value(text)
+    value = dates.time_value(text)
     assert value is not None, text
     return value
 

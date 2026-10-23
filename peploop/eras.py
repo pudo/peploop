@@ -13,7 +13,6 @@ never reads another editor's statement as wrong. A run's home state starts
 later still where its configured predecessor chain says so (`state_start`).
 """
 
-import re
 from collections.abc import Iterable
 from typing import Any
 

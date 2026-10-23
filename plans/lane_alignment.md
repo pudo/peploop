@@ -31,17 +31,30 @@ that edge cases would soon force to be rewritten.
 
 ## Status (2026-10-23)
 
-- **Done:** step 0, `dates`, the `evidence` gate and `text.squash`. All
-  checks pass. The measurements are in `docs/history.md`, "Shared helpers".
-- **`claims.py` dropped.** `wikidata.py` already is the shared reader. Only
-  the copy `eras.qids` was folded into it.
-- **One-character quotes:** the user ruled they count only for a sex.
-  peploop's gender quotes get `min_length=1`, and every other quote the
-  shared floor.
-- **Left at their own copies:**
-  - `corp/match.year`, which reads the first time claim at any rank, in a
-    file another session has open;
-  - `positions._year`, which reads `YYYY` strings.
+All seven steps are done and every check passes. The measurements are in
+`docs/history.md`, "Shared helpers".
+
+- `claims.py` was dropped. `wikidata.py` already is the shared reader; only
+  `eras.qids` was a copy.
+- `tenure.py` holds the dated-holding predicates, the present-tense
+  markers and the end-event words. The spell functions (`overlaps`,
+  `close_at_next`, `tenure_key`) stay in `propose`, where pepcorp can call
+  them. Acting detection was not built: no lane detects acting from text,
+  since peploop reads the model's `acting` field.
+- One-character quotes count only for a sex (the user, 2026-10-23).
+
+Still open:
+- **Merge the two not-office sets.** Measure what each lane would filter
+  differently first.
+- **pepcorp's checks onto `verdict`.** This goes with the paid re-run.
+- **Position items in pepcorp.** The 24 seats on position items are not
+  explained by the metaclass sets: pepcorp's load gate already reads the
+  wide set, and Q1259952 passed it. This is the rerun's §1.1.
+- **Own copies left in place:**
+  - `corp/match.year`, which reads the first time claim at any rank;
+  - `positions._year`, which reads `YYYY` strings;
+  - `titles.fold_key`, which keys the title cache;
+  - mint's `_SPACE` in prompt rendering, which feeds requests.
 
 ## Modules, in build order
 

@@ -37,7 +37,7 @@ from typing import Any, Sequence
 import psycopg
 from pydantic import ValidationError
 
-from peploop import check_neutral, db, positions, propose, reconcile, titles
+from peploop import check_neutral, classes, db, positions, propose, reconcile, titles
 
 #: A state to be local to, so the holder counts below mean something.
 STATE = "Q1"
@@ -391,7 +391,7 @@ def check_missions(expect: Any) -> None:
         ("a post under the sender's class", _item(P279=["Q20", "Q21"], P17=["Q2"]), STATE),
         ("the class over a disagreeing operator", _item(P279=["Q20"], P137=["Q5"]), STATE),
         ("a post naming only its operator", _item(P279=["Q21"], P137=[STATE], P17=["Q2"]), STATE),
-        ("the sender class itself", _item(P279=[positions.SENDER_CLASS], P17=[STATE]), STATE),
+        ("the sender class itself", _item(P279=[classes.SENDER_CLASS], P17=[STATE]), STATE),
         ("a post naming only its receiver", _item(P279=["Q21"], P17=["Q2"]), None),
     ):
         got = positions.sender_of(entity, senders)

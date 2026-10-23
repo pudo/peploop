@@ -22,37 +22,10 @@ import requests
 from psycopg.types.json import Jsonb
 
 from peploop import dates, memo, positions, typegraph
+from peploop.classes import CITY, HONOURS_AND_RANKS, POSITION_CORE, SENDER_CLASS, TERRITORY, TYPE_OF_POSITION
 from peploop.tree import country as countries
 from peploop.tree import wd
 
-POSITION_METAS = {"Q4164871", "Q294414", "Q17279032"}
-GENERIC_META = "Q136649946"  # type of position
-LIST_ARTICLES = {"Q13406463", "Q19692233"}
-
-#: Declared types that say the item is an honour, a rank, an award or a list.
-#: A subset of peploop's NOT_AN_OFFICE plus what the pilot's baseline met.
-NOT_OFFICE = {
-    "Q5",  # human: "oldest living person in Finland" is a subclass of people, not a seat
-    "Q3320743",  # title of honor
-    "Q13424289",  # honorary title
-    "Q618779",  # award
-    "Q4192699",  # badge of distinction
-    "Q1499804",  # grade of an order
-    "Q38593919",  # medal of an order
-    "Q799000",  # breast badge
-    "Q4189293",  # rank
-    "Q56019",  # military rank
-    "Q4226220",  # naval officer rank
-    "Q19476593",  # police rank
-    "Q303618",  # diplomatic rank
-    "Q486983",  # academic rank
-    "Q3529618",  # academic title
-    "Q4121104",  # sports title
-    "Q55956975",  # honorary sporting title
-    "Q414528",  # academician
-    "Q2625729",  # corresponding member
-    *LIST_ARTICLES,
-}
 #: A seat whose class reaches head of state, or that is declared a public office,
 #: is an office whatever else its `P31` reaches: a throne is typed "noble title"
 #: (→ rank), a presidency "President of the Republic" (→ organization), a vice
@@ -87,7 +60,6 @@ EVENT_STOP = {"Q12737077", "Q28640", "Q4164871", "Q294414", "Q17279032", "Q13664
 #: Reached through a declared P31 (not a metaclass), these mean "a body".
 BODY_ROOTS = {"Q43229", "Q495430", "Q6813432"}  # organization, general staff, military staff
 DIPLOMATIC = "Q121998"
-SENDER_CLASS = "Q29645880"
 CONSULAR = {"Q207978", "Q1075179", "Q107427486"}  # consul, honorary consul, honorary consul to a country
 #: A body of one of these kinds is private unless it is also one of `STATE_BODY`
 #: or owned (`P127`) by the state: its offices are no one's public office.
@@ -97,10 +69,6 @@ PRIVATE_BODY = {"Q988108", "Q79913"}  # club, NGO
 #: SOE, party, agency, government organisation, central bank, university, academy of sciences
 #: (an academy is a "learned society", hence a club, by the hierarchy).
 STATE_BODY = {"Q270791", "Q7278", "Q327333", "Q2659904", "Q66344", "Q3918", "Q414147"}
-#: A `P1001` value of one of these kinds is a territory: anything else (a
-#: ministry, a corps, a party) says nothing about the office's level.
-TERRITORY = {"Q56061", "Q486972", "Q515", "Q7275", "Q6256", "Q3024240", "Q82794", "Q1048835"}
-CITY = "Q515"
 
 
 def values(entity: dict[str, Any], prop: str, any_rank: bool = False) -> list[str]:
@@ -311,7 +279,7 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     p279 = set(values(entity, "P279"))
     labels = all_labels(entity)
     held = sum(by.values()) if holders is None else holders
-    hit = (p31_any | p279) & NOT_OFFICE
+    hit = (p31_any | p279) & HONOURS_AND_RANKS
     if hit:
         return "non_office", "declared " + ",".join(sorted(hit)), ""
     hit = p31_any & OCCUPATION
@@ -328,12 +296,12 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     # Declared a position, it is no event whatever else it declares: Ontario's
     # Leader of the Opposition is also typed "parliamentary opposition" (→ occurrence).
     hit = (p31_types if event_types is None else event_types) & EVENT_LIKE
-    if hit and not seat and not p31_any & POSITION_METAS:
+    if hit and not seat and not p31_any & POSITION_CORE:
         return "non_office", "P31 reaches " + ",".join(sorted(hit)) + " (not through occupation)", ""
     # A label naming the state or a predecessor is a country-scoped office,
     # whatever its holders' spread or a list says.
     scoped_label = countries.names_country(c, labels) or bool(countries.named_states(c, labels))
-    if GENERIC_META in p31_any:
+    if TYPE_OF_POSITION in p31_any:
         return "generic_class", "P31 Q136649946", ""
     if generic and qid in generic and not scoped_label:
         return "generic_class", f"listed in generic_positions.csv ({generic[qid]})", ""
@@ -348,7 +316,7 @@ def classify(c: countries.Country, qid: str, entity: dict[str, Any], lanes: list
     private = private_body(entity, bodies or {}, c.home)
     if private:
         return "private_body", f"office of {private}, a private body", ""
-    if set(lanes) <= {"predecessor"} and not held and not (types | p31_any) & POSITION_METAS:
+    if set(lanes) <= {"predecessor"} and not held and not (types | p31_any) & POSITION_CORE:
         return "non_office", "predecessor scope only, held by no one and not typed a position", ""
     diplomatic = DIPLOMATIC in types or SENDER_CLASS in types
     consular = bool(CONSULAR & types) or consular_label(c, labels)
@@ -425,7 +393,7 @@ def refilter(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     seeds = {it["qid"]: _seed_edges(it["entity"]) for it in stored}
     types = typegraph.close(seeds)
     p31_seeds = {f"p31:{it['qid']}": [t for t in values(it["entity"], "P31", any_rank=True)
-                                      if t not in POSITION_METAS] for it in stored}
+                                      if t not in POSITION_CORE] for it in stored}
     p31_types = typegraph.close(p31_seeds)
     events = event_closure(p31_seeds)
     generic = positions.generic_labels()

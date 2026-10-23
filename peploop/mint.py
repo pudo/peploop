@@ -26,8 +26,10 @@ from psycopg.types.json import Jsonb
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory
 
-from peploop import db, llm, offices, policy, positions, reconcile, scope, typegraph, wikidata
+from peploop import classes, db, llm, offices, policy, positions, reconcile, scope, tenure, typegraph, wikidata
+from peploop import text as text_
 from peploop import verify as person_verify
+from peploop.verdict import CONFIDENCES
 from peploop.offices import ARCHETYPES, distinct_holders
 
 CENSUS_DIR = Path(__file__).resolve().parent / "census"
@@ -187,7 +189,7 @@ def is_current(row: Row, today: date) -> bool:
     acting tenure and a dead holder never count; an end counts only when its
     earliest reading is still to come; an open tenure counts when it began
     inside `CURRENT_WINDOW_YEARS`, or earlier where its quote is an infobox's
-    word that it is held now (`policy.INFOBOX`); an undated one never does.
+    word that it is held now (`tenure.says_current`); an undated one never does.
     """
     if row.acting or row.death:
         return False
@@ -201,15 +203,14 @@ def is_current(row: Row, today: date) -> bool:
     cutoff: scope.Point = (today.year - CURRENT_WINDOW_YEARS, today.month, today.day)
     if start[1] >= cutoff:
         return True
-    marker = policy.INFOBOX.get(row.lang or "en")
-    return bool(marker and row.quote and marker.search(row.quote))
+    return tenure.says_current(row.quote, row.lang, infobox_only=True)
 
 
 _SPACE = re.compile(r"\s+")
 
 
 def _fold(text: str | None) -> str:
-    return _SPACE.sub(" ", positions.fold(text or "")).strip()
+    return text_.squash(text_.fold(text or ""))
 
 
 def group_key(row: Row) -> str:
@@ -1360,7 +1361,6 @@ VERIFY_VERDICTS = (
     "mint", "exists", "not-an-office", "not-current", "not-distinct",
     "generic-convention", "unclear",
 )
-CONFIDENCES = ("high", "medium", "low")
 SHAPES = ("agree", "correct")
 #: The fields a `correct` answer may name, in the order a skip rule reports them.
 CORRECTION_FIELDS = ("parent_qid", "body_qid", "jurisdiction_qid", "metaclass",
@@ -1669,9 +1669,9 @@ class Context:
         """
         if not qid:
             return None
-        classes = ({a.parent for a in ARCHETYPES.values()} | positions.POSITION_METACLASSES
-                   | set(self.siblings.metaclass_by_parent))
-        if qid in classes:
+        known = ({a.parent for a in ARCHETYPES.values()} | classes.POSITION_METACLASSES
+                 | set(self.siblings.metaclass_by_parent))
+        if qid in known:
             return f"exists-class/{qid}"
         if positions.is_generic(qid):
             return f"exists-generic/{qid}"

@@ -29,7 +29,8 @@ from psycopg.rows import dict_row
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import dates, db, eras, memo, positions, prompt, propose, scope, verify, wikidata
+from peploop import classes, dates, db, eras, memo, positions, prompt, propose, scope, tenure, verify, wikidata
+from peploop.verdict import LOW, SUPPORTED
 
 ACCEPTED = "accepted"
 SKIPPED = "skipped"
@@ -47,54 +48,11 @@ P39_MIN_CONFIDENCE = "high"
 #: The coarsest start a tenure may carry and still be written. 9 is a year,
 #: which the reviewer accepted 23 times against 4 refusals; 11 would be a day.
 P39_MIN_START_PRECISION = 9
-#: How many years ago a tenure may have ended and still be written. The loop
-#: records who holds office now; a tenure that ended a generation ago is a
-#: biography, and a start that long ago with no end is more often an end the
-#: article did not give than a career still running.
-P39_MAX_ENDED_YEARS = 20
-#: An open tenure that began this many years ago or more has outlived a
-#: typical term: it must be quoted as held now (`open_unattested`).
-OPEN_TERM_YEARS = 4
-#: What an English quote says when the office is held now: an infobox's
-#: "Incumbent" and "Assumed office", or prose in the present.
-CURRENT_EN = re.compile(r"\bincumbent\b|\bassumed office\b|\bpresent\b|\bcurrent(?:ly)?\b|\bsince\b|"
-                        r"\b(?:is|serves|sits) (?:as )?(?:the|a|an)\b|\bserving\b", re.I)
-#: Marker words that tell of the start, not of now: the rival a person beat
-#: ("beating incumbent Brett Svendsen") and the day they began ("commenced
-#: serving as the Division 2 councillor").
-NOT_NOW = re.compile(r"\b(?:beat|defeat|unseat|oust)\w*\s+(?:the\s+)?(?:sitting\s+)?incumbent\b"
-                     r"|\bagainst\s+(?:the\s+)?(?:sitting\s+)?incumbent\b"
-                     r"|\b(?:commenced|began|begun|started)\s+serving\b", re.I)
-#: Local seats, re-elected with their council: one whose article stops at a
-#: "currently serves" is as often lost at the next local election.
 #: A handover's slack before a successor's start counts against a spell.
 OVERLAP_DAYS = 60
+#: Local seats, re-elected with their council: one whose article stops at a
+#: "currently serves" is as often lost at the next local election.
 LOCAL_KINDS = frozenset({"Q708492", "Q30185"})  # council member, mayor
-#: What only an infobox says: an office it lists as held now. An ambassador
-#: rotates within a term, and a stub's "since 2016 he is" is never revised.
-INFOBOX = {
-    "en": re.compile(r"\bincumbent\b|\bassumed office\b", re.I),
-    "el": re.compile(r"εν ενεργεία", re.I),
-    "tr": re.compile(r"görevde|makama geliş", re.I),
-    "pt": re.compile(r"\bem exercício\b|\ba[c]?tualidade\b|(?:[–-]|\d{4})\s*presente\b", re.I),
-    "zh": re.compile(r"[现現]任|就任日期"),
-}
-#: The same, per language whose articles were measured: Greek infoboxes
-#: write "Εν ενεργεία", Turkish ones "Görevde" and "Makama geliş" (assumed
-#: office), Portuguese ones "Período: 2022 a atualidade" or "– presente";
-#: prose says "σήμερα" / "halen", "günümüz" / "atualmente", "é o atual"
-#: (today, still, the current one). Chinese infoboxes write "现任" over
-#: "就任日期" (incumbent, assumed office: 549 of 7,847 Chinese articles, every
-#: one with both), prose "现任" and "至今" (to this day).
-CURRENT = {
-    "en": CURRENT_EN,
-    "el": re.compile(r"εν ενεργεία|σήμερα|διατελεί|υπηρετεί", re.I),
-    "tr": re.compile(r"görevde|makama geliş|halen|hâlâ|günümüz|devam ediyor|sürdürüyor", re.I),
-    "pt": re.compile(r"\bem exercício\b|\ba[c]?tualidade\b|(?:[–-]|\d{4})\s*presente\b|"
-                     r"\ba[c]?tualmente\b|\bé (?:o|a) a[c]?tual\b|\bdesde\b|\bem funções\b|"
-                     r"\bocupa o (?:cargo|posto)\b", re.I),
-    "zh": re.compile(r"[现現]任|就任日期|至今|迄今"),
-}
 #: A Chinese title of one post, read for its rank: a deputy (副) or a member
 #: (委员) placed on the seat its body's head holds. Several posts in one title
 #: ("全国政协常委、外事委员会副主任") name more than the office placed.
@@ -122,8 +80,6 @@ SCOPING_QUALIFIERS = frozenset({
     "P1268",  # represents
     "P463",   # member of
 })
-SUPPORTED = "supported"
-LOW = "low"
 #: How many years before an office's earliest recorded holder a tenure may
 #: end and still be written onto it. Coverage is sparse -- a ministry held
 #: since 1991 had its first dated holder in 2008 -- so the margin is wide,
@@ -623,8 +579,8 @@ def family_kinds(position: dict[str, Any], use: Counter[str] | dict[str, int]) -
     """
     return {
         kind for kind in position.get("kind_qids") or ()
-        if kind not in positions.POSITION_METACLASSES
-        and kind not in positions.NOT_AN_OFFICE
+        if kind not in classes.POSITION_METACLASSES
+        and kind not in classes.NOT_AN_OFFICE
         and kind not in FAMILY_GENERIC
         and use.get(kind, 0) <= FAMILY_MAX_OFFICES
     }
@@ -831,9 +787,7 @@ def tenure_ended(case: Case) -> Disposition | None:
     """A tenure that ended a generation ago is a biography, not who holds office now."""
     if case.property != "P39":
         return None
-    latest = dates.known_year(case.tenure("P582")) or dates.known_year(case.last_start())
-    today = case.today or date.today()
-    if latest is not None and latest < today.year - P39_MAX_ENDED_YEARS:
+    if tenure.ended_long_ago(case.last_start(), case.tenure("P582"), case.today or date.today()):
         return _skip("tenure_ended")
     return None
 
@@ -845,31 +799,27 @@ def open_unattested(case: Case) -> Disposition | None:
     was appointed far more often than that they left: a planning minister of
     2008, a judge since elevated to a higher court, a councillor of one term
     all came back open. Read only where every quote is in a language whose
-    present-tense markers are listed (`CURRENT`), setting aside a minor wiki's
+    present-tense markers are listed (`tenure.CURRENT`), setting aside a minor wiki's
     quote beside a home one. An ambassadorship or a council seat needs an
-    infobox's (`INFOBOX`): a council's elections are rarely written up in its
+    infobox's (`tenure.INFOBOX`): a council's elections are rarely written up in its
     members' articles, so "where he currently serves" outlives the seat.
     A career dated from several terms is judged by its last term's start
     (`Case.last_start`).
     """
     if case.property != "P39" or case.tenure("P582") is not None:
         return None
-    start = dates.known_year(case.last_start())
-    today = case.today or date.today()
-    if start is None or start > today.year - OPEN_TERM_YEARS:
+    if not tenure.open_too_long(case.last_start(), case.today or date.today()):
         return None
     # A minor wiki's quote in a language not read here is set aside beside a
     # home or English one: it translates the article that is read.
     allowed = _allowed_langs(case)
-    sources = [s for s in case.sources if (s.get("lang") or "en") in CURRENT
+    sources = [s for s in case.sources if tenure.reads_current(s.get("lang"))
                or (s.get("lang") or "en") in allowed]
-    if not sources or any((s.get("lang") or "en") not in CURRENT for s in sources):
+    if not sources or not all(tenure.reads_current(s.get("lang")) for s in sources):
         return None
     position = case.position or {}
-    local = set(position.get("kind_qids") or ()) & LOCAL_KINDS
-    markers = INFOBOX if position.get("diplomatic") or local else CURRENT
-    if any(markers[s.get("lang") or "en"].search(NOT_NOW.sub("", s.get("quote") or ""))
-           for s in sources):
+    infobox_only = bool(position.get("diplomatic") or set(position.get("kind_qids") or ()) & LOCAL_KINDS)
+    if any(tenure.says_current(s.get("quote"), s.get("lang"), infobox_only) for s in sources):
         return None
     return _skip("open_unattested")
 

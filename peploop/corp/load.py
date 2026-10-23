@@ -33,7 +33,7 @@ from psycopg.types.json import Jsonb
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import positions, typegraph, wikipedia
+from peploop import classes, typegraph, wikipedia
 from peploop.corp import actors as actormod
 from peploop.corp import country as countries
 from peploop.corp import rules, wd
@@ -147,8 +147,8 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     # An office is an item whose own type is a position class. Whether some
     # ancestor of its type is one says nothing: the type tree takes "business"
     # up to "position", which made every railway and grid operator an office.
-    orgs = {q for q in lanes if positions.ORGANISATION in closure.get(q, set())
-            and not set(own[q]) & positions.POSITION_METACLASSES}
+    orgs = {q for q in lanes if classes.ORGANISATION in closure.get(q, set())
+            and not set(own[q]) & classes.POSITION_METACLASSES}
     excluded = EXCLUDED | spec.exclude
     for qid in lanes:
         if closure.get(qid, set()) & excluded:

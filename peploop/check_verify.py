@@ -25,7 +25,7 @@ from dataclasses import replace
 
 from pydantic import ValidationError
 
-from peploop import check_neutral, check_policy, policy, propose, reconcile, verify
+from peploop import check_neutral, check_policy, dates, policy, reconcile, verify
 
 PERSON = "Q0000009"
 OFFICE = "Q0000001"
@@ -48,7 +48,7 @@ POSITION = verify.Edit(
     value={"entity-type": "item", "id": OFFICE},
     value_label="Minister of Justice",
     value_description="head of the justice ministry",
-    qualifiers={"P580": propose.time_value("2018"), "P582": propose.time_value("2022-05-13")},
+    qualifiers={"P580": dates.time_value("2018"), "P582": dates.time_value("2022-05-13")},
     office=OFFICE_LINE,
     mention={"title": "ministrica za pravosodje", "jurisdiction": "Republika",
              "start": "2018", "end": "2022-05-13", "lang": "aa"},
@@ -95,7 +95,7 @@ BIRTH = verify.Edit(
     person_qid=PERSON,
     person_label="Ana Example",
     property="P569",
-    value=propose.time_value("1970-01-02"),
+    value=dates.time_value("1970-01-02"),
     existing=["1970 (year)"],
     quotes=[("aa", "rojena 2. januarja 1970")],
     article_lang="aa",
@@ -171,7 +171,7 @@ def main() -> int:
            "a career's note is one line after the qualifiers, and nothing else moves")
 
     print("the key:")
-    quals = {"P580": propose.time_value("2018"), "_sources": [{"lang": "aa", "rev": 7}]}
+    quals = {"P580": dates.time_value("2018"), "_sources": [{"lang": "aa", "rev": 7}]}
     key = verify.content_key(PERSON, "P39", POSITION.value, quals)
     expect(key == verify.content_key(PERSON, "P39", POSITION.value,
                                      {**quals, "_reason": "x", "_basis": "y"}),
@@ -180,7 +180,7 @@ def main() -> int:
                                      {**quals, "_sources": [{"lang": "aa", "rev": 8}]}),
            "a re-fetched article is a new question")
     expect(key != verify.content_key(PERSON, "P39", POSITION.value,
-                                     {**quals, "P580": propose.time_value("2019")}),
+                                     {**quals, "P580": dates.time_value("2019")}),
            "a different tenure is a different question")
     expect(key != verify.content_key("Q0000010", "P39", POSITION.value, quals),
            "and so is the same edit on another person")

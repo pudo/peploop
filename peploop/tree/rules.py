@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from peploop import evidence
+from peploop.classes import TYPE_OF_POSITION
 from peploop.tree import country as countries
 from peploop.tree import signals, wd
 from peploop.tree.load import has, values
@@ -125,7 +126,6 @@ def _strong_p31(slot: Slot) -> bool:
     return bool(STRONG_P31 & set(slot.channels))
 
 
-TYPE_OF_POSITION = "Q136649946"
 
 
 def _is_class(slot: Slot) -> bool:

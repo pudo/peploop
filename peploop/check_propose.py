@@ -22,7 +22,7 @@ import sys
 from datetime import date
 from typing import Any
 
-from peploop import propose
+from peploop import dates, propose
 
 # A stand-in office, a second one to hold the concurrency case, and two
 # stand-in articles. Nothing here names a real country: `check_neutral` is
@@ -34,7 +34,7 @@ OTHER = "Q0000002"
 
 def day(text: str) -> dict[str, Any]:
     """A day-precision time value, as the extraction's own parser writes one."""
-    value = propose.time_value(text)
+    value = dates.time_value(text)
     assert value is not None, text
     return value
 
@@ -48,7 +48,7 @@ def coarse(text: str, precision: int) -> dict[str, Any]:
     return {
         "time": f"+{(text + '-00-00')[:10]}T00:00:00Z",
         "precision": precision,
-        "calendarmodel": propose.CALENDAR,
+        "calendarmodel": dates.CALENDAR,
         "timezone": 0,
         "before": 0,
         "after": 0,

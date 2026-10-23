@@ -15,21 +15,9 @@ import re
 import sys
 from typing import Any
 
-from peploop import llm
+from peploop import llm, tenure
 from peploop.corp import decide, wd
 
-#: An end read from an event rather than from the tenure ending, by language (stems).
-EVENTS = re.compile(
-    r"arrest|charged|indict|investigat|suspend|detain|"
-    r"verhaftet|festgenommen|ermittl|angeklagt|suspendiert|"
-    r"arrêté|interpellé|mis en examen|enquête|suspendu|"
-    r"detenid|arrestad|investigaci|imputad|arrestat|indagat|indagine|sospes|detid|investigaç|"
-    r"zatrzyman|aresztowan|śledztw|zarzut|zawieszon|zatčen|obviněn|vyšetřov|obvinen|zadržan|"
-    r"letartóztat|őrizetbe|nyomozás|vádat|felfüggeszt|reținut|anchet|inculpat|suspendat|"
-    r"арестуван|задържан|разследван|обвин|отстранен|συνελήφθη|δίωξη|έρευνα|"
-    r"uhićen|pritvoren|istrag|optužen|aretiran|preiskav|vahistati|kahtlustus|aizturēt|apcietināt|"
-    r"izmeklēšan|apsūdz|sulaikyt|suimt|ikiteisminį|pidätet|tutkinta|syyte|"
-    r"anhållen|häktad|anholdt|sigtet|gearresteerd|aangehouden|geschorst", re.IGNORECASE)
 #: A head named by an artistic or editorial title, in the languages run.
 ARTISTIC = re.compile(
     r"conduct|dirigent|chef d'orchestre|direttore musicale|artistic|artisti|künstler|kunstner|konstnär|"
@@ -43,7 +31,7 @@ def classes(answer: dict[str, Any]) -> set[str]:
     for seat in answer.get("seats", []):
         if not seat.get("start") and not seat.get("end"):
             out.add("undated")
-        if seat.get("end") and EVENTS.search(seat.get("quote") or ""):
+        if seat.get("end") and tenure.names_end_event(seat.get("quote")):
             out.add("event_end")
         if answer.get("kind") == "institution" and seat.get("role") == "head" and ARTISTIC.search(seat.get("quote") or ""):
             out.add("artistic_head")

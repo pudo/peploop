@@ -20,7 +20,7 @@ from typing import Any, Callable
 import click
 from pydantic import BaseModel
 
-from peploop import db, llm, mint, prompt, verify
+from peploop import db, llm, mint, prompt, verdict, verify
 from peploop import extract as extraction
 from peploop.tree import repair
 
@@ -152,7 +152,7 @@ def compare_extract(a: dict[str, Any], b: dict[str, Any]) -> dict[str, bool]:
 
 
 def compare_verify(a: dict[str, Any], b: dict[str, Any]) -> dict[str, bool]:
-    passes = lambda x: x["verdict"] == verify.SUPPORTED and x["confidence"] != "low"  # noqa: E731
+    passes = lambda x: verdict.accepts(x["verdict"], x["confidence"])  # noqa: E731
     return {"verdict": a["verdict"] == b["verdict"], "passes the gate": passes(a) == passes(b)}
 
 

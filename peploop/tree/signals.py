@@ -27,11 +27,11 @@ from typing import Any
 
 from peploop.eras import overlaps  # noqa: F401  (re-exported for peptree modules)
 from peploop.tree import country as countries
-from peploop.tree.load import POSITION_METAS, values
+from peploop.classes import CITY, POSITION_CORE
+from peploop.tree.load import values
 
 TOKEN = re.compile(r"\w+", re.U)
 PUBLIC_OFFICE, POSITION = "Q294414", "Q4164871"
-CITY = "Q515"
 
 
 SUBNATIONAL = {"region", "district", "local"}
@@ -110,7 +110,7 @@ def siblings(items: list[dict[str, Any]], places: Places, langs: tuple[str, ...]
         for s in shapes:
             out.members[s].add(it["qid"])
             out.p279[s].update(set(values(ent, "P279")))
-            out.meta[s].update(set(values(ent, "P31")) & POSITION_METAS)
+            out.meta[s].update(set(values(ent, "P31")) & POSITION_CORE)
             out.p17[s].update(set(values(ent, "P17")))
     return out
 

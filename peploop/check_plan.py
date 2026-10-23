@@ -15,7 +15,7 @@ import sys
 from typing import Any
 
 from peploop import plan as planner
-from peploop import prompt, propose, wikipedia
+from peploop import dates, prompt, wikipedia
 
 OFFICE = "Q0000001"
 OTHER = "Q0000002"
@@ -35,7 +35,7 @@ def day(text: str) -> dict[str, Any]:
     year, month, rest = text.split("-", 2)
     return {
         "time": f"+{year}-{month}-{rest}T00:00:00Z", "precision": 11, "timezone": 0,
-        "before": 0, "after": 0, "calendarmodel": propose.CALENDAR,
+        "before": 0, "after": 0, "calendarmodel": dates.CALENDAR,
     }
 
 
@@ -291,7 +291,7 @@ def main() -> int:
 
     print("a date sharpened in place:")
     year = {"time": "+1950-00-00T00:00:00Z", "precision": 9, "timezone": 0,
-            "before": 0, "after": 0, "calendarmodel": propose.CALENDAR}
+            "before": 0, "after": 0, "calendarmodel": dates.CALENDAR}
     imported = {"snaks": {"P143": [{"snaktype": "value", "property": "P143",
                                     "datavalue": {"type": "wikibase-entityid", "value": {"id": "Q328"}}}]}}
 
@@ -308,7 +308,7 @@ def main() -> int:
 
     print("a value the item contradicts:")
     birth = {"time": "+1950-03-01T00:00:00Z", "precision": 11, "timezone": 0,
-             "before": 0, "after": 0, "calendarmodel": propose.CALENDAR}
+             "before": 0, "after": 0, "calendarmodel": dates.CALENDAR}
     live = {"lastrevid": 1, "claims": {"P569": [
         {"rank": "normal", "mainsnak": {"snaktype": "value", "property": "P569",
          "datavalue": {"type": "time", "value": birth}}}]}}

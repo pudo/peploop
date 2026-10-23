@@ -5,7 +5,6 @@ Everything that varies per person — the Wikidata state we already hold and the
 article texts — goes into the user message, after the cached prefix.
 """
 
-import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path

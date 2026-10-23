@@ -40,6 +40,7 @@ from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
 from peploop import db, llm, prompt, propose, reconcile, wikidata
+from peploop.verdict import CONFIDENCES, SUPPORTED, VERDICTS
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "verify.md"
 
@@ -58,18 +59,6 @@ RENDER_VERSION = 1
 #: The same cap the reconciler uses: an article under it goes in whole.
 ARTICLE_CAP = reconcile.ARTICLE_CAP
 
-SUPPORTED = "supported"
-#: The closed verdict set, in the order the prompt introduces them.
-VERDICTS = (
-    SUPPORTED,
-    "unsupported",
-    "contradicted",
-    "imprecise",
-    "already-recorded",
-    "wrong-item",
-    "wrong-person",
-)
-CONFIDENCES = ("high", "medium", "low")
 
 
 

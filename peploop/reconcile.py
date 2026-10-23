@@ -36,6 +36,7 @@ from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
 
 from peploop import db, llm, positions, titles, wikidata
+from peploop.verdict import Confidence
 
 _log = logging.getLogger(__name__)
 
@@ -240,7 +241,7 @@ class OfficeVerdict(Strict):
 
     qid: Optional[str]
     kind: Literal[KINDS]
-    confidence: Literal["high", "medium", "low"]
+    confidence: Confidence
     evidence: str
     reason: str
 

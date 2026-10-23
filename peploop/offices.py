@@ -21,7 +21,9 @@ from datetime import date
 from typing import Any, Callable, Collection, Iterable, Sequence
 
 from peploop import dates, db, http, plan, positions, typegraph, wikidata
-from peploop.positions import NOT_AN_OFFICE, POSITION_METACLASSES, fold, tokens
+from peploop.classes import NOT_AN_OFFICE, ORGANISATION, POSITION_METACLASSES
+from peploop.positions import tokens
+from peploop.text import fold, squash
 
 #: What every office reaches through its `P279` chain.
 POSITION = "Q4164871"
@@ -460,10 +462,6 @@ def without_state(text: str, state_names: Iterable[str]) -> str:
     for name in sorted({_phrase(n) for n in state_names if _phrase(n).strip()}, key=len, reverse=True):
         out = out.replace(name, " ")
     return out
-
-
-#: What a body reaches through `P31`/`P279`: organization.
-ORGANISATION = "Q43229"
 
 
 def body_hit(found: Iterable[Found], bodies: Collection[str] = ()) -> str | None:
@@ -946,7 +944,7 @@ ARTICLE = re.compile(r"^(?:(?:the|an|a|el|la|los|las|lo|le|les|il|gli|der|die|da
 
 
 def _norm(text: str) -> str:
-    return " ".join(fold(text).split())
+    return squash(fold(text))
 
 
 def _variants(text: str) -> set[str]:

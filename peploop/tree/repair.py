@@ -15,10 +15,12 @@ import requests
 from pydantic import BaseModel, ConfigDict
 
 from peploop import eras, llm, memo, typegraph, wikipedia
+from peploop.classes import LIST_ARTICLES, POSITION_CORE, TYPE_OF_POSITION
 from peploop.tree import country as countries
 from peploop.tree import gaps as gapmod
 from peploop.tree import signals, wd
-from peploop.tree.load import GENERIC_META, LIST_ARTICLES, POSITION_METAS, all_labels, items as load_items, place_refs, values
+from peploop.verdict import Confidence
+from peploop.tree.load import all_labels, items as load_items, place_refs, values
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "repair.md"
 MODEL = os.environ.get("PEPTREE_MODEL", "claude-opus-5-5")
@@ -43,7 +45,7 @@ class Strict(BaseModel):
 
 class Slot(Strict):
     choice: Optional[int]
-    confidence: Literal["high", "medium", "low"]
+    confidence: Confidence
     source: Literal["label", "description", "statements", "holders", "article", "none"]
     #: The language code of the article quoted, as its heading shows it; null unless source is "article".
     article: Optional[str]
@@ -107,11 +109,11 @@ class Run:
         self.cat_classes = {c["key"]: set(c["class_qids"]) for c in self.ctx.cats}
         all_classes = [q for c in self.ctx.cats for q in c["class_qids"]]
         pool = BASE_P279 + all_classes + self.country_p279 + ([self.sender_class] if self.sender_class else [])
-        self.info = wd.labels_of(pool + META_CANDIDATES + [GENERIC_META] + sorted(self.country.home))
+        self.info = wd.labels_of(pool + META_CANDIDATES + [TYPE_OF_POSITION] + sorted(self.country.home))
         self.value_types = typegraph.of_classes(pool)
         # Classes that must never be offered: lists and the metaclasses.
         self.p279_pool = [q for q in dict.fromkeys(pool)
-                          if q not in POSITION_METAS and q not in LIST_ARTICLES and q != GENERIC_META]
+                          if q not in POSITION_CORE and q not in LIST_ARTICLES and q != TYPE_OF_POSITION]
         bodies = sorted({b for it in self.items for b in values(it["entity"], "P361") + values(it["entity"], "P2389")})
         found = wd.fetch_items(bodies, props="claims")
         self.bodies = {b: {p: values(e, p) for p in ("P17", "P1001")} for b, e in found.items()}

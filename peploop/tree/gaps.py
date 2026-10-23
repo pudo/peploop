@@ -18,7 +18,8 @@ import yaml
 from peploop import memo, typegraph
 from peploop.tree import country as countries
 from peploop.tree import wd
-from peploop.tree.load import POSITION_METAS, has, values
+from peploop.classes import POSITION_CORE
+from peploop.tree.load import has, values
 
 CATEGORIES_PATH = Path(__file__).resolve().parent / "categories.yml"
 
@@ -101,7 +102,7 @@ def inverted(entity: dict[str, Any]) -> bool:
     on every item, so such an item gets no `P31`/`P279` gap. Undoing the swap
     removes statements: a job for a bot operator, not this repair.
     """
-    return bool(set(values(entity, "P279")) & POSITION_METAS) and not set(values(entity, "P31")) & POSITION_METAS
+    return bool(set(values(entity, "P279")) & POSITION_CORE) and not set(values(entity, "P31")) & POSITION_CORE
 
 
 def clean_reach(seeds: Iterable[str], stop: set[str]) -> set[str]:
@@ -212,7 +213,7 @@ class Context:
                 if cat["class_qids"] and not reaches(cat, types, seeds):
                     out.append(("P279", "classfix", key))
                     break
-        if not set(values(ent, "P31")) & POSITION_METAS:
+        if not set(values(ent, "P31")) & POSITION_CORE:
             out.append(("P31", "missing", None))
         return out
 
@@ -245,7 +246,7 @@ def p17_in_p1001(c: countries.Country, ent: dict[str, Any]) -> bool:
 
 def well_formed(item: dict[str, Any], ent: dict[str, Any], c: countries.Country) -> bool:
     return ((has(ent, "P17") or not wants_p17(c, item) or p17_in_p1001(c, ent)) and (has(ent, "P1001") or item["kind"] == "ambassador") and has(ent, "P279")
-            and bool(set(values(ent, "P31")) & POSITION_METAS) and item["holders"] > 0)
+            and bool(set(values(ent, "P31")) & POSITION_CORE) and item["holders"] > 0)
 
 
 def matrix(ctx: Context, added: dict[str, dict[str, list[str]]] | None = None) -> dict[str, dict[str, Any]]:

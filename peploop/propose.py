@@ -11,7 +11,6 @@ still wait for a reconciler of their own.
 """
 
 import json
-import re
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date
@@ -22,7 +21,7 @@ from psycopg.types.json import Jsonb
 from rigour.territories import get_territory_by_qid, lookup_territory
 
 from peploop import db, scope, wikidata
-from peploop.dates import CALENDAR, at_precision, group_dates, time_value
+from peploop.dates import at_precision, group_dates, time_value
 
 GENDER_QIDS = {"male": "Q6581097", "female": "Q6581072"}
 # Worst first: several dates already on the item make a proposed one

@@ -387,6 +387,16 @@ interim policy calls were logged for the user before one re-run.
   cut that to 153, all 男 or 女. The user's call: a one-character quote is a
   failed answer, except for a sex. With the floor lifted only for gender quotes, peploop loses one quote:
   a 男 given for something else.
+- **One tenure judgment.** pepcorp compared a seat's end and start as raw
+  strings, so an end known only to the year read as before a start in that
+  year. Of 9,957 bodies' newest answers, 3 seats were refused as `bad_dates`
+  for this (2014-03-26 to 2014). The shared `tenure.bad_dates` compares at
+  the precision both dates share. mint's infobox test now drops
+  `NOT_NOW`'s "beating incumbent" phrases, as peploop's did.
+- **Two not-office sets.** peploop's `NOT_AN_OFFICE` (17 classes) and
+  peptree's filter (21) share 9. peptree drops humans and grades of orders;
+  peploop drops occupations, functions and bodies. Both are now in `classes`
+  under their own names. They have not been merged.
 - **One future test.** peploop compared a date's string from its first day;
   pepcorp compared at the value's precision. They differ only for a
   month-precision value carrying a day. None of 65k stored proposal dates

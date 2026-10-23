@@ -26,11 +26,12 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 import requests
-from normality import ascii_text
 from psycopg.types.json import Jsonb
 from rigour.territories import get_territory
 
 from peploop import db, typegraph, wikidata
+from peploop.classes import NOT_AN_OFFICE, ORGANISATION, POSITION_METACLASSES, SENDER_CLASS
+from peploop.text import fold
 
 #: What discovery found an item. An item the class descent reached and nobody
 #: holds is a different kind of candidate from one only its holders reveal,
@@ -117,12 +118,6 @@ QUERIES = {
     "descent": DESCENT_QUERY,
     "usage": USAGE_QUERY,
 }
-
-#: "ambassador of a country": the class layer with one subclass per *sending*
-#: state ("ambassador of <state>"), whose own `P17` is that sender in 205 of
-#: 207 items. Its sibling layer, "ambassador to a country", has one subclass
-#: per receiver and says nothing about who sends.
-SENDER_CLASS = "Q29645880"
 
 #: Outbound lane, first channel: the posts filed under the state's own
 #: "ambassador of <state>" class. A mission abroad is scoped `P17` = the
@@ -325,46 +320,6 @@ def _discover_paged(
         offset += page
 
 
-#: Metaclasses that say "this is an office" and nothing about which kind.
-#: `Q4164871` is not the modal one: of the items that are the target of some
-#: `P39`, 17,788 are typed `Q294414` public office, and among ministers that
-#: is 85% of them. A check demanding a literal `P31 = Q4164871` misses them.
-POSITION_METACLASSES = {
-    "Q4164871",  # position
-    "Q294414",  # public office
-    "Q17279032",  # elective office
-    "Q114962596",  # historical position
-    "Q83856136",  # legal position
-    "Q136649946",  # type of position
-    "Q355567",  # noble title
-    "Q42045197",  # position of authority
-}
-
-#: Wikidata's own answer to what a position is not, read off `Q4164871`'s
-#: `P1889 different from`, plus the rank, honour and body classes measurement
-#: turned up. Tested against *declared* types only: within six hops
-#: `Q28640` profession reaches `Q4164871`, so a closure test reads a naval
-#: rank and a wood-carving trade as offices.
-NOT_AN_OFFICE = {
-    "Q480319",  # title of authority
-    "Q12737077",  # occupation
-    "Q28640",  # profession
-    "Q11348",  # function
-    "Q192581",  # job activity
-    "Q4189293",  # rank
-    "Q56019",  # military rank
-    "Q4226220",  # naval officer rank
-    "Q43229",  # organization
-    "Q495430",  # general staff — a body, not a seat in one
-    "Q6813432",  # military staff — also a body
-    "Q3320743",  # title of honor
-    "Q13424289",  # honorary title
-    "Q618779",  # award
-    "Q4192699",  # badge of distinction
-    "Q486983",  # academic rank
-    "Q4121104",  # sports title
-}
-
 GENERIC_PATH = Path(__file__).resolve().parent / "generic_positions.csv"
 
 
@@ -527,15 +482,6 @@ PREFIX = 6
 #: string is a syntax error rather than a miss, and the query text comes from
 #: an article by way of a model.
 LEXEME = re.compile(r"[a-z0-9]+")
-
-
-def fold(text: str) -> str:
-    """Casefolded ASCII, so a diacritic cannot break a comparison.
-
-    Transliterates rather than strips: the plain non-ASCII drop this replaced
-    turned two spellings of the same city into two different words.
-    """
-    return (ascii_text(text) or "").casefold()
 
 
 def tokens(text: str) -> set[str]:
@@ -1384,10 +1330,6 @@ def kind_use(state_qid: str) -> Counter[str]:
         (state_qid, state_qid),
     )
     return Counter(dict(rows))
-
-
-#: What an organisation reaches through `P31`/`P279`.
-ORGANISATION = "Q43229"
 
 
 def organisations(qids: Iterable[str]) -> set[str]:

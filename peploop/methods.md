@@ -69,8 +69,11 @@ lanes". No code reads them.
     year precision.
   - `after_today` compares at the value's own precision; `group_dates`
     merges two articles' readings of one date.
-- `text`: normalises text before a comparison. `squash` collapses
-  whitespace and control characters.
+- `text`: normalises text before a comparison.
+  - `squash` collapses whitespace and control characters.
+  - `fold` transliterates to casefolded ASCII, for names across languages.
+  - `strip_marks` drops diacritics but keeps the script, for words within
+    one country's languages.
 - `evidence`: the quote gate.
   - `quoted` and `missing` forgive whitespace, case, JSON escapes and
     wrapping marks, and nothing else.
@@ -78,6 +81,21 @@ lanes". No code reads them.
     in a logographic or syllabic script (rigour's `is_dense_script`). Only a
     sex may be quoted as one character (男), so peploop's extraction passes
     `min_length=1` for its gender quotes alone.
+- `tenure`: whether a holding's dates make it worth writing.
+  - `bad_dates`, `ended_long_ago` (`MAX_ENDED_YEARS`, 20) and
+    `open_too_long` (`OPEN_TERM_YEARS`, 4).
+  - `says_current` reads a quote's present-tense or infobox markers per
+    language (`CURRENT`, `INFOBOX`, `NOT_NOW`).
+  - `names_end_event` catches an end dated by an arrest or an investigation.
+  - The lane decides how it knows a holding is current: peploop from its
+    quotes, pepcorp from the model's flag.
+- `propose`: one person's spells of an office: `overlaps`, `close_at_next`,
+  `tenure_key`.
+- `classes`: the QIDs that say what sort of thing an item is: position
+  metaclasses, not-an-office classes, organisation, territory, the sender
+  class of ambassadors.
+- `verdict`: what a check of one claim answers (`VERDICTS`, `Confidence`),
+  and the gate `accepts`: supported, not at low confidence.
 - `eras`: spans of states, offices and values (`span_of`, `state_start`,
   `overlaps`).
 - `typegraph`: subclass closures. Use it for every "is this a kind of X" test.
@@ -93,3 +111,9 @@ lanes". No code reads them.
   2026-10-22). peploop leaves acting tenures out.
 - **Corroboration.** peptree applies a value only when a channel besides the
   model agrees. peploop and pepcorp need a quote and a narrow check.
+- **What is not an office.** peploop's ranking reads `NOT_AN_OFFICE` and
+  peptree's load filter `HONOURS_AND_RANKS`. They share 9 classes. Merging
+  them changes both lanes' filters and waits for a measurement.
+- **pepcorp's checks** answer `supports: bool` and do not yet use
+  `verdict`. Asking for its words changes their prompts, which re-keys every
+  stored answer, so they move with the next paid re-run.
