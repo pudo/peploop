@@ -382,6 +382,7 @@ that still applies:
 | Zambia | 10-16 – 10-17 | 282 statements (261 rows applied: 131 P39), 4 taken back before the send; 6 offices minted; the Supreme Court's country corrected | QS3 60336 60350, 60334 (mint), 60418 (court) |
 | Angola | 10-16 – 10-17 | 110 statements (100 rows applied: 55 P39), 0 taken back; 4 offices minted | QS3 60342, 60341 (mint) |
 | Namibia | 10-16 – 10-17 | 353 statements (330 rows applied: 204 P39), 3 taken back before the send; 15 offices minted | QS3 60349 60351, 60347 (mint) |
+| China (zh sample) | 10-23 | 121 edits for 117 rows on 52 people, a review sample for the Mass-editing proposal; 10 offices minted. One row moved out when its person was re-proposed by the mint's feed, four left as termed | QS3 61360, 61352 (mint; 135 never reached QS3) |
 
 Findings from runs that became rules: `tenure_ended` and the current-era seed
 (Colombia), `future_date` and `termed` (Colombia's audit), `recorded_elsewhere`
