@@ -401,6 +401,31 @@ interim policy calls were logged for the user before one re-run.
   pepcorp compared at the value's precision. They differ only for a
   month-precision value carrying a day. None of 65k stored proposal dates
   is one.
+- **The AMLR unit set (2026-10-24).** Each country's governed levels were
+  measured by the direct `P31` classes of its ≥50k items, not by a walk
+  under municipality (`Q15284`), which missed ee, lv, lt's city
+  municipalities and the Irish councils. EU-27 total: 1,239 municipal,
+  1,025 grouping, 18 metro units (de 195 cities, fr 134, es 153, it 138).
+  - ee: Tallinn's and Narva's municipality items carry no population, so
+    their city items stand in; Tartu's city item is excluded beside Tartu
+    City, which carries one.
+  - ie: the councils are the county (`Q179872`) and city
+    (`Q13455645`) items, read as municipal: there is no lower tier.
+    North and South Tipperary drop out by population; Limerick city,
+    merged in 2014, is excluded.
+  - Grouping takes second-level governed authorities beside groupings
+    proper: Landkreise, powiats, EPCIs and départements, Italian and
+    Spanish provinces (less Asturias and the two Canary provinces, which
+    have no diputación), Catalan and Aragonese comarcas, Belgian provinces.
+    Ungoverned ones are left out: most Spanish comarcas, French cantons and
+    arrondissements, Austrian and Czech districts, Greek regional units.
+  - Only 5 of France's 22 métropoles are typed `métropole`; the rest (Grand
+    Paris, Lille) count as groupings. Portugal's metropolitan areas and
+    CIMs, the Barcelona AMB and the Canary cabildos have no populated item
+    of a governed class.
+  - Sub-municipal districts with elected heads (Budapest, Prague, Berlin,
+    Warsaw, Vienna, Bucharest's sectors, Paris arrondissements) are left
+    out.
 
 ## The campaign toolkit (`old/`)
 

@@ -1,0 +1,1115 @@
+# Spain: governed units and listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+# Units: classes measured on Wikidata (2026-10-24); see peploop/amlr.py.
+units:
+  municipal:
+  - {qid: Q2074737, name: municipality of Spain}
+  - {qid: Q33146843, name: municipality of Catalonia}
+  - {qid: Q123754112, name: municipality of the Valencian Community}
+  - {qid: Q2276925, name: municipality of Galicia}
+  - {qid: Q5055981, name: council of Asturias}
+  - {qid: Q123095923, name: municipality of Cantabria}
+  grouping:
+  - {qid: Q162620, name: province of Spain}
+  - {qid: Q937876, name: comarca of Catalonia}
+  - {qid: Q61763799, name: comarca of Aragon}
+  metro: []
+  exclude:
+  - {qid: Q24004403, name: 'Province of Asturias (one-province community, no diputación)'}
+  - {qid: Q95080, name: Las Palmas (province governed by its island cabildos)}
+  - {qid: Q99976, name: Santa Cruz de Tenerife Province (province governed by its island cabildos)}
+functions:
+- row: 2610
+  position: The chair
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2611
+  position: The secretary-general and deputy secretaries
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2612
+  position: The members of national or federal commissions, executive committees or similar managing bodies
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2613
+  position: The treasurer and deputy treasurer
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2614
+  position: The chair, secretary-general and deputy secretaries-general of the executive bodies of regional branches.
+  status: To split
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2615
+  position: The secretary-general, deputy secretaries and members of a national or federal executive committee or
+    a similar managing body
+  status: To split
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2616
+  position: The secretary-general of a national confederation or association of trades unions
+  status: Position prefix for territory
+  category: ''
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2617
+  position: The treasurer and any deputy treasurers or officials with similar duties
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 2618
+  position: The chair, deputy chair and secretary-general
+  status: To split
+  category: ''
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2619
+  position: The members of the executive committee or council or a similar managing body;
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2620
+  position: The treasurer or any other official with similar duties;
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 2621
+  position: The chair of a regional federation of employers’ associations.
+  status: Position prefix for territory
+  category: ''
+  amlr: viii_local
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2622
+  position: The head of state
+  status: Generic category
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2623
+  position: The prime minister, deputy prime ministers and ministers
+  status: To split
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2624
+  position: Members of the upper (Senado) and lower (Congreso) houses of parliament
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2625
+  position: Secretaries of state, secretaries-general, undersecretaries and equivalent positions
+  status: To split
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2626
+  position: The heads of the prime minister’s, deputy prime ministers’ and ministers’ private offices
+  status: To split
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2627
+  position: Members of the prime minister’s, deputy prime ministers’ and ministers’ private offices of at least
+    the rank of director-general
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2628
+  position: Technical secretaries-general and directors-general from the central State authorities (Administración
+    General del Estado)
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2629
+  position: The director-general in charge of the National Police Force
+  local: Policía Nacional
+  lang: SPA
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: body
+  checked: false
+  expansion: []
+- row: 2630
+  position: The director-general in charge of the Civil Guard, and Civil Guard lieutenants general and divisional
+    generals
+  local: Guardia Civil
+  lang: SPA
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: body
+  checked: false
+  expansion: []
+- row: 2631
+  position: The holder of any other public sector position at central State level appointed by the Cabinet (Consejo
+    de Ministros), regardless of title, with the exception of subdirectors-general and equivalent
+  status: Not obviously unpackable
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 2632
+  position: The delegates representing the national government in the Autonomous Communities and Autonomous Cities
+    (Ceuta and Melilla)
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: viii_local
+  kind: position
+  checked: false
+  expansion: []
+- row: 2633
+  position: The delegates representing the national government in public law bodies
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2634
+  position: Ambassadors, the heads of permanent diplomatic missions abroad and chargés d’affaires
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2635
+  position: The ambassadors and heads of permanent representations to international organisations
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2636
+  position: The chief of the defence staff
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2637
+  position: The chief of the joint defence staff
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2638
+  position: The chiefs of staff of the army
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2639
+  position: Air force and navy
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2640
+  position: Lieutenants general
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 2641
+  position: Admirals
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 2642
+  position: Divisional generals and vice-admirals of the Spanish armed forces
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2643
+  position: Constitutional Court (Tribunal Constitucional) judges, including the presiding judge and deputy presiding
+    judge
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2644
+  position: Supreme Court (Tribunal Supremo) judges, including the presiding judge and division presiding judges
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2645
+  position: The members, chair and secretary-general of the General Council of the Judiciary (Consejo General del
+    Poder Judicial) and the head of its technical office
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2646
+  position: The presiding judges of the Superior Courts of Justice (Tribunales Superiores de Justicia) of the Autonomous
+    Communities
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2647
+  position: The division presiding judges of the National High Court (Audiencia Nacional)
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2648
+  position: The head of the Public Prosecution Service (Fiscalía General del Estado)
+  status: Generic category
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2649
+  position: The Supreme Court deputy prosecutor
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2650
+  position: All individuals with the status of court prosecutor, regardless of whether they are in charge of a body
+    and of whether they are assigned to the Supreme Court, Constitutional Court or any other body within the Public
+    Prosecution Service; court prosecutor status is always held by
+  status: Not obviously unpackable
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 2651
+  position: The head of the Tax Inspectorate Prosecution Service
+  status: Generic category
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2652
+  position: The head of the Public Prosecution Service’s technical secretariat
+  status: Generic category
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2653
+  position: The head of the Public Prosecution Service’s support unit
+  status: Generic category
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2654
+  position: The head of the Constitutional Court Prosecution Service
+  status: Generic category
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2655
+  position: The head of the Court of Auditors Prosecution Service;
+  status: Generic category
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2656
+  position: Supreme Court division prosecutors (including military court prosecutors)
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2657
+  position: The head of the National High Court Prosecution Service
+  status: Generic category
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2658
+  position: The head of the Special Drugs Prosecution Service
+  status: Generic category
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2659
+  position: The head of the Special Corruption and Organised Crime Prosecution Service
+  status: Generic category
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2660
+  position: The computer crime division prosecutor
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2661
+  position: The division prosecutor for violence against women
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2662
+  position: The occupational accident division prosecutor
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2663
+  position: The environmental and urban planning division prosecutor;
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2664
+  position: The road safety division prosecutor
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2665
+  position: The immigration division prosecutor
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2666
+  position: The juvenile division prosecutor
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2667
+  position: The division prosecutor for judicial cooperation in criminal matters
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2668
+  position: The chief prosecutors of the Superior Courts of Justice of the Autonomous Communities
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2669
+  position: 'The chairs and directors '
+  organisation: State Agencies (Agencias Estatales)
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2670
+  position: The chairs and directors
+  organisation: Port Authorities (Autoridades Portuarias)
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2671
+  position: 'The chair and secretary-general '
+  organisation: The Economic and Social Council (Consejo Económico y Social)
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2672
+  position: Court of Auditors (Tribunal de Cuentas) judges, presiding judge and secretary-general
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 2673
+  position: The governor, deputy governor, board members, directors-general and secretaries-general of the Bank
+    of Spain (Banco de España) and the staff representative on its governing board
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2674
+  position: The chair, deputy chair and board members
+  organisation: The National Markets and Competition Commission (Comisión Nacional de los Mercados y de la Competencia)
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 2675
+  position: The chair, The Transparency and Good Governance Board
+  local: Consejo de Transparencia y Buen Gobierno
+  lang: SPA
+  organisation: The Transparency and Good Governance Board (Consejo de Transparencia y Buen Gobierno)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2676
+  position: The chair, The Independent Authority for Fiscal Responsibility
+  local: Autoridad Independiente de Responsabilidad Fiscal
+  lang: SPA
+  organisation: The Independent Authority for Fiscal Responsibility (Autoridad Independiente de Responsabilidad
+    Fiscal)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2677
+  position: The chair and deputy chairs, directors-general, the department directors who report to the board and
+    to the chair’s office, the deputy director-general in charge of the legal service and the head of the studies
+    and statistics department at the National Securities Market Commission (Comisión Nacional del Mercado de Valores);
+  status: Not obviously unpackable
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 2678
+  position: The chair, deputy chair, board members and secretary-general
+  organisation: The Nuclear Safety Council (Consejo de Seguridad Nuclear)
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2679
+  position: The chair, director-general and department directors
+  organisation: The Spanish Tax Agency (Agencia Estatal de Administración Tributaria)
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2680
+  position: The chair, directors-general and members of the governing board – excluding the individual performing
+    secretarial duties unless also a board member in their own right – of the Official Credit Institute (Instituto
+    de Crédito Oficial)
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2681
+  position: The chair, directors and steering committee members of the Fund for Orderly Bank Restructuring (Fondo
+    de Reestructuración Ordenada Bancaria), not including individuals who attend steering committee meetings with
+    voice but no vote
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2682
+  position: The chair, directors, executive directors and secretaries-general or equivalent of any regulatory or
+    supervisory authority, as well as the members of the authority’s governing body
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2683
+  position: Any individual not listed above who is classed as a senior official under Article 1 of the Central State
+    Authority Senior Officials Act (Act 3/2015 of 30 March 2015)
+  status: Not obviously unpackable
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 2684
+  position: Autonomous Community presidents and vice-presidents
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2685
+  position: Members of Autonomous Community parliaments
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 2686
+  position: Regional ministers and deputy regional ministers from Autonomous Community governments
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2687
+  position: Directors-general from regional ministries and individuals of equivalent rank according to the organisational
+    structure applied within each Autonomous Community government;
+  status: Not obviously unpackable
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2688
+  position: Secretaries-general from regional ministries and equivalent positions
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2689
+  position: The directors in charge of Autonomous Community police forces
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2690
+  position: 'The senior management of public-sector businesses in which Autonomous Community authorities hold stakes:
+    the most senior officials (chairs, deputy chairs, directors-general, executive directors and equivalent positions)
+    of a public sector entity – whether an authority, foundation or business organisation – that is linked to or
+    dependent on the authorities of an Autonomous Community'
+  status: Not obviously unpackable
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2691
+  position: Board members and members of the oversight, management and supervision bodies of public-sector business
+    organisations, excluding the individuals performing secretarial duties in publicly owned entities unless also
+    board members in their own right
+  status: Not obviously unpackable
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2692
+  position: Any individual not listed above who is classified as a senior official under the applicable Autonomous
+    Community legislation regulating senior officials
+  status: Not obviously unpackable
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 2693
+  position: The mayors of provincial and Autonomous Community capitals and all other municipalities with a population
+    of over 50 000, as well as their municipal councillors and equivalent
+  status: Not obviously unpackable
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2694
+  position: The chairs, deputy chairs and members of governing boards, governing councils or steering committees
+    and equivalent positions in any of the organisations classed as local authorities under the Local Authorities
+    Act (Act 7/1985 of 2 April 1985) and any such authorities that an Autonomous Community may establish under that
+    Act, provided they have a population of over 50 000 (including provincial authorities (Diputaciones Provinciales),
+    metropolitan area authorities (Áreas Metropolitanas), Canary and Balearic Island authorities (Cabildos and Consejos
+    Insulares), associations of municipalities (Mancomunidades Municipales), district authorities (Comarcas), consortia
+    (Consorcios), etc.)
+  status: To split
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2695
+  position: The board members and individuals in similar administration, steering, management or supervision positions
+    in a public sector entity – whether an authority, foundation or business organisation – linked to or dependent
+    on the authorities of an Autonomous Community or a local authority with a population of over 50 000
+  status: Not obviously unpackable
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: vii_soe
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2696
+  position: Secretary-general, COMJIB Conference of Justice Ministers of Latin American Countries
+  local: Conferencia de Ministros de Justicia de los Países Iberoamericanos
+  lang: SPA
+  organisation: COMJIB Conference of Justice Ministers of Latin American Countries (Conferencia de Ministros de
+    Justicia de los Países Iberoamericanos)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2697
+  position: Secretary-general, OEI  Organisation of Latin American Countries for Education, Science and Culture
+  local: Organización de Estados Iberoamericanos para la Educación, la Ciencia y la Cultura
+  lang: SPA
+  organisation: OEI  Organisation of Latin American Countries for Education, Science and Culture (Organización de
+    Estados Iberoamericanos para la Educación, la Ciencia y la Cultura)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2698
+  position: Deputy secretary-general
+  organisation: OEI  Organisation of Latin American Countries for Education, Science and Culture (Organización de
+    Estados Iberoamericanos para la Educación, la Ciencia y la Cultura)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2699
+  position: Secretary-general, OIJ  International Youth Organisation
+  local: Organismo Internacional de Juventud
+  lang: SPA
+  organisation: OIJ  International Youth Organisation (Organismo Internacional de Juventud)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2700
+  position: Deputy secretary-general
+  organisation: OISS Latin American Social Security Organisation (Organización Iberoamericana de Seguridad Social)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2701
+  position: Secretary-general, SGI Ibero-American General Secretariat
+  local: Secretaría General iberoamericana
+  lang: SPA
+  organisation: SGI Ibero-American General Secretariat (Secretaría General iberoamericana)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2702
+  position: Undersecretary
+  organisation: SGI Ibero-American General Secretariat (Secretaría General iberoamericana)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2703
+  position: Secretary for Ibero-American Cooperation, SGI Ibero-American General Secretariat
+  local: Secretaría General iberoamericana
+  lang: SPA
+  organisation: SGI Ibero-American General Secretariat (Secretaría General iberoamericana)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2704
+  position: Secretary-general, SUPM  Union for the Mediterranean Secretariat
+  local: Secretaría de la Unión por el Mediterráneo
+  lang: SPA
+  organisation: SUPM  Union for the Mediterranean Secretariat (Secretaría de la Unión por el Mediterráneo)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2705
+  position: Deputy secretary-general for transport and urban development
+  organisation: SUPM  Union for the Mediterranean Secretariat (Secretaría de la Unión por el Mediterráneo)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2706
+  position: Deputy secretary-general for business development
+  organisation: SUPM  Union for the Mediterranean Secretariat (Secretaría de la Unión por el Mediterráneo)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2707
+  position: Deputy secretary-general for water and blue economy
+  organisation: SUPM  Union for the Mediterranean Secretariat (Secretaría de la Unión por el Mediterráneo)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2708
+  position: Deputy secretary-general for economy and climate
+  organisation: SUPM  Union for the Mediterranean Secretariat (Secretaría de la Unión por el Mediterráneo)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2709
+  position: Deputy secretary-general for social and civil affairs
+  organisation: SUPM  Union for the Mediterranean Secretariat (Secretaría de la Unión por el Mediterráneo)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2710
+  position: Chair, IOSCO International Organization of Securities Commissions
+  lang: SPA
+  organisation: IOSCO International Organization of Securities Commissions
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2711
+  position: Vice-chair 1, IOSCO International Organization of Securities Commissions
+  lang: SPA
+  organisation: IOSCO International Organization of Securities Commissions
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2712
+  position: Vice-chair 2, IOSCO International Organization of Securities Commissions
+  lang: SPA
+  organisation: IOSCO International Organization of Securities Commissions
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2713
+  position: Acting secretary-general, IOSCO International Organization of Securities Commissions
+  lang: SPA
+  organisation: IOSCO International Organization of Securities Commissions
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2714
+  position: Executive secretary, LDAC Long Distance Advisory Council
+  lang: SPA
+  organisation: LDAC Long Distance Advisory Council
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2715
+  position: Executive director, IOC International Olive Council
+  lang: SPA
+  organisation: IOC International Olive Council
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2716
+  position: Deputy executive director 1, IOC International Olive Council
+  lang: SPA
+  organisation: IOC International Olive Council
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2717
+  position: Deputy executive director 2, IOC International Olive Council
+  lang: SPA
+  organisation: IOC International Olive Council
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2718
+  position: Joint chair, UCCI  Union of Latin American Capital Cities
+  local: Unión de Ciudades Capitales Iberoamericanas
+  lang: SPA
+  organisation: UCCI  Union of Latin American Capital Cities (Unión de Ciudades Capitales Iberoamericanas)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2719
+  position: Secretary-general, UCCI  Union of Latin American Capital Cities
+  local: Unión de Ciudades Capitales Iberoamericanas
+  lang: SPA
+  organisation: UCCI  Union of Latin American Capital Cities (Unión de Ciudades Capitales Iberoamericanas)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2720
+  position: Director-general, UCCI  Union of Latin American Capital Cities
+  local: Unión de Ciudades Capitales Iberoamericanas
+  lang: SPA
+  organisation: UCCI  Union of Latin American Capital Cities (Unión de Ciudades Capitales Iberoamericanas)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2721
+  position: Executive secretary, ICCAT International Commission for the Conservation of Atlantic Tunas
+  lang: SPA
+  organisation: ICCAT International Commission for the Conservation of Atlantic Tunas
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2722
+  position: Assistant executive secretary
+  organisation: ICCAT International Commission for the Conservation of Atlantic Tunas
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2723
+  position: Secretary-general, ATEI Latin American Educational Television Association
+  local: Asociación Televisión Educativa Iberoamericana
+  lang: SPA
+  organisation: ATEI Latin American Educational Television Association (Asociación Televisión Educativa Iberoamericana)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2724
+  position: Secretary-general, WTO World Tourism Organization
+  lang: SPA
+  organisation: WTO World Tourism Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2725
+  position: Deputy secretary-general
+  organisation: WTO World Tourism Organization
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2726
+  position: Executive directors
+  organisation: WTO World Tourism Organization
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2727
+  position: Secretary-general, CYTED Latin American Space Science and Technology Programme
+  local: Programa Iberoamericano de Ciencia y Tecnología Del Espacio
+  lang: SPA
+  organisation: CYTED Latin American Space Science and Technology Programme (Programa Iberoamericano de Ciencia
+    y Tecnología Del Espacio)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []

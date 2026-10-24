@@ -16,6 +16,8 @@ later still where its configured predecessor chain says so (`state_start`).
 from collections.abc import Iterable
 from typing import Any
 
+from rigour.territories import get_territory
+
 from peploop import dates, memo, wikidata
 
 #: A predecessor dissolved before this year held no office a PEP list asks about.
@@ -124,3 +126,40 @@ def overlaps(a: Span | tuple[int | None, int | None], b: Span | tuple[int | None
 def lived_under(born: int | None, died: int | None, span: Span | None) -> bool:
     """Whether a person's life shared a year with the state's; unknown years never veto."""
     return span is None or overlaps((born, died), span)
+
+
+#: A predecessor state that ended before this date is no longer the country
+#: (the cutoff OpenSanctions' crawlers use for abolished positions).
+HISTORICAL_CUTOFF = "1990-12-26"
+#: Types that, with an end before the cutoff, make an alternate QID historical:
+#: historical country, former administrative territorial entity, historical
+#: unrecognized state.
+HISTORICAL_TYPES = frozenset({"Q3024240", "Q19953632", "Q99541706"})
+
+
+def historical(entity: dict[str, Any]) -> bool:
+    """Whether an item is a predecessor state that ended before the cutoff.
+
+    Only both together count: typed historical, and ended before the cutoff.
+    A live state wrongly dropped loses living PEPs; a dead one wrongly kept
+    only adds candidates the decision stage filters.
+    """
+    if not set(wikidata.claim_qids(entity, "P31", include_deprecated=False)) & HISTORICAL_TYPES:
+        return False
+    ends = [t for p in ("P576", "P582") for t, _ in wikidata.claim_time(entity, p, include_deprecated=False)]
+    return bool(ends) and max(ends).lstrip("+")[:10] < HISTORICAL_CUTOFF
+
+
+def current_qids(cc: str, extra: Iterable[str] = ()) -> list[str]:
+    """Every QID that names the country now, for matching an item's `P17` or owner to it.
+
+    rigour's main and alternate QIDs and any `extra` (a lane's own override),
+    less the alternates that are historical.
+    """
+    territory = get_territory(cc)
+    qids = sorted({*(territory.qids if territory else ()), *extra})
+    def read() -> list[str]:
+        ents = wikidata.fetch_items(qids, props="claims")
+        main = territory.qid if territory else None
+        return [q for q in qids if q == main or not historical(ents.get(q) or {})]
+    return memo.cached(f"current_qids:{cc}:{'|'.join(qids)}:{'|'.join(sorted(HISTORICAL_TYPES))}", read)

@@ -1,0 +1,432 @@
+# Portugal: governed units and listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+# Units: classes measured on Wikidata (2026-10-24); see peploop/amlr.py.
+units:
+  municipal:
+  - {qid: Q13217644, name: municipality of Portugal}
+  grouping:
+  - {qid: Q27995043, name: intermunicipal community of Portugal}
+  metro: []
+functions:
+- row: 1957
+  position: Head of State
+  status: Generic category
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1958
+  position: Head of Government
+  status: Generic category
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1959
+  position: Members of government, i.e. ministers, state secretaries and deputy state secretaries or equivalent
+  status: To split
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1960
+  position: Deputies and other members of parliamentary chambers
+  status: To split
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 1961
+  position: Members of the Constitutional Court
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1962
+  position: Members of the Supreme Court of Justice
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1963
+  position: Members of the Court of Auditors
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 1964
+  position: Members of Supreme Courts
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1965
+  position: Members of Constitutional Courts
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1966
+  position: Members of Courts of Auditors
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 1967
+  position: Members of other high-level judicial bodies of other States
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1968
+  position: Members of international organisations
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1969
+  position: Representative of the Republic of the Autonomous Region of the Azores
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1970
+  position: Representative of the Republic of the Autonomous Region of Madeira
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1971
+  position: Members of the governing bodies of the Autonomous Region of the Azores
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1972
+  position: Members of the governing bodies of the Autonomous Region of Madeira
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1973
+  position: Ombudsman
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1974
+  position: Members of the Council of State
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1975
+  position: Members of the National Data Protection Commission
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1976
+  position: Members of the High Judicial Council
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1977
+  position: Members of the High Council for Administrative and Tax Courts
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1978
+  position: Members of the Public Prosecutor’s Office
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1979
+  position: Members of the High Council of the Public Prosecutor’s Office
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1980
+  position: Members of the Supreme Council for National Defence
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: body
+  checked: false
+  expansion: []
+- row: 1981
+  position: Members of the Economic and Social Council
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: body
+  checked: false
+  expansion: []
+- row: 1982
+  position: Members of the Regulatory Authority for the Media
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: body
+  checked: false
+  expansion: []
+- row: 1983
+  position: Heads of diplomatic missions
+  status: Generic category
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1984
+  position: Heads of consulates
+  status: Generic category
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1985
+  position: 'General Officers '
+  organisation: The Armed Forces (Air Force, Navy and Army) in active service
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1986
+  position: General Officers
+  organisation: the National Republican Guard (GNR) in active service
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1987
+  position: Chief-Superintendents
+  organisation: the Public Security Police (PSP) in active service
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1988
+  position: Presidents of municipal assemblies
+  status: Position prefix for territory
+  category: ''
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1989
+  position: Municipal councillors with executive functions
+  status: Position prefix for territory
+  category: ''
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1990
+  position: Members of management bodies of central banks
+  status: Position prefix for territory
+  category: ''
+  amlr: v_audit_cb
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1991
+  position: Members of supervisory bodies of central banks
+  status: Position prefix for territory
+  category: ''
+  amlr: v_audit_cb
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1992
+  position: Members of management bodies of public institutes
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1993
+  position: Members of supervisory bodies of public institutes
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1994
+  position: Members of management bodies of public foundations
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1995
+  position: Members of supervisory bodies of public foundations
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1996
+  position: Members of the governing bodies of public establishments
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1997
+  position: Members of management bodies of independent administrative entities, irrespective of how they are designated
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1998
+  position: Members of supervisory bodies of independent administrative entities, irrespective of how they are designated
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1999
+  position: Members of management bodies of entities belonging to the State public business sector
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2000
+  position: Members of supervisory bodies of entities belonging to the State public business sector
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2001
+  position: Members of management bodies of entities belonging to the regional public business sector
+  status: Position prefix for territory
+  category: ''
+  amlr: vii_soe
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2002
+  position: Members of supervisory bodies of entities belonging to the regional public business sector
+  status: Position prefix for territory
+  category: ''
+  amlr: vii_soe
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2003
+  position: Members of management bodies of entities belonging to the local public business sector
+  status: Position prefix for territory
+  category: ''
+  amlr: vii_soe
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2004
+  position: Members of supervisory bodies of entities belonging to the local public business sector
+  status: Position prefix for territory
+  category: ''
+  amlr: vii_soe
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2005
+  position: Members of the governing bodies of political parties at national level
+  status: Position prefix for territory
+  category: ''
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2006
+  position: Members of the governing bodies of political parties at regional level
+  status: Position prefix for territory
+  category: ''
+  amlr: iii_party
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2007
+  position: Directors, deputy directors and members of the management board or equivalent function in an international
+    organisation
+  status: To split
+  category: ''
+  amlr: ix_io
+  kind: unusable
+  checked: false
+  expansion: []

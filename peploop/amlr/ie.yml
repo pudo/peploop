@@ -1,0 +1,113 @@
+# Ireland: governed units and listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+# Units: classes measured on Wikidata (2026-10-24); see peploop/amlr.py.
+units:
+  municipal:
+  - {qid: Q179872, name: county of Ireland}
+  - {qid: Q13455645, name: administrative city in the Republic of Ireland}
+  grouping: []
+  metro: []
+  exclude:
+  - {qid: Q133315, name: 'Limerick (the city, merged into Limerick City and County)'}
+functions:
+- row: 1001
+  position: The President
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1002
+  position: The Taoiseach
+  status: Generic category
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1003
+  position: Government Ministers and Ministers of State
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1004
+  position: Members of Dáil Éireann
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 1005
+  position: Members of Seanad Éireann
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 1006
+  position: Members of the executive committee and any other executive offices (or equivalents) of any registered
+    political party in the State which has registered under section 25 of the Electoral Act 1992 as amended.
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1007
+  position: Judges of the Supreme Court
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1008
+  position: The Central Bank of Ireland Board
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 1009
+  position: The most senior official of a foreign embassy in the State
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1010
+  position: Members of the Irish diplomatic service holding roles of equivalent seniority to (1) outside the State
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1011
+  position: The Chief of Staff of the Defence Forces
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1012
+  position: Deputy Chief of Staff of the Defence Forces
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []

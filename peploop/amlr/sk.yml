@@ -1,0 +1,924 @@
+# Slovakia: governed units and listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+# Units: classes measured on Wikidata (2026-10-24); see peploop/amlr.py.
+units:
+  municipal:
+  - {qid: Q6784672, name: municipality of Slovakia}
+  grouping: []
+  metro: []
+functions:
+- row: 2494
+  position: President
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2495
+  position: Prime Minister of the Slovak Republic
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2496
+  position: Deputy Prime Minister of the Slovak Republic
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2497
+  position: Ministers
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2498
+  position: State secretaries of ministries
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2499
+  position: members of the National Council of the Slovak Republic (Národná rada Slovenskej republiky)
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 2500
+  position: Judges at the Constitutional Court of the Slovak Republic (Ústavný súd Slovenskej republiky)
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2501
+  position: Judges at the Supreme Court of the Slovak Republic Najvyšší súd Slovenskej republiky
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2502
+  position: Judges at the Supreme Administrative Court of the Slovak Republic (Najvyšší správny súd Slovenskej republiky)
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2503
+  position: President and vice-president of the Judicial Council of the Slovak Republic (Súdna rada Slovenskej republiky)
+  status: To split
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2504
+  position: President and Vice-President of the Specialised Criminal Court (Špecializovany trestny súd)
+  status: To split
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2505
+  position: Presidents and vice-presidents of regional courts
+  status: To split
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2506
+  position: Presidents and vice-presidents of district courts
+  status: To split
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2507
+  position: Governor of the National Bank of Slovakia
+  local: Národná banka Slovenska
+  lang: SLO
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 2508
+  position: Members of the Banking Council of the National Bank of Slovakia
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 2509
+  position: Ambassadors and envoys of the Slovak Republic abroad
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 2510
+  position: Heads of Representation Offices of the Slovak Republic
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2511
+  position: Slovak consuls-general abroad
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2512
+  position: Heads of Permanent Missions of the Slovak Republic to the EU, NATO, UN, OSCE, OECD and Council of Europe
+  status: Generic category
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2513
+  position: Chief of General Staff of the Armed Forces of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2514
+  position: Deputy Chief of General Staff of the Armed Forces of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2515
+  position: Commander of the ground forces of the Armed Forces of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2516
+  position: Deputy commander of the ground forces of the Armed Forces of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2517
+  position: Commander of the air force of the Armed Forces of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2518
+  position: Deputy commander of the air force of the Armed Forces of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2519
+  position: Commander of the Force for Special Operations of the Armed Forces of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2520
+  position: Deputy commander of the Force for Special Operations of the Armed Forces of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2521
+  position: Commander of the 5th special operations regiment
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2522
+  position: Head of the military police
+  status: Generic category
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2523
+  position: Head of military intelligence
+  status: Generic category
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2524
+  position: Commissioner of the Police Force of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 2525
+  position: Deputy Commissioner of the Police Force of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 2526
+  position: Director of the National Crime Agency
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 2527
+  position: Director of the Financial Intelligence Unit
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 2528
+  position: Director-General of the Office of the Inspection Service
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 2529
+  position: Director of the Slovak Intelligence Service
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 2530
+  position: Director of the Criminal Office of the Financial Administration of the Slovak Republic
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 2531
+  position: Director of the Prison and Judicial Guard Corps
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2532
+  position: State-owned enterprises set up by the Slovak Republic through individual ministries or their agencies,
+    and commercial companies in which the Slovak Republic holds more than 50 % of the shares (‘State firms’)
+  status: Not obviously unpackable
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2533
+  position: Board members and company secretaries of State firms
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2534
+  position: Members of supervisory boards of State firms
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2535
+  position: Prosecutor-General and their deputy
+  status: To split
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2536
+  position: Special Prosecutor and their deputy
+  status: To split
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2537
+  position: Regional prosecutors and their deputies
+  status: To split
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2538
+  position: District prosecutors and their deputies
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2539
+  position: President (župan) of a self-governing region
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2540
+  position: Mayor of a city
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2541
+  position: Mayors of Bratislava and Košice
+  status: To split
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2542
+  position: Mayor of a municipality with a population of more than 5 000
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2543
+  position: 'Member of the Board of Directors '
+  organisation: ' International Investment Bank'
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2544
+  position: 'Member of the Governing Board and Administrative Council '
+  organisation: Council of Europe Development Bank
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2545
+  position: 'Judge '
+  organisation: European Court of Human Rights
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2546
+  position: Head of the Government Office
+  organisation: Government Office of the Slovak Republic (Úrad vlády Slovenskej republiky)
+  status: Generic category
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2547
+  position: Chair, The Antimonopoly Office of the Slovak Republic
+  local: Protimonopolny úrad Slovenskej republiky
+  lang: SLO
+  organisation: The Antimonopoly Office of the Slovak Republic (Protimonopolny úrad Slovenskej republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2548
+  position: Chair, The Statistical Office of the Slovak Republic
+  local: Štatisticky úrad Slovenskej republiky
+  lang: SLO
+  organisation: The Statistical Office of the Slovak Republic (Štatisticky úrad Slovenskej republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2549
+  position: Chair, The Geodesy, Cartography and Cadastre Authority of the Slovak Republic
+  local: Úrad geodézie, kartografie a katastra Slovenskej republiky
+  lang: SLO
+  organisation: The Geodesy, Cartography and Cadastre Authority of the Slovak Republic (Úrad geodézie, kartografie
+    a katastra Slovenskej republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2550
+  position: Chair, The Nuclear Regulatory Authority of the Slovak Republic
+  local: Úrad jadrového dozoru Slovenskej republiky
+  lang: SLO
+  organisation: The Nuclear Regulatory Authority of the Slovak Republic (Úrad jadrového dozoru Slovenskej republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2551
+  position: Chair, The Slovak Office of Standards, Metrology and Testing
+  local: Úrad pre normalizáciu, metrológiu a skúšobníctvo Slovenskej republiky
+  lang: SLO
+  organisation: The Slovak Office of Standards, Metrology and Testing (Úrad pre normalizáciu, metrológiu a skúšobníctvo
+    Slovenskej republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2552
+  position: Chair, The Public-Procurement Office
+  local: Úrad pre verejné obstarávanie
+  lang: SLO
+  organisation: The Public-Procurement Office (Úrad pre verejné obstarávanie)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2553
+  position: Chair, The Industrial Property Office of the Slovak Republic
+  local: Úrad priemyselného vlastníctva Slovenskej republiky
+  lang: SLO
+  organisation: The Industrial Property Office of the Slovak Republic (Úrad priemyselného vlastníctva Slovenskej
+    republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2554
+  position: Chair, The Administration of State Material Reserves of the Slovak Republic
+  local: Správa štátnych hmotných rezerv Slovenskej republiky
+  lang: SLO
+  organisation: The Administration of State Material Reserves of the Slovak Republic (Správa štátnych hmotných rezerv
+    Slovenskej republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2555
+  position: Chair, The National Security Agency
+  lang: SLO
+  organisation: The National Security Agency
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2556
+  position: Chair, The Supreme Audit Office of the Slovak Republic
+  local: Najvyšší kontrolný úrad Slovenskej republiky
+  lang: SLO
+  organisation: The Supreme Audit Office of the Slovak Republic (Najvyšší kontrolný úrad Slovenskej republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 2557
+  position: Chair, The Office for the Regulation of Network Industries of the Slovak Republic
+  local: Úrad pre reguláciu sieťových odvetví Slovenskej republiky
+  lang: SLO
+  organisation: The Office for the Regulation of Network Industries of the Slovak Republic (Úrad pre reguláciu sieťových
+    odvetví Slovenskej republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2558
+  position: Chair, The Financial Administration
+  local: Finančná správa
+  lang: SLO
+  organisation: The Financial Administration (Finančná správa)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2559
+  position: Director-General, The Social Insurance Agency
+  local: Sociálna poisťovňa
+  lang: SLO
+  organisation: The Social Insurance Agency (Sociálna poisťovňa)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2560
+  position: Director-General, The State Veterinary and Food Administration of the Slovak Republic
+  local: Štátna veterinárna a potravinová správa Slovenskej republiky
+  lang: SLO
+  organisation: The State Veterinary and Food Administration of the Slovak Republic (Štátna veterinárna a potravinová
+    správa Slovenskej republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2561
+  position: Director-General, The Slovak Trade Inspectorate
+  local: Slovenská obchodná inšpekcia
+  lang: SLO
+  organisation: The Slovak Trade Inspectorate (Slovenská obchodná inšpekcia)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2562
+  position: Director-General, The Slovak Construction Inspectorate
+  local: Slovenská stavebná inšpekcia
+  lang: SLO
+  organisation: The Slovak Construction Inspectorate (Slovenská stavebná inšpekcia)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2563
+  position: Director-General, The Slovak Environmental Inspectorate
+  local: Slovenská inšpekcia životného prostredia
+  lang: SLO
+  organisation: The Slovak Environmental Inspectorate (Slovenská inšpekcia životného prostredia)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2564
+  position: Chair, The Healthcare Surveillance Authority
+  local: Urad pre dohlad nad zdravotnou starostlivostou
+  lang: SLO
+  organisation: The Healthcare Surveillance Authority (Urad pre dohlad nad zdravotnou starostlivostou)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2565
+  position: Chief Health Officer, The Slovak Republic
+  lang: SLO
+  organisation: The Slovak Republic
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2566
+  position: President, The Transport Authority
+  local: Dopravný úrad
+  lang: SLO
+  organisation: The Transport Authority (Dopravný úrad)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2567
+  position: Chair, The Supreme Mining Authority
+  local: Hlavný banský úrad
+  lang: SLO
+  organisation: The Supreme Mining Authority (Hlavný banský úrad)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2568
+  position: Chair, The Regulatory Authority for Electronic Communications and Postal Services
+  local: Urad pre reguláciu elektronických komunikácií a poštových služieb
+  lang: SLO
+  organisation: The Regulatory Authority for Electronic Communications and Postal Services (Urad pre reguláciu elektronických
+    komunikácií a poštových služieb)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2569
+  position: Director General, The National Labour Inspectorate
+  local: Narodny inspektorat prace
+  lang: SLO
+  organisation: The National Labour Inspectorate (Narodny inspektorat prace)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2570
+  position: Director General, The Slovak Business Agency
+  lang: SLO
+  organisation: The Slovak Business Agency
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2571
+  position: Director General, The Slovak Land Fund
+  local: Slovenský pozemkový fond
+  lang: SLO
+  organisation: The Slovak Land Fund (Slovenský pozemkový fond)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2572
+  position: Director General, The Agricultural Paying Agency
+  lang: SLO
+  organisation: The Agricultural Paying Agency
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2573
+  position: Chair, The Protection of Personal Data
+  local: Úrad na ochranu osobných údajov
+  lang: SLO
+  organisation: The Protection of Personal Data (Úrad na ochranu osobných údajov)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2574
+  position: Director, The State Institute for Drug Control
+  local: Štátny ústav pre kontrolu liečiv
+  lang: SLO
+  organisation: The State Institute for Drug Control (Štátny ústav pre kontrolu liečiv)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2575
+  position: Director-General, The Gambling Regulatory Authority
+  local: Úrad pre reguláciu hazardných hier
+  lang: SLO
+  organisation: The Gambling Regulatory Authority (Úrad pre reguláciu hazardných hier)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2576
+  position: Director-General, The Audit Oversight Office
+  local: Úrad pre dohľad nad výkonom auditu
+  lang: SLO
+  organisation: The Audit Oversight Office (Úrad pre dohľad nad výkonom auditu)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 2577
+  position: Director-General, The Centre for Scientific and Technical Information of the Slovak Republic
+  local: Centrum vedecko-technických informácií Slovenskej republiky
+  lang: SLO
+  organisation: The Centre for Scientific and Technical Information of the Slovak Republic (Centrum vedecko-technických
+    informácií Slovenskej republiky)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2578
+  position: Director-General, The National Agency for Network and Electronic Services
+  local: Národná agentúra pre sieťové a elektronické služby
+  lang: SLO
+  organisation: The National Agency for Network and Electronic Services (Národná agentúra pre sieťové a elektronické
+    služby)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2579
+  position: Director-General, The State Housing Development Fund
+  local: Statny fond rozvoja byvania
+  lang: SLO
+  organisation: The State Housing Development Fund (Statny fond rozvoja byvania)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2580
+  position: Director, The Government Audit Office
+  local: Úrad vládneho auditu
+  lang: SLO
+  organisation: The Government Audit Office (Úrad vládneho auditu)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 2581
+  position: Director, The Environment Fund
+  local: Environmentálny fond
+  lang: SLO
+  organisation: The Environment Fund (Environmentálny fond)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2582
+  position: Director-General, The Centre for Labour, Social Affairs and the Family
+  local: Ustredie práce sociálnych vecí a rodiny
+  lang: SLO
+  organisation: The Centre for Labour, Social Affairs and the Family (Ustredie práce sociálnych vecí a rodiny)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 2583
+  position: President, The State Commission on Elections and Control of Political [Party] Financing
+  local: Štátna komisia pre voľby a kontrolu financovania politických [strán]
+  lang: SLO
+  organisation: The State Commission on Elections and Control of Political [Party] Financing (Štátna komisia pre
+    voľby a kontrolu financovania politických [strán])
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 2584
+  position: Head of Representation
+  organisation: 'European Bank for Reconstruction and Development '
+  status: Generic category
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2585
+  position: Director, Explosive Ordnance Disposal Centre of Excellence
+  lang: SLO
+  organisation: Explosive Ordnance Disposal Centre of Excellence
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2586
+  position: Director, International Organization for Migration
+  lang: SLO
+  organisation: International Organization for Migration
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2587
+  position: Director, International Visegrad Fund
+  lang: SLO
+  organisation: International Visegrad Fund
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2588
+  position: Commander, NATO Force Integration Unit (NFIU SVK)
+  organisation: NATO Force Integration Unit (NFIU SVK)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2589
+  position: Representative
+  organisation: World Health Organization
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []

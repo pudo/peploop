@@ -1,0 +1,191 @@
+# Slovenia: governed units and listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+# Units: classes measured on Wikidata (2026-10-24); see peploop/amlr.py.
+units:
+  municipal:
+  - {qid: Q6960199, name: city municipality of Slovenia}
+  - {qid: Q328584, name: municipality of Slovenia}
+  grouping: []
+  metro: []
+functions:
+- row: 2590
+  position: President
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2591
+  position: Prime Minister
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2592
+  position: Minister
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2593
+  position: State secretary
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2594
+  position: Member of the National Assembly (Državni zbor)
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 2595
+  position: Member of the National Council (Državni svet)
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 2596
+  position: Chair of a political party
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2597
+  position: Member of the executive of a political party at national level
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2598
+  position: Judge of the Supreme Court of the Republic of Slovenia (Vrhovno sodišče Republike Slovenije)
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2599
+  position: Judge of the Constitutional Court of the Republic of Slovenia (Ustavno sodišče Republike Slovenije)
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2600
+  position: President of the Court of Auditors
+  local: Računsko sodišče
+  lang: SVN
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 2601
+  position: Deputy President of the Court of Auditors
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 2602
+  position: Governor of the Bank of Slovenia
+  local: Banka Slovenije
+  lang: SVN
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 2603
+  position: Deputy Governor of the Bank of Slovenia
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 2604
+  position: Ambassador and head of consular post (including honorary consul) and head of representation of an international
+    organisation in the Republic of Slovenia as defined in the List of Diplomatic Representations, Consulates, International
+    Organisations and Representations of International Organisations in the Republic of Slovenia (known as the diplomatic
+    list)
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2605
+  position: Aenior officer of the Slovenian Army on formation duties of the Chief of Staff of the Slovenian Army,
+    Deputy Chief of Staff of the Slovenian Army, commander of the Slovenian Armed Forces, commanding officer of
+    the Military Schools Centre (Center vojaških šol) and commander of the peacetime structures of the Slovenian
+    Army abroad
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 2606
+  position: Head of an international organisation based in the Republic of Slovenia, head of an institution, body
+    or agency of the European Union in the Republic of Slovenia as defined in the List of Diplomatic Representations,
+    Consulates, International Organisations and Representations of International Organisations in the Republic of
+    Slovenia (known as the diplomatic list), and their deputies
+  status: Not obviously unpackable
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2607
+  position: Director, CEF Centre of Excellence in Finance
+  organisation: CEF Centre of Excellence in Finance
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2608
+  position: Deputy Director
+  organisation: CEF Centre of Excellence in Finance
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2609
+  position: Deputy Director-General
+  organisation: ICPE International Center for Promotion of Enterprises
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []

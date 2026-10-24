@@ -1,0 +1,107 @@
+# European Union: Union functions and rows no member state's list holds, under the EU AMLR
+# (Reg. 2024/1624).
+# Functions: the list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 206
+  position: Deputy Special Representative of INTERPOL to the EU
+  organisation: International Police Organisation (INTERPOL)
+  status: Position for territory
+  category: ''
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2751
+  position: President, The European Council and the Secretary-General of the Council of the European Union
+  organisation: The European Council and the Secretary-General of the Council of the European Union
+  status: Position for territory
+  category: ''
+  amlr: eu
+  kind: position
+  checked: false
+  expansion: []
+- row: 2752
+  position: Tthe Members
+  organisation: The European Parliament
+  status: Position prefix for territory
+  category: ''
+  amlr: eu
+  kind: position
+  checked: false
+  expansion: []
+- row: 2753
+  position: The Members
+  organisation: The European Commission
+  status: Position prefix for territory
+  category: ''
+  amlr: eu
+  kind: position
+  checked: false
+  expansion: []
+- row: 2754
+  position: The Judges, Advocates-General and Registrar
+  organisation: The Court of Justice
+  status: To split
+  category: ''
+  amlr: eu
+  kind: position
+  checked: false
+  expansion: []
+- row: 2755
+  position: The President, the Vice-President and the other Members of the Executive Board
+  organisation: The European Central Bank
+  status: To split
+  category: ''
+  amlr: eu
+  kind: position
+  checked: false
+  expansion: []
+- row: 2756
+  position: The Members of the Governing Council and the General Council;
+  organisation: The European Central Bank
+  status: Position prefix for territory
+  category: ''
+  amlr: eu
+  kind: position
+  checked: false
+  expansion: []
+- row: 2757
+  position: The Chair, the Vice-Chair and the other Members of the Supervisory Board
+  organisation: The European Central Bank
+  status: To split
+  category: ''
+  amlr: eu
+  kind: position
+  checked: false
+  expansion: []
+- row: 2758
+  position: The Members
+  organisation: The European Court of Auditors
+  status: Position prefix for territory
+  category: ''
+  amlr: eu
+  kind: position
+  checked: false
+  expansion: []
+- row: 2759
+  position: Heads of Union delegations or representative offices of the Union to a third country or to an international
+    organisation, within the meaning of Article 221 of the Treaty on the Functioning of the European Union
+  organisation: The European External Action Service
+  status: Generic category
+  category: ''
+  amlr: eu
+  kind: position
+  checked: false
+  expansion: []
+- row: 2760
+  position: Heads of Mission of third countries and of international organisations accredited to the Union
+  organisation: The European External Action Service
+  status: Generic category
+  category: ''
+  amlr: eu
+  kind: position
+  checked: false
+  expansion: []

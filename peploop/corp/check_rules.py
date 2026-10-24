@@ -5,7 +5,7 @@
 
 from datetime import date
 
-from peploop import evidence, qs
+from peploop import eras, evidence, qs
 from peploop.dates import time_value
 from peploop.corp import actors, country, decide, load, rules
 from peploop.checks import expect
@@ -392,10 +392,10 @@ def historic() -> None:
         if end:
             e["claims"]["P576"] = [{"rank": "normal", "mainsnak": {"datavalue": {"value": {"time": end, "precision": 9}}}}]
         return e
-    expect(country.historical(state(["Q3024240"], "+1945-05-08T00:00:00Z")), "a predecessor state that ended before 1991 is historical")
-    expect(not country.historical(state(["Q3024240"])), "a historical type with no end date counts as current")
-    expect(not country.historical(state(["Q3024240"], "+2011-01-01T00:00:00Z")), "an end after the cutoff counts as current")
-    expect(not country.historical(state(["Q6256"], "+1945-05-08T00:00:00Z")), "an end date alone, without the type, is not enough")
+    expect(eras.historical(state(["Q3024240"], "+1945-05-08T00:00:00Z")), "a predecessor state that ended before 1991 is historical")
+    expect(not eras.historical(state(["Q3024240"])), "a historical type with no end date counts as current")
+    expect(not eras.historical(state(["Q3024240"], "+2011-01-01T00:00:00Z")), "an end after the cutoff counts as current")
+    expect(not eras.historical(state(["Q6256"], "+1945-05-08T00:00:00Z")), "an end date alone, without the type, is not enough")
 
 
 def reach() -> None:

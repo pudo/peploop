@@ -1,0 +1,647 @@
+# France: governed units and listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+# Units: classes measured on Wikidata (2026-10-24); see peploop/amlr.py.
+units:
+  municipal:
+  - {qid: Q484170, name: commune of France}
+  - {qid: Q22927616, name: commune of France with specific status}
+  grouping:
+  - {qid: Q18706073, name: EPCI with own taxation}
+  - {qid: Q159321, name: agglomeration community}
+  - {qid: Q423790, name: urban community}
+  - {qid: Q423785, name: commune community}
+  - {qid: Q6465, name: department of France}
+  metro:
+  - {qid: Q3333855, name: métropole}
+functions:
+- row: 802
+  position: The President of the Republic
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 803
+  position: The Prime Minister
+  status: Position for territory
+  category: ''
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 804
+  position: The members of the Government
+  status: Position prefix for territory
+  category: ''
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 805
+  position: The President of the Senate
+  status: Position for territory
+  category: ''
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 806
+  position: The President of the National Assembly
+  status: Position prefix for territory
+  category: ''
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 807
+  position: The members of the National Assembly and Senators
+  status: Position prefix for territory
+  category: ''
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 808
+  position: The President and members of the Constitutional Council (Conseil constitutionnel)
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 809
+  position: The members of the Council of State (Conseil d’Etat) referred to in Article L. 121-2 of the Code of
+    Administrative Justice, with the exception of those in extraordinary service (Conseillers d’Etat en service
+    extraordinaire)who do not perform judicial functions
+  status: Position prefix for territory
+  category: ''
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 810
+  position: The judges of the Court of Auditors (Cour de comptes) referred to in Article L. 112-1 of the Public
+    Finance Courts Code
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 811
+  position: The members of the Court of Cassation (Cour de cassation) referred to in paragraphs 1, 2, 3, 4, 6, 7,
+    8 and 9 of Article R. 421-1 of the Code of Court Organisation and the members in extraordinary service referred
+    to in Article 40-1 of Order No 58-1270 of 22 December 1958 enacting the organic law on the status of the judiciary
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 812
+  position: The Secretary-General of the Constitutional Council referred to in Article 1 of Decree No 59-1293 of
+    13 November 1959 on the organisation of the Secretariat-General of the Constitutional Council
+  status: ''
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 813
+  position: The members of the General Council of the Banque de France (Conseil général de la Banque de France)
+    referred to in Article L. 142-7 of the Monetary and Financial Code
+  status: Position prefix for territory
+  category: ''
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 814
+  position: The ambassadors or chargés d’affaires referred to in Articles 1 and 13 of Decree No 79-433 of 1 June
+    1979 on the powers of ambassadors and the organisation of State services overseas
+  status: ''
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 815
+  position: 'The Chief of Staff referred to in Article R*3121-1 of the Defence Code '
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 816
+  position: 'The Chiefs of Staff of the Army '
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 817
+  position: The Navy and the Air Force referred to in Article R*3121-25 of the same Code
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 818
+  position: Chief Executive Officer
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 819
+  position: Deputy Chief Executive Officer
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 820
+  position: Sole Managing Director
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 821
+  position: Member of the board of directors
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 822
+  position: Administrator or member of the supervisory board of public limited liability companies or who, regardless
+    of their title, carry out functions equivalent to the ones referred to above within the companies, public establishments
+    and other corporate bodies referred to in points 1 to 3 of section III of Article 11 of the Law of 11 October
+    2013
+  status: Not obviously unpackable
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 823
+  position: Secretary-General, Franco-German Youth Office (FGYO)
+  organisation: Franco-German Youth Office (FGYO)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 824
+  position: Representative (none), Central Bank of West African States
+  organisation: Central Bank of West African States
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 825
+  position: Deputy representative a.i.
+  organisation: Central Bank of West African States
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 826
+  position: None
+  organisation: Nato Support and Procurement Agency
+  status: n/a
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 827
+  position: None, because the director, deputy directors and management bodies are based in Nairobi
+  organisation: United Nations Environmental Program
+  status: To split
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 828
+  position: Head of Regional Delegation, International Committee of the Red Cross
+  organisation: International Committee of the Red Cross
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 829
+  position: Deputy Head of Regional Delegation
+  organisation: International Committee of the Red Cross
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 830
+  position: Regional Director, International Civil Aviation Organization, European and North Atlantic Office
+  organisation: International Civil Aviation Organization, European and North Atlantic Office
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 831
+  position: Deputy Regional Director
+  organisation: International Civil Aviation Organization, European and North Atlantic Office
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 832
+  position: Chair, European and Mediterranean Plant Protection Organization
+  organisation: European and Mediterranean Plant Protection Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 833
+  position: Vice-chair, European and Mediterranean Plant Protection Organization
+  organisation: European and Mediterranean Plant Protection Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 834
+  position: Director-general, European and Mediterranean Plant Protection Organization
+  organisation: European and Mediterranean Plant Protection Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 835
+  position: Deputy Director
+  organisation: European and Mediterranean Plant Protection Organization
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 836
+  position: Secretary-General, Central Commission for Navigation on the Rhine
+  organisation: Central Commission for Navigation on the Rhine
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 837
+  position: Deputy Secretary-General
+  organisation: Central Commission for Navigation on the Rhine
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 838
+  position: Chief Engineer, Central Commission for Navigation on the Rhine
+  organisation: Central Commission for Navigation on the Rhine
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 839
+  position: Administrative Director, International Board for Plant Genetic Resources, IBPGR
+  organisation: International Board for Plant Genetic Resources, IBPGR
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 840
+  position: Chair of the Board of Directors, International Board for Plant Genetic Resources, IBPGR
+  organisation: International Board for Plant Genetic Resources, IBPGR
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 841
+  position: Vice-chair of the Board of Directors, International Board for Plant Genetic Resources, IBPGR
+  organisation: International Board for Plant Genetic Resources, IBPGR
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 842
+  position: 9 members of the Board of Directors
+  organisation: International Board for Plant Genetic Resources, IBPGR
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 843
+  position: Director-General, Unesco
+  organisation: Unesco
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 844
+  position: Deputy Director-General
+  organisation: Unesco
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 845
+  position: Governors
+  organisation: Banks of the West African States
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 846
+  position: Deputy Governor
+  organisation: Banks of the West African States
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 847
+  position: Secretary-General, Banks of the West African States
+  organisation: Banks of the West African States
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 848
+  position: Director-General, Banks of the West African States
+  organisation: Banks of the West African States
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 849
+  position: Secretary-General of the Francophonie, International Organisation of the Francophonie
+  organisation: International Organisation of the Francophonie
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 850
+  position: 1 administrator of the OIF
+  organisation: International Organisation of the Francophonie
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 851
+  position: 7 members of the cabinet of the Secretary-General
+  organisation: International Organisation of the Francophonie
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 852
+  position: 4 members of the office of the Administrator
+  organisation: International Organisation of the Francophonie
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 853
+  position: 18 directors or representatives of the OIF
+  organisation: International Organisation of the Francophonie
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 854
+  position: Director and representative of the programme in France, United National World Food Programme for France
+    and Monaco
+  organisation: United National World Food Programme for France and Monaco
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 855
+  position: Director-General, World Organisation for Animal Health
+  organisation: World Organisation for Animal Health
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 856
+  position: 2 Deputy Directors-General
+  organisation: World Organisation for Animal Health
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 857
+  position: Director of Finance, World Organisation for Animal Health
+  organisation: World Organisation for Animal Health
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 858
+  position: No function identified
+  organisation: International Hydrographic Organization
+  status: n/a
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 859
+  position: Director-General, International Institute of Refrigeration
+  organisation: International Institute of Refrigeration
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 860
+  position: Deputy Director-General
+  organisation: International Institute of Refrigeration
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 861
+  position: Director of the International Bureau of Weights and Measures (BIPM), International Bureau of Weights
+    and Measures
+  organisation: International Bureau of Weights and Measures
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 862
+  position: President of the International Committee for Weights and Measures (CIPM), International Bureau of Weights
+    and Measures
+  organisation: International Bureau of Weights and Measures
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 863
+  position: 13 members of the Board
+  organisation: CGIAR System Organization
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 864
+  position: Director, CGIAR System Organization
+  organisation: CGIAR System Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 865
+  position: President of the International Committee for Legal Metrology (CIML), International Organization of Legal
+    Metrology
+  organisation: International Organization of Legal Metrology
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 866
+  position: Director of the International Bureau of Legal Metrology (BIML), International Organization of Legal
+    Metrology
+  organisation: International Organization of Legal Metrology
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 867
+  position: Managing Director (based in Brussels), International Monetary Fund
+  organisation: International Monetary Fund
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 868
+  position: First Deputy Managing Director (based in Paris), International Monetary Fund
+  organisation: International Monetary Fund
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 869
+  position: Secretary-General, International Centre for Advanced Mediterranean Agronomic Studies (CIHEAM)
+  organisation: International Centre for Advanced Mediterranean Agronomic Studies (CIHEAM)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 870
+  position: President of the Governing Board, International Centre for Advanced Mediterranean Agronomic Studies
+    (CIHEAM)
+  organisation: International Centre for Advanced Mediterranean Agronomic Studies (CIHEAM)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 871
+  position: 13 representatives serving as members of the Governing Board
+  organisation: International Centre for Advanced Mediterranean Agronomic Studies (CIHEAM)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
