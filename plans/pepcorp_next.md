@@ -111,6 +111,24 @@ Where the German funnel loses statements, besides unlinked people (§2):
 - Thin countries (sk, si, cy, mt) rest on holdings lists; mt/cy/it/pt
   holdings came from knowledge and an enwiki category, QIDs checked, not
   against the official pages.
+- The AMLR listed lane (2026-10-24): built and dry-run on mt, ro, dk, lt,
+  pl, ee, sk and cz. The list alone admits 42 bodies and adds 19 seats
+  (ro 3, dk 9, lt 7), nothing sent. Left:
+  1. Send those 19 seats with the user, as one tranche limited with
+     `corp send <cc> --qid` to the bodies the list alone admits.
+  2. The residue is the list itself: 362 named-body rows in these eight
+     countries resolve to no item (ro 103, mt 93, lt 59, dk 48), many of
+     them Romanian and Maltese bodies with no item or article. Another
+     `amlr expand` pass, or hand entries in the asset, comes before pepcorp
+     can use them. 26 listed bodies have no article and stay out by the
+     article gate.
+  3. Open interim calls: a body its articles call private is not admitted
+     by the list; a body the list alone admits gets no statutory class;
+     the other 19 countries are run only when their next re-run comes.
+  4. Body-class cross-check: Portugal lists municipal enterprises, a tier
+     its spec does not write (the municipal workstream); the Netherlands
+     says it has no state enterprises under the definition, while its spec
+     writes them under the AMLR default.
 - Zambia needs a holdings list (the IDC portfolio): its Wikidata has almost
   no state links and its category three members.
 - Norway beyond the 30-body trial; Greenland and Faroe as their own specs.

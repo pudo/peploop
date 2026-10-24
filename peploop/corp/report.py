@@ -2,7 +2,8 @@
 
 The residue is what a run cannot write and does not ask about: listed holdings
 without an item, seats whose person neither the article links nor the match
-by name finds, and enterprises whose control the articles leave unclear.
+by name finds, enterprises whose control the articles leave unclear, and the
+named-body rows of the state's AMLR list that no item resolves.
 """
 
 from collections import Counter, defaultdict
@@ -50,6 +51,7 @@ def report(cc: str) -> str:
                f"{p} {n}/{undated_total[p]}" for p, n in sorted(undated.items())),
            f"- contradicted markers proposed for removal: {sum(1 for r in rows if r[4] == 'remove')}",
            f"- run file: {path} ({n_lines} lines)", ""]
+    out += listed(cc, rows, loaded_listed(cc))
     out += ["## Enterprises written on", ""]
     for qid, rs in by_qid.items():
         if any(r[1] == "-" for r in rs) and not any(r[4] in ("apply", "remove") for r in rs):
@@ -74,7 +76,35 @@ def report(cc: str) -> str:
     out += [f"- {qid} {name(qid)}" for qid, rs in by_qid.items() if any(r[5] == "control:unclear" for r in rs)]
     out += ["", "### Listed holdings without an item", ""]
     out += [f"- {e.get('name')} ({e.get('holder')})" for e in countries.get(cc).unmatched()]
+    out += ["", "### Named bodies of the AMLR list without an item", ""]
+    out += [f"- row {f.row}: {f.organisation or f.position}" for f in load.unresolved(cc)]
     return "\n".join(out) + "\n"
+
+
+def loaded_listed(cc: str) -> dict[str, str]:
+    """QID → why the load dropped it, or `kept`, for each listed body the load stored."""
+    return dict(wd.conn().execute("SELECT qid, coalesce(dropped, 'kept') FROM pcorp_item"
+                                  " WHERE country = %s AND 'listed' = ANY(lanes)", (cc,)).fetchall())
+
+
+def listed(cc: str, rows: list[tuple[Any, ...]], loaded: dict[str, str]) -> list[str]:
+    """The funnel of the bodies the state's AMLR list names: loaded, passed, seats written."""
+    named = load.listed(cc)
+    if not named:
+        return []
+    mine = [r for r in rows if r[0] in named]
+    gated = {r[0] for r in mine if r[1] == "-"}
+    by_list = {r[0] for r in mine if r[1] == "-" and r[3].get("scope") == "listed"}
+    decided = {r[0] for r in mine}
+    seats = [r for r in mine if r[4] == "apply" and r[1] not in ("P31", "P127", "P749")]
+    return ["## Bodies the AMLR list names", "",
+            f"- in the list: {len(named)}; loaded: " + ", ".join(
+                f"{k} {v}" for k, v in Counter(loaded.values()).most_common())
+            + f"; not stored {len(named - set(loaded))}",
+            f"- decided: {len(decided)}; passed: {len(decided - gated) + len(by_list)},"
+            f" of them by the list alone {len(by_list)}",
+            f"- seats written: {len(seats)}, of them by the list alone {sum(r[3].get('scope') == 'listed' for r in seats)}",
+            f"- named-body rows without an item: {len(load.unresolved(cc))}", ""]
 
 
 def write(cc: str) -> str:

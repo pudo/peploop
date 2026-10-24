@@ -53,6 +53,18 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   state-only legal form of the body's own kind proves it the state's at the national tier: an
   enterprise is then owned by the polity, an institution gets its seats and
   no link.
+- A body the member state's own list of prominent public functions names
+  (AMLR Art. 43, `peploop/amlr/<cc>.yml`, resolved to its item in a row's
+  expansion) is in PEP scope by that list: where only the control gate
+  stops it -- control unclear, unstated or unquoted, another tier, an
+  enterprise with no state owner named -- its seats are written all the
+  same, and nothing else (`listed_scope`). The list proves scope, never
+  ownership: its marker, links and class are written only where the
+  article proves them, as for any body. It does not widen what a body is:
+  a listed ministry, court or legislature stays peploop's, a listed
+  agency or central bank is an institution like any other; nor does it
+  admit a body inactive or called private in its articles, since the list
+  may lag a privatisation. Such a body counts as no state owner of others.
 - A statutory body with no owner -- a public broadcaster, a central bank, a
   regulator, set up by law with its leadership appointed by a state organ
   -- is the state's by statute, whatever its legal form (an association
@@ -108,13 +120,15 @@ are written by default; a spec names its own.
 
 ## The run, per country
 
-1. **load** (`load.py`, `actors.py`): six lanes, wide on purpose -- typed
+1. **load** (`load.py`, `actors.py`): eight lanes, wide on purpose -- typed
    (`P31`/`P1454` in the `Q270791` tree), formed (`P31`/`P1454` exactly one
    of the spec's forms), statutory (`P31` exactly a public broadcaster,
    central bank or regulatory agency), owned (a chain of `P127`/`P749` links of up to three
    steps to a state actor, read from QLever, from the country's items and
-   into them), parented (`P749` to a state actor), seed (the spec's
-   holdings). Dropped: dissolved, not an organisation, no article in the
+   into them), parented (`P749` to a state actor), category (the country's
+   state-enterprise and agency categories), seed (the spec's holdings),
+   listed (the bodies the AMLR asset resolves for the country; the asset is
+   the one source, never copied into the spec). Dropped: dissolved, not an organisation, no article in the
    country's languages or English; never sports clubs, military units,
    diplomatic missions, courts or places, nor the spec's `exclude`.
 2. **decide** (`decide.py`, `prompts/decide.md`): one request per body with
@@ -127,7 +141,8 @@ are written by default; a spec names its own.
    unanswered bodies go out through `llm.run`, as Message Batches when there
    are many, against the run's `--budget`.
 3. **rules** (`rules.py`): the gates (an enterprise or institution, active,
-   state-controlled by a quote, at a tier the spec writes), then the marker,
+   state-controlled by a quote, at a tier the spec writes; a listed body
+   passes the last two by the list, for its seats only), then the marker,
    the links and the seats, each with its rule. A link needs a state body:
    a state actor, a government body (a named one resolved through the
    article's links), or one the run finds state-controlled; it is skipped
@@ -172,9 +187,11 @@ are written by default; a spec names its own.
    that is there and writes a `+` line only for a new one.
 4. **qs + report** (`qs.py`, `report.py`): `data/pepcorp/<cc>/<cc>-<date>.qs`
    and `.md`, with the funnel, the seats by how their person was found
-   (link, anchor text, match), and the residue: holdings without an item,
-   seats whose person is neither linked nor matched, control the articles
-   leave unclear.
+   (link, anchor text, match), the listed bodies' own funnel (loaded,
+   passed, of them by the list alone, seats written), and the residue:
+   holdings without an item, seats whose person is neither linked nor
+   matched, control the articles leave unclear, the list's named-body rows
+   without an item.
 5. **send** (`outbox.py`): the latest run file through the joint send ledger,
    once per line; `--qid` limits a batch to chosen bodies. `--submit` goes
    out with the user, like every send.

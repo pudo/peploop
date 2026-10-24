@@ -15,6 +15,11 @@ spec writes -- or nothing is written on it. Then three kinds of statement:
   the spec's `roles`), for a person the article links to an item of a human,
   or one found by name whose own page places them at the body (`match.py`).
 
+A body the member state's own AMLR list names (the `listed` lane) is in PEP
+scope by that list: where the control gate alone stops it, its seats are
+written all the same, and nothing else (`listed_scope`). The list proves
+scope, never ownership: its marker and links still need the article.
+
 No shares, sizes or control arithmetic: the links and the article's word
 are the evidence.
 
@@ -150,6 +155,20 @@ def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countrie
     if not evidence.quoted(control["quote"], message):
         return "control_unquoted"
     return None
+
+
+#: The gates the member state's own list overrides: whatever the articles
+#: leave unsaid or unclear about who owns or runs a listed body, or at which
+#: tier, and an enterprise whose named owners are no state body. A body that
+#: is no enterprise or institution (a ministry, a court: peploop's), is
+#: inactive, or that its articles call private is not admitted: the list
+#: names functions, and may lag a privatisation.
+LISTED_OVERRIDES = ("control:unclear", "control:unstated", "control_unquoted", "enterprise_unowned", "no_state_owner")
+
+
+def listed_scope(why: str | None, listed: bool) -> bool:
+    """Whether a body stopped for `why` is written on all the same, its seats only, because the state lists it."""
+    return listed and why is not None and (why in LISTED_OVERRIDES or why.startswith("level:"))
 
 
 def proven(item: dict[str, Any] | None, spec: countries.Spec, kind: str | None = None) -> str | None:
@@ -495,6 +514,8 @@ def settle(r: dict[str, Any], entity: dict[str, Any], rows: list[dict[str, Any]]
             detail["name"] = row["_name"]
         if row.get("_via"):
             detail["via"] = row["_via"]
+        if row.get("_scope"):
+            detail["scope"] = row["_scope"]
         decisions.append({"qid": r["qid"], "prop": row["property"], "value": value, "detail": detail,
                           "disposition": disposition, "rule": rule, "call_key": r.get("key")})
     return routed.lines
@@ -517,15 +538,20 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     spec = spec or countries.get(cc)
     proofs = {r["qid"]: proven(items.get(r["qid"]), spec, r["answer"]["kind"]) for r in answered}
     passed = {r["qid"]: r for r in answered if gate(r["answer"], r["message"], spec.tiers, proofs[r["qid"]]) is None}
+    # Bodies the state's own list names: in scope by the list where the control gate alone stops them.
+    listed = {qid for qid, it in items.items() if "listed" in (it.get("lanes") or ())}
+    scoped = {r["qid"] for r in answered if r["qid"] not in passed and r["qid"] in listed
+              and listed_scope(gate(r["answer"], r["message"], spec.tiers, proofs[r["qid"]]), True)}
     # Bodies the answer gates out but whose existing marker it contradicts.
     marked_now = {qid for qid, it in items.items()
                   if wd.values(it.get("entity") or {}, "P31") or wd.values(it.get("entity") or {}, "P1454")}
     contradicted = {r["qid"] for r in answered if r["qid"] not in passed and r["qid"] in marked_now
                     and (r["answer"]["control"]["level"] == "municipal" or r["answer"]["control"]["verdict"] == "private")}
-    entities = wd.fetch_items(sorted(set(passed) | contradicted)) if passed or contradicted else {}
+    entities = wd.fetch_items(sorted(set(passed) | contradicted | scoped)) if passed or contradicted or scoped else {}
     marks = {v for e in entities.values() for p in ("P31", "P1454") for v in wd.values(e, p)}
     closure = typegraph.of_classes(marks)
-    names = sorted({q for r in passed.values() for s in r["answer"]["seats"]
+    seated = [r for r in answered if r["qid"] in passed or r["qid"] in scoped]
+    names = sorted({q for r in seated for s in r["answer"]["seats"]
                     for q in linked(s["name"], s["article"], r["links"])} | set((matched or {}).values()))
     people = wd.fetch_items(names, props="claims|sitelinks") if names else {}
     titles = {q: {s["title"] for s in e.get("sitelinks", {}).values()} for q, e in people.items()}
@@ -571,10 +597,13 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
         if why is not None:
             kind, add, wrong = (correction(r, entities[r["qid"]], closure, spec.tiers, subdivisions)
                                 if r["qid"] in contradicted and r["qid"] in entities else (None, [], []))
-            decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
+            decisions.append({"qid": r["qid"], "prop": "-", "value": None,
+                              "detail": {"scope": "listed"} if r["qid"] in scoped else {},
                               "disposition": "skip", "rule": why, "call_key": r.get("key")})
-            if kind:
-                lines += settle(r, entities[r["qid"]], add, decisions)
+            seats = (listed_seats(r, humans, today, spec.roles, entities[r["qid"]], dead, matched, titles, unconfirmed)
+                     if r["qid"] in scoped and r["qid"] in entities else [])
+            if kind or seats:
+                lines += settle(r, entities[r["qid"]], add + seats, decisions)
                 for claim in wrong:
                     value = claim["mainsnak"]["datavalue"]["value"]["id"]
                     removals.append({"guid": claim["id"], "qid": r["qid"], "prop": "P31", "value": value,
@@ -597,8 +626,12 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             # wording alone ("partly state-owned"): no marker, no seats. An
             # owner already on the item proves nothing: it may record a
             # minority holder.
-            decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
+            decisions.append({"qid": r["qid"], "prop": "-", "value": None,
+                              "detail": {"scope": "listed"} if r["qid"] in listed else {},
                               "disposition": "skip", "rule": "enterprise_unowned", "call_key": r.get("key")})
+            if listed_scope("enterprise_unowned", r["qid"] in listed):
+                lines += settle(r, entity, listed_seats(r, humans, today, spec.roles, entity, dead, matched, titles,
+                                                        unconfirmed), decisions)
             continue
         if (r["answer"]["kind"] == "enterprise" and links
                 and not any(row["_rule"] in (None, "chain_reaches", "chain_existing", "owner_ministry", "standin_existing")
@@ -608,12 +641,24 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             # institution named under an office ("the Prime Minister") or
             # the polity itself keeps its seats: it would keep them had the
             # answer named no parent at all.
-            decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
+            decisions.append({"qid": r["qid"], "prop": "-", "value": None,
+                              "detail": {"scope": "listed"} if r["qid"] in listed else {},
                               "disposition": "skip", "rule": "no_state_owner", "call_key": r.get("key")})
+            if listed_scope("no_state_owner", r["qid"] in listed):
+                lines += settle(r, entity, listed_seats(r, humans, today, spec.roles, entity, dead, matched, titles,
+                                                        unconfirmed), decisions)
             continue
         rows += seat_rows(r, humans, today, spec.roles, entity, dead, matched, titles, unconfirmed)
         lines += settle(r, entity, rows, decisions)
     return lines, decisions, removals
+
+
+def listed_seats(*args: Any, **kwargs: Any) -> list[dict[str, Any]]:
+    """A listed body's seat rows when the list alone admits it, each marked so (`scope`)."""
+    rows = seat_rows(*args, **kwargs)
+    for row in rows:
+        row["_scope"] = "listed"
+    return rows
 
 
 def through_planned(planned: dict[str, set[str]], linked_now: dict[str, set[str]]) -> dict[str, set[str]]:

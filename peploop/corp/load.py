@@ -1,6 +1,6 @@
 """Find a country's candidate state bodies and keep the ones worth a decision.
 
-Seven lanes, each going wide on purpose: what the decision stage and, after
+Eight lanes, each going wide on purpose: what the decision stage and, after
 it, OpenSanctions' position classification filter out costs less than a body
 never found.
 
@@ -21,7 +21,11 @@ never found.
   (`P971` combining the class with the country), so the lane needs no
   country's names, and reaches bodies with no links on Wikidata at all;
 - `seed`: an official list of holdings (the spec's `holdings`) names it;
-  this is what finds a body neither Wikidata nor Wikipedia records as state.
+  this is what finds a body neither Wikidata nor Wikipedia records as state;
+- `listed`: the member state's own list of prominent public functions
+  (AMLR Art. 43, `peploop/amlr/<cc>.yml`) names it, resolved to its item in
+  a row's expansion. The list puts its seats in PEP scope; it says nothing
+  about who owns it.
 
 Only the municipal tier's marker (`Q1780371`) stays out of the typed lane for
 now: municipal enterprises are a later tier.
@@ -33,7 +37,7 @@ from psycopg.types.json import Jsonb
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import classes, typegraph, wikipedia
+from peploop import amlr, classes, typegraph, wikipedia
 from peploop.corp import actors as actormod
 from peploop.corp import country as countries
 from peploop.corp import rules, wd
@@ -93,6 +97,16 @@ def categorised(state: str, wikis: list[str]) -> set[str]:
     return found
 
 
+def listed(cc: str) -> set[str]:
+    """The bodies the member state's AMLR function list names, as resolved in the asset."""
+    return {str(e["body"]) for f in amlr.functions(cc) for e in f.expansion if "body" in e}
+
+
+def unresolved(cc: str) -> list[amlr.Function]:
+    """The list's named-body rows no expansion resolves to an item: residue for the report."""
+    return [f for f in amlr.functions(cc) if f.kind == "body" and not any("body" in e for e in f.expansion)]
+
+
 def classify(entity: dict[str, Any] | None, organisation: bool, wikis: list[str]) -> str | None:
     """Why a candidate is dropped, or None to keep it."""
     if entity is None:
@@ -136,9 +150,11 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     seeded = spec.seeded()
     for qid in seeded:
         lanes.setdefault(qid, set()).add("seed")
+    for qid in listed(cc):
+        lanes.setdefault(qid, set()).add("listed")
     count = lambda lane: sum(lane in v for v in lanes.values())  # noqa: E731
-    log(f"{cc}: {len(actors.kinds)} state actors; {len(lanes)} candidates "
-        + ", ".join(f"{lane} {count(lane)}" for lane in ("typed", "formed", "statutory", "owned", "parented", "category", "seed")))
+    log(f"{cc}: {len(actors.kinds)} state actors; {len(lanes)} candidates " + ", ".join(
+        f"{lane} {count(lane)}" for lane in ("typed", "formed", "statutory", "owned", "parented", "category", "seed", "listed")))
     # Owned is the wide lane: stations, buildings and artworks a state body
     # owns come with it, and the organisation test is what drops them.
     typed = wd.fetch_items(sorted(lanes), props="claims")
@@ -157,7 +173,7 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     # A category lists buildings and brands too, so its members pass the
     # organisation test like the owned lane's; a typed, formed, statutory or listed item
     # is a body by its type or by the list.
-    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "formed", "statutory"}}
+    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "formed", "statutory", "listed"}}
     keep = [q for q in sorted(lanes) if "excluded" not in lanes[q] and q in bodies]
     entities = wd.fetch_items(keep)
     wikis = langs(state)

@@ -386,6 +386,28 @@ def unowned() -> None:
            "only an enterprise is gated out when no body named over it is the state's; an institution keeps its seats")
 
 
+def listed() -> None:
+    """A body the state's AMLR list names: in scope by the list, seats only, never an owner."""
+    for why in ("control:unclear", "control:unstated", "control_unquoted", "level:municipal", "level:foreign",
+                "enterprise_unowned", "no_state_owner"):
+        expect(rules.listed_scope(why, True), f"a listed body stopped by {why} keeps its seats")
+        expect(not rules.listed_scope(why, False), f"an unlisted one stopped by {why} does not")
+    for why in ("kind:government", "kind:other", "inactive", "control:private"):
+        expect(not rules.listed_scope(why, True), f"the list does not override {why}")
+    expect(not rules.listed_scope(None, True), "a body that passes needs no override")
+    expect(rules.gate(answer(kind="institution", verdict="unstated", owners=(), quote=None), MESSAGE)
+           == "control:unstated" and rules.listed_scope("control:unstated", True),
+           "a listed agency or central bank is an institution the list admits")
+    import inspect
+    src = inspect.getsource(rules.decide)
+    expect("listed_seats(" in src and src.count("control_rows(") == 1,
+           "a body the list alone admits gets its seats and no marker, link or class")
+    expect("set(passed) | set(actors.kinds)" in src, "a body the list alone admits is no state owner of others")
+    expect("Q967861" in load.listed("ro"), "the asset's resolved bodies are the lane (National Bank of Romania)")
+    expect(all(f.kind == "body" and not any("body" in e for e in f.expansion) for f in load.unresolved("ro")),
+           "an unresolved row is a named-body row with no body in its expansion")
+
+
 def historic() -> None:
     def state(types: list[str], end: str | None = None) -> dict:
         e = ent(P31=types)
@@ -441,6 +463,7 @@ def main() -> None:
     crawler_cases()
     policy()
     unowned()
+    listed()
     historic()
     reach()
     filters()

@@ -362,6 +362,23 @@ Switzerland (2026-10-17/18), nothing sent.
   co-owner; no polity beside a state holder the item names.
 - **An infobox head may be an interim's.** 126 heads left open while the
   article names a later one are now skipped (TV5 Monde's interim CEO).
+- **The AMLR list adds scope, not bodies (2026-10-24).** The `listed` lane
+  reads the bodies the asset resolves (mt 13, ro 64, dk 70, lt 32, pl 59,
+  ee 33, sk 15, cz 22): all but 69 were already loaded by another lane,
+  and the 39 of those still to decide cost $0.73. Most listed bodies already
+  passed the control gate. The list alone admitted 42: ro 27 (21 of them
+  enterprises whose named owner was no state actor), lt 10, dk 4 (Ørsted,
+  PostNord, Danske Spil among them), sk 1. They gained
+  only 19 seats (ro 3, dk 9, lt 7), because the articles name few people
+  and most of those are unlinked or ended long ago. A hand check of 25 seat
+  lines on listed bodies, the 19 the list alone added among them: 24
+  right, 1 plausible but unconfirmed. Where the list falls short is the
+  articles and the unresolved rows: 26 listed bodies have no article in
+  the country's languages or English (lt 9, ro 7, mt 4), and 362
+  named-body rows across these eight countries resolve to no item (ro 103,
+  mt 93, lt 59, dk 48). The body-class rows agree with the specs' tiers,
+  except Portugal's municipal enterprises; no row names a form a spec
+  lacks.
 
 The dry run: 3,938 lines on 26 countries for about $185 of model calls
 (pilots and superseded runs included); precision samples 18–20 of 20 per
