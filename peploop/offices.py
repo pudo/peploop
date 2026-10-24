@@ -84,6 +84,9 @@ class Archetype:
     #: modelled as part of the government its minister is part of, and the
     #: state's existing deputies are too few to agree on anything themselves.
     body_from: str | None = None
+    #: Made only by `mint_units`, from a census level that names its parent:
+    #: categorize is never offered it, so its prompt and answers are unchanged.
+    unit_only: bool = False
 
 
 ARCHETYPES: dict[str, Archetype] = {
@@ -102,6 +105,13 @@ ARCHETYPES: dict[str, Archetype] = {
     # existing municipal items subclass.
     "mayor": Archetype("Q30185", description="mayor of {jurisdiction}, {state}", single_seat=True,
                        level="municipality"),
+    # The head of a grouping of municipalities (a powiat, an EPCI, a
+    # métropole). Its parent is measured per country in the census: Landrat
+    # (292 of 294 German district heads), président d'EPCI (19 French EPCI
+    # heads, against 3 for président de communauté de communes), starosta.
+    # None of them reaches mayor; local official is what the Landrat subclasses.
+    "grouping_head": Archetype("Q140071462", description="head of the executive of {jurisdiction}, {state}",
+                               single_seat=True, level="municipality", unit_only=True),
     # A seat on a local council: one state's 142 measured council seats are
     # "member of X Council", `P279` council member, `P1001` the local area and
     # the council under `P361`.

@@ -142,6 +142,37 @@ cannot.
 - Not minted, by rule: bilateral ambassadorships, subnational cabinet seats
   (Malaysia: 418 groups as `archetype/none`), deputy ministers without an
   archetype.
+- The AMLR head offices (2026-10-24, dry run, nothing created): `mint_units`
+  over the back-link's 871 units with no head office, as `of: amlr:<level>`
+  census entries for 14 countries. Of 822 candidates drafted, verify and the
+  guard passed 756 (pl 266, fr 213, de 140, gr 38, pt 21, it 21, hu 14,
+  cz 13, fi 9, sk 7, at 5, hr 4, lv 3, si 2), found 16 existing and skipped
+  50; $24.48 at list price, asked live once the batch queue stalled for an
+  hour. Hand check of 35 guarded: every office real and missing, labels and
+  descriptions right; three holders not confirmable from an undated
+  infobox. What the dry run taught, each now a rule:
+  - An undated `P6` is often the mayor before last (Győr, Havířov): where
+    the infobox names someone else, the infobox holds.
+  - Infoboxes name commissions (Italian councils dissolved for mafia
+    infiltration list three commissari), acting heads ("p.f.") and terms
+    already over (Kalamata's 2019-2023): none is a holder.
+  - Powiat names repeat (two "powiat bielski", Brzeg and Brzesko both
+    "brzeski"): 18 starosts whose label would twin another are not drafted.
+  - The verifier refused "prezydent miasta Zgierz" where the existing Polish
+    offices say "prezydent Gdańska": the label now takes the genitive the
+    city's own article writes after a governing word; seven cities whose
+    article never does are residue.
+  - Finland's offices carry Swedish labels, which the guard requires.
+  Residue: 19 French EPCI with no English label (no description can be
+  written), 14 whose label the verifier would word otherwise, two Latvian novadi the guard reads as regions, duplicates the
+  label search found that the scope query missed (Kozani, Zadar, Jyväskylä,
+  Douaisis, Bremen's city-state mayor), and two the guard took for a
+  same-named town's mayoralty (Bergheim, Langenfeld: recorded `found` with
+  the other town's item). Not in the census: Ireland (North and South
+  Tipperary were abolished in 2014; Dublin City's head is the Lord Mayor
+  item), the two Aragonese comarcas (no parseable head line) and the
+  Upper Silesian metropolis (a board). The holders' `P39` does not follow a
+  creation: the unit lane attests no mention, so `feed` reopens nothing.
 
 ## peptree
 

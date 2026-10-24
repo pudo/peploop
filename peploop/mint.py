@@ -471,7 +471,7 @@ DECISIONS = (
 #: an ambassadorship is an office, and recording it as one is what lets the
 #: disposition defer it under its own rule rather than lose it.
 EXTRA_ARCHETYPES = ("ambassador",)
-CATEGORIZE_ARCHETYPES = tuple(ARCHETYPES) + EXTRA_ARCHETYPES
+CATEGORIZE_ARCHETYPES = tuple(a for a, s in ARCHETYPES.items() if not s.unit_only) + EXTRA_ARCHETYPES
 
 #: Statuses a re-categorize leaves alone: an item exists or is being made.
 PROTECTED_STATUSES = ("created", "found", "loaded", "creating")
@@ -1106,7 +1106,7 @@ def offered_for(country: str, gs: Sequence[Group], anchors: Sequence[Anchor],
     subs = _subdivisions(state, dissolved=True)
     current = set(_subdivisions(state))
     chosen = {q for g in gs for q in g.chosen}
-    parents = {q for a in ARCHETYPES.values() for q in (a.parent, *a.parents)}
+    parents = {q for a in ARCHETYPES.values() if not a.unit_only for q in (a.parent, *a.parents)}
     bodies = {a.body for a in anchors if a.body}
     labels = _labels([state, *subs, *chosen, *parents, *bodies, *party_qids])
     territory = get_territory(country)
@@ -1526,15 +1526,15 @@ def _attestations(ids: Sequence[int]) -> dict[int, list[Attestation]]:
 
 
 def unit_attestation(unit: dict[str, Any]) -> Attestation:
-    """The holder a unit's article names, as the one attestation of its office."""
-    quotes = [unit.get("quote") or ""]
+    """The holder a unit's own `P6` or article names, as the one attestation of its office."""
+    quotes = list(unit.get("quotes") or [unit.get("quote") or ""])
     if unit.get("source"):
         quotes.append(f"Every unit of the level has the office: {unit['source']}")
     # No title: an attestation's title is what a created item takes as an alias,
     # and an infobox line is not a name of the office.
     return Attestation(
         person=f"unit:{unit['qid']}", current=True, title=None,
-        jurisdiction=unit.get("label"), lang="en", quotes=[q for q in quotes if q],
+        jurisdiction=unit.get("label"), lang=unit.get("lang") or "en", quotes=[q for q in quotes if q],
         person_label=f"{unit.get('holder')}, named as the current holder by {unit.get('url')}",
     )
 
@@ -2181,10 +2181,15 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
     # The state's own offices of the same seat, read by label, outrank the
     # draft among the kinds the archetype allows.
     seat = offices.seat_parent(labels.get("en", ""), sibs, shape.parents or (shape.parent,))
+    unit_parent = (draft.get("unit") or {}).get("parent") if "unit" in cand.origin else None
     if anchor and anchor.parent:
         # Measured for the census, where the state's offices of the kind are
         # too thinly scoped for the tally to find.
         parent = anchor.parent
+    elif unit_parent:
+        # A unit level's parent is measured for the census too, over the
+        # existing head offices of the level ("mayor of a place in Lombardy").
+        parent = unit_parent
     elif seat:
         parent = seat
     elif drafted and (drafted in shape.parents or drafted in measured):

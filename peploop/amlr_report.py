@@ -7,8 +7,8 @@ are expanded the report asks, live:
 - of the position items, how many have a current holder: a living human
   with a `P39` of it and no end;
 - of the units a level rule names (`amlr.units`), how many have a head
-  office (their `P1313`, or a position scoped to them by `P1001` that is a
-  kind of mayor or head of government) and how many name a current head
+  office (their `P1313`, or a position scoped to them or their council that
+  is a kind of one of `amlr.HEADS`) and how many name a current head
   (`P6`, no end);
 - of the bodies, how many carry any seat statement (`SEATS`).
 
@@ -28,8 +28,6 @@ from peploop import amlr, wikidata
 OUT = Path(__file__).resolve().parents[1] / "data" / "amlr"
 #: The statements on a body that seat a person on it: director, chair, head, board member, supervisory board.
 SEATS = ("P169", "P1037", "P488", "P3320", "P5052")
-#: The offices a unit's head holds, as the classes a scoped office is a kind of: mayor, head of government.
-HEAD_CLASSES = ("Q30185", "Q2285706")
 
 HELD_SQL = """SELECT DISTINCT ?pos WHERE {{
   VALUES ?pos {{ {values} }}
@@ -38,25 +36,11 @@ HELD_SQL = """SELECT DISTINCT ?pos WHERE {{
   FILTER NOT EXISTS {{ ?st wikibase:rank wikibase:DeprecatedRank }}
 }}"""
 
-SCOPED_SQL = """SELECT DISTINCT ?u WHERE {{
-  VALUES ?u {{ {values} }} VALUES ?head {{ {heads} }}
-  ?o wdt:P1001 ?u ; wdt:P279/wdt:P279* ?head .
-}}"""
-
-
 def held(positions: list[str]) -> set[str]:
     """The positions a living person holds now, by a `P39` with no end."""
     rows = wikidata.bisect(lambda chunk: wikidata.sparql(HELD_SQL.format(values=wikidata.values_block(chunk))),
                            positions)
     return {r["pos"] for r in rows}
-
-
-def scoped_heads(units: list[str]) -> set[str]:
-    """The units some office scoped to them is a head office of."""
-    heads = wikidata.values_block(HEAD_CLASSES)
-    rows = wikidata.bisect(lambda chunk: wikidata.sparql(
-        SCOPED_SQL.format(values=wikidata.values_block(chunk), heads=heads)), units, size=60)
-    return {r["u"] for r in rows}
 
 
 def _unended(entity: dict[str, Any], prop: str) -> bool:
@@ -91,7 +75,7 @@ def measure(cc: str) -> dict[str, Any]:
             mine = sorted(q for q, (lv, _) in units.items() if lv == level)
             unit_ents = wikidata.fetch_items(mine, props="claims") if mine else {}
             linked = {q for q, e in unit_ents.items() if _unended(e, "P1313")}
-            office = linked | (scoped_heads(mine) if mine else set())
+            office = linked | (amlr.scoped_heads(mine) if mine else set())
             head = {q for q, e in unit_ents.items() if _unended(e, "P6")}
             out["levels"][level] = {"units": len(mine), "office": len(office), "head": len(head)}
     return out

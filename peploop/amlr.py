@@ -263,3 +263,53 @@ def units(cc: str) -> dict[str, tuple[str, int]]:
     key = (f"amlr_units:{cc}:{spec.threshold}:" + "|".join(f"{q}={lv}" for q, lv in sorted(spec.classes.items()))
            + ":" + "|".join(sorted(spec.exclude)))
     return {q: (lv, int(pop)) for q, (lv, pop) in memo.cached(key, read, 7 * memo.DAY).items()}
+
+
+#: The classes a unit's head office is a kind of, through its `P279` chain: one
+#: definition for what the report counts, the back-link links and `mint_units`
+#: makes, so a minted office is the head office the other two look for. Mayor
+#: and head of government reach most; the rest are heads no such chain reaches,
+#: measured over the offices scoped to the EU's ≥50k units.
+HEAD_CLASSES = {
+    "Q30185": "mayor",
+    "Q2285706": "head of government",
+    "Q514725": "Landrat",
+    "Q23090514": "president of departmental council",
+    "Q61968143": "président d'EPCI à fiscalité propre",
+    "Q29968251": "président de communauté de communes",
+    "Q3911031": "province president",
+    "Q40342479": "president of provincial deputation",
+    "Q43291899": "president of comarcal council of Catalonia",
+    # Finland's kaupunginjohtaja, the municipality's executive head where no
+    # pormestari is elected: 6 of 13 existing Finnish head offices.
+    "Q496728": "municipal manager",
+    # Poland's starosta of a powiat: no powiat has a head office yet, and the
+    # generic title is the one item to subclass.
+    "Q7231714": "starosta",
+}
+HEADS = frozenset(HEAD_CLASSES)
+
+#: The offices scoped to a unit or its council (`P1001`, `P2389`, `P642`), the
+#: way the back-link reads scope; and which of them are head offices. Ended
+#: offices count: a renamed office is the back-link's to sort out, not a new
+#: one to make.
+SCOPED_SQL = """SELECT DISTINCT ?o ?x WHERE {{ VALUES ?x {{ {values} }}
+  {{ ?o p:P1001/ps:P1001 ?x }} UNION {{ ?o p:P2389/ps:P2389 ?x }} UNION {{ ?o p:P642/ps:P642 ?x }} }}"""
+HEAD_SQL = """SELECT DISTINCT ?o WHERE {{ VALUES ?o {{ {values} }} VALUES ?head {{ {heads} }}
+  ?o wdt:P279/wdt:P279* ?head . }}"""
+
+
+def scoped_heads(qids: list[str]) -> set[str]:
+    """The units some head office is scoped to, directly or through their council."""
+    ents = wikidata.fetch_items(qids, props="claims") if qids else {}
+    targets: dict[str, set[str]] = {}
+    for qid in qids:
+        for x in (qid, *wikidata.claim_qids(ents.get(qid, {}), "P194", include_deprecated=False)):
+            targets.setdefault(x, set()).add(qid)
+    rows = wikidata.bisect(lambda chunk: wikidata.sparql(
+        SCOPED_SQL.format(values=wikidata.values_block(chunk))), sorted(targets), size=60) if targets else []
+    offices = sorted({r["o"] for r in rows})
+    heads = wikidata.values_block(sorted(HEADS))
+    found = {r["o"] for r in wikidata.bisect(lambda chunk: wikidata.sparql(
+        HEAD_SQL.format(values=wikidata.values_block(chunk), heads=heads)), offices, size=60)} if offices else set()
+    return {unit for r in rows if r["o"] in found for unit in targets[r["x"]]}

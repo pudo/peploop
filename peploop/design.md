@@ -325,7 +325,23 @@ queue) has the mechanics; the decisions are these.
   unit that lacks it, attested by the head its own article names, so the
   mayoralties of towns whose mayor has no article are not left out. A level
   where fewer than half the units have the office is started only on a source
-  saying every unit has it. Verify and the guard decide these as any other.
+  saying every unit has it (`*` for a national law or page). Verify and the
+  guard decide these as any other.
+- **The EU's ≥50k units are such levels.** An entry `of: amlr:<level>` takes
+  its units from `amlr.units` (municipal, grouping, metro) whatever their
+  classes, and a unit has its office when an office of one of `amlr.HEADS`
+  -- the one definition the AMLR report and peptree's back-link read too --
+  is scoped to it or its council. The holder is the unit's own current `P6`
+  (one living human, begun inside the current window), else the head line
+  of its article's infobox in the level's language (`HEAD_TITLES`); an
+  infobox naming someone else outranks an undated `P6`. The office is
+  labelled from the entry's templates in the state's language and English,
+  and subclasses the parent the entry measured over the level's existing
+  head offices (by title, by region, or one), which must reach `amlr.HEADS`.
+  Municipal heads are `mayor`s; a grouping's head (a powiat's starosta, an
+  EPCI's president) is `grouping_head`, an archetype only this lane makes.
+  The holders' `P39` does not follow from the creation: no mention was
+  clustered into the office, so `feed` reopens nothing for it.
 - **The shape is fixed, not drafted.** Each kind of office is an archetype in
   `offices.py` -- its `P279` parent, how it names its body, whether it is
   scoped, whether it is one seat -- with the parents measured across other

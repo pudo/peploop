@@ -108,6 +108,7 @@ FAMILY_GENERIC = frozenset({
     "Q117826617",  # supreme court judge
     "Q132050",     # governor
     "Q30185",      # mayor
+    "Q140071462",  # local official: a grouping's head, one per unit
     "Q1162163",    # director / agency head
     "Q1758037",    # speaker: one senate president presides over the whole congress too
     "Q115136557",  # politburo member

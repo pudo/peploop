@@ -30,25 +30,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-from peploop import amlr, amlr_report, positions, typegraph, wikidata
+from peploop import amlr, positions, typegraph, wikidata
 from peploop.tree import country as countries
 from peploop.tree import gaps, qs, rules, signals
 from peploop.tree.load import has, values
 
 LANE = "backlink"
 OUT = qs.OUT_DIR / LANE
-#: The heads of a unit's executive that no mayor or head-of-government chain
-#: reaches, measured over the offices scoped to the EU's ≥50k groupings.
-LOCAL_HEADS = {
-    "Q514725": "Landrat",
-    "Q23090514": "president of departmental council",
-    "Q61968143": "président d'EPCI à fiscalité propre",
-    "Q29968251": "président de communauté de communes",
-    "Q3911031": "province president",
-    "Q40342479": "president of provincial deputation",
-    "Q43291899": "president of comarcal council of Catalonia",
-}
-HEADS = frozenset(amlr_report.HEAD_CLASSES) | frozenset(LOCAL_HEADS)
+#: What a head office is: one definition with the report and the mint lane.
+HEADS = amlr.HEADS
 #: Head classes of a regime that ended, whose office items rarely carry their own end:
 #: the fascist podestà (1926-1945) reaches mayor.
 FORMER_HEADS = frozenset({"Q694019"})

@@ -1,0 +1,25 @@
+# The head offices of the EU AMLR levels (Reg. 2024/1624, Art. 2(34)(viii)): every
+# unit of 50,000 or more (`amlr.units`) that has no head office gets one from
+# `mint_units`, attested by the unit's own current P6 or its article's infobox.
+# All 36 existing mayoralties subclass presidente da câmara municipal and are
+# labelled "Presidente da Câmara Municipal de X"; the forms give the article a
+# municipality's name takes ("da Póvoa de Varzim", "do Seixal").
+- key: amlr_municipal_head
+  class: subnational.municipal
+  archetype: mayor
+  per: units
+  of: amlr:municipal
+  lang: pt
+  title: presidente da câmara municipal
+  labels:
+    pt: "Presidente da Câmara Municipal {name}"
+    en: "Mayor of {name}"
+  forms:
+    pt:
+      - ["^(Póvoa|Maia|Moita|Amadora|Figueira|Nazaré|Trofa|Covilhã|Guarda|Lousã|Horta)\\b", "da \\1"]
+      - ["^(Caldas)\\b", "das \\1"]
+      - ["^(Porto|Seixal|Montijo|Barreiro|Funchal|Entroncamento|Cartaxo|Fundão|Bombarral|Crato|Redondo|Sardoal)$", "do \\1"]
+      - ["^(?!(?:da|das|do|dos) )", "de "]
+  parent: Q7241346                 # presidente da câmara municipal
+  sources:
+    "*": https://pt.wikipedia.org/wiki/Presidente_da_câmara_municipal

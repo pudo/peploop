@@ -1,0 +1,44 @@
+# The head offices of the EU AMLR levels (Reg. 2024/1624, Art. 2(34)(viii)): every
+# unit of 50,000 or more (`amlr.units`) that has no head office gets one from
+# `mint_units`, attested by the unit's own current P6 or its article's infobox.
+# Every commune has its maire, so only the EPCI à fiscalité propre and the
+# métropoles are here. Their existing presidencies subclass président d'EPCI à
+# fiscalité propre (19, against 3 for président de communauté de communes).
+- key: amlr_grouping_head
+  class: subnational.municipal
+  archetype: grouping_head
+  per: units
+  of: amlr:grouping
+  lang: fr
+  title: président
+  labels: &epci_labels
+    fr: "président {name}"         # "président de la communauté d'agglomération du Pays Basque"
+    en: "President of {name}"
+  forms: &epci_forms
+    # The "de" a name takes: "de la communauté …", "de l'Agglomération …",
+    # "du Muretain Agglo", "du Grand Belfort", "d'Agglo Pays d'Issoire", else
+    # "de Grand Besançon Métropole".
+    fr:
+      - ["^((?:[Cc]ommunauté|[Mm]étropole|[Ee]urométropole)\\b)", "de la \\1"]
+      - ["^([Aa]gglomération)\\b", "de l'\\1"]
+      - ["^Le ", "du "]
+      - ["^(Grand (?!.*\\b(?:Métropole|Agglo|Agglomération)\\b))", "du \\1"]
+      - ["^Les ", "des "]
+      - ["^([AEIOUYÉÈÎaeiouyéèî])", "d'\\1"]
+      - ["^(?!(?:de |du |des |d'))", "de "]
+  parent: Q61968143                # président d'EPCI à fiscalité propre
+  sources:
+    "*": https://fr.wikipedia.org/wiki/Établissement_public_de_coopération_intercommunale_à_fiscalité_propre
+
+- key: amlr_metro_head
+  class: subnational.municipal
+  archetype: grouping_head
+  per: units
+  of: amlr:metro
+  lang: fr
+  title: président
+  labels: *epci_labels
+  forms: *epci_forms
+  parent: Q61968143
+  sources:
+    "*": https://fr.wikipedia.org/wiki/Métropole_(intercommunalité_française)

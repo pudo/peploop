@@ -1,0 +1,18 @@
+# The head offices of the EU AMLR levels (Reg. 2024/1624, Art. 2(34)(viii)): every
+# unit of 50,000 or more (`amlr.units`) that has no head office gets one from
+# `mint_units`, attested by the unit's own current P6 or its article's infobox.
+# 3 of the 4 existing head offices subclass mayor of a place in Hungary and
+# are labelled "X polgármestere".
+- key: amlr_municipal_head
+  class: subnational.municipal
+  archetype: mayor
+  per: units
+  of: amlr:municipal
+  lang: hu
+  title: polgármester
+  labels:
+    hu: "{name} polgármestere"
+    en: "Mayor of {name}"
+  parent: Q2922332                 # mayor of a place in Hungary
+  sources:
+    "*": https://hu.wikipedia.org/wiki/Polgármester

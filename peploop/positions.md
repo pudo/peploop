@@ -331,7 +331,10 @@ have somewhere to go.
   over a live `P150` read where an office exists in each. A census office is
   a prompt for the offices nobody's article names, not a second channel of
   evidence: one no mention attests is skipped as `census/unattested`, so the
-  funnel says how much of the census the seeds reached.
+  funnel says how much of the census the seeds reached. A `per: units` entry
+  is a third source (`mint_units`): one candidate per unit of a level that
+  lacks the office, attested by the head the unit's own `P6` or article
+  names, and for the EU's ≥50k units read from `amlr.units`.
 - **Current is read conservatively.** An acting tenure or a dead holder never
   counts, an end counts only while its earliest reading is still ahead, an
   open tenure only if it began within twelve years, an undated one never.
