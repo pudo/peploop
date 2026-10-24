@@ -46,3 +46,20 @@
   cases where an autonomous/unsupervised sweep is being conducted."
 - 2026-10-23: On which positions to mint: "I think the logic is also completeness:
   if we have 3 out of 9 governors, let's make the other 6"
+- 2026-10-23: On the EU AMLR: "I want to work on a set of changes to PEPcorp
+  that enable the tool to be more closely in line with the directive, and
+  generate data that helps OpenSanctions to meet the requirements."
+- 2026-10-23: On the AMLR work: "let's expand this to peptree" "and peploop"
+- 2026-10-23: "the goal is not just to measure the gap but also to identify
+  expansions of the tools to close them. measurement itself is a precursor, but
+  let's keep the eye on the prize"
+- 2026-10-24: On the AMLR work: "skip the relatives for now. also IOs - EU:
+  yes."
+- 2026-10-24: "adopt a coordination role and start sequential subagents to
+  work on each of these workstreams and try to implement them to the extent
+  that can be done without outsize architectural expansion of the tools."
+- 2026-10-24: On the EU function list: "perhaps we can turn that into a living
+  asset in the repo - a data structure (YAML?) - that contains the original
+  list and a growing expansion of the specified categories into concrete items
+  via units etc. this would be a great asset to evolve. can also be per
+  country"
