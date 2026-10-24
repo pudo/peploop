@@ -8,6 +8,7 @@ statements. The batch itself goes out through `peploop/send.py`.
     python -m peploop.cli tree send                       # reconcile; write what would go out to send/pending.qs
     python -m peploop.cli tree send --batch 7             # the same, for one reviewed sweep batch only
     python -m peploop.cli tree send --submit [--batch 7]  # additions as one QS3 batch, then approved removals as another
+    python -m peploop.cli tree send --lane backlink       # the units' P1313 and their offices' scope, sent on their own
     python -m peploop.cli tree send --status              # batches, failures, strikes, open removals
     python -m peploop.cli tree send --propose-reverts     # queue removals for what landed on items the load now drops
     python -m peploop.cli tree strike <qid> <prop> [value] --reason "…" [--country cc]
@@ -28,10 +29,13 @@ statements. The batch itself goes out through `peploop/send.py`.
   so no run re-decides it.
 - Only a place the sweep ledger marks reviewed (or submitted) goes out: a batch
   is audited before any of it is sent.
+- A lane run apart from the repair (`backlink`) has run files of its own and
+  goes out only when named: the repair's send never carries its lines.
 """
 
 import sys
 from collections import defaultdict
+from pathlib import Path
 from typing import Callable
 
 from peploop import ledger, send
@@ -41,6 +45,8 @@ from peploop.tree import qs, sweep, wd
 TOOL = "peptree"
 DIR = qs.OUT_DIR / "send"
 PENDING = DIR / "pending.qs"
+#: The lanes with run files of their own; "" is the repair.
+LANES = ("", "backlink")
 #: Ledger statuses whose proposals may go out.
 CLEARED = ("reviewed", "submitted")
 
@@ -63,20 +69,24 @@ def separable(lines: list[str]) -> tuple[list[str], list[str]]:
     return now, later
 
 
-def proposals() -> dict[str, tuple[str, str]]:
-    """key → (country, line) over every place's latest run file; the first country to propose wins."""
+def pending_path(lane: str = "") -> Path:
+    return DIR / (f"pending-{lane}.qs" if lane else "pending.qs")
+
+
+def proposals(lane: str = "") -> dict[str, tuple[str, str]]:
+    """key → (country, line) over every place's latest run file of the lane; the first country to propose wins."""
     out: dict[str, tuple[str, str]] = {}
     for cc in sorted(sweep.read()):
-        path = qs.latest(cc)
+        path = qs.latest(cc, lane)
         for line in path.read_text().splitlines() if path else []:
             if line.strip():
                 out.setdefault(ledger.key(line), (cc, line))
     return out
 
 
-def pending(log: Callable[[str], None], batch: int | None = None) -> list[tuple[str, str]]:
+def pending(log: Callable[[str], None], batch: int | None = None, lane: str = "") -> list[tuple[str, str]]:
     """(country, line) of every cleared proposal not yet sent, not struck and not live, one batch's worth."""
-    props = proposals()
+    props = proposals(lane)
     taken = {k for k, *_ in ledger.edits("add")}
     cleared = {cc for cc, r in sweep.read().items() if r["status"] in CLEARED}
     held = {v[0] for k, v in props.items() if k not in taken and v[0] not in cleared}
@@ -100,21 +110,23 @@ def pending(log: Callable[[str], None], batch: int | None = None) -> list[tuple[
     return [(by_line[line], line) for line in now]
 
 
-def run(log: Callable[[str], None] = print, batch: int | None = None, submit: bool = False) -> list[int]:
+def run(log: Callable[[str], None] = print, batch: int | None = None, submit: bool = False,
+        lane: str = "") -> list[int]:
     """Reconcile, write the pending lines to `pending.qs`; with `submit`, send them and the approved removals.
 
     Returns the QS3 batch ids sent.
     """
     send.prepare(TOOL, log)
-    todo = pending(log, batch)
+    todo = pending(log, batch, lane)
+    out = pending_path(lane)
     # Stamped as `send` will stamp them, so the file shows what lands.
     lines = [peploop_qs.stamp(TOOL, line) for _, line in todo]
     errors = qs.validate(lines)
     if errors:
         sys.exit("refused: " + "; ".join(errors[:5]))
     DIR.mkdir(parents=True, exist_ok=True)
-    PENDING.write_text("\n".join(lines) + "\n" if lines else "")
-    log(f"{PENDING}: {len(lines)} lines, from {', '.join(sorted({cc for cc, _ in todo})) or 'nowhere'}")
+    out.write_text("\n".join(lines) + "\n" if lines else "")
+    log(f"{out}: {len(lines)} lines, from {', '.join(sorted({cc for cc, _ in todo})) or 'nowhere'}")
     if not submit:
         n = len([r for r in ledger.removals("approved", TOOL) if r["sent"] is None])
         log(f"{n} approved removals would go out after them")

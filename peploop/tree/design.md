@@ -72,6 +72,38 @@ clutter, and a country's thousands of mayoralties rarely clear two channels. Cha
 `prompts/repair.md` re-keys the cache: re-decide earlier places with
 `tree place <cc> --no-ask`, which reads the ledger and asks nothing.
 
+## The back-link lane
+
+`python -m peploop.cli tree backlink <cc>… | --eu` (`backlink.py`) works on
+places, not on a country's offices: every governed unit of 50,000 or more in
+an EU state (`peploop/amlr.py`'s `units`), so that a consumer reaches a
+mayor's office from the town and the town from the office. It asks no model.
+
+- A unit with no `P1313` gets one when exactly one current head office is
+  scoped to it: `P1001` the unit, or `P2389`/`P642` the unit or its council
+  (`P194`). A head office reaches mayor or head of government, or one of the
+  measured local heads no such chain reaches (`LOCAL_HEADS`: Landrat,
+  président de conseil départemental or d'EPCI, presidente della provincia,
+  presidente de diputación). Current means no `P576`/`P582`, a scope statement
+  without end, and no class of an ended regime (`FORMER_HEADS`, the podestà).
+- Two current heads (a lord mayor and a mayor, a mayor and a council's
+  president) are listed and skipped. So is a single head reached only through
+  a council that another place already links. A unit that has a `P1313`, of
+  whatever kind, gets none: a generic class there is not this lane's to fix.
+- The office of a unit's own `P1313`, or of a planned one, gets `P1001` the
+  unit where it has no scope, and `P17` the state under the repair's own
+  rules (`gaps.wants_p17`, `rules.p17_same_as_jurisdiction`, `signals.era_ok`).
+  An office scoped elsewhere is left to the repair. `P279` is never written
+  here.
+- A unit with no head office at all goes to the mint queue
+  (`data/peptree/backlink/mint-queue-<date>.tsv`) for peploop's `mint_units`;
+  the report beside it counts each country and level.
+
+Its lines go to `data/peptree/<cc>/<cc>-backlink-<date>.qs` and are sent apart
+from the repair's, with `tree send --lane backlink`. A `P1313` line is the one
+line whose subject is a place: `qs.validate` refuses an office statement on a
+place in the same batch, and any property peptree does not write.
+
 ## Modelling rules the code holds
 
 - `P17` holds only a state. A dependent territory's office takes `P1001` alone.
@@ -104,7 +136,8 @@ Only reviewed places go out, and only with the user. `tree send` (`outbox.py`)
 reconciles the joint send ledger, takes every reviewed place's latest run file, drops what went out
 before, what a reviewer struck and what is already live, and writes the rest
 to `data/peptree/send/pending.qs`; `tree send --submit` sends it as one QS3 batch,
-then the approved removals as another. A line is plain (no `+`): it merges
+then the approved removals as another; `--lane backlink` does the same for the
+back-link lane's files alone. A line is plain (no `+`): it merges
 into a statement that already holds its value, so an addition sent twice
 changes nothing.
 
@@ -142,6 +175,7 @@ peploop/tree/
   audit.py        one batch, every line labelled, for review
   sweep.py        the universe, batches and the ledger table
   outbox.py       send and strike: peptree's side of peploop/send.py
+  backlink.py     the AMLR units' head offices: P1313 on the unit, P1001/P17 on the office
   wd.py           the run's label languages, and the readers the modules share
   check_*.py      offline checks
 ```

@@ -113,6 +113,9 @@ def describe(tool: str, cols: list[str]) -> str:
     """
     if cols[0] in ("CREATE", "LAST"):
         what = "create a position item"
+    elif tool == "peptree" and len(cols) > 1 and cols[1] == "P1313":
+        # A place's only line: the office it links is its head's, read from the office's own scope.
+        what = "link a place to the office that heads its government"
     elif tool == "peptree":
         # QS3 folds an item's lines into one edit under the first line's summary,
         # so this one names no single property.

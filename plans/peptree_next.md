@@ -118,11 +118,11 @@ subdivision's units have the office. Municipal levels are minted through
 `per: units`, not a separate workstream.
 
 **Open:**
-- **Lane A, the back-link.** No unit's `P1313` points at the head offices
-  minted for it; without it they are reachable only through their own `P1001`.
-  The first lane whose subject is a place; `tree/qs.validate` must accept it,
-  and its first batch is read line by line. A generic class in a unit's
-  `P1313` is a proposed removal, not the lane's.
+- **Lane A, the back-link,** is built for the EU's ≥50k units
+  (`tree backlink`). Open: extending it beyond the AMLR unit set, the units
+  whose `P1313` names a generic class or a shared office (proposed removals,
+  not the lane's), and the 871 units with no head office, which a re-run
+  links once `mint_units` has made their offices.
 - **The governed level per country**, from data: the highest level where at
   least half the units are governed, municipal and non-levels excluded.
 - **Discovery lanes** into `ptree_item` (`kind = subnational`): offices scoped

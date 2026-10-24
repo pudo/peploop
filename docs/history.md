@@ -220,6 +220,21 @@ cannot.
   chain moves a start. `tenure_before_polity` keeps reading the first
   `P571` in claim order: best-rank would move 878 of 3,550 offices, mostly
   the wrong way (Belarus 1991 → 882, Russia 1991 → 1263, Italy 1946 → 476).
+- The AMLR back-link (2026-10-24), over the 2,282 EU units of 50,000 or
+  more: 881 already carried a `P1313`, 528 got one planned (de 322, of them
+  290 Landräte; it 56, dk 38, pt 35, fr 21, bg 20), 2 had two current heads
+  (Copenhagen's eight borgmestre; Rostock's mayor beside the Bürgerschaft's
+  president), 871 had no head office (fr groupings 246, pl powiats 235, de cities
+  146). Groupings' heads reach neither mayor nor head of government:
+  Landrat, président d'EPCI, presidente della provincia and presidente de
+  diputación had to be named classes. Of 32 sampled lines all held; a label
+  scan of the rest found two wrong, both through "city president" or a bare
+  "Bürgermeister" item (Schwerin's Stadtpräsident chairs the council,
+  Frankfurt (Oder)'s head is its Oberbürgermeister), and both were struck.
+  Neither a council-seat class nor the body's type separates a council's
+  chair from the executive's head: Frankfurt's Lord Mayor, every EPCI
+  president and Girona's diputación president also subclass a seat, and a
+  Câmara Municipal reaches legislature.
 
 ## pepcorp
 

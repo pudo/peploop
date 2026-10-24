@@ -3,6 +3,8 @@
     .venv/bin/python -m peploop.tree.check_qs
 """
 
+import datetime as dt
+
 from peploop import plan, wikipedia
 from peploop.tree import qs
 from peploop.checks import expect
@@ -34,6 +36,10 @@ def main() -> None:
            "two P279 additions on one item are allowed")
     expect(qs.validate(["Q1\tP17"]) != [], "a malformed line is refused")
     expect(qs.validate(["-Q1\tP17\tQ900001"]) != [], "a removal is refused")
+    day = dt.date(2026, 10, 24)
+    expect(qs.run_path("xx", day).name == "xx-2026-10-24.qs"
+           and qs.run_path("xx", day, lane="backlink").name == "xx-backlink-2026-10-24.qs",
+           "a lane run apart from the repair writes a file of its own, which the repair's latest-file pattern never reads")
 
 
 if __name__ == "__main__":

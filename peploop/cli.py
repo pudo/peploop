@@ -27,6 +27,7 @@ from peploop.corp import regress as corp_regress
 from peploop.corp import run as corp_run
 from peploop.corp import wd as corp_wd
 from peploop.tree import audit as tree_audit
+from peploop.tree import backlink as tree_backlink
 from peploop.tree import outbox as tree_outbox
 from peploop.tree import place as tree_place
 from peploop.tree import qs as tree_qs
@@ -1162,7 +1163,9 @@ def tree_audit_(batch: int) -> None:
 @click.option("--batch", type=int, default=None, help="Only the places of this reviewed sweep batch.")
 @click.option("--status", "show_status", is_flag=True, help="Print the send ledger: batches, failures, strikes, removals.")
 @click.option("--propose-reverts", is_flag=True, help="Queue removals for what landed on items the load now drops.")
-def tree_send_(submit: bool, batch: int | None, show_status: bool, propose_reverts: bool) -> None:
+@click.option("--lane", type=click.Choice(tree_outbox.LANES[1:]), default="",
+              help="Send a lane run apart from the repair instead of the repair's lines.")
+def tree_send_(submit: bool, batch: int | None, show_status: bool, propose_reverts: bool, lane: str) -> None:
     """Send what every reviewed place proposes and has not gone out yet, then the approved removals."""
     log = lambda m: click.echo(m, err=True)  # noqa: E731
     if show_status:
@@ -1171,8 +1174,21 @@ def tree_send_(submit: bool, batch: int | None, show_status: bool, propose_rever
     if propose_reverts:
         tree_outbox.propose_reverts(log)
         return
-    sent = tree_outbox.run(log, batch, submit=submit)
-    click.echo(f"QS3 batches {' '.join(map(str, sent))}" if sent else f"nothing sent; review {tree_outbox.PENDING}")
+    sent = tree_outbox.run(log, batch, submit=submit, lane=lane)
+    click.echo(f"QS3 batches {' '.join(map(str, sent))}" if sent
+               else f"nothing sent; review {tree_outbox.pending_path(lane)}")
+
+
+@tree.command("backlink")
+@click.argument("ccs", nargs=-1)
+@click.option("--eu", is_flag=True, help="Every EU member state with an AMLR unit set.")
+def tree_backlink_(ccs: tuple[str, ...], eu: bool) -> None:
+    """Link each AMLR unit to its one current head office, and the office back; write lines and a report."""
+    if not ccs and not eu:
+        raise click.UsageError("name countries or pass --eu")
+    todo = [cc for cc in amlr.codes() if cc != "eu"] if eu else list(ccs)
+    md, tsv = tree_backlink.run(todo, log=lambda m: click.echo(m, err=True))
+    click.echo(f"{md}\n{tsv}")
 
 
 @tree.command("strike")
