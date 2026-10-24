@@ -63,3 +63,13 @@
   list and a growing expansion of the specified categories into concrete items
   via units etc. this would be a great asset to evolve. can also be per
   country"
+- 2026-10-24: "we need to re-work title and description creation."
+- 2026-10-24: On labels and descriptions: "my sense is that we should actually
+  keep it simple: generate no descriptions, and labels only in the relevant
+  national language and english." "Definitely let's not generate N labels for
+  irrelevant languages (like a Germa label for a chinese position)."
+- 2026-10-24: "we don't need to add the country to the title, we have
+  P17/P1001. We can also make it a special case for generic titles that don't
+  mention a polity to allow a description. Let's not over-engineer "national
+  language". Rigour territories have that metadata. Let's definitely re-work
+  the drafted offices"
