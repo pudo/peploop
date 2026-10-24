@@ -35,7 +35,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q25223, by: model}
 - row: 873
   position: Federal Chancellor
   local: Bundeskanzler
@@ -45,7 +46,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q4970706, by: model}
 - row: 874
   position: Federal ministers
   lang: DEU
@@ -54,7 +56,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q248352, by: model}
 - row: 875
   position: Parliamentary state secretary
   lang: DEU
@@ -63,7 +66,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q19731005, by: model}
 - row: 876
   position: Minister of state,
   lang: DEU
@@ -72,7 +76,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q2325058, by: model}
 - row: 877
   position: State secretary
   lang: DEU
@@ -90,7 +95,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q1939555, by: model}
 - row: 879
   position: Member of the Bundesrat
   lang: DEU
@@ -99,15 +105,16 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q15835370, by: model}
 - row: 880
   position: Member of the federal board
   lang: DEU
   status: Position prefix for territory
   category: members of the governing bodies of political parties;
   amlr: iii_party
-  kind: body_class
-  checked: false
+  kind: body
+  checked: true
   expansion: []
 - row: 881
   position: Member of the party board
@@ -314,7 +321,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q162222, by: model}
 - row: 901
   position: Ambassador
   lang: DEU

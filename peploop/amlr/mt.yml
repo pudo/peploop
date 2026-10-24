@@ -16,7 +16,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q796593, by: model}
 - row: 1513
   position: The Prime Minister of the Republic of Malta
   status: Position for territory
@@ -24,15 +25,17 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q152814, by: model}
 - row: 1514
   position: Speaker of the House of Representatives
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: ii_legislature
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q7574273, by: model}
 - row: 1515
   position: All Ministers
   status: Position prefix for territory
@@ -105,7 +108,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q5096791, by: model}
 - row: 1524
   position: All Judges serving in the Courts of the Republic of Malta
   status: Position prefix for territory
@@ -138,7 +142,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q74690, by: model}
 - row: 1528
   position: The Auditor General
   status: Position for territory
@@ -178,7 +183,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q60539022, by: model}
 - row: 1533
   position: Deputy Commander of the Armed Forces of Malta
   status: Position for territory
@@ -231,18 +237,20 @@ functions:
   position: The Ombudsman
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q141737249, by: model}
 - row: 1540
   position: All Commissioners within the Office of the Ombudsman
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
-  kind: body
-  checked: false
-  expansion: []
+  amlr: agency
+  kind: body_class
+  checked: true
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 1541
   position: Deputy Commissioners of Police
   status: Position prefix for territory
@@ -287,9 +295,9 @@ functions:
   position: The Head of the Malta Security Services
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
-  kind: body
-  checked: false
+  amlr: agency
+  kind: position
+  checked: true
   expansion: []
 - row: 1547
   position: Data Protection Commissioner
@@ -721,7 +729,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q731913, by: model}
 - row: 1595
   position: ''
   organisation: Resource Support and Services Ltd
@@ -766,7 +775,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q123376374, by: model}
 - row: 1600
   position: ''
   organisation: Trade Malta Ltd
@@ -784,7 +794,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q108305641, by: model}
 - row: 1602
   position: ''
   organisation: WSC International Ltd
@@ -847,7 +858,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1341101, by: model}
 - row: 1609
   position: ''
   organisation: Air Malta Plc
@@ -892,7 +904,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q30292610, by: model}
 - row: 1614
   position: ''
   organisation: Malta Enterprise Corporation
@@ -901,7 +914,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q6744661, by: model}
 - row: 1615
   position: ''
   organisation: Malta Freeport Corporation
@@ -944,18 +958,19 @@ functions:
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
   amlr: agency
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 1620
   position: Chairperson and CEO and Members
   organisation: 'Environment and Resources Authority '
   status: To split
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q28920943, by: model}
 - row: 1621
   position: Chairperson and Members
   organisation: 'Executive Council of the Planning Authority '
@@ -979,9 +994,9 @@ functions:
   organisation: 'Lands Authority '
   status: To split
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 1624
   position: 'Chairperson, Licensing (Trade) Appeals Board '
@@ -989,8 +1004,8 @@ functions:
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
   amlr: agency
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 1625
   position: Chairperson and Members
@@ -1052,10 +1067,11 @@ functions:
   organisation: 'Regulator for Energy and Water Services '
   status: To split
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q125850733, by: model}
 - row: 1632
   position: Chairperson and CEO
   organisation: Transport Malta
@@ -1064,7 +1080,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q30637888, by: model}
 - row: 1633
   position: Deputy Chief Executive Officer and Chief Operations Officer, Transport Malta
   organisation: Transport Malta
@@ -1073,7 +1090,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q30637888, by: model}
 - row: 1634
   position: Registrar General, Transport Malta - Shipping and Seamen
   organisation: Transport Malta - Shipping and Seamen
@@ -1106,9 +1124,9 @@ functions:
   organisation: Transport Malta – Integrated Transport Strategy Directorate
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 1638
   position: Chief Officer, Transport Malta – Strategy & Corporate Services
@@ -1161,17 +1179,17 @@ functions:
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
   amlr: agency
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 1644
   position: Chairperson & Director
   organisation: 'Financial Intelligence Analysis Unit  '
   status: To split
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 1645
   position: Registrar
@@ -1196,28 +1214,30 @@ functions:
   organisation: 'Malta Communications Authority  '
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 1648
   position: 'CEO, Malta Financial Services Authority  '
   organisation: 'Malta Financial Services Authority  '
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q4279484, by: model}
 - row: 1649
   position: Board of Governors & Non-Executive Chairman
   organisation: 'Malta Financial Services Authority  '
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q4279484, by: model}
 - row: 1650
   position: 'Director-General Contracts, Contracts Department  '
   organisation: 'Contracts Department  '
@@ -1250,19 +1270,21 @@ functions:
   organisation: 'Infrastructure Malta  '
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q120926468, by: model}
 - row: 1654
   position: ''
   organisation: MITA
   status: n/a
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q30284934, by: model}
 - row: 1655
   position: Regulator
   organisation: 'Granting of Citizenship for exceptional services '
@@ -1286,9 +1308,9 @@ functions:
   organisation: 'Komunita’ Malta '
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 1658
   position: 'Chairperson, Komunita’ Malta Board '
@@ -1313,18 +1335,18 @@ functions:
   organisation: 'Arts Council Malta  '
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
-  kind: body
-  checked: false
+  amlr: vii_soe
+  kind: position
+  checked: true
   expansion: []
 - row: 1661
   position: ''
   organisation: Housing Authority
   status: n/a
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 1662
   position: 'Chief Executive Officer, Malta Enterprise '
@@ -1334,7 +1356,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q6744661, by: model}
 - row: 1663
   position: ''
   organisation: Resource, Recovery and Recycling Agency

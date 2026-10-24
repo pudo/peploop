@@ -49,10 +49,11 @@ functions:
   organisation: Czech Statistical Office (Český statistický úřad)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q3504917, by: model}
 - row: 388
   position: Vice-president, Czech Statistical Office
   local: Český statistický úřad
@@ -63,7 +64,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3504917, by: model}
 - row: 389
   position: President, Czech Surveying and Land Registry Office
   local: Český úřad zeměměřický a katastrální
@@ -71,10 +73,11 @@ functions:
   organisation: Czech Surveying and Land Registry Office (Český úřad zeměměřický a katastrální)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11379528, by: model}
 - row: 390
   position: Vice-president, Czech Surveying and Land Registry Office
   local: Český úřad zeměměřický a katastrální
@@ -82,10 +85,11 @@ functions:
   organisation: Czech Surveying and Land Registry Office (Český úřad zeměměřický a katastrální)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11379528, by: model}
 - row: 391
   position: President, Czech Mining Authority
   local: Český báňský úřad
@@ -93,10 +97,11 @@ functions:
   organisation: Czech Mining Authority (Český báňský úřad)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11292816, by: model}
 - row: 392
   position: Deputy President, Czech Mining Authority
   local: Český báňský úřad
@@ -107,7 +112,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11292816, by: model}
 - row: 393
   position: Director of the mining department
   status: Position prefix for territory
@@ -122,20 +128,22 @@ functions:
   organisation: The industrial-property office
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11089585, by: model}
 - row: 395
   position: Deputy President, The industrial-property office
   lang: CZE
   organisation: The industrial-property office
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11089585, by: model}
 - row: 396
   position: Chairman, Office for the Protection of Competition
   local: Úřad pro ochranu hospodářské soutěže
@@ -143,10 +151,11 @@ functions:
   organisation: Office for the Protection of Competition (Úřad pro ochranu hospodářské soutěže)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11089526, by: model}
 - row: 397
   position: Vice-chair, Office for the Protection of Competition
   local: Úřad pro ochranu hospodářské soutěže
@@ -157,7 +166,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11089526, by: model}
 - row: 398
   position: Chairman, Administration of the State Material Reserves
   local: Správa státních hmotných rezerv
@@ -165,10 +175,11 @@ functions:
   organisation: Administration of the State Material Reserves (Správa státních hmotných rezerv)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12055719, by: model}
 - row: 399
   position: Deputy Chairman, Administration of the State Material Reserves
   local: Správa státních hmotných rezerv
@@ -176,10 +187,11 @@ functions:
   organisation: Administration of the State Material Reserves (Správa státních hmotných rezerv)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12055719, by: model}
 - row: 400
   position: Chairperson, State Office for Nuclear Safety
   local: Státní úřad pro jadernou bezpečnost
@@ -187,10 +199,11 @@ functions:
   organisation: State Office for Nuclear Safety (Státní úřad pro jadernou bezpečnost)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12056891, by: model}
 - row: 401
   position: Section Directors
   organisation: State Office for Nuclear Safety (Státní úřad pro jadernou bezpečnost)
@@ -207,10 +220,11 @@ functions:
   organisation: National Security Authority (Národní bezpečnostní úřad)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12041615, by: model}
 - row: 403
   position: Deputy Directors, National Security Authority
   local: Národní bezpečnostní úřad
@@ -221,7 +235,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12041615, by: model}
 - row: 404
   position: Chair of the ERO board, Energy Regulatory Office
   local: Energetický regulační úřad
@@ -229,10 +244,11 @@ functions:
   organisation: Energy Regulatory Office (Energetický regulační úřad)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11878921, by: model}
 - row: 405
   position: Member of the ERO Board
   organisation: Energy Regulatory Office (Energetický regulační úřad)
@@ -241,7 +257,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11878921, by: model}
 - row: 406
   position: Head of the office of the government, Office of the Government of the Czech Republic
   lang: CZE
@@ -251,7 +268,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11089595, by: model}
 - row: 407
   position: Deputy head responsible for a section, Office of the Government of the Czech Republic
   lang: CZE
@@ -261,7 +279,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11089595, by: model}
 - row: 408
   position: State secretary, Office of the Government of the Czech Republic
   lang: CZE
@@ -271,7 +290,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11089595, by: model}
 - row: 409
   position: ČTÚ Council Chair, Czech Telecommunications Authority
   local: Český telekomunikační úřad, ČTÚ
@@ -291,7 +311,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11379403, by: model}
 - row: 411
   position: President, Data-Protection Authority
   local: Úřad pro ochranu osobních údajů
@@ -299,10 +320,11 @@ functions:
   organisation: Data-Protection Authority (Úřad pro ochranu osobních údajů)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11089537, by: model}
 - row: 412
   position: Vice-president, Data-Protection Authority
   local: Úřad pro ochranu osobních údajů
@@ -313,7 +335,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11089537, by: model}
 - row: 413
   position: Chairman, Council for Radio and Television Broadcasting
   local: Rada pro rozhlasové a televizní vysílání
@@ -321,10 +344,11 @@ functions:
   organisation: Council for Radio and Television Broadcasting (Rada pro rozhlasové a televizní vysílání)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12048468, by: model}
 - row: 414
   position: Vice-chairmen, Council for Radio and Television Broadcasting
   local: Rada pro rozhlasové a televizní vysílání
@@ -335,7 +359,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12048468, by: model}
 - row: 415
   position: Chairman, Office for the Supervision of the Finances of Political Parties and Movements
   local: Úřad pro dohled nad hospodařením politických stran a politických hnutí
@@ -344,20 +369,22 @@ functions:
     hospodařením politických stran a politických hnutí)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q29418798, by: model}
 - row: 416
   position: Members of the Office
   organisation: Office for the Supervision of the Finances of Political Parties and Movements (Úřad pro dohled nad
     hospodařením politických stran a politických hnutí)
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q29418798, by: model}
 - row: 417
   position: Chairman, Transport Infrastructure Access Authority
   local: Úřad pro přístup k dopravní infrastruktuře
@@ -387,10 +414,11 @@ functions:
   organisation: National Cyber and Information Security Agency (Národní úřad pro kybernetickou a informační bezpečnost)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q34440567, by: model}
 - row: 420
   position: Deputy Director, National Cyber and Information Security Agency
   local: Národní úřad pro kybernetickou a informační bezpečnost
@@ -398,10 +426,11 @@ functions:
   organisation: National Cyber and Information Security Agency (Národní úřad pro kybernetickou a informační bezpečnost)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q34440567, by: model}
 - row: 421
   position: President, National Sport Agency
   local: Národní sportovní agentura
@@ -409,10 +438,11 @@ functions:
   organisation: National Sport Agency (Národní sportovní agentura)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q97312254, by: model}
 - row: 422
   position: Vice-president, National Sport Agency
   local: Národní sportovní agentura
@@ -420,10 +450,11 @@ functions:
   organisation: National Sport Agency (Národní sportovní agentura)
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q97312254, by: model}
 - row: 423
   position: Member [of the lower house]
   status: Position prefix for territory
@@ -439,7 +470,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q18941264, by: model}
 - row: 425
   position: Head of the Chancellery of the Chamber of Deputies
   status: Position prefix for territory
@@ -463,7 +495,8 @@ functions:
   amlr: iii_party
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {level: municipal, office: head, by: model}
 - row: 428
   position: Deputy Mayor
   status: Position prefix for territory
@@ -530,7 +563,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q59773473, by: model}
 - row: 436
   position: Supreme Administrative Court judge
   local: Nejvyšší správní soud
@@ -541,7 +575,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q140913206, by: model}
 - row: 437
   position: Supreme Court judges
   local: Nejvyšší soud
@@ -552,7 +587,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q140913203, by: model}
 - row: 438
   position: Attorney-General
   local: nejvyšší státní zástupce
@@ -563,7 +599,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q26197430, by: model}
 - row: 439
   position: Governor of Central Bank
   lang: CZE
@@ -589,7 +626,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q251062, by: model}
 - row: 442
   position: Police Commissioner, Police of the Czech Republic
   lang: CZE
@@ -599,15 +637,16 @@ functions:
   amlr: vi_diplomat_military
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1135262, by: model}
 - row: 443
   position: Directors of the regional directorates of the Police of the Czech Republic
   organisation: Police of the Czech Republic
   status: Position prefix for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: body
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 444
   position: Director, General inspectorate of the security corps
@@ -625,10 +664,11 @@ functions:
   organisation: Security Information Service (Bezpečnostní informační služba – BIS)
   status: Position for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
-  amlr: vi_diplomat_military
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q854461, by: model}
 - row: 446
   position: Director, Military intelligence
   organisation: Military intelligence
@@ -643,10 +683,11 @@ functions:
   organisation: Office for Foreign Relations and Information
   status: Position for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
-  amlr: vi_diplomat_military
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q330666, by: model}
 - row: 448
   position: Chief of General Staff of the Army of the Czech Republic, Army of the Czech Republic
   organisation: Army of the Czech Republic
@@ -655,7 +696,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q72966700, by: model}
 - row: 449
   position: Director of regional military headquarters, Army of the Czech Republic
   organisation: Army of the Czech Republic
@@ -673,7 +715,8 @@ functions:
   amlr: vi_diplomat_military
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3408709, by: model}
 - row: 451
   position: Chief of staff, Military office of the President of the Republic
   organisation: Military office of the President of the Republic
@@ -682,7 +725,8 @@ functions:
   amlr: vi_diplomat_military
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11925755, by: model}
 - row: 452
   position: Member of the board of directors
   status: Position prefix for territory
@@ -690,7 +734,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 453
   position: Member of the administrative, management or supervisory body of a corporation owned by the State (a
     commercial corporation in which the Czech Republic directly or indirectly owns more than 50 % of the shares)
@@ -699,7 +744,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 454
   position: Director
   status: Position prefix for territory
@@ -707,7 +753,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 455
   position: Deputy Director of a state-owned enterprise
   status: Position prefix for territory
@@ -715,7 +762,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 456
   position: Member of the Supervisory Board of a state-owned enterprise
   status: Position prefix for territory
@@ -723,14 +771,15 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 457
   position: Ambassadors
   status: Position prefix for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 458
   position: Consuls general

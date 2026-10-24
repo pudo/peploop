@@ -17,7 +17,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q795477, by: model}
 - row: 471
   position: Minister for Foreign Affairs
   status: Position for territory
@@ -73,7 +74,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q11781520, by: model}
 - row: 478
   position: Minister for Immigration and Integration
   status: Position for territory
@@ -89,7 +91,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q12312037, by: model}
 - row: 480
   position: Minister for Climate, Energy and Utilities
   status: Position for territory
@@ -145,7 +148,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q5690600, by: model}
 - row: 487
   position: Minister for the Environment
   lang: DNK
@@ -154,7 +158,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q1311756, by: model}
 - row: 488
   position: Minister for Food, Agriculture and Fisheries
   lang: DNK
@@ -163,7 +168,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q24300568, by: model}
 - row: 489
   position: Minister for Taxation
   lang: DNK
@@ -181,7 +187,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q107677343, by: model}
 - row: 491
   position: Permanent Secretary, Ministry of Defence
   local: Forsvarsministeriet
@@ -203,7 +210,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q131426921, by: model}
 - row: 493
   position: Permanent Secretary, Ministry of Taxation
   local: Skatteministeriet
@@ -324,7 +332,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q133329542, by: model}
 - row: 504
   position: Permanent Secretary, Ministry of Higher Education and Science
   local: Uddannelses- og Forskningsministeriet
@@ -397,7 +406,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q12311817, by: model}
 - row: 511
   position: Members of the governing body of a political party (Section 2(1)(8)(c)
   status: Position prefix for territory
@@ -416,7 +426,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q141641430, by: model}
 - row: 513
   position: Supreme Court Judge
   status: Position for territory
@@ -440,8 +451,8 @@ functions:
   status: Position for territory
   category: members of courts of auditors or of the boards of central banks;
   amlr: v_audit_cb
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 516
   position: Governor of the Danish central bank
@@ -482,8 +493,8 @@ functions:
   status: Position for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: position
-  checked: false
+  kind: unusable
+  checked: true
   expansion: []
 - row: 521
   position: Ambassador
@@ -620,8 +631,8 @@ functions:
   status: Position for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 536
   position: Rear Admiral, Commander of the Royal Danish Defence College
@@ -642,7 +653,8 @@ functions:
   amlr: vi_diplomat_military
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1772632, by: model}
 - row: 538
   position: Major General, Danish Military Representative to NATO and the EU (DAMIREP)
   status: Position for territory
@@ -724,26 +736,29 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q114215226, by: model}
 - row: 547
   position: Board member, DanPilot
   lang: DNK
   organisation: DanPilot
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12307097, by: model}
 - row: 548
   position: Management
   organisation: DanPilot
   status: Generic category
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12307097, by: model}
 - row: 549
   position: Board member, Dansk Jagtforsikring A/S
   lang: DNK
@@ -772,7 +787,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3430548, by: model}
 - row: 552
   position: 'Chair of the Board, Danske Spil A/S, '
   lang: DNK
@@ -782,7 +798,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3430548, by: model}
 - row: 553
   position: Management
   organisation: Danske Spil A/S
@@ -791,7 +808,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3430548, by: model}
 - row: 554
   position: 'Chair of the Board, DSB '
   lang: DNK
@@ -867,7 +885,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1341529, by: model}
 - row: 562
   position: Management
   organisation: Energinet
@@ -876,25 +895,28 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1341529, by: model}
 - row: 563
   position: Board member, Finansiel Stabilitet
   organisation: Finansiel Stabilitet
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12311337, by: model}
 - row: 564
   position: Management
   organisation: Finansiel Stabilitet
   status: Generic category
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12311337, by: model}
 - row: 565
   position: Board member, Fjordforbindelsen Frederikssund
   organisation: Fjordforbindelsen Frederikssund
@@ -936,19 +958,21 @@ functions:
   organisation: Naviair
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q1783727, by: model}
 - row: 570
   position: Management
   organisation: Naviair
   status: Generic category
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q1783727, by: model}
 - row: 571
   position: Board member, Nordsøenheden
   organisation: Nordsøenheden
@@ -972,10 +996,11 @@ functions:
   organisation: PostNord
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q3181430, by: model}
 - row: 574
   position: Director, PostNord
   organisation: PostNord
@@ -984,7 +1009,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3181430, by: model}
 - row: 575
   position: Board member, Statens Ejendomssalg A/S
   organisation: Statens Ejendomssalg A/S
@@ -1071,27 +1097,27 @@ functions:
   organisation: Vækstfonden
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 585
   position: Chair of the Board, Vækstfonden
   organisation: Vækstfonden
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 586
   position: Management
   organisation: Vækstfonden
   status: Generic category
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 587
   position: Board member, Ørsted A/S
@@ -1101,7 +1127,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1241260, by: model}
 - row: 588
   position: Management
   organisation: Ørsted A/S
@@ -1110,7 +1137,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1241260, by: model}
 - row: 589
   position: Board member, Evida Holding A/S
   organisation: Evida Holding A/S
@@ -1148,7 +1176,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11958565, by: model}
 - row: 593
   position: Director, Danish Working Environment Authority
   local: Arbejdstilsynet
@@ -1159,7 +1188,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12302069, by: model}
 - row: 594
   position: Director, National Research Centre for the Working Environment
   local: Det Nationale Forskningscenter for Arbejdsmiljø
@@ -1170,7 +1200,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12308385, by: model}
 - row: 595
   position: Chair of the Board, Ministry of Social Affairs and the Interior, Benchmarking Unit
   status: Position for territory
@@ -1197,7 +1228,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12000034, by: model}
 - row: 598
   position: Director, Agency of Family Law
   local: Familieretshuset
@@ -1208,7 +1240,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q98081321, by: model}
 - row: 599
   position: National Statistician, Statistics Denmark
   local: Danmarks Statistik
@@ -1219,7 +1252,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1164337, by: model}
 - row: 600
   position: Director, Social Appeals Board
   local: Ankestyrelsen
@@ -1230,7 +1264,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11958155, by: model}
 - row: 601
   position: Director, Danish Centre for Social Science Research (VIVE),
   lang: DNK
@@ -1251,7 +1286,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1164325, by: model}
 - row: 603
   position: Chief Executive Officer, Geological Survey of Denmark and Greenland
   local: De Nationale Geologiske Undersøgelser for Danmark og Grønland
@@ -1263,7 +1299,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q4993674, by: model}
 - row: 604
   position: Director, Danish Energy Agency
   local: Energistyrelsen
@@ -1271,10 +1308,11 @@ functions:
   organisation: Danish Energy Agency [Energistyrelsen]
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q5219714, by: model}
 - row: 605
   position: Director, Danish Utility Regulator
   local: Forsyningstilsynet
@@ -1285,7 +1323,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11967468, by: model}
 - row: 606
   position: Director, Danish Geodata Agency
   local: Geodatastyrelsen
@@ -1296,7 +1335,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q6573171, by: model}
 - row: 607
   position: Director, Agency for Data Supply and Efficiency
   local: Styrelsen for dataforsyning og effektivisering
@@ -1307,7 +1347,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q29788118, by: model}
 - row: 608
   position: Director, Danish Business Authority
   local: Erhvervsstyrelsen
@@ -1318,7 +1359,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12310258, by: model}
 - row: 609
   position: Board member, Danish Financial Supervisory Authority
   local: Finanstilsynet
@@ -1326,10 +1368,11 @@ functions:
   organisation: Danish Financial Supervisory Authority [Finanstilsynet]
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q3437062, by: model}
 - row: 610
   position: Chair of the Board, Danish Financial Supervisory Authority
   local: Finanstilsynet
@@ -1340,17 +1383,19 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3437062, by: model}
 - row: 611
   position: Director, Danish Financial Supervisory Authority
   lang: DNK
   organisation: Danish Financial Supervisory Authority
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q3437062, by: model}
 - row: 612
   position: Director, Danish Competition and Consumer Authority
   local: Konkurrence- og Forbrugerstyrelsen
@@ -1361,7 +1406,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12322641, by: model}
 - row: 613
   position: Member
   organisation: Danish Competition Council [Konkurrencerådet]
@@ -1381,7 +1427,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q22086023, by: model}
 - row: 615
   position: Director, Danish Appeals Boards Authority
   local: Nævnenes Hus
@@ -1392,7 +1439,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q97209453, by: model}
 - row: 616
   position: Director, Danish Patent and Trademark Office
   local: Patent- og Varemærkestyrelsen
@@ -1403,7 +1451,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q10621665, by: model}
 - row: 617
   position: Director, Danish Safety Technology Authority
   local: Sikkerhedsstyrelsen
@@ -1414,7 +1463,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5251649, by: model}
 - row: 618
   position: Director, Danish Maritime Authority
   local: Søfartsstyrelsen
@@ -1425,7 +1475,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q4587946, by: model}
 - row: 619
   position: Director, Agency for Public Finance and Management
   local: Økonomistyrelsen
@@ -1433,10 +1484,11 @@ functions:
   organisation: Agency for Public Finance and Management [Økonomistyrelsen]
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12327402, by: model}
 - row: 620
   position: Director, Agency for Digital Government
   local: Digitaliseringsstyrelsen
@@ -1447,7 +1499,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11965674, by: model}
 - row: 621
   position: Director, Agency for Governmental Administration
   local: Statens Administration
@@ -1458,7 +1511,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12336889, by: model}
 - row: 622
   position: Director, Agency for Governmental IT Services
   local: Statens IT
@@ -1469,7 +1523,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12336899, by: model}
 - row: 623
   position: Chief of Defence
   status: Position for territory
@@ -1482,10 +1537,11 @@ functions:
   position: Defence Staff, Chief
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vi_diplomat_military
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q137734613, by: model}
 - row: 625
   position: Commander of the Home Guard
   local: Hjemmeværnskommandoen
@@ -1496,7 +1552,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5888434, by: model}
 - row: 626
   position: Commissioner of the Home Guard
   lang: DNK
@@ -1506,7 +1563,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5888434, by: model}
 - row: 627
   position: Director, Danish Emergency Management Agency
   local: Beredskabsstyrelsen
@@ -1517,7 +1575,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3375899, by: model}
 - row: 628
   position: Chief, Danish Defence Intelligence Service
   local: Forsvarets Efterretningstjeneste
@@ -1528,7 +1587,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3077736, by: model}
 - row: 629
   position: Chief (acting), Danish Defence Intelligence Service
   lang: DNK
@@ -1538,7 +1598,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3077736, by: model}
 - row: 630
   position: Director, Ministry of Defence Acquisition and Logistics Organisation
   local: Forsvarsministeriets Materiel- og Indkøbsstyrelse
@@ -1593,7 +1654,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11963861, by: model}
 - row: 635
   position: Member of the Board, Danish Court Administration
   local: Domstolsstyrelsen
@@ -1645,7 +1707,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1172291, by: model}
 - row: 640
   position: Chief of Police, Danish National Police
   local: Rigspolitiet
@@ -1656,7 +1719,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3756751, by: model}
 - row: 641
   position: Director, Danish Critical Supply Agency
   local: Styrelsen for Forsyningssikkerhed
@@ -1700,7 +1764,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q2860552, by: model}
 - row: 645
   position: Director, Agency for Culture and Palaces
   local: Slots- og Kulturstyrelsen
@@ -1711,7 +1776,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q22697223, by: model}
 - row: 646
   position: Director, Environmental Protection Agency
   local: Miljøstyrelsen
@@ -1722,7 +1788,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12327237, by: model}
 - row: 647
   position: Director, Danish Veterinary and Food Administration
   local: Fødevarestyrelsen
@@ -1733,7 +1800,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12313325, by: model}
 - row: 648
   position: Director, Danish Agricultural Agency
   local: Landbrugsstyrelsen
@@ -1755,7 +1823,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q763243, by: model}
 - row: 650
   position: Director, Danish Fisheries Agency
   local: Fiskeristyrelsen
@@ -1766,7 +1835,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q54107769, by: model}
 - row: 651
   position: Director, Danish Tax Agency
   local: Skattestyrelsen
@@ -1777,7 +1847,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q55455586, by: model}
 - row: 652
   position: Director, Danish Gambling Authority
   local: Spillemyndigheden
@@ -1788,7 +1859,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12336662, by: model}
 - row: 653
   position: Director, IT and Development Agency
   local: Udvikling og Forenklingsstyrelsen
@@ -1799,7 +1871,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q55455588, by: model}
 - row: 654
   position: Director, Tax Appeals Agency
   local: Skatteankestyrelsen,
@@ -1810,7 +1883,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q111634802, by: model}
 - row: 655
   position: Director, Administration and Services Agency
   local: Administrations- og Servicestyrelsen
@@ -1821,7 +1895,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q55455591, by: model}
 - row: 656
   position: Director, Danish Customs Agency
   local: Toldstyrelsen
@@ -1832,7 +1907,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q55452495, by: model}
 - row: 657
   position: Director, Employee and Competence Agency
   local: Medarbejder- og Kompetencestyrelsen
@@ -1843,7 +1919,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q107433749, by: model}
 - row: 658
   position: Director, Danish Motor Vehicle Agency
   local: Motorstyrelsen
@@ -1854,7 +1931,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q55455581, by: model}
 - row: 659
   position: Director (acting), Danish Debt Collection Agency
   local: Gældstyrelsen
@@ -1873,10 +1951,11 @@ functions:
   organisation: Danish Property Assessment Agency [Vurderingsstyrelsen]
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q55455578, by: model}
 - row: 661
   position: Director, Danish Health Authority
   local: Sundhedsstyrelsen
@@ -1887,7 +1966,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q4583472, by: model}
 - row: 662
   position: Director, Danish Medicines Agency
   local: Lægemiddelstyrelsen
@@ -1898,7 +1978,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3378090, by: model}
 - row: 663
   position: Director, Danish Patient Safety Authority
   local: Styrelsen for Patientsikkerhed
@@ -1909,7 +1990,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q21421334, by: model}
 - row: 664
   position: Director, Danish Agency for Patient Complaints
   local: Styrelsen for Patientklager
@@ -1920,7 +2002,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q50252455, by: model}
 - row: 665
   position: Director, Danish Health Data Authority
   local: Sundhedsdatastyrelsen
@@ -1931,17 +2014,19 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q21817183, by: model}
 - row: 666
   position: Chief Executive Officer, Statens Serum Institut
   lang: DNK
   organisation: Statens Serum Institut
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q3378353, by: model}
 - row: 667
   position: Director, Danish Transport, Building and Housing Authority
   local: Trafik-, Bygge- og Boligstyrelsen
@@ -1949,9 +2034,9 @@ functions:
   organisation: Danish Transport, Building and Housing Authority [Trafik-, Bygge- og Boligstyrelsen]
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 668
   position: Chief Executive Officer, Banedanmark
@@ -1959,10 +2044,11 @@ functions:
   organisation: Banedanmark
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q806420, by: model}
 - row: 669
   position: Director of Roads, Danish Road Directorate
   local: Vejdirektoratet
@@ -1973,7 +2059,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1630101, by: model}
 - row: 670
   position: Director, Danish Building and Property Agency
   local: Bygningsstyrelsen
@@ -1984,7 +2071,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q124312813, by: model}
 - row: 671
   position: Director, Danish Road Traffic Authority
   local: Færdselsstyrelsen
@@ -1995,7 +2083,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12313298, by: model}
 - row: 672
   position: Director, Danish Agency for Science and Higher Education
   local: 'Styrelsen for Forskning og Uddannelse, '
@@ -2017,7 +2106,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q50037710, by: model}
 - row: 674
   position: Director, Danish Immigration Service
   local: Udlændingestyrelsen
@@ -2028,7 +2118,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q4573196, by: model}
 - row: 675
   position: Director, Danish Agency for International Recruitment and Integration
   local: Styrelsen for International Rekruttering og Integration, SIRI
@@ -2051,7 +2142,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q98553935, by: model}
 - row: 677
   position: Director, National Agency for Education and Quality
   local: Styrelsen for Undervisning og Kvalitet
@@ -2062,7 +2154,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11982588, by: model}
 - row: 678
   position: Director, National Agency for IT and Learning
   local: Styrelsen for IT og Læring
@@ -2073,7 +2166,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12008198, by: model}
 - row: 679
   position: Director of the board or equivalent function of an international organisation (Section 2(1)(8)(h))
   status: Position prefix for territory
@@ -2112,9 +2206,9 @@ functions:
   organisation: The Board of Nordic Innovation
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: ix_io
+  amlr: vii_soe
   kind: position
-  checked: false
+  checked: true
   expansion: []
 - row: 684
   position: Chair, Consultative Shipping Group

@@ -26,7 +26,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q1723031, by: model}
 - row: 1959
   position: Members of government, i.e. ministers, state secretaries and deputy state secretaries or equivalent
   status: To split
@@ -148,9 +149,9 @@ functions:
   position: Ombudsman
   status: Position prefix for territory
   category: directors, deputy directors and members of the board or equivalent function of an international organisation.
-  amlr: ix_io
+  amlr: agency
   kind: position
-  checked: false
+  checked: true
   expansion: []
 - row: 1974
   position: Members of the Council of State
@@ -206,25 +207,25 @@ functions:
   position: Members of the Supreme Council for National Defence
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: vi_diplomat_military
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 1981
   position: Members of the Economic and Social Council
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 1982
   position: Members of the Regulatory Authority for the Media
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: agency
   kind: body
-  checked: false
+  checked: true
   expansion: []
 - row: 1983
   position: Heads of diplomatic missions
@@ -308,7 +309,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 1993
   position: Members of supervisory bodies of public institutes
   status: Position prefix for territory
@@ -316,7 +318,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 1994
   position: Members of management bodies of public foundations
   status: Position prefix for territory
@@ -324,7 +327,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 1995
   position: Members of supervisory bodies of public foundations
   status: Position prefix for territory
@@ -340,7 +344,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 1997
   position: Members of management bodies of independent administrative entities, irrespective of how they are designated
   status: Position prefix for territory
@@ -348,7 +353,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 1998
   position: Members of supervisory bodies of independent administrative entities, irrespective of how they are designated
   status: Position prefix for territory
@@ -356,23 +362,26 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 1999
   position: Members of management bodies of entities belonging to the State public business sector
   status: Position prefix for territory
   category: ''
-  amlr: agency
+  amlr: vii_soe
   kind: body_class
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 2000
   position: Members of supervisory bodies of entities belonging to the State public business sector
   status: Position prefix for territory
   category: ''
-  amlr: agency
+  amlr: vii_soe
   kind: body_class
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 2001
   position: Members of management bodies of entities belonging to the regional public business sector
   status: Position prefix for territory
@@ -380,7 +389,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {tier: regional, bodies: enterprise, by: model}
 - row: 2002
   position: Members of supervisory bodies of entities belonging to the regional public business sector
   status: Position prefix for territory
@@ -388,7 +398,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {tier: regional, bodies: enterprise, by: model}
 - row: 2003
   position: Members of management bodies of entities belonging to the local public business sector
   status: Position prefix for territory
@@ -396,7 +407,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {tier: municipal, bodies: enterprise, by: model}
 - row: 2004
   position: Members of supervisory bodies of entities belonging to the local public business sector
   status: Position prefix for territory
@@ -404,7 +416,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {tier: municipal, bodies: enterprise, by: model}
 - row: 2005
   position: Members of the governing bodies of political parties at national level
   status: Position prefix for territory

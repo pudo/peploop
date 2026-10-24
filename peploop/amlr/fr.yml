@@ -24,7 +24,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q191954, by: model}
 - row: 803
   position: The Prime Minister
   status: Position for territory
@@ -32,7 +33,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q1587677, by: model}
 - row: 804
   position: The members of the Government
   status: Position prefix for territory
@@ -48,7 +50,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q3409222, by: model}
 - row: 806
   position: The President of the National Assembly
   status: Position prefix for territory
@@ -56,7 +59,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q20968036, by: model}
 - row: 807
   position: The members of the National Assembly and Senators
   status: Position prefix for territory
@@ -69,10 +73,11 @@ functions:
   position: The President and members of the Constitutional Council (Conseil constitutionnel)
   status: Position prefix for territory
   category: ''
-  amlr: agency
+  amlr: iv_courts
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q1127218, by: model}
 - row: 809
   position: The members of the Council of State (Conseil d’Etat) referred to in Article L. 121-2 of the Code of
     Administrative Justice, with the exception of those in extraordinary service (Conseillers d’Etat en service
@@ -121,7 +126,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q96277046, by: model}
 - row: 814
   position: The ambassadors or chargés d’affaires referred to in Articles 1 and 13 of Decree No 79-433 of 1 June
     1979 on the powers of ambassadors and the organisation of State services overseas
@@ -146,7 +152,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q17280398, by: model}
 - row: 817
   position: The Navy and the Air Force referred to in Article R*3121-25 of the same Code
   status: Position prefix for territory
@@ -178,7 +185,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 821
   position: Member of the board of directors
   status: Position prefix for territory
@@ -186,7 +194,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 822
   position: Administrator or member of the supervisory board of public limited liability companies or who, regardless
     of their title, carry out functions equivalent to the ones referred to above within the companies, public establishments
@@ -231,9 +240,10 @@ functions:
   status: n/a
   category: directors, deputy directors and members of the board or equivalent function of an international organisation.
   amlr: ix_io
-  kind: position
-  checked: false
-  expansion: []
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q941157, by: model}
 - row: 827
   position: None, because the director, deputy directors and management bodies are based in Nairobi
   organisation: United Nations Environmental Program
@@ -386,7 +396,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q28784183, by: model}
 - row: 844
   position: Deputy Director-General
   organisation: Unesco
@@ -402,8 +413,8 @@ functions:
   status: Position prefix for territory
   category: directors, deputy directors and members of the board or equivalent function of an international organisation.
   amlr: ix_io
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 846
   position: Deputy Governor
@@ -607,7 +618,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q20054152, by: model}
 - row: 868
   position: First Deputy Managing Director (based in Paris), International Monetary Fund
   organisation: International Monetary Fund

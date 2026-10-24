@@ -426,6 +426,30 @@ interim policy calls were logged for the user before one re-run.
   - Sub-municipal districts with elected heads (Budapest, Prague, Berlin,
     Warsaw, Vienna, Bucharest's sectors, Paris arrondissements) are left
     out.
+- **The AMLR rows expanded into items (2026-10-24).** `amlr expand --all`
+  searched every usable row and had a model pick among admitted candidates
+  ($2.35, 1,889 calls, batched). 767 of 2,696 usable rows expanded: 492
+  bodies, 181 positions, 74 pepcorp tiers, 10 unit levels; 187 unreviewed
+  rows had their kind or category corrected. Hand checks: bodies 40/40,
+  levels 10/10, tiers 36/40 (the misses are bare rows like "Manager" read
+  through the sheet's category), positions 18/20 before and 19/20 after the
+  first fix, the last miss then ruled out too.
+  - Position failures, each now a rule: a state's international-organisation
+    row names a function seated there (a UNHCR office's head, a lesser
+    Ibero-American secretary, an IMF post "based in Brussels") and the model
+    read it up to the organisation's head (`io_title`: every word of the
+    row's title must be in the item's names); "ambassador of Belgium", the
+    class of every Belgian embassy's head (`class_of_offices`); the Nordic
+    `justitieråd` item shared by four supreme courts (`several_states`,
+    counting unended `P17` only, since a predecessor state's ended one is
+    history).
+  - Most refusals are no candidate at all (about 1,400 rows): plural rows,
+    party offices, IO local posts and Romanian enterprise boards whose
+    offices or bodies have no item.
+  - Seat statements are rare on the matched bodies: 86 of 341 carry any of
+    `P169 P1037 P488 P3320 P5052`; positions are held (157 of 179).
+  - Live vandalism seen while matching: the English label of President of
+    Cyprus (`Q841760`) reads "Padre y esposo Coughlan".
 
 ## The campaign toolkit (`old/`)
 

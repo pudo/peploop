@@ -17,7 +17,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q1268572, by: model}
 - row: 2729
   position: Heads of Government (regeringschefer)
   status: Generic category
@@ -25,22 +26,23 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q687075, by: model}
 - row: 2730
   position: Ministers (ministrar)
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2731
   position: Deputy ministers (vice ministrar)
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2732
   position: Assistant ministers (biträdande ministrar)
@@ -57,7 +59,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q10655178, by: model}
 - row: 2734
   position: Members of similar legislative bodies (ledamöter av liknande lagstiftande organ)
   status: Position prefix for territory
@@ -110,7 +113,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 2740
   position: Members of the board
   organisation: The Central Bank (ledamöter i centralbankers styrande organ)
@@ -125,8 +129,8 @@ functions:
   status: Position prefix for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2742
   position: Heads of Mission (beskickningschefer)
@@ -152,7 +156,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 2745
   position: Executive Secretary, Global Water Partnership Organisation (GWPO)
   lang: SPA
@@ -198,8 +203,8 @@ functions:
   status: To split
   category: directors, deputy directors and members of the board or equivalent function of an international organisation.
   amlr: ix_io
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2750
   position: Director-General, European Spallation Source ERIC

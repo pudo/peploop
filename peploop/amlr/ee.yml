@@ -21,7 +21,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q890005, by: model}
 - row: 693
   position: Prime Minister
   status: Position for territory
@@ -29,23 +30,25 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q737115, by: model}
 - row: 694
   position: Ministers of the Republic
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 695
   position: Member of the Estonian Parliament
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: ii_legislature
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q21100241, by: model}
 - row: 696
   position: Members of the board of a political party
   status: Position prefix for territory
@@ -61,23 +64,25 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q12361663, by: model}
 - row: 698
   position: Secretaries-general at ministries
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 699
   position: The Auditor General
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: v_audit_cb
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q20528241, by: model}
 - row: 700
   position: The Chancellor of Justice
   status: Position for territory
@@ -85,23 +90,25 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q14564648, by: model}
 - row: 701
   position: Justice of the Supreme Court
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: iv_courts
   kind: position
-  checked: false
+  checked: true
   expansion: []
 - row: 702
   position: The Prosecutor General
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: iv_courts
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q108258247, by: model}
 - row: 703
   position: The Chair and members of the supervisory board of Eesti Pank
   status: Position prefix for territory
@@ -109,7 +116,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q366960, by: model}
 - row: 704
   position: The Governor and Deputy Governors of Eesti Pank
   status: Position prefix for territory
@@ -141,7 +149,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q16409416, by: model}
 - row: 708
   position: Commander of the Estonian Defence League (Kaitseliit)
   status: Generic category
@@ -149,7 +158,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q135526810, by: model}
 - row: 709
   position: Members of the supervisory board or management board of a State-controlled company
   status: Position prefix for territory
@@ -157,7 +167,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 710
   position: 'Member of the supervisory board '
   status: Position prefix for territory
@@ -165,7 +176,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 711
   position: Management board of the North Estonian Medical Centre Foundation (sihtasutus Põhja-Eesti Regionaalhaigla)
   status: Position prefix for territory
@@ -179,10 +191,11 @@ functions:
   organisation: The Tartu University Hospital Foundation (sihtasutus Tartu Ülikooli Kliinikum)
   status: n/a
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q7686870, by: model}
 - row: 713
   position: ''
   organisation: The Enterprise Estonia Foundation (Ettevõtluse Arendamise Sihtasutus)
@@ -191,43 +204,48 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11858046, by: model}
 - row: 714
   position: ''
   organisation: The Rural Development Foundation (Maaelu Edendamise Sihtasutus)
   status: n/a
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q16411046, by: model}
 - row: 715
   position: ''
   organisation: The Environmental Investment Centre Foundation (Sihtasutus Keskkonnainvesteeringute Keskus)
   status: n/a
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q16410112, by: model}
 - row: 716
   position: ''
   organisation: The KredEx Foundation (Sihtasutus KredEx)
   status: n/a
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q31273706, by: model}
 - row: 717
   position: ''
   organisation: The State Forest Management Centre (Riigimetsa Majandamise Keskus)
   status: n/a
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12373967, by: model}
 - row: 718
   position: The Mayors of the cities of Tallinn, Tartu, Narva, Pärnu and Kohtla-Järve
   status: To split
@@ -261,7 +279,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q116057137, by: model}
 - row: 722
   position: The Internal Security Service
   local: Kaitsepolitseiamet
@@ -271,7 +290,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1721811, by: model}
 - row: 723
   position: Defence Resources Agency
   local: Kaitseressursside Amet
@@ -281,7 +301,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q16409245, by: model}
 - row: 724
   position: The Language Board
   local: Keeleamet
@@ -291,7 +312,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q4536526, by: model}
 - row: 725
   position: The Environmental Board
   local: Keskkonnaamet
@@ -301,7 +323,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12366841, by: model}
 - row: 726
   position: The Competition Authority
   local: Konkurentsiamet
@@ -311,7 +334,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q16411123, by: model}
 - row: 727
   position: The Civil Aviation Administration
   local: Lennuamet
@@ -331,7 +355,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5401570, by: model}
 - row: 729
   position: The Road Administration
   local: Maanteeamet,
@@ -351,7 +376,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q16411346, by: model}
 - row: 731
   position: The National Heritage Board
   local: Muinsuskaitseamet
@@ -361,7 +387,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12370518, by: model}
 - row: 732
   position: The Patent Office
   local: Patendiamet
@@ -371,7 +398,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12372017, by: model}
 - row: 733
   position: The Police and Border Guard Board
   local: Politsei- ja Piirivalveamet,
@@ -381,7 +409,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q7209550, by: model}
 - row: 734
   position: The Agriculture and Food Board
   local: Põllumajandus- ja Toiduamet
@@ -391,17 +420,19 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q116057115, by: model}
 - row: 735
   position: The Agricultural Registers and Information Board
   local: Põllumajanduse Registrite ja Informatsiooni Amet
   lang: EST
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q16411415, by: model}
 - row: 736
   position: The Rescue Board
   local: Päästeamet
@@ -411,7 +442,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5401628, by: model}
 - row: 737
   position: The Agency of Medicines
   local: Ravimiamet
@@ -421,7 +453,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12373663, by: model}
 - row: 738
   position: The Information System Authority
   local: Riigi Infosüsteemi Amet
@@ -431,17 +464,19 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q16412369, by: model}
 - row: 739
   position: The Social Insurance Board
   local: Sotsiaalkindlustusamet
   lang: EST
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q20529203, by: model}
 - row: 740
   position: Statistics Estonia
   local: Statistikaamet
@@ -451,7 +486,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3738605, by: model}
 - row: 741
   position: The Consumer Protection and Technical Regulation Authority
   local: Tarbijakaitse ja Tehnilise Järelevalve Amet
@@ -461,7 +497,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q61404623, by: model}
 - row: 742
   position: The Health Board
   local: Terviseamet
@@ -471,7 +508,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q25514675, by: model}
 - row: 743
   position: The Maritime Administration and the Foreign Intelligence Service
   local: Veeteede Amet, Välisluureamet
@@ -491,7 +529,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q16410295, by: model}
 - row: 745
   position: The Environmental Inspectorate
   local: Keskkonnainspektsioon
@@ -501,7 +540,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12366851, by: model}
 - row: 746
   position: The Labour Inspectorate
   local: Tööinspektsioon
@@ -511,7 +551,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q25514677, by: model}
 - row: 747
   position: The director-general of the State Shared Service Centre
   local: Riigi Tugiteenuste Keskus
@@ -521,7 +562,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q25516633, by: model}
 - row: 748
   position: The Emergency Response Centre at the National Archives
   local: Häirekeskus, Rahvusarhiiv
@@ -541,27 +583,30 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q6970432, by: model}
 - row: 750
   position: Members of the supervisory board of the Financial Supervision Authority
   local: Finantsinspektsioon
   lang: EST
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12362644, by: model}
 - row: 751
   position: Management board of the Financial Supervision Authority
   local: Finantsinspektsioon
   lang: EST
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q12362644, by: model}
 - row: 752
   position: ''
   organisation: The Baltic Defence College (Balti Kaitsekolledž)

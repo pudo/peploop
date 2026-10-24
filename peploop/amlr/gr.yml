@@ -18,7 +18,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q3409203, by: model}
 - row: 914
   position: Prime Minister
   lang: GRC
@@ -27,7 +28,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q4377230, by: model}
 - row: 915
   position: Deputy prime ministers
   lang: GRC
@@ -36,15 +38,16 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q3394691, by: model}
 - row: 916
   position: Ministers
   lang: GRC
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 917
   position: Deputy Minister
@@ -54,7 +57,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q23636253, by: model}
 - row: 918
   position: State Secretarie
   lang: GRC
@@ -82,7 +86,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q18915989, by: model}
 - row: 921
   position: Head and financial of the political parties represented in the Hellenic Parliament or in the European
     Parliament;
@@ -234,18 +239,19 @@ functions:
   lang: GRC
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: v_audit_cb
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q806700, by: model}
 - row: 937
   position: Ambassadors
   lang: GRC
   status: Position prefix for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 938
   position: Chargés d’affaires and consuls
@@ -273,7 +279,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q3409203, by: model}
 - row: 941
   position: Vice-presidents
   lang: GRC
@@ -317,10 +324,11 @@ functions:
   lang: GRC
   status: Not obviously unpackable
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
-  kind: body
-  checked: false
-  expansion: []
+  amlr: vii_soe
+  kind: body_class
+  checked: true
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 946
   position: Members of boards of directors
   lang: GRC
@@ -336,8 +344,8 @@ functions:
   status: Position prefix for territory
   category: directors, deputy directors and members of the board or equivalent function of an international organisation.
   amlr: ix_io
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 948
   position: Deputy directors and persons holding an equivalent post in international organisations.
@@ -527,7 +535,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q27832358, by: model}
 - row: 966
   position: Deputy High Commissioner, United Nations High Commissioner For Refugees (UNHCR)
   lang: GRC
@@ -567,7 +576,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q67199671, by: model}
 - row: 970
   position: Deputy Executive Director, United Nations Children’s Fund (Unicef)
   lang: GRC

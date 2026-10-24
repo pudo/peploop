@@ -20,7 +20,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q878222, by: model}
 - row: 1156
   position: Prime Minister of the Republic of Lithuania
   lang: LTU
@@ -29,7 +30,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q845439, by: model}
 - row: 1157
   position: Minister for the Environment of the Republic of Lithuania
   lang: LTU
@@ -38,7 +40,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q107735803, by: model}
 - row: 1158
   position: Minister for Economic Affairs and Innovation of the Republic of Lithuania
   lang: LTU
@@ -56,7 +59,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q107735806, by: model}
 - row: 1160
   position: Minister for Finance of the Republic of Lithuania
   lang: LTU
@@ -65,7 +69,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q29079132, by: model}
 - row: 1161
   position: Minister for National Defence of the Republic of Lithuania
   lang: LTU
@@ -74,7 +79,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q12661306, by: model}
 - row: 1162
   position: Minister for Culture of the Republic of Lithuania
   lang: LTU
@@ -83,7 +89,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q107735814, by: model}
 - row: 1163
   position: Minister for Social Security and Labour of the Republic of Lithuania
   lang: LTU
@@ -92,7 +99,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q107735743, by: model}
 - row: 1164
   position: Minister for Transport and Communications of the Republic of Lithuania;
   lang: LTU
@@ -101,7 +109,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q107735740, by: model}
 - row: 1165
   position: Minister for Health of the Republic of Lithuania;
   lang: LTU
@@ -110,7 +119,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q25707086, by: model}
 - row: 1166
   position: Minister for Education, Science and Sport of the Republic of Lithuania
   lang: LTU
@@ -119,7 +129,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q30313091, by: model}
 - row: 1167
   position: Minister for Justice of the Republic of Lithuania
   lang: LTU
@@ -128,7 +139,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q107735748, by: model}
 - row: 1168
   position: Minister for Foreign Affairs of the Republic of Lithuania
   lang: LTU
@@ -137,7 +149,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q25894090, by: model}
 - row: 1169
   position: Minister for the Interior of the Republic of Lithuania;
   lang: LTU
@@ -146,7 +159,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q107735730, by: model}
 - row: 1170
   position: Minister for Agriculture of the Republic of Lithuania
   lang: LTU
@@ -155,7 +169,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q107735817, by: model}
 - row: 1171
   position: Deputy Minister for the Environment of the Republic of Lithuania;
   lang: LTU
@@ -451,7 +466,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q18507240, by: model}
 - row: 1202
   position: Judge of the Constitutional Court of the Republic of Lithuania
   local: Lietuvos Respublikos Konstitucinis Teismas
@@ -874,7 +890,8 @@ functions:
   amlr: viii_local
   kind: position
   checked: true
-  expansion: []
+  expansion:
+  - {position: Q131727999, by: model}
 - row: 1244
   position: Director of Kėdainiai District Municipal Administration
   local: Kėdainių rajono savivaldybės administracija
@@ -1614,7 +1631,8 @@ functions:
   amlr: viii_local
   kind: position
   checked: true
-  expansion: []
+  expansion:
+  - {position: Q109496914, by: model}
 - row: 1318
   position: Director of Vilnius City Municipal Administration
   local: Vilniaus miesto savivaldybės administracija
@@ -1703,7 +1721,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q616849, by: model}
 - row: 1327
   position: Deputy Chair of the Board of the Bank of Lithuania
   local: Lietuvos bankas
@@ -1713,7 +1732,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q616849, by: model}
 - row: 1328
   position: Members of the Board of the Bank of Lithuania
   local: Lietuvos bankas
@@ -1723,15 +1743,16 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q616849, by: model}
 - row: 1329
   position: Ambassador Extraordinary and Plenipotentiary of the Republic of Lithuania
   lang: LTU
   status: Position prefix for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 1330
   position: Chargé d’affaires of the Republic of Lithuania
@@ -1748,9 +1769,10 @@ functions:
   status: Generic category
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: body
-  checked: false
-  expansion: []
+  kind: position
+  checked: true
+  expansion:
+  - {position: Q55607326, by: model}
 - row: 1332
   position: Commander of the Land Forces
   local: Sausumos pajėgos of the Lithuanian Armed Forces
@@ -1849,7 +1871,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q583822, by: model}
 - row: 1342
   position: Members of the management or supervisory body
   lang: LTU
@@ -1869,7 +1892,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q22691779, by: model}
 - row: 1344
   position: Members of the management or supervisory body
   lang: LTU
@@ -1889,7 +1913,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q113466449, by: model}
 - row: 1346
   position: Members of the management or supervisory body
   lang: LTU
@@ -1959,7 +1984,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q31198667, by: model}
 - row: 1353
   position: Members of the management or supervisory body
   lang: LTU
@@ -1999,7 +2025,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5217854, by: model}
 - row: 1357
   position: Members of the management or supervisory body
   lang: LTU
@@ -2019,7 +2046,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18421733, by: model}
 - row: 1359
   position: Members of the management or supervisory body
   lang: LTU
@@ -2039,7 +2067,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q4042253, by: model}
 - row: 1361
   position: Members of the management or supervisory body
   lang: LTU
@@ -2069,7 +2098,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q847687, by: model}
 - row: 1364
   position: Members of the management or supervisory body
   lang: LTU
@@ -2079,7 +2109,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q164914, by: model}
 - row: 1365
   position: Members of the management or supervisory body
   lang: LTU
@@ -2129,7 +2160,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q110088008, by: model}
 - row: 1370
   position: Members of the management or supervisory body
   lang: LTU
@@ -2139,7 +2171,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q110111309, by: model}
 - row: 1371
   position: Members of the management or supervisory body )
   lang: LTU
@@ -2169,7 +2202,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q175964, by: model}
 - row: 1374
   position: Members of the management or supervisory body
   lang: LTU
@@ -2199,7 +2233,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q16458954, by: model}
 - row: 1377
   position: Members of the management or supervisory body
   lang: LTU
@@ -2209,7 +2244,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q131825026, by: model}
 - row: 1378
   position: Members of the management or supervisory body
   lang: LTU
@@ -2219,7 +2255,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q51137075, by: model}
 - row: 1379
   position: Members of the management or supervisory body
   lang: LTU
@@ -2229,7 +2266,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q131825089, by: model}
 - row: 1380
   position: Members of the management or supervisory body
   lang: LTU
@@ -2249,7 +2287,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q17577349, by: model}
 - row: 1382
   position: Members of the management or supervisory body
   lang: LTU
@@ -2259,7 +2298,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q65260258, by: model}
 - row: 1383
   position: Members of the management or supervisory body
   lang: LTU
@@ -2269,7 +2309,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q56294369, by: model}
 - row: 1384
   position: Members of the management or supervisory body
   lang: LTU
@@ -2300,7 +2341,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q16452913, by: model}
 - row: 1387
   position: Members of the management or supervisory body
   lang: LTU
@@ -2320,7 +2362,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q25494202, by: model}
 - row: 1389
   position: Members of the management or supervisory body
   lang: LTU
@@ -2360,7 +2403,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3238253, by: model}
 - row: 1393
   position: Members of the management or supervisory body
   lang: LTU
@@ -2370,7 +2414,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q131825023, by: model}
 - row: 1394
   position: Members of the management or supervisory body
   lang: LTU
@@ -2400,7 +2445,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q15867634, by: model}
 - row: 1397
   position: Members of the management or supervisory body
   lang: LTU
@@ -2410,7 +2456,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12655582, by: model}
 - row: 1398
   position: Members of the management or supervisory body )
   lang: LTU
@@ -2500,7 +2547,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q16453827, by: model}
 - row: 1407
   position: Members of the management or supervisory body
   lang: LTU
@@ -2510,7 +2558,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q131825116, by: model}
 - row: 1408
   position: Members of the management or supervisory body
   lang: LTU
@@ -2641,7 +2690,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12660826, by: model}
 - row: 1421
   position: Members of the management or supervisory body
   lang: LTU
@@ -2651,7 +2701,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q131825025, by: model}
 - row: 1422
   position: Members of the management or supervisory body
   lang: LTU
@@ -2661,7 +2712,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q131825035, by: model}
 - row: 1423
   position: Members of the management or supervisory body
   lang: LTU
@@ -2721,7 +2773,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q16303091, by: model}
 - row: 1429
   position: Head and deputy head of the Office of the European Bank for Reconstruction and Development and members
     of its management or supervisory body
@@ -2940,8 +2993,8 @@ functions:
   status: To split
   category: members of the governing bodies of political parties;
   amlr: iii_party
-  kind: body_class
-  checked: false
+  kind: body
+  checked: true
   expansion: []
 - row: 1451
   position: Leader, deputy leader and members of the governing body of the Lithuanian Farmers and Greens Union

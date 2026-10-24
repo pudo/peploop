@@ -18,7 +18,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q475658, by: model}
 - row: 3
   position: Federal Chancellor
   status: Position for territory
@@ -26,7 +27,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q1006398, by: model}
 - row: 4
   position: Member of the Federal Government
   status: Position prefix for territory
@@ -50,7 +52,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q17535155, by: model}
 - row: 7
   position: Member of the Upper House (Bundesrat) of the Austrian parliament
   status: Position for territory
@@ -75,7 +78,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q37737345, by: model}
 - row: 10
   position: Judge of the Constitutional Court
   status: Position for territory
@@ -84,7 +88,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q32858800, by: model}
 - row: 11
   position: Judge of the Supreme Administrative Court
   status: Position for territory
@@ -93,7 +98,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q33140476, by: model}
 - row: 12
   position: President of the Federal Court of Auditors
   status: Position for territory
@@ -117,7 +123,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q670723, by: model}
 - row: 15
   position: Military Personnel above the rank of Lieutenant General
   status: Position prefix for territory
@@ -148,7 +155,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: regional, bodies: enterprise, by: model}
 - row: 18
   position: Director-General, UNOV - United Nations Office in Vienna
   organisation: UNOV - United Nations Office in Vienna
@@ -211,7 +219,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q65782205, by: model}
 - row: 25
   position: Deputy Director General, IAEA - International Atomic Energy Agency
   organisation: IAEA - International Atomic Energy Agency
@@ -247,7 +256,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q6596647, by: model}
 - row: 29
   position: Secretary General, OSCE - Organization for Security and Cooperation in Europe
   organisation: OSCE - Organization for Security and Cooperation in Europe
@@ -256,7 +266,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q110934652, by: model}
 - row: 30
   position: Deputy Secretary General, OSCE - Organization for Security and Cooperation in Europe
   organisation: OSCE - Organization for Security and Cooperation in Europe

@@ -18,7 +18,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q218014, by: model}
 - row: 1085
   position: Head of the President’s Chancellery
   status: Position for territory
@@ -39,10 +40,11 @@ functions:
   position: Speaker of the Latvian Parliament
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: ii_legislature
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q1630529, by: model}
 - row: 1088
   position: Deputy Speaker of the Latvian Parliament
   status: Position prefix for territory
@@ -66,7 +68,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q21191589, by: model}
 - row: 1091
   position: Prime Minister
   status: Position for territory
@@ -74,7 +77,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q369500, by: model}
 - row: 1092
   position: Deputy Prime Minister
   status: Position for territory
@@ -82,14 +86,15 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q16361570, by: model}
 - row: 1093
   position: Minister
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 1094
   position: Minister with special responsibility
@@ -106,7 +111,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q687709, by: model}
 - row: 1096
   position: Governor of the Bank of Latvia
   status: Position for territory
@@ -130,7 +136,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q687709, by: model}
 - row: 1099
   position: General Secretary
   status: Position prefix for territory
@@ -346,7 +353,8 @@ functions:
   amlr: viii_local
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {level: municipal, office: head, by: model}
 - row: 1126
   position: Deputy Chair
   status: Position prefix for territory
@@ -448,9 +456,10 @@ functions:
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
   amlr: vii_soe
-  kind: body
-  checked: false
-  expansion: []
+  kind: body_class
+  checked: true
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1139
   position: Council Member
   status: Position prefix for territory
@@ -583,6 +592,6 @@ functions:
   status: Position prefix for territory
   category: members of the governing bodies of political parties;
   amlr: iii_party
-  kind: body_class
-  checked: false
+  kind: position
+  checked: true
   expansion: []

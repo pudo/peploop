@@ -5,7 +5,6 @@ all three at once. The unit rule runs on fabricated items: no network, no
 database. Run it as `python -m peploop.check_amlr` from the repository root.
 """
 
-import re
 import sys
 from typing import Any
 
@@ -14,20 +13,12 @@ import yaml
 from peploop import amlr, eras, memo, wikidata
 from peploop.checks import ent, expect
 
-QID = re.compile(r"^Q[1-9]\d*$")
+QID = amlr.QID
 #: The member states and the Union: one file each.
 CODES = {"at", "be", "bg", "cy", "cz", "de", "dk", "ee", "es", "eu", "fi", "fr", "gr", "hr", "hu", "ie",
          "it", "lt", "lu", "lv", "mt", "nl", "pl", "pt", "ro", "se", "si", "sk"}
 #: The curated sheet's data rows: its header is row 1, so they run 2..SHEET_ROWS + 1.
 SHEET_ROWS = 2759
-
-
-def expansion_ok(entry: Any) -> bool:
-    if not isinstance(entry, dict):
-        return False
-    if set(entry) == {"position"} or set(entry) == {"body"}:
-        return bool(QID.match(str(next(iter(entry.values())))))
-    return set(entry) == {"level", "office"} and entry["level"] in amlr.LEVELS and bool(entry["office"])
 
 
 def check_files() -> None:
@@ -45,8 +36,13 @@ def check_files() -> None:
     expect(all(f.amlr in amlr.CATEGORIES and f.kind in amlr.KINDS for f in fns), "every row's category and kind are known")
     expect(all(isinstance(f.row, int) and isinstance(f.position, str) and isinstance(f.checked, bool) for f in fns),
            "every row has a number, a position text and a checked flag")
-    expect(all(isinstance(f.expansion, list) and all(expansion_ok(e) for e in f.expansion) for f in fns),
-           "every expansion is a position, a body or a level's office")
+    expect(all(isinstance(f.expansion, list) and all(amlr.entry_ok(e) for e in f.expansion) for f in fns),
+           "every expansion is a position, a body, a level's office or a tier")
+    expect(all(f.kind != "unusable" or not f.expansion for f in fns), "an unusable row expands to nothing")
+    for cc in sorted(codes):
+        text = (amlr.DIR / f"{cc}.yml").read_text()
+        header, data = amlr.read_raw(cc)
+        expect(header + amlr.dump(data) == text, f"{cc}: the file is as `save` writes it, so a rewrite changes nothing else")
     rows = [f.row for f in fns]
     expect(len(rows) == len(set(rows)), "no sheet row is in two places")
     expect(sorted(rows) == list(range(2, SHEET_ROWS + 2)), f"the rows cover the sheet ({len(rows)})")

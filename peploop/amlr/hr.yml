@@ -18,7 +18,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q268984, by: model}
 - row: 311
   position: Prime Minister of the Republic of Croatia
   status: Position for territory
@@ -26,14 +27,15 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q1195270, by: model}
 - row: 312
   position: Ministers of the Republic of Croatia
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 313
   position: State Secretaries of the Republic of Croatia
@@ -66,7 +68,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q18643511, by: model}
 - row: 317
   position: Members of a party presidency
   status: Position prefix for territory
@@ -194,7 +197,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1143457, by: model}
 - row: 330
   position: Deputy Governor of the Croatian National Bank
   local: Hrvatska Narodna Banka – HNB
@@ -214,14 +218,15 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1143457, by: model}
 - row: 332
   position: Ambassador
   status: Position for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 333
   position: Ambassador Extraordinary
@@ -334,15 +339,17 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 347
   position: Supervisory board
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
   amlr: vii_soe
-  kind: body
-  checked: false
-  expansion: []
+  kind: body_class
+  checked: true
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 348
   position: Board of directors and the governing council
   status: Position prefix for territory
@@ -350,7 +357,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 349
   position: President of the governing council
   status: Position prefix for territory
@@ -366,7 +374,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 351
   position: Secretary of the Commission, International Sava River Basin Commission
   organisation: International Sava River Basin Commission
@@ -419,7 +428,8 @@ functions:
   amlr: viii_local
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {level: municipal, office: head, by: model}
 - row: 357
   position: Deputy mayor
   status: Position prefix for territory
@@ -435,7 +445,8 @@ functions:
   amlr: viii_local
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {level: municipal, office: head, by: model}
 - row: 359
   position: Deputy mayor
   status: Position prefix for territory

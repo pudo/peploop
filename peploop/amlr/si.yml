@@ -18,7 +18,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q495877, by: model}
 - row: 2591
   position: Prime Minister
   status: Position for territory
@@ -26,14 +27,15 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q45758, by: model}
 - row: 2592
   position: Minister
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2593
   position: State secretary
@@ -42,7 +44,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q37494512, by: model}
 - row: 2594
   position: Member of the National Assembly (Državni zbor)
   status: Position prefix for territory
@@ -50,7 +53,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q21296001, by: model}
 - row: 2595
   position: Member of the National Council (Državni svet)
   status: Position prefix for territory
@@ -58,7 +62,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q21328628, by: model}
 - row: 2596
   position: Chair of a political party
   status: Position prefix for territory
@@ -120,7 +125,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q26662, by: model}
 - row: 2603
   position: Deputy Governor of the Bank of Slovenia
   status: Position for territory
@@ -148,8 +154,8 @@ functions:
   status: Position prefix for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: body
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2606
   position: Head of an international organisation based in the Republic of Slovenia, head of an institution, body

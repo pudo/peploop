@@ -67,9 +67,9 @@ functions:
     a similar managing body
   status: To split
   category: ''
-  amlr: agency
+  amlr: iii_party
   kind: body_class
-  checked: false
+  checked: true
   expansion: []
 - row: 2616
   position: The secretary-general of a national confederation or association of trades unions
@@ -126,22 +126,23 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q111703559, by: model}
 - row: 2623
   position: The prime minister, deputy prime ministers and ministers
   status: To split
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2624
   position: Members of the upper (Senado) and lower (Congreso) houses of parliament
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
-  kind: position
-  checked: false
+  amlr: ii_legislature
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2625
   position: Secretaries of state, secretaries-general, undersecretaries and equivalent positions
@@ -186,7 +187,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1143194, by: model}
 - row: 2630
   position: The director-general in charge of the Civil Guard, and Civil Guard lieutenants general and divisional
     generals
@@ -197,7 +199,8 @@ functions:
   amlr: i_executive
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q932821, by: model}
 - row: 2631
   position: The holder of any other public sector position at central State level appointed by the Cabinet (Consejo
     de Ministros), regardless of title, with the exception of subdirectors-general and equivalent
@@ -247,7 +250,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q5928975, by: model}
 - row: 2637
   position: The chief of the joint defence staff
   status: Position prefix for territory
@@ -255,7 +259,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q57241272, by: model}
 - row: 2638
   position: The chiefs of staff of the army
   status: Position prefix for territory
@@ -263,7 +268,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q30612644, by: model}
 - row: 2639
   position: Air force and navy
   status: Position prefix for territory
@@ -352,7 +358,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q3406493, by: model}
 - row: 2649
   position: The Supreme Court deputy prosecutor
   status: Position prefix for territory
@@ -361,7 +368,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q130417785, by: model}
 - row: 2650
   position: All individuals with the status of court prosecutor, regardless of whether they are in charge of a body
     and of whether they are assigned to the Supreme Court, Constitutional Court or any other body within the Public
@@ -543,7 +551,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 2670
   position: The chairs and directors
   organisation: Port Authorities (Autoridades Portuarias)
@@ -552,7 +561,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 2671
   position: 'The chair and secretary-general '
   organisation: The Economic and Social Council (Consejo Económico y Social)
@@ -561,7 +571,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q8349971, by: model}
 - row: 2672
   position: Court of Auditors (Tribunal de Cuentas) judges, presiding judge and secretary-general
   status: Position prefix for territory
@@ -575,10 +586,11 @@ functions:
     of Spain (Banco de España) and the staff representative on its governing board
   status: To split
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: v_audit_cb
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q789966, by: model}
 - row: 2674
   position: The chair, deputy chair and board members
   organisation: The National Markets and Competition Commission (Comisión Nacional de los Mercados y de la Competencia)
@@ -598,7 +610,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q43402200, by: model}
 - row: 2676
   position: The chair, The Independent Authority for Fiscal Responsibility
   local: Autoridad Independiente de Responsabilidad Fiscal
@@ -610,7 +623,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q23905721, by: model}
 - row: 2677
   position: The chair and deputy chairs, directors-general, the department directors who report to the board and
     to the chair’s office, the deputy director-general in charge of the legal service and the head of the studies
@@ -626,10 +640,11 @@ functions:
   organisation: The Nuclear Safety Council (Consejo de Seguridad Nuclear)
   status: To split
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q570127, by: model}
 - row: 2679
   position: The chair, director-general and department directors
   organisation: The Spanish Tax Agency (Agencia Estatal de Administración Tributaria)
@@ -638,17 +653,19 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q4891205, by: model}
 - row: 2680
   position: The chair, directors-general and members of the governing board – excluding the individual performing
     secretarial duties unless also a board member in their own right – of the Official Credit Institute (Instituto
     de Crédito Oficial)
   status: To split
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q5918089, by: model}
 - row: 2681
   position: The chair, directors and steering committee members of the Fund for Orderly Bank Restructuring (Fondo
     de Reestructuración Ordenada Bancaria), not including individuals who attend steering committee meetings with
@@ -667,7 +684,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 2683
   position: Any individual not listed above who is classed as a senior official under Article 1 of the Central State
     Authority Senior Officials Act (Act 3/2015 of 30 March 2015)
@@ -725,7 +743,8 @@ functions:
   amlr: viii_local
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {tier: regional, bodies: institution, by: model}
 - row: 2690
   position: 'The senior management of public-sector businesses in which Autonomous Community authorities hold stakes:
     the most senior officials (chairs, deputy chairs, directors-general, executive directors and equivalent positions)
@@ -736,7 +755,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {tier: regional, bodies: enterprise, by: model}
 - row: 2691
   position: Board members and members of the oversight, management and supervision bodies of public-sector business
     organisations, excluding the individuals performing secretarial duties in publicly owned entities unless also
@@ -746,7 +766,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 2692
   position: Any individual not listed above who is classified as a senior official under the applicable Autonomous
     Community legislation regulating senior officials
@@ -853,7 +874,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q58280398, by: model}
 - row: 2702
   position: Undersecretary
   organisation: SGI Ibero-American General Secretariat (Secretaría General iberoamericana)

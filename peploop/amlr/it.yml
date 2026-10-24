@@ -20,7 +20,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q332711, by: model}
 - row: 1014
   position: Prime Minister
   status: Position for territory
@@ -28,7 +29,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q796897, by: model}
 - row: 1015
   position: Minister
   status: Position prefix for territory
@@ -36,7 +38,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q3858501, by: model}
 - row: 1016
   position: Deputy minister
   status: Position prefix for territory
@@ -85,7 +88,8 @@ functions:
   amlr: viii_local
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {level: municipal, office: head, by: model}
 - row: 1022
   position: Member of parliament
   status: Position prefix for territory
@@ -101,7 +105,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q13653224, by: model}
 - row: 1024
   position: Regional councillor and equivalent office in foreign countries
   status: Position prefix for territory
@@ -153,7 +158,8 @@ functions:
   amlr: v_audit_cb
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 1030
   position: Ambassador, chargé d’affaires or equivalent office in foreign countries, high-ranking officers in the
     armed forces or equivalent office in foreign countries
@@ -172,7 +178,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1032
   position: Chief Executive of a health authority or hospital, university hospital and other bodies of the national
     health service
@@ -181,22 +188,23 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: institution, by: model}
 - row: 1033
   position: Director
   status: Position prefix for territory
   category: directors, deputy directors and members of the board or equivalent function of an international organisation.
   amlr: ix_io
-  kind: position
-  checked: false
+  kind: unusable
+  checked: true
   expansion: []
 - row: 1034
   position: Deputy Director
   status: Position prefix for territory
   category: directors, deputy directors and members of the board or equivalent function of an international organisation.
   amlr: ix_io
-  kind: position
-  checked: false
+  kind: unusable
+  checked: true
   expansion: []
 - row: 1035
   position: Member of the Management body or entity carrying out equivalent functions in international organisations
@@ -279,7 +287,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q28784183, by: model}
 - row: 1044
   position: Director-General, International Atomic Energy Agency ICTP (Unesco-IAEA)
   organisation: International Atomic Energy Agency ICTP (Unesco-IAEA)

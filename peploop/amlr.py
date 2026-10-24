@@ -22,14 +22,20 @@ are measured once:
   verbatim and ours beside it. See `Function`.
 
 `expansion` is what grows: the concrete Wikidata items a row stands for, one
-entry each, in one of three shapes:
+entry each, in one of four shapes:
 
     expansion:
       - {position: Q123}                    # the office itself
       - {body: Q456}                        # a body whose governing seats are the function
       - {level: municipal, office: head}    # that office in every unit of a level
+      - {tier: national, bodies: enterprise}  # the bodies pepcorp covers at that tier
+
+Each entry may say how it was found (`by`, `BY`); one that does not was
+written by hand. `amlr_expand` grows the expansions and `amlr_report` reads
+them back as coverage; `save` writes a file back with its rows as they were.
 """
 
+import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -57,6 +63,13 @@ CATEGORIES = ("i_executive", "ii_legislature", "iii_party", "iv_courts", "v_audi
 #: class of bodies or of their offices ("mayors", "boards of regional enterprises");
 #: or nothing a lane can use (a rank, a role with no body).
 KINDS = ("position", "body", "body_class", "unusable")
+#: How an expansion entry was found: a model's check of search candidates, or by hand.
+BY = ("model", "hand")
+#: The office a level rule names in each unit: the head of its executive.
+OFFICES = ("head",)
+#: pepcorp's tiers and kinds of body, for a row naming a class of state bodies.
+TIERS = ("national", "regional", "municipal")
+BODY_KINDS = ("enterprise", "institution")
 
 
 @dataclass(frozen=True)
@@ -121,6 +134,64 @@ def get(cc: str) -> Spec:
 def functions(cc: str) -> list[Function]:
     """The rows of a country's list, in sheet order."""
     return get(cc).functions
+
+
+QID = re.compile(r"^Q[1-9]\d*$")
+
+
+def entry_ok(entry: Any) -> bool:
+    """Whether an expansion entry has one of the four shapes, with a known `by` if any."""
+    if not isinstance(entry, dict):
+        return False
+    if "by" in entry and entry["by"] not in BY:
+        return False
+    keys = set(entry) - {"by"}
+    if keys in ({"position"}, {"body"}):
+        return bool(QID.match(str(entry[keys.pop()])))
+    if keys == {"level", "office"}:
+        return entry["level"] in LEVELS and entry["office"] in OFFICES
+    return keys == {"tier", "bodies"} and entry["tier"] in TIERS and entry["bodies"] in BODY_KINDS
+
+
+class _Literal(str):
+    """A text with line breaks, written as a YAML block so the sheet's text stays readable."""
+
+
+class _Dumper(yaml.SafeDumper):
+    pass
+
+
+_Dumper.add_representer(_Literal, lambda d, s: d.represent_scalar("tag:yaml.org,2002:str", s, style="|"))
+
+
+def _blocks(value: Any) -> Any:
+    if isinstance(value, str) and "\n" in value:
+        return _Literal(value)
+    if isinstance(value, dict):
+        return {k: _blocks(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_blocks(v) for v in value]
+    return value
+
+
+def read_raw(cc: str) -> tuple[str, dict[str, Any]]:
+    """A file's leading comment and its data as plain YAML, for a writer that must keep both."""
+    text = (DIR / f"{cc}.yml").read_text()
+    lines = text.split("\n")
+    n = next((i for i, line in enumerate(lines) if not line.startswith("#")), len(lines))
+    return "".join(f"{line}\n" for line in lines[:n]), yaml.safe_load(text) or {}
+
+
+def dump(data: dict[str, Any]) -> str:
+    """A file's data in the layout every file is written in."""
+    return yaml.dump(_blocks(data), Dumper=_Dumper, sort_keys=False, allow_unicode=True, width=110,
+                     default_flow_style=None)
+
+
+def save(cc: str, header: str, data: dict[str, Any]) -> None:
+    """Write a file back in the layout it was written in: an unchanged file comes out byte for byte."""
+    (DIR / f"{cc}.yml").write_text(header + dump(data), encoding="utf-8")
+    get.cache_clear()
 
 
 def population(entity: dict[str, Any]) -> int | None:

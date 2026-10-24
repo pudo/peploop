@@ -16,16 +16,17 @@ from typing import Any, Iterable
 from peploop import db, llm
 
 #: One query per ledger, each returning (pass, model, country, usage, created_at).
-#: A peploop row carries no country; pepcorp's three passes share one table and
-#: are told apart by what their request holds.
+#: A peploop row carries no country; pepcorp's three passes and the AMLR
+#: expansion share one table and are told apart by what their request holds.
 SOURCES = (
     "SELECT 'extract', model, NULL, usage_json, created_at FROM extraction",
     "SELECT 'resolve', model, NULL, usage_json, created_at FROM resolution",
     "SELECT 'verify', model, NULL, usage_json, created_at FROM verification",
     "SELECT 'mint:' || pass, model, country, usage_json, created_at FROM mint_call",
     "SELECT 'title_en', model, NULL, usage_json, created_at FROM title_en_call",
-    "SELECT 'corp:' || CASE WHEN request ? 'links' THEN 'decide' WHEN request ? 'link' THEN 'verify'"
-    " WHEN request ? 'candidate' THEN 'match' ELSE 'other' END, model, country, usage, created_at FROM pcorp_call",
+    "SELECT 'corp:' || CASE WHEN request ? 'amlr' THEN 'amlr' WHEN request ? 'links' THEN 'decide'"
+    " WHEN request ? 'link' THEN 'verify' WHEN request ? 'candidate' THEN 'match' ELSE 'other' END,"
+    " model, country, usage, created_at FROM pcorp_call",
     "SELECT 'tree', model, country, usage, created_at FROM ptree_call",
 )
 

@@ -20,7 +20,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q213702, by: model}
 - row: 1002
   position: The Taoiseach
   status: Generic category
@@ -28,14 +29,15 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q191827, by: model}
 - row: 1003
   position: Government Ministers and Ministers of State
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 1004
   position: Members of Dáil Éireann
@@ -44,7 +46,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q654291, by: model}
 - row: 1005
   position: Members of Seanad Éireann
   status: Position prefix for territory
@@ -52,7 +55,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q18043391, by: model}
 - row: 1006
   position: Members of the executive committee and any other executive offices (or equivalents) of any registered
     political party in the State which has registered under section 25 of the Electoral Act 1992 as amended.
@@ -70,7 +74,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q108913669, by: model}
 - row: 1008
   position: The Central Bank of Ireland Board
   status: Position prefix for territory
@@ -78,7 +83,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q283785, by: model}
 - row: 1009
   position: The most senior official of a foreign embassy in the State
   status: Position prefix for territory
@@ -102,7 +108,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q6070690, by: model}
 - row: 1012
   position: Deputy Chief of Staff of the Defence Forces
   status: Position prefix for territory

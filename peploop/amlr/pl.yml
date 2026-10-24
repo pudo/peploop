@@ -22,7 +22,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q1054799, by: model}
 - row: 1733
   position: Prime Minister
   status: Position for territory
@@ -30,7 +31,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q3259469, by: model}
 - row: 1734
   position: Deputy prime minister
   status: Position for territory
@@ -38,22 +40,23 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q15051532, by: model}
 - row: 1735
   position: Ministers
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 1736
   position: Ministers of state
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 1737
   position: Deputy ministers of state
@@ -67,18 +70,20 @@ functions:
   position: Members of the Sejm
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: ii_legislature
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q19269361, by: model}
 - row: 1739
   position: Senators
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
-  amlr: i_executive
+  amlr: ii_legislature
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q81747225, by: model}
 - row: 1740
   position: Members of bodies that represent externally political parties entered in the register of political parties
     kept by the Warsaw Regional Court (Sąd Okręgowy w Warszawie)
@@ -151,7 +156,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q168844, by: model}
 - row: 1748
   position: Members of the Board of Directors of the National Bank of Poland (Zarząd Narodowego Banku Polskiego
   status: Position prefix for territory
@@ -167,7 +173,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q6899002, by: model}
 - row: 1750
   position: Plenipotentiary representatives of the Republic of Poland in other countries or at international organisations
   status: Position prefix for territory
@@ -208,7 +215,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1755
   position: Chairs of supervisory boards of state-owned enterprises
   status: Position prefix for territory
@@ -216,7 +224,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1756
   position: Members of supervisory boards of state-owned enterprises
   status: Position prefix for territory
@@ -224,7 +233,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1757
   position: Chairs of management boards of companies in which the State Treasury or another legal person of the
     State owns more than half of the shares
@@ -233,7 +243,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1758
   position: Members of management boards of companies in which the State Treasury or another legal person of the
     State owns more than half of the shares
@@ -242,7 +253,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1759
   position: Chairs of supervisory boards of companies in which the State Treasury or another legal person of the
     State owns more than half of the shares
@@ -251,7 +263,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1760
   position: Members of supervisory boards of companies in which the State Treasury or another legal person of the
     State owns more than half of the shares
@@ -260,7 +273,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1761
   position: Directors-general of the offices of supreme State bodies
   status: Position prefix for territory
@@ -365,7 +379,8 @@ functions:
   amlr: viii_local
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {level: municipal, office: head, by: model}
 - row: 1773
   position: Deputy mayors
   status: Position prefix for territory
@@ -381,7 +396,8 @@ functions:
   amlr: viii_local
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {level: grouping, office: head, by: model}
 - row: 1775
   position: Members of district executive boards other than chairs of district executive boards
   status: Position prefix for territory
@@ -400,7 +416,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q48862535, by: model}
 - row: 1777
   position: 'Deputies to the Director-General '
   organisation: National Centre for Agricultural Assistance (Krajowy Ośrodek Wsparcia Rolnictwa)
@@ -409,7 +426,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q48862535, by: model}
 - row: 1778
   position: Director-General, State Forests
   local: Lasy Państwowe
@@ -417,10 +435,11 @@ functions:
   organisation: State Forests (Lasy Państwowe)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q7603225, by: model}
 - row: 1779
   position: 'Deputies to the Director-General '
   organisation: State Forests (Lasy Państwowe)
@@ -429,7 +448,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q7603225, by: model}
 - row: 1780
   position: Director-General, Prison Service
   local: Służba Więzienna
@@ -440,7 +460,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9353585, by: model}
 - row: 1781
   position: 'Deputies to the Director-General '
   organisation: Prison Service (Służba Więzienna)
@@ -468,8 +489,8 @@ functions:
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
   amlr: agency
-  kind: body
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 1784
   position: Director, National School of Public Administration
@@ -481,7 +502,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3578073, by: model}
 - row: 1785
   position: Deputy Director
   organisation: National School of Public Administration (Krajowa Szkoła Administracji Publicznej)
@@ -490,7 +512,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q3578073, by: model}
 - row: 1786
   position: Director, Polish Centre for Accreditation
   local: Polskie Centrum Akredytacji
@@ -501,7 +524,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11822667, by: model}
 - row: 1787
   position: Deputies to the Director
   organisation: Polish Centre for Accreditation (Polskie Centrum Akredytacji)
@@ -510,7 +534,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11822667, by: model}
 - row: 1788
   position: Director, Government Security Centre
   local: Rządowe Centrum Bezpieczeństwa
@@ -521,7 +546,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9325483, by: model}
 - row: 1789
   position: Deputies to the Director
   organisation: Government Security Centre (Rządowe Centrum Bezpieczeństwa)
@@ -538,10 +564,11 @@ functions:
   organisation: Transport Technical Supervision Authority (Transportowy Dozór Techniczny)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q56328675, by: model}
 - row: 1791
   position: Deputies to the Director
   organisation: Transport Technical Supervision Authority (Transportowy Dozór Techniczny)
@@ -550,7 +577,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q56328675, by: model}
 - row: 1792
   position: Director-General, National Roads and Highways
   local: Generalna Dyrekcja Dróg Krajowych i Autostrad
@@ -561,7 +589,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1163349, by: model}
 - row: 1793
   position: Deputy Director-General
   organisation: National Roads and Highways (Generalna Dyrekcja Dróg Krajowych i Autostrad)
@@ -570,7 +599,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1163349, by: model}
 - row: 1794
   position: Director-General, Environmental Protection
   local: Generalna Dyrekcja Ochrony Środowiska
@@ -581,7 +611,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9266811, by: model}
 - row: 1795
   position: Deputy Director-General
   organisation: Environmental Protection (Generalna Dyrekcja Ochrony Środowiska)
@@ -609,7 +640,8 @@ functions:
   amlr: agency
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q9284414, by: model}
 - row: 1798
   position: Deputies to the Surveyor-General (Główny Geodeta Kraju)
   status: Position prefix for territory
@@ -625,7 +657,8 @@ functions:
   amlr: agency
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q140669107, by: model}
 - row: 1800
   position: Deputies to the Chief Pharmaceutical Inspector (Główny Inspektor Farmaceutyczny);
   status: Position prefix for territory
@@ -643,7 +676,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q24650573, by: model}
 - row: 1802
   position: Deputies to the Chief Inspector
   organisation: Commercial Quality of Agricultural and Food Products (Główny Inspektor Jakości Handlowej Artykułów
@@ -653,7 +687,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q24650573, by: model}
 - row: 1803
   position: Chief Inspector
   organisation: Construction Supervision (Główny Inspektor Nadzoru Budowlanego)
@@ -662,7 +697,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9284452, by: model}
 - row: 1804
   position: Deputies to the Chief Inspector
   organisation: Construction Supervision (Główny Inspektor Nadzoru Budowlanego)
@@ -676,10 +712,11 @@ functions:
   position: Chief Plant Health and Seed Inspector (Główny Inspektor Ochrony Roślin i Nasiennictwa)
   status: Generic category
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q140689189, by: model}
 - row: 1806
   position: Deputies to the Chief Plant Health and Seed Inspector (Główny Inspektor Ochrony Roślin i Nasiennictwa)
   status: Position prefix for territory
@@ -696,7 +733,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q60474891, by: model}
 - row: 1808
   position: Deputies to the Chief Inspector
   organisation: Environmental Protection (Główny Inspektor Ochrony Środowiska)
@@ -729,7 +767,8 @@ functions:
   amlr: agency
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q140669521, by: model}
 - row: 1812
   position: Deputies to the Chief Sanitary Inspector (Główny Inspektor Sanitarny)
   status: Position prefix for territory
@@ -798,7 +837,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11815208, by: model}
 - row: 1820
   position: Deputies to the Commander-in-Chief
   organisation: The State Fire Service (Państwowa Straż Pożarna);
@@ -818,7 +858,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q7209967, by: model}
 - row: 1822
   position: Deputies to the Commander-in-Chief
   organisation: The Police (Komenda Główna Policji)
@@ -827,7 +868,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q7209967, by: model}
 - row: 1823
   position: Commander-in-Chief, The Border Guard
   local: Komenda Główna Straży Granicznej
@@ -836,8 +878,8 @@ functions:
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
   amlr: agency
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 1824
   position: 'Deputies to the Commander-in-Chief '
@@ -845,8 +887,8 @@ functions:
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
   amlr: agency
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 1825
   position: Commander-in-Chief, The State Security Service
@@ -858,7 +900,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q48618485, by: model}
 - row: 1826
   position: Deputies to the Commander-in-Chief
   organisation: The State Security Service (Służba Ochrony Państwa)
@@ -878,7 +921,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11788656, by: model}
 - row: 1828
   position: Deputies to the Director-General
   organisation: The State Archives (Naczelna Dyrekcja Archiwów Państwowych)
@@ -898,7 +942,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11684597, by: model}
 - row: 1830
   position: Deputies to the President
   organisation: The Military Property Agency (Agencja Mienia Wojskowego)
@@ -907,7 +952,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11684597, by: model}
 - row: 1831
   position: President, The Agency for the Restructuring and Modernisation of Agriculture
   local: Agencja Restrukturyzacji i Modernizacji Rolnictwa
@@ -919,7 +965,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9142031, by: model}
 - row: 1832
   position: Deputies to the President
   organisation: The Agency for the Restructuring and Modernisation of Agriculture (Agencja Restrukturyzacji i Modernizacji
@@ -929,7 +976,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9142031, by: model}
 - row: 1833
   position: President, The Office for Chemical Substances
   local: Biuro do spraw Substancji Chemicznych
@@ -940,7 +988,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q140530699, by: model}
 - row: 1834
   position: President, The Central Office of Measures
   local: Główny Urząd Miar
@@ -951,7 +1000,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9284451, by: model}
 - row: 1835
   position: Vice-President, The Central Office of Measures
   local: Główny Urząd Miar
@@ -962,7 +1012,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9284451, by: model}
 - row: 1836
   position: President, Statistics Poland
   local: Główny Urząd Statystyczny
@@ -973,7 +1024,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1547190, by: model}
 - row: 1837
   position: Vice-President, Statistics Poland
   local: Główny Urząd Statystyczny
@@ -984,7 +1036,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1547190, by: model}
 - row: 1838
   position: President, The Institute of National Remembrance – the Commission for the Prosecution of Crimes against
     the Polish Nation
@@ -1015,10 +1068,11 @@ functions:
   organisation: The Agricultural Social Insurance Fund (Kasa Rolniczego Ubezpieczenia Społecznego)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q1734757, by: model}
 - row: 1841
   position: Deputies to the President
   organisation: The Agricultural Social Insurance Fund (Kasa Rolniczego Ubezpieczenia Społecznego);
@@ -1027,7 +1081,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1734757, by: model}
 - row: 1842
   position: President, The National Real Estate Reserve
   local: Krajowy Zasób Nieruchomości
@@ -1055,27 +1110,28 @@ functions:
   organisation: The Supreme Audit Office (Najwyższa Izba Kontroli)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: v_audit_cb
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q77248326, by: model}
 - row: 1845
   position: Vice-presidents
   organisation: The Supreme Audit Office (Najwyższa Izba Kontroli)
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: v_audit_cb
   kind: position
-  checked: false
+  checked: true
   expansion: []
 - row: 1846
   position: Members of the Council
   organisation: The Supreme Audit Office (Kolegium Najwyższej Izby Kontroli);
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: v_audit_cb
   kind: position
-  checked: false
+  checked: true
   expansion: []
 - row: 1847
   position: President, The National Health Fund
@@ -1087,16 +1143,18 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11789710, by: model}
 - row: 1848
   position: Deputies to the President
   organisation: The National Health Fund (Narodowy Fundusz Zdrowia);
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11789710, by: model}
 - row: 1849
   position: President, The National Council of Water Management
   local: Państwowe Gospodarstwo Wodne Wody Polskie
@@ -1124,10 +1182,11 @@ functions:
   organisation: The National Atomic Energy Agency (Państwowa Agencja Atomistyki)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11815192, by: model}
 - row: 1852
   position: Vice-President, The National Atomic Energy Agency
   local: Państwowa Agencja Atomistyki
@@ -1135,10 +1194,11 @@ functions:
   organisation: The National Atomic Energy Agency (Państwowa Agencja Atomistyki)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11815192, by: model}
 - row: 1853
   position: President, The Polish Space Agency
   local: Polska Agencja Kosmiczna
@@ -1149,7 +1209,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18203370, by: model}
 - row: 1854
   position: Vice-presidents
   organisation: The Polish Space Agency (Polska Agencja Kosmiczna)
@@ -1158,7 +1219,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18203370, by: model}
 - row: 1855
   position: President, The Polish Audit Supervision Agency
   local: Polska Agencja Nadzoru Audytowego
@@ -1189,16 +1251,18 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11822106, by: model}
 - row: 1858
   position: 'Deputies to the President '
   organisation: The Polish Agency for Enterprise Development (Polska Agencja Rozwoju Przedsiębiorczości)
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11822106, by: model}
 - row: 1859
   position: President, The Polish Tourism Organisation
   local: Polska Organizacja Turystyczna
@@ -1215,9 +1279,9 @@ functions:
   organisation: The Polish Tourism Organisation (Polska Organizacja Turystyczna)
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: ix_io
+  amlr: vii_soe
   kind: position
-  checked: false
+  checked: true
   expansion: []
 - row: 1861
   position: President, The General Counsel to the Republic of Poland
@@ -1249,7 +1313,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9325485, by: model}
 - row: 1864
   position: vice-presidents
   organisation: The Government Legislation Centre (Rządowe Centrum Legislacji);
@@ -1258,7 +1323,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9325485, by: model}
 - row: 1865
   position: President, The Government Agency for Strategic Reserves
   local: Rządowa Agencja Rezerw Strategicznych
@@ -1269,7 +1335,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q110416704, by: model}
 - row: 1866
   position: Deputies to the President
   organisation: The Government Agency for Strategic Reserves (Rządowa Agencja Rezerw Strategicznych)
@@ -1278,7 +1345,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q110416704, by: model}
 - row: 1867
   position: President, The Technical Inspection Office
   local: Urząd Dozoru Technicznego
@@ -1289,7 +1357,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9367258, by: model}
 - row: 1868
   position: Vice-President, The Technical Inspection Office
   local: Urząd Dozoru Technicznego
@@ -1297,10 +1366,11 @@ functions:
   organisation: The Technical Inspection Office (Urząd Dozoru Technicznego)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: vii_soe
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q9367258, by: model}
 - row: 1869
   position: President, The Office of Electronic Communications
   local: Urząd Komunikacji Elektronicznej;
@@ -1311,7 +1381,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9367264, by: model}
 - row: 1870
   position: Deputies to the President
   organisation: The Office of Electronic Communications (Urząd Komunikacji Elektronicznej)
@@ -1320,7 +1391,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9367264, by: model}
 - row: 1871
   position: President, The Civil Aviation Authority
   local: Urząd Lotnictwa Cywilnego
@@ -1331,7 +1403,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5124443, by: model}
 - row: 1872
   position: Vice-presidents
   organisation: The Civil Aviation Authority (Urząd Lotnictwa Cywilnego)
@@ -1340,7 +1413,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5124443, by: model}
 - row: 1873
   position: President, The Personal Data Protection Office
   local: Urząd Ochrony Danych Osobowych
@@ -1351,7 +1425,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q56056980, by: model}
 - row: 1874
   position: Deputies to the President
   organisation: The Personal Data Protection Office (Urząd Ochrony Danych Osobowych)
@@ -1371,7 +1446,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9367273, by: model}
 - row: 1876
   position: Vice-presidents
   organisation: The Office for Competition and Consumer Protection (Urząd Ochrony Konkurencji i Konsumentów)
@@ -1391,7 +1467,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q7209965, by: model}
 - row: 1878
   position: Deputies to the President
   organisation: The Patent Office of the Republic of Poland (Urząd Patentowy Rzeczypospolitej Polskiej)
@@ -1400,7 +1477,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q7209965, by: model}
 - row: 1879
   position: President, The Energy Regulatory Office
   local: Urząd Regulacji Energetyki
@@ -1408,10 +1486,11 @@ functions:
   organisation: The Energy Regulatory Office (Urząd Regulacji Energetyki)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q9367279, by: model}
 - row: 1880
   position: Vice-presidents
   organisation: The Energy Regulatory Office (Urząd Regulacji Energetyki)
@@ -1420,7 +1499,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9367279, by: model}
 - row: 1881
   position: Vice-presidents
   organisation: The Office for the Registration of Medicinal Products, Medical Devices and Biocidal Products (Urząd
@@ -1430,7 +1510,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9367283, by: model}
 - row: 1882
   position: President, The Office of Rail Transport
   local: Urząd Transportu Kolejowego
@@ -1438,10 +1519,11 @@ functions:
   organisation: The Office of Rail Transport (Urząd Transportu Kolejowego)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q11837418, by: model}
 - row: 1883
   position: Vice-presidents
   organisation: the Office of Rail Transport (Urząd Transportu Kolejowego)
@@ -1450,7 +1532,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11837418, by: model}
 - row: 1884
   position: President, the Public Procurement Office
   local: Urząd Zamówień Publicznych;
@@ -1461,7 +1544,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9367286, by: model}
 - row: 1885
   position: Vice-presidents
   organisation: the Public Procurement Office (Urząd Zamówień Publicznych)
@@ -1478,10 +1562,11 @@ functions:
   organisation: the State Mining Authority (Wyższy Urząd Górniczy)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q9380932, by: model}
 - row: 1887
   position: Vice-presidents
   organisation: the State Mining Authority (Wyższy Urząd Górniczy)
@@ -1490,7 +1575,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9380932, by: model}
 - row: 1888
   position: President, the Social Insurance Institution
   local: Zakład Ubezpieczeń Społecznych
@@ -1498,10 +1584,11 @@ functions:
   organisation: the Social Insurance Institution (Zakład Ubezpieczeń Społecznych)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q144881, by: model}
 - row: 1889
   position: Members of the Management Board
   organisation: the Social Insurance Institution (Zarząd Zakładu Ubezpieczeń Społecznych
@@ -1521,7 +1608,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9164984, by: model}
 - row: 1891
   position: Vice-presidents
   organisation: the Management Board of the National Economy Bank (Zarząd Banku Gospodarstwa Krajowego)
@@ -1530,7 +1618,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9164984, by: model}
 - row: 1892
   position: Members of the Management Board
   organisation: the National Economy Bank (Zarząd Banku Gospodarstwa Krajowego)
@@ -1539,7 +1628,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9164984, by: model}
 - row: 1893
   position: President of the Management Board, the National Fund for Environmental Protection and Water Management
   local: Zarząd Narodowego Funduszu Ochrony Środowiska i Gospodarki Wodnej;
@@ -1551,7 +1641,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11789709, by: model}
 - row: 1894
   position: Deputies to the President of the Management Board
   organisation: the National Fund for Environmental Protection and Water Management (Zarząd Narodowego Funduszu
@@ -1561,7 +1652,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q11789709, by: model}
 - row: 1895
   position: President of the Management Board, the State Fund for the Rehabilitation of Disabled People
   local: Zarząd Państwowego Funduszu Rehabilitacji Osób Niepełnosprawnych
@@ -1570,10 +1662,11 @@ functions:
     Osób Niepełnosprawnych)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q430553, by: model}
 - row: 1896
   position: Deputies to the President
   organisation: the Management Board of the State Fund for the Rehabilitation of Disabled People (Zarząd Państwowego
@@ -1583,16 +1676,18 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q430553, by: model}
 - row: 1897
   position: The Prosecutor-General
   lang: POL
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: iv_courts
   kind: position
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {position: Q8840171, by: model}
 - row: 1898
   position: Deputies to the Prosecutor-General (Prokurator Generalny)
   status: Position prefix for territory
@@ -1617,10 +1712,11 @@ functions:
   organisation: the National Finance Authority (Komisja Nadzoru Finansowego)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q773485, by: model}
 - row: 1901
   position: Deputies to the Chair
   organisation: the Board of the National Finance Authority (Komisja Nadzoru Finansowego)
@@ -1629,16 +1725,18 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q773485, by: model}
 - row: 1902
   position: Members of the Board
   organisation: the National Finance Authority (Komisja Nadzoru Finansowego)
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q773485, by: model}
 - row: 1903
   position: The Chair of the State Commission for investigating cases of activities against the sexual freedom and
     morals of minors aged under 15
@@ -1669,25 +1767,28 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q6435905, by: model}
 - row: 1906
   position: Deputy Chair
   organisation: the National Broadcasting Council (Krajowa Rada Radiofonii i Telewizji)
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q6435905, by: model}
 - row: 1907
   position: Members of the council
   organisation: the National Broadcasting Council (Krajowa Rada Radiofonii i Telewizji)
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q6435905, by: model}
 - row: 1908
   position: Chair, the State Electoral Commission
   local: Państwowa Komisja Wyborcza
@@ -1727,7 +1828,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q110428351, by: model}
 - row: 1912
   position: Deputy Chair
   organisation: the Council for Refugees (Rada do Spraw Uchodźców)
@@ -1736,7 +1838,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q110428351, by: model}
 - row: 1913
   position: Chair, the National Media Council
   local: Rada Mediów Narodowych
@@ -1744,19 +1847,21 @@ functions:
   organisation: the National Media Council (Rada Mediów Narodowych)
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q25990584, by: model}
 - row: 1914
   position: Members of Council
   organisation: the National Media Council (Rada Mediów Narodowych)
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q25990584, by: model}
 - row: 1915
   position: The Financial Ombudsman
   lang: POL
@@ -1789,7 +1894,8 @@ functions:
   amlr: agency
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q9325182, by: model}
 - row: 1919
   position: Deputies to the Ombudsman for Children’s Rights (Rzecznik Praw Dziecka);
   status: Position prefix for territory
@@ -1805,7 +1911,8 @@ functions:
   amlr: agency
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q3882136, by: model}
 - row: 1921
   position: Deputy commissioners for Human Rights (Rzecznik Praw Obywatelskich)
   status: Position prefix for territory
@@ -1821,7 +1928,8 @@ functions:
   amlr: agency
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q140704147, by: model}
 - row: 1923
   position: Deputy Ombudsman for Patients’ Rights
   lang: POL
@@ -1839,7 +1947,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q392540, by: model}
 - row: 1925
   position: Deputies to the Head
   organisation: the Internal Security Agency (Agencja Bezpieczeństwa Wewnętrznego)
@@ -1848,7 +1957,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q392540, by: model}
 - row: 1926
   position: The Head
   organisation: the Foreign Intelligence Agency (Agencja Wywiadu)
@@ -1857,7 +1967,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q601940, by: model}
 - row: 1927
   position: Deputies
   organisation: the Head of the Foreign Intelligence Agency (Agencja Wywiadu)
@@ -1875,7 +1986,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q2560876, by: model}
 - row: 1929
   position: Deputy Head
   organisation: the National Security Bureau (Biuro Bezpieczeństwa Narodowego)
@@ -1893,7 +2005,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q144015, by: model}
 - row: 1931
   position: The Head
   organisation: the National Election Office (Krajowe Biuro Wyborcze)
@@ -1911,7 +2024,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q30904637, by: model}
 - row: 1933
   position: Deputies
   organisation: the Head of the National Revenue Administration (Krajowa Administracja Skarbowa)
@@ -1938,7 +2052,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q600742, by: model}
 - row: 1936
   position: Deputies to the Head
   organisation: the Military Counter-Intelligence Service (Służba Kontrwywiadu Wojskowego)
@@ -1947,7 +2062,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q600742, by: model}
 - row: 1937
   position: The Head
   organisation: the Military Intelligence Service (Służba Wywiadu Wojskowego)
@@ -1956,7 +2072,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q600773, by: model}
 - row: 1938
   position: Deputies
   organisation: the Head of the Military Intelligence Service (Służba Wywiadu Wojskowego)
@@ -1983,7 +2100,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9367289, by: model}
 - row: 1941
   position: Deputies
   organisation: the Head of the Office for Foreigners (Urząd do Spraw Cudzoziemców)
@@ -2001,7 +2119,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9367291, by: model}
 - row: 1943
   position: Deputies to the Head
   organisation: the Office for Military Veterans and Victims of Repression (Urząd do Spraw Kombatantów i Osób Represjonowanych)
@@ -2010,7 +2129,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q9367291, by: model}
 - row: 1944
   position: Europejski Bank Odbudowy i Rozwoju Przedstawicielstwo w Warszawie
   organisation: Dyrektor Regionalny na Europę Centralną i Kraje Bałtyckie/Dyrektor Biura EBOR w Warszawie
@@ -2080,10 +2200,11 @@ functions:
   organisation: Organization for Security and Cooperation in Europe
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
-  amlr: agency
+  amlr: ix_io
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q81299, by: model}
 - row: 1952
   position: Second Deputy Director
   organisation: Office for Democratic Institutions and Human Rights

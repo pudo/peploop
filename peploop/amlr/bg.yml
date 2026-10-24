@@ -18,7 +18,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q14946265, by: model}
 - row: 222
   position: Vice-President of the Republic of Bulgaria
   identifier: 1111 9002
@@ -27,7 +28,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q125973, by: model}
 - row: 223
   position: Prime Minister
   identifier: 1111 9010
@@ -36,7 +38,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q4404583, by: model}
 - row: 224
   position: Deputy Prime Minister
   identifier: 1111 9011
@@ -45,15 +48,16 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q12280307, by: model}
 - row: 225
   position: Minister
   identifier: 1111 9012
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 226
   position: Deputy Minister
@@ -63,7 +67,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q133824813, by: model}
 - row: 227
   position: Head of a Minister’s Office
   identifier: 1111 7014
@@ -86,8 +91,8 @@ functions:
   status: Position for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 230
   position: President of the National Assembly
@@ -98,7 +103,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q3108725, by: model}
 - row: 231
   position: Deputy President of the National Assembly
   identifier: 1111 9004
@@ -134,7 +140,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q18924508, by: model}
 - row: 235
   position: Ombudsman of the Republic of Bulgaria
   identifier: 1111 9008
@@ -304,7 +311,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q124360208, by: model}
 - row: 252
   position: Director, National Investigation Service
   local: Natsionalna sledstvena sluzhba
@@ -375,7 +383,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q74687, by: model}
 - row: 259
   position: Deputy Director, Bulgarian National Bank
   identifier: 1112 9016
@@ -384,7 +393,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q74687, by: model}
 - row: 260
   position: Member of the board of the Bulgarian National Bank
   status: Position for territory
@@ -392,15 +402,16 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q74687, by: model}
 - row: 261
   position: Ambassador
   identifier: 1112 7038
   status: Position for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 262
   position: Chargé d’affaires ad interim
@@ -547,7 +558,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 275
   position: Deputy Director, undertaking
   identifier: 1120 6014
@@ -556,7 +568,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 276
   position: Deputy Manager, cooperative undertaking
   identifier: 1120 7015
@@ -574,7 +587,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 278
   position: Chairperson, management board (board of directors) of a commercial company
   identifier: 1120 7018
@@ -601,7 +615,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 281
   position: Member, management board
   identifier: 1120 7021
@@ -610,7 +625,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 282
   position: Manager
   identifier: 1120 7023
@@ -619,7 +635,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 283
   position: Member, supervisory board of a commercial company
   identifier: 1120 7025
@@ -628,7 +645,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 284
   position: Mayor, municipality
   identifier: 1111 9016
@@ -637,7 +655,8 @@ functions:
   amlr: viii_local
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {level: municipal, office: head, by: model}
 - row: 285
   position: Deputy mayor, municipality
   identifier: 1111 4017
@@ -691,8 +710,8 @@ functions:
   status: Position prefix for territory
   category: members of the governing bodies of political parties;
   amlr: iii_party
-  kind: body_class
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 291
   position: Chairperson, political party
@@ -700,8 +719,8 @@ functions:
   status: Position prefix for territory
   category: members of the governing bodies of political parties;
   amlr: iii_party
-  kind: body_class
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 292
   position: Head, local organisation/political party

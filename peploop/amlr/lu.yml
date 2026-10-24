@@ -100,7 +100,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q112818966, by: model}
 - row: 1471
   position: The Vice-President of the Supreme Court of Justice
   status: Position prefix for territory
@@ -190,7 +191,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q190234, by: model}
 - row: 1481
   position: Directors of the Central Bank of Luxembourg in accordance with Article 12 of the Law of 23 December
     1998 on currency status and the Central Bank of Luxembourg, as amended
@@ -229,8 +231,8 @@ functions:
   status: Position prefix for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 1486
   position: The military representative(s) to the North Atlantic Treaty Organisation
@@ -255,7 +257,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1489
   position: Member of a steering committee
   status: Position prefix for territory
@@ -271,7 +274,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1491
   position: Member of the board or supervisory board
   status: Position prefix for territory
@@ -279,7 +283,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1492
   position: President
   status: Position prefix for territory
@@ -295,7 +300,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1494
   position: member of the executive committee or Government commissioner
   status: Position prefix for territory
@@ -303,7 +309,8 @@ functions:
   amlr: agency
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 1495
   position: The Director-General and directors of the Financial Sector Supervisory Commission (CSSF) (Commission
     de Surveillance du Secteur Financier) in accordance with Article 9 of the Law of 23 December 1998 setting up
@@ -322,17 +329,19 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q13102188, by: model}
 - row: 1497
   position: Senior management of the Luxembourg Regulatory Institute (ILR) (Institut Luxembourgeois de Régulation)
     in accordance with Article 11 of the Law of 30 May 2005 on the organisation of the Luxembourg Regulatory Institute,
     as amended
   status: Position prefix for territory
   category: ''
-  amlr: vii_soe
+  amlr: agency
   kind: body
-  checked: false
-  expansion: []
+  checked: true
+  expansion:
+  - {body: Q113129061, by: model}
 - row: 1498
   position: Directors of an international organisation Council of Europe in Luxembourg
   organisation: Enlarged Partial Agreement (EPA) on Cultural Routes of the Council of Europe

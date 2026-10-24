@@ -17,7 +17,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q2045066, by: model}
 - row: 1665
   position: The Prime Minister, ministers and state secretaries
   status: To split
@@ -33,7 +34,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q19305384, by: model}
 - row: 1667
   position: Members of the House of Representatives [Tweede Kamer der Staten-Generaal]
   status: Position prefix for territory
@@ -41,7 +43,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q18887908, by: model}
 - row: 1668
   position: Members of the board of a political group registered in accordance with Article G1 of the Electoral
     Act [Kieswet]
@@ -106,7 +109,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1180205, by: model}
 - row: 1675
   position: Ambassadors with Dutch nationality or resident in the Netherlands
   status: Position prefix for territory
@@ -138,7 +142,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q2125721, by: model}
 - row: 1679
   position: Commander of the Army
   status: Position for territory
@@ -162,7 +167,8 @@ functions:
   amlr: vi_diplomat_military
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q140546267, by: model}
 - row: 1682
   position: There are no companies in the Netherlands that meet the definition of a state enterprise.
   status: Not obviously unpackable
@@ -179,7 +185,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q19926443, by: model}
 - row: 1684
   position: Prosecutor, International Residual Mechanism for Criminal Tribunals (IRMCT) (UN body)
   organisation: International Residual Mechanism for Criminal Tribunals (IRMCT) (UN body)
@@ -215,7 +222,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q7241113, by: model}
 - row: 1688
   position: Prosecutor, International Criminal Court (ICC)
   organisation: International Criminal Court (ICC)
@@ -224,7 +232,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q7250572, by: model}
 - row: 1689
   position: Registrar
   organisation: International Criminal Court (ICC)

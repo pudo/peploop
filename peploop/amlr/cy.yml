@@ -17,22 +17,23 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q841760, by: model}
 - row: 363
   position: Minister
   status: Position prefix for territory
   category: ''
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 364
   position: Deputy Minister
   status: Position prefix for territory
   category: ''
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 365
   position: State Secretary
@@ -51,7 +52,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q19801674, by: model}
 - row: 367
   position: members of the governing bodies of political parties
   status: Position prefix for territory
@@ -69,7 +71,8 @@ functions:
   amlr: iv_courts
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q141737122, by: model}
 - row: 369
   position: Auditor General
   status: Position for territory
@@ -87,7 +90,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q74693, by: model}
 - row: 371
   position: Ambassador
   status: Position for territory
@@ -113,7 +117,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q245950, by: model}
 - row: 374
   position: high-ranking officers of the Cyprus Police
   status: Position prefix for territory
@@ -121,7 +126,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5200481, by: model}
 - row: 375
   position: members of the administrative, management or supervisory bodies of state-owned enterprises, including
     public sector entities
@@ -130,7 +136,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 376
   position: mayor
   status: Position prefix for territory
@@ -138,7 +145,8 @@ functions:
   amlr: viii_local
   kind: body_class
   checked: true
-  expansion: []
+  expansion:
+  - {level: municipal, office: head, by: model}
 - row: 377
   position: Mediterranean Area Director, Commonwealth War Graves Commission
   organisation: Commonwealth War Graves Commission
@@ -184,7 +192,8 @@ functions:
   amlr: ix_io
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q27832358, by: model}
 - row: 382
   position: Head of Office, United Nations Development Programme in Cyprus ‘UNDP Cyprus’
   organisation: United Nations Development Programme in Cyprus ‘UNDP Cyprus’

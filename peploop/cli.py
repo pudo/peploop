@@ -16,6 +16,7 @@ from typing import Any
 
 import click
 
+from peploop import amlr, amlr_expand, amlr_report
 from peploop import costs, db, ledger, llm, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
@@ -1231,6 +1232,46 @@ def corp_send_(cc: str | None, submit: bool, show_status: bool, qids: Sequence[s
         raise click.UsageError("send needs a country")
     sent = corp_outbox.run(cc, lambda m: click.echo(m, err=True), submit=submit, qids=set(qids) or None)
     click.echo(f"QS3 batches {' '.join(map(str, sent))}" if sent else f"nothing sent; review {corp_outbox.PENDING}")
+
+
+# --- the AMLR asset: member states' listed functions, as items ---------------------
+
+
+@cli.group("amlr")
+def amlr_() -> None:
+    """Grow each member state's AMLR function list into Wikidata items, and measure what they reach."""
+
+
+def _amlr_codes(cc: str | None, every: bool) -> list[str]:
+    if every == bool(cc):
+        raise click.UsageError("name a country or pass --all")
+    return amlr.codes() if every else [cc]
+
+
+@amlr_.command("expand")
+@click.argument("cc", required=False)
+@click.option("--all", "every", is_flag=True, help="Every file, the Union's included.")
+@click.option("--budget", type=float, default=None, help="Stop asking the model past this many dollars.")
+def amlr_expand_(cc: str | None, every: bool, budget: float | None) -> None:
+    """Expand the rows not yet expanded into items, and write them into the country files."""
+    if budget is not None:
+        llm.set_budget(budget)
+    since = costs.now()
+    tally = amlr_expand.expand(_amlr_codes(cc, every), log=lambda m: click.echo(m, err=True))
+    for code, outcomes in sorted(tally.items()):
+        click.echo(f"{code}: " + ", ".join(f"{k} {v}" for k, v in sorted(outcomes.items())))
+    click.echo(costs.spent(since, (amlr_expand.PASS,)))
+
+
+@amlr_.command("report")
+@click.argument("cc", required=False)
+@click.option("--all", "every", is_flag=True, help="Every file, the Union's included.")
+def amlr_report_(cc: str | None, every: bool) -> None:
+    """Write each country's coverage report and print one line per country."""
+    for code in _amlr_codes(cc, every):
+        path, line = amlr_report.write(code)
+        click.echo(line)
+        click.echo(f"  {path}", err=True)
 
 
 if __name__ == "__main__":

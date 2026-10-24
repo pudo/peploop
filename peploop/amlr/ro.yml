@@ -29,7 +29,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q15304810, by: model}
 - row: 2010
   position: Minister, Ministry of Foreign Affairs
   organisation: Ministry of Foreign Affairs
@@ -146,7 +147,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q21389881, by: model}
 - row: 2023
   position: Assistant Minister
   organisation: 'Ministry of Education: '
@@ -299,7 +301,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q20885066, by: model}
 - row: 2040
   position: Assistant Minister
   organisation: 'Ministry of Health '
@@ -353,7 +356,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q17556530, by: model}
 - row: 2046
   position: Senator
   organisation: Senate
@@ -362,7 +366,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q19938957, by: model}
 - row: 2047
   position: President, Alliance of Liberals and Democrats Party
   local: Partidul Alianța Liberalilor și Democraților (ALDE)
@@ -2258,7 +2263,8 @@ functions:
   amlr: iii_party
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q17556530, by: model}
 - row: 2226
   position: President, Union of Ukrainians of Romania
   local: Uniunea Ucrainienilor din România
@@ -2387,7 +2393,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q967861, by: model}
 - row: 2239
   position: 'Vice-President of Management Board and First Vice-Governor, National Bank of Romania '
   lang: RUM
@@ -2406,7 +2413,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q967861, by: model}
 - row: 2241
   position: Member of Management Board
   organisation: 'National Bank of Romania '
@@ -2415,15 +2423,16 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q967861, by: model}
 - row: 2242
   position: Ambassador
   organisation: Ministry of Foreign Affairs
   status: Position prefix for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2243
   position: Chargé d’affaires, Ministry of Foreign Affairs
@@ -2476,7 +2485,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141483563, by: model}
 - row: 2248
   position: Director, National ‘Romanian Agri-Food Trade Fund’ Company  (MADR (Ministry of Agriculture and Rural
     Development))
@@ -2489,7 +2499,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141483563, by: model}
 - row: 2249
   position: Member of the Management Board
   organisation: National ‘Romanian Agri-Food Trade Fund’ Company (SN ‘Casa Română de Comerț Agroalimentar UNIREA
@@ -2499,7 +2510,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141483563, by: model}
 - row: 2250
   position: Director-General, Sericarom SA Bucharest (State Domains Agency) (MADR)
   lang: RUM
@@ -2568,7 +2580,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18547995, by: model}
 - row: 2257
   position: Branch Director
   organisation: National ‘Land Improvement’ Company (Societatea Națională ‘Îmbunătățiri Funciare’ ) SA Bucharest
@@ -2578,7 +2591,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18547995, by: model}
 - row: 2258
   position: Chair of the Management Board, National Company ‘ROMTEHNICA’ S.A. (MAPN (Ministry of National Defence))
   lang: RUM
@@ -2588,7 +2602,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12739560, by: model}
 - row: 2259
   position: Director-General, National Company ‘ROMTEHNICA’ S.A. (MAPN (Ministry of National Defence))
   lang: RUM
@@ -2598,7 +2613,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12739560, by: model}
 - row: 2260
   position: Member of the Management Board
   organisation: National Company ‘ROMTEHNICA’ S.A. (MAPN (Ministry of National Defence))
@@ -2607,7 +2623,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12739560, by: model}
 - row: 2261
   position: Chair of the Management Board, RO-ARMYSECURITY S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
   lang: RUM
@@ -2693,7 +2710,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18539212, by: model}
 - row: 2270
   position: Director-General, Conpet S.A. (MEEMA)
   lang: RUM
@@ -2703,7 +2721,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18539212, by: model}
 - row: 2271
   position: ' Member of the Management Board'
   organisation: National Natural Gas Company (Societatea Națională de Gaze Naturale) Romgaz S.A. (MEEMA)
@@ -2712,7 +2731,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q2757144, by: model}
 - row: 2272
   position: Director-General, National Natural Gas Company - Romgaz S.A. (MEEMA)
   local: (Societatea Națională de Gaze Naturale
@@ -2723,7 +2743,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q2757144, by: model}
 - row: 2273
   position: Member of the Management Board
   organisation: Electrocentrale Grup S.A (MEEMA)
@@ -2732,7 +2753,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141478186, by: model}
 - row: 2274
   position: Director-General, Electrocentrale Grup S.A (MEEMA)
   lang: RUM
@@ -2742,7 +2764,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141478186, by: model}
 - row: 2275
   position: Member of Supervisory Board
   organisation: Oltenia Energy Complex Company (Societatea Complexul Energetic Oltenia) S.A. (MEEMA)
@@ -2751,7 +2774,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18539158, by: model}
 - row: 2276
   position: Member of Directorate
   organisation: Oltenia Energy Complex Company (Societatea Complexul Energetic Oltenia) S.A. (MEEMA)
@@ -2760,7 +2784,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18539158, by: model}
 - row: 2277
   position: Member of the Management Board
   organisation: Midia Thermoelectric Plant Company (Societatea Uzina Termoelectrică Midia) S.A. (MEEMA)
@@ -2790,7 +2815,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5752917, by: model}
 - row: 2280
   position: Member of Directorate
   organisation: Hyderoelectric Plant Electricity Production Company (Societatea de Producere a Energiei Electrice
@@ -2800,7 +2826,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5752917, by: model}
 - row: 2281
   position: Member of the Management Board
   organisation: 'National ‘Nuclear Electric’ Company (‘ Nuclearelectrica ’) S.A. '
@@ -2809,7 +2836,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q7068211, by: model}
 - row: 2282
   position: Director-General, National ‘Nuclear Electric’ Company ‘ (Nuclearelectrica ’) S.A.
   local: ‘ Nuclearelectrica ’) S.A.
@@ -2820,7 +2848,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q7068211, by: model}
 - row: 2283
   position: Member of Supervisory Board
   organisation: Energy Share-Holding Administration Company (Societatea de Administrare a Participaţiilor în Energie)
@@ -2830,7 +2859,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141478221, by: model}
 - row: 2284
   position: Member of Directorate
   organisation: Energy Share-Holding Administration Company (Societatea de Administrare a Participaţiilor în Energie)
@@ -2840,7 +2870,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141478221, by: model}
 - row: 2285
   position: Member of the Management Board
   organisation: Romanian National Uranium Company (Compania Națională a Uraniului S.A.) (MEEMA)
@@ -2849,7 +2880,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12724464, by: model}
 - row: 2286
   position: Director-General, Romanian National Uranium Company (MEEMA)
   local: Compania Națională a Uraniului S.A.)
@@ -2860,7 +2892,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12724464, by: model}
 - row: 2287
   position: Member of the Management Board
   organisation: Institute of Scientific Research and Technological Engineering – Lignite Mine Design (Societatea
@@ -2936,7 +2969,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18547994, by: model}
 - row: 2294
   position: Director-General, National Mineral Water Company (MEEMA)
   local: Societatea Națională a Apelor Minerale S.A.)
@@ -2947,7 +2981,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18547994, by: model}
 - row: 2295
   position: Member of the Management Board
   organisation: National Salt Company (Societatea Națională a Sării) (MEEMA)
@@ -2956,7 +2991,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12740352, by: model}
 - row: 2296
   position: Director-General, National Salt Company (MEEMA)
   local: Societatea Națională a Sării)
@@ -2967,7 +3003,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12740352, by: model}
 - row: 2297
   position: Member of the Management Board
   organisation: National Copper, Gold and Iron Company (Compania Națională a Cuprului, Aurului și Fierului) ‘MINVEST’
@@ -2977,7 +3014,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12735637, by: model}
 - row: 2298
   position: Director-General, National Copper, Gold and Iron Company (MEEMA)
   local: Compania Națională a Cuprului, Aurului și Fierului) ‘MINVEST’ S.A.
@@ -2989,7 +3027,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12735637, by: model}
 - row: 2299
   position: Member of the Management Board
   organisation: Băița S.A. (MEEMA)
@@ -3017,7 +3056,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5194585, by: model}
 - row: 2302
   position: Director-General, Cupru Min S.A. (MEEMA)
   lang: RUM
@@ -3027,7 +3067,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5194585, by: model}
 - row: 2303
   position: Member of the Management Board
   organisation: Conversmin S.A. (MEEMA)
@@ -3036,7 +3077,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18539265, by: model}
 - row: 2304
   position: Director-General, Conversmin S.A. (MEEMA)
   lang: RUM
@@ -3046,7 +3088,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18539265, by: model}
 - row: 2305
   position: Member of the Management Board,
   organisation: Măgurele Radioactive Mineral Company (Societatea Radioactiv Mineral Măgurele) S.A. (MEEMA)
@@ -3055,7 +3098,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12738956, by: model}
 - row: 2306
   position: Director-General, Măgurele Radioactive Mineral Company  S.A. (MEEMA)
   local: (Societatea Radioactiv Mineral Măgurele)
@@ -3066,7 +3110,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12738956, by: model}
 - row: 2307
   position: Member of the Management Board
   organisation: Minvest Roșia Montană S.A. (MEEMA)
@@ -3094,7 +3139,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12739531, by: model}
 - row: 2310
   position: Director-General, Romarm S.A. (MEEMA)
   lang: RUM
@@ -3104,7 +3150,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12739531, by: model}
 - row: 2311
   position: Member of the Management Board
   organisation: Dragomirești Special Products Plant Company (Societatea Uzina de Produse Speciale Dragomirești S.A.)
@@ -3193,7 +3240,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12742917, by: model}
 - row: 2320
   position: Director-General, Bucharest Mechanical Plant Company (MEEMA)
   local: Societatea Uzina Mecanică București S.A.) – branch of CN ROMARM S.A.
@@ -3213,7 +3261,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12742925, by: model}
 - row: 2322
   position: Director-General, Sadu Mechanical Plant Company (MEEMA)
   local: Societatea Uzina Mecanică Sadu S.A.) – branch of CN ROMARM S.A.
@@ -3233,7 +3282,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12742914, by: model}
 - row: 2324
   position: Director-General, Plopeni Mechanical Plant Company (MEEMA)
   local: Societatea Uzina Mecanică Plopeni S.A.) – branch of CN ROMARM S.A.
@@ -3254,7 +3304,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12742921, by: model}
 - row: 2326
   position: Director-General, Cugir Mechanical Plant Company (MEEMA)
   local: Societatea Uzina Mecanică Cugir S.A.) – branch of CN ROMARM S.A.
@@ -3274,7 +3325,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12742923, by: model}
 - row: 2328
   position: Director-General, Mija Mechanical Plant Company (MEEMA)
   local: Societatea Uzina Mecanică Mija S.A.) – branch of CN ROMARM S.A.
@@ -3294,7 +3346,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18540069, by: model}
 - row: 2330
   position: Director-General, Gunpowder Factory Company (MEEMA)
   local: Societatea Fabrica de Pulberi S.A.) Făgăraș – branch of CN ROMARM S.A.
@@ -3314,7 +3367,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12742921, by: model}
 - row: 2332
   position: Director-General, Cugir Arms Factory Company (MEEMA)
   local: Societatea Fabrica de Arme Cugir S.A.) – branch of CN ROMARM S.A.
@@ -3353,7 +3407,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12727473, by: model}
 - row: 2336
   position: Director-General, Ploiești Electromechancial Company  S.A. – branch of CN ROMARM S.A. (MEEMA)
   local: (Societatea Electromecanica Ploiești)
@@ -3365,7 +3420,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12727473, by: model}
 - row: 2337
   position: Member of the Management Board
   organisation: Arsenal Reșița S.A. – branch of CN ROMARM S.A. (MEEMA)
@@ -3394,7 +3450,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18543713, by: model}
 - row: 2340
   position: Director-General, Moreni Automechanical Plant Company  – branch of CN ROMARM S.A. (MEEMA)
   local: (Societatea Uzina Automecanica Moreni S.A.)
@@ -3406,7 +3463,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18543713, by: model}
 - row: 2341
   position: Member of the Management Board
   organisation: Avioane Craiova S.A. (MEEMA)
@@ -3415,7 +3473,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q2324155, by: model}
 - row: 2342
   position: Director-General, Avioane Craiova S.A. (MEEMA)
   lang: RUM
@@ -3425,7 +3484,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q2324155, by: model}
 - row: 2343
   position: Member of the Management Board
   organisation: IAR S.A. (MEEMA)
@@ -3434,7 +3494,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q292773, by: model}
 - row: 2344
   position: Director-General, IAR S.A. (MEEMA)
   lang: RUM
@@ -3444,7 +3505,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q292773, by: model}
 - row: 2345
   position: Member of the Management Board
   organisation: IOR S.A. (MEEMA)
@@ -3453,7 +3515,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5967868, by: model}
 - row: 2346
   position: Director-General, IOR S.A. (MEEMA)
   lang: RUM
@@ -3463,7 +3526,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5967868, by: model}
 - row: 2347
   position: Member of the Management Board
   organisation: Romaero S.A. (MEEMA)
@@ -3472,7 +3536,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q387165, by: model}
 - row: 2348
   position: Director-General, Romaero S.A. (MEEMA)
   lang: RUM
@@ -3482,7 +3547,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q387165, by: model}
 - row: 2349
   position: Member of the Management Board
   organisation: Mangalia Shipyard Company (Societatea Șantierul Naval Mangalia) S.A. (MEEMA)
@@ -3529,7 +3595,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12734464, by: model}
 - row: 2354
   position: Director-General, Romanian National Lottery Company (MEEMA)
   local: Compania Națională Loteria Română S.A.)
@@ -3539,7 +3606,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12734464, by: model}
 - row: 2355
   position: Member of the Management Board
   organisation: National Company for the Control of Boilers, Lifting Equipment and Pressurised Vessels (Compania
@@ -3549,7 +3617,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141355307, by: model}
 - row: 2356
   position: Director-General, National Company for the Control of Boilers, Lifting Equipment and Pressurised Vessels
     (MEEMA)
@@ -3562,7 +3631,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141355307, by: model}
 - row: 2357
   position: Member of the Management Board
   organisation: 2 Mai Shipyard Company (Societatea Șantierul 2 Mai) S.A. (MEEMA)
@@ -3628,7 +3698,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12730499, by: model}
 - row: 2364
   position: Director-General, Institute for Metallurgical Research S.A. (MEEMA)
   local: (Institutul de Cercetări Metalurgice)
@@ -3639,7 +3710,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12730499, by: model}
 - row: 2365
   position: Member of the Management Board
   organisation: Eurotest S.A. (MEEMA)
@@ -3648,7 +3720,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12727905, by: model}
 - row: 2366
   position: Director-General, Eurotest S.A. (MEEMA)
   lang: RUM
@@ -3658,7 +3731,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12727905, by: model}
 - row: 2367
   position: Member of the Management Board
   organisation: Sanevit 2003 S.A. (MEEMA)
@@ -3829,7 +3903,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q24035724, by: model}
 - row: 2384
   position: Administrator
   organisation: National ‘National Printing Office’ Company (Compania Națională ‘Imprimeria Naţională“ S.A.) (MFP
@@ -3839,7 +3914,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12730359, by: model}
 - row: 2385
   position: Director-General, National ‘National Printing Office’ Company  (MFP (Ministry of Public Finance)
   local: (Compania Națională ‘Imprimeria Naţională“ S.A.)
@@ -3851,7 +3927,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12730359, by: model}
 - row: 2386
   position: Executive Director of Financial Directorate, National ‘National Printing Office’ Company  (MFP (Ministry
     of Public Finance)
@@ -3864,7 +3941,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12730359, by: model}
 - row: 2387
   position: Director of Technical Directorate, National ‘National Printing Office’ Company (MFP (Ministry of Public
     Finance)
@@ -3877,7 +3955,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12730359, by: model}
 - row: 2388
   position: Director of Development Directorate, National ‘National Printing Office’ Company (Compania Națională
     ‘Imprimeria Naţională“ S.A.) (MFP (Ministry of Public Finance)
@@ -3890,7 +3969,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12730359, by: model}
 - row: 2389
   position: Member of the Board of Directors
   organisation: CEC BANK – S.A. (MFP)
@@ -3899,7 +3979,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1023306, by: model}
 - row: 2390
   position: Member of the Management Board
   organisation: CEC BANK – S.A. (MFP)
@@ -3908,7 +3989,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1023306, by: model}
 - row: 2391
   position: President of the Management Board (MB member), Romanian Export-Import Bank Eximbank – S.A. (MFP)
   local: (Banca de Export – Import a României)
@@ -3919,7 +4001,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5421544, by: model}
 - row: 2392
   position: Executive President (MB member), Romanian Export-Import Bank (Banca de Export – Import a României) Eximbank
     – S.A. (MFP)
@@ -3930,7 +4013,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5421544, by: model}
 - row: 2393
   position: Executive Vice-President (MB Member), Romanian Export-Import Bank (Banca de Export – Import a României)
     Eximbank – S.A. (MFP)
@@ -3941,7 +4025,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5421544, by: model}
 - row: 2394
   position: Non-Executive Member (MB Member)
   organisation: Romanian Export-Import Bank (Banca de Export – Import a României) Eximbank – S.A. (MFP)
@@ -3950,7 +4035,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q5421544, by: model}
 - row: 2395
   position: Member of Directorate
   organisation: Romanian Counter-Guarantee Fund (Fondul Român de Contragarantare) S.A. (MFP)
@@ -3959,7 +4045,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q140800272, by: model}
 - row: 2396
   position: Member of Supervisory Board
   organisation: Romanian Counter-Guarantee Fund (Fondul Român de Contragarantare) S.A. (MFP)
@@ -3968,7 +4055,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q140800272, by: model}
 - row: 2397
   position: 'Chair of the Management Board, National Credit Guarantee Fund for Small and Medium-sized Enterprises  –
     IFN (MFP):'
@@ -4001,8 +4089,8 @@ functions:
   status: Position for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
   amlr: vii_soe
-  kind: body_class
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 2400
   position: Deputy Director-General
@@ -4026,7 +4114,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18539150, by: model}
 - row: 2402
   position: Member of the Management Board
   organisation: National Investment Company (Compania Națională de Investiții ‘C.N.I. ’ ) S.A. (MLPDA (Ministry
@@ -4036,7 +4125,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18539150, by: model}
 - row: 2403
   position: Director-General, ‘ Animafilm ’ Cinematographic Studio – S.A. (Ministry of Culture)
   lang: RUM
@@ -4046,7 +4136,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q4764729, by: model}
 - row: 2404
   position: Member of the Management Board
   organisation: ‘ Animafilm ’ Cinematographic Studio – S.A. (Ministry of Culture)
@@ -4055,7 +4146,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q4764729, by: model}
 - row: 2405
   position: Director-General, C.N. Unifarm S.A. (MS (Ministry of Health)
   lang: RUM
@@ -4084,7 +4176,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q574884, by: model}
 - row: 2408
   position: Member of the Management Board
   organisation: Antibiotice S.A. Iași (MS)
@@ -4093,7 +4186,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q574884, by: model}
 - row: 2409
   position: General
   organisation: National Railway Company (Compania Națională Căi Ferate) – ‘CFR’ S.A. (MTIC (Ministry of Transport,
@@ -4103,7 +4197,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q118791749, by: model}
 - row: 2410
   position: Member of the Management Board
   organisation: National Railway Company (Compania Națională Căi Ferate) – ‘CFR’ S.A. (MTIC (Ministry of Transport,
@@ -4113,7 +4208,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q118791749, by: model}
 - row: 2411
   position: Director-General, National Rail Freight Company (MTIC)
   local: Societatea Națională de Transport Feroviar de Marfă) ‘CFR – Marfă’ S.A.
@@ -4125,7 +4221,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q13630969, by: model}
 - row: 2412
   position: Member of the Management Board
   organisation: National Rail Freight Company (Societatea Națională de Transport Feroviar de Marfă) ‘CFR – Marfă’
@@ -4135,7 +4232,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q13630969, by: model}
 - row: 2413
   position: Director-General, National Passenger Railways Company (MTIC)
   local: Societatea Națională de Transport Feroviar de Călători) ‘ CFR – Călători ’ S.A.
@@ -4147,7 +4245,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q856252, by: model}
 - row: 2414
   position: Member of the Management Board
   organisation: National Passenger Railways Company (Societatea Națională de Transport Feroviar de Călători) ‘ CFR
@@ -4157,7 +4256,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q856252, by: model}
 - row: 2415
   position: Director-General, Rail Assets Administration Company (MTIC)
   local: Societatea de Administrare Active Feroviare ”S.A.A.F.’) S.A.
@@ -4169,7 +4269,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q60802417, by: model}
 - row: 2416
   position: Member of the Management Board
   organisation: Rail Assets Administration Company (Societatea de Administrare Active Feroviare ”S.A.A.F.’) S.A.
@@ -4179,7 +4280,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q60802417, by: model}
 - row: 2417
   position: Director-General, Tourism Railway Company (MTIC)
   local: Societatea Feroviară de Turism) ‘S.F.T. – C.F.R.’ S.A.
@@ -4211,7 +4313,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1091725, by: model}
 - row: 2420
   position: Member of the Management Board
   organisation: Bucharest Metro Transport Company (Societatea de Transport cu Metroul București) ‘Metrorex’ S.A.
@@ -4221,7 +4324,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1091725, by: model}
 - row: 2421
   position: Director-General,, National ‘Bucharest Airport’ Company
   local: Compania Națională ‘Aeroporturi București’ ) S.A.
@@ -4232,7 +4336,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12724458, by: model}
 - row: 2422
   position: Member of the Management Board
   organisation: National ‘Bucharest Airport’ Company (Compania Națională ‘Aeroporturi București’ ) S.A.
@@ -4241,7 +4346,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12724458, by: model}
 - row: 2423
   position: Director-General, National ‘Mihail Kogălniceanu – Constanța International Airport’ Company (MTIC)
   local: Societatea Națională ‘Aeroportul Internațional Mihail Kogălniceanu – Constanța’ ) – S.A.
@@ -4285,7 +4391,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1417736, by: model}
 - row: 2427
   position: Director-General, National Romanian Air Transport Company (MTIC)
   local: Societatea ‘Compania Națională de Transporturi Aeriene Române TAROM’ ) S.A.
@@ -4297,7 +4404,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q240656, by: model}
 - row: 2428
   position: Member of the Management Board
   organisation: National Romanian Air Transport Company (Societatea ‘Compania Națională de Transporturi Aeriene
@@ -4319,7 +4427,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18537265, by: model}
 - row: 2430
   position: Member of the Management Board
   organisation: National ‘Sea Ports Administration’ Company (Compania Națională ‘Administrația Porturilor Maritime’
@@ -4329,7 +4438,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18537265, by: model}
 - row: 2431
   position: Director-General, National ‘Navigable Canals Administration’ Company (MTIC)
   local: Compania Națională ‘Administrația Canalelor Navigabile’ ) S.A.
@@ -4341,7 +4451,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18537262, by: model}
 - row: 2432
   position: Member of the Management Board
   organisation: 'National ‘Navigable Canals Administration’ Company (Compania Națională ‘Administrația Canalelor
@@ -4351,7 +4462,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18537262, by: model}
 - row: 2433
   position: Director-General, National Naval Radiocommunications Company
   local: Compania Națională de Radiocomunicații Navale) ‘Radionav’ S.A.
@@ -4363,7 +4475,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141475367, by: model}
 - row: 2434
   position: Member of the Management Board
   organisation: 'National Naval Radiocommunications Company (Compania Națională de Radiocomunicații Navale) ‘Radionav’
@@ -4373,7 +4486,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141475367, by: model}
 - row: 2435
   position: Director-General, National ‘Danube Sea Ports Administration’ Company
   local: Compania Națională ‘Administrația Porturilor Dunării Maritime’ ) S.A.
@@ -4385,7 +4499,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12719979, by: model}
 - row: 2436
   position: Member of the Management Board
   organisation: National ‘Danube Sea Ports Administration’ Company (Compania Națională ‘Administrația Porturilor
@@ -4395,7 +4510,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12719979, by: model}
 - row: 2437
   position: Director-General, National ‘Danube River Ports Administration’ Company
   local: Compania Națională ‘Administrația Porturilor Dunării Fluviale’ ) S.A.
@@ -4407,7 +4523,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12719782, by: model}
 - row: 2438
   position: Member of the Management Board
   organisation: National ‘Danube River Ports Administration’ Company (Compania Națională ‘Administrația Porturilor
@@ -4417,7 +4534,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12719782, by: model}
 - row: 2439
   position: Director-General,, National Road Infrastructure Administration Company (MTIC)
   local: Compania Națională de Administrare a Infrastructurii Rutiere) S.A.
@@ -4429,7 +4547,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12724468, by: model}
 - row: 2440
   position: Member of the Management Board
   organisation: National Road Infrastructure Administration Company (Compania Națională de Administrare a Infrastructurii
@@ -4439,7 +4558,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12724468, by: model}
 - row: 2441
   position: Director-General, National Road Investment Company (MTIC)
   local: Compania Națională de Investiții Rutiere) S.A.
@@ -4450,7 +4570,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141475479, by: model}
 - row: 2442
   position: Member of the Management Board
   organisation: National Road Investment Company (Compania Națională de Investiții Rutiere) S.A. (MTIC)
@@ -4459,7 +4580,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q141475479, by: model}
 - row: 2443
   position: Director-General, ‘CFR Telecommunications’ Company (MTIC)
   local: Societatea ‘Telecomunicații C.F.R.’ ) S.A.
@@ -4512,7 +4634,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q283175, by: model}
 - row: 2448
   position: Member of the Management Board
   organisation: National ‘Romanian Postal Services’ Company (Națională ‘Poșta Română’ S.A.) (MTIC)
@@ -4521,7 +4644,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q283175, by: model}
 - row: 2449
   position: Director-General, National Radiocommunications Company (MTIC)
   local: Societatea Națională de Radiocomunicații) S.A.
@@ -4532,7 +4656,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12741031, by: model}
 - row: 2450
   position: Member of the Management Board
   organisation: National Radiocommunications Company (Societatea Națională de Radiocomunicații) S.A. (MTIC)
@@ -4541,7 +4666,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12741031, by: model}
 - row: 2451
   position: Director-General, Autonomous Corporation ‘Bega Navigable Canal Administration’ (MTIC)
   local: Regia Autonomă ‘Administrația Canalului Navigabil Bega’ ) Timiș
@@ -4605,7 +4731,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12719977, by: model}
 - row: 2457
   position: Director-General, Autonomous Corporation ‘Romanian Civil Aeronautical Authority’ (MTIC)
   local: Regia Autonomă ‘Autoritatea Aeronautică Civilă Română’ )
@@ -4627,7 +4754,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q15634501, by: model}
 - row: 2459
   position: Director-General, Autonomous Corporation ‘Romanian Air Traffic Services Administration’ (MTIC)
   local: Regia Autonomă ‘Administrația Română a Serviciilor de Trafic Aerian’ ) ROMAT
@@ -4727,8 +4855,8 @@ functions:
   status: Position prefix for territory
   category: members of the administrative, management or supervisory bodies of State-owned enterprises;
   amlr: vii_soe
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 2469
   position: Legal Director,, Autonomous Corporation – Administration of State Protocol (SGG)
@@ -4781,7 +4909,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2474
   position: Member of the Supervisory Board
   organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
@@ -4791,7 +4920,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2475
   position: President of the Directorate – Executive Director-General, National Electricity Transmission Company
   local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
@@ -4803,7 +4933,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2476
   position: Member of the Directorate
   organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
@@ -4813,7 +4944,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2477
   position: Director UNO-DEN/Unit, National Electricity Transmission Company
   local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
@@ -4825,7 +4957,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2478
   position: Director of DEN Directorate, National Electricity Transmission Company
   local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
@@ -4837,7 +4970,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2479
   position: Director of Unit, National Electricity Transmission Company
   local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
@@ -4849,7 +4983,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2480
   position: Director of Directorate, National Electricity Transmission Company
   local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
@@ -4861,7 +4996,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2481
   position: Deputy Director of Directorate
   organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
@@ -4871,7 +5007,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2482
   position: Manager (department)
   organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
@@ -4881,7 +5018,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2483
   position: Chief Inspector, National Electricity Transmission Company
   local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
@@ -4893,7 +5031,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2484
   position: UTT Manager
   organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
@@ -4903,7 +5042,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q750324, by: model}
 - row: 2485
   position: Director-General, National Natural Gas Transport Company
   local: 'Societatea Națională de Transport Gaze Naturale) Transgaz S.A. Mediaș (SGG):'
@@ -4915,7 +5055,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q734282, by: model}
 - row: 2486
   position: Financial Director, National Natural Gas Transport Company
   local: 'Societatea Națională de Transport Gaze Naturale) Transgaz S.A. Mediaș (SGG):'
@@ -4927,7 +5068,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q734282, by: model}
 - row: 2487
   position: Member of the Management Board
   organisation: 'National Natural Gas Transport Company (Societatea Națională de Transport Gaze Naturale) Transgaz
@@ -4937,7 +5079,8 @@ functions:
   amlr: vii_soe
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q734282, by: model}
 - row: 2488
   position: Country manager (RO&HU), World Bank
   organisation: World Bank

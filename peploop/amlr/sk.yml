@@ -17,7 +17,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q6468838, by: model}
 - row: 2495
   position: Prime Minister of the Slovak Republic
   status: Position for territory
@@ -25,7 +26,8 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q45369, by: model}
 - row: 2496
   position: Deputy Prime Minister of the Slovak Republic
   status: Position for territory
@@ -33,14 +35,15 @@ functions:
   amlr: i_executive
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q108048763, by: model}
 - row: 2497
   position: Ministers
   status: Position prefix for territory
   category: heads of State, heads of government, ministers and deputy or assistant ministers;
   amlr: i_executive
-  kind: position
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2498
   position: State secretaries of ministries
@@ -57,7 +60,8 @@ functions:
   amlr: ii_legislature
   kind: position
   checked: false
-  expansion: []
+  expansion:
+  - {position: Q19967563, by: model}
 - row: 2500
   position: Judges at the Constitutional Court of the Slovak Republic (Ústavný súd Slovenskej republiky)
   status: Position prefix for territory
@@ -130,7 +134,8 @@ functions:
   amlr: v_audit_cb
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q1481791, by: model}
 - row: 2508
   position: Members of the Banking Council of the National Bank of Slovakia
   status: Position prefix for territory
@@ -144,8 +149,8 @@ functions:
   status: Position prefix for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: body
-  checked: false
+  kind: body_class
+  checked: true
   expansion: []
 - row: 2510
   position: Heads of Representation Offices of the Slovak Republic
@@ -264,16 +269,16 @@ functions:
   status: Position for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 2525
   position: Deputy Commissioner of the Police Force of the Slovak Republic
   status: Position for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
   amlr: vi_diplomat_military
-  kind: body
-  checked: false
+  kind: position
+  checked: true
   expansion: []
 - row: 2526
   position: Director of the National Crime Agency
@@ -287,9 +292,9 @@ functions:
   position: Director of the Financial Intelligence Unit
   status: Position for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
-  amlr: vi_diplomat_military
-  kind: body
-  checked: false
+  amlr: agency
+  kind: position
+  checked: true
   expansion: []
 - row: 2528
   position: Director-General of the Office of the Inspection Service
@@ -311,9 +316,9 @@ functions:
   position: Director of the Criminal Office of the Financial Administration of the Slovak Republic
   status: Position for territory
   category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
-  amlr: vi_diplomat_military
-  kind: body
-  checked: false
+  amlr: agency
+  kind: position
+  checked: true
   expansion: []
 - row: 2531
   position: Director of the Prison and Judicial Guard Corps
@@ -331,7 +336,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 2533
   position: Board members and company secretaries of State firms
   status: Position prefix for territory
@@ -339,7 +345,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 2534
   position: Members of supervisory boards of State firms
   status: Position prefix for territory
@@ -347,7 +354,8 @@ functions:
   amlr: vii_soe
   kind: body_class
   checked: false
-  expansion: []
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
 - row: 2535
   position: Prosecutor-General and their deputy
   status: To split
@@ -388,18 +396,19 @@ functions:
   position: President (župan) of a self-governing region
   status: Position prefix for territory
   category: directors, deputy directors and members of the board or equivalent function of an international organisation.
-  amlr: ix_io
+  amlr: viii_local
   kind: position
-  checked: false
+  checked: true
   expansion: []
 - row: 2540
   position: Mayor of a city
   status: Position prefix for territory
   category: directors, deputy directors and members of the board or equivalent function of an international organisation.
-  amlr: ix_io
-  kind: position
-  checked: false
-  expansion: []
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion:
+  - {level: municipal, office: head, by: model}
 - row: 2541
   position: Mayors of Bratislava and Košice
   status: To split
@@ -451,7 +460,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q40451195, by: model}
 - row: 2547
   position: Chair, The Antimonopoly Office of the Slovak Republic
   local: Protimonopolny úrad Slovenskej republiky
@@ -462,7 +472,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q56823105, by: model}
 - row: 2548
   position: Chair, The Statistical Office of the Slovak Republic
   local: Štatisticky úrad Slovenskej republiky
@@ -473,7 +484,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q13371586, by: model}
 - row: 2549
   position: Chair, The Geodesy, Cartography and Cadastre Authority of the Slovak Republic
   local: Úrad geodézie, kartografie a katastra Slovenskej republiky
@@ -485,7 +497,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12781109, by: model}
 - row: 2550
   position: Chair, The Nuclear Regulatory Authority of the Slovak Republic
   local: Úrad jadrového dozoru Slovenskej republiky
@@ -496,7 +509,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12781104, by: model}
 - row: 2551
   position: Chair, The Slovak Office of Standards, Metrology and Testing
   local: Úrad pre normalizáciu, metrológiu a skúšobníctvo Slovenskej republiky
@@ -508,7 +522,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12781108, by: model}
 - row: 2552
   position: Chair, The Public-Procurement Office
   local: Úrad pre verejné obstarávanie
@@ -519,7 +534,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q18595485, by: model}
 - row: 2553
   position: Chair, The Industrial Property Office of the Slovak Republic
   local: Úrad priemyselného vlastníctva Slovenskej republiky
@@ -531,7 +547,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12781106, by: model}
 - row: 2554
   position: Chair, The Administration of State Material Reserves of the Slovak Republic
   local: Správa štátnych hmotných rezerv Slovenskej republiky
@@ -587,7 +604,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q15111229, by: model}
 - row: 2559
   position: Director-General, The Social Insurance Agency
   local: Sociálna poisťovňa
@@ -598,7 +616,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q99976267, by: model}
 - row: 2560
   position: Director-General, The State Veterinary and Food Administration of the Slovak Republic
   local: Štátna veterinárna a potravinová správa Slovenskej republiky
@@ -719,7 +738,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q30291068, by: model}
 - row: 2571
   position: Director General, The Slovak Land Fund
   local: Slovenský pozemkový fond
@@ -751,7 +771,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q56057985, by: model}
 - row: 2574
   position: Director, The State Institute for Drug Control
   local: Štátny ústav pre kontrolu liečiv
@@ -762,7 +783,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q12781873, by: model}
 - row: 2575
   position: Director-General, The Gambling Regulatory Authority
   local: Úrad pre reguláciu hazardných hier
@@ -796,7 +818,8 @@ functions:
   amlr: agency
   kind: body
   checked: false
-  expansion: []
+  expansion:
+  - {body: Q28597342, by: model}
 - row: 2578
   position: Director-General, The National Agency for Network and Electronic Services
   local: Národná agentúra pre sieťové a elektronické služby
@@ -918,7 +941,7 @@ functions:
   organisation: World Health Organization
   status: Position prefix for territory
   category: members of the governing bodies of political parties;
-  amlr: iii_party
+  amlr: ix_io
   kind: position
-  checked: false
+  checked: true
   expansion: []
