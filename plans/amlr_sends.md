@@ -40,12 +40,12 @@ Run files from WS4–WS6 re-plan whole countries: every send is limited by
 1. Pending marker removals: with the municipal tier written, de's four
    `Q270791` removal proposals were withdrawn. Swap `Q270791` → `Q1780371`
    on municipal companies anyway (others' statements, per-removal approval)?
-2. The city-state rule (a city-state's company is regional) now applies in
-   every country, not only where the municipal tier is written.
+2. Settled 2026-10-25: the city-state rule (a city-state's company is
+   regional) applies in every country.
 3. Holders' `P39` after creation: no CLI seeds a person by QID (203 unit heads
    have one from `P6`); IO offices have no person lane (discovery and
    categorize would need the organisation set).
-4. EU scope label languages: WS7 chose en+fr+de (required), not rigour's 23.
+4. Settled 2026-10-25: EU scope labels en+fr+de, all three required.
 5. Smaller: Q841760's vandalised English label; 161 units whose `P1313` names a
    generic class (removal proposals); Tipperary North/South lack `P576`;
    Munich's Kulturreferat (city departments are government: prompt + re-ask);
