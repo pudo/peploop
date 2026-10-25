@@ -711,7 +711,6 @@ class OfficeAnswer(reconcile.Strict):
     archetype: Optional[str]
     single_seat: bool
     labels: list[Label]
-    description_en: Optional[str]
     parent_qid: Optional[str]
     body_qid: Optional[str]
     jurisdiction_qid: Optional[str]
@@ -745,7 +744,6 @@ class Drafted:
     institution_class: str | None = None
     archetype: str | None = None
     single_seat: bool = False
-    description_en: str | None = None
     parent_qid: str | None = None
     body_qid: str | None = None
     jurisdiction_qid: str | None = None
@@ -836,9 +834,8 @@ def settle_categorize(
         out.append(Drafted(
             groups=members, decision=decision, labels=labels, exists_qid=exists,
             census_key=census_key, institution_class=klass, archetype=archetype,
-            single_seat=office.single_seat, description_en=office.description_en,
-            jurisdiction_name=office.jurisdiction_name, evidence=office.evidence,
-            reason=office.reason, problems=mine, **values,
+            single_seat=office.single_seat, jurisdiction_name=office.jurisdiction_name,
+            evidence=office.evidence, reason=office.reason, problems=mine, **values,
         ))
     unassigned: list[tuple[Group, str]] = []
     for item in answer.unassigned:
@@ -1109,10 +1106,8 @@ def offered_for(country: str, gs: Sequence[Group], anchors: Sequence[Anchor],
     parents = {q for a in ARCHETYPES.values() if not a.unit_only for q in (a.parent, *a.parents)}
     bodies = {a.body for a in anchors if a.body}
     labels = _labels([state, *subs, *chosen, *parents, *bodies, *party_qids])
-    territory = get_territory(country)
-    langs = [iso_639_alpha2(lang) or lang for lang in (territory.langs if territory else [])]
     offered = Offered(
-        state_qid=state, state_label=labels.get(state, state), langs=langs,
+        state_qid=state, state_label=labels.get(state, state), langs=country_langs(country),
         subdivisions={q: labels.get(q, q) + ("" if q in current else " (dissolved)") for q in subs},
         bodies={q: labels.get(q, q) for q in sorted(bodies)},
         parties={q: labels.get(q, q) for q in party_qids},
@@ -1564,9 +1559,15 @@ def _candidate(row: dict[str, Any]) -> Candidate:
 
 
 def country_langs(country: str) -> list[str]:
-    """The languages a state's offices are labelled in, as two-letter codes where known."""
+    """The state's languages as rigour lists them, by their two-letter codes.
+
+    The languages a minted office is labelled in besides English. One with no
+    two-letter code is a variety of one that has ("cmn" and "yue" beside
+    "zho"), or not a language Wikidata labels in.
+    """
     territory = get_territory(country)
-    return [iso_639_alpha2(lang) or lang for lang in (territory.langs if territory else [])]
+    codes = (iso_639_alpha2(lang) for lang in (territory.langs if territory else []))
+    return list(dict.fromkeys(code for code in codes if code))
 
 
 class Context:
@@ -1682,8 +1683,11 @@ class Context:
         scope |= set(wikidata.claim_qids(entity, "P1001", include_deprecated=False))
         if not scope & ({self.state_qid} | set(self.subdivisions)):
             return f"exists-unscoped/{qid}"
-        if offices.other_polity(jurisdiction, wikidata.claim_qids(entity, "P1001", include_deprecated=False),
-                                self.levels):
+        scopes = wikidata.claim_qids(entity, "P1001", include_deprecated=False)
+        links = (offices.links_of(self._claims(scopes))
+                 if jurisdiction and jurisdiction not in self.levels and scopes else {})
+        if offices.other_polity(jurisdiction, scopes, self.levels,
+                                {q for linked in links.values() for q in linked}):
             return f"exists-other-polity/{qid}"
         return None
 
@@ -1989,6 +1993,18 @@ def names_no_place(title: str, lang: str, labels: dict[str, str],
     return not _names_in(title, _place_forms(own))
 
 
+def names_polity(labels: dict[str, str], names: Iterable[str]) -> bool:
+    """Whether any of an office's labels names its polity, by one of `names`.
+
+    An office whose labels name no place ("Minister of Finance", "Landrat")
+    is one every state has, and is the one minted item that carries a
+    description saying where. A case ending still names the place:
+    "prezydent miasta Krakowa" names Kraków.
+    """
+    forms = _place_forms(names)
+    return any(_names_in(label, forms) for label in labels.values())
+
+
 #: A title naming the ministry rather than the minister's seat in it.
 MINISTRY = re.compile(
     r"\b(ministry|ministerio|ministere|ministero|ministerie|ministeru|bakanligi|ypourgeio)\b"
@@ -2114,10 +2130,9 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
     the draft wherever the two could differ: `parent_for` over the siblings
     unless the draft named a class the siblings of this kind already use or
     one its title word may name (`Archetype.parents`), and `metaclass_for`
-    always.
-    The description is `describe`d from resolved labels, never the draft's
-    text. None, with the reason, for a seat no archetype fits: there is no
-    shape to build. `label_en` is the verifier's English label for a draft
+    always. Terms are English and the state's languages; only a generic
+    title (`names_polity`) is described. None, with the reason, for a seat
+    no archetype fits: there is no shape to build. `label_en` is the verifier's English label for a draft
     that had none; a draft's own English label always wins.
     """
     ctx = ctx or Context(cand.country)
@@ -2135,11 +2150,9 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
         labels.setdefault(lang, text)
     if label_en and label_en.strip():
         labels.setdefault("en", label_en.strip())
-    # A label is written only in a language that is checked: English, the
-    # languages the state's own offices are labelled in, or the census's own.
-    # Categorize drafts a label in every official language, and one nobody
-    # requires is one nobody reads -- a model's Kirundi would go out unseen.
-    keep = {"en", *offices.label_langs(ctx.siblings, ctx.langs), *(anchor.labels if anchor else ())}
+    # Terms are written in English and the state's own languages only: a
+    # German label or alias on a Chinese office is one nobody there reads.
+    keep = {"en", *ctx.langs}
     labels = {lang: text for lang, text in labels.items() if lang in keep}
     sibs = ctx.siblings
     # Worded as the state's own offices of the same seat are: "at the
@@ -2147,8 +2160,7 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
     if labels.get("en"):
         labels["en"] = offices.sibling_form(labels["en"], sibs.labels)
     # And its body, measured for the census, when the draft named none: a
-    # draft that took the office for an existing generic class has no body,
-    # and without one a "head of the {body}" description cannot be written.
+    # draft that took the office for an existing generic class has no body.
     # Failing both, the body the state's offices of this kind agree on. An
     # archetype that sits where another does (`body_from`) takes the measured
     # body first: a deputy's drafted ministry is the minority shape.
@@ -2198,20 +2210,20 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
         parent = offices.parent_for(sibs, arch)
         if drafted and drafted != parent:
             problems.append(f"parent-replaced/{drafted}")
+    place = ctx.place_names(jurisdiction) if jurisdiction and jurisdiction != ctx.state_qid else None
+    aliases = attested_aliases(cand.attestations, labels, ctx.state_names, arch, place=place)
     spec = offices.Spec(
         ref=cand.ref, archetype=arch, labels=labels, state_qid=ctx.state_qid,
-        aliases=attested_aliases(cand.attestations, labels, ctx.state_names, arch,
-                                 place=ctx.place_names(jurisdiction)
-                                 if jurisdiction and jurisdiction != ctx.state_qid else None),
+        aliases={lang: texts for lang, texts in aliases.items() if lang in keep},
         metaclass=offices.metaclass_for(sibs, parent, shape.metaclass), parent=parent,
         jurisdiction_qid=jurisdiction, body_qid=body,
         replaces=draft.get("replaces_qid"),
     )
-    text = offices.describe(spec, ctx.english_labels([spec.body_qid, spec.jurisdiction, spec.state_qid]))
-    if text:
-        spec.descriptions = {"en": text}
-    else:
-        problems.append("description")
+    polity = [*ctx.state_names, *(n for names in (place or {}).values() for n in names)]
+    if labels and not names_polity(labels, polity):
+        text = offices.generic_description(spec, ctx.english_labels([spec.jurisdiction, spec.state_qid]))
+        if text:
+            spec.descriptions = {"en": text}
     return spec, problems
 
 
@@ -2361,6 +2373,15 @@ def render_index(spec: offices.Spec | None, ctx: Context) -> tuple[str, list[Pos
     return "\n".join(f"- {p.line()}" for p in rows) or "- (none loaded)", list(rows)
 
 
+def _ranked(tally: Counter[str], limit: int | None = None) -> list[tuple[str, int]]:
+    """A tally most common first, ties by QID.
+
+    The live reads return ties in any order, and a request rendered
+    differently is a new request, asked again.
+    """
+    return sorted(tally.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
+
+
 def render_siblings(ctx: Context) -> tuple[str, set[str]]:
     """How the state's offices are typed, every QID with its label."""
     sibs = ctx.siblings
@@ -2368,14 +2389,15 @@ def render_siblings(ctx: Context) -> tuple[str, set[str]]:
     for arch, tally in sorted(sibs.parents.items()):
         shown |= set(tally)
         lines.append(f"- {arch}: " + "; ".join(
-            f"{q} {ctx.label(q)} ×{n}" for q, n in tally.most_common()))
+            f"{q} {ctx.label(q)} ×{n}" for q, n in _ranked(tally)))
     if not sibs.parents:
         lines.append("- none measured")
     lines += ["", "## Metaclasses (P31)", ""]
-    lines += [f"- {q} {ctx.label(q)} ×{n}" for q, n in sibs.metaclasses.most_common(8)] or ["- none"]
+    lines += [f"- {q} {ctx.label(q)} ×{n}" for q, n in _ranked(sibs.metaclasses, 8)] or ["- none"]
     lines += ["", "## Bodies (P361/P2389)", ""]
-    lines += [f"- {q} {ctx.label(q)} ×{n}" for q, n in sibs.bodies.most_common(15)] or ["- none"]
-    shown |= set(sibs.metaclasses) | {q for q, _n in sibs.bodies.most_common(15)}
+    bodies = _ranked(sibs.bodies, 15)
+    lines += [f"- {q} {ctx.label(q)} ×{n}" for q, n in bodies] or ["- none"]
+    shown |= set(sibs.metaclasses) | {q for q, _n in bodies}
     return "\n".join(lines), shown
 
 
@@ -2519,6 +2541,52 @@ def recorded_verify(key: str, prompt_hash: str, model: str) -> tuple[int, Verify
     return row[0], VerifyAnswer.model_validate(row[1]), row[2] or {}
 
 
+#: A term line of the draft a verify request shows (`render_draft`).
+TERM_LINE = re.compile(r"^(label|alias|description) \(([^)]*)\): (.*)$")
+
+
+def dropped_terms_only(asked: str, message: str) -> bool:
+    """Whether `message` is the request `asked` less some of its terms.
+
+    Every line but the draft's terms the same, and every label and alias it
+    shows shown before; descriptions are not compared. A verdict answers the
+    office's evidence and shape: dropping a label, an alias or a description
+    tells the verifier nothing it did not weigh.
+    """
+    def split(text: str) -> tuple[list[str], set[tuple[str, str, str]]]:
+        rest, terms = [], set()
+        for line in text.split("\n"):
+            found = TERM_LINE.match(line)
+            if found is None:
+                rest.append(line)
+            elif found[1] != "description":
+                texts = found[3].split("; ") if found[1] == "alias" else [found[3]]
+                terms |= {(found[1], found[2], t) for t in texts}
+        return rest, terms
+
+    old_rest, old_terms = split(asked)
+    new_rest, new_terms = split(message)
+    return old_rest == new_rest and new_terms <= old_terms
+
+
+def earlier_verify(cand_id: int, message: str, prompt_hash: str,
+                   model: str) -> tuple[int, VerifyAnswer, dict] | None:
+    """The candidate's last answer, when this request only drops terms from that one's.
+
+    So tightening which terms a draft carries does not buy every candidate's
+    verdict again (`dropped_terms_only`).
+    """
+    row = db.conn().execute(
+        "SELECT m.id, m.request_json ->> 'message', m.response_json, m.usage_json"
+        " FROM office_candidate c JOIN mint_call m ON m.id = c.verify_call"
+        " WHERE c.id = %s AND m.prompt_hash = %s AND m.render_version = %s AND m.model = %s",
+        (cand_id, prompt_hash, VERIFY_RENDER_VERSION, model),
+    ).fetchone()
+    if row is None or not row[1] or not dropped_terms_only(row[1], message):
+        return None
+    return row[0], VerifyAnswer.model_validate(row[2]), row[3] or {}
+
+
 def store_verify(country: str, key: str, prompt_hash: str, model: str, message: str,
                  answer: VerifyAnswer, usage: dict[str, int]) -> int:
     row = db.conn().execute(
@@ -2548,15 +2616,16 @@ def verify_candidate(cand: Candidate, dry_run: bool = False, *, ctx: Context | N
     """Verify one candidate once: read the ledger, or render, ask and record.
 
     Keyed by the rendered request, so a rerun over unchanged evidence pays
-    nothing and a new duplicate on Wikidata is a new question. A dry run
-    renders and reads the ledger, and asks nothing.
+    nothing and a new duplicate on Wikidata is a new question; a request that
+    only drops terms takes the candidate's last answer (`earlier_verify`). A
+    dry run renders and reads the ledger, and asks nothing.
     """
     ctx = ctx or Context(cand.country)
     ev = evidence(cand, spec=spec, ctx=ctx)
     message = ev.message()
     _text, prompt_hash = verify_prompt()
     key = content_key(message)
-    known = recorded_verify(key, prompt_hash, model)
+    known = recorded_verify(key, prompt_hash, model) or earlier_verify(cand.id, message, prompt_hash, model)
     if known is not None:
         call, answer, _usage_seen = known
         return Verified(ev, message, settle_verify(answer, ev, call))

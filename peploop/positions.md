@@ -362,8 +362,9 @@ have somewhere to go.
   index and its sibling tallies, the draft with every QID labelled. It answers
   from a closed set (`mint`, `exists`, `not-an-office`, `not-current`,
   `not-distinct`, `generic-convention`, `unclear`) and agrees with the shape or
-  corrects it. Then `offices.guard` vetoes mechanically: labels in the state's
-  languages, no QID in any text, a current holder, a live duplicate search per
+  corrects it. Then `offices.guard` vetoes mechanically: an English label and
+  one in each language most of the state's offices carry, no QID in any text,
+  a current holder, a live duplicate search per
   label and alias and against the run's own candidates, a body that resolves,
   is not a position and shares a content word with the office, a jurisdiction
   inside the state, the shape, no bilateral post. The shape itself is fixed per

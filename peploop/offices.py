@@ -14,7 +14,6 @@ last section, all of them live.
 """
 
 import re
-import string
 from collections import Counter
 from dataclasses import dataclass, field, replace
 from datetime import date
@@ -47,9 +46,6 @@ class Archetype:
     parent: str
     #: How the office points at the body it is a seat in.
     body_property: str = "P361"
-    #: English description; `{body}`, `{jurisdiction}` and `{state}` are filled
-    #: from resolved labels by `describe`.
-    description: str = "public office in {jurisdiction}"
     #: One holder at a time: what verify is told the seat is.
     single_seat: bool = False
     #: Whether `P1001` is written. An office governs a polity; a company's
@@ -60,15 +56,6 @@ class Archetype:
     #: mayor scoped to the state, or to the department its town sits in, is
     #: the default a missing jurisdiction falls to, and reads as plausible.
     level: str = "state"
-    #: The description when a `{body}` template has no body to name, or the
-    #: body has no English name: what the office is, said of the polity
-    #: instead. None where no such sentence is true of every office of the
-    #: kind, and `describe` then refuses.
-    unbodied: str | None = None
-    #: The same for a body that has an item but no English name, where an
-    #: office without a body has nothing true to be described by (a party's
-    #: leader with no party); `unbodied` when None.
-    unnamed: str | None = None
     #: Other kinds the office may take when its title word names one: a
     #: drafted parent among these is kept, where any other is replaced.
     parents: tuple[str, ...] = ()
@@ -90,65 +77,48 @@ class Archetype:
 
 
 ARCHETYPES: dict[str, Archetype] = {
-    "minister": Archetype("Q83307", description="minister in the government of {jurisdiction}"),
-    "legislator": Archetype("Q4175034", description="member of the {body}",
-                            unbodied="member of a legislature of {jurisdiction}"),
-    "judge": Archetype("Q16533", description="judge of the {body}",
-                       unbodied="judge in {jurisdiction}"),
-    "supreme_judge": Archetype("Q117826617", description="judge of the {body}",
-                               unbodied="judge of a superior court of {jurisdiction}"),
+    "minister": Archetype("Q83307"),
+    "legislator": Archetype("Q4175034"),
+    "judge": Archetype("Q16533"),
+    "supreme_judge": Archetype("Q117826617"),
     # Scoped to the polity governed, not the state: of 185 governorships with a
     # `P1001`, 172 name something narrower than their own `P17`.
-    "governor": Archetype("Q132050", description="governor of {jurisdiction}", single_seat=True,
-                          level="region"),
+    "governor": Archetype("Q132050", single_seat=True, level="region"),
     # `Q30185` is the office itself rather than a class of it, and is what the
     # existing municipal items subclass.
-    "mayor": Archetype("Q30185", description="mayor of {jurisdiction}, {state}", single_seat=True,
-                       level="municipality"),
+    "mayor": Archetype("Q30185", single_seat=True, level="municipality"),
     # The head of a grouping of municipalities (a powiat, an EPCI, a
     # métropole). Its parent is measured per country in the census: Landrat
     # (292 of 294 German district heads), président d'EPCI (19 French EPCI
     # heads, against 3 for président de communauté de communes), starosta.
     # None of them reaches mayor; local official is what the Landrat subclasses.
-    "grouping_head": Archetype("Q140071462", description="head of the executive of {jurisdiction}, {state}",
-                               single_seat=True, level="municipality", unit_only=True),
+    "grouping_head": Archetype("Q140071462", single_seat=True, level="municipality", unit_only=True),
     # A seat on a local council: one state's 142 measured council seats are
     # "member of X Council", `P279` council member, `P1001` the local area and
     # the council under `P361`.
-    "councillor": Archetype("Q708492", description="member of the {body}",
-                            unbodied="member of a local council of {jurisdiction}",
-                            level="municipality"),
+    "councillor": Archetype("Q708492", level="municipality"),
     # Of ~3,200 heads of a government agency, 89% are typed `Q4164871`, and
     # 2,088 name the agency under `P2389` against 1,265 under `P361`. The class
     # follows the title word: director, director general, chairperson.
-    "agency_head": Archetype("Q1162163", body_property="P2389", description="head of the {body}",
-                             single_seat=True, unbodied="head of a public body of {jurisdiction}",
-                             parents=("Q1162163", "Q1501800", "Q140686"), metaclass=POSITION),
+    "agency_head": Archetype(
+        "Q1162163", body_property="P2389", single_seat=True,
+        parents=("Q1162163", "Q1501800", "Q140686"), metaclass=POSITION,
+    ),
     # The presiding officer of a chamber: 84 of 96 speakerships measured use
     # `Q1758037`, and a state's existing one names its chamber under `P2389`.
     # Without its chamber a speakership is told from no other: "Speaker of the
     # Council of States" names chambers of two neighbouring states.
     # A deputy speaker is not a speaker and has no archetype.
-    "speaker": Archetype(
-        "Q1758037", body_property="P2389", description="presiding officer of the {body}",
-        single_seat=True, body_required=True,
-        unnamed="presiding officer of a legislative body of {jurisdiction}",
-    ),
+    "speaker": Archetype("Q1758037", body_property="P2389", single_seat=True, body_required=True),
     # A prime minister or other head of government: 132 of the sovereign
     # states' `P1313` items subclass prime minister and 72 head of government;
     # 176 of 195 name their government under `P361`, none under `P2389`.
-    "head_of_government": Archetype(
-        "Q14212", description="head of the {body}", single_seat=True,
-        unbodied="head of government of {jurisdiction}", parents=("Q2285706",),
-    ),
+    "head_of_government": Archetype("Q14212", single_seat=True, parents=("Q2285706",)),
     # The chair of a collegial head of state (a sovereignty, presidential or
     # military council): 6 of the 7 such national chairs measured subclass
     # head of state, 5 name the council under `P2389`, and most are typed
     # `Q4164871`. A chair of anything else is not this.
-    "council_chair": Archetype(
-        "Q48352", body_property="P2389", description="chair of the {body}", single_seat=True,
-        unbodied="chair of a collegial head of state of {jurisdiction}", metaclass=POSITION,
-    ),
+    "council_chair": Archetype("Q48352", body_property="P2389", single_seat=True, metaclass=POSITION),
     # The parents below were measured across other states' items (P279 tallies
     # and the parents read in full); see docs/research/position_items.md §10.
     # A seat in a party's standing politburo. Membership of a large organ (a
@@ -156,43 +126,32 @@ ARCHETYPES: dict[str, Archetype] = {
     # it has no archetype and is never minted as a seat.
     # The body is usually the party: few parties' bureaus have items of their
     # own, and "member of {party}" would read as party membership.
-    "politburo_member": Archetype(
-        "Q115136557", description="member of the political bureau of the {body}",
-        unbodied="member of a party's political bureau in {jurisdiction}", metaclass=POSITION),
+    "politburo_member": Archetype("Q115136557", metaclass=POSITION),
     # A seat in a collegial organ of the state (a council of state, a
     # presidium). The only recurring class, and a weak one: prefer a sibling's.
-    "state_body_member": Archetype("Q16862850", description="member of the {body}",
-                                   unbodied="member of a state body of {jurisdiction}"),
+    "state_body_member": Archetype("Q16862850"),
     # A national party's leader, chair or president: 43 of 61 leaders and the
     # plurality of 86 chairs and presidents subclass `Q1553195`, across 30
     # states. The party is named under `P2389` (about 82%), and `P1001` is
     # absent from most, rightly: a party governs no polity. Typed `Q4164871`
     # throughout. docs/research/position_items.md §10n.
     "party_leader": Archetype(
-        "Q1553195", body_property="P2389", description="leader of the {body}", single_seat=True,
-        scoped=False, metaclass=POSITION, body_required=True,
-        unnamed="leader of a political party in {jurisdiction}",
+        "Q1553195", body_property="P2389", single_seat=True, scoped=False, metaclass=POSITION,
+        body_required=True,
     ),
     # Its general secretary or secretary-general: 29 of 47 subclass `Q6501749`,
     # with the leader's shape otherwise. A seat in a secretariat may take
     # `Q836971` instead, the class the few such items use.
     "party_secretary": Archetype(
-        "Q6501749", body_property="P2389", description="party secretary of the {body}",
-        single_seat=True, scoped=False, parents=("Q6501749", "Q836971"), metaclass=POSITION,
-        body_required=True, unnamed="party secretary in {jurisdiction}",
+        "Q6501749", body_property="P2389", single_seat=True, scoped=False,
+        parents=("Q6501749", "Q836971"), metaclass=POSITION, body_required=True,
     ),
     # "Chief of defence", a subclass of chief of staff, is what 70% of typed
     # items use; the general staff is named under `P2389`, not `P361`.
-    "military_chief_of_staff": Archetype(
-        "Q5097014", body_property="P2389", description="head of the {body}", single_seat=True,
-        unbodied="military command in {jurisdiction}",
-    ),
+    "military_chief_of_staff": Archetype("Q5097014", body_property="P2389", single_seat=True),
     # "Chief justice", a subclass of court president, is the plurality for apex
     # courts and the one every Latin American presidency uses.
-    "court_president": Archetype(
-        "Q3188089", body_property="P2389", description="president of the {body}", single_seat=True,
-        unbodied="president of a court of {jurisdiction}",
-    ),
+    "court_president": Archetype("Q3188089", body_property="P2389", single_seat=True),
     # The class follows the title word (director general, chair, president);
     # director general is the default and a sibling's or the drafted parent
     # from `SOE_PARENTS` may replace it. Never "chief executive officer": it is
@@ -200,34 +159,22 @@ ARCHETYPES: dict[str, Archetype] = {
     # 79 of 90 measured enterprise heads are typed `Q4164871`, and 68 carry
     # no `P1001`.
     "soe_head": Archetype(
-        "Q1501800", body_property="P2389", description="head of the {body}", single_seat=True,
-        scoped=False, unbodied="head of a state enterprise of {state}",
+        "Q1501800", body_property="P2389", single_seat=True, scoped=False,
         parents=("Q1501800", "Q140686", "Q1255921"), metaclass=POSITION,
     ),
-    "central_bank_governor": Archetype(
-        "Q107363151", body_property="P2389", description="governor of the {body}", single_seat=True,
-        unbodied="central bank governor of {jurisdiction}",
-    ),
-    "prosecutor_general": Archetype(
-        "Q3368517", description="prosecutor general of {jurisdiction}", single_seat=True,
-    ),
+    "central_bank_governor": Archetype("Q107363151", body_property="P2389", single_seat=True),
+    "prosecutor_general": Archetype("Q3368517", single_seat=True),
     # A deputy or vice-minister: `Q26204040`, which 27 states' deputies use
     # (15 batch-created cabinets use plain minister instead), and which is not
     # a minister. Several people hold one ministry's deputyship at once; a
     # first deputy is its own seat. Like a minister of state, it names the
     # government or cabinet under `P361` -- not the ministry, by about four
     # to one. docs/research/position_items.md §10p.
-    "deputy_minister": Archetype(
-        "Q26204040", description="deputy minister in the government of {jurisdiction}",
-        body_from="minister",
-    ),
+    "deputy_minister": Archetype("Q26204040", body_from="minister"),
     # A Westminster junior minister attached to a ministry: `Q2632935` is
     # itself a minister, and the plurality (35 states) uses minister directly,
     # which is kept where drafted.
-    "minister_of_state": Archetype(
-        "Q2632935", description="minister of state in the government of {jurisdiction}",
-        parents=("Q2632935", "Q83307"), body_from="minister",
-    ),
+    "minister_of_state": Archetype("Q2632935", parents=("Q2632935", "Q83307"), body_from="minister"),
 }
 
 #: Classes a polity reaching which (through `P31`/`P279`) is a municipality,
@@ -380,43 +327,23 @@ def english_name(text: str | None) -> bool:
     return bool(text) and not QID.search(text) and not NOT_LATIN.search(text)
 
 
-def describe(spec: Spec, labels_of: dict[str, str]) -> str | None:
-    """The English description, or None when a label it needs is unresolved.
+def generic_description(spec: Spec, labels_of: dict[str, str]) -> str | None:
+    """The English description of an office whose labels name no polity, else None.
 
-    `labels_of` holds the English (or language-neutral) labels of the items
-    the template names. A description reading "governor of Q12345" or
-    "president of the 四川省高级人民法院" is worse than none, so a missing
-    label, one that is itself a QID, or one in another script refuses rather
-    than degrades. A body-templated office whose body has no item or no
-    English name is described by its polity instead, where the archetype says
-    how (`Archetype.unbodied`, `unnamed`), naming the state after a narrower
-    polity: a provincial court whose item is labelled only in Chinese is still "president
-    of a court of Sichuan, People's Republic of China". Never the label itself,
-    which Wikidata refuses as a description: a sentence that repeats it names
-    the state after it, or there is none.
+    Minted items carry no description: their labels name the office, and a
+    sentence rephrasing them adds nothing. A generic title ("Minister of
+    Finance", "Landrat") is the exception, since every state has one: it says
+    where, from the English labels of its jurisdiction and, when narrower,
+    its state. `labels_of` holds those labels; one missing, a QID or in
+    another script gives no description rather than a worse one.
     """
-    slots = {"body": spec.body_qid, "jurisdiction": spec.jurisdiction, "state": spec.state_qid}
-    usable = {name: labels_of.get(qid or "") for name, qid in slots.items()}
-    usable = {name: text for name, text in usable.items() if english_name(text)}
-    template = spec.shape.description
-    fallback = spec.shape.unnamed if spec.body_qid else None
-    fallback = fallback or spec.shape.unbodied
-    if "{body}" in template and "body" not in usable and fallback:
-        template = fallback
-        if (spec.jurisdiction != spec.state_qid and "{state}" not in template
-                and "state" in usable):
-            template += ", {state}"
-    wanted = {name for _text, name, _spec, _conv in string.Formatter().parse(template) if name}
-    if wanted - set(usable):
+    if not spec.shape.scoped:
         return None
-    text = template.format(**{name: usable[name] for name in wanted})
-    if text.casefold() in {label.casefold() for label in spec.labels.values()}:
-        # "Governor of Hunan" is its label and its template's sentence alike;
-        # the state tells the two apart, where it is not already said.
-        if "state" in wanted or spec.jurisdiction == spec.state_qid or "state" not in usable:
-            return None
-        text = f"{text}, {usable['state']}"
-    return text
+    places = [spec.jurisdiction] + ([spec.state_qid] if spec.jurisdiction != spec.state_qid else [])
+    names = [labels_of.get(qid) for qid in places]
+    if not all(english_name(name) for name in names):
+        return None
+    return "public office in " + ", ".join(name for name in names if name)
 
 
 @dataclass(frozen=True)
@@ -433,6 +360,8 @@ class Found:
     country_qids: tuple[str, ...] = ()
     #: The hit's `P1001`: the polity it governs.
     scopes: tuple[str, ...] = ()
+    #: The places those polities name under `LINKS`: a town's twin items.
+    scope_links: frozenset[str] = frozenset()
     #: The hit's declared `P31`, every rank but deprecated.
     types: frozenset[str] = frozenset()
     #: Other offices name the hit as their `P279`: it is a kind of office
@@ -491,17 +420,36 @@ def body_hit(found: Iterable[Found], bodies: Collection[str] = ()) -> str | None
     return None
 
 
-def other_polity(jurisdiction: str | None, scopes: Iterable[str], levels: Collection[str]) -> bool:
+#: How one place's item names another that is the same place or holds it:
+#: the municipality and its seat are often two items ("Kozani Municipality"
+#: and "Kozani"), and an office scoped to either is the town's.
+LINKS = ("P131", "P150", "P36", "P1376")
+
+
+def links_of(entities: dict[str, dict[str, Any]]) -> dict[str, set[str]]:
+    """Each place's `LINKS` targets, for `other_polity` to tell a twin from a namesake."""
+    return {qid: {q for prop in LINKS for q in _values(ent, prop)} for qid, ent in entities.items()}
+
+
+def other_polity(jurisdiction: str | None, scopes: Iterable[str], levels: Collection[str],
+                 links: Collection[str] = ()) -> bool:
     """Whether an item governing `scopes` is another polity's office than one governing `jurisdiction`.
 
     A federation's states each have a "Minister for Energy", and the national
     government has one too: the same title in another state's government is
-    another office. Judged only where both sit at the levels named (the state
-    and its first-level subdivisions) and differ; an item scoped to a town
-    within them says nothing either way.
+    another office. Judged where both sit at the levels named (the state and
+    its first-level subdivisions) and differ, or where both are towns below
+    them: two towns share a name ("Mayor of Bergheim") as often as two
+    provinces do, unless the other is linked to this one (`links`, the scopes'
+    `LINKS`). An item scoped to a town says nothing about an office of the
+    levels, nor one scoped to the levels about a town's office.
     """
     scopes = set(scopes)
-    return bool(jurisdiction in levels and scopes & set(levels) and jurisdiction not in scopes)
+    if not jurisdiction or not scopes or jurisdiction in scopes:
+        return False
+    if jurisdiction in levels:
+        return bool(scopes & set(levels))
+    return not scopes & set(levels) and jurisdiction not in links
 
 
 def duplicate_of(found: Iterable[Found], state_names: Iterable[str] = (),
@@ -524,7 +472,7 @@ def duplicate_of(found: Iterable[Found], state_names: Iterable[str] = (),
     for hit in found:
         if not hit.label_match or hit.types & NOT_A_POSITION:
             continue
-        if other_polity(jurisdiction, hit.scopes, levels):
+        if other_polity(jurisdiction, hit.scopes, levels, hit.scope_links):
             continue
         if hit.types == {LIST_ARTICLE}:
             continue
@@ -819,8 +767,6 @@ def guard(
     for lang in ("en", *langs):
         if not spec.labels.get(lang):
             problems.append(f"label/{lang}")
-    if not spec.descriptions.get("en"):
-        problems.append("description/en")
     texts = [
         *(("label", lang, text) for lang, text in spec.labels.items()),
         *(("alias", lang, text) for lang, many in spec.aliases.items() for text in many),
@@ -1007,13 +953,13 @@ def dissolved(entity: dict[str, Any], today: date | None = None) -> bool:
 
 
 def found_from(entity: dict[str, Any], label: str, state_qid: str,
-               states_of: dict[str, list[str]]) -> Found:
+               states_of: dict[str, list[str]], links: dict[str, set[str]] | None = None) -> Found:
     """Judge one search hit against the label searched for and the state.
 
     `states_of` maps each of the hit's `P1001` targets to that item's own
     `P17`, so an office scoped to a province of the state matches the state
     one hop up. Only one hop: a province's `P17` is the state, and anything
-    further away is not this office.
+    further away is not this office. `links` maps them to their `links_of`.
     """
     names = frozenset(_norm(text) for text in _names(entity))
     named = {variant for name in names for variant in _variants(name)}
@@ -1028,6 +974,7 @@ def found_from(entity: dict[str, Any], label: str, state_qid: str,
         country_match=country_match,
         country_qids=tuple(dict.fromkeys(p17 + p1001)),
         scopes=tuple(dict.fromkeys(p1001)),
+        scope_links=frozenset(q for qid in p1001 for q in (links or {}).get(qid, ())),
         types=frozenset(_values(entity, "P31")),
     )
 
@@ -1085,9 +1032,10 @@ def live_lookup(label: str, lang: str, state_qid: str) -> list[Found]:
     scopes = {q for ent in entities.values() for q in _values(ent, "P1001")} - {state_qid}
     scoped = wikidata.fetch_items(sorted(scopes), props="claims") if scopes else {}
     states_of = {qid: _values(ent, "P17") for qid, ent in scoped.items()}
+    links = links_of(scoped)
     out: dict[str, Found] = {}
     for entity in entities.values():
-        hit = found_from(entity, label, state_qid, states_of)
+        hit = found_from(entity, label, state_qid, states_of, links)
         if hit.label_match and not hit.country_qids and is_office_class(hit.qid):
             hit = replace(hit, is_class=True)
         if hit.label_match:

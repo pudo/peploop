@@ -42,7 +42,7 @@ def office(groups: list[str], **kw: Any) -> OfficeAnswer:
     base: dict[str, Any] = dict(
         groups=groups, decision="office", exists_qid=None, census_key=None,
         institution_class="subnational.municipal", archetype="mayor", single_seat=True,
-        labels=[Label(lang="en", text="Mayor of Velmora")], description_en=None,
+        labels=[Label(lang="en", text="Mayor of Velmora")],
         parent_qid=None, body_qid=None, jurisdiction_qid=None, jurisdiction_name=None,
         replaces_qid=None, evidence="", reason="",
     )

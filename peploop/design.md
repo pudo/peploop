@@ -348,17 +348,19 @@ queue) has the mechanics; the decisions are these.
   states' items (`docs/research/position_items.md` §10), and the metaclass and
   parent taken from the state's own offices where they agree. A model drafts
   labels and picks a body; it does not invent a data model per item.
-- **The terms name this one office, in their own language.** The English
-  description is the archetype's sentence over English labels only: a body
-  labelled only in another script is not named, and the office is said of its
-  polity and state instead ("president of a court of Sichuan, People's
-  Republic of China"); without an English name for either there is no
-  description, and a sentence that repeats the label names the state after
-  it. Aliases are the holders' article titles, less every title that names
-  another seat -- acting, deputy, concurrent, a Party group's post, several
-  posts joined, one term's holder, marked per language and per script -- or
-  leaves out the polity the label names ("市长", "Court of Appeal"), read in
-  the title's own language and kept where the polity has no name in it.
+- **The terms are the office's name, in English and the state's languages.**
+  Labels and aliases are written only in English and the territory's
+  languages (rigour's `territory.langs` with a two-letter code); English and each language most of
+  the state's own offices carry are required, since requiring every official
+  language made a model draft bad ones. Aliases are the holders' article
+  titles, less every title that names another seat -- acting, deputy,
+  concurrent, a Party group's post, several posts joined, one term's holder,
+  marked per language and per script -- or leaves out the polity the label
+  names ("市长", "Court of Appeal"), read in the title's own language and kept
+  where the polity has no name in it. There is no description: `P17`/`P1001`
+  say where, and a sentence rephrasing the label adds nothing. A generic
+  title naming no polity ("Minister of Finance", "Landrat") is the exception,
+  described "public office in" its jurisdiction and state.
 - **Unsupervised up to the send, like the rest of the loop.** Categorize
   clusters and drafts, a verifier of another model family reads each office against its evidence
   and the live duplicates, and `offices.guard` vetoes mechanically. An item is
@@ -776,8 +778,8 @@ the stored one did not, under `reopened_for = 'retrieval:2'`: a retrieval
 change alters no key the ledger reads, so without this a better search would
 never reach a mention already refused. Each mention is re-asked once per tag
 (`PEPLOOP_REASK_SCOPE=stranded` limits it to people with no `P39` and nothing
-placed). `load-positions` runs every discovery lane and gives a
-label-less office its English name.
+placed). `load-positions` runs every discovery lane and caches an
+English name for each label-less office, as a search aid.
 
 `propose` ends by deciding every row and printing the funnel; `verify` asks
 about the `pending` rows and ends with the policy and its funnel, so the policy

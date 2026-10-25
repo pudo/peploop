@@ -2,7 +2,7 @@
 
 An item, once created, can only be undone by a deletion or a merge, and each
 gate in `offices.guard` fails silently in the other direction: a floor counted
-in rows instead of people, a description reading "judge of Q123", a body that
+in rows instead of people, a label reading "judge of Q123", a body that
 happens to be a construction brand. None of them raises; all of them are
 visible only by reading the payload, so this reads it.
 
@@ -54,7 +54,6 @@ def judge(**over: Any) -> Spec:
     base: dict[str, Any] = dict(
         ref="t/court-president", archetype="court_president",
         labels={"en": "President of the Supreme Tribunal"}, state_qid=STATE, body_qid=BODY,
-        descriptions={"en": "president of Supreme Tribunal of Aland"},
     )
     base.update(over)
     return Spec(**base)
@@ -63,7 +62,7 @@ def judge(**over: Any) -> Spec:
 def governor(**over: Any) -> Spec:
     base: dict[str, Any] = dict(
         ref="t/governor-bray", archetype="governor", labels={"en": "Governor of Bray"},
-        state_qid=STATE, jurisdiction_qid=PROVINCE, descriptions={"en": "governor of Bray Province"},
+        state_qid=STATE, jurisdiction_qid=PROVINCE,
     )
     base.update(over)
     return Spec(**base)
@@ -139,58 +138,25 @@ def main() -> int:
 
     print("one holder, whatever the seat:")
     expect(guard(governor(), holders=1), [], "a one-seat office passes on its one current holder")
-    expect(guard(judge(archetype="legislator", descriptions={"en": "member of Supreme Tribunal of Aland"}),
-                 holders=1), [], "and so does a seat of many: no second channel is asked for")
+    expect(guard(judge(archetype="legislator"), holders=1), [], "and so does a seat of many: no second channel is asked for")
 
     print("text that leaks an identifier:")
     expect(guard(judge(descriptions={"en": f"president of {BODY}"})), ["qid-in-description/en"],
            "a QID in a description is refused")
-    expect(offices.describe(judge(), LABELS), "president of the Supreme Tribunal of Aland",
-           "describe fills the template from resolved labels")
-    expect(offices.describe(judge(), {}), None,
-           "and gives nothing rather than a QID when a label is missing")
-    expect(offices.describe(judge(), {STATE: "Aland"}), "president of a court of Aland",
-           "a body with no English label is described by its polity")
-    expect(offices.describe(governor(), {PROVINCE: PROVINCE}), None,
-           "or when the label it resolved is itself a QID")
-    party = judge(archetype="party_leader", body_qid=None, labels={"en": "President of the Party"})
-    expect(offices.describe(party, LABELS), None,
-           "a party office whose party has no item has nothing true to be described by")
-    expect(offices.describe(judge(archetype="party_leader"), LABELS),
-           "leader of the Supreme Tribunal of Aland", "a party's leader is described by its party")
-    expect(offices.describe(judge(archetype="party_secretary"), LABELS),
-           "party secretary of the Supreme Tribunal of Aland", "and its secretary the same way")
-    expect(offices.describe(governor(archetype="mayor"), LABELS), "mayor of Bray Province, Aland",
-           "a mayoralty names its state: town names repeat across states")
-    expect(offices.describe(judge(archetype="minister", body_qid=None), LABELS),
-           "minister in the government of Aland", "a template naming no body is untouched")
-    expect(offices.describe(judge(archetype="politburo_member", body_qid=None), {}), None,
-           "and the fallback still refuses an unresolved polity")
-    expect(offices.describe(judge(archetype="soe_head", body_qid=None), LABELS),
-           "head of a state enterprise of Aland", "an unscoped enterprise is said of the state")
-    han = {**LABELS, BODY: "布雷省高级人民法院"}
-    court = judge(jurisdiction_qid=PROVINCE)
-    expect(offices.describe(court, han), "president of a court of Bray Province, Aland",
-           "a body labelled in another script is not named: the polity is, then its state")
-    expect(offices.describe(court, {**han, BODY: "Q0000003"}), "president of a court of Bray Province, Aland",
-           "and neither is a body whose only label is its QID")
-    expect(offices.describe(judge(), {**han, STATE: "阿兰"}), None,
-           "with no English name for the body or the polity, there is no description")
-    secretary = judge(archetype="party_secretary", jurisdiction_qid=PROVINCE)
-    expect(offices.describe(secretary, han), "party secretary in Bray Province, Aland",
-           "a party committee labelled only in its own script is described by the polity it sits in")
-    expect(offices.describe(judge(archetype="speaker", jurisdiction_qid=PROVINCE), han),
-           "presiding officer of a legislative body of Bray Province, Aland", "and a chamber's speaker too")
-    expect(offices.describe(replace(secretary, body_qid=None), han), None,
-           "while one with no party at all still has nothing true to be said of it")
-    expect(offices.describe(judge(labels={"en": "President of the Supreme Tribunal of Aland"}), LABELS), None,
-           "a description that repeats the label, any case, is none")
-    expect(offices.describe(governor(labels={"en": "Governor of Bray Province"}), LABELS),
-           "governor of Bray Province, Aland", "unless naming the state after a narrower polity sets it apart")
+    expect(offices.generic_description(judge(archetype="minister", body_qid=None), LABELS),
+           "public office in Aland", "a generic title is said of its state")
+    expect(offices.generic_description(governor(), LABELS), "public office in Bray Province, Aland",
+           "and of a narrower polity, then its state")
+    expect(offices.generic_description(governor(), {PROVINCE: PROVINCE, STATE: "Aland"}), None,
+           "never of a polity whose label is a QID")
+    expect(offices.generic_description(governor(), {**LABELS, PROVINCE: "布雷省"}), None,
+           "nor of one labelled only in another script")
+    expect(offices.generic_description(judge(archetype="party_leader"), LABELS), None,
+           "a party's leader governs no polity, so is never said of one")
     expect(offices.english_name("Ürümqi") and offices.english_name("Chiết Giang")
            and not offices.english_name("Москва"), True,
            "Latin script with its diacritics may stand in a description; Cyrillic may not")
-    expect(guard(judge(descriptions={})), ["description/en"], "an office with no description is refused")
+    expect(guard(judge(descriptions={})), [], "an office with no description passes")
     expect(guard(judge(), langs=("xx",)), ["label/xx"], "and one missing a label in a state language")
 
     print("the body:")
@@ -251,8 +217,7 @@ def main() -> int:
     print("one-seat archetypes:")
     expect(guard(judge(archetype="agency_head"), holders=1), [],
            "an agency's head passes on one current holder")
-    expect(guard(judge(archetype="speaker", labels={"en": "President of the Senate of Aland"},
-                       descriptions={"en": "presiding officer of the Senate"}),
+    expect(guard(judge(archetype="speaker", labels={"en": "President of the Senate of Aland"}),
                  holders=1,
                  body=entity(BODY, "Senate of Aland", p31="Q43229", p17=STATE)), [],
            "as does a chamber's speaker")
@@ -265,8 +230,7 @@ def main() -> int:
 
     print("party offices:")
     party_item = entity(BODY, "Blue Party of Aland", p31="Q7278", p17=STATE)
-    leader = judge(archetype="party_leader", labels={"en": "Leader of the Blue Party"},
-                   descriptions={"en": "leader of the Blue Party of Aland"})
+    leader = judge(archetype="party_leader", labels={"en": "Leader of the Blue Party"})
     expect(guard(leader, body=party_item), [], "a party's leader naming its party passes")
     data = offices.entity_data(leader)
     expect((statement(data, "P279"), statement(data, "P2389"), statement(data, "P361"),
@@ -292,8 +256,7 @@ def main() -> int:
     print("postings between states:")
     for label in ("Ambassador of Aland to Bray", "Embajador de Aland en Bray",
                   "Ambassadeur d'Aland au Bray"):
-        expect(guard(judge(archetype="agency_head", body_qid=None, labels={"en": label},
-                           descriptions={"en": "x"})),
+        expect(guard(judge(archetype="agency_head", body_qid=None, labels={"en": label})),
                ["bilateral"], f"{label!r} is refused")
     expect(offices.bilateral("Ambassador-at-large"), False, "an ambassador-at-large is not a posting")
 
@@ -355,8 +318,7 @@ def main() -> int:
     expect(guard(judge(archetype="central_committee_member")), ["archetype/central_committee_member"],
            "a membership recorded as P463 on the body has no archetype, so it is never minted")
     print("the level of polity an office governs:")
-    mayor = lambda **kw: governor(archetype="mayor", labels={"en": "Mayor of Bray"},
-                                  descriptions={"en": "mayor of Bray"}, **kw)
+    mayor = lambda **kw: governor(archetype="mayor", labels={"en": "Mayor of Bray"}, **kw)
     expect(guard(mayor(jurisdiction_qid=None), regions={PROVINCE}), ["jurisdiction-level/municipality"],
            "a mayor that fell back to the state is refused")
     expect(guard(mayor(), regions={PROVINCE}), ["jurisdiction-level/municipality"],
@@ -393,7 +355,7 @@ def main() -> int:
     expect(statement(data, "P1001"), [STATE], "a national office governs the state")
     expect(statement(data, "P17"), [], "and carries no P17: its P1001 already names the state")
     expect(statement(data, "P2389"), [BODY], "and sits in its body through the archetype's property")
-    offices.ARCHETYPES["t_unscoped"] = offices.Archetype("Q484876", description="head of {body}", scoped=False)
+    offices.ARCHETYPES["t_unscoped"] = offices.Archetype("Q484876", scoped=False)
     try:
         data = offices.entity_data(judge(archetype="t_unscoped"))
         expect(statement(data, "P1001"), [], "an unscoped office carries no P1001")
@@ -449,8 +411,6 @@ def main() -> int:
     expect((statement(data, "P279"), statement(data, "P361"), statement(data, "P2389"),
             statement(data, "P1001")), (["Q26204040"], [BODY], [], [STATE]),
            "the payload: kind deputy minister, P361 the government, P1001 the state")
-    expect(offices.describe(judge(archetype="minister_of_state", body_qid=None), LABELS),
-           "minister of state in the government of Aland", "described by the state it serves")
 
     print("heads of government and chairs of a collegial head of state:")
     data = offices.entity_data(judge(archetype="head_of_government", labels={"en": "Prime Minister"}))
@@ -458,8 +418,6 @@ def main() -> int:
             statement(data, "P2389"), statement(data, "P1001")),
            (["Q294414"], ["Q14212"], [BODY], [], [STATE]),
            "a head of government: kind prime minister, P361 its government, P1001 the state")
-    expect(offices.describe(judge(archetype="head_of_government", body_qid=None), LABELS),
-           "head of government of Aland", "with no government named, described by the state")
     data = offices.entity_data(judge(archetype="council_chair", labels={"en": "Chairman of the Council"},
                                      metaclass=offices.ARCHETYPES["council_chair"].metaclass))
     expect((statement(data, "P31"), statement(data, "P279"), statement(data, "P2389"),
@@ -607,6 +565,18 @@ def check_generic(expect: Any) -> None:
            "while this province's own is")
     expect(offices.duplicate_of([replace(other, scopes=("Q99",))], (), PROVINCE, levels), "Q71",
            "and one scoped to a town says nothing either way")
+    town, namesake = "Q98", "Q97"
+    expect(offices.duplicate_of([replace(other, scopes=(namesake,))], (), town, levels), None,
+           "another town's mayor of the same name is not this town's")
+    expect(offices.duplicate_of([replace(other, scopes=(namesake,), scope_links=frozenset({town}))],
+                                (), town, levels), "Q71",
+           "unless that place is linked to this one: the town's seat and its municipality are one place")
+    expect(offices.links_of({namesake: entity(namesake, "Kozani", p31="Q515")}), {namesake: set()},
+           "a place's links are read off its own claims")
+    expect(offices.duplicate_of([replace(other, scopes=(town,))], (), town, levels), "Q71",
+           "while this town's own is")
+    expect(offices.duplicate_of([replace(other, scopes=(PROVINCE,))], (), town, levels), "Q71",
+           "and one scoped to a province says nothing either way")
 
 
 if __name__ == "__main__":

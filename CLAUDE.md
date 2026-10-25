@@ -59,9 +59,9 @@ dated, in their words; never add, expand, reword or remove an entry yourself.
 
 - QuickStatements 3.0 through the send ledger (`peploop/ledger.py`,
   `send.py`) is the only write path; every batch is recorded before the
-  request, so a lost answer is recovered, never sent twice. Our own items'
-  terms are fixed with `L`/`D` lines; aliases QS3 cannot remove, with `wb`
-  (`--maxlag 5`).
+  request, so a lost answer is recovered, never sent twice. A minted item's
+  terms go out in its `CREATE`; fixing our own items' terms afterwards is
+  `wb` (`--maxlag 5`).
 - A new statement is a `+` line; a merge is a plain line, planned only when
   exactly one statement holds the value. Removals go by statement id.
 - Statements read from an article carry a reference; inferences don't.

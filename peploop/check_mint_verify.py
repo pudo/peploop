@@ -274,7 +274,7 @@ def check_exists_problem(expect: Any) -> None:
 
 
 def check_offices_fixes(expect: Any) -> None:
-    """The guard, description and sibling rules the first run showed were wrong."""
+    """The guard, body and sibling rules the first run showed were wrong."""
     spec, _p = mint.build_spec(cand(draft={"body_qid": COUNCIL}), ctx())
     council = {"id": COUNCIL, "labels": {"en": {"language": "en", "value": "Council of Ministers"}},
                "claims": {"P17": _claim("P17", STATE)}}
@@ -292,9 +292,8 @@ def check_offices_fixes(expect: Any) -> None:
     party = cand(draft={"archetype": "politburo_member", "body_qid": BODY, "single_seat": False,
                         "labels": {"en": "member of the Politburo of the Alvania Party"}})
     pspec, _p = mint.build_spec(party, ctx())
-    expect(pspec.descriptions.get("en") == "member of the political bureau of the Ministry of Health of Alvania"
-           and "Politburo" in pspec.labels["en"],
-           f"a politburo seat is described as one, and its label keeps the word: {pspec.descriptions}")
+    expect(pspec.descriptions == {} and "Politburo" in pspec.labels["en"],
+           f"a label naming its state carries no description, and keeps its word: {pspec.descriptions}")
     gov = cand(draft={"archetype": "governor", "jurisdiction_qid": "Q901", "body_qid": None,
                       "labels": {"es": "gobernador de la provincia de Ostra"}},
                census_key="gov/Q901", ref="gov/Q901")
@@ -306,8 +305,7 @@ def check_offices_fixes(expect: Any) -> None:
     bare = cand(draft={"archetype": "court_president", "body_qid": None}, census_key="court_president",
                 ref="court_president")
     bspec, _p = mint.build_spec(bare, ctx(anchors=[court]))
-    expect(bspec.body_qid == BODY and bspec.descriptions.get("en") == "president of the Ministry of Health of Alvania",
-           f"a census anchor's body fills a draft that named none: {bspec.body_qid} {bspec.descriptions}")
+    expect(bspec.body_qid == BODY, f"a census anchor's body fills a draft that named none: {bspec.body_qid}")
     drafted = cand(draft={"archetype": "court_president", "body_qid": "Q911"}, census_key="court_president",
                    ref="court_president")
     dspec, _p = mint.build_spec(drafted, ctx(anchors=[court]))
@@ -390,10 +388,13 @@ def check_build_spec(expect: Any) -> None:
     sib.offices, sib.label_langs = 10, Counter({"es": 10})
     drafted = cand(draft={"labels": {"en": "Minister of Health of Alvania",
                                      "es": "ministro de Salud de Alvania",
-                                     "rn": "Minisitiri w'amagara"}})
+                                     "rn": "Minisitiri w'amagara", "de": "Gesundheitsminister von Alvania"}},
+                   attestations=[att("Q1", True, "Gesundheitsministerin", lang="de"),
+                                 att("Q2", True, "Ministra de Salud")])
     lspec, _p = mint.build_spec(drafted, ctx(langs=["es", "rn"], siblings=sib))
-    expect(sorted(lspec.labels) == ["en", "es"],
-           "a label is written only in a language the state's offices are labelled in")
+    expect(sorted(lspec.labels) == ["en", "es", "rn"],
+           f"labels are written in English and the state's languages only: {sorted(lspec.labels)}")
+    expect(sorted(lspec.aliases) == ["es"], f"and so are aliases: {lspec.aliases}")
     other = mint.attested_aliases(
         [mint.Attestation(person=f"Q{i}", title=t, lang="en", current=True) for i, t in enumerate(
             ["Co-Judge of the Constitutional Court", "Acting President of the Court",
@@ -530,8 +531,7 @@ def check_build_spec(expect: Any) -> None:
     expect(spec.parent == SIB_PARENT and spec.metaclass == "Q294414",
            f"the parent and metaclass are the siblings': {spec.parent} {spec.metaclass}")
     expect(spec.jurisdiction_qid == STATE, "a null jurisdiction on a scoped seat is the state")
-    expect(spec.descriptions == {"en": "minister in the government of Alvania"},
-           f"the description is described from resolved labels: {spec.descriptions}")
+    expect(spec.descriptions == {}, f"an office whose label names its state has no description: {spec.descriptions}")
     expect(problems == [], f"a clean draft has no problems: {problems}")
     _s, replaced = mint.build_spec(cand(draft={"parent_qid": "Q999"}), ctx())
     expect(_s.parent == SIB_PARENT and replaced == ["parent-replaced/Q999"],
@@ -546,8 +546,7 @@ def check_build_spec(expect: Any) -> None:
         "archetype": "party_leader", "body_qid": PARTY, "parent_qid": "Q140686",
         "labels": {"en": "President of the Blue Party"}}), ctx())
     expect((leader.parent, leader.metaclass, leader.body_qid, leader.jurisdiction_qid,
-            leader.descriptions) == ("Q1553195", "Q4164871", PARTY, None,
-                                     {"en": "leader of the Blue Party of Alvania"})
+            leader.descriptions) == ("Q1553195", "Q4164871", PARTY, None, {})
            and problems == ["parent-replaced/Q140686"],
            f"a party leader takes the measured shape whatever was drafted: {leader} {problems}")
     seat, _p = mint.build_spec(cand(draft={
@@ -560,14 +559,23 @@ def check_build_spec(expect: Any) -> None:
         "labels": {"en": "Director General of Health"}}), ctx())
     expect((agency.parent, agency.metaclass) == ("Q1501800", "Q4164871"),
            "an agency head keeps a director-general title class, and is a position")
-    unlabelled, problems = mint.build_spec(
-        cand(draft={"archetype": "legislator", "body_qid": "Q999"}), ctx())
-    expect(unlabelled.descriptions == {"en": "member of a legislature of Alvania"} and "description" not in problems,
-           "a body with no English label is described by its polity rather than by a QID")
-    bare, problems = mint.build_spec(
-        cand(draft={"archetype": "legislator", "body_qid": "Q999"}), ctx(terms=lambda qids: {}))
-    expect(bare.descriptions == {} and "description" in problems,
-           "and with no English label for the polity either, there is none")
+    generic = cand(draft={"labels": {"en": "Minister of Health", "es": "ministro de Salud"}})
+    gspec, problems = mint.build_spec(generic, ctx())
+    expect(gspec.descriptions == {"en": "public office in Alvania"} and problems == [],
+           f"a generic title is said of its state: {gspec.descriptions}")
+    gspec, problems = mint.build_spec(generic, ctx(terms=lambda qids: {}))
+    expect(gspec.descriptions == {} and problems == [],
+           "and with no English label for the state, it has none, which refuses nothing")
+    ostra = cand(draft={"archetype": "governor", "jurisdiction_qid": "Q901",
+                        "labels": {"en": "Governor", "es": "gobernador de Ostra"}})
+    ospec, _p = mint.build_spec(ostra, ctx())
+    expect(ospec.descriptions == {}, "one label naming the polity is enough, in any language")
+    expect(mint.names_polity({"pl": "prezydent miasta Krakowa"}, ["Kraków"]),
+           "a case ending still names the place")
+    expect(not mint.names_polity({"de": "Landrat"}, ["Landkreis Gotha", "Deutschland"]),
+           "a bare title names no polity")
+    expect(mint._ranked(Counter({"Q2": 1, "Q1": 1, "Q3": 2})) == [("Q3", 2), ("Q1", 1), ("Q2", 1)],
+           "sibling tallies rank ties by QID, so a rerun renders the same request")
     none, problems = mint.build_spec(cand(draft={"archetype": "ambassador"}), ctx())
     expect(none is None and problems == ["archetype/ambassador"], "no archetype, no spec")
     data = offices.entity_data(spec)
@@ -729,6 +737,15 @@ def check_ledger(expect: Any) -> None:
         expect(mint.reguard(good, ctx(lookup=lambda _t, _l, _s: [offices.Found(
             "Q961", label_match=True, country_match=True, country_qids=(STATE,))]))
             == ["duplicate/Q961"], "reguard reads the searches again and names a new duplicate")
+        conn.execute("UPDATE office_candidate SET status = 'categorized' WHERE id = %s", (good,))
+        third = mint.verify("zz", ctx=ctx(langs=[]), log=quiet, threads=1)
+        expect(len(calls) == 1 and third["asked"] == 0 and third["recorded"] == 1,
+               "nor one whose draft only dropped terms: the candidate's last answer stands")
+        asked = "attestations\nlabel (en): A\nlabel (es): B\nalias (es): C; D\ndescription (en): E\nP31: x"
+        expect(mint.dropped_terms_only(asked, "attestations\nlabel (en): A\nalias (es): D\nP31: x")
+               and not mint.dropped_terms_only(asked, "attestations\nlabel (en): A2\nP31: x")
+               and not mint.dropped_terms_only(asked, "attestations\nlabel (en): A\nP31: y"),
+               "a label it never saw, or any other line changed, is a new question")
         # A unit's seat yields to a mention candidate guarded for the same seat.
         es = {"es": "Ministro de Salud de Ostra"}
         provincial = {**base, "jurisdiction_qid": "Q901", "labels": {**es, "en": "Minister of Health of Ostra"}}

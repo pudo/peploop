@@ -247,10 +247,6 @@ For every office, whatever its decision:
   Italian), lowercase the title word ("alcalde de X", "ministre de …"); in German
   capitalise nouns as German does. Never write a label in all capitals.
 
-- **`description_en`** — a short English description in Wikidata style,
-  lowercase, no final full stop, naming the state: "public office in …",
-  "member of the … of …".
-
 - **`parent_qid`** — the item this office is a kind of (its `P279`), from the
   kinds of office or the state's existing offices: when the state's existing
   offices of this kind are all a kind of one country-specific class ("mayor of

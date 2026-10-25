@@ -173,6 +173,18 @@ cannot.
   item), the two Aragonese comarcas (no parseable head line) and the
   Upper Silesian metropolis (a board). The holders' `P39` does not follow a
   creation: the unit lane attests no mention, so `feed` reopens nothing.
+- Terms reworked (2026-10-25): an outside Wikidata editor found our English
+  descriptions merely rephrased the label, and aliases were written in any
+  language an article was (German, Vietnamese, Russian on Chinese offices,
+  where 60 of China's 112 guarded drafts carried one). Minted items
+  now carry no description, except a generic title naming no polity
+  ("public office in …"), and labels and aliases only in English and the
+  territory's two-letter languages. Re-deciding the AMLR drafts reused their
+  verdicts (a request that only drops terms keeps its answer): 777 guarded,
+  the 19 EPCI skipped for a description among them, and Bergheim and
+  Langenfeld, whose namesakes' mayoralties in Bavaria are no longer read as
+  theirs. China's 112 guarded offices, verified before its index changed,
+  were not re-decided: a re-run asks every verdict again, about $5 batched.
 
 ## peptree
 
