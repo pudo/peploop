@@ -121,6 +121,33 @@ Built 2026-10-25, dry run only: `census/eu.yml` lists 86 bodies' heads
    whose `P159` lies in a member state, less four whose seat is plainly
    elsewhere (IOM, the Pacific Community, Intelsat, UNFICYP).
 
+## 3b. Holders of the minted unit and body offices
+
+`seed --holders` is built (2026-10-25); per tranche: `mint --submit` →
+`tree backlink --eu` → `seed --holders` → `load-positions` once → the
+stages → send with the user. A ~360-person tranche (the 777 offices whose
+holder resolves) costs about $50 live, half batched. Before the first
+tranche:
+
+1. **nl's state.** rigour's `nl` is `Q29999`; Dutch offices carry `P17`
+   `Q55`, so they load through the citizen lane only and the policy skips
+   them as `foreign-scoped`. Same check for dk (`Q35`/`Q756617`) and any
+   kingdom with constituent countries.
+2. **A generic `P39` hides the specific one.** A holder carrying
+   "prezydent miasta" or "chief executive officer" gets no mention of the
+   specific office (extraction treats it as recorded) or a
+   `recorded-elsewhere` skip. Measure how many of the 362 holders carry a
+   generic `P39`, then decide: extract prompt wording, or the policy
+   reading a generic item as not covering.
+3. **Stale `P6`.** An undated `P6` often names a former mayor; mint's
+   draft already prefers a differing infobox name. Count how many seeded
+   holders' accepted tenures are closed after the first tranche.
+4. **Holders already in another run** keep their old extraction; the
+   office they now hold is reached only if it was mentioned and refused
+   (the re-ask). Re-extracting them is a choice for the user.
+5. **Unlinked names** (412 units, 37 bodies) are residue; IO heads need no
+   discovery change once their office is created and loaded.
+
 ## 4. The candidate's country on the shortlist line
 
 Homonym offices of other states (a Spanish "mayor of Chía" offered for

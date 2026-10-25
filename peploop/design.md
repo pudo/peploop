@@ -87,6 +87,21 @@ keyed on QID, prompt hash and article set, so a person found through six
 categories is fetched once and prompted once. Adding categories to the file
 never costs a re-extraction of anyone already seen.
 
+Two other ways in enter the same rows. `seed --qid Q… --lang xx` queues named
+people, with a membership `qid` in the wiki their articles are read in first.
+`seed --holders` queues the holders of the unit and body offices `mint_units`
+made (§5a), whose `P39` no seeded article would otherwise reach: one per
+office that exists -- a candidate `created`, `loaded` or `found`, never one
+still `guarded` -- with a membership `holder:<office>` in the unit's wiki. The
+holder's item is the unit's or body's own head statement where the draft took
+it from one; otherwise the infobox line the draft read is followed through the
+link on the name (`wikipedia.infobox_links`), and the item kept only when it is
+a living human with an article in that wiki. A name with no link is residue,
+never a search. From there the holder is anyone else: the `P39` comes from
+their own article, with its reference and dates, and the same run fills their
+other properties. A holder already in the lane keeps their status and stamp;
+a refusal of theirs the new office would now place is `reconcile`'s re-ask.
+
 The seed is deliberately the only country-shaped thing in peploop. The
 country is metadata on the run, not a scope the pipeline reasons about.
 
@@ -340,8 +355,9 @@ queue) has the mechanics; the decisions are these.
   head offices (by title, by region, or one), which must reach `amlr.HEADS`.
   Municipal heads are `mayor`s; a grouping's head (a powiat's starosta, an
   EPCI's president) is `grouping_head`, an archetype only this lane makes.
-  The holders' `P39` does not follow from the creation: no mention was
-  clustered into the office, so `feed` reopens nothing for it.
+  No mention was clustered into the office, so `feed` reopens nothing for
+  it: its holder is seeded into the person lane once it exists (`seed
+  --holders`, §1), never given a `P39` copied from the unit's `P6`.
 - **The Union's bodies and the organisations seated in it are listed one by
   one.** The `eu` scope is rigour's European Union (its `P150` the member
   states). Its census entries say `per: bodies`: each EU agency, authority,
@@ -683,7 +699,7 @@ when the statement is provably only ours.
 ```
 http_cache         cached HTTP bodies (PetScan, SPARQL, search), by URL and params
 person             one row per seeded person: status, error, country
-membership         which seed category found which person
+membership         which seed category found which person (`qid`, `holder:<office>` for the other seeds)
 item               Wikidata items as last fetched, with lastrevid
 article            Wikipedia article text and revision, per person and language
 extraction         the model's answer per person, prompt hash and article set
@@ -743,7 +759,7 @@ Run from the repository root as `python -m peploop.cli <command>`;
 `countries.md` §3 is the order they run in.
 
 ```
-seed             --country cc
+seed             --country cc [--qid Q... --lang xx | --holders]
 load-positions   --country cc
 fetch            --country cc | --qid Q...
 extract          --country cc | --qid Q...
@@ -928,12 +944,14 @@ peploop/
   mint.py        mint: the queue, the floor, categorize, verify, the disposition rules
   mint_write.py  mint: create crash-safely, recover, feed back, report, audit
   mint_units.py  mint: a level's offices, one candidate per unit, from the unit's article
+  holders.py     seed the holders of the offices mint_units made, once they exist
   check_neutral.py    fails when the code names a country it has run
   check_review.py     drives the review TUI headlessly over shadowed tables
   check_audit.py      an audited proposal survives a re-propose
   check_propose.py    the position lane's three silent failures, offline
   check_scope.py      the relevance gate's date arithmetic, offline
   check_seed.py       the category walk seeding falls back to when PetScan is down, offline
+  check_holders.py    a minted office's holder: the link followed, its guards, only offices that exist
   check_policy.py     one fabricated case per rule of the policy, offline
   check_verify.py     the verifier's rendering, key, schema and prompt coverage, offline
   check_llm.py        prices, the budget, live and batched runs, a batch found again after a crash

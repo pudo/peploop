@@ -322,6 +322,44 @@ def _infobox(table: Any, out: list[str]) -> None:
             out.append(parts[0])
 
 
+def infobox_links(html: str) -> list[tuple[str, list[tuple[str, str]]]]:
+    """Each infobox line as `html_to_text` writes it, with the articles its wikilinks name.
+
+    For a reader that has a name from an infobox line and needs the person's
+    item: the link the line puts on the name says which article is meant,
+    where the name alone could be anyone's. Each link is (its text, the page
+    title it targets); a red link names no page and is left out.
+    """
+    root = lxml_html.fromstring(html)
+    _clean(root)
+    out: list[tuple[str, list[tuple[str, str]]]] = []
+    for table in root.iter("table"):
+        if "infobox" not in (table.get("class") or "").lower():
+            continue
+        if any("infobox" in (a.get("class") or "").lower() for a in table.iterancestors("table")):
+            continue
+        for row in table.iter("tr"):
+            cells = [c for c in row if c.tag in ("th", "td")]
+            parts = [p for p in (_cell_text(c) for c in cells) if p]
+            if len(parts) >= 2:
+                line = f"{parts[0]}: {' '.join(parts[1:])}"
+            elif len(parts) == 1 and len(cells) == 1:
+                line = parts[0]
+            else:
+                continue
+            links = []
+            for a in row.iter("a"):
+                href = a.get("href") or ""
+                if "mw:WikiLink" not in (a.get("rel") or "") or "new" in (a.get("class") or "").split() \
+                        or "redlink=1" in href or not href.startswith("./"):
+                    continue
+                target = unquote(href[2:].split("#")[0].split("?")[0]).replace("_", " ")
+                if target:
+                    links.append((_text(a), target))
+            out.append((line, links))
+    return out
+
+
 def _walk(element: Any, out: list[str]) -> None:
     for child in element:
         if not isinstance(child.tag, str):

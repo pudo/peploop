@@ -160,6 +160,27 @@ any creation it re-asks categorize whole. The feed is idempotent.
 `audit candidate <id> --country <cc> --reason … --by <name>` skips a row
 after the fact; there is no approve.
 
+A `per: units` or `per: bodies` office has no mention behind it, so the feed
+gives its holder nothing, and the holder is seeded instead: `seed --country
+<cc> --holders`, only ever after the office exists -- it takes `created`,
+`loaded` and `found` rows and nothing `guarded`. Then the stages from `fetch`
+run over the people it queued (by `--qid` where the run has other people
+queued), and their `P39` is proposed from their own articles like anyone
+else's. A tranche of the AMLR's unit heads is, per country:
+
+```
+mint --country <cc> --submit         # with the user
+tree backlink --eu                   # the units' P1313 onto the new offices
+seed --country <cc> --holders        # prints each office's holder and how it was found
+load-positions --country <cc>        # once, where the country has never run
+fetch, extract, reconcile, propose, verify --country <cc>
+send --country <cc>                  # dry; the send goes with the user
+```
+
+On a country never run before, the first `reconcile` counts the state's
+holders over every loaded office of any country (26,000 rows took
+about forty minutes for Spain); that is network, not model spend.
+
 Every LLM stage is ledgered on content (prompt hash, article revisions,
 rendering version), so re-running one after a prompt edit costs only what is
 new, and re-running one that was interrupted costs nothing. Run the long ones

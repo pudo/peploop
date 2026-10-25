@@ -207,6 +207,37 @@ cannot.
   measured; 19 holders right as of 2026, 6 not confirmable from knowledge
   (CEPOL, eu-LISA, ERA, BEREC Office, Benelux, WFP), none contradicted.
   $3.61, two verify passes.
+- Holder seeding (2026-10-25, dry run, nothing sent): `seed --holders`
+  queues a minted unit or body office's holder into the person lane once
+  the office exists. Of the 777 guarded unit heads 205 carry the holder's
+  item from the unit's `P6`; following the infobox link on the name adds
+  157 (362, 47%); 412 names have no link (pl starostas 190, fr EPCI
+  presidents 150), 3 fail the guards. The 56 Union and IO heads: 9 → 19.
+  Piloted on existing offices, since none is created yet: 32 holders of
+  ≥50k units' head offices lacking the `P39` (es 12, nl 13, it 5, pl 2) and
+  4 IO heads. A correct `P39` on the right office, dated and referenced,
+  was accepted for 12 of the 32 (es 9, it 3) and none was wrong in a hand
+  check of 23. Why the rest fell, each a class for a tranche:
+  - The unit's `P6` is often the mayor before last (es 6 of 9 accepted
+    tenures are closed; nl 3 were acting mayors, rightly filtered): for
+    these the `P39` is history, correct but not the current holder.
+  - nl: the reconciler placed the right office for 12 of 13, and the policy
+    skipped all as `office/foreign-scoped`, because rigour's `nl` is the
+    Kingdom (`Q29999`) while municipal offices carry `P17` Netherlands
+    (`Q55`); `load-positions --country nl` missed Oss's office for it too.
+  - A generic `P39` already on the person ("prezydent miasta", "chief
+    executive officer"): extraction does not mention the office again (pl
+    2 of 2) or the policy reads it as `recorded-elsewhere` (ESA).
+  - One each: an article attesting only a council seat (gl), an item dated
+    1908 (out of scope), an open tenure since 1995 (`tenure_ended`), two
+    `sources_disagree` starts, one `verify/imprecise`.
+  IO heads resolve unchanged once the office is in `position` (OSCE, ESA,
+  OPEC mentions all placed; OSCE accepted); discovery reaches an IO office
+  only when it is loaded, as mint's feed does for its own. A holder already
+  in another run (Cormann, au) keeps their old extraction, which never
+  named the office. $4.80 for 34 people extracted ($0.14 each, live;
+  first-run reconcile for es, nl, it, pl and eu also counted every loaded
+  office's holders, 40 minutes each on the query service).
 
 ## peptree
 

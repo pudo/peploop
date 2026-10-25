@@ -17,7 +17,7 @@ from typing import Any
 import click
 
 from peploop import amlr, amlr_expand, amlr_report
-from peploop import costs, db, ledger, llm, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
+from peploop import costs, db, holders, ledger, llm, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
 from peploop import mint_units
@@ -170,13 +170,37 @@ def _select(
 
 @cli.command()
 @click.option("--country", required=True, help="Seed peploop/seeds/<country>.yml under this code.")
-def seed(country: str) -> None:
+@click.option("--qid", multiple=True, help="Queue these people instead of the seed file's categories.")
+@click.option("--lang", default=None, help="With --qid: the wiki their articles are read in first.")
+@click.option("--holders", "of_holders", is_flag=True,
+              help="Queue the holders of the unit and body offices mint created or found for the run.")
+def seed(country: str, qid: Sequence[str], lang: str | None, of_holders: bool) -> None:
     """Queue the members of every Wikipedia category in the country's seed file.
 
     The country is what every later command's `--country` selects on. Someone
     two runs both find keeps the first one's stamp, so re-seeding a country
     never moves people out of another.
+
+    `--qid` queues named people, and `--holders` the holders of the offices
+    `mint_units` made, only once those exist (`holders.py`): their `P39`
+    then comes from their own articles through the ordinary stages.
     """
+    if qid:
+        if not lang:
+            raise click.UsageError("--qid needs --lang, the wiki their articles are read in first")
+        new = 0
+        for person in qid:
+            new += db.upsert_person(person, country)
+            db.upsert_membership(person, "qid", lang)
+        click.echo(f"{len(qid)} people named, {new} new")
+        return
+    if of_holders:
+        found = holders.holders(country)
+        for holder in found:
+            click.echo(f"{holder.ref} {holder.office or '-'} {holder.name[:32]!r} -> {holder.qid or '-'} {holder.how}")
+        counts = holders.seed(country, found)
+        click.echo(f"{len(found)} offices that exist: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+        return
     path = SEED_DIR / f"{country}.yml"
     if not path.exists():
         raise click.UsageError(f"no seed file at {path}")
