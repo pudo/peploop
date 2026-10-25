@@ -24,6 +24,7 @@ exclude:
   - {qid: Q399541, name: board of education}  # 5 live, e.g. Q106748018 Stichting Interregionaal Onderwijs Zaanstad
   - {qid: Q112827555, name: decentralised agency of the European Union}  # 3 live, e.g. Q130146 European Medicines Agency
   - {qid: Q3914, name: school}  # 594 live, e.g. Q110781045 Scholengemeenschap De Die
+  - {qid: Q18511695, name: candidate list of a Dutch election}  # 26 parts of parties, 2026-10-24
 
 # State-only legal forms and types, matched exactly as P31 or P1454.
 # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat

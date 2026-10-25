@@ -25,6 +25,10 @@ exclude:
   - {qid: Q334453, name: Abteilung}
   - {qid: Q2948379, name: Handwerkskammer}
   - {qid: Q897399, name: Industrie- und Handelskammer}
+# A party's district associations (the local tier waits) and its
+# affiliated organisations: no governing body of the party.
+  - {qid: Q91459453, name: Kreisverband}  # 11 parts of parties, 2026-10-24
+  - {qid: Q1267114, name: Vorfeldorganisation}  # 14
 
 # State-only legal forms and types, matched exactly as P31 or P1454. Measured
 # 2026-10-17: German items with any seat statement in brackets. Körperschaft
@@ -38,6 +42,12 @@ forms:
   - {qid: Q1507070, kind: institution, name: Landesbetrieb}  # 2
 
 roles: []
+
+# A part of a party typed as a state-level association is its regional
+# branch. Measured 2026-10-24: 152 of the 194 parts of parties, 106 with a
+# P488; the class's other instances are sports and charity federations.
+party_branch_classes:
+  - {qid: Q18744396, name: Landesverband}
 
 # Official lists of state holdings. The federal list: German Wikipedia's list
 # of companies with federal participation, drawn from the Beteiligungsbericht

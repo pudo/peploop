@@ -129,6 +129,26 @@ Where the German funnel loses statements, besides unlinked people (§2):
      its spec does not write (the municipal workstream); the Netherlands
      says it has no state enterprises under the definition, while its spec
      writes them under the AMLR default.
+- Party governing bodies (2026-10-25): the `party` and `party_branch`
+  lanes, built and dry-run on de, es and nl, nothing sent: 701 party seat
+  lines (de 480, es 192, nl 29). Left:
+  1. Send with the user, as tranches limited with `corp send <cc> --qid`
+     to the party bodies: per country, `P488` and `P3975` first (the
+     convention's own idioms, mostly current), then the `P3320` deputies,
+     treasurers and members.
+  2. The other EU countries: each needs its `party_branch_classes`
+     measured (fr, it, pl branches are hardly modelled, so the national
+     parties alone), and a run limited to party bodies.
+  3. Open interim calls: a local branch is not written until the AMLR's
+     local tier (2027) has a unit population check; a party's organ as an
+     item of its own (its presidium) gets nothing, its seats go on the
+     party; youth wings, foundations and alliances with no membership are
+     out; a member's seat counts as held when open and started within
+     twelve years; a party is read in English only where it has no
+     own-language article.
+  4. OpenSanctions does not read parties yet: `wd_soe` reads state
+     bodies only. A party lane reading `P488`, `P3975` and `P3320` on the
+     country's parties is the crawler side of this.
 - Zambia needs a holdings list (the IDC portfolio): its Wikidata has almost
   no state links and its category three members.
 - Norway beyond the 30-body trial; Greenland and Faroe as their own specs.

@@ -20,6 +20,11 @@ scope by that list: where the control gate alone stops it, its seats are
 written all the same, and nothing else (`listed_scope`). The list proves
 scope, never ownership: its marker and links still need the article.
 
+A party or a regional branch of one (the party lanes) is admitted by its
+seat-holders, not by control: it passes when active, and gets its seats
+only -- no marker, no link, no class -- by the party rows of `SEATS`, under
+every seat rule a body's seats have.
+
 No shares, sizes or control arithmetic: the links and the article's word
 are the evidence.
 
@@ -63,6 +68,10 @@ STATUTORY_TYPED = frozenset(STATUTORY.values())
 #: The kinds of body that are written on: a state's businesses, and the
 #: institutions it runs (museums, broadcasters, research centres, agencies).
 WRITTEN = ("enterprise", "institution")
+#: The kinds of party body whose governing bodies are written: the party and
+#: its branch for a first-level subdivision. A local branch waits for the
+#: AMLR's local tier, which needs its unit's population.
+PARTY = ("party", "regional_branch")
 #: (kind, body, role) → (property, role qualifier `P2868` or None). A "*" fits any.
 SEATS: dict[tuple[str, str, str], tuple[str, str | None]] = {
     ("enterprise", "*", "head"): ("P169", None),
@@ -80,6 +89,14 @@ SEATS: dict[tuple[str, str, str], tuple[str, str | None]] = {
     ("*", "executive", "member"): ("P3320", "Q141755781"),  # executive board member (pepcorp's own role item)
     ("*", "board", "member"): ("P3320", None),
     ("*", "*", "managing_director"): ("P3320", "Q19940089"),  # managing director
+    # A party's executive organs, by the idioms party items carry: plural
+    # `P488` for co-chairs, `P3975` for the secretary-general, and `P3320`
+    # unqualified for an executive member (75 of 75 on EU parties).
+    ("party", "*", "chair"): ("P488", None),
+    ("party", "*", "deputy_chair"): ("P3320", "Q1127270"),  # deputy chairperson
+    ("party", "*", "secretary_general"): ("P3975", None),
+    ("party", "*", "treasurer"): ("P3320", "Q388338"),  # treasurer
+    ("party", "*", "member"): ("P3320", None),
 }
 #: Short tokens with a full stop that are titles, not names: "Dr.", "Prof.".
 HONORIFIC = re.compile(r"^\w{1,5}\.$")
@@ -90,6 +107,9 @@ POSTNOMINAL = frozenset({"phd", "csc", "drsc", "mba", "llm", "msc", "bsc", "dis"
 def seat_statement(kind: str, body: str, role: str,
                    extra: dict[str, tuple[str, str | None]] | None = None) -> tuple[str, str | None] | None:
     """The statement a seat becomes: the country's own row for its role, else the most specific of `SEATS`."""
+    if kind in PARTY:
+        # A party's rows stand alone: no body's row fits a party's seat.
+        return SEATS.get(("party", "*", role))
     if extra and role in extra:
         return extra[role]
     for key in ((kind, body, role), (kind, "*", role), ("*", body, role), ("*", "*", role)):
@@ -135,11 +155,14 @@ def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countrie
     legal form. It never overrides an article that names a stake or a
     private owner.
     """
-    control = answer["control"]
+    if answer["kind"] in PARTY:
+        # A party is admitted by its seat-holders: no control to show.
+        return None if answer["active"] else "inactive"
     if answer["kind"] not in WRITTEN:
         return f"kind:{answer['kind']}"
     if not answer["active"]:
         return "inactive"
+    control = answer["control"]
     if control["verdict"] == "unstated" and proof and "national" in tiers:
         return None
     if answer.get("statutory") in STATUTORY and control["verdict"] in ("unclear", "unstated"):
@@ -429,13 +452,15 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
     name) is a namesake the article links by mistake.
     """
     heads = {p: set(wd.values(entity or {}, p)) for p in HEADS}
-    # The latest start among the answer's heads: an earlier head left open
-    # (an interim, a predecessor) was followed by that one.
-    starts = [s["start"] for s in req["answer"]["seats"] if s["role"] == "head" and s["start"]]
+    kind = req["answer"]["kind"]
+    # The latest start among the answer's heads (a party's chairs): an
+    # earlier one left open (an interim, a predecessor) was followed by that one.
+    lead = "chair" if kind in PARTY else "head"
+    starts = [s["start"] for s in req["answer"]["seats"] if s["role"] == lead and s["start"]]
     last_head = max(starts, key=lambda t: t.ljust(10, "0")) if starts else None
     rows = []
     for seat in req["answer"]["seats"]:
-        statement = seat_statement(req["answer"]["kind"], seat["body"], seat["role"], extra)
+        statement = seat_statement(kind, seat.get("body", "*"), seat["role"], extra)
         if statement is None:
             rows.append({"property": "seat", "value": None, "qualifiers": {}, "_rule": f"role_unmapped:{seat['role']}",
                          "_name": seat["name"]})
@@ -468,7 +493,7 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
         elif not end and found[0] in dead:
             # A seat with no end, held by someone who has died, ended then.
             rule = "holder_dead"
-        elif (seat["role"] == "head" and not seat["current"] and not end and last_head
+        elif (seat["role"] == lead and not seat["current"] and not end and last_head
               and (seat["start"] or "").ljust(10, "0") < last_head.ljust(10, "0")):
             rule = "superseded"
         elif prop in HEADS and any(found[0] in heads[p] for p in HEADS if p != prop):
@@ -546,7 +571,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     marked_now = {qid for qid, it in items.items()
                   if wd.values(it.get("entity") or {}, "P31") or wd.values(it.get("entity") or {}, "P1454")}
     contradicted = {r["qid"] for r in answered if r["qid"] not in passed and r["qid"] in marked_now
-                    and (r["answer"]["control"]["level"] == "municipal" or r["answer"]["control"]["verdict"] == "private")}
+                    and "control" in r["answer"] and (r["answer"]["control"]["level"] == "municipal" or r["answer"]["control"]["verdict"] == "private")}
     entities = wd.fetch_items(sorted(set(passed) | contradicted | scoped)) if passed or contradicted or scoped else {}
     marks = {v for e in entities.values() for p in ("P31", "P1454") for v in wd.values(e, p)}
     closure = typegraph.of_classes(marks)
@@ -560,7 +585,11 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     # Controllers the answers named rather than chose, resolved through the
     # article's links, count when they are a government body of the country.
     named: dict[str, dict[str, str]] = {}
-    for r in passed.values():
+    # A party owns nothing here and is no state body: only the bodies' answers name controllers.
+    parties = {qid for qid, r in passed.items() if r["answer"]["kind"] in PARTY}
+    for qid, r in passed.items():
+        if qid in parties:
+            continue
         for o in r["answer"]["control"]["owners"]:
             if o["controller"] is None and o["name"]:
                 found = linked(o["name"], o["article"], r["links"])
@@ -569,7 +598,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     government = actors.is_government({q for m in named.values() for q in m.values()})
     # A body this run finds state-controlled is a state owner in its own right:
     # a state bank's subsidiary is held through the bank.
-    state = set(passed) | set(actors.kinds) | government
+    state = (set(passed) - parties) | set(actors.kinds) | government
     polities = frozenset(q for q, k in actors.kinds.items() if k in ("state", "subdivision"))
     subdivisions = frozenset(q for q, k in actors.kinds.items() if k == "subdivision")
     # A government body this run writes as an enterprise or institution (a
@@ -586,7 +615,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     # So would a link to what this run's own answers put over its other
     # controllers: a transport company owned by a state holding that the
     # same run puts under the state gets the holding, not the state too.
-    planned = {qid: controllers(r, named.get(qid)) for qid, r in passed.items()}
+    planned = {qid: controllers(r, named.get(qid)) for qid, r in passed.items() if qid not in parties}
     for qid, via in through_planned(planned, linked_now).items():
         reached[qid] = reached.get(qid, set()) | via
     lines: list[str] = []
@@ -615,6 +644,10 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
         if entity is None:
             decisions.append({"qid": r["qid"], "prop": "-", "value": None, "detail": {},
                               "disposition": "skip", "rule": "missing", "call_key": r.get("key")})
+            continue
+        if r["qid"] in parties:
+            lines += settle(r, entity, seat_rows(r, humans, today, spec.roles, entity, dead, matched, titles,
+                                                 unconfirmed), decisions)
             continue
         chain = items.get(r["qid"], {}).get("chain")
         rows = control_rows(r, entity, chain, state, closure, named.get(r["qid"]), polities, refused,

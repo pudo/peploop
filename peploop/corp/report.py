@@ -52,6 +52,7 @@ def report(cc: str) -> str:
            f"- contradicted markers proposed for removal: {sum(1 for r in rows if r[4] == 'remove')}",
            f"- run file: {path} ({n_lines} lines)", ""]
     out += listed(cc, rows, loaded_listed(cc))
+    out += parties(rows, loaded_parties(cc), kinds)
     out += ["## Enterprises written on", ""]
     for qid, rs in by_qid.items():
         if any(r[1] == "-" for r in rs) and not any(r[4] in ("apply", "remove") for r in rs):
@@ -105,6 +106,39 @@ def listed(cc: str, rows: list[tuple[Any, ...]], loaded: dict[str, str]) -> list
             f" of them by the list alone {len(by_list)}",
             f"- seats written: {len(seats)}, of them by the list alone {sum(r[3].get('scope') == 'listed' for r in seats)}",
             f"- named-body rows without an item: {len(load.unresolved(cc))}", ""]
+
+
+def loaded_parties(cc: str) -> dict[str, tuple[str, str]]:
+    """QID → (its party lane, why the load dropped it or `kept`), for each body a party lane stored."""
+    rows = wd.conn().execute("SELECT qid, lanes, coalesce(dropped, 'kept') FROM pcorp_item"
+                             " WHERE country = %s AND lanes && %s", (cc, list(load.PARTY_LANES))).fetchall()
+    return {q: ("party" if "party" in lanes else "party_branch", why) for q, lanes, why in rows}
+
+
+#: A party seat's property and role, as the funnel names it.
+PARTY_SEATS = {("P488", None): "chair", ("P3975", None): "secretary-general", ("P3320", "Q1127270"): "deputy chair",
+               ("P3320", "Q388338"): "treasurer", ("P3320", None): "executive member"}
+
+
+def parties(rows: list[tuple[Any, ...]], loaded: dict[str, tuple[str, str]], kinds: dict[str, str]) -> list[str]:
+    """The party funnel: parties and branches loaded, what the answers call them, passed, seats by property."""
+    if not loaded:
+        return []
+    mine = [r for r in rows if r[0] in loaded]
+    gated = Counter(r[5] for r in mine if r[1] == "-")
+    decided = {r[0] for r in mine}
+    seats = [r for r in mine if r[4] == "apply"]
+    by_seat = Counter(PARTY_SEATS.get((r[1], (r[3].get("P2868") or {}).get("id")), r[1]) for r in seats)
+    lane = lambda name: Counter(why for ln, why in loaded.values() if ln == name)  # noqa: E731
+    return ["## Parties", "",
+            *(f"- {name} lane: " + ", ".join(f"{k} {v}" for k, v in lane(name).most_common())
+              for name in load.PARTY_LANES),
+            "- decided: " + ", ".join(f"{k} {v}" for k, v in Counter(kinds.get(q, "?") for q in decided).most_common())
+            + f"; passed: {len(decided) - sum(gated.values())}",
+            "- not written on: " + ", ".join(f"{k} {v}" for k, v in gated.most_common()),
+            f"- seats written: {len(seats)}: " + ", ".join(f"{k} {v}" for k, v in by_seat.most_common()),
+            "- seats skipped: " + ", ".join(f"{k} {v}" for k, v in Counter(
+                r[5] for r in mine if r[1] != "-" and r[4] == "skip").most_common()), ""]
 
 
 def write(cc: str) -> str:

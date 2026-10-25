@@ -391,6 +391,33 @@ Switzerland (2026-10-17/18), nothing sent.
   mt 93, lt 59, dk 48). The body-class rows agree with the specs' tiers,
   except Portugal's municipal enterprises; no row names a form a spec
   lacks.
+- **Party governing bodies are statements on the party (2026-10-25).** The
+  convention, measured on QLever over EU parties: `P488` 3,124 statements
+  on 1,428 parties (3 with a `P2868`, "acting"), `P3975` 590 on 284,
+  `P3320` 75 on 35 (none qualified), `P1037` 70, `P169` 15, `P5052` none;
+  106 parties carry two or more open `P488` (co-chairs). Roles live on
+  people's `P39` qualified with the party instead: party leader 414,
+  chairperson 240, general secretary 159, deputy chairperson (`Q1127270`)
+  52, vice president 51, treasurer (`Q388338`) 2, board member 4; `P463`
+  with a role names none. So the seats became `P488` (each co-chair),
+  `P3320` + `Q1127270`, `P3975`, `P3320` + `Q388338` and `P3320` bare, on
+  existing role items. A party's parts by `P361`/`P749` are mostly working
+  groups, currents, organs and candidate lists, and the class "state-level
+  organisation" (`Q18744396`) types sports and charity federations as well
+  as parties' state associations: a part is a branch only when typed a
+  party or a spec's branch class (es: political organisation, the
+  socialist and Podemos federations). The pilot (de, es, nl; parties asked
+  with their own prompt so no SOE answer was re-asked): de 23 parties and
+  113 branches kept, 480 seat lines (chair 194, deputy 190, treasurer 52,
+  secretary-general 30, member 14); es 115 and 69, 192 lines; nl 39 and 1,
+  29 lines; most skipped seats are unlinked people (de 308) or past
+  tenures. A first hand check of 25 lines found 2 wrong, both Dutch:
+  "partijleider" (the political leader, not the party's chair) written as
+  `P488`; a rule now leaves out a leader the articles do not call head of
+  the executive, and the 43 bodies whose chair quote named a leader were
+  asked again. A second sample of 24 after it: 23 right, 1 unsure (a
+  regional "líder" of a Spanish party). $11.4 at list price, $6.3 of it
+  the person checks.
 
 The dry run: 3,938 lines on 26 countries for about $185 of model calls
 (pilots and superseded runs included); precision samples 18–20 of 20 per

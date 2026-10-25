@@ -1,6 +1,6 @@
 """Find a country's candidate state bodies and keep the ones worth a decision.
 
-Eight lanes, each going wide on purpose: what the decision stage and, after
+Eight lanes for state bodies, each going wide on purpose: what the decision stage and, after
 it, OpenSanctions' position classification filter out costs less than a body
 never found.
 
@@ -27,10 +27,27 @@ never found.
   a row's expansion. The list puts its seats in PEP scope; it says nothing
   about who owns it.
 
+Two more lanes bring in political parties, whose governing bodies are PEPs
+(AMLR Art. 2(1)(34)(iii)) without any state control:
+
+- `party`: a party of the country one of whose living members holds a seat
+  now -- a legislator's, or the head office of the state, a first-level
+  subdivision or a governed unit of 50,000 or more (`amlr.units`) -- plus
+  the spec's `parties`;
+- `party_branch`: a body that is part of such a party or has it as parent
+  (`P361`, `P749`) and is itself a party by type, or an instance of one of
+  the spec's `party_branch_classes` (a federal party's state association is
+  typed as an association, a regional federation as a political
+  organisation): the parts of a party are mostly its working groups,
+  currents and organs, and those classes' other instances sports and
+  charity federations. Youth wings, parliamentary groups and electoral lists
+  are never a branch (`EXCLUDED`).
+
 Only the municipal tier's marker (`Q1780371`) stays out of the typed lane for
 now: municipal enterprises are a later tier.
 """
 
+from datetime import date
 from typing import Any, Callable
 
 from psycopg.types.json import Jsonb
@@ -60,11 +77,39 @@ EXCLUDED = frozenset({
     "Q847017",  # sports club
     "Q192350",  # ministry
     "Q7188",  # government
+    # A party's satellites: none is the party's governing body.
+    "Q2493450",  # youth wing
+    "Q11744698",  # parliamentary group
+    "Q355844",  # electoral list
 })
 #: The classes whose country categories the category lane reads.
 CATEGORY_TOPICS = ("Q270791", "Q327333")  # state-owned enterprise, government agency
 CATEGORIES = """SELECT DISTINCT ?cat WHERE { VALUES ?x { %s } ?cat wdt:P31 wd:Q4167836 ; wdt:P971 wd:%s ; wdt:P971 ?x . }"""
 FORMED = """SELECT DISTINCT ?i WHERE { VALUES ?f { %s } { ?i wdt:P31 ?f } UNION { ?i wdt:P1454 ?f } ?i wdt:P17 wd:%s . }"""
+#: How far back a member's open seat may start and still count as held now:
+#: an open statement older than about three terms is more often stale than held.
+PARTY_SEAT_SINCE = 12
+#: The parties of a country with a living member who holds a legislator's seat
+#: now, read from QLever (the `P279*` walk over every member's seats is more
+#: than the query service answers in time).
+PARTY_MEMBERS = """SELECT DISTINCT ?party WHERE { ?party wdt:P17 wd:%s .
+  ?h p:P102 ?m . ?m ps:P102 ?party . FILTER NOT EXISTS { ?m pq:P582 ?me } FILTER NOT EXISTS { ?h wdt:P570 ?d }
+  ?h p:P39 ?st . ?st ps:P39 ?pos ; pq:P580 ?s . FILTER(?s >= "%s"^^<http://www.w3.org/2001/XMLSchema#dateTime>)
+  FILTER NOT EXISTS { ?st pq:P582 ?e } ?pos wdt:P279* wd:Q4175034 . }"""
+#: The same for a head office, with the polity or unit it is scoped to.
+PARTY_HEADS = """SELECT DISTINCT ?party ?j WHERE { VALUES ?head { %s } ?party wdt:P17 wd:%s .
+  ?h p:P102 ?m . ?m ps:P102 ?party . FILTER NOT EXISTS { ?m pq:P582 ?me } FILTER NOT EXISTS { ?h wdt:P570 ?d }
+  ?h p:P39 ?st . ?st ps:P39 ?pos ; pq:P580 ?s . FILTER(?s >= "%s"^^<http://www.w3.org/2001/XMLSchema#dateTime>)
+  FILTER NOT EXISTS { ?st pq:P582 ?e } ?pos wdt:P279* ?head ; wdt:P1001 ?j . }"""
+#: A party by type: a part of a party typed so is one of its branches.
+POLITICAL_PARTY = "Q7278"
+PARTY_PARTS = """SELECT DISTINCT ?b WHERE { VALUES ?p { %s } { ?b wdt:P361 ?p } UNION { ?b wdt:P749 ?p } }"""
+
+
+#: Every lane, in the order the load reports them.
+LANES = ("typed", "formed", "statutory", "owned", "parented", "category", "seed", "listed", "party", "party_branch")
+#: The lanes whose bodies are parties, asked about their governing bodies and never about control.
+PARTY_LANES = ("party", "party_branch")
 
 
 #: Wikipedias whose code is not the label language Wikidata uses for them.
@@ -105,6 +150,33 @@ def listed(cc: str) -> set[str]:
 def unresolved(cc: str) -> list[amlr.Function]:
     """The list's named-body rows no expansion resolves to an item: residue for the report."""
     return [f for f in amlr.functions(cc) if f.kind == "body" and not any("body" in e for e in f.expansion)]
+
+
+def parties(cc: str, scope: set[str], today: date | None = None) -> set[str]:
+    """The country's parties with a member seated now: in a legislature, or heading a polity or unit in `scope`.
+
+    Reach for this to find whose governing bodies are PEPs. A party counts
+    by its members' seats, never by its size or its own statements.
+    """
+    since = f"{(today or date.today()).year - PARTY_SEAT_SINCE}-01-01T00:00:00Z"
+    heads = wd.values_block(sorted(amlr.HEADS))
+    found: set[str] = set()
+    for name in countries.current_qids(cc):
+        found.update(r["party"] for r in wd.qlever(PARTY_MEMBERS % (name, since)))
+        found.update(r["party"] for r in wd.qlever(PARTY_HEADS % (heads, name, since)) if r["j"] in scope)
+    return found
+
+
+def branches(found: set[str]) -> set[str]:
+    """The parts and subsidiaries of these parties: their branches among them, which the type test picks."""
+    out = {r["b"] for r in wd.bisect(lambda chunk: wd.qlever(PARTY_PARTS % wd.values_block(chunk)),
+                                     sorted(found), size=100)} if found else set()
+    return out - found
+
+
+def branch(own: list[str], closure: set[str], classes_: frozenset[str]) -> bool:
+    """Whether a part of a party is a branch: a party by type, or of one of the country's branch classes."""
+    return POLITICAL_PARTY in closure or bool(set(own) & classes_)
 
 
 def classify(entity: dict[str, Any] | None, organisation: bool, wikis: list[str]) -> str | None:
@@ -152,9 +224,16 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
         lanes.setdefault(qid, set()).add("seed")
     for qid in listed(cc):
         lanes.setdefault(qid, set()).add("listed")
+    # A party's seats are held at the national or regional level, or heading a governed unit.
+    scope = {q for q, k in actors.kinds.items() if k in ("state", "subdivision")} | set(amlr.units(cc))
+    found = parties(cc, scope) | spec.parties
+    for qid in found:
+        lanes.setdefault(qid, set()).add("party")
+    for qid in branches(found):
+        lanes.setdefault(qid, set()).add("party_branch")
     count = lambda lane: sum(lane in v for v in lanes.values())  # noqa: E731
     log(f"{cc}: {len(actors.kinds)} state actors; {len(lanes)} candidates " + ", ".join(
-        f"{lane} {count(lane)}" for lane in ("typed", "formed", "statutory", "owned", "parented", "category", "seed", "listed")))
+        f"{lane} {count(lane)}" for lane in LANES))
     # Owned is the wide lane: stations, buildings and artworks a state body
     # owns come with it, and the organisation test is what drops them.
     typed = wd.fetch_items(sorted(lanes), props="claims")
@@ -170,11 +249,16 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
         if closure.get(qid, set()) & excluded:
             orgs.discard(qid)
             lanes[qid].add("excluded")
+    # A part of a party that is no branch (a working group, a current, an
+    # organ) is dropped unless another lane brought it in.
+    nonbranch = {q for q in lanes if lanes[q] == {"party_branch"}
+                 and not branch(own[q], closure.get(q, set()), spec.party_branch_classes)}
     # A category lists buildings and brands too, so its members pass the
     # organisation test like the owned lane's; a typed, formed, statutory or listed item
     # is a body by its type or by the list.
-    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "formed", "statutory", "listed"}}
-    keep = [q for q in sorted(lanes) if "excluded" not in lanes[q] and q in bodies]
+    # A party is a body by its members' seats, as a listed one is by the list.
+    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "formed", "statutory", "listed", "party"}}
+    keep = [q for q in sorted(lanes) if "excluded" not in lanes[q] and q in bodies and q not in nonbranch]
     entities = wd.fetch_items(keep)
     wikis = langs(state)
     counts: dict[str, int] = {}
@@ -183,7 +267,7 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
         conn.execute("DELETE FROM pcorp_item WHERE country = %s", (cc,))
         for qid in sorted(lanes):
             entity = entities.get(qid)
-            reason = ("excluded" if "excluded" in lanes[qid]
+            reason = ("excluded" if "excluded" in lanes[qid] else "not_branch" if qid in nonbranch
                       else classify(entity, qid in bodies, wikis) if qid in keep else "not_organisation")
             counts[reason or "kept"] = counts.get(reason or "kept", 0) + 1
             if reason == "not_organisation" and "owned" in lanes[qid] and len(lanes[qid]) == 1:

@@ -29,6 +29,8 @@ def main() -> int:
                f"{cc}: extra actors are QIDs of kind state or government")
         expect(all(PID.match(p) and (q is None or QID.match(q)) for p, q in spec.roles.values()),
                f"{cc}: extra seats map to a property and an optional QID")
+        expect(all(QID.match(q) for q in spec.parties), f"{cc}: extra parties are QIDs")
+        expect(all(QID.match(q) for q in spec.party_branch_classes), f"{cc}: party branch classes are QIDs")
         expect(set(spec.tiers) <= TIERS, f"{cc}: tiers are known")
         expect(spec.state is None or bool(QID.match(spec.state)), f"{cc}: the state override is a QID")
     return 0

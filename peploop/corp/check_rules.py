@@ -402,10 +402,80 @@ def listed() -> None:
     src = inspect.getsource(rules.decide)
     expect("listed_seats(" in src and src.count("control_rows(") == 1,
            "a body the list alone admits gets its seats and no marker, link or class")
-    expect("set(passed) | set(actors.kinds)" in src, "a body the list alone admits is no state owner of others")
+    expect("(set(passed) - parties) | set(actors.kinds)" in src, "a body the list alone admits is no state owner of others")
     expect("Q967861" in load.listed("ro"), "the asset's resolved bodies are the lane (National Bank of Romania)")
     expect(all(f.kind == "body" and not any("body" in e for e in f.expansion) for f in load.unresolved("ro")),
            "an unresolved row is a named-body row with no body in its expansion")
+
+
+def party(kind="party", active=True, seats=()) -> dict:
+    return {"kind": kind, "active": active, "seats": list(seats), "notes": ""}
+
+
+def pseat(name="Erika Muster", role="chair", start="2021", end=None, current=True,
+          quote="Erika Muster sits on the supervisory board.") -> dict:
+    return {"name": name, "role": role, "start": start, "end": end, "current": current, "quote": quote, "article": "xx"}
+
+
+def parties() -> None:
+    """A party is admitted by its seat-holders, gets its seats only, and its executive organs alone are seats."""
+    expect(rules.gate(party(), MESSAGE) is None, "an active party passes with no control question")
+    expect(rules.gate(party("regional_branch"), MESSAGE) is None, "a party's regional branch passes")
+    expect(rules.gate(party("local_branch"), MESSAGE) == "kind:local_branch", "a local branch waits for the local tier")
+    expect(rules.gate(party("other"), MESSAGE) == "kind:other", "a youth wing, foundation or caucus is not written on")
+    expect(rules.gate(party(active=False), MESSAGE) == "inactive", "a dissolved party is skipped")
+    soe = {**answer(), "statutory": None}
+    soe["control"]["ended"] = None
+    expect(decide.readable(party(seats=[pseat()])) and decide.readable(soe),
+           "the ledger reads a party's answer and a body's alike")
+    expect(not decide.readable({**party(), "control": answer()["control"]}), "a party answer carries no control")
+    # The seat table, by the idioms party items carry.
+    for kind in rules.PARTY:
+        for role, want in (("chair", ("P488", None)), ("deputy_chair", ("P3320", "Q1127270")),
+                           ("secretary_general", ("P3975", None)), ("treasurer", ("P3320", "Q388338")),
+                           ("member", ("P3320", None))):
+            got = rules.seat_statement(kind, "*", role, {"member": ("P9999", None)})
+            expect(got == want, f"{kind} {role} → {want} (got {got}); a spec's own seats do not reach a party")
+    expect(rules.seat_statement("enterprise", "board", "secretary_general") is None
+           and rules.seat_statement("party", "*", "head") is None, "party roles and body roles do not mix")
+    # Non-governing bodies: the answer has no role for them, the prompt names them, the load drops the satellites.
+    roles = set(decide.PartySeat.model_fields["role"].annotation.__args__)
+    expect(roles == {"chair", "deputy_chair", "secretary_general", "treasurer", "member"},
+           "a party seat is one of the executive organs' five roles")
+    text = " ".join(decide.PARTY_PROMPT_PATH.read_text().split())
+    expect(all(t in text for t in ("party congress", "council of delegates", "parliamentary group", "honorary chairs")),
+           "the party prompt names the bodies that are no governing body")
+    expect({"Q2493450", "Q11744698", "Q355844"} <= load.EXCLUDED, "youth wings, caucuses and electoral lists never load")
+    expect(set(load.PARTY_LANES) <= set(load.LANES), "the party lanes are lanes")
+    expect(load.branch(["Q900600"], {"Q900600", load.POLITICAL_PARTY}, frozenset()),
+           "a part of a party typed as a party is a branch")
+    expect(load.branch(["Q900601"], {"Q900601"}, frozenset({"Q900601"})),
+           "so is one of the country's branch classes")
+    expect(not load.branch(["Q900602"], {"Q900602"}, frozenset({"Q900601"})),
+           "a working group, a current or an organ is not")
+    expect(decide.party_wikis({"sitelinks": {"xxwiki": {}, "enwiki": {}}}, ["xx", "en"]) == ["xx"]
+           and decide.party_wikis({"sitelinks": {"enwiki": {}}}, ["xx", "en"]) == ["en"],
+           "a party is read in its own language, in English only where it has no other article")
+    # Seats run through every seat rule a body's do.
+    links = {"xx": {"Erika Muster": "Q900501", "Max Probe": "Q900502", "Old Chair": "Q900503", "Late Chair": "Q900504"}}
+    msg = MESSAGE + " Max Probe co-leads it. Old Chair led it. Late Chair led it."
+    req = {"qid": "Q900999", "message": msg, "links": links, "articles": [{"lang": "xx", "url": "u", "rev": 1}],
+           "offered": [], "answer": party(seats=[
+               pseat(), pseat("Max Probe", quote="Max Probe co-leads it.", start="2022"),
+               pseat("Old Chair", quote="Old Chair led it.", start="2010", current=False),
+               pseat("Late Chair", quote="Late Chair led it.", start="2023", current=True),
+               pseat("Erika Muster", role="member", start="1990", end="1994", current=False)])}
+    humans = {"Q900501", "Q900502", "Q900503", "Q900504"}
+    rows = rules.seat_rows(req, humans, TODAY, dead={"Q900504"})
+    got = [(r["property"], r["value"]["id"], r["_rule"]) for r in rows]
+    expect(got == [("P488", "Q900501", None), ("P488", "Q900502", None), ("P488", "Q900503", "superseded"),
+                   ("P488", "Q900504", "holder_dead"), ("P3320", "Q900501", "tenure_ended")],
+           f"co-chairs are two P488; a predecessor left open, a dead holder and an old tenure are skipped (got {got})")
+    import inspect
+    src = inspect.getsource(rules.decide)
+    expect("(set(passed) - parties)" in src, "a party is no state owner of others")
+    expect(src.index("if r[\"qid\"] in parties") < src.index("control_rows("),
+           "a party gets its seats before any marker, link or class is considered")
 
 
 def historic() -> None:
@@ -464,6 +534,7 @@ def main() -> None:
     policy()
     unowned()
     listed()
+    parties()
     historic()
     reach()
     filters()

@@ -6,6 +6,11 @@ and English. The answer says what the enterprise is, who controls it and who
 sits in its leading bodies, each with a verbatim quote. The ledger
 (`pcorp_call`) is keyed by a hash of model, prompt and message, so a re-run pays
 only for enterprises whose material changed.
+
+A party (the `party` and `party_branch` lanes) is asked with its own prompt,
+`prompts/decide_party.md`: what it is and who sits in its executive organs,
+and no control question. Its answer is a `PartyAnswer`; the two prompts
+never share a key, so neither's change re-asks the other's bodies.
 """
 
 import os
@@ -24,6 +29,7 @@ from peploop.corp import load as loadmod
 from peploop.corp import wd
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "decide.md"
+PARTY_PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "decide_party.md"
 MODEL = os.environ.get("PEPCORP_MODEL", "claude-sonnet-5-5")
 MAX_TOKENS = 16000
 WORKERS = int(os.environ.get("PEPCORP_WORKERS", "6"))
@@ -31,6 +37,8 @@ ARTICLE_MAX_AGE = "30 days"
 #: Characters of one article shown; a long history section is cut, not the lead and infobox.
 ARTICLE_CHARS = 60_000
 SHOWN_PROPS = ("P31", "P1454", "P127", "P749", "P17", "P571", "P576", "P169", "P488", "P3320", "P1037")
+#: A party's statements shown: what it is part of, and its leadership as recorded.
+PARTY_PROPS = ("P31", "P17", "P571", "P576", "P361", "P749", "P488", "P3975", "P3320")
 
 
 class Strict(BaseModel):
@@ -74,8 +82,40 @@ class Answer(Strict):
     notes: str
 
 
-def system_prompt() -> tuple[str, str]:
-    return llm.system_prompt(PROMPT_PATH)
+class PartySeat(Strict):
+    name: str
+    role: Literal["chair", "deputy_chair", "secretary_general", "treasurer", "member"]
+    start: Optional[str]
+    end: Optional[str]
+    current: bool
+    quote: str
+    article: str
+
+
+class PartyAnswer(Strict):
+    kind: Literal["party", "regional_branch", "local_branch", "other"]
+    active: bool
+    seats: list[PartySeat]
+    notes: str
+
+
+def system_prompt(path: Path = PROMPT_PATH) -> tuple[str, str]:
+    return llm.system_prompt(path)
+
+
+def is_party(item: dict[str, Any]) -> bool:
+    """Whether a loaded body is asked as a party: it came in by a party lane."""
+    return bool(set(item.get("lanes") or ()) & set(loadmod.PARTY_LANES))
+
+
+def party_wikis(entity: dict[str, Any], wikis: list[str]) -> list[str]:
+    """The wikis a party is read in: the country's own languages, English only where none has an article.
+
+    A party's English article mostly retells its own-language one, at twice
+    the cost of a request.
+    """
+    own = [w for w in wikis if w != "en" and f"{w}wiki" in entity.get("sitelinks", {})]
+    return own or ["en"]
 
 
 # --- articles ---------------------------------------------------------------------
@@ -262,6 +302,31 @@ def render(item: dict[str, Any], offered: list[str], kinds: dict[str, str], arti
     return "\n".join(p)
 
 
+def render_party(item: dict[str, Any], articles: list[dict[str, Any]], wikis: list[str]) -> str:
+    """A party's request: its labels, its statements and its articles; no controllers to choose from."""
+    ent = item["entity"]
+    refs = {v for p in PARTY_PROPS for v in wikidata.claim_qids(ent, p)}
+    global LABEL_ORDER
+    LABEL_ORDER = loadmod.label_langs(wikis)
+    info = memo.labels_of(sorted(refs), LABEL_ORDER)
+    p = [f"# Item {item['qid']}", "", "## Labels"]
+    p += [f"- {lg}: {ent['labels'][lg]['value']}" for lg in LABEL_ORDER if lg in ent.get("labels", {})]
+    descs = [f"- {lg}: {ent['descriptions'][lg]['value']}" for lg in LABEL_ORDER if lg in ent.get("descriptions", {})]
+    if descs:
+        p += ["", "## Descriptions", *descs]
+    p += ["", "## Existing statements"]
+    for prop in PARTY_PROPS:
+        for claim in ent.get("claims", {}).get(prop, []):
+            text = claim_text(claim, info)
+            if text:
+                p.append(f"- {prop}: {text}")
+    for a in articles:
+        p += ["", f"```article lang={a['lang']} title={a['title']!r} url={a['url']}", a["text"][:ARTICLE_CHARS], "```"]
+    if not articles:
+        p += ["", "## Articles: none"]
+    return "\n".join(p)
+
+
 # --- the ledger ------------------------------------------------------------------
 
 #: Every pepcorp answer -- decide's, the link check's, the person match's -- in one table.
@@ -276,9 +341,9 @@ def recorded(key: str) -> dict[str, Any] | None:
     return LEDGER.recorded(key)
 
 
-def params(message: str, model: str = MODEL) -> dict[str, Any]:
+def params(message: str, model: str = MODEL, prompt: Path = PROMPT_PATH) -> dict[str, Any]:
     """The decide request for one message, without its output format."""
-    text, _ = system_prompt()
+    text, _ = system_prompt(prompt)
     return {"model": model, "max_tokens": MAX_TOKENS, "thinking": {"type": "adaptive"},
             "output_config": {"effort": "medium"},
             "system": [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}],
@@ -301,16 +366,22 @@ def prepare(cc: str, log: Callable[[str], None], only: set[str] | None = None,
     reqs, failed = [], 0
     todo = [it for it in loadmod.items(cc) if not only or it["qid"] in only]
     for item in todo[:limit] if limit else todo:
+        party = is_party(item)
         try:
-            articles = fetch_articles(item["qid"], item["entity"], wikis)
-            offered = actormod.offered(actors, item["entity"], item["chain"])
-            message = render(item, offered, actors.kinds, articles, wikis)
+            if party:
+                articles = fetch_articles(item["qid"], item["entity"], party_wikis(item["entity"], wikis))
+                offered: list[str] = []
+                message = render_party(item, articles, wikis)
+            else:
+                articles = fetch_articles(item["qid"], item["entity"], wikis)
+                offered = actormod.offered(actors, item["entity"], item["chain"])
+                message = render(item, offered, actors.kinds, articles, wikis)
             links = article_links(articles)
         except requests.RequestException as exc:  # one timed-out read must not lose the others
             failed += 1
             log(f"  {item['qid']}: not prepared ({exc.__class__.__name__}); the next run asks it")
             continue
-        reqs.append({"qid": item["qid"], "message": message, "offered": offered, "links": links,
+        reqs.append({"qid": item["qid"], "party": party, "message": message, "offered": offered, "links": links,
                      "articles": [{k: a[k] for k in ("lang", "url", "rev")} for a in articles]})
     if failed:
         log(f"{failed} enterprises not prepared after read errors")
@@ -321,18 +392,21 @@ def decide(cc: str, model: str = MODEL, limit: int | None = None, log: Callable[
            only: set[str] | None = None) -> list[dict[str, Any]]:
     """Ask the model about every kept enterprise of a country; return the answered requests."""
     reqs = prepare(cc, log, only, limit)
-    _, prompt_hash = system_prompt()
+    hashes = {path: system_prompt(path)[1] for path in (PROMPT_PATH, PARTY_PROMPT_PATH)}
     for r in reqs:
-        r["key"] = content_key(model, prompt_hash, r["message"])
+        r["prompt"] = PARTY_PROMPT_PATH if r["party"] else PROMPT_PATH
+        r["key"] = content_key(model, hashes[r["prompt"]], r["message"])
     todo = [r for r in reqs if recorded(r["key"]) is None]
     log(f"{len(reqs)} requests; {len(reqs) - len(todo)} answered before, {len(todo)} to ask")
 
-    def done(r: dict[str, Any]) -> Callable[[Answer, dict[str, int]], None]:
+    def done(r: dict[str, Any]) -> Callable[[BaseModel, dict[str, int]], None]:
         return lambda answer, usage: LEDGER.store(
-            r["key"], cc, r["qid"], model, prompt_hash, {k: r[k] for k in ("message", "offered", "links", "articles")},
-            answer.model_dump(), usage)
+            r["key"], cc, r["qid"], model, hashes[r["prompt"]],
+            {k: r[k] for k in ("message", "offered", "links", "articles")}, answer.model_dump(), usage)
 
-    llm.run("corp:decide", [llm.Job(params(r["message"], model), Answer, done(r)) for r in todo], log, WORKERS)
+    jobs = [llm.Job(params(r["message"], model, r["prompt"]), PartyAnswer if r["party"] else Answer, done(r))
+            for r in todo]
+    llm.run("corp:decide", jobs, log, WORKERS)
     for r in reqs:
         r["answer"] = recorded(r["key"])
     return [r for r in reqs if r["answer"] is not None]
@@ -360,11 +434,14 @@ def from_ledger(cc: str) -> list[dict[str, Any]]:
 
 
 def readable(answer: dict[str, Any]) -> bool:
-    try:
-        Answer.model_validate(answer)
-    except ValueError:
-        return False
-    return True
+    """Whether the current schema reads an answer: a body's, or a party's."""
+    for schema in (Answer, PartyAnswer):
+        try:
+            schema.model_validate(answer)
+        except ValueError:
+            continue
+        return True
+    return False
 
 
 def cost(cc: str) -> tuple[float, int]:

@@ -3,16 +3,18 @@
 pepcorp gives a country's state enterprises and institutions the Wikidata
 profile OpenSanctions reads their politically exposed people from: what links
 them to the state, a type marker that finds an enterprise in one triple, and
-who leads them and sits on their boards. Its unit is the body, an item
-neither peploop (people) nor peptree (positions) edits. Why the shape is what
+who leads them and sits on their boards. It gives its political parties the
+same profile's last part: who sits in their governing bodies. Its unit is the
+body, an item neither peploop (people) nor peptree (positions) edits. Why the shape is what
 it is, and the measurements behind it, are in `docs/soe_peps.md`.
 
 The logic is global. What differs by country lives in its spec,
 `countries/<cc>.yml` (`country.py`): official holdings lists, the state-only
 legal forms that mark a body, classes the type tree misfiles as government,
-seats beyond the global table, the tiers written, and where rigour's main
+seats beyond the global table, the tiers written, where rigour's main
 QID is a realm around the state, the polity whose subdivisions are the
-regional tier. A new country is a new spec, not a code change.
+regional tier, parties the party lane misses and the classes of its parties'
+regional branches. A new country is a new spec, not a code change.
 
 A country is all its current QIDs: rigour's main one and its alternates,
 less the predecessor states (typed historical and ended before 1990-12-26,
@@ -104,6 +106,28 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   into these roles by function, so the table is global and the prompt names
   no country.
 
+- **Parties.** The members of a political party's governing bodies are PEPs
+  (AMLR Art. 2(1)(34)(iii)), and Wikidata records them as statements on the
+  party, not as offices; peploop mints no party offices. A party, or a party's branch for a first-level
+  subdivision, is admitted by its members' seats, not by control: it gets
+  no marker, no link and no class, only its seats, under every seat rule
+  below (person, dates, a dead holder, a superseded chair). Its seats are
+  its executive organs, translated by function:
+
+  | seat | statement |
+  |---|---|
+  | chair, leader; each co-chair | `P488` |
+  | deputy chair | `P3320` + `P2868 Q1127270` |
+  | secretary-general | `P3975` |
+  | treasurer | `P3320` + `P2868 Q388338` |
+  | member of the executive committee, presidium or board | `P3320` |
+
+  A congress, a council of delegates, a council that only ratifies, an
+  arbitration commission, the parliamentary group, honorary chairs and the
+  party's staff are no governing body. Youth wings, foundations, caucuses,
+  alliances with no membership and a party's local branches are not
+  written on; the local branches wait for the AMLR's local tier.
+
 - **Corrections.** A body whose article shows it municipal, while the
   municipal tier is not written, gains the municipal marker `Q1780371`, and
   its contradicted `Q270791` statement is proposed for removal and waits for
@@ -120,7 +144,7 @@ are written by default; a spec names its own.
 
 ## The run, per country
 
-1. **load** (`load.py`, `actors.py`): eight lanes, wide on purpose -- typed
+1. **load** (`load.py`, `actors.py`): eight lanes for state bodies, wide on purpose -- typed
    (`P31`/`P1454` in the `Q270791` tree), formed (`P31`/`P1454` exactly one
    of the spec's forms), statutory (`P31` exactly a public broadcaster,
    central bank or regulatory agency), owned (a chain of `P127`/`P749` links of up to three
@@ -128,9 +152,18 @@ are written by default; a spec names its own.
    into them), parented (`P749` to a state actor), category (the country's
    state-enterprise and agency categories), seed (the spec's holdings),
    listed (the bodies the AMLR asset resolves for the country; the asset is
-   the one source, never copied into the spec). Dropped: dissolved, not an organisation, no article in the
+   the one source, never copied into the spec). Two for parties: party (a
+   party of the country with a living member who holds a current seat that
+   started within twelve years: a legislator's, read as `P279*` of
+   `Q4175034`, or a head office of the state, a first-level subdivision or a
+   governed unit of 50,000 or more, `amlr.HEADS` over `amlr.units`; plus the
+   spec's `parties`), party branch (a part of such a party or its subsidiary
+   by `P361`/`P749` that is typed a party or one of the spec's
+   `party_branch_classes`: most parts are working groups, currents and
+   organs), both read from QLever. Dropped: dissolved, not an organisation, no article in the
    country's languages or English; never sports clubs, military units,
-   diplomatic missions, courts or places, nor the spec's `exclude`.
+   diplomatic missions, courts or places, youth wings, parliamentary groups
+   or electoral lists, nor the spec's `exclude`.
 2. **decide** (`decide.py`, `prompts/decide.md`): one request per body with
    its statements, chain, candidate controllers and articles. The answer:
    what it is, whether a state controls it and the bodies over it (chosen or
@@ -139,10 +172,16 @@ are written by default; a spec names its own.
    it (one the current schema reads), so a prompt change is applied by
    asking again only the bodies it affects (`reask.py` picks them). The
    unanswered bodies go out through `llm.run`, as Message Batches when there
-   are many, against the run's `--budget`.
+   are many, against the run's `--budget`. A party is asked with its own
+   prompt (`prompts/decide_party.md`, a `PartyAnswer`): what it is (party,
+   regional or local branch, other) and its seats, no control; it is read
+   in the country's own languages, in English only where it has no other
+   article. The two prompts never share a key, so a change to one re-asks
+   none of the other's bodies.
 3. **rules** (`rules.py`): the gates (an enterprise or institution, active,
    state-controlled by a quote, at a tier the spec writes; a listed body
-   passes the last two by the list, for its seats only), then the marker,
+   passes the last two by the list, for its seats only; a party or its
+   regional branch passes when active, for its seats only), then the marker,
    the links and the seats, each with its rule. A link needs a state body:
    a state actor, a government body (a named one resolved through the
    article's links), or one the run finds state-controlled; it is skipped
@@ -188,7 +227,9 @@ are written by default; a spec names its own.
 4. **qs + report** (`qs.py`, `report.py`): `data/pepcorp/<cc>/<cc>-<date>.qs`
    and `.md`, with the funnel, the seats by how their person was found
    (link, anchor text, match), the listed bodies' own funnel (loaded,
-   passed, of them by the list alone, seats written), and the residue:
+   passed, of them by the list alone, seats written), the parties' (each
+   lane loaded, what the answers call them, passed, seats by statement),
+   and the residue:
    holdings without an item, seats whose person is neither linked nor
    matched, control the articles leave unclear, the list's named-body rows
    without an item.
@@ -212,6 +253,7 @@ peploop/corp/
   wd.py        shared readers, init
   schema.sql   pcorp_item, pcorp_call, pcorp_decision
   prompts/decide.md
+  prompts/decide_party.md
   countries/<cc>.yml
   verify.py    the link check against its quote
   prompts/verify_link.md

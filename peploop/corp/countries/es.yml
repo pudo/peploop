@@ -47,6 +47,14 @@ forms:
 
 roles: []
 
+# A part of a party typed so is its regional branch. Measured 2026-10-24
+# over the 174 parts of parties: the socialist, Podemos and United Left
+# federations are typed political organisation (49), the People's Party's
+# with a class of its own (7); the rest are typed as parties.
+party_branch_classes:
+  - {qid: Q7210356, name: political organization}
+  - {qid: Q46342540, name: regional organization of People's Party}
+
 # Official list of central-government holdings; entries via es.wikipedia
 # (Sociedad Estatal de Participaciones Industriales, majority and minority
 # holdings). QIDs from the list's own links, kept only when the item is a

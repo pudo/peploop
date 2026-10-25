@@ -19,7 +19,13 @@ pepcorp's logic is global. What differs by country lives in
 - `actors`: items that stand for the state or its government here but that
   the type tree cannot place, each with its `kind`: `state` for a legal
   person the items name as owner in the state's place (a state treasury),
-  `government` for a government body whose own statements miss the country.
+  `government` for a government body whose own statements miss the country;
+- `parties`: parties whose governing bodies are in scope but whom the party
+  lane misses (no member's current seat is on Wikidata), each `{qid, name}`;
+- `party_branch_classes`: the classes, beyond political party, that make a
+  part of a party one of its branches here (a federal party's state
+  associations, typed as associations), matched exactly as `P31`, each
+  `{qid, name}`.
 """
 
 from dataclasses import dataclass, field
@@ -49,6 +55,8 @@ class Spec:
     state: str | None = None
     #: QID → actor kind ("state" or "government").
     actors: dict[str, str] = field(default_factory=dict)
+    parties: frozenset[str] = frozenset()
+    party_branch_classes: frozenset[str] = frozenset()
 
     def seeded(self) -> dict[str, dict[str, Any]]:
         """QID → holdings entry, for the entries that name an item."""
@@ -74,6 +82,8 @@ def get(cc: str) -> Spec:
         tiers=tuple(data.get("tiers") or DEFAULT_TIERS),
         state=str(data["state"]) if data.get("state") else None,
         actors={str(a["qid"]): str(a["kind"]) for a in data.get("actors") or []},
+        parties=frozenset(str(q["qid"]) for q in data.get("parties") or []),
+        party_branch_classes=frozenset(str(q["qid"]) for q in data.get("party_branch_classes") or []),
     )
 
 

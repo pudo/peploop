@@ -47,10 +47,13 @@ TIE_PROPS = ("P108", "P39", "P463", "P1416")
 NAME_MIN = 5
 #: Seat roles as the check reads them.
 ROLES = {"head": "head of the executive", "chair": "chair", "deputy_chair": "deputy chair", "member": "member",
-         "managing_director": "managing director", "party_secretary": "party secretary"}
+         "managing_director": "managing director", "party_secretary": "party secretary",
+         "secretary_general": "secretary-general", "treasurer": "treasurer"}
 #: Paged namesakes up to which a domain-tier match may resolve a seat.
 DOMAIN_MAX = 3
 BODIES = {"executive": "executive body", "supervisory": "supervisory board or council", "board": "board"}
+#: A party's seats name no body: they are all on its executive organs.
+PARTY_BODY = "executive organs"
 
 
 class Verdict(BaseModel):
@@ -158,7 +161,7 @@ def message(seat: dict[str, Any], body: dict[str, Any], cand: dict[str, Any], pa
         "# The seat",
         f"Body: {body['qid']} {' / '.join(body['names'][:4])}" + (f" — {body['description']}" if body["description"] else ""),
         f"Kind: {body['kind']}",
-        f"Seat: {ROLES.get(seat['role'], seat['role'])} of the {BODIES.get(seat['body'], seat['body'])} ({when})",
+        f"Seat: {ROLES.get(seat['role'], seat['role'])} of the {BODIES.get(seat.get('body', ''), seat.get('body') or PARTY_BODY)} ({when})",
         f"Name in the body's article: {seat['name']}",
         f"Passage ({seat['article']}): {seat['quote']}",
         "",
