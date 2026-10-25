@@ -54,6 +54,7 @@ def report(cc: str) -> str:
            f"- run file: {path} ({n_lines} lines)", ""]
     out += listed(cc, rows, loaded_listed(cc))
     out += parties(rows, loaded_parties(cc), kinds)
+    out += international(rows, loaded_international(cc), kinds)
     levels = {r["qid"]: (r["answer"].get("control") or {}).get("level") for r in decide.from_ledger(cc)}
     out += municipal(cc, rows, levels, name)
     out += ["## Enterprises written on", ""]
@@ -197,6 +198,39 @@ def municipal(cc: str, rows: list[tuple[Any, ...]], levels: dict[str, str | None
     out += ["", "### Municipal control unclear in the articles", ""]
     out += [f"- {q} {name(q)}" for q in sorted(lanes) if any(r[5] == "control:unclear" for r in by_qid.get(q, []))]
     return out + [""]
+
+
+def loaded_international(cc: str) -> dict[str, str]:
+    """QID → why the load dropped it or `kept`, for each body the international lane stored."""
+    rows = wd.conn().execute("SELECT qid, coalesce(dropped, 'kept') FROM pcorp_item"
+                             " WHERE country = %s AND 'international' = ANY(lanes)", (cc,)).fetchall()
+    return dict(rows)
+
+
+#: An international board seat's role, as the funnel names it.
+INTERNATIONAL_ROLES = {"Q140686": "chair", "Q1127270": "deputy chair", None: "member"}
+
+
+def international(rows: list[tuple[Any, ...]], loaded: dict[str, str], kinds: dict[str, str]) -> list[str]:
+    """The international funnel: bodies loaded, what the answers call them, passed, board seats, and the head left out."""
+    if not loaded:
+        return []
+    mine = [r for r in rows if r[0] in loaded]
+    gated = Counter(r[5] for r in mine if r[1] == "-")
+    decided = {r[0] for r in mine}
+    seats = [r for r in mine if r[4] == "apply"]
+    by_role = Counter(INTERNATIONAL_ROLES.get((r[3].get("P2868") or {}).get("id"), "other") for r in seats)
+    return ["## International bodies", "",
+            "- loaded: " + ", ".join(f"{k} {v}" for k, v in Counter(loaded.values()).most_common()),
+            "- decided: " + ", ".join(f"{k} {v}" for k, v in Counter(kinds.get(q, "?") for q in decided).most_common())
+            + f"; passed: {len(decided) - sum(gated.values())}",
+            "- not written on: " + ", ".join(f"{k} {v}" for k, v in gated.most_common()),
+            f"- board seats written: {len(seats)} on {len({r[0] for r in seats})} bodies: "
+            + ", ".join(f"{k} {v}" for k, v in by_role.most_common()),
+            "- seats left to a position office: " + ", ".join(f"{k} {v}" for k, v in Counter(
+                r[5] for r in mine if r[5] in ("position_office", "head_office")).most_common()),
+            "- seats skipped: " + ", ".join(f"{k} {v}" for k, v in Counter(
+                r[5] for r in mine if r[1] != "-" and r[4] == "skip").most_common()), ""]
 
 
 def write(cc: str) -> str:

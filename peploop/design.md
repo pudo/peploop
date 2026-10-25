@@ -342,6 +342,22 @@ queue) has the mechanics; the decisions are these.
   EPCI's president) is `grouping_head`, an archetype only this lane makes.
   The holders' `P39` does not follow from the creation: no mention was
   clustered into the office, so `feed` reopens nothing for it.
+- **The Union's bodies and the organisations seated in it are listed one by
+  one.** The `eu` scope is rigour's European Union (its `P150` the member
+  states). Its census entries say `per: bodies`: each EU agency, authority,
+  executive agency or joint undertaking, and each international
+  organisation headquartered in a member state, with its head's title, the
+  statement on it naming its head (`P1037`, `P488` …) and the office's
+  labels. The holder is that statement's, else the body's English infobox
+  line under the title (an acting or interim head there is no holder, and
+  outranks the statement); a body with an office scoped to it under that
+  title, or a `P2388`, has its head office. A Union body's head office is
+  an `agency_head` with `P1001` the Union and `P2389` the body; an
+  organisation's governs the organisation (`P1001` it, as its own polity)
+  and carries no `P17`, as 120 of 124 measured heads and deputies carry
+  none. Their labels are English, French and German, all three required.
+  Deputies and boards are not here: the deputies are the person lane's,
+  the boards pepcorp's.
 - **The shape is fixed, not drafted.** Each kind of office is an archetype in
   `offices.py` -- its `P279` parent, how it names its body, whether it is
   scoped, whether it is one seat -- with the parents measured across other
@@ -352,7 +368,9 @@ queue) has the mechanics; the decisions are these.
   Labels and aliases are written only in English and the territory's
   languages (rigour's `territory.langs` with a two-letter code); English and each language most of
   the state's own offices carry are required, since requiring every official
-  language made a model draft bad ones. Aliases are the holders' article
+  language made a model draft bad ones. A scope that is no state names its
+  own (`mint.SCOPE_LANGS`: the Union's procedural French and German, of its
+  24) and requires them. Aliases are the holders' article
   titles, less every title that names another seat -- acting, deputy,
   concurrent, a Party group's post, several posts joined, one term's holder,
   marked per language and per script -- or leaves out the polity the label

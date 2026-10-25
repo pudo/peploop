@@ -135,6 +135,7 @@ def main() -> int:
                [("lga_mayor", "Q1", {"Q10": "https://example.org/level"})], "and the lane reads it")
 
     check_amlr(expect)
+    check_bodies(expect)
     print(f"{len(failures)} failures")
     return 1 if failures else 0
 
@@ -330,6 +331,105 @@ def check_amlr(expect: Any) -> None:
         expect((lv.amlr_level, lv.lang, lv.title, lv.forms, lv.parent, lv.source_for(None)),
                ("municipal", "el", "δήμαρχος", {"el": [("^Δήμος ", "")]}, "Q30185", "https://example.org/law"),
                "every key of the entry")
+
+
+def check_bodies(expect: Any) -> None:
+    """A body listed by hand: its head read from its infobox, the office the Union's or the organisation's own."""
+    print("a listed body's head:")
+    ema = mu.Body(qid="Q130146", title="Executive Director",
+                  labels={"en": "Executive Director of the EMA", "fr": "directeur exécutif de l'AEM",
+                          "de": "Exekutivdirektor der EMA"})
+    for text, want, why in (
+            ("Executive Director: Emer Cooke", "Emer Cooke", "a line titled with the head's title"),
+            ("Agency executives: Emer Cooke, Executive Director Christa Wirthumer-Hoche, Chairperson", "Emer Cooke",
+             "a run of names, each followed by its title"),
+            ("Head: Executive Director Ann Smith (since 2022)", "Ann Smith", "a head line that starts with the title"),
+            ("Agency executives: Jürgen Ebner, acting Executive Director", "", "an acting head holds it for nobody"),
+            ("Executive Director: Vacant", "", "nor does a vacancy"),
+            ("Executive Director: Ann Smith (2015–2020)", "", "nor a term whose years are past"),
+            ("Agency executives: Ann Smith, Deputy Executive Director", None, "a deputy is not the head"),
+            ("Headquarters: Amsterdam", None, "a body whose infobox names no head")):
+        expect(mu.body_head(text, ema), want, why)
+    chair = mu.Body(qid="Q1", title="Chair", infobox="chair(?:person|man|woman)?")
+    expect(mu.body_head("Agency executives: Bruna Szego, Chair Nicolas Vasse, Executive Director", chair),
+           "Bruna Szego", "a spelling of the title the entry names")
+    expect(mu.body_head("Agency executives: Anu Talus (FI), Chair", chair), "Anu Talus", "without the bracket")
+    expect((mu.has_head_office(ema, ["Executive Director of the European Medicines Agency"]),
+            mu.has_head_office(ema, ["Deputy Executive Director of the EMA", "member of the Management Board"]),
+            mu.has_head_office(ema, [], p2388=True)), (True, False, True),
+           "a body has its head office when an office scoped to it is named by the title, or it names one")
+
+    print("drafting a body's head office:")
+    unit = mu.Unit("Q130146", "European Medicines Agency", "European Medicines Agency", None, None, None)
+    level = mu.Level(key="eu_body_head", archetype="agency_head", institution_class="executive.leader_office",
+                     of="bodies", parent="Q1162163", bodies=[ema])
+    draft, why = mu.body_draft(level, ema, unit, "Executive Director: Emer Cooke", "u", "Q458")
+    expect((why, draft["jurisdiction_qid"], draft["body_qid"], draft["parent_qid"], draft["unit"]["polity"]),
+           ("unit/drafted", "Q458", "Q130146", "Q1162163", None), "a Union body's head office governs the Union")
+    expect(mu.body_draft(level, ema, unit, "Agency executives: X Y, acting Executive Director", "u", "Q458"),
+           (None, "unit/not-held"), "an acting head drafts nothing, whatever the body's statement says")
+    stale = mu.Unit("Q130146", "European Medicines Agency", "x", None, None, None,
+                    head=mu.Head("Q9", "Guido Rasi", "2011-01-01"))
+    draft, _why = mu.body_draft(level, ema, stale, "Executive Director: Emer Cooke", "u", "Q458")
+    expect((draft["unit"]["holder"], draft["unit"]["holder_qid"]), ("Emer Cooke", None),
+           "the infobox outranks a statement naming the head before")
+    io = mu.Body(qid="Q7801", title="Secretary General", polity="Q7801", parent="Q6501749",
+                 labels={"en": "Secretary General of the Organisation"})
+    io_unit = mu.Unit("Q7801", "Organisation", "Organisation", None, None, None)
+    draft, _why = mu.body_draft(level, io, io_unit, "Secretary General: Ann Smith", "u", "Q458")
+    expect((draft["jurisdiction_qid"], draft["unit"]["polity"], draft["parent_qid"]), ("Q7801", "Q7801", "Q6501749"),
+           "an organisation's head office governs the organisation")
+    cand = mint.Candidate(id=9, country="eu", ref="unit/io_head/Q7801", origin=("unit",), archetype="agency_head",
+                          draft=draft, attestations=[mint.unit_attestation(draft["unit"])])
+    ctx = mint.Context("eu", state_qid="Q458", langs=["fr", "de"], state_names=["European Union"],
+                       siblings=offices.Siblings(), closure={"Q6501749"}, index=[], labels_of=lambda q: {},
+                       terms=lambda q: {"Q7801": {"labels": {"en": {"value": "Organisation"}}}},
+                       resolve=lambda q: {}, run_labels=lambda c: [], lookup=lambda *a: [], items=lambda q: {},
+                       subdivisions=["Q27"], anchors=[], claims=lambda q: {}, diplomatic=lambda q: False)
+    spec, _problems = mint.build_spec(cand, ctx)
+    claims = {c["mainsnak"]["property"]: c["mainsnak"]["datavalue"]["value"]["id"]
+              for c in offices.entity_data(spec)["claims"]}
+    expect((spec.state_qid, claims.get("P1001"), "P17" in claims, claims.get("P2389"), spec.descriptions),
+           ("Q7801", "Q7801", False, None, {}),
+           "its own polity, no country, no body beside itself, and no description: the label names it")
+    draft, _why = mu.body_draft(level, ema, unit, "Executive Director: Emer Cooke", "u", "Q458")
+    cand = mint.Candidate(id=10, country="eu", ref="unit/eu_body_head/Q130146", origin=("unit",),
+                          archetype="agency_head", draft=draft, attestations=[mint.unit_attestation(draft["unit"])])
+    ctx._terms_of = lambda q: {"Q130146": {"labels": {"en": {"value": "EMA"}}}}
+    spec, _problems = mint.build_spec(cand, ctx)
+    claims = {c["mainsnak"]["property"]: c["mainsnak"]["datavalue"]["value"]["id"]
+              for c in offices.entity_data(spec)["claims"]}
+    expect((claims.get("P1001"), "P17" in claims, claims.get("P2389"), sorted(spec.labels), spec.descriptions),
+           ("Q458", False, "Q130146", ["de", "en", "fr"], {}),
+           "a Union body's head office: P1001 the Union, P2389 the body, labelled in English, French and German")
+    body = {"id": "Q130146", "labels": {"en": {"value": "EMA"}}, "claims": {"P17": [
+        {"rank": "normal", "mainsnak": {"datavalue": {"value": {"id": "Q55"}}}}]}}
+    expect(offices._body_problems(spec, body, ["European Union"], {"Q130146"}, {"Q55"}), [],
+           "a body seated in a member state is the Union's")
+    expect(offices._body_problems(spec, body, ["European Union"], {"Q130146"}), ["body-state/Q130146"],
+           "and in no member, another state's")
+    expect(mint.country_langs("eu"), ["fr", "de"], "the Union's offices are named in its procedural languages")
+    expect(mint.guard_langs(ctx), ["fr", "de"], "and must carry both, whatever the scope's few offices tally")
+    att = mint.unit_attestation(draft["unit"])
+    expect((att.person, "head of European Medicines Agency" in att.person_label), ("named:Emer Cooke", True),
+           "a body's head is attested as a person, never under the body's own item")
+
+    print("the census reads a bodies entry:")
+    with TemporaryDirectory() as tmp:
+        path = Path(tmp) / "zz.yml"
+        path.write_text("- key: io_head\n  class: executive.leader_office\n  archetype: agency_head\n"
+                        "  per: bodies\n  parent: Q1501800\n  bodies:\n"
+                        "    - {qid: Q7801, title: Secretary General, holder: P3975, polity: Q7801,"
+                        " labels: {en: Secretary General of X}}\n")
+        expect(mint.census("zz", path=path), [], "categorize sees no anchor for a body")
+        (lv,) = mu.levels("zz", path=path)
+        expect((lv.by_body, lv.bodies[0].holder, lv.bodies[0].polity), (True, "P3975", "Q7801"), "the lane reads it")
+    for cc in sorted(p.stem for p in mint.CENSUS_DIR.glob("*.yml")):
+        mint.census(cc, subdivisions=lambda q: [], labels_of=lambda q: {})
+        for lv in mu.levels(cc):
+            expect(lv.archetype in offices.ARCHETYPES and lv.institution_class in mint.INSTITUTION_CLASSES
+                   and all(b.labels.get("en") for b in lv.bodies), True,
+                   f"census {cc}: {lv.key} parses, with a known shape and English labels")
 
 
 if __name__ == "__main__":

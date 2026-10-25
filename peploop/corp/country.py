@@ -16,7 +16,9 @@ pepcorp's logic is global. What differs by country lives in
 - `roles`: seats beyond the global table, `role` → `property` and an
   optional `qualifier` (a party committee secretary in a party state);
 - `tiers`: the control tiers whose bodies are written (`national`,
-  `regional`, `municipal`);
+  `regional`, `municipal`), or `international` alone: the spec of the Union's
+  bodies and the international organisations seated in it, whose boards are
+  written whoever controls them (`eu.yml`);
 - `state`: the item the country's items name as their country (`P17`), where
   it is not the one rigour gives (a realm or kingdom around the state);
 - `actors`: items that stand for the state or its government here but that
@@ -36,7 +38,12 @@ pepcorp's logic is global. What differs by country lives in
   `P31`, each `{qid, name}`;
 - `categories`: Wikipedia categories that list the country's municipal
   enterprises, each `{lang, title, depth}` (the title without its
-  namespace; `depth` as `wikipedia.walk_category` counts it, 1 by default).
+  namespace; `depth` as `wikipedia.walk_category` counts it, 1 by default);
+- for the `international` tier: `body_classes`, the classes whose instances
+  (through any subclass) are the scope's own bodies; `organisation_classes`,
+  those whose instances count when headquartered (`P159`) in a member of the
+  scope (its `P150`); each `{qid, name}`; and `wikis`, the languages its
+  bodies are read in, best first, one article each.
 """
 
 from dataclasses import dataclass, field
@@ -71,6 +78,14 @@ class Spec:
     municipal_classes: frozenset[str] = frozenset()
     #: (lang, title, depth) of each municipal enterprise category.
     categories: tuple[tuple[str, str, int], ...] = ()
+    body_classes: tuple[str, ...] = ()
+    organisation_classes: tuple[str, ...] = ()
+    wikis: tuple[str, ...] = ()
+
+    @property
+    def international(self) -> bool:
+        """Whether this is the spec of international bodies: no state actors, no control, boards only."""
+        return "international" in self.tiers
 
     def seeded(self) -> dict[str, dict[str, Any]]:
         """QID → holdings entry, for the entries that name an item."""
@@ -100,6 +115,9 @@ def get(cc: str) -> Spec:
         party_branch_classes=frozenset(str(q["qid"]) for q in data.get("party_branch_classes") or []),
         municipal_classes=frozenset(str(q["qid"]) for q in data.get("municipal_classes") or []),
         categories=tuple((str(c["lang"]), str(c["title"]), int(c.get("depth", 1))) for c in data.get("categories") or []),
+        body_classes=tuple(str(q["qid"]) for q in data.get("body_classes") or []),
+        organisation_classes=tuple(str(q["qid"]) for q in data.get("organisation_classes") or []),
+        wikis=tuple(str(w) for w in data.get("wikis") or []),
     )
 
 

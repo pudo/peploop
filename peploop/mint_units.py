@@ -21,6 +21,14 @@ already has the office when some `amlr.HEADS` office is scoped to it. Their
 holder is read first from the unit's own current `P6`, then from the infobox
 of the unit's article in the level's language (`HEAD_TITLES`), and the office
 is labelled from the entry's templates in each language.
+
+An entry may instead list its bodies one by one (`per: bodies`): the Union's
+agencies and the international organisations seated in it, whose heads
+nobody seeded. Each body names its head's title, the statement on it that
+names its head, and its office's labels; the holder is that statement's,
+else the line of its infobox under the title, and an office already scoped
+to the body under that title means it has one. An organisation's office
+governs the organisation itself (`Body.polity`).
 """
 
 import re
@@ -105,6 +113,30 @@ UNIT_WORDS = re.compile(
 
 
 @dataclass
+class Body:
+    """One body of a `per: bodies` entry, whose head's office the entry names.
+
+    An EU body's head office is the Union's (`P1001` the scope's state); an
+    international organisation's is its own, so `polity` names the
+    organisation and the office carries no `P17`.
+    """
+
+    qid: str
+    #: The head's title as the body's infobox writes it ("Executive Director").
+    title: str
+    #: The office's label per language, curated: English and the scope's languages.
+    labels: dict[str, str] = field(default_factory=dict)
+    #: The body's statement naming its head now (`P1037`, `P488` …), where it has one.
+    holder: str | None = None
+    #: The polity the office governs where it is not the scope's state: an organisation's own.
+    polity: str | None = None
+    #: The office's `P279`, by the title word, where the entry's parent is not it.
+    parent: str | None = None
+    #: An infobox spelling of the title the default pattern misses ("General Secretary").
+    infobox: str | None = None
+
+
+@dataclass
 class Level:
     """One `per: units` census entry: the office every unit of a level has."""
 
@@ -138,6 +170,13 @@ class Level:
     #: the level: per title or per subdivision where those differ, else one.
     parent: str | None = None
     parents: dict[str, str] = field(default_factory=dict)
+    #: For `per: bodies`, the bodies listed one by one in place of a class of units.
+    bodies: list[Body] = field(default_factory=list)
+
+    @property
+    def by_body(self) -> bool:
+        """Whether the entry lists its bodies one by one (`per: bodies`) rather than a level of units."""
+        return self.of == "bodies"
 
     @property
     def amlr_level(self) -> str | None:
@@ -190,10 +229,14 @@ def levels(cc: str, path: Path | None = None) -> list[Level]:
         return []
     out = []
     for entry in yaml.safe_load(path.read_text()) or []:
-        if entry.get("per") != "units":
+        if entry.get("per") not in ("units", "bodies"):
             continue
+        bodies = [Body(qid=str(b["qid"]), title=str(b["title"]), labels=dict(b.get("labels") or {}),
+                       holder=b.get("holder"), polity=b.get("polity"), parent=b.get("parent"),
+                       infobox=b.get("infobox"))
+                  for b in entry.get("bodies") or []]
         out.append(Level(key=entry["key"], archetype=entry["archetype"],
-                         institution_class=entry["class"], of=entry["of"],
+                         institution_class=entry["class"], of=entry["of"] if entry["per"] == "units" else "bodies", bodies=bodies,
                          sources=dict(entry.get("sources") or {}), lang=entry.get("lang", "en"),
                          labels=dict(entry.get("labels") or {}),
                          forms={lang: [tuple(f) for f in fs] for lang, fs in (entry.get("forms") or {}).items()},
@@ -270,8 +313,8 @@ def _year(text: str | None) -> int | None:
 
 
 def current_head(entity: dict[str, Any], holders: dict[str, dict[str, Any]], langs: Sequence[str],
-                 this_year: int | None = None) -> tuple[Head | None, str | None]:
-    """The one living human the unit's `P6` names now, or None with why.
+                 this_year: int | None = None, prop: str = "P6") -> tuple[Head | None, str | None]:
+    """The one living human the unit's `P6` (or a body's `prop`) names now, or None with why.
 
     Current means no end and not deprecated; the preferred statements stand
     alone where there are any. Several current statements are a list nobody
@@ -279,24 +322,25 @@ def current_head(entity: dict[str, Any], holders: dict[str, dict[str, Any]], lan
     passed on, as the mint floor reads any tenure.
     """
     this_year = this_year or date.today().year
-    claims = [c for c in entity.get("claims", {}).get("P6", [])
+    tag = prop.lower()
+    claims = [c for c in entity.get("claims", {}).get(prop, [])
               if c.get("rank") != "deprecated" and not c.get("qualifiers", {}).get("P582")]
     if not claims:
         return None, None
     claims = [c for c in claims if c.get("rank") == "preferred"] or claims
     if len(claims) > 1:
-        return None, "p6/several"
+        return None, f"{tag}/several"
     claim = claims[0]
     qid = (claim.get("mainsnak", {}).get("datavalue", {}).get("value") or {}).get("id")
     holder = holders.get(qid or "") or {}
     if "Q5" not in wikidata.claim_qids(holder, "P31", include_deprecated=False):
-        return None, "p6/not-human"
+        return None, f"{tag}/not-human"
     if wikidata.claim_time(holder, "P570", include_deprecated=False):
-        return None, "p6/dead"
+        return None, f"{tag}/dead"
     starts = [q.get("datavalue", {}).get("value", {}).get("time") for q in claim.get("qualifiers", {}).get("P580", [])]
     start = next((t for t in starts if t), None)
     if start and (_year(start) or this_year) < this_year - CURRENT_WINDOW_YEARS:
-        return None, "p6/stale"
+        return None, f"{tag}/stale"
     refs = [snak.get("datavalue", {}).get("value") for ref in claim.get("references", [])
             for prop in ("P854", "P4656") for snak in ref.get("snaks", {}).get(prop, [])]
     label = wikidata.best_label(holder, (*langs, "en", "mul")) or qid
@@ -561,6 +605,141 @@ def labelled_draft(level: Level, unit: Unit, text: str, url: str) -> tuple[dict[
     }, "unit/drafted"
 
 
+#: The offices scoped to a body, or held by its head (`P2388`), with their English labels.
+BODY_SCOPED_SQL = """SELECT DISTINCT ?b ?o ?l WHERE {{ VALUES ?b {{ {values} }}
+  {{ ?o wdt:P2389 ?b }} UNION {{ ?o wdt:P1001 ?b }} UNION {{ ?o wdt:P642 ?b }} UNION {{ ?b wdt:P2388 ?o }}
+  ?o rdfs:label ?l . FILTER(lang(?l) = "en") }}"""
+#: A head the infobox calls acting or interim holds the office for nobody.
+ACTING = re.compile(r"\b(?:acting|interim|ad interim|a\.i\.)\b", re.I)
+
+
+def title_pattern(body: Body) -> re.Pattern[str]:
+    """The body's head title as an infobox may write it: any case, a space or hyphen between its words."""
+    if body.infobox:
+        return re.compile(body.infobox, re.I)
+    words = [re.escape(w) for w in re.split(r"[\s\-]+", body.title.strip()) if w]
+    return re.compile(r"[\s\-]+".join(words), re.I)
+
+
+def has_head_office(body: Body, labels: Sequence[str], p2388: bool = False) -> bool:
+    """Whether an office scoped to the body is its head's: named by the head's title, or the body's `P2388`."""
+    pattern = title_pattern(body)
+    return p2388 or any(pattern.match(label.strip()) for label in labels)
+
+
+def body_head(text: str, body: Body) -> str | None:
+    """The head the body's infobox names under its title; "" when it names nobody current, None when no line.
+
+    Infoboxes write the head three ways: "Executive Director: Emer Cooke",
+    "Agency executives: Emer Cooke, Executive Director Christa …, Chairperson"
+    and "Head: Director Sherri Aldis". An acting or interim head, or a term
+    whose years are all past, is no holder, and outranks the body's own
+    statement as any infobox line does: that statement names the head before.
+    """
+    pattern = title_pattern(body).pattern
+    for line in text.splitlines()[:120]:
+        line = line.strip().lstrip("•·– ").strip()
+        if ":" not in line:
+            continue
+        key, value = (part.strip() for part in line.split(":", 1))
+        name = None
+        if re.fullmatch(rf"(?:current\s+)?{pattern}", key, re.I):
+            name = re.split(r"\s*[(,;]|\s+since\b", value)[0]
+        elif re.fullmatch(r"(?:head|leader)", key, re.I) and re.match(rf"(?:acting\s+)?{pattern}\s+\S", value, re.I):
+            name = re.sub(rf"^(?:acting\s+)?{pattern}\s+", "", value, flags=re.I)
+            name = re.split(r"\s*[(,;]|\s+since\b", name)[0]
+        elif (found := re.search(rf",\s*((?:acting|interim)\s+)?{pattern}\b", value, re.I)):
+            chunk = value[:found.start()]
+            # The name follows the previous seat's title, which ends the run before it.
+            chunk = re.split(r"\b(?:director|chair\w*|president|secretary|head|member|board)\b\s+", chunk,
+                             flags=re.I)[-1]
+            name = chunk.split(",")[-1]
+            if found.group(1):
+                return ""
+        else:
+            continue
+        name = re.sub(r"\[\d+\]|\(.*?\)", "", name or "")
+        name = re.sub(r"^[\d\s\-–]+", "", name).strip(" ,;")
+        years = [int(y) for y in YEAR.findall(value)]
+        if not name or ACTING.search(line) or NOT_HELD.search(line) or VACANT.search(name):
+            return ""
+        if len(years) >= 2 and max(years) < date.today().year and "present" not in value.lower():
+            return ""
+        return name
+    return None
+
+
+def body_units(level: Level, state: str) -> list[tuple[Body, Unit]]:
+    """Each listed body with its article, its head office if any, and the head its own statement names."""
+    qids = [b.qid for b in level.bodies]
+    ents = wikidata.fetch_items(qids, props="labels|claims|sitelinks") if qids else {}
+    rows = wikidata.bisect(lambda chunk: wikidata.sparql(BODY_SCOPED_SQL.format(
+        values=wikidata.values_block(chunk))), qids, size=40) if qids else []
+    labels: dict[str, list[str]] = {}
+    for r in rows:
+        labels.setdefault(r["b"], []).append(r["l"])
+    heads = sorted({(c.get("mainsnak", {}).get("datavalue", {}).get("value") or {}).get("id")
+                    for b in level.bodies if b.holder
+                    for c in (ents.get(b.qid) or {}).get("claims", {}).get(b.holder, [])} - {None})
+    holders = wikidata.fetch_items(heads, props="labels|claims") if heads else {}
+    out = []
+    for body in level.bodies:
+        ent = ents.get(body.qid)
+        if not ent:
+            continue
+        head, problem = current_head(ent, holders, (level.lang,), prop=body.holder) if body.holder else (None, None)
+        title = (ent.get("sitelinks") or {}).get(f"{level.lang}wiki", {}).get("title")
+        out.append((body, Unit(body.qid, wikidata.best_label(ent, (level.lang, "en", "mul")) or body.qid, title,
+                               None, None, None,
+                               has_office=has_head_office(body, labels.get(body.qid, []),
+                                                          bool(offices._unended(ent, "P2388"))),
+                               names=_names(ent), head=head, head_problem=problem)))
+    return out
+
+
+def body_draft(level: Level, body: Body, unit: Unit, text: str, url: str,
+               state: str) -> tuple[dict[str, Any] | None, str]:
+    """The draft of a body's head office: the holder from its own statement, else its infobox.
+
+    As for a unit, the infobox outranks a statement naming someone else: a
+    body's head statement is often its last head but one.
+    """
+    line = body_head(text, body) if text else None
+    if line == "":
+        return None, "unit/not-held"
+    head = unit.head
+    if head and line and not same_person(head.label, line):
+        head = None
+    if not head and not line:
+        return None, "unit/no-named-holder"
+    labels = {lang: text_ for lang, text_ in body.labels.items() if text_}
+    if not labels.get("en"):
+        return None, "unit/no-label"
+    quotes = []
+    if head:
+        since = f", since {re.sub(r'(?:-00)+$', '', head.start)}" if head.start else ""
+        ref = f" (reference: {head.reference})" if head.reference else ""
+        quotes.append(f"{unit.label}, {body.holder} on Wikidata: {head.label} ({head.qid}){since}{ref}")
+    if line:
+        quotes.append(f"{body.title}: {line} (infobox of {url})")
+    polity = body.polity or state
+    evidence = {"qid": unit.qid, "label": unit.label, "url": url, "lang": level.lang,
+                "holder": head.label if head else line, "holder_qid": head.qid if head else None,
+                "quote": quotes[0], "quotes": quotes, "source": None,
+                "parent": body.parent or level.parent, "body": body.qid,
+                "polity": body.polity if body.polity and body.polity != state else None}
+    shape = offices.ARCHETYPES[level.archetype]
+    return {
+        "decision": "office", "archetype": level.archetype, "labels": labels,
+        "institution_class": level.institution_class, "single_seat": shape.single_seat,
+        "parent_qid": evidence["parent"] or shape.parent, "body_qid": body.qid,
+        "jurisdiction_qid": polity, "jurisdiction_name": unit.label if body.polity else None,
+        "evidence": quotes[0],
+        "reason": f"the census lists {unit.label}'s head; {'its statement' if head else 'its article'} names the holder",
+        "unit": evidence,
+    }, "unit/drafted"
+
+
 def of_unit(label: str) -> str:
     """"of" and the unit's full name, as the existing items word it: "of the Shire of X", "of X Shire"."""
     return f"of the {label}" if re.match(r"^(?:the\s+)?\w[\w ]*? of ", label, re.I) and not label.lower().startswith("the ") \
@@ -664,6 +843,9 @@ def build(cc: str, log: Callable[[str], None] = print,
     for level in levels(cc):
         if keys is not None and level.key not in keys:
             continue
+        if level.by_body:
+            stats.update(build_bodies(cc, level, state, read, log))
+            continue
         if level.amlr_level:
             if stray := heads_reached(level):
                 log(f"{level.key}: parents {' '.join(stray)} reach no head class; level skipped")
@@ -717,6 +899,44 @@ def build(cc: str, log: Callable[[str], None] = print,
             db.conn().execute(UPSERT_SQL, (
                 cc, ref, level.institution_class, level.archetype,
                 draft["single_seat"], Jsonb(draft), url, list(PROTECTED_STATUSES)))
+    return stats
+
+
+def build_bodies(cc: str, level: Level, state: str, read: Callable[[str, str], tuple[str, str]],
+                 log: Callable[[str], None] = print) -> Counter[str]:
+    """Write a candidate for every listed body whose head has no office yet.
+
+    Each body is listed by hand with its head's title, so no share of a level
+    must be started first: the census is the source that the office exists.
+    """
+    stats: Counter[str] = Counter()
+    found = body_units(level, state)
+    log(f"{level.key}: {len(found)} bodies, {sum(u.has_office for _b, u in found)} with a head office")
+    for body, unit in found:
+        ref = f"unit/{level.key}/{unit.qid}"
+        if unit.has_office:
+            stats[f"{level.key}:has-office"] += 1
+            supersede(cc, ref)
+            continue
+        text, url = "", f"https://www.wikidata.org/wiki/{unit.qid}"
+        if unit.title:
+            try:
+                text, url = read(level.lang, unit.title)
+            except Exception as exc:  # noqa: BLE001 -- one unreadable article is one skip
+                log(f"{unit.qid} {unit.title}: unreadable: {exc}")
+                stats[f"{level.key}:unreadable"] += 1
+                continue
+        elif not unit.head:
+            stats[f"{level.key}:unit/no-article"] += 1
+            continue
+        draft, why = body_draft(level, body, unit, text, url, state)
+        stats[f"{level.key}:{why}"] += 1
+        if draft is None:
+            supersede(cc, ref)
+            continue
+        db.conn().execute(UPSERT_SQL, (
+            cc, ref, level.institution_class, level.archetype,
+            draft["single_seat"], Jsonb(draft), url, list(PROTECTED_STATUSES)))
     return stats
 
 

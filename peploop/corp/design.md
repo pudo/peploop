@@ -15,7 +15,9 @@ seats beyond the global table, the tiers written, where rigour's main
 QID is a realm around the state, the polity whose subdivisions are the
 regional tier, parties the party lane misses, the classes of its parties'
 regional branches, and for the municipal tier its sector classes and
-categories. A new country is a new spec, not a code change.
+categories. A new country is a new spec, not a code change. The Union's
+bodies and the organisations seated in it are one more spec, `eu.yml`, of
+the `international` tier.
 
 A country is all its current QIDs: rigour's main one and its alternates,
 less the predecessor states (typed historical and ended before 1990-12-26,
@@ -150,6 +152,31 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   alliances with no membership and a party's local branches are not
   written on; the local branches wait for the AMLR's local tier.
 
+- **International bodies.** The Union's bodies and the international
+  organisations seated in a member state have PEPs on their boards (AMLR
+  Art. 2(1)(34)(vi): directors, deputy directors and board members of an
+  international organisation; the Union's bodies by the Commission's list).
+  They are one spec, `countries/eu.yml`, whose tier is `international`
+  alone: no state actors are read and no control is asked. A body passes
+  when its answer calls it an EU body or an organisation of states and it
+  is active; a parliament, a court, the Commission as a college, a
+  committee of national officials, a department or a forum is not written
+  on. It gets no marker, link or class, only its supervisory or management
+  board's seats:
+
+  | seat | statement |
+  |---|---|
+  | chair of the board | `P5052` + `P2868 Q140686` |
+  | deputy chair | `P5052` + `P2868 Q1127270` |
+  | member | `P5052` |
+
+  The head is never written: its office is peploop's (`census/eu.yml`).
+  A seat whose person holds an office of the body (scoped to it, or its
+  `P2388`) is that office's (`position_office`), and a head who chairs the
+  board is left out wherever the body has an office (`head_office`). The
+  bodies are holdings, never anyone's state actors: the
+  intergovernmental organisation stays in `actors.NOT_GOVERNMENT`.
+
 - **Corrections.** A body whose article shows it municipal, in a country
   that does not write the municipal tier, gains the municipal marker
   `Q1780371`, and its contradicted `Q270791` statement is proposed for
@@ -194,7 +221,11 @@ are written by default; a spec names its own, `municipal` among them.
    municipal category (the spec's `categories`). A city owns stations,
    venues and paintings far more often than a state does: the sector and
    category lanes pass the organisation test, and being located in a city
-   is no control. Dropped: dissolved, not an organisation, no article in the
+   is no control. An `international` spec reads one lane instead of all
+   these, beside seed and listed: instances of its `body_classes` (the
+   Union's institutions, bodies and decentralised agencies, through any
+   subclass), and of its `organisation_classes` whose `P159` lies in a
+   member of the scope, read from the query service. Dropped: dissolved, not an organisation, no article in the
    country's languages or English; never sports clubs, military units,
    diplomatic missions, courts or places, youth wings, parliamentary groups
    or electoral lists, nor the spec's `exclude`.
@@ -210,12 +241,16 @@ are written by default; a spec names its own, `municipal` among them.
    prompt (`prompts/decide_party.md`, a `PartyAnswer`): what it is (party,
    regional or local branch, other) and its seats, no control; it is read
    in the country's own languages, in English only where it has no other
-   article. The two prompts never share a key, so a change to one re-asks
-   none of the other's bodies.
+   article. An international body likewise (`prompts/decide_international.md`,
+   an `InternationalAnswer`): what it is and its board seats, read in the
+   first of the spec's `wikis` it has an article in (eu: English, French,
+   German), one article. The prompts never share a
+   key, so a change to one re-asks none of the others' bodies.
 3. **rules** (`rules.py`): the gates (an enterprise or institution, active,
    state-controlled by a quote, at a tier the spec writes; a listed body
    passes the last two by the list, for its seats only; a party or its
-   regional branch passes when active, for its seats only; a municipal body
+   regional branch passes when active, for its seats only, and an
+   international body for its board seats only; a municipal body
    needs its unit), then the marker,
    the links and the seats, each with its rule. A link needs a state body:
    a state actor, a government body (a named one resolved through the
@@ -265,7 +300,9 @@ are written by default; a spec names its own, `municipal` among them.
    passed, of them by the list alone, seats written), the parties' (each
    lane loaded, what the answers call them, passed, seats by statement),
    the municipal tier's (each lane loaded, decided municipal, passed,
-   marker, seats; seats a body and how many persons were found), and the
+   marker, seats; seats a body and how many persons were found), the
+   international bodies' (loaded, what the answers call them, passed,
+   board seats by role, seats left to a position office), and the
    residue:
    holdings without an item, seats whose person is neither linked nor
    matched, control the articles leave unclear, the list's named-body rows
@@ -291,6 +328,7 @@ peploop/corp/
   schema.sql   pcorp_item, pcorp_call, pcorp_decision
   prompts/decide.md
   prompts/decide_party.md
+  prompts/decide_international.md
   countries/<cc>.yml
   verify.py    the link check against its quote
   prompts/verify_link.md

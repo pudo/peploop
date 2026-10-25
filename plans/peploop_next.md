@@ -90,6 +90,37 @@ Each needs an archetype in `offices.py` with its shape measured first
 (`docs/research/position_items.md` is the template), and a case in
 `check_mint.py`.
 
+## 3a. The Union's bodies and the organisations seated in it (`eu`)
+
+Built 2026-10-25, dry run only: `census/eu.yml` lists 86 bodies' heads
+(`per: bodies`), 56 guarded, nothing created. Left:
+
+1. **Creation, with the user.** Two tranches by `mint --country eu --submit
+   --id …`: the 35 Union bodies' heads, then the 21 organisations' (no
+   `P17`, `P1001` the organisation). The holders' `P39` follow only once
+   the person lane runs: no mention attests these offices.
+2. **The three found but unscoped** (EU Military Committee chair, the
+   Francophonie's and the CPLP's secretaries general): a peptree `P1001`
+   or `P2389` repair, not a creation.
+3. **Deputies and the person lane.** A seed file for `eu` (the Union's
+   office-holder categories, the agencies' directors) would attest the
+   deputies and feed the 56. Union offices fit the scope as it is; an
+   organisation's offices do not: `load-positions` discovers by `P17`/
+   `P1001` of the scope, and categorize cannot give a mention candidate an
+   organisation as its polity. Either is a change to the discovery lanes
+   and categorize's offered polities, to be decided before seeding.
+4. **Residue:** 9 skipped for a French or German label their body lacks;
+   3 for a title the verifier would shape as director; 13 bodies whose
+   infobox names nobody current (acting heads at Europol, ECCC; none at
+   EIT, CTBTO, EUMETSAT). The AMLR asset's Union rows (`amlr/eu.yml`) are
+   not expanded to these bodies yet.
+5. **Interim calls:** labels are written by hand from the body's own
+   French and German names, never invented where it has none; the
+   Commission's directorates-general and services, the Council's
+   committees and rotating chairs are left out; an organisation is one
+   whose `P159` lies in a member state, less four whose seat is plainly
+   elsewhere (IOM, the Pacific Community, Intelsat, UNFICYP).
+
 ## 4. The candidate's country on the shortlist line
 
 Homonym offices of other states (a Spanish "mayor of Chía" offered for

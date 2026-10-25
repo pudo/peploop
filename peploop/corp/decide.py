@@ -10,7 +10,10 @@ only for enterprises whose material changed.
 A party (the `party` and `party_branch` lanes) is asked with its own prompt,
 `prompts/decide_party.md`: what it is and who sits in its executive organs,
 and no control question. Its answer is a `PartyAnswer`; the two prompts
-never share a key, so neither's change re-asks the other's bodies.
+never share a key, so neither's change re-asks the other's bodies. An EU body
+or international organisation (the `international` lane) is asked likewise,
+with `prompts/decide_international.md`: what it is and who sits on its
+board, as an `InternationalAnswer`.
 """
 
 import os
@@ -30,6 +33,7 @@ from peploop.corp import wd
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "decide.md"
 PARTY_PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "decide_party.md"
+INTERNATIONAL_PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "decide_international.md"
 MODEL = os.environ.get("PEPCORP_MODEL", "claude-sonnet-5-5")
 MAX_TOKENS = 16000
 WORKERS = int(os.environ.get("PEPCORP_WORKERS", "6"))
@@ -39,6 +43,8 @@ ARTICLE_CHARS = 60_000
 SHOWN_PROPS = ("P31", "P1454", "P127", "P749", "P17", "P571", "P576", "P169", "P488", "P3320", "P1037")
 #: A party's statements shown: what it is part of, and its leadership as recorded.
 PARTY_PROPS = ("P31", "P17", "P571", "P576", "P361", "P749", "P488", "P3975", "P3320")
+#: An international body's statements shown: what it is, its seat and its leadership as recorded.
+INTERNATIONAL_PROPS = ("P31", "P17", "P159", "P571", "P576", "P361", "P749", "P488", "P1037", "P169", "P5052", "P3320")
 
 
 class Strict(BaseModel):
@@ -99,6 +105,29 @@ class PartyAnswer(Strict):
     notes: str
 
 
+class InternationalSeat(Strict):
+    name: str
+    role: Literal["chair", "deputy_chair", "member"]
+    heads_body: bool
+    start: Optional[str]
+    end: Optional[str]
+    current: bool
+    quote: str
+    article: str
+
+
+class InternationalAnswer(Strict):
+    kind: Literal["eu_body", "international_organisation", "other"]
+    active: bool
+    seats: list[InternationalSeat]
+    notes: str
+
+
+#: The prompt and answer schema of each kind of body asked.
+PROMPTS = {"body": (PROMPT_PATH, Answer), "party": (PARTY_PROMPT_PATH, PartyAnswer),
+           "international": (INTERNATIONAL_PROMPT_PATH, InternationalAnswer)}
+
+
 def system_prompt(path: Path = PROMPT_PATH) -> tuple[str, str]:
     return llm.system_prompt(path)
 
@@ -106,6 +135,22 @@ def system_prompt(path: Path = PROMPT_PATH) -> tuple[str, str]:
 def is_party(item: dict[str, Any]) -> bool:
     """Whether a loaded body is asked as a party: it came in by a party lane."""
     return bool(set(item.get("lanes") or ()) & set(loadmod.PARTY_LANES))
+
+
+def is_international(item: dict[str, Any]) -> bool:
+    """Whether a loaded body is asked as an EU body or international organisation: it came in by that lane."""
+    return "international" in (item.get("lanes") or ())
+
+
+def asked_as(item: dict[str, Any]) -> str:
+    """Which prompt a loaded body is asked with: `party`, `international` or `body`."""
+    return "party" if is_party(item) else "international" if is_international(item) else "body"
+
+
+def international_wikis(entity: dict[str, Any], wikis: tuple[str, ...]) -> list[str]:
+    """The first of the spec's wikis the body has an article in: one article, not one per member's language."""
+    have = [w for w in wikis if f"{w}wiki" in entity.get("sitelinks", {})]
+    return have[:1]
 
 
 def party_wikis(entity: dict[str, Any], wikis: list[str]) -> list[str]:
@@ -302,10 +347,11 @@ def render(item: dict[str, Any], offered: list[str], kinds: dict[str, str], arti
     return "\n".join(p)
 
 
-def render_party(item: dict[str, Any], articles: list[dict[str, Any]], wikis: list[str]) -> str:
-    """A party's request: its labels, its statements and its articles; no controllers to choose from."""
+def render_party(item: dict[str, Any], articles: list[dict[str, Any]], wikis: list[str],
+                 props: tuple[str, ...] = PARTY_PROPS) -> str:
+    """A party's or an international body's request: its labels, statements and articles; no controllers."""
     ent = item["entity"]
-    refs = {v for p in PARTY_PROPS for v in wikidata.claim_qids(ent, p)}
+    refs = {v for p in props for v in wikidata.claim_qids(ent, p)}
     global LABEL_ORDER
     LABEL_ORDER = loadmod.label_langs(wikis)
     info = memo.labels_of(sorted(refs), LABEL_ORDER)
@@ -315,7 +361,7 @@ def render_party(item: dict[str, Any], articles: list[dict[str, Any]], wikis: li
     if descs:
         p += ["", "## Descriptions", *descs]
     p += ["", "## Existing statements"]
-    for prop in PARTY_PROPS:
+    for prop in props:
         for claim in ent.get("claims", {}).get(prop, []):
             text = claim_text(claim, info)
             if text:
@@ -366,12 +412,17 @@ def prepare(cc: str, log: Callable[[str], None], only: set[str] | None = None,
     reqs, failed = [], 0
     todo = [it for it in loadmod.items(cc) if not only or it["qid"] in only]
     for item in todo[:limit] if limit else todo:
-        party = is_party(item)
+        kind = asked_as(item)
         try:
-            if party:
+            if kind == "party":
                 articles = fetch_articles(item["qid"], item["entity"], party_wikis(item["entity"], wikis))
                 offered: list[str] = []
                 message = render_party(item, articles, wikis)
+            elif kind == "international":
+                own = international_wikis(item["entity"], countries.get(cc).wikis)
+                articles = fetch_articles(item["qid"], item["entity"], own)
+                offered = []
+                message = render_party(item, articles, own or ["en"], INTERNATIONAL_PROPS)
             else:
                 articles = fetch_articles(item["qid"], item["entity"], wikis)
                 offered = actormod.offered(actors, item["entity"], item["chain"])
@@ -381,7 +432,7 @@ def prepare(cc: str, log: Callable[[str], None], only: set[str] | None = None,
             failed += 1
             log(f"  {item['qid']}: not prepared ({exc.__class__.__name__}); the next run asks it")
             continue
-        reqs.append({"qid": item["qid"], "party": party, "message": message, "offered": offered, "links": links,
+        reqs.append({"qid": item["qid"], "asked": kind, "message": message, "offered": offered, "links": links,
                      "articles": [{k: a[k] for k in ("lang", "url", "rev")} for a in articles]})
     if failed:
         log(f"{failed} enterprises not prepared after read errors")
@@ -392,9 +443,9 @@ def decide(cc: str, model: str = MODEL, limit: int | None = None, log: Callable[
            only: set[str] | None = None) -> list[dict[str, Any]]:
     """Ask the model about every kept enterprise of a country; return the answered requests."""
     reqs = prepare(cc, log, only, limit)
-    hashes = {path: system_prompt(path)[1] for path in (PROMPT_PATH, PARTY_PROMPT_PATH)}
+    hashes = {path: system_prompt(path)[1] for path, _schema in PROMPTS.values()}
     for r in reqs:
-        r["prompt"] = PARTY_PROMPT_PATH if r["party"] else PROMPT_PATH
+        r["prompt"], r["schema"] = PROMPTS[r["asked"]]
         r["key"] = content_key(model, hashes[r["prompt"]], r["message"])
     todo = [r for r in reqs if recorded(r["key"]) is None]
     log(f"{len(reqs)} requests; {len(reqs) - len(todo)} answered before, {len(todo)} to ask")
@@ -404,8 +455,7 @@ def decide(cc: str, model: str = MODEL, limit: int | None = None, log: Callable[
             r["key"], cc, r["qid"], model, hashes[r["prompt"]],
             {k: r[k] for k in ("message", "offered", "links", "articles")}, answer.model_dump(), usage)
 
-    jobs = [llm.Job(params(r["message"], model, r["prompt"]), PartyAnswer if r["party"] else Answer, done(r))
-            for r in todo]
+    jobs = [llm.Job(params(r["message"], model, r["prompt"]), r["schema"], done(r)) for r in todo]
     llm.run("corp:decide", jobs, log, WORKERS)
     for r in reqs:
         r["answer"] = recorded(r["key"])
@@ -434,8 +484,8 @@ def from_ledger(cc: str) -> list[dict[str, Any]]:
 
 
 def readable(answer: dict[str, Any]) -> bool:
-    """Whether the current schema reads an answer: a body's, or a party's."""
-    for schema in (Answer, PartyAnswer):
+    """Whether the current schema reads an answer: a body's, a party's or an international body's."""
+    for _path, schema in PROMPTS.values():
         try:
             schema.model_validate(answer)
         except ValueError:

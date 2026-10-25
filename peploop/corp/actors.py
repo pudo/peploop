@@ -135,6 +135,10 @@ def read(cc: str) -> Actors:
     """Read a country's ownership and parent links and work out its state actors."""
     state = countries.state_qid(cc)
     spec = countries.get(cc)
+    if spec.international:
+        # The Union's bodies and the organisations seated in it are holdings,
+        # never state actors: no links are read, and nothing is owned through them.
+        return Actors(state=state, kinds={state: "state"}, polities=frozenset({state}))
     polities = set(policy.polities_of(state))
     links: dict[str, dict[str, set[str]]] = {}
     types: dict[str, set[str]] = defaultdict(set)

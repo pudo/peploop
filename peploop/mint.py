@@ -366,8 +366,8 @@ def census(
         )
         labels = dict(entry.get("labels") or {})
         per = entry.get("per")
-        if per == "units":
-            continue  # a level's offices, built from its units' articles: `mint_units`
+        if per in ("units", "bodies"):
+            continue  # a level's or a body's offices, built from their own articles: `mint_units`
         if per is None:
             out.append(Anchor(key=entry["key"], labels=labels,
                               jurisdiction=entry.get("jurisdiction"), **base))
@@ -1527,6 +1527,14 @@ def unit_attestation(unit: dict[str, Any]) -> Attestation:
         quotes.append(f"Every unit of the level has the office: {unit['source']}")
     # No title: an attestation's title is what a created item takes as an alias,
     # and an infobox line is not a name of the office.
+    if unit.get("body"):
+        # A body's head: the body is the jurisdiction or the office's body, never
+        # the person, so the holder is named by their own item or their name.
+        return Attestation(
+            person=unit.get("holder_qid") or f"named:{unit.get('holder')}", current=True, title=None,
+            jurisdiction=unit.get("label"), lang=unit.get("lang") or "en", quotes=[q for q in quotes if q],
+            person_label=f"{unit.get('holder')}, named as the current head of {unit.get('label')} by {unit.get('url')}",
+        )
     return Attestation(
         person=f"unit:{unit['qid']}", current=True, title=None,
         jurisdiction=unit.get("label"), lang=unit.get("lang") or "en", quotes=[q for q in quotes if q],
@@ -1558,13 +1566,21 @@ def _candidate(row: dict[str, Any]) -> Candidate:
     return Candidate(**known)
 
 
+#: Scopes whose label languages are not their territory's: the Union lists
+#: all 24 official languages, and its offices are named in its procedural ones.
+SCOPE_LANGS = {"eu": ("fr", "de")}
+
+
 def country_langs(country: str) -> list[str]:
     """The state's languages as rigour lists them, by their two-letter codes.
 
     The languages a minted office is labelled in besides English. One with no
     two-letter code is a variety of one that has ("cmn" and "yue" beside
-    "zho"), or not a language Wikidata labels in.
+    "zho"), or not a language Wikidata labels in. A scope that is no state
+    (`SCOPE_LANGS`) names its own.
     """
+    if country in SCOPE_LANGS:
+        return list(SCOPE_LANGS[country])
     territory = get_territory(country)
     codes = (iso_639_alpha2(lang) for lang in (territory.langs if territory else []))
     return list(dict.fromkeys(code for code in codes if code))
@@ -2176,8 +2192,12 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
             jurisdiction, council = place
         else:
             problems.append("jurisdiction-unresolved")
+    # An international organisation's head office governs the organisation,
+    # its own polity: no state is written for it (`mint_units.Body.polity`).
+    unit = (draft.get("unit") or {}) if "unit" in cand.origin else {}
+    state = unit.get("polity") or ctx.state_qid
     if not jurisdiction and shape.scoped:
-        jurisdiction = ctx.state_qid
+        jurisdiction = state
     # Measured over the offices that govern the same polity: a provincial
     # minister's cabinet is not the national one, nor another province's.
     measured = offices.measured_body(sibs, arch, scope=jurisdiction or ctx.state_qid)
@@ -2213,13 +2233,16 @@ def build_spec(cand: Candidate, ctx: Context | None = None,
     place = ctx.place_names(jurisdiction) if jurisdiction and jurisdiction != ctx.state_qid else None
     aliases = attested_aliases(cand.attestations, labels, ctx.state_names, arch, place=place)
     spec = offices.Spec(
-        ref=cand.ref, archetype=arch, labels=labels, state_qid=ctx.state_qid,
+        ref=cand.ref, archetype=arch, labels=labels, state_qid=state,
         aliases={lang: texts for lang, texts in aliases.items() if lang in keep},
         metaclass=offices.metaclass_for(sibs, parent, shape.metaclass), parent=parent,
         jurisdiction_qid=jurisdiction, body_qid=body,
         replaces=draft.get("replaces_qid"),
     )
     polity = [*ctx.state_names, *(n for names in (place or {}).values() for n in names)]
+    if unit.get("body") and body == unit["body"]:
+        # A body's head office named after its body says where it is.
+        polity += [n for names in ctx.place_names(body).values() for n in names]
     if labels and not names_polity(labels, polity):
         text = offices.generic_description(spec, ctx.english_labels([spec.jurisdiction, spec.state_qid]))
         if text:
@@ -2871,6 +2894,19 @@ def spec_bodies(cand: Candidate, spec: offices.Spec | None, ctx: Context) -> set
     return {q for q in (spec.body_qid if spec else None, anchor.body if anchor else None) if q}
 
 
+def guard_langs(ctx: Context) -> list[str]:
+    """The languages a minted office must be labelled in besides English.
+
+    Those most of the state's own offices carry; a scope that names its own
+    (`SCOPE_LANGS`) requires all of them, as most of its offices carry them
+    (the Union's and the organisations' heads: 73% French, 56% German),
+    whatever its thin position table would tally.
+    """
+    if ctx.country in SCOPE_LANGS:
+        return list(ctx.langs)
+    return offices.label_langs(ctx.siblings, ctx.langs)
+
+
 def guard_reasons(cand: Candidate, spec: offices.Spec, ctx: Context,
                   found: Sequence[offices.Found]) -> list[str]:
     """Run `offices.guard` over a candidate with every live input it reads."""
@@ -2890,7 +2926,7 @@ def guard_reasons(cand: Candidate, spec: offices.Spec, ctx: Context,
         body=records.get(spec.body_qid) if spec.body_qid else None,
         jurisdiction=records.get(jurisdiction) if jurisdiction else None,
         closure=ctx.closure,
-        langs=offices.label_langs(ctx.siblings, ctx.langs),
+        langs=guard_langs(ctx),
         state_names=ctx.state_names,
         known_bodies={q for q, n in ctx.siblings.bodies.items() if n >= offices.MEASURED_BODY_USES},
         regions=set(ctx.subdivisions),

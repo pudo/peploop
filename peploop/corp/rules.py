@@ -30,6 +30,13 @@ seat-holders, not by control: it passes when active, and gets its seats
 only -- no marker, no link, no class -- by the party rows of `SEATS`, under
 every seat rule a body's seats have.
 
+An EU body or an international organisation (the `international` lane) is
+admitted by being one, not by control, and gets its board seats only, as
+`P5052` with the chair's role (`INTERNATIONAL_SEATS`). Its head is never
+written: where the person holds an office of the body, or the seat is the
+head's and the body has a head office, the office and its `P39` are
+peploop's (`position_office`, `head_office`).
+
 No shares, sizes or control arithmetic: the links and the article's word
 are the evidence.
 
@@ -77,6 +84,15 @@ WRITTEN = ("enterprise", "institution")
 #: its branch for a first-level subdivision. A local branch waits for the
 #: AMLR's local tier, which needs its unit's population.
 PARTY = ("party", "regional_branch")
+#: The kinds of international body whose boards are written: no control is asked.
+INTERNATIONAL = ("eu_body", "international_organisation")
+#: An international body's board seats: a supervisory board's idiom, its chair
+#: and deputy as role qualifiers, as for an institution's supervisory body.
+INTERNATIONAL_SEATS: dict[str, tuple[str, str | None]] = {
+    "chair": ("P5052", "Q140686"),  # chairperson
+    "deputy_chair": ("P5052", "Q1127270"),  # deputy chairperson
+    "member": ("P5052", None),
+}
 #: (kind, body, role) → (property, role qualifier `P2868` or None). A "*" fits any.
 SEATS: dict[tuple[str, str, str], tuple[str, str | None]] = {
     ("enterprise", "*", "head"): ("P169", None),
@@ -115,6 +131,9 @@ def seat_statement(kind: str, body: str, role: str,
     if kind in PARTY:
         # A party's rows stand alone: no body's row fits a party's seat.
         return SEATS.get(("party", "*", role))
+    if kind in INTERNATIONAL:
+        # A board seat is the one seat written on an international body.
+        return INTERNATIONAL_SEATS.get(role)
     if extra and role in extra:
         return extra[role]
     for key in ((kind, body, role), (kind, "*", role), ("*", body, role), ("*", "*", role)):
@@ -163,8 +182,9 @@ def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countrie
     municipal body without one is controlled by a smaller unit, or by one
     the run cannot place.
     """
-    if answer["kind"] in PARTY:
-        # A party is admitted by its seat-holders: no control to show.
+    if answer["kind"] in PARTY or answer["kind"] in INTERNATIONAL:
+        # A party is admitted by its seat-holders, an international body by
+        # being one: no control to show.
         return None if answer["active"] else "inactive"
     if answer["kind"] not in WRITTEN:
         return f"kind:{answer['kind']}"
@@ -649,6 +669,55 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
     return rows
 
 
+#: A head's title that makes the head the board's chair: an authority's chair, a council's president.
+CHAIR_TITLE = re.compile(r"\b(?:chair\w*|president)\b", re.I)
+
+
+def head_excluded(rows: list[dict[str, Any]], seats: list[dict[str, Any]], offices: set[str],
+                  held: dict[str, set[str]], head_title: str | None = None) -> list[dict[str, Any]]:
+    """An international body's seat rows, less those that are a position office's.
+
+    `offices` are the body's own offices (scoped to it, or its head's `P2388`),
+    `held` each person's `P39` values, `head_title` the title peploop's
+    census gives the body's head, whose office it mints. A person who holds
+    one of the offices sits there by it; the head who chairs the board is
+    the head's office wherever the body has or is getting one, and so is
+    every chair of a board whose head the census titles its chair: both are
+    peploop's, and a second statement on the body would record the office twice.
+    """
+    out = []
+    for row, seat in zip(rows, seats):
+        person = (row.get("value") or {}).get("id")
+        headed = bool(offices or head_title)
+        if row["_rule"] is None and person and held.get(person, set()) & offices:
+            row = {**row, "_rule": "position_office"}
+        elif row["_rule"] is None and ((seat.get("heads_body") and headed) or (
+                seat["role"] == "chair" and head_title and CHAIR_TITLE.search(head_title))):
+            row = {**row, "_rule": "head_office"}
+        out.append(row)
+    return out
+
+
+def census_heads(cc: str) -> dict[str, str]:
+    """Body → its head's title, for the bodies whose head office peploop's census lists (`per: bodies`)."""
+    from peploop import mint_units
+    return {b.qid: b.title for level in mint_units.levels(cc) for b in level.bodies}
+
+
+#: The offices of an international body: scoped to it, or held by its head (`P2388`).
+BODY_OFFICES = """SELECT DISTINCT ?b ?o WHERE { VALUES ?b { %s }
+  { ?o wdt:P2389 ?b } UNION { ?o wdt:P1001 ?b } UNION { ?o wdt:P642 ?b } UNION { ?b wdt:P2388 ?o } }"""
+
+
+def body_offices(qids: list[str]) -> dict[str, set[str]]:
+    """Each body's offices, read live: what a board seat must not repeat."""
+    rows = wd.bisect(lambda chunk: wd.sparql(BODY_OFFICES % wd.values_block(chunk)), qids, size=40) if qids else []
+    out: dict[str, set[str]] = {}
+    for r in rows:
+        out.setdefault(r["b"], set()).add(r["o"])
+    return out
+
+
 def settle(r: dict[str, Any], entity: dict[str, Any], rows: list[dict[str, Any]],
            decisions: list[dict[str, Any]]) -> list[str]:
     """Plan a body's surviving rows against its live item, record every row's decision, return the lines."""
@@ -761,10 +830,15 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     dead = {q for q, e in people.items() if e.get("claims", {}).get("P570")}
     # A party owns nothing here and is no state body: only the bodies' answers name controllers.
     parties = {qid for qid, r in passed.items() if r["answer"]["kind"] in PARTY}
+    # An international body is no state body either; its head's office is peploop's.
+    international = {qid for qid, r in passed.items() if r["answer"]["kind"] in INTERNATIONAL}
+    own_offices = body_offices(sorted(international)) if international else {}
+    heads = census_heads(cc) if international else {}
+    held = {q: set(wd.values(e, "P39")) for q, e in people.items()}
     government = actors.is_government({q for qid, m in named.items() if qid in passed for q in m.values()})
     # A body this run finds state-controlled is a state owner in its own right:
     # a state bank's subsidiary is held through the bank.
-    state = (set(passed) - parties) | set(actors.kinds) | government | set(admins)
+    state = (set(passed) - parties - international) | set(actors.kinds) | government | set(admins)
     # A municipal unit is a polity too: an owner, never a parent organization.
     polities = frozenset(q for q, k in actors.kinds.items() if k in ("state", "subdivision")) | units
     # A government body this run writes as an enterprise or institution (a
@@ -781,7 +855,8 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     # So would a link to what this run's own answers put over its other
     # controllers: a transport company owned by a state holding that the
     # same run puts under the state gets the holding, not the state too.
-    planned = {qid: controllers(r, named.get(qid)) for qid, r in passed.items() if qid not in parties}
+    planned = {qid: controllers(r, named.get(qid)) for qid, r in passed.items()
+               if qid not in parties and qid not in international}
     for qid, via in through_planned(planned, linked_now).items():
         reached[qid] = reached.get(qid, set()) | via
     lines: list[str] = []
@@ -813,6 +888,11 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
         if r["qid"] in parties:
             lines += settle(r, entity, seat_rows(r, humans, today, spec.roles, entity, dead, matched, titles,
                                                  unconfirmed), decisions)
+            continue
+        if r["qid"] in international:
+            rows = seat_rows(r, humans, today, spec.roles, entity, dead, matched, titles, unconfirmed)
+            lines += settle(r, entity, head_excluded(rows, r["answer"]["seats"], own_offices.get(r["qid"], set()),
+                                                     held, heads.get(r["qid"])), decisions)
             continue
         chain = items.get(r["qid"], {}).get("chain")
         rows = control_rows(r, entity, chain, state, closure, named.get(r["qid"]), polities, refused,

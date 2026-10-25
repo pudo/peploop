@@ -54,6 +54,15 @@ DOMAIN_MAX = 3
 BODIES = {"executive": "executive body", "supervisory": "supervisory board or council", "board": "board"}
 #: A party's seats name no body: they are all on its executive organs.
 PARTY_BODY = "executive organs"
+#: An international body's seats are all on its board.
+INTERNATIONAL_BODY = "supervisory or management board"
+
+
+def seat_body(seat: dict[str, Any]) -> str:
+    """The body a seat is on, as the check reads it: the answer's, or the one a party's or an international body's seats share."""
+    if seat.get("body"):
+        return BODIES.get(seat["body"], seat["body"])
+    return INTERNATIONAL_BODY if "heads_body" in seat else PARTY_BODY
 
 
 class Verdict(BaseModel):
@@ -161,7 +170,7 @@ def message(seat: dict[str, Any], body: dict[str, Any], cand: dict[str, Any], pa
         "# The seat",
         f"Body: {body['qid']} {' / '.join(body['names'][:4])}" + (f" — {body['description']}" if body["description"] else ""),
         f"Kind: {body['kind']}",
-        f"Seat: {ROLES.get(seat['role'], seat['role'])} of the {BODIES.get(seat.get('body', ''), seat.get('body') or PARTY_BODY)} ({when})",
+        f"Seat: {ROLES.get(seat['role'], seat['role'])} of the {seat_body(seat)} ({when})",
         f"Name in the body's article: {seat['name']}",
         f"Passage ({seat['article']}): {seat['quote']}",
         "",

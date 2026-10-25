@@ -185,6 +185,28 @@ cannot.
   Langenfeld, whose namesakes' mayoralties in Bavaria are no longer read as
   theirs. China's 112 guarded offices, verified before its index changed,
   were not re-decided: a re-run asks every verdict again, about $5 batched.
+- The Union's bodies and the organisations seated in it (2026-10-25, dry
+  run, nothing created). Measured on WDQS (QLever down): 210 live bodies
+  by the Union's body classes and IGOs headquartered in a member state; 39
+  had a head office scoped to them, whose 124 head and deputy items carry
+  no `P17` (120), `P2389` the body (81), `P1001` the Union (41) or the
+  body (31), French labels 73% and German 56%. Seeding people was not
+  needed: 86 bodies without a head office were listed by hand (`per:
+  bodies`) with their infobox title, and the body's own statement or
+  English infobox gave a holder for 73. Guarded 56 (35 Union bodies, 21
+  organisations); skipped 9 for a missing French or German label (the
+  body has none on Wikidata), 3 where the verifier wanted director over
+  "managing director" or "governor", 3 found existing but scoped to no
+  body (Chair of the EU Military Committee `Q48743354`, Secretaries
+  General of the Francophonie `Q19605974` and the CPLP `Q56354935`), 2
+  unclear. The first verify read "unit:Q… Name" as the body being its own
+  holder and called 12 unclear: a body's head is now attested by person.
+  An acting head in the infobox (Europol, ECCC, EBA's executive director)
+  outranks the body's stale statement and drafts nothing. A hand check of
+  25 guarded: every office real, missing by a live search and shaped as
+  measured; 19 holders right as of 2026, 6 not confirmable from knowledge
+  (CEPOL, eu-LISA, ERA, BEREC Office, Benelux, WFP), none contradicted.
+  $3.61, two verify passes.
 
 ## peptree
 
@@ -446,6 +468,21 @@ Switzerland (2026-10-17/18), nothing sent.
   Kulturreferat, a department, written as an institution). Writing the
   tier stops the correction rule, so the four German marker removals
   awaiting approval were withdrawn by the run.
+- **International boards are thin in the articles (2026-10-25).** The
+  `international` spec over the same 210 bodies plus the EIF: 193 kept
+  with an article in English, French or German; answers called 71 a Union
+  body, 61 an organisation, 61 other (parliaments, courts, committees,
+  departments); 106 seats named in all. After the head rules, 9 board
+  lines (`P5052`: 6 chairs, 1 deputy, 2 members) on 9 bodies; 47 seats
+  had no linked person and 25 ended long ago. Where the census titles a
+  body's head its chair (the ESAs, the SRB, AMLA, the EDPB, the CPVO,
+  ERC), the board's chair is that head and its seat is left to the
+  office: the first plan wrote EBA's and ESMA's chairs as board seats
+  while the census minted "Chair of …" for the same people. A hand check
+  of the next plan's 10 lines found 2 wrong: an honorary president (ICPE) and an
+  AMLA executive board member written as a board member; the prompt now
+  leaves out both, and the re-ask's 9 lines were all right (Kaja Kallas
+  chairs the EUISS board ex officio). $3.44 with the checks.
 
 The dry run: 3,938 lines on 26 countries for about $185 of model calls
 (pilots and superseded runs included); precision samples 18–20 of 20 per

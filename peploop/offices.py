@@ -794,7 +794,7 @@ def guard(
         problems.append("run-duplicate")
 
     if spec.body_qid:
-        problems.extend(_body_problems(spec, body, state_names, known_bodies))
+        problems.extend(_body_problems(spec, body, state_names, known_bodies, regions or ()))
     elif spec.archetype in ARCHETYPES and spec.shape.body_required:
         problems.append("body/none")
     if spec.archetype in ARCHETYPES and spec.shape.scoped and spec.jurisdiction != spec.state_qid:
@@ -821,7 +821,7 @@ def guard(
 
 
 def _body_problems(spec: Spec, body: dict[str, Any] | None, state_names: Iterable[str],
-                   known_bodies: Collection[str] = ()) -> list[str]:
+                   known_bodies: Collection[str] = (), regions: Collection[str] = ()) -> list[str]:
     """Is the body a real, labelled organ of this state that the office names?
 
     A hand-drafted body QID is the easiest field to get wrong and the hardest
@@ -854,7 +854,9 @@ def _body_problems(spec: Spec, body: dict[str, Any] | None, state_names: Iterabl
     if qid not in known_bodies and not mine & theirs:
         problems.append(f"body-word/{qid}")
     states = wikidata.claim_qids(body, "P17", include_deprecated=False)
-    if states and spec.state_qid not in states:
+    # A Union agency names its seat's member state as its country: a member
+    # of the scope, as a province never is of a state.
+    if states and spec.state_qid not in states and not set(states) & set(regions):
         problems.append(f"body-state/{qid}")
     body_names = {fold(text) for text in _names(body)}
     if any(fold(text) in body_names for text in spec.labels.values()):

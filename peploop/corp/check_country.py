@@ -12,7 +12,7 @@ from peploop.checks import expect
 QID = re.compile(r"^Q[1-9]\d*$")
 PID = re.compile(r"^P[1-9]\d*$")
 KINDS = {"enterprise", "institution"}
-TIERS = {"national", "regional", "municipal"}
+TIERS = {"national", "regional", "municipal", "international"}
 
 
 def main() -> int:
@@ -38,6 +38,11 @@ def main() -> int:
                f"{cc}: a municipal holding names its unit")
         expect(all(e.get("level") in (None, "municipal") for e in spec.holdings), f"{cc}: holdings levels are known")
         expect(set(spec.tiers) <= TIERS, f"{cc}: tiers are known")
+        expect(not spec.international or spec.tiers == ("international",),
+               f"{cc}: the international tier stands alone: no state tier beside it")
+        expect(all(QID.match(q) for q in spec.body_classes + spec.organisation_classes),
+               f"{cc}: international classes are QIDs")
+        expect(spec.international == bool(spec.wikis), f"{cc}: an international spec, and only one, names its wikis")
         expect(spec.state is None or bool(QID.match(spec.state)), f"{cc}: the state override is a QID")
     return 0
 

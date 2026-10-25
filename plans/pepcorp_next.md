@@ -170,6 +170,21 @@ Where the German funnel loses statements, besides unlinked people (§2):
      none; an owner named unlinked resolves to a unit by its label or
      its label after one word; a unit is found through a named
      controller's jurisdiction or owners up to two steps.
+- International boards (2026-10-25): the `international` spec
+  (`countries/eu.yml`), built and dry-run, nothing sent: 9 `P5052` lines
+  on 9 bodies. Left:
+  1. Send with the user, as one tranche (`corp send eu`), after the
+     census's head offices are created or declined: the head rules read
+     the census, not what exists.
+  2. Recall is the articles: 47 named seats have no linked person, and
+     most agencies' articles name only the management board's chair. The
+     bodies' own board pages are the source a holdings-style list would
+     need; not started.
+  3. Open interim calls: a seat's person who holds any office of the body
+     is the office's; every chair of a board whose head the census titles
+     chair is the head's; an ex officio chair (the High Representative at
+     the EUISS) is written; an executive board of full-time officials is
+     no board; OpenSanctions does not read `P5052` on these bodies yet.
 - Zambia needs a holdings list (the IDC portfolio): its Wikidata has almost
   no state links and its category three members.
 - Norway beyond the 30-body trial; Greenland and Faroe as their own specs.

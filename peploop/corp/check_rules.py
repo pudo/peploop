@@ -403,7 +403,8 @@ def listed() -> None:
     src = inspect.getsource(rules.decide)
     expect("listed_seats(" in src and src.count("control_rows(") == 1,
            "a body the list alone admits gets its seats and no marker, link or class")
-    expect("(set(passed) - parties) | set(actors.kinds)" in src, "a body the list alone admits is no state owner of others")
+    expect("(set(passed) - parties - international) | set(actors.kinds)" in src,
+           "a body the list alone admits is no state owner of others")
     expect("Q967861" in load.listed("ro"), "the asset's resolved bodies are the lane (National Bank of Romania)")
     expect(all(f.kind == "body" and not any("body" in e for e in f.expansion) for f in load.unresolved("ro")),
            "an unresolved row is a named-body row with no body in its expansion")
@@ -474,9 +475,75 @@ def parties() -> None:
            f"co-chairs are two P488; a predecessor left open, a dead holder and an old tenure are skipped (got {got})")
     import inspect
     src = inspect.getsource(rules.decide)
-    expect("(set(passed) - parties)" in src, "a party is no state owner of others")
+    expect("(set(passed) - parties - international)" in src, "a party or an international body is no state owner of others")
     expect(src.index("if r[\"qid\"] in parties") < src.index("control_rows("),
            "a party gets its seats before any marker, link or class is considered")
+
+
+def iseat(name="Erika Muster", role="member", heads_body=False, start="2021", end=None, current=True,
+          quote="Erika Muster sits on the supervisory board.") -> dict:
+    return {"name": name, "role": role, "heads_body": heads_body, "start": start, "end": end, "current": current,
+            "quote": quote, "article": "xx"}
+
+
+def international() -> None:
+    """An EU body or an organisation of states passes by being one, gets board seats only, and never its head."""
+    body = {"kind": "eu_body", "active": True, "seats": [], "notes": ""}
+    expect(rules.gate(body, MESSAGE) is None, "an active EU body passes with no control question")
+    expect(rules.gate({**body, "kind": "international_organisation"}, MESSAGE) is None,
+           "so does an international organisation")
+    expect(rules.gate({**body, "kind": "other"}, MESSAGE) == "kind:other",
+           "a parliament, court, college or committee of national officials is not written on")
+    expect(rules.gate({**body, "active": False}, MESSAGE) == "inactive", "a wound-up body is skipped")
+    expect(decide.readable({**body, "seats": [iseat()]}), "the ledger reads an international body's answer")
+    for kind in rules.INTERNATIONAL:
+        for role, want in (("chair", ("P5052", "Q140686")), ("deputy_chair", ("P5052", "Q1127270")),
+                           ("member", ("P5052", None))):
+            got = rules.seat_statement(kind, "*", role, {"member": ("P9999", None)})
+            expect(got == want, f"{kind} {role} → {want} (got {got}): a board seat, the chair by role")
+        expect(rules.seat_statement(kind, "*", "head") is None, f"{kind}: a head is never a seat")
+    roles = set(decide.InternationalSeat.model_fields["role"].annotation.__args__)
+    expect(roles == {"chair", "deputy_chair", "member"}, "an international seat is a board seat, never the head")
+    # The head is peploop's: a person holding the body's office, or the head's chair where an office exists.
+    msg = MESSAGE + " Max Probe chairs the board and heads the bank. Old Chair chairs it."
+    links = {"xx": {"Erika Muster": "Q900501", "Max Probe": "Q900502", "Old Chair": "Q900503"}}
+    req = {"qid": "Q900999", "message": msg, "links": links, "articles": [{"lang": "xx", "url": "u", "rev": 1}],
+           "offered": [], "answer": {**body, "seats": [
+               iseat(), iseat("Max Probe", role="chair", heads_body=True,
+                              quote="Max Probe chairs the board and heads the bank."),
+               iseat("Old Chair", role="chair", quote="Old Chair chairs it.")]}}
+    rows = rules.seat_rows(req, {"Q900501", "Q900502", "Q900503"}, TODAY)
+    kept = rules.head_excluded(rows, req["answer"]["seats"], set(), {})
+    expect([(r["property"], r["_rule"]) for r in kept] == [("P5052", None)] * 3,
+           "with no office of the body, every board seat is written, the head's chair too")
+    held = rules.head_excluded(rows, req["answer"]["seats"], {"Q900800"}, {"Q900503": {"Q900800"}})
+    expect([r["_rule"] for r in held] == [None, "head_office", "position_office"],
+           "the head's chair is the head office's where one exists; a seat its holder holds by an office is the office's")
+    expect(all(r["qualifiers"].get("P2868") == rules.item("Q140686") for r in rows[1:]), "a chair carries the chair role")
+    titled = rules.head_excluded(rows, req["answer"]["seats"], set(), {}, "Chair")
+    expect([r["_rule"] for r in titled] == [None, "head_office", "head_office"],
+           "where the census titles the head its chair, every chair of the board is the head office's")
+    titled = rules.head_excluded(rows, req["answer"]["seats"], set(), {}, "Executive Director")
+    expect([r["_rule"] for r in titled] == [None, "head_office", None],
+           "where the head is a director, the board's own chair is written, the head's chair is not")
+    import inspect
+    src = inspect.getsource(rules.decide)
+    expect(src.index("if r[\"qid\"] in international") < src.index("control_rows("),
+           "an international body gets its seats before any marker, link or class is considered")
+    expect("international" in load.LANES and decide.asked_as({"lanes": ["international"]}) == "international",
+           "the international lane is asked with its own prompt")
+    expect(decide.international_wikis({"sitelinks": {"yywiki": {}, "zzwiki": {}}}, ("xx", "yy", "zz")) == ["yy"]
+           and decide.international_wikis({"sitelinks": {"xxwiki": {}, "yywiki": {}}}, ("xx", "yy")) == ["xx"],
+           "an international body is read in the first of the spec's wikis it has, one article")
+    text = " ".join(decide.INTERNATIONAL_PROMPT_PATH.read_text().split())
+    expect(all(t in text for t in ("head of the executive", "advisory", "a court", "heads_body", "honorary",
+                                   "full-time officials")),
+           "the international prompt leaves out the head, an executive board, advisory groups, courts and honorary seats")
+    from peploop.corp import actors, country
+    spec = country.get("eu")
+    expect(spec.international and spec.tiers == ("international",) and spec.body_classes and spec.wikis,
+           "the eu spec writes the international tier alone, with its classes and wikis")
+    expect("Q245065" in actors.NOT_GOVERNMENT, "an intergovernmental organisation is never a state actor")
 
 
 def municipal() -> None:
@@ -657,6 +724,7 @@ def main() -> None:
     unowned()
     listed()
     parties()
+    international()
     municipal()
     historic()
     reach()

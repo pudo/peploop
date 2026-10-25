@@ -60,6 +60,15 @@ country's spec writes the municipal tier (AMLR Art. 2(1)(34)(vii)); the
 
 A city owns stations, venues and paintings far more often than a state does;
 the organisation test drops them, so only the typed lane is a body by type.
+
+A spec whose tier is `international` (`countries/eu.yml`) reads one lane
+instead of all these, beside its `seed` and `listed` ones:
+
+- `international`: an instance of one of the spec's `body_classes`
+  (through any subclass), or of its `organisation_classes` with its
+  headquarters (`P159`) in a member of the scope (its `P150`). Its board
+  seats are PEPs by the AMLR (Art. 2(1)(34)(vi)), whoever controls it; it
+  is a holding, never a state actor.
 """
 
 from datetime import date
@@ -135,6 +144,13 @@ PARTY_HEADS = """SELECT DISTINCT ?party ?j WHERE { VALUES ?head { %s } ?party wd
   ?h p:P102 ?m . ?m ps:P102 ?party . FILTER NOT EXISTS { ?m pq:P582 ?me } FILTER NOT EXISTS { ?h wdt:P570 ?d }
   ?h p:P39 ?st . ?st ps:P39 ?pos ; pq:P580 ?s . FILTER(?s >= "%s"^^<http://www.w3.org/2001/XMLSchema#dateTime>)
   FILTER NOT EXISTS { ?st pq:P582 ?e } ?pos wdt:P279* ?head ; wdt:P1001 ?j . }"""
+#: The international lane: the scope's own bodies, and the organisations
+#: headquartered in one of its members (`P150` of the scope).
+INTERNATIONAL = """SELECT DISTINCT ?b WHERE {
+  { ?b wdt:P31/wdt:P279* ?k . VALUES ?k { %(own)s } }
+  UNION
+  { ?b wdt:P31/wdt:P279* ?k . VALUES ?k { %(seated)s } wd:%(scope)s wdt:P150 ?c .
+    { ?b wdt:P159 ?hq . ?hq wdt:P17 ?c } UNION { ?b wdt:P159 ?c } } }"""
 #: A party by type: a part of a party typed so is one of its branches.
 POLITICAL_PARTY = "Q7278"
 PARTY_PARTS = """SELECT DISTINCT ?b WHERE { VALUES ?p { %s } { ?b wdt:P361 ?p } UNION { ?b wdt:P749 ?p } }"""
@@ -142,7 +158,7 @@ PARTY_PARTS = """SELECT DISTINCT ?b WHERE { VALUES ?p { %s } { ?b wdt:P361 ?p } 
 
 #: Every lane, in the order the load reports them.
 LANES = ("typed", "formed", "statutory", "owned", "parented", "category", "seed", "listed", "party", "party_branch",
-         "municipal_typed", "sector", "municipal_category")
+         "municipal_typed", "sector", "municipal_category", "international")
 #: The lanes only a country writing the municipal tier reads.
 MUNICIPAL_LANES = ("municipal_typed", "sector", "municipal_category")
 #: The lanes whose bodies are parties, asked about their governing bodies and never about control.
@@ -230,6 +246,54 @@ def branch(own: list[str], closure: set[str], classes_: frozenset[str]) -> bool:
     return POLITICAL_PARTY in closure or bool(set(own) & classes_)
 
 
+def international(spec: countries.Spec, scope: str) -> set[str]:
+    """The scope's own bodies and the organisations seated in one of its members, read from the query service."""
+    if not spec.body_classes and not spec.organisation_classes:
+        return set()
+    return {r["b"] for r in wd.sparql(INTERNATIONAL % {
+        "own": wd.values_block(list(spec.body_classes)) or "wd:Q0",
+        "seated": wd.values_block(list(spec.organisation_classes)) or "wd:Q0", "scope": scope})}
+
+
+def candidates(cc: str, spec: countries.Spec, actors: actormod.Actors, state: str) -> dict[str, set[str]]:
+    """Every lane's candidates for a state: QID → the lanes that found it."""
+    lanes: dict[str, set[str]] = {}
+    names = countries.current_qids(cc)
+    for root in TYPED_ROOTS:
+        for name in names:
+            for r in wd.sparql(TYPED % (root, name)):
+                lanes.setdefault(r["i"], set()).add("typed")
+    if spec.forms:
+        for name in names:
+            for r in wd.sparql(FORMED % (wd.values_block(sorted(spec.forms)), name)):
+                lanes.setdefault(r["i"], set()).add("formed")
+    for name in names:
+        for r in wd.sparql(FORMED % (wd.values_block(sorted(rules.STATUTORY_TYPED)), name)):
+            lanes.setdefault(r["i"], set()).add("statutory")
+    for qid in actors.reach():
+        lanes.setdefault(qid, set()).add("owned")
+    for qid in actors.parented():
+        lanes.setdefault(qid, set()).add("parented")
+    for qid in set().union(*(categorised(name, langs(state)) for name in names)):
+        lanes.setdefault(qid, set()).add("category")
+    # A party's seats are held at the national or regional level, or heading a governed unit.
+    scope = {q for q, k in actors.kinds.items() if k in ("state", "subdivision")} | set(amlr.units(cc))
+    found = parties(cc, scope) | spec.parties
+    for qid in found:
+        lanes.setdefault(qid, set()).add("party")
+    for qid in branches(found):
+        lanes.setdefault(qid, set()).add("party_branch")
+    if "municipal" in spec.tiers:
+        for name in names:
+            for r in wd.sparql(TYPED % (MUNICIPAL_ROOT, name)):
+                lanes.setdefault(r["i"], set()).add("municipal_typed")
+        for qid in located(actors.units(), MUNICIPAL_CLASSES | spec.municipal_classes):
+            lanes.setdefault(qid, set()).add("sector")
+        for qid in municipal_categorised(spec):
+            lanes.setdefault(qid, set()).add("municipal_category")
+    return lanes
+
+
 def classify(entity: dict[str, Any] | None, organisation: bool, wikis: list[str]) -> str | None:
     """Why a candidate is dropped, or None to keep it."""
     if entity is None:
@@ -249,47 +313,22 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     wd.init()
     state = countries.state_qid(cc)
     actors = actormod.read(cc)
-    lanes: dict[str, set[str]] = {}
-    names = countries.current_qids(cc)
-    for root in TYPED_ROOTS:
-        for name in names:
-            for r in wd.sparql(TYPED % (root, name)):
-                lanes.setdefault(r["i"], set()).add("typed")
     spec = countries.get(cc)
-    if spec.forms:
-        for name in names:
-            for r in wd.sparql(FORMED % (wd.values_block(sorted(spec.forms)), name)):
-                lanes.setdefault(r["i"], set()).add("formed")
-    for name in names:
-        for r in wd.sparql(FORMED % (wd.values_block(sorted(rules.STATUTORY_TYPED)), name)):
-            lanes.setdefault(r["i"], set()).add("statutory")
+    if spec.international:
+        # The Union's bodies and the organisations seated in it: holdings, never state actors.
+        lanes = {qid: {"international"} for qid in international(spec, state)}
+    else:
+        lanes = candidates(cc, spec, actors, state)
     chains = actors.reach()
-    for qid in chains:
-        lanes.setdefault(qid, set()).add("owned")
-    for qid in actors.parented():
-        lanes.setdefault(qid, set()).add("parented")
-    for qid in set().union(*(categorised(name, langs(state)) for name in names)):
-        lanes.setdefault(qid, set()).add("category")
     seeded = spec.seeded()
     for qid in seeded:
         lanes.setdefault(qid, set()).add("seed")
+        if spec.international:
+            lanes[qid].add("international")
     for qid in listed(cc):
         lanes.setdefault(qid, set()).add("listed")
-    # A party's seats are held at the national or regional level, or heading a governed unit.
-    scope = {q for q, k in actors.kinds.items() if k in ("state", "subdivision")} | set(amlr.units(cc))
-    found = parties(cc, scope) | spec.parties
-    for qid in found:
-        lanes.setdefault(qid, set()).add("party")
-    for qid in branches(found):
-        lanes.setdefault(qid, set()).add("party_branch")
-    if "municipal" in spec.tiers:
-        for name in names:
-            for r in wd.sparql(TYPED % (MUNICIPAL_ROOT, name)):
-                lanes.setdefault(r["i"], set()).add("municipal_typed")
-        for qid in located(actors.units(), MUNICIPAL_CLASSES | spec.municipal_classes):
-            lanes.setdefault(qid, set()).add("sector")
-        for qid in municipal_categorised(spec):
-            lanes.setdefault(qid, set()).add("municipal_category")
+        if spec.international:
+            lanes[qid].add("international")
     count = lambda lane: sum(lane in v for v in lanes.values())  # noqa: E731
     log(f"{cc}: {len(actors.kinds)} state actors; {len(lanes)} candidates " + ", ".join(
         f"{lane} {count(lane)}" for lane in LANES))
@@ -316,10 +355,12 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     # organisation test like the owned lane's, and so do the sector lane's;
     # a typed, formed, statutory or listed item is a body by its type or by the list.
     # A party is a body by its members' seats, as a listed one is by the list.
-    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "municipal_typed", "formed", "statutory", "listed", "party"}}
+    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "municipal_typed", "formed", "statutory", "listed",
+                                                           "party", "international"}}
     keep = [q for q in sorted(lanes) if "excluded" not in lanes[q] and q in bodies and q not in nonbranch]
     entities = wd.fetch_items(keep)
-    wikis = langs(state)
+    # An international body is read in the spec's wikis (`decide.international_wikis`).
+    wikis = list(spec.wikis) if spec.international else langs(state)
     counts: dict[str, int] = {}
     conn = wd.conn()
     with conn.transaction():

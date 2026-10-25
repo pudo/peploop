@@ -1,0 +1,47 @@
+# The European Union's bodies and the international organisations seated in
+# its member states (EU AMLR, Reg. 2024/1624, Art. 2(1)(34)(vi): directors,
+# deputy directors and members of the board of an international
+# organisation; the Union's own bodies by the Commission's list, C/2023/724).
+#
+# Not a state: the run reads one lane, `international` (load.py), and asks no
+# control question. Each body passes by being an EU body or an organisation
+# of states, and gets its board seats only, as P5052 with the chair's role.
+# Its head is peploop's, as a position (census/eu.yml); a seat whose person
+# holds an office of the body, or the head's chair where the body has a head
+# office, is left to it. Nothing is marked, linked or typed, and no body here
+# is a state actor of any member state (actors.NOT_GOVERNMENT keeps the IGO
+# exclusion).
+#
+# Measured 2026-10-25 on WDQS: 210 live bodies by the lane's classes and
+# seats; no board statement (P5052, P3320 on 1 body) on any of them.
+
+tiers: [international]
+
+# The Union, whose P150 are the member states an organisation's seat is read against.
+state: Q458
+
+# The lane: the Union's own bodies, through any subclass of these.
+body_classes:
+  - {qid: Q748720, name: institutions of the European Union}
+  - {qid: Q4936585, name: body of the European Union}
+  - {qid: Q112827555, name: decentralised agency of the European Union}
+
+# And organisations of states headquartered (P159) in a member state.
+organisation_classes:
+  - {qid: Q245065, name: intergovernmental organization}
+  - {qid: Q15285626, name: organization established by the United Nations}
+  - {qid: Q1345691, name: international financial institution}
+
+# Read in English, else the Union's other procedural languages: one article,
+# not one in each of the 24.
+wikis: [en, fr, de]
+
+# Bodies the lane's classes miss (the EIF is typed a fund, not a Union body).
+# A hand list, no official one: it proves nothing about ownership, which this
+# spec never writes.
+holdings:
+  - source: "by hand, 2026-10-25"
+    entries:
+      - name: European Investment Fund
+        qid: Q768264
+        holder: European Investment Bank
