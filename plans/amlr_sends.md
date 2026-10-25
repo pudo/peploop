@@ -37,9 +37,9 @@ Run files from WS4–WS6 re-plan whole countries: every send is limited by
 
 ## Open calls for the user
 
-1. Pending marker removals: with the municipal tier written, de's four
-   `Q270791` removal proposals were withdrawn. Swap `Q270791` → `Q1780371`
-   on municipal companies anyway (others' statements, per-removal approval)?
+1. Settled 2026-10-25: no swaps. `Q1780371` goes beside a `Q270791` someone
+   chose; all pepcorp removal proposals were rejected. OpenSanctions' `wd_soe`
+   should read the `Q1780371` tree too (not built here).
 2. Settled 2026-10-25: the city-state rule (a city-state's company is
    regional) applies in every country.
 3. Holders' `P39` after creation: no CLI seeds a person by QID (203 unit heads
