@@ -418,6 +418,34 @@ Switzerland (2026-10-17/18), nothing sent.
   asked again. A second sample of 24 after it: 23 right, 1 unsure (a
   regional "líder" of a Spanish party). $11.4 at list price, $6.3 of it
   the person checks.
+- **The municipal tier is property-heavy and people-light (2026-10-25).**
+  Germany's pilot, the tier written for the first time. Measured first:
+  of 86k items with a German article located in a governed unit of
+  50,000 or more, the municipal-sector classes worth a lane were transport
+  company 425, Stadtwerk 77, Verkehrsverbund 62, energy company 33,
+  housing company 19, Zweckverband 16, public utility 13; hospitals (462)
+  and Sparkassen (152) were left out as mostly no city's or a later
+  question, waterworks and ports as sites. The category
+  "Kommunales Unternehmen (Deutschland)" holds 230 articles at depth 1.
+  The load kept 664 new bodies (sector 454, chains to a unit 189,
+  category 161, municipal typed 148), asked for $7.4 with every check;
+  467 answers put a body at the municipal level, 249 passed, 117 markers,
+  101 owner links and 78 seats came out (P5052 46, P1037 22, P169 8), on
+  58 bodies: 0.31 seats a passed body, and a person found for 78 of 490
+  seats the dates would let through (16%; 406 people unlinked). Answers
+  name a city's administration item (`P1001` the city) or a city holding
+  as often as the city, and write the owner unlinked ("Stadt Mannheim"):
+  resolving those to the unit took the passes from 42 to 77 in the pilot.
+  A region beside a leading city (Messe Frankfurt) first made the company
+  regional by the city-state rule; now only a region alone does. Residue:
+  82 bodies under no unit of 50,000 or more (Bezirke, Landschaftsverbände,
+  towns under 50k, holdings with no owner on Wikidata), 47 enterprises
+  whose owner the article names no item for. A hand check of 25 lines:
+  21 right, 3 plausible (a past-tense owner, a Zweckverband's chair as
+  supervisory chair, a city named past its holding), 1 wrong (a city's
+  Kulturreferat, a department, written as an institution). Writing the
+  tier stops the correction rule, so the four German marker removals
+  awaiting approval were withdrawn by the run.
 
 The dry run: 3,938 lines on 26 countries for about $185 of model calls
 (pilots and superseded runs included); precision samples 18–20 of 20 per

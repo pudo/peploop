@@ -4,10 +4,11 @@
 """
 
 from datetime import date
+from pathlib import Path
 
 from peploop import eras, evidence, qs
 from peploop.dates import time_value
-from peploop.corp import actors, country, decide, load, rules
+from peploop.corp import actors, country, decide, load, reask, rules
 from peploop.checks import expect
 
 TODAY = date(2026, 10, 17)
@@ -44,8 +45,8 @@ def gates() -> None:
     expect(rules.gate(answer(active=False), MESSAGE) == "inactive", "a dissolved enterprise is skipped")
     expect(rules.gate(answer(verdict="unclear"), MESSAGE) == "control:unclear", "unclear control writes nothing")
     expect(rules.gate(answer(level="municipal"), MESSAGE) == "level:municipal", "the municipal tier waits")
-    expect(rules.gate(answer(level="municipal"), MESSAGE, ("national", "regional", "municipal")) is None,
-           "a country that writes the municipal tier passes it")
+    expect(rules.gate(answer(level="municipal"), MESSAGE, ("national", "regional", "municipal"), unit="Q900050") is None,
+           "a country that writes the municipal tier passes it, under a unit of 50,000 or more")
     expect(rules.gate(answer(quote="Q is owned by the state."), MESSAGE) == "control_unquoted",
            "a control quote not in the articles is refused")
     expect(evidence.quoted("q is owned by the province.", MESSAGE), "a quote differing only in case counts")
@@ -478,6 +479,127 @@ def parties() -> None:
            "a party gets its seats before any marker, link or class is considered")
 
 
+def municipal() -> None:
+    """The municipal tier: the size proxy, the marker, a city-state, the correction, the sector lane, associations."""
+    tiers = ("national", "regional", "municipal")
+    arts = [{"lang": "xx", "url": "https://xx.wikipedia.org/wiki/Q", "rev": 1}]
+    units = frozenset({"Q900050", "Q900051"})
+    base = {"qid": "Q900999", "offered": ["Q900050", "Q900060"], "articles": arts, "message": MESSAGE, "links": {}}
+    muni = {**base, "answer": answer(level="municipal", owners=((0, "owner"),))}
+    # The gate, by the size of the controlling unit.
+    expect(rules.gate(muni["answer"], MESSAGE, tiers) == "municipal_unit",
+           "a municipal body with no unit of 50,000 or more over it is not written (residue)")
+    expect(rules.gate(muni["answer"], MESSAGE) == "level:municipal", "a country not writing the tier skips it")
+    expect(rules.gate(muni["answer"], MESSAGE, tiers, unit="Q900050") is None, "a large unit's body passes")
+    expect(rules.gate(answer(level="municipal", quote="Nobody said this."), MESSAGE, tiers, unit="Q900050")
+           == "control_unquoted", "the control quote is still needed")
+    # Which unit controls it.
+    expect(rules.municipal_unit(muni, ent(), None, units) == "Q900050", "a controller the answer chose that is a unit")
+    small = {**base, "answer": answer(level="municipal", owners=((1, "owner"),))}
+    expect(rules.municipal_unit(small, ent(P131=["Q900050"]), None, units) is None,
+           "a smaller town's body is no large unit's, wherever it sits")
+    expect(rules.municipal_unit(small, ent(), ["Q900999", "Q900060", "Q900051"], units) == "Q900051",
+           "the chain on Wikidata ends at a unit")
+    silent = {**base, "answer": answer(level="municipal", owners=())}
+    expect(rules.municipal_unit(silent, ent(P159=["Q900051"]), None, units) == "Q900051",
+           "with no controller named, the unit the body sits in")
+    expect(rules.municipal_unit({**silent, "articles": []}, ent(P159=["Q900051"]), None, units) is None,
+           "no article, no unit: the proxy wants both")
+    # An inter-municipal association this run passes lends its unit to what it owns.
+    assoc = {**base, "answer": answer(level="municipal", owners=((None, "owner"),))}
+    assoc["answer"]["control"]["owners"][0]["name"] = "Water Union"
+    expect(rules.municipal_unit(assoc, ent(), None, units, {"Water Union": "Q900070"}, {"Q900070": "Q900051"})
+           == "Q900051", "a body an inter-municipal association owns is under the association's unit")
+    expect(rules.municipal_unit(assoc, ent(), None, units, {"Water Union": "Q900070"}) is None,
+           "an association the run does not pass gives no unit")
+    # A city's administration (its jurisdiction the city) or a city's holding stands for its unit.
+    admin = {"claims": ent(P1001=["Q900050"])["claims"]}
+    holding = ent(P127=["Q900080"])
+    entities = {"Q900080": admin, "Q900081": holding, "Q900082": ent(P127=["Q900081"]), "Q900083": ent(P131=["Q900050"])}
+    behind = rules.controller_units({"Q900080", "Q900081", "Q900082", "Q900083"}, entities, units, hops=1)
+    expect(behind == {"Q900080": "Q900050", "Q900081": "Q900050"},
+           "a city's administration and its holding stand for the city; two owner steps or a location do not, at one hop")
+    # A city administration named as owner is written as the city, unless the item already names it.
+    adm = {**base, "offered": ["Q900080"], "answer": answer(level="municipal", owners=((0, "owner"),))}
+    rows = rules.control_rows(adm, ent(), None, {"Q900050", "Q900080"}, {}, polities=units, admins={"Q900080": "Q900050"})
+    expect([(r["property"], r["value"]["id"], r["_rule"]) for r in rows][1:] == [("P127", "Q900050", None)],
+           "the city administration's ownership is the city's")
+    rows = rules.control_rows(adm, ent(P127=["Q900080"]), None, {"Q900050", "Q900080"}, {}, polities=units,
+                              admins={"Q900080": "Q900050"})
+    expect(rows[1]["_rule"] == "standin_existing", "an item naming the administration as owner keeps it alone")
+    # An owner the article does not link, named by its unit's label after one word.
+    names = rules.unit_names({"Q900050": {"labels": {"xx": {"value": "Probstadt"}}, "aliases": {}},
+                              "Q900051": {"labels": {"xx": {"value": "Hof"}}, "aliases": {"xx": [{"value": "Probstadt"}]}}})
+    expect(names.get("probstadt") == "Q900050" and names.get("hof") == "Q900051",
+           "a unit's label wins over another unit's alias")
+    twice = rules.unit_names({"Q900050": {"labels": {"xx": {"value": "Hof"}}}, "Q900051": {"labels": {"yy": {"value": "Hof"}}}})
+    expect(twice.get("hof") is None, "a label two units share stands for neither")
+    expect(rules.name_unit("Town of Hof", names) is None and rules.name_unit("Town Hof", names) == "Q900051"
+           and rules.name_unit("Hof", names) == "Q900051", "the unit's own label, or after one word, and no more")
+    # The marker, as for the state tier, and never over a marker the item has.
+    state = {"Q900050"}
+    rows = rules.control_rows(muni, ent(), None, state, {}, polities=units)
+    expect([(r["property"], r["value"]["id"], r["_rule"]) for r in rows]
+           == [("P31", rules.MUNICIPAL, None), ("P127", "Q900050", None)],
+           "a municipal enterprise gets the municipal marker and its city as owner")
+    for have in (rules.MARKER, rules.MUNICIPAL):
+        expect(rules.control_rows(muni, ent(P31=["Q900201"]), None, state, {"Q900201": {"Q900201", have}},
+                                  polities=units)[0]["_rule"] == "marked", f"an item reaching {have} keeps it")
+    expect(rules.control_rows(muni, ent(), None, state, {}, polities=units,
+                              refused={("Q900999", "P31", rules.MUNICIPAL)})[0]["_rule"] == "marker_unverified",
+           "a municipal marker whose control quote the check refuses is not written")
+    inst = {**muni, "answer": answer(kind="institution", level="municipal", owners=((0, "parent"),))}
+    expect([(r["property"], r["_rule"]) for r in rules.control_rows(inst, ent(), None, state, {}, polities=units)]
+           == [("P749", "parent_polity")], "an institution gets no marker, and a city is never its parent organization")
+    # A city's own list of holdings proves the tier, with its unit, cited to the list.
+    listed = {**base, "answer": answer(verdict="unstated", level="none", owners=())}
+    seed = {"source": "https://city.example/holdings", "level": "municipal", "unit": "Q900050"}
+    proof = rules.proven({"seed": seed, "entity": {}}, country.Spec(cc="xx"))
+    expect(proof == rules.MUNICIPAL_LIST and rules.gate(listed["answer"], MESSAGE, tiers, proof, "Q900050") is None
+           and rules.gate(listed["answer"], MESSAGE, ("national", "regional"), proof, "Q900050") == "control:unstated",
+           "a city's holdings list proves the municipal tier, only where it is written")
+    rows = rules.control_rows(listed, ent(), None, state, {}, proof=proof, seed=seed)
+    expect([(r["property"], r["value"]["id"], r["qualifiers"]["_sources"]) for r in rows]
+           == [("P31", rules.MUNICIPAL, [{"reference_url": seed["source"]}]),
+               ("P127", "Q900050", [{"reference_url": seed["source"]}])],
+           "a listed municipal enterprise is marked and owned by its unit, both cited to the list")
+    # A city-state's company is regional; a city's is not.
+    citystate = rules.city_state(muni, None, frozenset({"Q900050"}))
+    expect(citystate["answer"]["control"]["level"] == "regional" and muni["answer"]["control"]["level"] == "municipal",
+           "a company a city-state controls is at the regional tier")
+    expect(rules.city_state(muni, None, frozenset({"Q900001"})) is muni, "a city's company stays municipal")
+    both = {**base, "offered": ["Q900050", "Q900001"], "answer": answer(level="municipal", owners=((0, "owner"), (1, "owner")))}
+    expect(rules.city_state(both, None, frozenset({"Q900001"}), units) is both,
+           "a company a city leads with a region beside it stays the city's")
+    # Where the tier is written, a municipal body marked a state enterprise is
+    # written on, not corrected: no marker removal is proposed.
+    marked = {"claims": {"P31": [claim("P31", "Q270791", "Q1$A")]}}
+    expect(rules.correction(muni, marked, {"Q270791": {"Q270791"}}, tiers)[0] is None
+           and rules.control_rows(muni, marked, None, state, {"Q270791": {"Q270791"}}, polities=units)[0]["_rule"] == "marked",
+           "where the tier is written, a body already marked Q270791 keeps it and no removal is proposed")
+    # The sector lane: located bodies pass the organisation test like the owned
+    # lane's; its classes are companies, never sites.
+    src = Path(load.__file__).read_text()
+    by_type = src.split('bodies = {q for q in lanes if q in orgs or lanes[q] & {', 1)[1].split("}", 1)[0]
+    expect("sector" not in by_type and "municipal_category" not in by_type and "municipal_typed" in by_type,
+           "a sector or category candidate must be an organisation; a municipal company is one by type")
+    expect(not load.MUNICIPAL_CLASSES & {"Q55488", "Q41176", "Q10373565", "Q863915", "Q1154710", "Q16917"},
+           "no station, building, waterworks, port, venue or hospital is a municipal-sector class")
+    expect(load.located(frozenset(), load.MUNICIPAL_CLASSES) == set(), "no units, no sector candidates")
+    expect(set(load.MUNICIPAL_LANES) <= set(load.LANES), "the municipal lanes are reported")
+    # The prompt calls inter-municipal and joint control control; the re-ask picks the answers it changes.
+    prompt = decide.PROMPT_PATH.read_text()
+    expect("several municipalities together" in prompt and "inter-municipal association" in prompt,
+           "the prompt names inter-municipal and joint municipal control")
+    expect("municipal_uncontrolled" in reask.classes(answer(verdict="unclear", level="municipal")),
+           "a municipal body the old answer left uncontrolled is asked again")
+    expect(not reask.classes(answer(level="municipal")), "a municipal body already controlled is not")
+    a = actors.Actors(state="Q900000", kinds={"Q900000": "state", "Q900001": "subdivision", "Q900050": "municipal"})
+    expect(a.units() == {"Q900050"}, "the municipal actors are the units")
+    expect("Q900050" not in actors.offered(a, ent(), None) and "Q900050" in actors.offered(a, ent(P127=["Q900050"]), None),
+           "a unit is offered only from the item's own links, never as one of the polities")
+
+
 def historic() -> None:
     def state(types: list[str], end: str | None = None) -> dict:
         e = ent(P31=types)
@@ -535,6 +657,7 @@ def main() -> None:
     unowned()
     listed()
     parties()
+    municipal()
     historic()
     reach()
     filters()

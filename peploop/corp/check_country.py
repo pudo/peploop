@@ -31,6 +31,12 @@ def main() -> int:
                f"{cc}: extra seats map to a property and an optional QID")
         expect(all(QID.match(q) for q in spec.parties), f"{cc}: extra parties are QIDs")
         expect(all(QID.match(q) for q in spec.party_branch_classes), f"{cc}: party branch classes are QIDs")
+        expect(all(QID.match(q) for q in spec.municipal_classes), f"{cc}: municipal classes are QIDs")
+        expect(all(lang and title and depth >= 0 for lang, title, depth in spec.categories),
+               f"{cc}: municipal categories name a wiki and a title")
+        expect(all(QID.match(str(e.get("unit") or "")) for e in spec.holdings if e.get("level") == "municipal"),
+               f"{cc}: a municipal holding names its unit")
+        expect(all(e.get("level") in (None, "municipal") for e in spec.holdings), f"{cc}: holdings levels are known")
         expect(set(spec.tiers) <= TIERS, f"{cc}: tiers are known")
         expect(spec.state is None or bool(QID.match(spec.state)), f"{cc}: the state override is a QID")
     return 0

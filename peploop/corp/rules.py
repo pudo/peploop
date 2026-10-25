@@ -4,8 +4,8 @@ A body passes its gates first -- it is an enterprise or a state institution,
 it is active, the article says a state controls it, at a tier the country's
 spec writes -- or nothing is written on it. Then three kinds of statement:
 
-- on an enterprise, the marker `P31 Q270791`, unless the item is already
-  typed or given that legal form through any subclass;
+- on an enterprise, the marker `P31 Q270791`, or `P31 Q1780371` for a
+  municipal one, unless the item already reaches either through any subclass;
 - a link to each public body the answer names over it: `P127` for an owner,
   `P749` for a parent it is part of or subordinate to, unless the loaded
   chain already reaches that body through another. The body must be a state
@@ -19,6 +19,11 @@ A body the member state's own AMLR list names (the `listed` lane) is in PEP
 scope by that list: where the control gate alone stops it, its seats are
 written all the same, and nothing else (`listed_scope`). The list proves
 scope, never ownership: its marker and links still need the article.
+
+A body at the municipal tier passes only where a governed unit of 50,000
+or more (`amlr.units`) controls it and it has an article: the AMLR's
+"medium or large" read by the size of its owner, never by the company's
+figures (`municipal_unit`). A city-state's company is regional.
 
 A party or a regional branch of one (the party lanes) is admitted by its
 seat-holders, not by control: it passes when active, and gets its seats
@@ -147,13 +152,16 @@ def item(qid: str) -> dict[str, str]:
 
 
 def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countries.DEFAULT_TIERS,
-         proof: str | None = None) -> str | None:
+         proof: str | None = None, unit: str | None = None) -> str | None:
     """Why nothing is written on this body, or None when it passes.
 
     `proof` is what shows the body the state's when its articles say nothing
     about who owns it (`proven`): an official holdings list or a state-only
     legal form. It never overrides an article that names a stake or a
-    private owner.
+    private owner. `unit` is the governed unit of 50,000 or more whose
+    control puts the body in the municipal tier (`municipal_unit`); a
+    municipal body without one is controlled by a smaller unit, or by one
+    the run cannot place.
     """
     if answer["kind"] in PARTY:
         # A party is admitted by its seat-holders: no control to show.
@@ -163,8 +171,11 @@ def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countrie
     if not answer["active"]:
         return "inactive"
     control = answer["control"]
-    if control["verdict"] == "unstated" and proof and "national" in tiers:
-        return None
+    if control["verdict"] == "unstated" and proof:
+        # A city's list of its holdings proves the municipal tier, with the unit it names.
+        tier = "municipal" if proof == MUNICIPAL_LIST else "national"
+        if tier in tiers and (tier != "municipal" or unit):
+            return None
     if answer.get("statutory") in STATUTORY and control["verdict"] in ("unclear", "unstated"):
         # A public broadcaster, central bank or regulator is the state's by
         # statute, whatever its legal form (an association with a licence, a
@@ -175,6 +186,8 @@ def gate(answer: dict[str, Any], message: str, tiers: tuple[str, ...] = countrie
         return f"control:{control['verdict']}"
     if control["level"] not in tiers:
         return f"level:{control['level']}"
+    if control["level"] == "municipal" and unit is None:
+        return "municipal_unit"
     if not evidence.quoted(control["quote"], message):
         return "control_unquoted"
     return None
@@ -194,11 +207,16 @@ def listed_scope(why: str | None, listed: bool) -> bool:
     return listed and why is not None and (why in LISTED_OVERRIDES or why.startswith("level:"))
 
 
+#: What `proven` returns for a city's or district's official list of its holdings.
+MUNICIPAL_LIST = "municipal_list"
+
+
 def proven(item: dict[str, Any] | None, spec: countries.Spec, kind: str | None = None) -> str | None:
-    """What proves a body the state's apart from its articles: `list` or `form`, else None.
+    """What proves a body the state's apart from its articles: `list`, `municipal_list` or `form`, else None.
 
     An official holdings list proves it unless the entry is marked a minority
-    stake; a wiki page or query is no official list, however it was seeded. A
+    stake; a wiki page or query is no official list, however it was seeded.
+    An entry of a city's list (`level: municipal`) proves the municipal tier. A
     state-only legal form (the spec's `forms`, the item's own `P31` or
     `P1454`, exactly) proves a body of its own kind by itself: an authority's
     form proves no enterprise.
@@ -207,7 +225,7 @@ def proven(item: dict[str, Any] | None, spec: countries.Spec, kind: str | None =
         return None
     seed = item.get("seed")
     if seed and not seed.get("minority") and official(seed.get("source")):
-        return "list"
+        return MUNICIPAL_LIST if seed.get("level") == "municipal" else "list"
     entity = item.get("entity") or {}
     if any(spec.forms.get(v) in ((kind,) if kind else ("enterprise", "institution"))
            for p in ("P31", "P1454") for v in wd.values(entity, p)):
@@ -239,7 +257,8 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
                  reached: set[str] | frozenset = frozenset(),
                  government: set[str] | frozenset = frozenset(),
                  country: str | None = None, standins: frozenset[str] = frozenset(),
-                 proof: str | None = None, seed: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+                 proof: str | None = None, seed: dict[str, Any] | None = None,
+                 admins: dict[str, str] | None = None) -> list[dict[str, Any]]:
     """The type and link rows of a body that passed its gates.
 
     The marker goes on an enterprise only: a museum or a broadcaster is no
@@ -249,7 +268,9 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
     over it, each with its quote. `state` is every body that counts as the
     state's; `named` resolves a controller the answer named rather than
     chose (name → QID); `standins` are the legal persons standing for the
-    state (a state treasury), whose ownership is written as the polity's.
+    state (a state treasury), whose ownership is written as the polity's;
+    `admins` the city administrations named, each → its unit, whose
+    ownership is written as the unit's.
     A body proven the state's by a list or a form alone (`proof`) is an
     enterprise owned by the polity, cited to the list, or an institution
     with no link.
@@ -259,13 +280,15 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
     rows = []
     marks = {t for p in ("P31", "P1454") for v in wd.values(entity, p) for t in closure.get(v, {v})}
     by_proof = control["verdict"] == "unstated" and proof is not None
-    proof_sources = list_source(seed or {}) if proof == "list" else []
+    proof_sources = list_source(seed or {}) if proof in ("list", MUNICIPAL_LIST) else []
+    municipal = proof == MUNICIPAL_LIST if by_proof else control["level"] == "municipal"
     if answer["kind"] == "enterprise":
+        marker = MUNICIPAL if municipal else MARKER
         rule = "marked" if marks & MARKED else None
-        if rule is None and (req.get("qid", ""), "P31", MARKER) in refused:
+        if rule is None and (req.get("qid", ""), "P31", marker) in refused:
             # The control quote does not say the state controls it (a share figure).
             rule = "marker_unverified"
-        rows.append({"property": "P31", "value": item(MARKER),
+        rows.append({"property": "P31", "value": item(marker),
                      "qualifiers": {"_sources": proof_sources if by_proof else source(req, control["article"])},
                      "_rule": rule})
     statutory = STATUTORY.get(answer.get("statutory") or "")
@@ -279,7 +302,12 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
                      else "class_unverified" if (req.get("qid", ""), "P31", statutory) in refused
                      else None})
     if by_proof:
-        if answer["kind"] == "enterprise" and country:
+        if answer["kind"] == "enterprise" and municipal:
+            unit = (seed or {}).get("unit")
+            rows.append({"property": "P127", "value": item(unit) if unit else None,
+                         "qualifiers": {"_sources": proof_sources},
+                         "_rule": None if unit else "no_controller"})
+        elif answer["kind"] == "enterprise" and country:
             rows.append({"property": "P127", "value": item(country), "qualifiers": {"_sources": proof_sources},
                          "_rule": "standin_existing" if set(wd.values(entity, "P127")) & (standins | {country})
                          else "holder_existing" if set(wd.values(entity, "P127")) & state else None})
@@ -295,6 +323,12 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
             rows.append({"property": prop, "value": None, "qualifiers": {}, "_rule": "no_controller"})
             continue
         standin = qid in standins
+        if prop == "P127" and qid in (admins or {}):
+            # "Owner: the city administration": the owner is the city itself.
+            if qid in wd.values(entity, "P127"):
+                rows.append({"property": prop, "value": item(qid), "qualifiers": {}, "_rule": "standin_existing"})
+                continue
+            qid = (admins or {})[qid]
         if prop == "P127" and (qid in government or standin) and country and control["level"] == "national":
             # "Owner: Government of X", "owner: the State Treasury": the owner
             # is the state itself, the polity, never the body acting for it.
@@ -410,6 +444,107 @@ def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, s
                                            "P582": dates.time_value(ended)},
                             "_rule": None} for v in sorted(values)], []
     return None, [], []
+
+
+def municipal_unit(req: dict[str, Any], entity: dict[str, Any], chain: list[str] | None,
+                   units: frozenset[str] | set[str], named: dict[str, str] | None = None,
+                   through: dict[str, str] | None = None) -> str | None:
+    """The governed unit of 50,000 or more whose control puts a body in the municipal tier, or None.
+
+    Reach for this to apply the AMLR's size test for local enterprises by
+    proxy: the controlling unit is large enough and the body has an article.
+    The unit is a controller the answer names; else the unit behind a
+    controller that is itself a municipal body (`through`: an inter-municipal
+    association, a city's holding); else the end of the item's chain on
+    Wikidata; else, when the answer names no controller with an item at all,
+    the unit the body is located in (`P131`, `P159`).
+    """
+    if not req.get("articles"):
+        return None
+    found = sorted(controllers(req, named))
+    for qid in found:
+        if qid in units:
+            return qid
+    for qid in found:
+        if qid in (through or {}):
+            return (through or {})[qid]
+    if chain and chain[-1] in units:
+        return chain[-1]
+    if not found:
+        return next((q for p in ("P131", "P159") for q in wd.values(entity, p) if q in units), None)
+    return None
+
+
+#: How many owner steps a named controller is followed to the unit behind it.
+UNIT_HOPS = 2
+
+
+def controller_units(qids: set[str], entities: dict[str, dict[str, Any]], units: frozenset[str] | set[str],
+                     hops: int = UNIT_HOPS) -> dict[str, str]:
+    """The governed unit behind each named controller that is no unit itself, where one is.
+
+    Answers name a city's administration (an item whose jurisdiction,
+    `P1001`, is the city) or a city's holding company as often as the city:
+    a controller's unit is its jurisdiction, or that of an owner or parent
+    it has on Wikidata, up to `hops` steps. `entities` holds every item the
+    walk reads.
+    """
+    def walk(qid: str, left: int) -> str | None:
+        if qid in units:
+            return qid
+        entity = entities.get(qid) or {}
+        here = next((u for u in wd.values(entity, "P1001") if u in units), None)
+        if here or left == 0:
+            return here
+        return next((u for p in ("P127", "P749") for o in wd.values(entity, p) if (u := walk(o, left - 1))), None)
+    return {q: u for q in qids if q not in units and (u := walk(q, hops))}
+
+
+def unit_names(entities: dict[str, dict[str, Any]]) -> dict[str, str | None]:
+    """Each unit's labels and aliases, folded (`norm`) → the unit; None where two units share one.
+
+    A label wins over another unit's alias: a district named after its town
+    often carries the town's name as an alias.
+    """
+    def terms(kind: str) -> dict[str, str | None]:
+        out: dict[str, str | None] = {}
+        for qid, entity in sorted(entities.items()):
+            values = ([v["value"] for v in entity.get("labels", {}).values()] if kind == "labels"
+                      else [a["value"] for al in entity.get("aliases", {}).values() for a in al])
+            for term in {norm(t) for t in values if t}:
+                out[term] = qid if out.get(term, qid) == qid else None
+        return out
+    return terms("aliases") | terms("labels")
+
+
+def name_unit(name: str, names: dict[str, str | None]) -> str | None:
+    """The unit an owner's name the article does not link stands for: its label, or its label after one word.
+
+    Articles write the owner as "the town of X" in one word or two ("Stadt
+    Mannheim") where they link nothing; the link it becomes is checked
+    against its quote like any other.
+    """
+    tokens = norm(name).split()
+    for n in (len(tokens), len(tokens) - 1):
+        if n > 0 and (hit := names.get(" ".join(tokens[-n:]))):
+            return hit
+    return None
+
+
+def city_state(req: dict[str, Any], named: dict[str, str] | None, subdivisions: frozenset[str],
+               municipal: frozenset[str] | set[str] = frozenset()) -> dict[str, Any]:
+    """The request with a city-state's company at the regional tier, where the answer calls it municipal.
+
+    A city that is also a first-level subdivision (a city-state) controls
+    its companies as a region does: they are no municipal tier's. A region
+    beside a city that leads (`municipal`: the units and the bodies standing
+    for one) is a co-owner, and the company stays the city's.
+    """
+    control = req["answer"].get("control")
+    found = controllers(req, named) if control else set()
+    if not control or control["level"] != "municipal" or not found & subdivisions or found & set(municipal):
+        return req
+    return {**req, "answer": {**req["answer"], "control": {**control, "level": "regional"}}}
 
 
 def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str, Any] | None,
@@ -561,12 +696,54 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     """
     today = today or date.today()
     spec = spec or countries.get(cc)
+    subdivisions = frozenset(q for q, k in actors.kinds.items() if k == "subdivision")
+    units = actors.units()
+    # Controllers the answers named rather than chose, resolved through the
+    # article's links, count when they are a government body of the country.
+    # An owner the article does not link may still name a unit ("the town of X").
+    names = unit_names(live(sorted(units), "labels|aliases")) if units else {}
+    named: dict[str, dict[str, str]] = {}
+    for r in answered:
+        for o in r["answer"].get("control", {}).get("owners", []):
+            if o["controller"] is None and o["name"]:
+                found = linked(o["name"], o["article"], r["links"])
+                if not found and (unit := name_unit(o["name"], names)):
+                    found = [unit]
+                if len(found) == 1:
+                    named.setdefault(r["qid"], {})[o["name"]] = found[0]
+    # The unit behind each controller named, and the city administrations
+    # among them, which count as public bodies of their unit.
+    behind: dict[str, str] = {}
+    admins: dict[str, str] = {}
+    if units:
+        named_now = {q for r in answered for q in controllers(r, named.get(r["qid"]))} - units - set(actors.kinds)
+        reads = live(sorted(named_now))
+        for _ in range(UNIT_HOPS):
+            reads.update(live(sorted({o for e in reads.values() for p in ("P127", "P749") for o in wd.values(e, p)})))
+        behind = controller_units(named_now, reads, units)
+        admins = {q: u for q in named_now for u in wd.values(reads.get(q) or {}, "P1001") if u in units}
+    answered = [city_state(r, named.get(r["qid"]), subdivisions, units | set(behind)) for r in answered]
     proofs = {r["qid"]: proven(items.get(r["qid"]), spec, r["answer"]["kind"]) for r in answered}
-    passed = {r["qid"]: r for r in answered if gate(r["answer"], r["message"], spec.tiers, proofs[r["qid"]]) is None}
+    # The unit each municipal body's control resolves to; an inter-municipal
+    # association or a city's holding this run passes lends its own unit to
+    # the bodies it owns, so the walk repeats while it finds more.
+    seeds = {qid: (it.get("seed") or {}).get("unit") for qid, it in items.items()}
+    unit_of: dict[str, str | None] = {}
+    by_qid = {r["qid"]: r for r in answered}
+    for _ in range(3):
+        through = behind | {q: u for q, u in unit_of.items() if u and by_qid[q]["answer"]["control"]["level"] == "municipal"
+                            and gate(by_qid[q]["answer"], by_qid[q]["message"], spec.tiers, proofs[q], u) is None}
+        unit_of = {r["qid"]: (seeds.get(r["qid"]) if proofs[r["qid"]] == MUNICIPAL_LIST else municipal_unit(
+            r, (items.get(r["qid"]) or {}).get("entity") or {}, (items.get(r["qid"]) or {}).get("chain"), units,
+            named.get(r["qid"]), {q: u for q, u in through.items() if q != r["qid"]}))
+            for r in answered if "control" in r["answer"]}
+    why = {r["qid"]: gate(r["answer"], r["message"], spec.tiers, proofs[r["qid"]], unit_of.get(r["qid"]))
+           for r in answered}
+    passed = {r["qid"]: r for r in answered if why[r["qid"]] is None}
     # Bodies the state's own list names: in scope by the list where the control gate alone stops them.
     listed = {qid for qid, it in items.items() if "listed" in (it.get("lanes") or ())}
     scoped = {r["qid"] for r in answered if r["qid"] not in passed and r["qid"] in listed
-              and listed_scope(gate(r["answer"], r["message"], spec.tiers, proofs[r["qid"]]), True)}
+              and listed_scope(why[r["qid"]], True)}
     # Bodies the answer gates out but whose existing marker it contradicts.
     marked_now = {qid for qid, it in items.items()
                   if wd.values(it.get("entity") or {}, "P31") or wd.values(it.get("entity") or {}, "P1454")}
@@ -582,25 +759,14 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     titles = {q: {s["title"] for s in e.get("sitelinks", {}).values()} for q, e in people.items()}
     humans = {q for q, e in people.items() if "Q5" in wd.values(e, "P31")}
     dead = {q for q, e in people.items() if e.get("claims", {}).get("P570")}
-    # Controllers the answers named rather than chose, resolved through the
-    # article's links, count when they are a government body of the country.
-    named: dict[str, dict[str, str]] = {}
     # A party owns nothing here and is no state body: only the bodies' answers name controllers.
     parties = {qid for qid, r in passed.items() if r["answer"]["kind"] in PARTY}
-    for qid, r in passed.items():
-        if qid in parties:
-            continue
-        for o in r["answer"]["control"]["owners"]:
-            if o["controller"] is None and o["name"]:
-                found = linked(o["name"], o["article"], r["links"])
-                if len(found) == 1:
-                    named.setdefault(r["qid"], {})[o["name"]] = found[0]
-    government = actors.is_government({q for m in named.values() for q in m.values()})
+    government = actors.is_government({q for qid, m in named.items() if qid in passed for q in m.values()})
     # A body this run finds state-controlled is a state owner in its own right:
     # a state bank's subsidiary is held through the bank.
-    state = (set(passed) - parties) | set(actors.kinds) | government
-    polities = frozenset(q for q, k in actors.kinds.items() if k in ("state", "subdivision"))
-    subdivisions = frozenset(q for q, k in actors.kinds.items() if k == "subdivision")
+    state = (set(passed) - parties) | set(actors.kinds) | government | set(admins)
+    # A municipal unit is a polity too: an owner, never a parent organization.
+    polities = frozenset(q for q, k in actors.kinds.items() if k in ("state", "subdivision")) | units
     # A government body this run writes as an enterprise or institution (a
     # central bank, an agency holding shares) owns in its own right; only a
     # ministry or a government is written as the state it acts for.
@@ -622,13 +788,12 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     decisions: list[dict[str, Any]] = []
     removals: list[dict[str, Any]] = []
     for r in answered:
-        why = gate(r["answer"], r["message"], spec.tiers, proofs[r["qid"]])
-        if why is not None:
+        if why[r["qid"]] is not None:
             kind, add, wrong = (correction(r, entities[r["qid"]], closure, spec.tiers, subdivisions)
                                 if r["qid"] in contradicted and r["qid"] in entities else (None, [], []))
             decisions.append({"qid": r["qid"], "prop": "-", "value": None,
                               "detail": {"scope": "listed"} if r["qid"] in scoped else {},
-                              "disposition": "skip", "rule": why, "call_key": r.get("key")})
+                              "disposition": "skip", "rule": why[r["qid"]], "call_key": r.get("key")})
             seats = (listed_seats(r, humans, today, spec.roles, entities[r["qid"]], dead, matched, titles, unconfirmed)
                      if r["qid"] in scoped and r["qid"] in entities else [])
             if kind or seats:
@@ -652,7 +817,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
         chain = items.get(r["qid"], {}).get("chain")
         rows = control_rows(r, entity, chain, state, closure, named.get(r["qid"]), polities, refused,
                             reached.get(r["qid"], set()), bodies, actors.state, standins,
-                            proofs[r["qid"]], items.get(r["qid"], {}).get("seed"))
+                            proofs[r["qid"]], items.get(r["qid"], {}).get("seed"), admins)
         links = [row for row in rows if row["property"] in RELATIONS.values() and row["value"] is not None]
         if r["answer"]["kind"] == "enterprise" and not links:
             # An enterprise whose article names no public owner stands on
@@ -686,6 +851,19 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
     return lines, decisions, removals
 
 
+#: The items read live for the municipal tier, kept for the process: a run plans its country several times.
+LIVE: dict[tuple[str, str], dict[str, Any]] = {}
+
+
+def live(qids: list[str], props: str = "claims") -> dict[str, dict[str, Any]]:
+    """These items as Wikidata has them now, each read once per process."""
+    missing = [q for q in qids if (q, props) not in LIVE]
+    if missing:
+        found = wd.fetch_items(missing, props=props)
+        LIVE.update({(q, props): found.get(q) or {} for q in missing})
+    return {q: LIVE[(q, props)] for q in qids}
+
+
 def listed_seats(*args: Any, **kwargs: Any) -> list[dict[str, Any]]:
     """A listed body's seat rows when the list alone admits it, each marked so (`scope`)."""
     rows = seat_rows(*args, **kwargs)
@@ -708,7 +886,7 @@ def controllers(req: dict[str, Any], named: dict[str, str] | None) -> set[str]:
     """The bodies an answer names over its body, chosen or resolved by name."""
     offered = req["offered"]
     out = set()
-    for o in req["answer"]["control"]["owners"]:
+    for o in (req["answer"].get("control") or {}).get("owners", []):
         idx = o["controller"]
         qid = offered[idx] if idx is not None and 0 <= idx < len(offered) else (named or {}).get(o["name"] or "")
         if qid:

@@ -13,8 +13,9 @@ The logic is global. What differs by country lives in its spec,
 legal forms that mark a body, classes the type tree misfiles as government,
 seats beyond the global table, the tiers written, where rigour's main
 QID is a realm around the state, the polity whose subdivisions are the
-regional tier, parties the party lane misses and the classes of its parties'
-regional branches. A new country is a new spec, not a code change.
+regional tier, parties the party lane misses, the classes of its parties'
+regional branches, and for the municipal tier its sector classes and
+categories. A new country is a new spec, not a code change.
 
 A country is all its current QIDs: rigour's main one and its alternates,
 less the predecessor states (typed historical and ended before 1990-12-26,
@@ -46,7 +47,10 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   right and is linked as itself. A province named beside a national holder
   that leads is a co-owner and gets no link (`co_owner`); nor is the polity
   added beside a state holder the item already names (`holder_existing`). A chain of these links to the state, a first-level
-  subdivision or a government body of either is the evidence of control.
+  subdivision or a government body of either is the evidence of control;
+  where the municipal tier is written, so is one to a governed unit of
+  50,000 or more (`amlr.units`), whose own links follow the same split: a
+  city or a district owns, it is never a parent organization.
   No shares, sizes or control arithmetic: control is what the article says
   in words, never read from share figures, which go stale. Where the
   articles say nothing about who owns a body, the spec's official holdings
@@ -78,7 +82,25 @@ business). Ministries, legislatures and courts are peploop's, as positions.
 - `P31 Q270791` state-owned enterprise, on an enterprise only: the marker,
   unless the item already reaches `Q270791` or `Q1780371` through `P31` or
   `P1454`, and only when the control quote says so in words (a share figure
-  does not). An institution's links are what find it.
+  does not). An institution's links are what find it. A municipal
+  enterprise's marker is `P31 Q1780371` municipal company, under the same
+  rule.
+- **The municipal tier.** A body a municipality, a district, a public body
+  of several of them (an inter-municipal association, a metropolitan
+  authority), or several municipalities together, controls in the article's
+  words. The AMLR takes such enterprises when medium or large; pepcorp reads
+  that by proxy, never from company figures: the controlling unit is a
+  governed unit of 50,000 or more and the body has an article. The unit is
+  a controller the answer names; else the unit behind a controller that is
+  itself a municipal body the run passes (an inter-municipal association, a
+  city's holding company); else the end of the item's chain on Wikidata;
+  else, when the answer names no controller with an item, the unit the body
+  is located in. A body under a smaller unit, or none the run can place,
+  gets nothing (`municipal_unit`) and is residue. A city-state's company is
+  regional. A city's or district's official list of its holdings
+  (`level: municipal`, naming its `unit`) proves the tier where the
+  articles say nothing, as a state's list does: the enterprise is marked
+  and owned by the unit, cited to the list.
 - Leadership on the body, never as position items:
 
   | seat | enterprise | institution |
@@ -128,10 +150,12 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   alliances with no membership and a party's local branches are not
   written on; the local branches wait for the AMLR's local tier.
 
-- **Corrections.** A body whose article shows it municipal, while the
-  municipal tier is not written, gains the municipal marker `Q1780371`, and
-  its contradicted `Q270791` statement is proposed for removal and waits for
-  `removals approve`, being another editor's. Only the marker itself is
+- **Corrections.** A body whose article shows it municipal, in a country
+  that does not write the municipal tier, gains the municipal marker
+  `Q1780371`, and its contradicted `Q270791` statement is proposed for
+  removal and waits for `removals approve`, being another editor's. Where
+  the tier is written, such a body is written on like any municipal body
+  and keeps the marker it has. Only the marker itself is
   proposed, never a subclass someone chose; a city-state's company is
   regional, never corrected to municipal. A body shown privatised keeps its
   marker, ended with `P582` at the date the article gives; without a date
@@ -140,7 +164,7 @@ business). Ministries, legislatures and courts are peploop's, as positions.
 The rule is the EU AMLR: every member of the administrative, management and
 supervisory bodies of an enterprise the state controls; regional and
 municipal enterprises when medium or large. The national and regional tiers
-are written by default; a spec names its own.
+are written by default; a spec names its own, `municipal` among them.
 
 ## The run, per country
 
@@ -160,7 +184,17 @@ are written by default; a spec names its own.
    spec's `parties`), party branch (a part of such a party or its subsidiary
    by `P361`/`P749` that is typed a party or one of the spec's
    `party_branch_classes`: most parts are working groups, currents and
-   organs), both read from QLever. Dropped: dissolved, not an organisation, no article in the
+   organs), both read from QLever. Three for the municipal tier, read only
+   where the spec writes it, beside the owned lane's chains to its units:
+   municipal typed (`P31`/`P1454` in the `Q1780371` tree), sector (an item
+   located by `P131`/`P159` in a governed unit of 50,000 or more whose
+   `P31` is exactly a municipal-sector class: transport, energy and
+   utility companies, housing companies and associations, public
+   enterprises, plus the spec's `municipal_classes`; read from QLever) and
+   municipal category (the spec's `categories`). A city owns stations,
+   venues and paintings far more often than a state does: the sector and
+   category lanes pass the organisation test, and being located in a city
+   is no control. Dropped: dissolved, not an organisation, no article in the
    country's languages or English; never sports clubs, military units,
    diplomatic missions, courts or places, youth wings, parliamentary groups
    or electoral lists, nor the spec's `exclude`.
@@ -181,7 +215,8 @@ are written by default; a spec names its own.
 3. **rules** (`rules.py`): the gates (an enterprise or institution, active,
    state-controlled by a quote, at a tier the spec writes; a listed body
    passes the last two by the list, for its seats only; a party or its
-   regional branch passes when active, for its seats only), then the marker,
+   regional branch passes when active, for its seats only; a municipal body
+   needs its unit), then the marker,
    the links and the seats, each with its rule. A link needs a state body:
    a state actor, a government body (a named one resolved through the
    article's links), or one the run finds state-controlled; it is skipped
@@ -229,10 +264,12 @@ are written by default; a spec names its own.
    (link, anchor text, match), the listed bodies' own funnel (loaded,
    passed, of them by the list alone, seats written), the parties' (each
    lane loaded, what the answers call them, passed, seats by statement),
-   and the residue:
+   the municipal tier's (each lane loaded, decided municipal, passed,
+   marker, seats; seats a body and how many persons were found), and the
+   residue:
    holdings without an item, seats whose person is neither linked nor
    matched, control the articles leave unclear, the list's named-body rows
-   without an item.
+   without an item, municipal bodies under no unit of 50,000 or more.
 5. **send** (`outbox.py`): the latest run file through the joint send ledger,
    once per line; `--qid` limits a batch to chosen bodies. `--submit` goes
    out with the user, like every send.

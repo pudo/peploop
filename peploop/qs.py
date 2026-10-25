@@ -100,6 +100,11 @@ ENTERPRISE_PROPS = {
     "P5052": "supervisory board member",
     "P749": "parent organization",
 }
+#: The type markers pepcorp writes on a public enterprise, as its summary names them.
+MARKERS = {
+    "Q270791": "a state-owned enterprise",
+    "Q1780371": "a municipal company",
+}
 WIKI_RE = re.compile(r"https://([a-z0-9-]+)\.wikipedia\.org/")
 #: Source wikis named before the rest are counted, so a summary stays short.
 MAX_WIKIS = 6
@@ -125,13 +130,14 @@ def describe(tool: str, cols: list[str]) -> str:
             verb, prop = "refine", cols[2]
         else:
             verb, prop = ("add" if cols[0].startswith("+") else "complete"), cols[1]
-        if tool == "pepcorp" and prop == "P31" and len(cols) > 2 and cols[2] == "Q270791":
+        marker = MARKERS.get(cols[2]) if tool == "pepcorp" and prop == "P31" and len(cols) > 2 else None
+        if marker:
             name = None
         elif prop.startswith("P"):
             name = PERSON_PROPS.get(prop) or ENTERPRISE_PROPS.get(prop, prop)
         else:
             name = {"L": "label", "D": "description", "A": "alias"}.get(prop[:1], prop)
-        what = "mark as a state-owned enterprise" if name is None else f"{verb} {name}"
+        what = f"mark as {marker}" if name is None else f"{verb} {name}"
         wikis = sorted(set(WIKI_RE.findall("\t".join(cols))))
         if wikis:
             more = f" and {len(wikis) - MAX_WIKIS} more" if len(wikis) > MAX_WIKIS else ""

@@ -33,8 +33,11 @@ Netherlands 17/20.
 Left:
 
 1. The four municipal removals awaiting approval (Hallesche Verkehrs-AG,
-   Verkehrsbetrieb Potsdam, Bremer Straßenbahn, OOWV): `removals --tool
-   pepcorp`.
+   Verkehrsbetrieb Potsdam, Bremer Straßenbahn, OOWV) were withdrawn by
+   the de run of 2026-10-25: Germany now writes the municipal tier, where
+   the correction rule does not fire, and these bodies keep `Q270791`. The
+   user decides whether a written tier should still swap `Q270791` for
+   `Q1780371`; the rows are saved in the session scratchpad.
 2. Council institutions: where the institution is itself a council
    (Kiesraad, Raad voor het Openbaar Bestuur), its members and chair are
    written as supervisory board members; they are the body, peploop's
@@ -149,6 +152,24 @@ Where the German funnel loses statements, besides unlinked people (§2):
   4. OpenSanctions does not read parties yet: `wd_soe` reads state
      bodies only. A party lane reading `P488`, `P3975` and `P3320` on the
      country's parties is the crawler side of this.
+- The municipal tier (2026-10-25): built and dry-run on de, nothing sent:
+  249 municipal bodies passed, 300 lines on 193 bodies (117 `Q1780371`,
+  101 `P127`, 78 seats). Left:
+  1. Send with the user, as two tranches limited with `corp send de
+     --qid`: the 57 bodies with seats (116 lines), then the 134 with only
+     a marker and links (180 lines). Re-plan de first once QLever answers:
+     the last fix (a region beside a leading city) is not in the run file.
+  2. A city's departments (Kulturreferat) pass as institutions; the
+     prompt's government kind should name a municipality's departments.
+  3. The other countries: pl, es, it, at, nl, be, cz, pt each need their
+     `municipal_classes` and categories measured, and a run limited to the
+     new bodies (`reask` picks the old answers the prompt change affects).
+  4. Open interim calls: Sparkassen and hospitals stay out; joint
+     ownership by several municipalities passes the gate but its links
+     still need the verify check, which reads joint carriers as owning
+     none; an owner named unlinked resolves to a unit by its label or
+     its label after one word; a unit is found through a named
+     controller's jurisdiction or owners up to two steps.
 - Zambia needs a holdings list (the IDC portfolio): its Wikidata has almost
   no state links and its category three members.
 - Norway beyond the 30-body trial; Greenland and Faroe as their own specs.
@@ -158,7 +179,7 @@ Where the German funnel loses statements, besides unlinked people (§2):
 
 ## 5. Parked
 
-- The municipal tier, Sparkassen included, with the `Q1780371` marker.
+- Sparkassen in the municipal tier (152 in German ≥50k units).
 - Employee representatives on co-determined supervisory boards, tagged on
   their `P5052` seat (memo open question 3).
 - peploop's `soe_head` minting: hand the enterprise to pepcorp instead of

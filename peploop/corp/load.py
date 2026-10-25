@@ -43,8 +43,23 @@ Two more lanes bring in political parties, whose governing bodies are PEPs
   charity federations. Youth wings, parliamentary groups and electoral lists
   are never a branch (`EXCLUDED`).
 
-Only the municipal tier's marker (`Q1780371`) stays out of the typed lane for
-now: municipal enterprises are a later tier.
+Three more lanes bring in a city's or a grouping's bodies, only where the
+country's spec writes the municipal tier (AMLR Art. 2(1)(34)(vii)); the
+`owned` lane reaches them too, through chains ending at a governed unit of
+50,000 or more (`actors.py`):
+
+- `municipal_typed`: the item is a municipal company (`Q1780371`, through
+  any subclass) by `P31` or `P1454`;
+- `sector`: an organisation located (`P131`, `P159`) in a governed unit of
+  50,000 or more whose `P31` is a municipal-sector class
+  (`MUNICIPAL_CLASSES` and the spec's `municipal_classes`), matched exactly.
+  Being located there proves nothing: the answer must still say a
+  municipality controls it, as for any lane;
+- `municipal_category`: the spec's Wikipedia categories of municipal
+  enterprises list it.
+
+A city owns stations, venues and paintings far more often than a state does;
+the organisation test drops them, so only the typed lane is a body by type.
 """
 
 from datetime import date
@@ -61,6 +76,25 @@ from peploop.corp import rules, wd
 
 #: The markers whose subclass trees the typed lane reads.
 TYPED_ROOTS = ("Q270791",)
+#: The municipal company class, whose subclass tree the municipal typed lane reads.
+MUNICIPAL_ROOT = "Q1780371"
+#: The classes whose instances located in a governed unit of 50,000 or more
+#: are municipal-tier candidates, in every country that writes the tier; a
+#: spec adds its own (`municipal_classes`). Utilities, transport and housing
+#: are what cities run as companies; hospitals and banks are left to a
+#: spec, as most of them are no city's.
+MUNICIPAL_CLASSES = frozenset({
+    "Q740752",  # transport company
+    "Q2127330",  # public transport company
+    "Q1341478",  # energy company
+    "Q1951366",  # public utility
+    "Q1534992",  # housing company
+    "Q8207109",  # housing association
+    "Q1780371",  # municipal company
+    "Q17990971",  # public enterprise
+})
+SECTOR = """SELECT DISTINCT ?i WHERE { VALUES ?u { %s } VALUES ?c { %s } ?i wdt:P31 ?c .
+  { ?i wdt:P131 ?u } UNION { ?i wdt:P159 ?u } }"""
 TYPED = """SELECT DISTINCT ?i WHERE { ?c wdt:P279* wd:%s . { ?i wdt:P31 ?c } UNION { ?i wdt:P1454 ?c } ?i wdt:P17 wd:%s . }"""
 #: Classes that are never a candidate, in any country: their leaders are
 #: peploop's (officers, ambassadors, judges, mayors, ministers), they are no body at all,
@@ -107,7 +141,10 @@ PARTY_PARTS = """SELECT DISTINCT ?b WHERE { VALUES ?p { %s } { ?b wdt:P361 ?p } 
 
 
 #: Every lane, in the order the load reports them.
-LANES = ("typed", "formed", "statutory", "owned", "parented", "category", "seed", "listed", "party", "party_branch")
+LANES = ("typed", "formed", "statutory", "owned", "parented", "category", "seed", "listed", "party", "party_branch",
+         "municipal_typed", "sector", "municipal_category")
+#: The lanes only a country writing the municipal tier reads.
+MUNICIPAL_LANES = ("municipal_typed", "sector", "municipal_category")
 #: The lanes whose bodies are parties, asked about their governing bodies and never about control.
 PARTY_LANES = ("party", "party_branch")
 
@@ -140,6 +177,20 @@ def categorised(state: str, wikis: list[str]) -> set[str]:
             title = site["title"].split(":", 1)[-1]
             found.update(q for _, q in wikipedia.walk_category(title, lang, 1))
     return found
+
+
+def located(units: frozenset[str] | set[str], classes_: frozenset[str] | set[str]) -> set[str]:
+    """The items of these classes located in these units: the sector lane's candidates, read from QLever."""
+    if not units or not classes_:
+        return set()
+    cls = wd.values_block(sorted(classes_))
+    return {r["i"] for r in wd.bisect(lambda chunk: wd.qlever(SECTOR % (wd.values_block(chunk), cls)),
+                                      sorted(units), size=100)}
+
+
+def municipal_categorised(spec: countries.Spec) -> set[str]:
+    """The items the spec's municipal enterprise categories list."""
+    return {q for lang, title, depth in spec.categories for _, q in wikipedia.walk_category(title, lang, depth)}
 
 
 def listed(cc: str) -> set[str]:
@@ -231,6 +282,14 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
         lanes.setdefault(qid, set()).add("party")
     for qid in branches(found):
         lanes.setdefault(qid, set()).add("party_branch")
+    if "municipal" in spec.tiers:
+        for name in names:
+            for r in wd.sparql(TYPED % (MUNICIPAL_ROOT, name)):
+                lanes.setdefault(r["i"], set()).add("municipal_typed")
+        for qid in located(actors.units(), MUNICIPAL_CLASSES | spec.municipal_classes):
+            lanes.setdefault(qid, set()).add("sector")
+        for qid in municipal_categorised(spec):
+            lanes.setdefault(qid, set()).add("municipal_category")
     count = lambda lane: sum(lane in v for v in lanes.values())  # noqa: E731
     log(f"{cc}: {len(actors.kinds)} state actors; {len(lanes)} candidates " + ", ".join(
         f"{lane} {count(lane)}" for lane in LANES))
@@ -254,10 +313,10 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     nonbranch = {q for q in lanes if lanes[q] == {"party_branch"}
                  and not branch(own[q], closure.get(q, set()), spec.party_branch_classes)}
     # A category lists buildings and brands too, so its members pass the
-    # organisation test like the owned lane's; a typed, formed, statutory or listed item
-    # is a body by its type or by the list.
+    # organisation test like the owned lane's, and so do the sector lane's;
+    # a typed, formed, statutory or listed item is a body by its type or by the list.
     # A party is a body by its members' seats, as a listed one is by the list.
-    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "formed", "statutory", "listed", "party"}}
+    bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "municipal_typed", "formed", "statutory", "listed", "party"}}
     keep = [q for q in sorted(lanes) if "excluded" not in lanes[q] and q in bodies and q not in nonbranch]
     entities = wd.fetch_items(keep)
     wikis = langs(state)

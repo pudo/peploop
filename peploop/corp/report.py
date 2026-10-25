@@ -2,14 +2,15 @@
 
 The residue is what a run cannot write and does not ask about: listed holdings
 without an item, seats whose person neither the article links nor the match
-by name finds, enterprises whose control the articles leave unclear, and the
-named-body rows of the state's AMLR list that no item resolves.
+by name finds, enterprises whose control the articles leave unclear, the
+named-body rows of the state's AMLR list that no item resolves, and the
+municipal bodies no governed unit of 50,000 or more controls.
 """
 
 from collections import Counter, defaultdict
 from typing import Any
 
-from peploop import memo
+from peploop import amlr, memo
 from peploop.corp import country as countries
 from peploop.corp import decide, load, qs, wd
 
@@ -53,6 +54,8 @@ def report(cc: str) -> str:
            f"- run file: {path} ({n_lines} lines)", ""]
     out += listed(cc, rows, loaded_listed(cc))
     out += parties(rows, loaded_parties(cc), kinds)
+    levels = {r["qid"]: (r["answer"].get("control") or {}).get("level") for r in decide.from_ledger(cc)}
+    out += municipal(cc, rows, levels, name)
     out += ["## Enterprises written on", ""]
     for qid, rs in by_qid.items():
         if any(r[1] == "-" for r in rs) and not any(r[4] in ("apply", "remove") for r in rs):
@@ -139,6 +142,61 @@ def parties(rows: list[tuple[Any, ...]], loaded: dict[str, tuple[str, str]], kin
             f"- seats written: {len(seats)}: " + ", ".join(f"{k} {v}" for k, v in by_seat.most_common()),
             "- seats skipped: " + ", ".join(f"{k} {v}" for k, v in Counter(
                 r[5] for r in mine if r[1] != "-" and r[4] == "skip").most_common()), ""]
+
+
+#: The properties a seat is written with, as against the marker and the links.
+NOT_SEATS = ("P31", "P127", "P749")
+#: Why a named seat found no person.
+UNFOUND = ("person_unlinked", "person_ambiguous", "not_human", "person_unconfirmed")
+
+
+def municipal(cc: str, rows: list[tuple[Any, ...]], levels: dict[str, str | None], name: Any) -> list[str]:
+    """The municipal tier's funnel, per lane: loaded, decided municipal, passed, marker, seats; and its residue."""
+    if "municipal" not in countries.get(cc).tiers:
+        return []
+    units = set(amlr.units(cc))
+    stored = wd.conn().execute("SELECT qid, lanes, chain, coalesce(dropped, 'kept') FROM pcorp_item WHERE country = %s",
+                               (cc,)).fetchall()
+    lanes: dict[str, set[str]] = {}
+    why: dict[str, str] = {}
+    for qid, ls, chain, dropped in stored:
+        mine = set(ls) & set(load.MUNICIPAL_LANES) | ({"owned_unit"} if chain and chain[-1] in units else set())
+        if mine:
+            lanes[qid], why[qid] = mine, dropped
+    by_qid: dict[str, list[tuple[Any, ...]]] = defaultdict(list)
+    for r in rows:
+        by_qid[r[0]].append(r)
+    passed = {q for q, rs in by_qid.items() if levels.get(q) == "municipal" and not any(r[1] == "-" for r in rs)}
+
+    def line(label: str, members: set[str]) -> str:
+        kept = {q for q in members if why.get(q, "kept") == "kept"}
+        decided = {q for q in kept if levels.get(q) == "municipal"}
+        mine = passed & members
+        marker = sum(1 for q in mine for r in by_qid[q] if r[4] == "apply" and (r[1], r[2]) == ("P31", "Q1780371"))
+        seats = sum(1 for q in mine for r in by_qid[q] if r[4] == "apply" and r[1] not in NOT_SEATS)
+        loaded = ", ".join(f"{k} {v}" for k, v in Counter(why.get(q, "kept") for q in members).most_common())
+        return (f"- {label}: loaded {len(members)} ({loaded}); decided municipal {len(decided)}; passed {len(mine)};"
+                f" marker {marker}; seats {seats}")
+
+    every = set(lanes) | {q for q, lv in levels.items() if lv == "municipal"}
+    seats = [r for q in passed for r in by_qid[q] if r[1] not in NOT_SEATS and r[1] != "-"]
+    written = [r for r in seats if r[4] == "apply"]
+    unfound = [r for r in seats if r[5] in UNFOUND]
+    gated = Counter(r[5] for q in every for r in by_qid.get(q, []) if r[1] == "-" and levels.get(q) == "municipal")
+    out = ["## Municipal tier", "",
+           *(line(lane, {q for q, ls in lanes.items() if lane in ls}) for lane in (*load.MUNICIPAL_LANES, "owned_unit")),
+           line("any lane", every),
+           "- municipal bodies not written on: " + ", ".join(f"{k} {v}" for k, v in gated.most_common()),
+           f"- seats on passed bodies: {len(written)} written on {len({r[0] for r in written})} bodies"
+           f" ({len(written) / max(len(passed), 1):.2f} a body); " + ", ".join(
+               f"{k} {v}" for k, v in Counter(r[1] for r in written).most_common()),
+           f"- person found for {len(written)} of {len(written) + len(unfound)} seats the dates would let through"
+           f" (not found: " + ", ".join(f"{k} {v}" for k, v in Counter(r[5] for r in unfound).most_common()) + ")",
+           "", "### Municipal bodies under no unit of 50,000 or more", ""]
+    out += [f"- {q} {name(q)}" for q in sorted(every) if any(r[5] == "municipal_unit" for r in by_qid.get(q, []))]
+    out += ["", "### Municipal control unclear in the articles", ""]
+    out += [f"- {q} {name(q)}" for q in sorted(lanes) if any(r[5] == "control:unclear" for r in by_qid.get(q, []))]
+    return out + [""]
 
 
 def write(cc: str) -> str:

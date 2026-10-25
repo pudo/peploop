@@ -25,9 +25,9 @@ TOKENS = (
     "de.wikipedia", "landesbank",
 )
 QIDS = ("Q183",)
-#: Every form, misfiled class and party branch class a country spec names: spec data, never code.
+#: Every form, misfiled class, party branch class and municipal class a country spec names: spec data, never code.
 SPEC_QIDS = tuple(sorted({q for path in (Path(__file__).resolve().parent / "countries").glob("*.yml")
-                          for key in ("forms", "not_government", "exclude", "party_branch_classes")
+                          for key in ("forms", "not_government", "exclude", "party_branch_classes", "municipal_classes")
                           for q in [str(e["qid"]) for e in (yaml.safe_load(path.read_text()) or {}).get(key) or []]}))
 QID_RE = re.compile(r"\b(" + "|".join(QIDS + SPEC_QIDS) + r")\b")
 SELF = Path(__file__).name

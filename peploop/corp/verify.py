@@ -6,8 +6,9 @@ take as control, so each one the rules would write gets a second, narrow
 look: the two bodies and the quote, nothing else. A link refused on its own
 quote is checked again against the answer's control quote; one refused on
 both is skipped; the rest of the body's answer stands. The state-owned
-enterprise marker gets the same look at the control quote (and each owner's
-quote): a share figure or a list of shareholders is no control. So does a
+enterprise marker, and the municipal company marker, get the same look at
+the control quote (and each owner's quote): a share figure or a list of
+shareholders is no control. So does a
 statutory class, with the article's opening beside the control quote: a
 registry or a watchdog called a regulator is a body no reader wants under
 that class. Answers are kept in
@@ -32,8 +33,12 @@ MODEL = os.environ.get("PEPCORP_VERIFY_MODEL", "claude-sonnet-5-5")
 RELATIONS = {"P127": "owner", "P749": "parent"}
 #: How the check is told which property a link is.
 PROPERTIES = {"P127": "owned by", "P749": "parent organization"}
-#: The marker checked like a link: its target is no body but the claim itself.
-MARKER = ("P31", "Q270791")
+#: The markers checked like a link: their target is no body but the claim itself, as it reads.
+MARKERS = {
+    ("P31", rules.MARKER): "a state-owned enterprise -- a state, a subdivision of one or a public body of either controls it",
+    ("P31", rules.MUNICIPAL): "a municipal company -- a municipality, a district or a public body of several of them"
+                              " controls it",
+}
 #: The statutory classes, checked like the marker, and how the claim reads.
 CLASSES = {
     rules.STATUTORY["regulator"]: "a regulator -- it sets rules for a sector or market, licenses it, or supervises its firms",
@@ -83,10 +88,10 @@ def opening(message: str, lang: str | None) -> str:
     return next((ln for ln in lines if len(ln) >= 100 and not ln.startswith("```")), "")[:OPENING_CHARS]
 
 
-def marker_message(body: str, quote: str, names: dict[str, str]) -> str:
+def marker_message(body: str, quote: str, names: dict[str, str], marker: str = rules.MARKER) -> str:
     return "\n".join([
         f"Body: {body} ({names.get(body, '')})",
-        "Claim: a state-owned enterprise -- a state, a subdivision of one or a public body of either controls it",
+        f"Claim: {MARKERS[('P31', marker)]}",
         "Passage:",
         quote,
     ])
@@ -111,7 +116,7 @@ def refused(cc: str, decisions: list[dict[str, Any]], answered: list[dict[str, A
              if d["disposition"] == "apply" and d["prop"] in RELATIONS]
     # A marker resting on the articles' words; one proven by a list or a form has no quote to check.
     markers = [(d["qid"], d["prop"], d["value"]) for d in decisions
-               if d["disposition"] == "apply" and (d["prop"], d["value"]) == MARKER
+               if d["disposition"] == "apply" and (d["prop"], d["value"]) in MARKERS
                and reqs[d["qid"]]["answer"]["control"]["verdict"] == "state"]
     classes = [(d["qid"], d["prop"], d["value"]) for d in decisions
                if d["disposition"] == "apply" and d["prop"] == "P31" and d["value"] in CLASSES]
@@ -150,8 +155,8 @@ def refused(cc: str, decisions: list[dict[str, Any]], answered: list[dict[str, A
         quotes[cls] = [reqs[cls[0]]["answer"]["control"].get("quote") or ""]
 
     def key_text(link: tuple[str, str, str], quote: str) -> tuple[str, str]:
-        if (link[1], link[2]) == MARKER:
-            text = marker_message(link[0], quote, names)
+        if (link[1], link[2]) in MARKERS:
+            text = marker_message(link[0], quote, names, link[2])
         elif link[1] == "P31":
             req = reqs[link[0]]
             text = class_message(link[0], link[2], quote, opening(req["message"], req["answer"]["control"]["article"]),

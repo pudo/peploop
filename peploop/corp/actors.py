@@ -3,10 +3,12 @@
 A body is state-controlled when a chain of `P127` (owned by) or `P749`
 (parent organization) links ends at the state: the country itself, one of its
 first-level subdivisions, or a government body of either (a ministry, an
-agency, a government). Wikidata writes that chain many ways -- straight to the
-country, through a ministry or a state holding, through another state body --
-so the walk follows both links up to `HOPS` steps rather than asking for one
-shape.
+agency, a government). Where a country's spec writes the municipal tier, its
+governed units of 50,000 or more (`amlr.units`) are actors too, and a chain
+ending at one is municipal control. Wikidata writes that chain many ways --
+straight to the country, through a ministry or a state holding, through
+another state body -- so the walk follows both links up to `HOPS` steps
+rather than asking for one shape.
 
 The links come from QLever: the query service cannot list every `P127` and
 `P749` of a country inside its time limit, and a dump days old is good enough
@@ -19,7 +21,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Iterable
 
-from peploop import policy, typegraph
+from peploop import amlr, policy, typegraph
 from peploop.corp import country as countries
 from peploop.corp import wd
 
@@ -38,7 +40,7 @@ GOVERNMENT = frozenset({
 #: Classes that disqualify a body whatever else it is, in every country: the
 #: type tree makes every municipality and district a government organization,
 #: and public research institutions and state enterprises too. Polities are
-#: actors by name, municipalities are a later tier, and a research institution
+#: actors by name, municipal units by the AMLR unit set, and a research institution
 #: or a state enterprise is an owner once a run decides the state controls it.
 #: A country adds its own misfiled classes in its spec (`not_government`).
 NOT_GOVERNMENT = frozenset({
@@ -65,7 +67,7 @@ class Actors:
     """A country's state actors and the links read for it."""
 
     state: str
-    #: actor QID → "state", "subdivision" or "government".
+    #: actor QID → "state", "subdivision", "government" or "municipal".
     kinds: dict[str, str] = field(default_factory=dict)
     #: link property → target → the items linking to it.
     links: dict[str, dict[str, set[str]]] = field(default_factory=dict)
@@ -86,6 +88,10 @@ class Actors:
                     nxt[item] = chains[item]
             frontier = nxt
         return chains
+
+    def units(self) -> frozenset[str]:
+        """The governed units of 50,000 or more whose bodies are the municipal tier: empty unless the spec writes it."""
+        return frozenset(q for q, k in self.kinds.items() if k == "municipal")
 
     def parented(self) -> set[str]:
         """Items whose parent organization is a state actor: the bodies a ministry or government runs."""
@@ -161,12 +167,20 @@ def read(cc: str) -> Actors:
                      not_government, jurisdictions)
     kinds.update({q: "state" for q in names})
     kinds.update(spec.actors)
+    if "municipal" in spec.tiers:
+        # A city that is also a first-level subdivision (a city-state) stays one.
+        for unit in amlr.units(cc):
+            kinds.setdefault(unit, "municipal")
     return Actors(state=state, kinds=kinds, links=links, polities=frozenset(polities), not_government=not_government)
 
 
 def offered(actors: Actors, entity: dict[str, Any], chain: list[str] | None) -> list[str]:
-    """The controllers a decision may choose among: the item's own owners, parents and chain, then the polities."""
+    """The controllers a decision may choose among: the item's own owners, parents and chain, then the polities.
+
+    A municipal unit is offered only from the item's own links or chain:
+    every city of a country would swamp the list.
+    """
     first = [*wd.values(entity, "P127"), *wd.values(entity, "P749"), *(chain[1:] if chain else [])]
-    polities = sorted((q for q, k in actors.kinds.items() if k != "government"),
+    polities = sorted((q for q, k in actors.kinds.items() if k in ("state", "subdivision")),
                       key=lambda q: (actors.kinds[q] != "state", q))
     return list(dict.fromkeys([*first, *polities]))

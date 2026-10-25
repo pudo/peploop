@@ -47,8 +47,9 @@ def routing() -> None:
         out = verify.refused("xx", decisions, [req], log=lambda m: None)
     finally:
         verify.ask, decide.recorded, wd.conn, memo.labels_of = real  # type: ignore[assignment]
-    expect(out == {("Q900999", "P31", rules.STATUTORY["regulator"])} and len(asked) == 1,
-           "a written statutory class is checked once and comes back refused; the municipal marker is no class")
+    expect(out == {("Q900999", "P31", rules.STATUTORY["regulator"]), ("Q900999", "P31", rules.MUNICIPAL)}
+           and len(asked) == 2, "a written statutory class and the municipal marker are each checked once and come back refused")
+    expect(any("a municipal company" in text for text in asked), "the municipal marker is checked as its own claim")
 
 
 def main() -> None:

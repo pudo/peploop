@@ -4,7 +4,9 @@ pepcorp's logic is global. What differs by country lives in
 `countries/<cc>.yml`, so a new country is a new file, not a code change:
 
 - `holdings`: official lists of state holdings, each entry `name`, `qid`
-  (null when the holding has no item), `holder`, `source`;
+  (null when the holding has no item), `holder`, `source`; an entry from a
+  city's or district's list of its holdings says `level: municipal` and
+  names the holding unit as `unit` (its QID);
 - `forms`: state-only legal forms and types (`P31` or `P1454`, matched
   exactly) that mark a body as state, each with the `kind` it is;
 - `not_government`: classes the type tree wrongly makes a government body
@@ -13,7 +15,8 @@ pepcorp's logic is global. What differs by country lives in
   municipal savings bank, a professional chamber);
 - `roles`: seats beyond the global table, `role` → `property` and an
   optional `qualifier` (a party committee secretary in a party state);
-- `tiers`: the control tiers whose bodies are written;
+- `tiers`: the control tiers whose bodies are written (`national`,
+  `regional`, `municipal`);
 - `state`: the item the country's items name as their country (`P17`), where
   it is not the one rigour gives (a realm or kingdom around the state);
 - `actors`: items that stand for the state or its government here but that
@@ -25,7 +28,15 @@ pepcorp's logic is global. What differs by country lives in
 - `party_branch_classes`: the classes, beyond political party, that make a
   part of a party one of its branches here (a federal party's state
   associations, typed as associations), matched exactly as `P31`, each
-  `{qid, name}`.
+  `{qid, name}`;
+- `municipal_classes`: the classes, beyond the global ones
+  (`load.MUNICIPAL_CLASSES`), whose instances located in a governed unit of
+  50,000 or more are candidates for the municipal tier here (a city's
+  utility company, an inter-municipal association), matched exactly as
+  `P31`, each `{qid, name}`;
+- `categories`: Wikipedia categories that list the country's municipal
+  enterprises, each `{lang, title, depth}` (the title without its
+  namespace; `depth` as `wikipedia.walk_category` counts it, 1 by default).
 """
 
 from dataclasses import dataclass, field
@@ -57,6 +68,9 @@ class Spec:
     actors: dict[str, str] = field(default_factory=dict)
     parties: frozenset[str] = frozenset()
     party_branch_classes: frozenset[str] = frozenset()
+    municipal_classes: frozenset[str] = frozenset()
+    #: (lang, title, depth) of each municipal enterprise category.
+    categories: tuple[tuple[str, str, int], ...] = ()
 
     def seeded(self) -> dict[str, dict[str, Any]]:
         """QID → holdings entry, for the entries that name an item."""
@@ -84,6 +98,8 @@ def get(cc: str) -> Spec:
         actors={str(a["qid"]): str(a["kind"]) for a in data.get("actors") or []},
         parties=frozenset(str(q["qid"]) for q in data.get("parties") or []),
         party_branch_classes=frozenset(str(q["qid"]) for q in data.get("party_branch_classes") or []),
+        municipal_classes=frozenset(str(q["qid"]) for q in data.get("municipal_classes") or []),
+        categories=tuple((str(c["lang"]), str(c["title"]), int(c.get("depth", 1))) for c in data.get("categories") or []),
     )
 
 

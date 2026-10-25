@@ -58,7 +58,11 @@ and an article lags them.
     call state-owned: name that one as its owner. So is a body a law sets up whose leadership or
     supervisory body a state organ (its parliament, government or head of
     state) appoints -- a public broadcaster, a central bank, an independent
-    authority -- with no owner: it is the state's by statute.
+    authority -- with no owner: it is the state's by statute. So is a body
+    that a municipality, a district or a public body of several of them (an
+    inter-municipal association or special-purpose union, a metropolitan
+    authority) owns or runs, and one that several municipalities together
+    own or control, when the articles say so in words.
   - `private`: the articles say it is privately owned, or listed without a
     public owner that runs it.
   - `unclear`: they only report a public stake or holding (of whatever
@@ -70,9 +74,12 @@ and an article lags them.
 - `control.level`: `national` for the state itself or its government bodies,
   `regional` for a first-level subdivision or its bodies (a city that is
   itself a first-level subdivision, a city-state, is `regional`),
-  `municipal` for a city, district, municipality or an association of them, `foreign` for
+  `municipal` for a city, district, municipality, a public body of several
+  of them or several of them together, `foreign` for
   another country's state, `none` otherwise. Where several public bodies
   share control, the level of the one the articles present as leading.
+  Name each municipality or association the articles present as owning or
+  running it in `control.owners`.
 - `control.quote` and `control.article`: the sentence that says who owns,
   carries or runs it, verbatim, and the language code of its article. An
   infobox field naming its owner or parent company says so as a sentence
