@@ -72,7 +72,9 @@ dated, in their words; never add, expand, reword or remove an entry yourself.
 - An office is its title and its polity: the same title in another state,
   province or council is another office.
 - Measure the convention, don't declare it: tally de-facto practice over
-  well-curated items before choosing a property.
+  well-curated items before choosing a property. Write the mainstream form
+  and read every form: never remove or swap another editor's modelling to
+  enforce ours; add beside it.
 - Holder-derived priors are corpus-biased: a 90–100% one-country share often
   means one wiki documented its people, not that the office is bound there.
 - A class of case that should not be written becomes a rule with its check,

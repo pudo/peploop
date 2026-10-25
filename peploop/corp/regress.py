@@ -56,7 +56,7 @@ def evaluate(path: Path, log: Callable[[str], None] = print) -> list[dict[str, A
         asked = {r["qid"] for r in decide.decide(cc, log=log, only=qids)}
         # The country's other answers are the context the rules plan against
         # (a holder this run finds state-controlled); only the set is checked.
-        _, decisions, _ = run.plan(cc, decide.from_ledger(cc), log, checked=qids)
+        _, decisions = run.plan(cc, decide.from_ledger(cc), log, checked=qids)
         for c in mine:
             got, detail = outcome(c, decisions)
             out.append({**c, "got": got, "ok": passes(c, got, detail), "asked": c["qid"] in asked})

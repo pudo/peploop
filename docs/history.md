@@ -468,6 +468,14 @@ Switzerland (2026-10-17/18), nothing sent.
   Kulturreferat, a department, written as an institution). Writing the
   tier stops the correction rule, so the four German marker removals
   awaiting approval were withdrawn by the run.
+- **Corrections became additive (2026-10-25).** The correction rule had
+  proposed removing `Q270791` from bodies the article shows municipal. The
+  two classes are siblings under public enterprise, and only one item
+  carried both, so the swap looked like the correct model. The user ruled
+  it out: the tool writes the mainstream form and reads every form, and
+  never overwrites another editor's modelling (Postel's law). `Q1780371`
+  now goes beside a `Q270791` someone chose, and the nine proposals still
+  pending (at, ch, it, lv) were rejected in the ledger.
 - **International boards are thin in the articles (2026-10-25).** The
   `international` spec over the same 210 bodies plus the EIF: 193 kept
   with an article in English, French or German; answers called 71 a Union

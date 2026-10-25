@@ -4,8 +4,10 @@ A body passes its gates first -- it is an enterprise or a state institution,
 it is active, the article says a state controls it, at a tier the country's
 spec writes -- or nothing is written on it. Then three kinds of statement:
 
-- on an enterprise, the marker `P31 Q270791`, or `P31 Q1780371` for a
-  municipal one, unless the item already reaches either through any subclass;
+- on an enterprise, the marker `P31 Q270791`, unless the item already reaches
+  either marker through any subclass, or `P31 Q1780371` for a municipal one,
+  unless it already reaches that one: added beside a state marker someone
+  else chose, never in its place;
 - a link to each public body the answer names over it: `P127` for an owner,
   `P749` for a parent it is part of or subordinate to, unless the loaded
   chain already reaches that body through another. The body must be a state
@@ -53,7 +55,7 @@ from typing import Any
 
 from psycopg.types.json import Jsonb
 
-from peploop import dates, evidence, ledger, route, tenure, typegraph
+from peploop import dates, evidence, route, tenure, typegraph
 from peploop.corp import actors as actormod
 from peploop.corp import country as countries
 from peploop.corp import wd
@@ -64,7 +66,7 @@ MARKER = "Q270791"
 MUNICIPAL = "Q1780371"
 #: Markers that already make an item findable as a public enterprise, through any subclass.
 MARKED = frozenset({MARKER, MUNICIPAL})
-#: The tool name the send ledger records pepcorp's edits and removals under.
+#: The tool name the send ledger records pepcorp's edits under.
 TOOL = "pepcorp"
 #: The link property for each relation an answer names.
 RELATIONS = {"owner": "P127", "parent": "P749"}
@@ -304,7 +306,7 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
     municipal = proof == MUNICIPAL_LIST if by_proof else control["level"] == "municipal"
     if answer["kind"] == "enterprise":
         marker = MUNICIPAL if municipal else MARKER
-        rule = "marked" if marks & MARKED else None
+        rule = "marked" if marks & (frozenset({MUNICIPAL}) if municipal else MARKED) else None
         if rule is None and (req.get("qid", ""), "P31", marker) in refused:
             # The control quote does not say the state controls it (a share figure).
             rule = "marker_unverified"
@@ -409,61 +411,54 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
     return out
 
 
-#: Why a marker is proposed for removal, as the edit summary says it.
-REMOVAL_REASONS = {
-    "municipal": "a municipal company, not a state-owned enterprise (its Wikipedia article)",
-}
-
-
 def correction(req: dict[str, Any], entity: dict[str, Any], closure: dict[str, set[str]],
                tiers: tuple[str, ...], subdivisions: frozenset[str] = frozenset(),
-               ) -> tuple[str | None, list[dict[str, Any]], list[dict[str, Any]]]:
-    """A marker the answer contradicts: (kind of correction, rows to add, statements to propose removing).
+               ) -> tuple[str | None, list[dict[str, Any]]]:
+    """A marker the answer contradicts: (kind of correction, rows to add).
 
     A body the article shows to be municipal, while the tier is not written,
-    keeps no state-enterprise marker and gains the municipal one. A body it
-    shows to be private, and dates when the state gave it up, keeps its
-    marker with that end (`P582`): the item records its state past too.
-    Nothing else is written on either.
+    gains the municipal marker beside the state one. A body it shows to be
+    private, and dates when the state gave it up, keeps its marker with that
+    end (`P582`): the item records its state past too. Nothing else is
+    written on either, and nothing is taken off: another editor's marker
+    stays, our addition carries the mainstream reading.
     """
     answer = req["answer"]
     control = answer["control"]
     if answer["kind"] not in WRITTEN or not answer["active"] or not evidence.quoted(control["quote"], req["message"]):
-        return None, [], []
+        return None, []
     offered = req.get("offered") or []
     owners = {offered[o["controller"]] for o in control["owners"]
               if o["controller"] is not None and 0 <= o["controller"] < len(offered)}
     if owners & subdivisions:
         # A city that is also a first-level subdivision (a city-state)
         # controls at the regional tier: nothing to correct.
-        return None, [], []
+        return None, []
     def marked(claim: dict[str, Any], roots: frozenset[str]) -> bool:
         v = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
         return isinstance(v, dict) and bool(closure.get(v.get("id"), {v.get("id")}) & roots)
     def exactly(claim: dict[str, Any], values: frozenset[str]) -> bool:
-        # Only the marker itself is ever proposed for removal: a subclass
-        # someone chose (a mixed public company) may well be right.
+        # Only the marker itself contradicts the article: a subclass someone
+        # chose (a mixed public company) may well be right.
         v = claim.get("mainsnak", {}).get("datavalue", {}).get("value")
         return isinstance(v, dict) and v.get("id") in values
     claims = [c for c in entity.get("claims", {}).get("P31", []) if c.get("rank") != "deprecated"]
     if control["verdict"] == "state" and control["level"] == "municipal" and "municipal" not in tiers:
-        wrong = [c for c in claims if exactly(c, frozenset({MARKER}))]
-        if not wrong:
-            return None, [], []
-        add = [] if any(marked(c, frozenset({MUNICIPAL})) for c in claims) else [
-            {"property": "P31", "value": item(MUNICIPAL), "qualifiers": {"_sources": source(req, control["article"])},
-             "_rule": None}]
-        return "municipal", add, wrong
+        if not any(exactly(c, frozenset({MARKER})) for c in claims) or any(
+                marked(c, frozenset({MUNICIPAL})) for c in claims):
+            return None, []
+        return "municipal", [{"property": "P31", "value": item(MUNICIPAL),
+                              "qualifiers": {"_sources": source(req, control["article"])}, "_rule": None}]
     if control["verdict"] == "private" and answer["kind"] == "enterprise":
         ended = control.get("ended")
         values = {c["mainsnak"]["datavalue"]["value"]["id"] for c in claims if exactly(c, MARKED)}
         if not ended or not values:
-            return None, [], []
+            return None, []
         return "private", [{"property": "P31", "value": item(v),
                             "qualifiers": {"_sources": source(req, control["article"]),
                                            "P582": dates.time_value(ended)},
-                            "_rule": None} for v in sorted(values)], []
-    return None, [], []
+                            "_rule": None} for v in sorted(values)]
+    return None, []
 
 
 def municipal_unit(req: dict[str, Any], entity: dict[str, Any], chain: list[str] | None,
@@ -756,7 +751,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
            matched: dict[tuple[str, str], str] | None = None,
            unconfirmed: set[tuple[str, str]] | frozenset = frozenset(),
            ) -> tuple[list[str], list[dict[str, Any]], list[dict[str, Any]]]:
-    """Plan every answered body against its live item: (lines, decision rows, proposed removals).
+    """Plan every answered body against its live item: (lines, decision rows).
 
     `refused` are the links, markers and classes the quote check refused
     (`verify.py`), `matched` the unlinked seats' people found by name and
@@ -861,11 +856,10 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
         reached[qid] = reached.get(qid, set()) | via
     lines: list[str] = []
     decisions: list[dict[str, Any]] = []
-    removals: list[dict[str, Any]] = []
     for r in answered:
         if why[r["qid"]] is not None:
-            kind, add, wrong = (correction(r, entities[r["qid"]], closure, spec.tiers, subdivisions)
-                                if r["qid"] in contradicted and r["qid"] in entities else (None, [], []))
+            kind, add = (correction(r, entities[r["qid"]], closure, spec.tiers, subdivisions)
+                         if r["qid"] in contradicted and r["qid"] in entities else (None, []))
             decisions.append({"qid": r["qid"], "prop": "-", "value": None,
                               "detail": {"scope": "listed"} if r["qid"] in scoped else {},
                               "disposition": "skip", "rule": why[r["qid"]], "call_key": r.get("key")})
@@ -873,12 +867,6 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
                      if r["qid"] in scoped and r["qid"] in entities else [])
             if kind or seats:
                 lines += settle(r, entities[r["qid"]], add + seats, decisions)
-                for claim in wrong:
-                    value = claim["mainsnak"]["datavalue"]["value"]["id"]
-                    removals.append({"guid": claim["id"], "qid": r["qid"], "prop": "P31", "value": value,
-                                     "reason": REMOVAL_REASONS[kind]})
-                    decisions.append({"qid": r["qid"], "prop": "P31", "value": value, "detail": {"guid": claim["id"]},
-                                      "disposition": "remove", "rule": f"correction:{kind}", "call_key": r.get("key")})
             continue
         entity = entities.get(r["qid"])
         if entity is None:
@@ -928,7 +916,7 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             continue
         rows += seat_rows(r, humans, today, spec.roles, entity, dead, matched, titles, unconfirmed)
         lines += settle(r, entity, rows, decisions)
-    return lines, decisions, removals
+    return lines, decisions
 
 
 #: The items read live for the municipal tier, kept for the process: a run plans its country several times.
@@ -972,21 +960,6 @@ def controllers(req: dict[str, Any], named: dict[str, str] | None) -> set[str]:
         if qid:
             out.add(qid)
     return out
-
-
-def queue_removals(cc: str, removals: list[dict[str, Any]]) -> int:
-    """Queue each contradicted marker for removal: it waits for `removals approve`, being another editor's.
-
-    A proposal an earlier run made and this one no longer makes is withdrawn
-    while still undecided: the answer behind it has changed.
-    """
-    wd.conn().execute(
-        "DELETE FROM wd_removal WHERE tool = %s AND country = %s AND origin = 'correction'"
-        " AND status = 'proposed' AND NOT (guid = ANY(%s))", (TOOL, cc, [x["guid"] for x in removals]))
-    for x in removals:
-        ledger.propose_removal(TOOL, x["guid"], x["qid"], x["prop"], x["value"], cc, x["reason"],
-                               "correction", False)
-    return len(removals)
 
 
 def store(cc: str, decisions: list[dict[str, Any]]) -> None:

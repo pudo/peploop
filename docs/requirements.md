@@ -73,3 +73,12 @@
   mention a polity to allow a description. Let's not over-engineer "national
   language". Rigour territories have that metadata. Let's definitely re-work
   the drafted offices"
+- 2026-10-25: "we can decide our own tagging conventions in this tool, usually
+  by observing majority statement/property use in Wikidata. Doing so does not
+  mean that we have to enforce that convention across wikidata - our intake
+  will always be much broader then our write decisions, basically following
+  Postel's law. We want our edits to be precise and mainstream, but not to
+  overwrite other approaches. So swapping types creeps me out a bit, being
+  additive, or allowing both and expanding wd_soe seems much preferable. We can
+  make sure that our additions represent the mainstream - and, if the minority
+  opinion is very small, perhaps consider double-tagging?"

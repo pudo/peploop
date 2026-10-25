@@ -86,7 +86,8 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   `P1454`, and only when the control quote says so in words (a share figure
   does not). An institution's links are what find it. A municipal
   enterprise's marker is `P31 Q1780371` municipal company, under the same
-  rule.
+  rule, unless the item already reaches `Q1780371`: a `Q270791` someone
+  else chose stays, and ours goes beside it.
 - **The municipal tier.** A body a municipality, a district, a public body
   of several of them (an inter-municipal association, a metropolitan
   authority), or several municipalities together, controls in the article's
@@ -177,16 +178,13 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   bodies are holdings, never anyone's state actors: the
   intergovernmental organisation stays in `actors.NOT_GOVERNMENT`.
 
-- **Corrections.** A body whose article shows it municipal, in a country
-  that does not write the municipal tier, gains the municipal marker
-  `Q1780371`, and its contradicted `Q270791` statement is proposed for
-  removal and waits for `removals approve`, being another editor's. Where
-  the tier is written, such a body is written on like any municipal body
-  and keeps the marker it has. Only the marker itself is
-  proposed, never a subclass someone chose; a city-state's company is
-  regional, never corrected to municipal. A body shown privatised keeps its
-  marker, ended with `P582` at the date the article gives; without a date
-  nothing is written.
+- **Corrections, additive only.** pepcorp writes the mainstream form and
+  reads every form; it never removes or swaps another editor's statement.
+  A body whose article shows it municipal while carrying `Q270791` gains
+  `Q1780371` beside it, whether or not the municipal tier is written; a
+  city-state's company is regional and gains nothing. A body shown
+  privatised keeps its marker, ended with `P582` at the date the article
+  gives; without a date nothing is written.
 
 The rule is the EU AMLR: every member of the administrative, management and
 supervisory bodies of an enterprise the state controls; regional and

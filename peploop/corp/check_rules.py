@@ -211,28 +211,31 @@ def crawler_cases() -> None:
     sub = {**base, "offered": ["Q900700"], "answer": answer(owners=((0, "owner"),))}
     rows = rules.control_rows(sub, ent(), ["Q900800", "Q900700", "Q900100"], state | {"Q900700"}, {})
     expect(rows[0]["property"] == "P31" and rows[0]["_rule"] is None, "a state enterprise's subsidiary gets the marker")
-    # A municipal verdict on an item marked as a state enterprise: municipal marker added, the wrong one proposed.
+    # A municipal verdict on an item marked as a state enterprise: the municipal marker is added beside it.
     muni = {**base, "answer": answer(level="municipal")}
     marked = {"claims": {"P31": [claim("P31", "Q270791", "Q1$A")]}}
-    kind, add, wrong = rules.correction(muni, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))
-    expect(kind == "municipal" and [a["value"]["id"] for a in add] == [rules.MUNICIPAL] and [c["id"] for c in wrong] == ["Q1$A"],
-           "a municipal body marked state-owned gains the municipal marker and loses the state one")
-    kind, add, wrong = rules.correction(muni, marked, {"Q270791": {"Q270791"}},
-                                        ("national", "regional", "municipal"))
+    kind, add = rules.correction(muni, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))
+    expect(kind == "municipal" and [a["value"]["id"] for a in add] == [rules.MUNICIPAL],
+           "a municipal body marked state-owned gains the municipal marker, and keeps the state one")
+    both = {"claims": {"P31": [claim("P31", "Q270791", "Q1$A"), claim("P31", rules.MUNICIPAL, "Q1$C")]}}
+    expect(rules.correction(muni, both, {"Q270791": {"Q270791"}}, ("national", "regional"))[0] is None,
+           "a body carrying both markers is no correction")
+    kind, add = rules.correction(muni, marked, {"Q270791": {"Q270791"}},
+                                 ("national", "regional", "municipal"))
     expect(kind is None, "where the municipal tier is written, a municipal body is no correction")
     priv = {**base, "answer": answer(verdict="private")}
     expect(rules.correction(priv, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))[0] is None,
            "a private body whose article does not date the sale keeps its marker untouched")
     priv["answer"]["control"]["ended"] = "1998-05"
-    kind, add, wrong = rules.correction(priv, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))
-    expect(kind == "private" and not wrong and [(a["value"]["id"], a["qualifiers"]["P582"]["time"]) for a in add]
+    kind, add = rules.correction(priv, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))
+    expect(kind == "private" and [(a["value"]["id"], a["qualifiers"]["P582"]["time"]) for a in add]
            == [("Q270791", "+1998-05-00T00:00:00Z")], "a privatised body's marker is ended, never removed")
     unq = {**base, "answer": answer(verdict="private", quote="Nobody said this.")}
     expect(rules.correction(unq, marked, {"Q270791": {"Q270791"}}, ("national", "regional"))[0] is None,
            "no correction without a quote")
     sub = {"claims": {"P31": [claim("P31", "Q900900", "Q1$B")]}}
     expect(rules.correction(muni, sub, {"Q900900": {"Q900900", "Q270791"}}, ("national", "regional"))[0] is None,
-           "a subclass someone chose, such as a mixed public company, is never proposed for removal")
+           "a subclass someone chose, such as a mixed public company, is no contradiction")
     city = {**base, "answer": answer(level="municipal", owners=((0, "owner"),))}
     expect(rules.correction(city, marked, {"Q270791": {"Q270791"}}, ("national", "regional"), frozenset({"Q900100"}))[0] is None,
            "a company of a city-state, which is a first-level subdivision, is not corrected to municipal")
@@ -609,9 +612,10 @@ def municipal() -> None:
     expect([(r["property"], r["value"]["id"], r["_rule"]) for r in rows]
            == [("P31", rules.MUNICIPAL, None), ("P127", "Q900050", None)],
            "a municipal enterprise gets the municipal marker and its city as owner")
-    for have in (rules.MARKER, rules.MUNICIPAL):
+    for have, rule in ((rules.MARKER, None), (rules.MUNICIPAL, "marked")):
         expect(rules.control_rows(muni, ent(P31=["Q900201"]), None, state, {"Q900201": {"Q900201", have}},
-                                  polities=units)[0]["_rule"] == "marked", f"an item reaching {have} keeps it")
+                                  polities=units)[0]["_rule"] == rule,
+               f"an item reaching {have} keeps it" + (", and gains the municipal marker beside it" if rule is None else ""))
     expect(rules.control_rows(muni, ent(), None, state, {}, polities=units,
                               refused={("Q900999", "P31", rules.MUNICIPAL)})[0]["_rule"] == "marker_unverified",
            "a municipal marker whose control quote the check refuses is not written")
@@ -639,11 +643,19 @@ def municipal() -> None:
     expect(rules.city_state(both, None, frozenset({"Q900001"}), units) is both,
            "a company a city leads with a region beside it stays the city's")
     # Where the tier is written, a municipal body marked a state enterprise is
-    # written on, not corrected: no marker removal is proposed.
+    # written on, not corrected: the municipal marker goes beside the other.
     marked = {"claims": {"P31": [claim("P31", "Q270791", "Q1$A")]}}
+    rows = rules.control_rows(muni, marked, None, state, {"Q270791": {"Q270791"}}, polities=units)
     expect(rules.correction(muni, marked, {"Q270791": {"Q270791"}}, tiers)[0] is None
-           and rules.control_rows(muni, marked, None, state, {"Q270791": {"Q270791"}}, polities=units)[0]["_rule"] == "marked",
-           "where the tier is written, a body already marked Q270791 keeps it and no removal is proposed")
+           and rows[0]["value"]["id"] == rules.MUNICIPAL and rows[0]["_rule"] is None,
+           "where the tier is written, a body marked Q270791 gains Q1780371 beside it")
+    mmarked = {"claims": {"P31": [claim("P31", rules.MUNICIPAL, "Q1$D")]}}
+    expect(rules.control_rows(muni, mmarked, None, state, {rules.MUNICIPAL: {rules.MUNICIPAL}},
+                              polities=units)[0]["_rule"] == "marked",
+           "a body already marked municipal gets no second marker")
+    nat = {**base, "answer": answer()}
+    expect(rules.control_rows(nat, mmarked, None, state, {rules.MUNICIPAL: {rules.MUNICIPAL}})[0]["_rule"] == "marked",
+           "a body marked municipal is not also marked a state enterprise")
     # The sector lane: located bodies pass the organisation test like the owned
     # lane's; its classes are companies, never sites.
     src = Path(load.__file__).read_text()
