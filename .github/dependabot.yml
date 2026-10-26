@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /peploop
+    schedule:
+      interval: weekly
+    groups:
+      weekly:
+        patterns: ["*"]
