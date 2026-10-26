@@ -1173,10 +1173,10 @@ def siblings(state_qid: str, subdivision_qids: Sequence[str] | None = None,
         subdivision_qids = [qid for qid, _labels in subdivisions(state_qid)]
     this_year = this_year or date.today().year
     rows = db.conn().execute(
-        "SELECT qid, diplomatic FROM position WHERE (country_qid = %s OR jurisdiction_qid = %s"
+        "SELECT qid, diplomatic FROM position WHERE (country_qid = ANY(%s) OR jurisdiction_qid = ANY(%s)"
         " OR jurisdiction_qid = ANY(%s))"
         " AND NOT coalesce(diplomatic, false) AND NOT coalesce(not_office, false)",
-        (state_qid, state_qid, list(subdivision_qids)),
+        (*(sorted(positions.state_qids(state_qid)),) * 2, list(subdivision_qids)),
     ).fetchall()
     unflagged = [qid for qid, flag in rows if flag is None]
     closure = typegraph.of_items(unflagged) if unflagged else {}

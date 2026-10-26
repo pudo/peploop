@@ -41,7 +41,7 @@ from pydantic import BaseModel, ConfigDict
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import db, llm, wikidata
+from peploop import db, llm, positions, wikidata
 
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "title_en.md"
 
@@ -387,8 +387,8 @@ def item_titles(qids: Sequence[str] | None = None, state_qid: str | None = None
         where.append("p.qid = ANY(%s)")
         params.append(list(qids))
     if state_qid is not None:
-        where.append("(p.country_qid = %s OR p.jurisdiction_qid = %s)")
-        params.extend([state_qid, state_qid])
+        where.append("(p.country_qid = ANY(%s) OR p.jurisdiction_qid = ANY(%s))")
+        params.extend([sorted(positions.state_qids(state_qid))] * 2)
     rows = db.conn().execute(
         "SELECT p.qid, coalesce(p.country_qid, p.jurisdiction_qid),"
         " jsonb_object_agg(n.lang, n.text) FROM position p"

@@ -30,7 +30,7 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 from rigour.territories import get_territory, get_territory_by_qid
 
-from peploop import db, eras, typegraph, wikidata
+from peploop import countries, db, eras, typegraph, wikidata
 from peploop.classes import NOT_AN_OFFICE, ORGANISATION, POSITION_METACLASSES, SENDER_CLASS
 from peploop.text import fold
 
@@ -162,11 +162,15 @@ def of_rival(record: dict[str, Any], barred: Iterable[str]) -> bool:
 
 
 def country_qid(cc: str) -> str:
-    """Resolve an ISO country code to the QID its offices are scoped by."""
+    """Resolve an ISO country code to the QID its offices are scoped by.
+
+    The country file's `state` where it names one (Denmark, not the Danish
+    Realm rigour gives), so peploop writes the `P17` peptree and pepcorp read.
+    """
     territory = get_territory(cc)
     if territory is None or territory.qid is None:
         raise ValueError(f"no territory QID for {cc!r}")
-    return territory.qid
+    return countries.state(cc) or territory.qid
 
 
 @lru_cache(maxsize=None)
@@ -174,15 +178,18 @@ def state_qids(state_qid: str | None) -> frozenset[str]:
     """Every QID that names the state now: its main one and its current alternates.
 
     Reach for this wherever an item's `P17` or `P1001`, or a holder's `P27`, is
-    matched to the run's state. rigour's `nl` is the Kingdom (`Q29999`) while
-    Dutch municipal offices carry the Netherlands (`Q55`): matched against the
-    main QID alone, the state's own offices read as another state's.
+    matched to the run's state. The Netherlands' state is `Q55` while some of
+    its offices name the Kingdom (`Q29999`): matched against one QID alone,
+    the state's own offices read as another state's. `state_qid` is rigour's
+    main QID or the country file's `state`; any other alternate stands alone.
     Predecessor states are left out (`eras.current_qids`).
     """
     if not state_qid:
         return frozenset()
     territory = get_territory_by_qid(state_qid)
-    if territory is None or territory.qid != state_qid or len(territory.qids) < 2:
+    if territory is None or len(territory.qids) < 2:
+        return frozenset({state_qid})
+    if state_qid not in (territory.qid, countries.state(territory.code)):
         return frozenset({state_qid})
     return frozenset({state_qid, *eras.current_qids(territory.code)})
 

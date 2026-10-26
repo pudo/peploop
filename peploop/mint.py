@@ -1051,8 +1051,8 @@ def state_positions(state: str) -> list[PositionRow]:
     """
     rows = db.conn().execute(
         "SELECT qid, label, kinds, coalesce(not_office, false) FROM position"
-        " WHERE country_qid = %s OR jurisdiction_qid = %s ORDER BY label NULLS LAST, qid",
-        (state, state),
+        " WHERE country_qid = ANY(%s) OR jurisdiction_qid = ANY(%s) ORDER BY label NULLS LAST, qid",
+        (sorted(positions.state_qids(state)),) * 2,
     ).fetchall()
     return [PositionRow(q, l, list(k or []), bool(n)) for q, l, k, n in rows]
 
@@ -1734,9 +1734,9 @@ class Context:
         if self._index is None:
             rows = db.conn().execute(
                 "SELECT qid, label, kinds, coalesce(not_office, false) FROM position"
-                " WHERE country_qid = %s OR jurisdiction_qid = %s OR jurisdiction_qid = ANY(%s)"
+                " WHERE country_qid = ANY(%s) OR jurisdiction_qid = ANY(%s) OR jurisdiction_qid = ANY(%s)"
                 " ORDER BY label NULLS LAST, qid",
-                (self.state_qid, self.state_qid, self.subdivisions),
+                (*(sorted(positions.state_qids(self.state_qid)),) * 2, self.subdivisions),
             ).fetchall()
             self._index = [PositionRow(q, l, list(k or []), bool(n)) for q, l, k, n in rows]
         return self._index

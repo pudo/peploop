@@ -379,7 +379,8 @@ def check_state_qids(expect: Any) -> None:
     try:
         expect(positions.state_qids("Q29999") == {"Q29999", "Q55"},
                "the Kingdom's QIDs include the Netherlands")
-        expect(positions.state_qids("Q55") == {"Q55"}, "an alternate QID is not a run's state")
+        expect(positions.state_qids("Q55") == {"Q29999", "Q55"}, "the country file's state takes in the realm")
+        expect(positions.state_qids("Q6581823") == {"Q6581823"}, "an alternate the file does not name is not a run's state")
         expect(positions.state_qids(STATE) == {STATE}, "a QID rigour does not know is itself")
         dutch = {"country_qid": "Q55", "sources": ["citizen"]}
         tags = positions.tags_for(dutch, "Q29999")
@@ -395,8 +396,8 @@ def check_state_qids(expect: Any) -> None:
             got = positions.load_country("nl")
         finally:
             positions.discover, positions.load_items = real_discover, real_load
-        expect(asked == ["Q29999", "Q55"] and got["found"] == {"usage": {"pos-Q29999", "pos-Q55"}},
-               f"a load discovers under every current QID, main first (asked {asked})")
+        expect(asked == ["Q55", "Q29999"] and got["found"] == {"usage": {"pos-Q29999", "pos-Q55"}},
+               f"a load discovers under every current QID, the file's state first (asked {asked})")
     finally:
         positions.eras.current_qids = real
         positions.state_qids.cache_clear()
