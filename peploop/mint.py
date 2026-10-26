@@ -340,7 +340,7 @@ def census(
     `labels` by language, and optionally `body`, `parent`, `source`, `jurisdiction` (the
     subdivision a single entry's office governs, where its body names none)
     and `per: subdivisions`. The last expands one entry per current `P150` of the
-    state, read live, with `{name}` in each label filled from the
+    state (the file's `state`, else rigour's), read live, with `{name}` in each label filled from the
     subdivision's label in that language (or `en`, then `mul`; `{Name}` capitalises
     it); an optional
     `exclude: [QID, …]` drops the subdivisions that office does not exist in,
@@ -370,7 +370,8 @@ def census(
         if per != "subdivisions":
             raise ValueError(f"{entry['key']}: unknown expansion {per!r}")
         exclude = set(entry.get("exclude") or [])
-        subs = [s for s in subdivisions(positions.country_qid(cc)) if s not in exclude]
+        state = countries.state(cc, path) or positions.country_qid(cc)
+        subs = [s for s in subdivisions(state) if s not in exclude]
         names = labels_of(subs)
         for sub in subs:
             known = names.get(sub, {})

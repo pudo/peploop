@@ -1,13 +1,13 @@
 # Netherlands: what the lanes know about it, one section per lane.
 
+# The polity whose subdivisions are the regional tier: rigour's main QID is
+# the realm around it. (All current QIDs count as the country either way.)
+state: Q55
+
 corp:
   # The Netherlands. Unitary: twelve provinces. peploop resolves nl to the
   # Kingdom (Q29999), whose subdivisions are the four countries; Dutch items
   # carry P17 the Netherlands (Q55).
-
-  # The polity whose subdivisions are the regional tier: rigour's main QID is
-  # the realm around it. (All current QIDs count as the country either way.)
-  state: Q55
 
   tiers: [national, regional]
 

@@ -1,13 +1,13 @@
 # Denmark: what the lanes know about it, one section per lane.
 
+# The polity whose subdivisions are the regional tier: rigour's main QID is
+# the realm around it. (All current QIDs count as the country either way.)
+state: Q35
+
 corp:
   # Denmark. Unitary: five regioner. peploop resolves dk to the Danish Realm
   # (Q756617), whose subdivisions are Denmark, the Faroes and Greenland;
   # Danish items carry P17 Denmark (Q35).
-
-  # The polity whose subdivisions are the regional tier: rigour's main QID is
-  # the realm around it. (All current QIDs count as the country either way.)
-  state: Q35
 
   tiers: [national, regional]
 

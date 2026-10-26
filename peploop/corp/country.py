@@ -20,8 +20,6 @@ section, not a code change:
   `regional`, `municipal`), or `international` alone: the spec of the Union's
   bodies and the international organisations seated in it, whose boards are
   written whoever controls them (`eu.yml`);
-- `state`: the item the country's items name as their country (`P17`), where
-  it is not the one rigour gives (a realm or kingdom around the state);
 - `actors`: items that stand for the state or its government here but that
   the type tree cannot place, each with its `kind`: `state` for a legal
   person the items name as owner in the state's place (a state treasury),
@@ -104,7 +102,7 @@ def get(cc: str) -> Spec:
         exclude=frozenset(str(q["qid"]) for q in data.get("exclude") or []),
         roles={str(r["role"]): (str(r["property"]), r.get("qualifier")) for r in data.get("roles") or []},
         tiers=tuple(data.get("tiers") or DEFAULT_TIERS),
-        state=str(data["state"]) if data.get("state") else None,
+        state=countries.state(cc),
         actors={str(a["qid"]): str(a["kind"]) for a in data.get("actors") or []},
         parties=frozenset(str(q["qid"]) for q in data.get("parties") or []),
         party_branch_classes=frozenset(str(q["qid"]) for q in data.get("party_branch_classes") or []),
