@@ -28,6 +28,12 @@ def main() -> None:
     expect(not tenure.says_current("he currently serves as councillor", "en", infobox_only=True),
            "prose is not an infobox")
     expect(tenure.says_current("现任省长", "zh", infobox_only=True), "a Chinese infobox's 现任")
+    expect(tenure.says_current("Trenutni nosilec naziva Začetek delovanja 10. april 2026", "sl", infobox_only=True),
+           "an sl infobox's incumbent")
+    expect(tenure.says_current("Od leta 2007 je član sveta.", "sl")
+           and tenure.says_current("Od 2. septembra 2011 je minister", "sl"), "sl prose: since … is")
+    expect(not tenure.says_current("Leta 1992 je bil izvoljen v 1. zbor", "sl"),
+           "an sl election in the past is not now")
     expect(not tenure.says_current("Incumbent", "xx") and not tenure.reads_current("xx"),
            "a language without markers says nothing")
     expect(tenure.names_end_event("Er wurde 2023 verhaftet."), "an arrest is an event, not an end")

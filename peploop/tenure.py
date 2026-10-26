@@ -43,6 +43,7 @@ INFOBOX = {
     "tr": re.compile(r"görevde|makama geliş", re.I),
     "pt": re.compile(r"\bem exercício\b|\ba[c]?tualidade\b|(?:[–-]|\d{4})\s*presente\b", re.I),
     "zh": re.compile(r"[现現]任|就任日期"),
+    "sl": re.compile(r"trenutn[ia] nosil|začetek delovanja", re.I),
 }
 #: The same, per language whose articles were measured: Greek infoboxes
 #: write "Εν ενεργεία", Turkish ones "Görevde" and "Makama geliş" (assumed
@@ -50,7 +51,10 @@ INFOBOX = {
 #: prose says "σήμερα" / "halen", "günümüz" / "atualmente", "é o atual"
 #: (today, still, the current one). Chinese infoboxes write "现任" over
 #: "就任日期" (incumbent, assumed office: 549 of 7,847 Chinese articles, every
-#: one with both), prose "现任" and "至今" (to this day).
+#: one with both), prose "现任" and "至今" (to this day). sl infoboxes
+#: write "Trenutni nosilec naziva" over "Začetek delovanja" (incumbent, assumed
+#: office), prose "trenutno", "od leta 2007 je član" (since … is) and "še
+#: vedno" (still), read off 377 open tenures' quotes; "je bil" is the past.
 CURRENT = {
     "en": CURRENT_EN,
     "el": re.compile(r"εν ενεργεία|σήμερα|διατελεί|υπηρετεί", re.I),
@@ -59,6 +63,8 @@ CURRENT = {
                      r"\ba[c]?tualmente\b|\bé (?:o|a) a[c]?tual\b|\bdesde\b|\bem funções\b|"
                      r"\bocupa o (?:cargo|posto)\b", re.I),
     "zh": re.compile(r"[现現]任|就任日期|至今|迄今"),
+    "sl": re.compile(r"trenutn[ia] nosil|začetek delovanja|\btrenutno\b|\bsedanj[iea]\b|\bše vedno\b|"
+                     r"\bod (?:leta )?(?:\d{1,2}\. )?(?:\w+ )?\d{4},? (?:je|opravlja|vodi)\b|\bdo danes\b", re.I),
 }
 #: An end read from an event rather than from the tenure ending, by language (stems):
 #: an arrest, a charge or an investigation ends nothing by itself.
