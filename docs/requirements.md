@@ -1,84 +1,88 @@
 # Requirements
 
-- 2026-10-12: The key goal of this package is to run autonomous country
-  sweeps, not to prompt the user every five minutes.
-- 2026-10-12: Keep this file with only the requirements the user states
-  directly, not answers to questions. Every time the user states one, note it
-  down. It is a statement of intent: the LLM is not authorized to expand the
-  set of requirements, but is required to record them.
-- 2026-10-12: Changes to the repo's instructions simplify them overall
-  instead of expanding them.
-- 2026-10-12: Also mint empty positions if well-justified.
-- 2026-10-13: Make it part of the primary design of peptree/peploop to
-  consider if a position is abstract/non-national in their main evaluation.
-- 2026-10-13: Worst case we could even build a generic/abstract detection
-  stage of the pipeline as a separate model call. Making that list clean is
-  immensely valuable, and recording every generic position to it goes out of
-  reconciliation.
-- 2026-10-13: Improve the readability of the QS edit comments in peploop and
-  peptree. They talk about themselves but nobody knows what peploop and
-  peptree are (this repo is private). We probably shouldn't mention stuff like
-  "send so <date>", it's internal.
-- 2026-10-14: For a country sweep on the national and subnational levels: "We
-  want all FATF positions, broad holders, and rich Wikidata personal details."
-- 2026-10-15: "let's design an era rule for country-related statements"
-- 2026-10-15: The era rule "is also for positions: if the position was created or
-  dissolved outside the country's existence, etc."
-- 2026-10-16: "if a position has jurisdiction X, we don't also need to put
-  country X. country X only makes sense if the stated jurisdiction is more
-  specific (eg. region Y of country X)."
-- 2026-10-17: For state-owned enterprises: "follow EU AMLR".
-- 2026-10-17: "it's ok for wd_peps to go too wide, because position
-  classification can serve as a final filter"
-- 2026-10-17: On state museums, theatres, research centres, broadcasters and
-  Landesbetriebe: "these are essential institutions and their leadership is
-  PEP."
-- 2026-10-17: "in general I feel we shouldn't get too deep into percentages,
-  sizes and control because WD is a weird place to source and store that.
-  [...] We want heuristics, not math on fake numbers."
-- 2026-10-18: On statutory bodies with no owner (public broadcasters,
-  independent regulators, central banks): "should be typed appropriately"
-- 2026-10-18: On person matching for seats the article does not link: "my
-  ambition would be that we check by name in a fuzzy manner but then set
-  pretty strict standards for the resulting wikipedia pages. They need to
-  mention at least the industry or domain, ideally the institution"
-- 2026-10-20: "sending should be done in coordination with the user, even in
-  cases where an autonomous/unsupervised sweep is being conducted."
-- 2026-10-23: On which positions to mint: "I think the logic is also completeness:
-  if we have 3 out of 9 governors, let's make the other 6"
-- 2026-10-23: On the EU AMLR: "I want to work on a set of changes to PEPcorp
-  that enable the tool to be more closely in line with the directive, and
-  generate data that helps OpenSanctions to meet the requirements."
-- 2026-10-23: On the AMLR work: "let's expand this to peptree" "and peploop"
-- 2026-10-23: "the goal is not just to measure the gap but also to identify
-  expansions of the tools to close them. measurement itself is a precursor, but
-  let's keep the eye on the prize"
-- 2026-10-24: On the AMLR work: "skip the relatives for now. also IOs - EU:
-  yes."
-- 2026-10-24: "adopt a coordination role and start sequential subagents to
-  work on each of these workstreams and try to implement them to the extent
-  that can be done without outsize architectural expansion of the tools."
-- 2026-10-24: On the EU function list: "perhaps we can turn that into a living
-  asset in the repo - a data structure (YAML?) - that contains the original
-  list and a growing expansion of the specified categories into concrete items
-  via units etc. this would be a great asset to evolve. can also be per
-  country"
-- 2026-10-24: "we need to re-work title and description creation."
-- 2026-10-24: On labels and descriptions: "my sense is that we should actually
-  keep it simple: generate no descriptions, and labels only in the relevant
-  national language and english." "Definitely let's not generate N labels for
-  irrelevant languages (like a Germa label for a chinese position)."
-- 2026-10-24: "we don't need to add the country to the title, we have
-  P17/P1001. We can also make it a special case for generic titles that don't
-  mention a polity to allow a description. Let's not over-engineer "national
-  language". Rigour territories have that metadata. Let's definitely re-work
-  the drafted offices"
-- 2026-10-25: "we can decide our own tagging conventions in this tool, usually
-  by observing majority statement/property use in Wikidata. Doing so does not
-  mean that we have to enforce that convention across wikidata - our intake
-  will always be much broader then our write decisions, basically following
-  Postel's law. We want our edits to be precise and mainstream, but not to
-  overwrite other approaches. So swapping types creeps me out a bit, being
-  additive, or allowing both and expanding wd_soe seems much preferable. We can
-  make sure that our additions represent the mainstream - and, if the minority
-  opinion is very small, perhaps consider double-tagging?"
+The direction the project's owner has set for the tools. **Principles** are
+reviewed and grouped; each carries the date(s) it was stated. **Log** is what
+the owner said, verbatim and dated, awaiting review. On review an entry
+becomes or joins a principle and leaves the Log; its verbatim text stays in
+git history. Instructions for a single task go into that task's plan.
+
+## Principles
+
+### PEP scope
+
+- A country sweep, national and subnational, covers all FATF positions, a
+  broad set of holders, and rich personal details on Wikidata. (2026-10-14)
+- State-owned enterprises follow the EU AMLR, and all three lanes move toward
+  the regulation's functions, producing data that helps OpenSanctions meet its
+  requirements. (2026-10-17, 2026-10-23)
+- The leadership of state museums, theatres, research centres, broadcasters
+  and state enterprises run as part of the administration (Landesbetriebe) is
+  PEP: these are essential institutions. (2026-10-17)
+- The Union's bodies and international organisations are in scope. Relatives
+  and close associates are not, for now. (2026-10-24)
+- Reading may go wide: position classification downstream is the final
+  filter. (2026-10-17)
+- The EU's list of prominent public functions is a living asset in the repo:
+  the original list, per country, expanded over time from its categories into
+  concrete items. (2026-10-24)
+
+### Modelling on Wikidata
+
+- Mint an office when it is well justified, even with no current holder.
+  (2026-10-12)
+- Completeness justifies minting: "if we have 3 out of 9 governors, let's make
+  the other 6". (2026-10-23)
+- Whether a position is abstract or generic rather than one state's office is
+  part of each lane's main evaluation, and the list of generic positions is
+  kept clean. (2026-10-13)
+- An office with jurisdiction X does not also need country X: `P17` is added
+  only where the jurisdiction is narrower than the country. (2026-10-16)
+- Era rule: a country-related statement, and a position's own country, must
+  fall within the time the country existed. (2026-10-15)
+- Ownership and control are judged by heuristics, "not math on fake numbers":
+  shares, sizes and percentages are neither sourced from nor stored on
+  Wikidata. (2026-10-17)
+- Statutory bodies with no owner (public broadcasters, independent
+  regulators, central banks) are typed appropriately. (2026-10-18)
+
+### Contributing to Wikidata
+
+- The tools take part as an individual member of the community, not as a
+  corporate account. If contributing becomes a burden or nuisance to the
+  community, the work stops and the data is built elsewhere. (2026-10-25)
+- Intake is broad and writes are precise and mainstream (Postel's law). The
+  tools' conventions come from majority usage on Wikidata and are never
+  enforced across it: they add beside other editors' modelling and never
+  swap or remove it. Where a minority form is very small, double-tagging can
+  be considered. (2026-10-25)
+- Edit summaries make sense to an outside editor: they say what an edit is
+  for, not which internal tool or schedule made it. (2026-10-13)
+- Minted offices carry no description, except a generic title that names no
+  polity; labels only in English and the territory's own languages; no
+  country in the label, since `P17`/`P1001` carry it. (2026-10-24)
+- Every write to Wikidata goes out in coordination with the owner, also
+  when a sweep runs unsupervised. (2026-10-20)
+
+### Data quality and working method
+
+- A seat whose holder the article does not link may be matched by a fuzzy
+  name search, but the candidate's own Wikipedia page must name at least the
+  industry or domain, ideally the institution. (2026-10-18)
+- A gap study ends in the tool changes that close the gap; measurement only
+  sizes it. (2026-10-23)
+- Country sweeps run autonomously to their dry run rather than prompting the
+  owner every few minutes. (2026-10-12)
+- Changes to the repo's instructions simplify them overall. (2026-10-12)
+- Requirements are logged verbatim and worked into principles on review.
+  (2026-10-25)
+
+## Log
+
+- 2026-10-25: On the purpose: "OpenSanctions needs this data, and one of the
+  ways we're exploring to build it out is via Wikidata. However this is not a
+  corporate push: I've chosen to use the Pudox over the OpenSanctions account
+  to be a member of the community as an individual. If contributing the data
+  to Wikidata becomes a burden or nuisance to the community, we'll stop and
+  build elsewhere"
+- 2026-10-25: "for the requirements, we can keep logging verbatim and then
+  work them into principles upon review"

@@ -39,8 +39,9 @@ residue listed there, not asked.
 ## Requirements
 
 `docs/requirements.md` is the user's statement of intent. A requirement the
-user states directly (not an answer to your question) is appended that turn,
-dated, in their words; never add, expand, reword or remove an entry yourself.
+user states directly (not an answer to your question) is appended to its Log
+that turn, dated, in their words. Principles change only when the user
+reviews the Log; never add, expand or reword one yourself.
 
 ## Running things
 
