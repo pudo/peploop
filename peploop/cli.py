@@ -1186,11 +1186,12 @@ def tree_audit_(batch: int) -> None:
 @click.option("--batch", type=int, default=None, help="Only the places of this reviewed sweep batch.")
 @click.option("--status", "show_status", is_flag=True, help="Print the send ledger: batches, failures, strikes, removals.")
 @click.option("--propose-reverts", is_flag=True, help="Queue removals for what landed on items the load now drops.")
-@click.option("--lane", type=click.Choice(tree_outbox.LANES[1:]), default="",
+@click.option("--lane", type=click.Choice(tree_outbox.LANES[1:]), default=None,
               help="Send a lane run apart from the repair instead of the repair's lines.")
-def tree_send_(submit: bool, batch: int | None, show_status: bool, propose_reverts: bool, lane: str) -> None:
+def tree_send_(submit: bool, batch: int | None, show_status: bool, propose_reverts: bool, lane: str | None) -> None:
     """Send what every reviewed place proposes and has not gone out yet, then the approved removals."""
     log = lambda m: click.echo(m, err=True)  # noqa: E731
+    lane = lane or ""
     if show_status:
         click.echo(sending.status(tree_outbox.TOOL))
         return
