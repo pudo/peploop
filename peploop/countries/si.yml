@@ -87,6 +87,26 @@ seeds:
   - category: Guvernerji_Banke_Slovenije             # 5
     lang: sl
 
+  # --- Oversight, prosecution, security and the church: the institution
+  # --- classes the first run did not seed, measured 2026-10-26. sl.wikipedia
+  # --- has no category for the Court of Audit or the anti-corruption commission.
+  - category: Varuhi_človekovih_pravic_Republike_Slovenije      # 7
+    lang: sl
+  - category: Generalni_državni_tožilci_Republike_Slovenije     # 3
+    lang: sl
+  - category: Načelniki_Generalštaba_Slovenske_vojske           # 10
+    lang: sl
+  - category: Generali_Slovenske_vojske                         # 10
+    lang: sl
+  - category: Generalni_direktorji_policije_(Slovenija)         # 9
+    lang: sl
+  - category: Direktorji_Slovenske_obveščevalno-varnostne_agencije   # 6
+    lang: sl
+  - category: Rimskokatoliški_nadškofje_Ljubljane               # 8 + 1 subcat
+    lang: sl
+  - category: Rimskokatoliški_nadškofje_Maribora                # 5
+    lang: sl
+
   # --- Diplomatic service ---
   - category: Slovenski_diplomati                    # 107 + 5 subcats
     lang: sl
@@ -128,6 +148,83 @@ seeds:
     lang: en
 
 census:
+  # The apex offices peptree's matrix finds no item for (2026-10-26), each
+  # with its body read live (wbsearchentities, the items' sitelinks). An entry
+  # prompts categorize and is no evidence: one no seeded article attests is
+  # skipped. Not here because an item exists: the Governor of the Bank of
+  # Slovenia `Q109070159`, the Chief of the General Staff, the ministers.
+  # Left out: the State Election Commission (its members are judges).
+  - key: supreme_court_president
+    class: judiciary.apex
+    archetype: court_president
+    body: Q12040608          # Supreme Court of the Republic of Slovenia
+    labels:
+      sl: predsednik Vrhovnega sodišča Republike Slovenije
+      en: President of the Supreme Court of Slovenia
+  - key: supreme_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q12040608
+    labels:
+      sl: vrhovni sodnik Republike Slovenije
+      en: Judge of the Supreme Court of Slovenia
+  - key: constitutional_court_president
+    class: judiciary.apex
+    archetype: court_president
+    body: Q1585377           # Constitutional Court of Slovenia
+    labels:
+      sl: predsednik Ustavnega sodišča Republike Slovenije
+      en: President of the Constitutional Court of Slovenia
+  - key: constitutional_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q1585377
+    labels:
+      sl: sodnik Ustavnega sodišča Republike Slovenije
+      en: Judge of the Constitutional Court of Slovenia
+  - key: prosecutor_general
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    body: Q12806172          # Vrhovno državno tožilstvo Republike Slovenije
+    labels:
+      sl: generalni državni tožilec Republike Slovenije
+      en: State Prosecutor General of Slovenia
+  - key: court_of_audit_president
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    body: Q5178342           # Court of Audit of the Republic of Slovenia
+    labels:
+      sl: predsednik Računskega sodišča Republike Slovenije
+      en: President of the Court of Audit of Slovenia
+  - key: anticorruption_president
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    body: Q5152671           # Commission for the Prevention of Corruption
+    labels:
+      sl: predsednik Komisije za preprečevanje korupcije
+      en: President of the Commission for the Prevention of Corruption of Slovenia
+  - key: ombudsman
+    class: oversight.constitutional_body
+    archetype: agency_head
+    body: Q20521791          # Varuh človekovih pravic Republike Slovenije
+    labels:
+      sl: varuh človekovih pravic Republike Slovenije
+      en: Human Rights Ombudsman of Slovenia
+  - key: police_director_general
+    class: security.police
+    archetype: agency_head
+    body: Q3499138           # Policija (Slovenija)
+    labels:
+      sl: generalni direktor policije
+      en: Director General of the Police of Slovenia
+  - key: sova_director
+    class: security.intelligence
+    archetype: agency_head
+    body: Q3442610           # Slovenian Intelligence and Security Agency
+    labels:
+      sl: direktor Slovenske obveščevalno-varnostne agencije
+      en: Director of the Slovenian Intelligence and Security Agency
+
   # The head offices of the EU AMLR levels (Reg. 2024/1624, Art. 2(34)(viii)): every
   # unit of 50,000 or more (`amlr.units`) that has no head office gets one from
   # `mint_units`, attested by the unit's own current P6 or its article's infobox.
