@@ -238,6 +238,36 @@ cannot.
   named the office. $4.80 for 34 people extracted ($0.14 each, live;
   first-run reconcile for es, nl, it, pl and eu also counted every loaded
   office's holders, 40 minutes each on the query service).
+- A state is all its current QIDs; a generic `P39` covers no seat
+  (2026-10-26, dry run, nothing sent). The person lane matched an item's
+  `P17`/`P1001` and a holder's `P27` to rigour's main QID alone, so `nl`'s
+  `Q55` offices read as foreign; discovery, the holder count, the
+  `foreign-scoped`/diplomatic tags and the policy's state offices now read
+  `positions.state_qids` (`eras.current_qids`). Of the done runs' proposals
+  only nl's moved; future loads widen beyond nl and dk by little: China
+  `Q29520` 16 offices and 418 politicians, the Southern Netherlands 1 and 35
+  (historical, missed by `eras.historical`), Crown Colony of Malta 1 and 59,
+  Navajo 4 and 9, Ichkeria 1 and 17; Mecca, Bali, Santo Domingo, Isla de la
+  Juventud, the EEA and the British overseas classes reach nothing. A
+  `VALUES` of states inside the holder count's `OPTIONAL` hung for over ten
+  minutes per chunk; `FILTER(?c IN …)` answers in a second. The mint lane
+  (`mint.py`, `mint_units`, `mint_write`, `offices` lookups and scope
+  checks) and reconcile's `_governs` still read the main QID. A generic
+  `P39` is `positions.generic_classes`: listed generic, or class-shaped with
+  no `P1001` (a bare class test also caught "Member of the Congress of
+  Deputies" and the Dutch House, whose terms are subclasses). It no longer
+  makes `recorded-elsewhere`, and extraction marks it `(generic office)`: a
+  prompt sentence alone brought Opole's presidency and not Katowice's.
+  Pilot re-run on the same people: unit holders with a correct `P39`
+  accepted 12 → 21 of 32 (es 9 → 8, it 3 → 3, nl 0 → 9, pl 0 → 1), IO heads
+  1 → 2 (ESA). Left: nl van der Zwan `contested`, Janssen
+  `verify/unsupported`, Huisman `verify/contradicted`, Blase and van der
+  Velden acting (filtered); Wiśniewski's spell carries the medium verdict
+  of his English mention, not the high one of his Polish; Lo Russo and
+  Clavijo regressed on a re-extraction that dropped or re-dated the
+  mayoralty. A hand check of the 23 new accepted rows found none wrong (one,
+  Pechtold's Delft mayoralty from 2025, not confirmable from knowledge).
+  $4.9 at list price.
 
 ## peptree
 

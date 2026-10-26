@@ -933,7 +933,7 @@ def _report_people(country: str) -> None:
 
 def _report_positions(country: str) -> None:
     """What the position table holds for the state, per discovery source."""
-    where, params = " WHERE country_qid = %s", [positions.country_qid(country)]
+    where, params = " WHERE country_qid = ANY(%s)", [sorted(positions.state_qids(positions.country_qid(country)))]
     total = db.conn().execute(f"SELECT count(*) FROM position{where}", params).fetchone()[0]
     click.echo(f"positions:        {total}")
     click.echo("by source set:")

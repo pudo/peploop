@@ -26,10 +26,11 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 import requests
+from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
-from rigour.territories import get_territory
+from rigour.territories import get_territory, get_territory_by_qid
 
-from peploop import db, typegraph, wikidata
+from peploop import db, eras, typegraph, wikidata
 from peploop.classes import NOT_AN_OFFICE, ORGANISATION, POSITION_METACLASSES, SENDER_CLASS
 from peploop.text import fold
 
@@ -166,6 +167,24 @@ def country_qid(cc: str) -> str:
     if territory is None or territory.qid is None:
         raise ValueError(f"no territory QID for {cc!r}")
     return territory.qid
+
+
+@lru_cache(maxsize=None)
+def state_qids(state_qid: str | None) -> frozenset[str]:
+    """Every QID that names the state now: its main one and its current alternates.
+
+    Reach for this wherever an item's `P17` or `P1001`, or a holder's `P27`, is
+    matched to the run's state. rigour's `nl` is the Kingdom (`Q29999`) while
+    Dutch municipal offices carry the Netherlands (`Q55`): matched against the
+    main QID alone, the state's own offices read as another state's.
+    Predecessor states are left out (`eras.current_qids`).
+    """
+    if not state_qid:
+        return frozenset()
+    territory = get_territory_by_qid(state_qid)
+    if territory is None or territory.qid != state_qid or len(territory.qids) < 2:
+        return frozenset({state_qid})
+    return frozenset({state_qid, *eras.current_qids(territory.code)})
 
 
 #: How many items one discovery page asks for. The queries themselves are
@@ -606,8 +625,11 @@ def load_country(
     its row. Nothing is deleted, because absence from one query is not
     evidence that an office is gone.
     """
-    qid = country_qid(cc)
-    found = discover(qid, sources, log=log, page=page)
+    main = country_qid(cc)
+    found: dict[str, set[str]] = {}
+    for qid in sorted(state_qids(main), key=lambda q: q != main):
+        for source, items in discover(qid, sources, log=log, page=page).items():
+            found.setdefault(source, set()).update(items)
     return load_items(found, log=log)
 
 
@@ -834,14 +856,16 @@ HOLDERS_QUERY = """SELECT ?pos (COUNT(DISTINCT ?h) AS ?n) WHERE {
   VALUES ?pos { %(values)s } OPTIONAL { ?h wdt:P39 ?pos }
 } GROUP BY ?pos"""
 
-#: Holders who are citizens of one state, which is the signal that separates
+#: Holders who are citizens of one state (`state_qids`), which is the signal that separates
 #: an office a country genuinely records its people on from a world-level
 #: class a handful of them were filed under by mistake. Counted per state
 #: rather than per row, because the same item is a convention in one country
-#: and an accident in the next.
+#: and an accident in the next. The states go in a `FILTER`, not a `VALUES`:
+#: a `VALUES` inside the `OPTIONAL` is joined before `?pos`, and one chunk ran
+#: for over ten minutes where the filter answers in a second.
 HOLDERS_COUNTRY_QUERY = """SELECT ?pos (COUNT(DISTINCT ?h) AS ?n) WHERE {
   VALUES ?pos { %(values)s }
-  OPTIONAL { ?h wdt:P39 ?pos ; wdt:P27 wd:%(country)s }
+  OPTIONAL { ?h wdt:P39 ?pos ; wdt:P27 ?c . FILTER(?c IN (%(countries)s)) }
 } GROUP BY ?pos"""
 
 #: Items whose `P31` is this one: the item is a metaclass, a kind of office
@@ -926,6 +950,11 @@ def grouped_count(query: str, qids: Sequence[str], **params: str) -> dict[str, i
     return counts
 
 
+def _in_list(state_qid: str) -> str:
+    """The state's QIDs as the body of a SPARQL `IN (...)`."""
+    return ", ".join(f"wd:{qid}" for qid in sorted(state_qids(state_qid)))
+
+
 def fill_counts(
     state_qid: str,
     qids: Sequence[str] | None = None,
@@ -949,7 +978,8 @@ def fill_counts(
     results: dict[str, dict[str, int]] = {}
     plan = (
         ("holders", HOLDERS_QUERY, {}),
-        ("holders_country", HOLDERS_COUNTRY_QUERY, {"country": state_qid}),
+        ("holders_country", HOLDERS_COUNTRY_QUERY,
+         {"countries": _in_list(state_qid)}),
         ("instance_count", INSTANCE_QUERY, {}),
         ("subclass_count", SUBCLASS_QUERY, {}),
         ("held_subclasses", HELD_SUBCLASS_QUERY, {}),
@@ -1044,7 +1074,8 @@ def fill_local_holders(
         try:
             rows = wikidata.sparql(
                 HOLDERS_COUNTRY_QUERY
-                % {"values": wikidata.values_block(chunk), "country": state_qid},
+                % {"values": wikidata.values_block(chunk),
+                   "countries": _in_list(state_qid)},
                 max_age=0,
             )
         # A timeout surfaces as retries exhausted, or as a 200 whose JSON
@@ -1326,8 +1357,8 @@ def kind_use(state_qid: str) -> Counter[str]:
     """How many of one state's offices declare each kind, by `P31` or `P279`."""
     rows = db.conn().execute(
         "SELECT kind, count(DISTINCT qid) FROM position, unnest(kind_qids) AS kind"
-        " WHERE country_qid = %s OR jurisdiction_qid = %s GROUP BY kind",
-        (state_qid, state_qid),
+        " WHERE country_qid = ANY(%s) OR jurisdiction_qid = ANY(%s) GROUP BY kind",
+        (sorted(state_qids(state_qid)),) * 2,
     )
     return Counter(dict(rows))
 
@@ -1532,6 +1563,40 @@ def date_verdict(
     return None
 
 
+def class_like(row: dict[str, Any], held_subclass_floor: int = HELD_SUBCLASS_FLOOR) -> bool:
+    """Whether a position row has the shape of a class of office rather than one seat.
+
+    Reach for this to tell "city president" or "chief executive officer" from
+    the president of Katowice: other items are instances of it, or people are
+    recorded in several of its subclasses.
+    """
+    held_children = row.get("held_subclasses")
+    return bool(row.get("instance_count")) or (
+        held_children is not None and held_children >= held_subclass_floor
+    )
+
+
+def generic_classes(qids: Sequence[str]) -> frozenset[str]:
+    """Those of these offices whose `P39` names no seat: generic, or a class scoped to no polity.
+
+    Reach for this before reading a person's recorded `P39` as covering a
+    specific office: "city president" or "chief executive officer" says
+    nothing about which city or agency. A class with a `P1001` of its own is
+    read as a seat -- "member of the Congress of Deputies" has its terms as
+    subclasses -- and so is an item missing from the position table, so
+    either keeps covering what it would cover.
+    """
+    wanted = sorted({q for q in qids if q})
+    if not wanted:
+        return frozenset()
+    with db.conn().cursor(row_factory=dict_row) as cur:
+        rows = {row["qid"]: row for row in cur.execute(
+            "SELECT qid, jurisdiction_qid, instance_count, held_subclasses FROM position"
+            " WHERE qid = ANY(%s)", (wanted,))}
+    return frozenset(q for q in wanted if is_generic(q) or (
+        q in rows and rows[q]["jurisdiction_qid"] is None and class_like(rows[q])))
+
+
 def holder_count(
     row: dict[str, Any], state_qid: str | None, scope: str = "local"
 ) -> int | None:
@@ -1577,6 +1642,7 @@ def tags_for(
     rather than `unheld`.
     """
     tags: list[str] = []
+    home = state_qids(state_qid)
     if "not_office" in signals and row.get("not_office"):
         tags.append("not-office")
 
@@ -1589,11 +1655,7 @@ def tags_for(
         tags.append("unheld")
 
     if "class" in signals:
-        held_children = row.get("held_subclasses")
-        class_like = bool(row.get("instance_count")) or (
-            held_children is not None and held_children >= held_subclass_floor
-        )
-        if class_like:
+        if class_like(row, held_subclass_floor):
             # The same shape reads two ways, and only a count of the state's
             # own holders tells them apart: an abstraction a handful of
             # people were misfiled under, or the item the state's community
@@ -1629,8 +1691,8 @@ def tags_for(
         # own post called somebody else's. A recorded sender that is the
         # state being asked about settles it as its own.
         scope = row.get("jurisdiction_qid") or row.get("country_qid")
-        own = state_qid is not None and row.get("sender_qid") == state_qid
-        inbound = state_qid is not None and scope == state_qid and not own
+        own = row.get("sender_qid") in home
+        inbound = scope in home and not own
         tags.append("inbound-diplomatic" if inbound else "diplomatic")
 
     # An office of some *other* state that only the citizen query reached.
@@ -1639,8 +1701,8 @@ def tags_for(
     # whose `P17` is the receiver's.
     country = row.get("country_qid")
     if (state_qid is not None and row.get("sources") == ["citizen"]
-            and country is not None and country != state_qid
-            and row.get("sender_qid") != state_qid):
+            and country is not None and country not in home
+            and row.get("sender_qid") not in home):
         tags.append("foreign-scoped")
     return tags
 

@@ -384,6 +384,10 @@ def main() -> int:
           policy.decide(case(entity={"claims": {"P39": [other]}},
                              position=office(holders_by_country={STATE: 3}))),
           policy.PENDING, "unverified")
+    check("nor a spell recorded only under a class of office: the seat goes beside it",
+          policy.decide(case(entity={"claims": {"P39": [other]}}, generic_held=frozenset({"Q7"}),
+                             position=office(holders_by_country={STATE: 0}))),
+          policy.PENDING, "unverified")
     check("nor an office minted this run, which is uncounted",
           policy.decide(case(entity={"claims": {"P39": [other]}}, position=office())),
           policy.PENDING, "unverified")
@@ -627,6 +631,21 @@ def main() -> int:
     failures += 0 if ok else 1
     print(f"  {'ok  ' if ok else 'FAIL'} an office with P1001 and no P17 is the state's,"
           " and its twins are judged")
+    real = positions.state_qids
+    positions.state_qids = lambda q: frozenset({STATE, "Q0000005"}) if q == STATE else frozenset({q})
+    try:
+        ok = policy.state_office(office(country_qid="Q0000005", jurisdiction_qid=None), STATE)
+        tags = policy.office_tags(case(position=office(country_qid="Q0000005", jurisdiction_qid=None,
+                                                       sources=["citizen"])))
+        ok = ok and "foreign-scoped" not in tags
+    finally:
+        positions.state_qids = real
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} an office scoped to the state's alternate QID is its own")
+    ok = positions.class_like(office(held_subclasses=12)) and positions.class_like(office(instance_count=13)) \
+        and not positions.class_like(office(held_subclasses=2))
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} a class of office is told from a seat by its instances and held subclasses")
 
     plural = {a.parent for a in offices.ARCHETYPES.values()} - policy.FAMILY_GENERIC
     ok = plural == {"Q5097014", "Q107363151", "Q3368517", "Q14212", "Q48352"} and {

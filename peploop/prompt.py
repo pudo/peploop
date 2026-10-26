@@ -8,7 +8,7 @@ article texts — goes into the user message, after the cached prefix.
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from typing import Any, Collection, Iterable, Mapping
 
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
@@ -106,11 +106,14 @@ def named(qid: str, labels: dict[str, str | None], label_first: bool = False) ->
     return f"{label} {qid}" if label_first else f"{qid} {label}"
 
 
-def render_state(entity: dict[str, Any], labels: dict[str, str | None]) -> str:
+def render_state(entity: dict[str, Any], labels: dict[str, str | None],
+                 generic: Collection[str] = ()) -> str:
     """Render what Wikidata already records about the person, compactly.
 
     The model is told this is for recognition: a value already here is only
-    reported back when an article refines or disputes it.
+    reported back when an article refines or disputes it. An office in
+    `generic` is marked so, because a class of office ("city president")
+    records no specific seat and the seat is still to be reported.
     """
     lines = [f"QID: {entity.get('id', '')}"]
     names = {lang: obj["value"] for lang, obj in entity.get("labels", {}).items()}
@@ -135,7 +138,8 @@ def render_state(entity: dict[str, Any], labels: dict[str, str | None]) -> str:
                 format_time(v["time"], v.get("precision", 0)) if v else "?" for v in (start, end)
             ]
             span = f" [{edges[0]} → {edges[1]}]"
-        lines.append(f"  - {named(value['id'], labels)}{span}")
+        mark = " (generic office)" if value["id"] in generic else ""
+        lines.append(f"  - {named(value['id'], labels)}{span}{mark}")
     return "\n".join(lines)
 
 

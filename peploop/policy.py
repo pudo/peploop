@@ -249,6 +249,9 @@ class Case:
     #: [start, end] years of the state a P27 names (`eras.span_of`). None when
     #: nobody read it or nothing dates the state, which no rule reads as a veto.
     state_span: list[int | None] | None = None
+    #: The person's recorded `P39` values that name no seat -- "city
+    #: president", "chief executive officer" (`positions.generic_classes`).
+    generic_held: frozenset[str] = frozenset()
     today: date | None = None
 
     @property
@@ -942,7 +945,8 @@ def recorded_elsewhere(case: Case) -> Disposition | None:
     state and the person's record already carries another `P39` starting the
     same day, the spell is on record and writing it again would make the twin
     its first holder. An office minted this run is uncounted, not unheld, so
-    it is never caught here.
+    it is never caught here. A `P39` onto a class of office ("city president"
+    with no city) records no seat: the specific office goes beside it.
     """
     if case.property != "P39" or case.position is None:
         return None
@@ -955,7 +959,8 @@ def recorded_elsewhere(case: Case) -> Disposition | None:
     target = (case.value or {}).get("id")
     for claim in case.entity.get("claims", {}).get("P39", []):
         held = claim.get("mainsnak", {}).get("datavalue", {}).get("value", {})
-        if not isinstance(held, dict) or held.get("id") in (None, target):
+        if not isinstance(held, dict) or held.get("id") in (None, target) \
+                or held.get("id") in case.generic_held:
             continue
         for qualifier in claim.get("qualifiers", {}).get("P580", []):
             other = qualifier.get("datavalue", {}).get("value")
@@ -1319,6 +1324,7 @@ def person_cases(
     offices = _position_rows(
         [row["value"].get("id") for row in rows if row["property"] == "P39"]
     )
+    generic_held = positions.generic_classes(wikidata.claim_qids(person["entity"], "P39", include_deprecated=False))
     if any((row["source_lang"] or "").startswith("zh") for row in rows if row["property"] == "P39"):
         names = memo.names_of(list(offices), ZH_LANGS)
         for office_qid, office in offices.items():
@@ -1372,6 +1378,7 @@ def person_cases(
             government=(governments or {}).get(state_qid or ""),
             polities=polities_of(state_qid) if state_qid else {},
             state_span=(state_spans or {}).get(row["value"].get("id", "")) if row["property"] == "P27" else None,
+            generic_held=generic_held,
             today=today,
         )))
     # Spells are judged against each other only among the rows every other
@@ -1417,8 +1424,8 @@ def polities_of(state_qid: str) -> dict[str, list[str]]:
 
 def state_office(position: dict[str, Any], state_qid: str | None) -> bool:
     """Whether an office is the state's own, by `P17` or by the `P1001` it governs."""
-    return state_qid is not None and state_qid in (
-        position.get("country_qid"), position.get("jurisdiction_qid"))
+    return bool(positions.state_qids(state_qid) & {
+        position.get("country_qid"), position.get("jurisdiction_qid")})
 
 
 def _family_conflicts_of(cases: Sequence[tuple[int, Case]], state_qid: str | None) -> dict[int, str]:

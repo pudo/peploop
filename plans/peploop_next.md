@@ -129,16 +129,20 @@ stages → send with the user. A ~360-person tranche (the 777 offices whose
 holder resolves) costs about $50 live, half batched. Before the first
 tranche:
 
-1. **nl's state.** rigour's `nl` is `Q29999`; Dutch offices carry `P17`
-   `Q55`, so they load through the citizen lane only and the policy skips
-   them as `foreign-scoped`. Same check for dk (`Q35`/`Q756617`) and any
-   kingdom with constituent countries.
-2. **A generic `P39` hides the specific one.** A holder carrying
-   "prezydent miasta" or "chief executive officer" gets no mention of the
-   specific office (extraction treats it as recorded) or a
-   `recorded-elsewhere` skip. Measure how many of the 362 holders carry a
-   generic `P39`, then decide: extract prompt wording, or the policy
-   reading a generic item as not covering.
+1. **A state is its current QIDs** in the person lane (done 2026-10-26).
+   Still on the main QID: the mint lane (`mint.state_positions`,
+   `Context.index`, `subdivisions`, `offices.found_from`/`live_lookup`,
+   `siblings`, the scope checks) -- for nl, mint would miss existing `Q55`
+   offices and take the Kingdom's constituent countries for its units --
+   and reconcile's `_governs` (a render change, so it re-keys answers).
+   rigour's bad alternates (Southern Netherlands and Crown Colony of Malta
+   kept as current, Mecca, Bali, Navajo, Ichkeria, Santo Domingo) are for
+   upstream and `eras.historical`.
+2. **Generic `P39`s** no longer hide the specific office (done). Residue:
+   propose attaches the first mention's verdict to a spell (Wiśniewski's
+   medium English one over the high Polish one); rector-style classes
+   scoped to a class (`P1001` "educational institution") still count as
+   seats.
 3. **Stale `P6`.** An undated `P6` often names a former mayor; mint's
    draft already prefers a differing infobox name. Count how many seeded
    holders' accepted tenures are closed after the first tranche.

@@ -371,6 +371,37 @@ MISSION_CASES: tuple[tuple[str, dict[str, Any], str, tuple[str, ...]], ...] = (
 )
 
 
+def check_state_qids(expect: Any) -> None:
+    """Pin that a state is all its current QIDs: in the tags, and in what a load discovers."""
+    real = positions.eras.current_qids
+    positions.eras.current_qids = lambda cc, extra=(): {"nl": ["Q29999", "Q55"]}.get(cc, [])
+    positions.state_qids.cache_clear()
+    try:
+        expect(positions.state_qids("Q29999") == {"Q29999", "Q55"},
+               "the Kingdom's QIDs include the Netherlands")
+        expect(positions.state_qids("Q55") == {"Q55"}, "an alternate QID is not a run's state")
+        expect(positions.state_qids(STATE) == {STATE}, "a QID rigour does not know is itself")
+        dutch = {"country_qid": "Q55", "sources": ["citizen"]}
+        tags = positions.tags_for(dutch, "Q29999")
+        expect("foreign-scoped" not in tags, f"an office scoped to the alternate is the state's own (got {tags})")
+        inbound = {"diplomatic": True, "country_qid": "Q55", "sender_qid": "Q2"}
+        tags = positions.tags_for(inbound, "Q29999")
+        expect("inbound-diplomatic" in tags, f"a mission to the alternate is inbound (got {tags})")
+        asked: list[str] = []
+        real_discover, real_load = positions.discover, positions.load_items
+        positions.discover = lambda qid, *_a, **_k: asked.append(qid) or {"usage": {f"pos-{qid}"}}
+        positions.load_items = lambda found, **_k: {"found": found}
+        try:
+            got = positions.load_country("nl")
+        finally:
+            positions.discover, positions.load_items = real_discover, real_load
+        expect(asked == ["Q29999", "Q55"] and got["found"] == {"usage": {"pos-Q29999", "pos-Q55"}},
+               f"a load discovers under every current QID, main first (asked {asked})")
+    finally:
+        positions.eras.current_qids = real
+        positions.state_qids.cache_clear()
+
+
 def _item(**claims: Sequence[str]) -> dict[str, Any]:
     """An entity carrying item-valued claims and nothing else."""
     return {"claims": {prop: [{"rank": "normal", "mainsnak": {
@@ -738,6 +769,7 @@ def main() -> int:
         ("prompt", check_prompt),
         ("tags", check_tags),
         ("missions", check_missions),
+        ("state_qids", check_state_qids),
         ("request", check_request),
         ("retrievable", check_retrievable),
         ("search_title", check_search_title),

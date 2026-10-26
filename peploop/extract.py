@@ -14,7 +14,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
-from peploop import db, evidence, llm, prompt, wikidata
+from peploop import db, evidence, llm, positions, prompt, wikidata
 
 MODEL = os.environ.get("PEPLOOP_MODEL", "claude-sonnet-5")
 MAX_TOKENS = 16000
@@ -160,7 +160,8 @@ def user_message(entity: dict[str, Any], articles: list[prompt.Article]) -> str:
         target: wikidata.best_label(item)
         for target, item in wikidata.fetch_items(prompt.state_qids(entity), props="labels").items()
     }
-    return prompt.render_user_message(prompt.render_state(entity, labels), articles)
+    generic = positions.generic_classes(wikidata.claim_qids(entity, prompt.POSITION_PROP))
+    return prompt.render_user_message(prompt.render_state(entity, labels, generic), articles)
 
 
 def stored_articles(qid: str) -> tuple[dict[str, Any], list[prompt.Article], list[str]]:

@@ -32,7 +32,11 @@ The same applies to gender, citizenship, names, offices and birthplace: a value
 already recorded is not reported again; a value not recorded, or one that
 disputes what is, is. For offices, "recorded" means the same office with the
 same dates; an office the item has without dates, where an article dates it,
-is a refinement and is reported.
+is a refinement and is reported. An office marked `(generic office)` --
+"city president", "mayor", "chief executive officer", an item that itself
+names no place or body -- records no specific office: report the president
+of the city or the head of the agency the article names, even when the
+generic entry carries the same dates.
 Never report a value only because the item has it. Everything you output must
 be attested in the articles.
 

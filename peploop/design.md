@@ -203,7 +203,11 @@ minimum for Sonnet 5 and it is the only place the rules live. It is sent with
 1. The Wikidata state we already hold, as a compact block: QID, labels by
    language, existing `P31/P21/P27/P19/P569/P570` values with their precision,
    and the offices under `P39` with their `P580`/`P582` qualifiers. The model
-   is told these are for recognition, not to be echoed as new proposals.
+   is told these are for recognition, not to be echoed as new proposals. An
+   office that names no seat (`positions.generic_classes`: on the generic list,
+   or class-shaped with no `P1001` of its own, such as "city president" or
+   "chief executive officer") is marked `(generic office)`, and the specific
+   office the article names is reported beside it.
 2. Each article as a fenced block headed by language, title, revision, URL, in
    the order *Fetch* packed them: English first where it exists, then the
    country's languages, then the rest longest first.
@@ -266,7 +270,12 @@ Positions are the main reconciliation. `positions.md` is the design and
   `candidate (kind, …)` table: birthplace gets its own when it arrives.
 - Discovery is three per-country lanes — a class descent, offices someone is
   recorded in, and offices the state's own citizens hold — unioned and tagged
-  by which lane found each item. None is sufficient alone.
+  by which lane found each item. None is sufficient alone. A state is all its
+  current QIDs (`positions.state_qids`: rigour's main and alternates, less
+  predecessors, as `eras.current_qids`): every lane runs under each, and the
+  holder counts, the `foreign-scoped` and diplomatic tags and the policy's
+  state offices match against the set. rigour's `nl` is the Kingdom
+  (`Q29999`) while Dutch offices carry the Netherlands (`Q55`); `dk` likewise.
 - **The search is one index.** `position.search_text` is a de-duplicated bag
   of the content tokens of every name the item carries and every name of the
   items it points at, each token stored beside its six-character prefix in
@@ -578,7 +587,9 @@ the office's: a spell aimed at an office nobody in the state holds, when the
 record already has another `P39` starting the same day, is
 `office/recorded-elsewhere` -- the unused twin of a seat the community records
 on its other item. A minted office is uncounted rather than unheld, so it is
-never caught.
+never caught, and a `P39` onto an office that names no seat
+(`positions.generic_classes`) covers nothing: the specific office goes beside
+it, never in its place.
 
 A row a human ruled on is theirs and the policy never reads it; everything else
 is re-decided from scratch on every run, so a rule change is one `propose`.
