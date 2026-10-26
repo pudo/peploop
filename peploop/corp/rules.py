@@ -564,7 +564,13 @@ def city_state(req: dict[str, Any], named: dict[str, str] | None, subdivisions: 
 
 def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str, Any] | None,
               today: date) -> str | None:
-    """Why a seat is not written, from its dates and currency alone."""
+    """Why a seat is not written, from its dates and currency alone.
+
+    An undated seat is written only as held now, and where the quote's
+    language has its present-tense markers (`tenure.CURRENT`) the quote must
+    say so: the model calls an infobox's last-named chair current as readily
+    as one the article says is in office.
+    """
     if tenure.bad_dates(start, end):
         return "bad_dates"
     if start and dates.after_today(start, today):
@@ -574,6 +580,9 @@ def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str,
         return "current_ended"
     if not start and not end and not seat["current"]:
         return "undated_former"
+    if (not start and not end and tenure.reads_current(seat.get("article"))
+            and not tenure.says_current(seat["quote"], seat.get("article"))):
+        return "undated_unattested"
     if tenure.ended_long_ago(start, end, today):
         return "tenure_ended"
     if not end and not seat["current"] and tenure.open_too_long(start, today):
@@ -583,6 +592,69 @@ def seat_rule(seat: dict[str, Any], start: dict[str, Any] | None, end: dict[str,
 
 #: The two properties a body's head is written with; a person holds one of them, never both.
 HEADS = ("P169", "P1037")
+
+#: A seat two people hold together by its title: a co-chair, a dual leadership.
+CO_SEAT = re.compile(r"\bco-?(?:chair|lead|president|director)|\bko-?(?:vorsitz|präsident)|\bco-?présiden|"
+                     r"\bcopresiden|\bwspółprzewodnicz|\bdoppelspitze", re.I)
+
+
+def quoted_dates(seat: dict[str, Any]) -> dict[str, Any]:
+    """The seat with each date its quote does not carry dropped, so the date rules judge it without that date.
+
+    The model fills a start or end from elsewhere in the article, from a
+    successor's line, or from nowhere (a Bulgarian "22 юли 2026" written as
+    2025); a date on a statement stands only where its year stands in the
+    seat's quote.
+    """
+    out = dict(seat)
+    for key in ("start", "end"):
+        if seat[key] and seat[key][:4] not in (seat["quote"] or ""):
+            out[key] = None
+            out.setdefault("_dropped", []).append(key)
+    return out
+
+
+def successors(seats: list[dict[str, Any]], lead: str) -> dict[int, int]:
+    """For each open, former head, the head whose start ends it: the next start among the other heads.
+
+    An interim or a predecessor the article leaves open was followed by the
+    head after them; that start is the end the article implies, as peploop's
+    `propose.close_at_next` closes a person's open spell at their next.
+    """
+    starts = [(i, s["start"].ljust(10, "0")) for i, s in enumerate(seats) if s["role"] == lead and s["start"]]
+    out = {}
+    for i, s in enumerate(seats):
+        if s["role"] != lead or s["current"] or s["end"] or not s["start"]:
+            continue
+        own = s["start"].ljust(10, "0")
+        later = [(j, st) for j, st in starts if st[:4] > own[:4] and seats[j]["name"] != s["name"]]
+        if later:
+            out[i] = min(later, key=lambda item: item[1])[0]
+    return out
+
+
+def contested(seats: list[dict[str, Any]], kind: str) -> set[int]:
+    """The undated current holders of one head or chair seat, when the seat has two or more.
+
+    Two people the article both calls the current head, neither dated, is an
+    article that has not been revised since the change: writing both says
+    the body has two heads. A co-chair or a party's dual leadership is the
+    exception, said in the quote. Only an enterprise's or an institution's
+    seats are counted: a party is often led by a pair, and an international
+    body's board seats are no head's.
+    """
+    if kind not in WRITTEN:
+        return set()
+    groups: dict[tuple[str, str], list[int]] = {}
+    for i, s in enumerate(seats):
+        if s["role"] in ("head", "chair") and s["current"] and not s["start"] and not s["end"]:
+            groups.setdefault((s.get("body", "*"), s["role"]), []).append(i)
+    out: set[int] = set()
+    for idx in groups.values():
+        names = {seats[i]["name"] for i in idx}
+        if len(names) > 1 and not any(CO_SEAT.search(seats[i]["quote"] or "") for i in idx):
+            out |= set(idx)
+    return out
 
 
 def seat_rows(req: dict[str, Any], humans: set[str], today: date,
@@ -603,13 +675,12 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
     """
     heads = {p: set(wd.values(entity or {}, p)) for p in HEADS}
     kind = req["answer"]["kind"]
-    # The latest start among the answer's heads (a party's chairs): an
-    # earlier one left open (an interim, a predecessor) was followed by that one.
     lead = "chair" if kind in PARTY else "head"
-    starts = [s["start"] for s in req["answer"]["seats"] if s["role"] == lead and s["start"]]
-    last_head = max(starts, key=lambda t: t.ljust(10, "0")) if starts else None
+    seats = [quoted_dates(s) for s in req["answer"]["seats"]]
+    closed = successors(seats, lead)
+    twins = contested(seats, kind)
     rows = []
-    for seat in req["answer"]["seats"]:
+    for index, seat in enumerate(seats):
         statement = seat_statement(kind, seat.get("body", "*"), seat["role"], extra)
         if statement is None:
             rows.append({"property": "seat", "value": None, "qualifiers": {}, "_rule": f"role_unmapped:{seat['role']}",
@@ -618,6 +689,9 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
         prop, role = statement
         start = dates.time_value(seat["start"]) if seat["start"] else None
         end = dates.time_value(seat["end"]) if seat["end"] else None
+        if index in closed:
+            # Ended where the next head began, at that start's own precision.
+            end = dates.time_value(seats[closed[index]]["start"])
         if end and dates.after_today(end, today) and not (start and dates.after_today(start, today)):
             # A fixed term that runs past today is held now: its end is not a fact yet.
             end, seat = None, {**seat, "current": True}
@@ -630,6 +704,8 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
         rule = None
         if not evidence.quoted(seat["quote"], req["message"]):
             rule = "seat_unquoted"
+        elif index in twins:
+            rule = "contested"
         elif not found:
             # A seat its dates rule out is no work for the matcher: only
             # the ones that would be written wait for a person.
@@ -643,9 +719,6 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
         elif not end and found[0] in dead:
             # A seat with no end, held by someone who has died, ended then.
             rule = "holder_dead"
-        elif (seat["role"] == lead and not seat["current"] and not end and last_head
-              and (seat["start"] or "").ljust(10, "0") < last_head.ljust(10, "0")):
-            rule = "superseded"
         elif prop in HEADS and any(found[0] in heads[p] for p in HEADS if p != prop):
             # The head already recorded under the other head property: a
             # second statement would read as a second seat.
@@ -659,8 +732,13 @@ def seat_rows(req: dict[str, Any], humans: set[str], today: date,
             quals["P582"] = end
         if role:
             quals["P2868"] = item(role)
-        rows.append({"property": prop, "value": item(found[0]) if len(found) == 1 else None,
-                     "qualifiers": quals, "_rule": rule, "_name": seat["name"], "_via": via})
+        row = {"property": prop, "value": item(found[0]) if len(found) == 1 else None,
+               "qualifiers": quals, "_rule": rule, "_name": seat["name"], "_via": via}
+        if seat.get("_dropped"):
+            row["_dropped"] = seat["_dropped"]
+        if index in closed:
+            row["_closed_by"] = seats[closed[index]]["name"]
+        rows.append(row)
     return rows
 
 

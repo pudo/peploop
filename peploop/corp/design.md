@@ -136,7 +136,7 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   party, not as offices; peploop mints no party offices. A party, or a party's branch for a first-level
   subdivision, is admitted by its members' seats, not by control: it gets
   no marker, no link and no class, only its seats, under every seat rule
-  below (person, dates, a dead holder, a superseded chair). Its seats are
+  below (person, dates, a dead holder, a chair ended at the next). Its seats are
   its executive organs, translated by function:
 
   | seat | statement |
@@ -226,7 +226,9 @@ are written by default; a spec names its own, `municipal` among them.
    member of the scope, read from the query service. Dropped: dissolved, not an organisation, no article in the
    country's languages or English; never sports clubs, military units,
    diplomatic missions, courts or places, youth wings, parliamentary groups
-   or electoral lists, nor the spec's `exclude`.
+   or electoral lists, nor the spec's `exclude`, nor an item typed an office
+   (`position`: a commissioner typed both agency and position is peploop's
+   `P39`).
 2. **decide** (`decide.py`, `prompts/decide.md`): one request per body with
    its statements, chain, candidate controllers and articles. The answer:
    what it is, whether a state controls it and the bodies over it (chosen or
@@ -286,9 +288,16 @@ are written by default; a spec names its own, `municipal` among them.
    body (their item does not name it, their page neither links nor names
    it), and is skipped when the check does not call them the same person
    (`person_unconfirmed`: the article linked a namesake). No open seat is written for a person who
-   has died (`holder_dead`), nor for a head the article does not call current
-   who started before another head it names (`superseded`: an interim, a
-   predecessor).
+   has died (`holder_dead`). A seat's dates stand only where their year
+   stands in its quote; a date from a heading or a successor's line is
+   dropped and the seat judged without it. A head the article does not call
+   current, left open before another head it names (an interim, acting or
+   not, a predecessor), ends where the next head began. An undated seat is
+   written only as held now, and where the quote's language has its
+   present-tense markers (`tenure.CURRENT`) the quote must say so
+   (`undated_unattested`); two undated current heads or chairs of one
+   enterprise or institution are neither written (`contested`) unless the
+   quote names a co-chair.
    What survives is planned against the live item by peploop's planner
    (`route.route`), which merges dates, role and reference into a statement
    that is there and writes a `+` line only for a new one.

@@ -249,16 +249,14 @@ def crawler_cases() -> None:
     expect(rows[0]["_rule"] is None, "a head recorded under neither property is written")
     rows = rules.seat_rows(head, {"Q901000"}, TODAY, None, ent(), frozenset({"Q901000"}))
     expect(rows[0]["_rule"] == "holder_dead", "no open seat for a person who has died")
-    term = {**head, "answer": answer(seats=[seat(name="Max Probe", body="executive", role="head", start="2022",
-                                                  end="2027", current=False, quote="Max Probe runs it.")])}
+    termed = "Max Probe runs it from 2022 to 2027."
+    term = {**head, "message": MESSAGE + " " + termed,
+            "answer": answer(seats=[seat(name="Max Probe", body="executive", role="head", start="2022",
+                                         end="2027", current=False, quote=termed)])}
     rows = rules.seat_rows(term, {"Q901000"}, TODAY, None, ent())
     expect(rows[0]["_rule"] is None and "P582" not in rows[0]["qualifiers"],
            "a fixed term running past today is written as held, without its end")
-    interim = {**head, "answer": answer(seats=[
-        seat(name="Max Probe", body="executive", role="head", start="2024-07", current=False, quote="Max Probe runs it."),
-        seat(name="Erika Muster", body="executive", role="head", start="2024-10", current=True)])}
-    rows = rules.seat_rows(interim, {"Q901000"}, TODAY, None, ent())
-    expect(rows[0]["_rule"] == "superseded", "a head left open before a later head is not written as current")
+    seats_rows()
     # A ministry is a parent, never an owner; a link one step past an existing one is a shortcut.
     owner = {**base, "answer": answer(kind="institution", owners=((0, "owner"),))}
     expect(rules.control_rows(owner, ent(), None, state, {}, government=frozenset({"Q900100"}))[0]["_rule"] == "owner_ministry",
@@ -284,6 +282,70 @@ def crawler_cases() -> None:
     # Never candidates: sports clubs, diplomatic missions, places; and a country's chambers.
     expect({"Q476028", "Q847017", "Q7843791", "Q3917681", "Q56061", "Q192350", "Q7188"} <= load.EXCLUDED,
            "clubs, missions, places, ministries and governments are never candidates")
+
+
+def seats_rows() -> None:
+    """A seat's dates stand in its quote; a former head ends at the next; two undated current heads are neither written."""
+    arts = [{"lang": "xx", "url": "https://xx.wikipedia.org/wiki/Q", "rev": 1}]
+    links = {"xx": {"Max Probe": "Q901000", "Erika Muster": "Q901001"}, "en": {"Max Probe": "Q901000"}}
+    interim_q, next_q = "Max Probe was acting head from July 2024.", "Erika Muster became head in October 2025."
+    base = {"qid": "Q900999", "offered": [], "articles": arts, "links": links,
+            "message": " ".join([MESSAGE, interim_q, next_q])}
+    humans = {"Q901000", "Q901001"}
+    interim = {**base, "answer": answer(seats=[
+        seat(name="Max Probe", body="executive", role="head", start="2024-07", current=False, quote=interim_q),
+        seat(name="Erika Muster", body="executive", role="head", start="2025-10", current=True, quote=next_q)])}
+    rows = rules.seat_rows(interim, humans, TODAY, None, ent())
+    expect(rows[0]["_rule"] is None and rows[0]["qualifiers"]["P582"] == time_value("2025-10")
+           and rows[0]["_closed_by"] == "Erika Muster",
+           "an acting head left open is written, ended where the next head began")
+    expect(rows[1]["_rule"] is None and "P582" not in rows[1]["qualifiers"], "the next head is written open")
+    wrong = {**base, "answer": answer(seats=[
+        seat(name="Erika Muster", body="executive", role="head", start="2024-07-22", current=True, quote=next_q)])}
+    rows = rules.seat_rows(wrong, humans, TODAY, None, ent())
+    expect(rows[0]["_dropped"] == ["start"] and "P580" not in rows[0]["qualifiers"],
+           "a start whose year is not in the quote is dropped")
+    expect(rules.quoted_dates(seat(start="2021", end="2024", quote="From 2021 she chaired it."))["end"] is None,
+           "an end the quote does not carry is dropped, the start it does kept")
+    gone = {**base, "answer": answer(seats=[
+        seat(name="Max Probe", body="executive", role="head", start="2024-07", end=None, current=False,
+             quote="Max Probe ran it.")])}
+    expect(rules.seat_rows({**gone, "message": MESSAGE + " Max Probe ran it."}, humans, TODAY, None, ent())[0]["_rule"]
+           == "undated_former", "a former head whose start is unquoted is undated, so not written")
+    twin_a, twin_b = "Max Probe is the director.", "Erika Muster is the director."
+    twins = {**base, "message": " ".join([MESSAGE, twin_a, twin_b]), "answer": answer(seats=[
+        seat(name="Max Probe", body="executive", role="head", start=None, current=True, quote=twin_a),
+        seat(name="Erika Muster", body="executive", role="head", start=None, current=True, quote=twin_b)])}
+    rows = rules.seat_rows(twins, humans, TODAY, None, ent())
+    expect([r["_rule"] for r in rows] == ["contested", "contested"], "two undated current heads: neither is written")
+    co_a, co_b = "Max Probe is co-chair.", "Erika Muster is co-chair."
+    co = {**base, "message": " ".join([MESSAGE, co_a, co_b]), "answer": answer(seats=[
+        seat(name="Max Probe", body="supervisory", role="chair", start=None, current=True, quote=co_a),
+        seat(name="Erika Muster", body="supervisory", role="chair", start=None, current=True, quote=co_b)])}
+    expect([r["_rule"] for r in rules.seat_rows(co, humans, TODAY, None, ent())] == [None, None],
+           "co-chairs are two seats, both written")
+    party = {**twins, "answer": answer(kind="party", seats=[
+        {**s, "role": "chair"} for s in twins["answer"]["seats"]])}
+    expect(rules.contested(party["answer"]["seats"], "party") == set(), "a party's two chairs are not contested by count")
+    # Undated and current: the quote must say so where its language's markers are known.
+    stale_q = "Max Probe chaired the board."
+    stale = {**base, "message": MESSAGE + " " + stale_q, "answer": answer(seats=[
+        {**seat(name="Max Probe", body="supervisory", role="chair", start=None, current=True, quote=stale_q),
+         "article": "en"}])}
+    expect(rules.seat_rows(stale, humans, TODAY, None, ent())[0]["_rule"] == "undated_unattested",
+           "an undated seat the quote does not call current is not written as current")
+    now_q = "Max Probe is the current chair."
+    now = {**stale, "message": MESSAGE + " " + now_q, "answer": answer(seats=[
+        {**seat(name="Max Probe", body="supervisory", role="chair", start=None, current=True, quote=now_q),
+         "article": "en"}])}
+    expect(rules.seat_rows(now, humans, TODAY, None, ent())[0]["_rule"] is None,
+           "an undated seat the quote calls current is written")
+    expect(rules.seat_rows({**stale, "answer": answer(seats=[seat(name="Max Probe", body="supervisory", role="chair",
+                                                                  start=None, current=True, quote=stale_q)])},
+                           humans, TODAY, None, ent())[0]["_rule"] is None,
+           "where a language's markers are not known, the model's word stands")
+    expect(load.position_item(["Q327333", "Q4164871"]), "an agency also typed a position is the office, not a body")
+    expect(not load.position_item(["Q327333"]), "an agency is a body")
 
 
 def policy() -> None:
@@ -463,19 +525,22 @@ def parties() -> None:
            "a party is read in its own language, in English only where it has no other article")
     # Seats run through every seat rule a body's do.
     links = {"xx": {"Erika Muster": "Q900501", "Max Probe": "Q900502", "Old Chair": "Q900503", "Late Chair": "Q900504"}}
-    msg = MESSAGE + " Max Probe co-leads it. Old Chair led it. Late Chair led it."
+    msg = (MESSAGE + " Max Probe co-leads it since 2022. Old Chair led it from 2010. Late Chair led it from 2023."
+           " Erika Muster sat on it 1990 to 1994.")
     req = {"qid": "Q900999", "message": msg, "links": links, "articles": [{"lang": "xx", "url": "u", "rev": 1}],
            "offered": [], "answer": party(seats=[
-               pseat(), pseat("Max Probe", quote="Max Probe co-leads it.", start="2022"),
-               pseat("Old Chair", quote="Old Chair led it.", start="2010", current=False),
-               pseat("Late Chair", quote="Late Chair led it.", start="2023", current=True),
-               pseat("Erika Muster", role="member", start="1990", end="1994", current=False)])}
+               pseat(), pseat("Max Probe", quote="Max Probe co-leads it since 2022.", start="2022"),
+               pseat("Old Chair", quote="Old Chair led it from 2010.", start="2010", current=False),
+               pseat("Late Chair", quote="Late Chair led it from 2023.", start="2023", current=True),
+               pseat("Erika Muster", role="member", start="1990", end="1994", current=False,
+                     quote="Erika Muster sat on it 1990 to 1994.")])}
     humans = {"Q900501", "Q900502", "Q900503", "Q900504"}
     rows = rules.seat_rows(req, humans, TODAY, dead={"Q900504"})
     got = [(r["property"], r["value"]["id"], r["_rule"]) for r in rows]
-    expect(got == [("P488", "Q900501", None), ("P488", "Q900502", None), ("P488", "Q900503", "superseded"),
-                   ("P488", "Q900504", "holder_dead"), ("P3320", "Q900501", "tenure_ended")],
-           f"co-chairs are two P488; a predecessor left open, a dead holder and an old tenure are skipped (got {got})")
+    expect(got == [("P488", "Q900501", None), ("P488", "Q900502", None), ("P488", "Q900503", None),
+                   ("P488", "Q900504", "holder_dead"), ("P3320", "Q900501", "tenure_ended")]
+           and rows[2]["qualifiers"]["P582"] == time_value("2022"),
+           f"co-chairs are two P488; a predecessor left open ends at the next chair; a dead holder and an old tenure are skipped (got {got})")
     import inspect
     src = inspect.getsource(rules.decide)
     expect("(set(passed) - parties - international)" in src, "a party or an international body is no state owner of others")

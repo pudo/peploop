@@ -161,3 +161,7 @@
 - {cc: se, qid: Q1819090, prop: P749, value: Q185246, expect: write, why: parent judged correct}
 - {cc: dk, qid: Q7936278, prop: P5052, value: Q12313734, expect: write, why: dated board seat}
 - {cc: ee, qid: Q1370397, prop: P1037, value: Q16404281, expect: write, why: dated head}
+
+# --- the rerun programme's free rules (2026-10-26) ---
+- {cc: de, qid: Q1259952, expect: absent, why: an office typed also as an agency is peploop's P39, never a body}
+- {cc: bg, qid: Q12279300, prop: P1037, value: Q107274794, expect: [write, skip], forbid: {P580: "2025-07"}, why: "quote says 22 юли 2026, written 2025"}

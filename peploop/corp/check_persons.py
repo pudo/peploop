@@ -111,7 +111,9 @@ def seats() -> None:
                            matched={("Q900500", "Erika Muster"): "Q901000"})
     expect(rows[0]["_rule"] == "holder_dead", "a matched person passes the same seat rules: no open seat for the dead")
     expect(rules.seat_rows(one, set(), TODAY)[0]["_rule"] == "person_unlinked", "an unmatched seat stays unlinked")
-    old = {**base, "answer": answer(seats=[seat(start="1990", end="1995", current=False)])}
+    sat = "Erika Muster sat on the board from 1990 to 1995."
+    old = {**base, "message": message + " " + sat,
+           "answer": answer(seats=[seat(start="1990", end="1995", current=False, quote=sat)])}
     expect(rules.seat_rows(old, set(), TODAY)[0]["_rule"] == "tenure_ended",
            "an unlinked seat its dates rule out is skipped by the dates, never sent to the matcher")
     head = {**base, "answer": answer(seats=[seat(name="Max Probe", body="executive", role="head", quote="Max Probe runs it.")])}

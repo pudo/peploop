@@ -246,6 +246,16 @@ def branch(own: list[str], closure: set[str], classes_: frozenset[str]) -> bool:
     return POLITICAL_PARTY in closure or bool(set(own) & classes_)
 
 
+def position_item(own: list[str]) -> bool:
+    """Whether a candidate is typed an office, whatever else it is typed: a seat peploop writes as `P39`, never a body.
+
+    A commissioner's item typed both a government agency and a position is
+    the office; seats written on it would record its holders a second time,
+    as board members of a post.
+    """
+    return bool(set(own) & classes.POSITION_METACLASSES)
+
+
 def international(spec: countries.Spec, scope: str) -> set[str]:
     """The scope's own bodies and the organisations seated in one of its members, read from the query service."""
     if not spec.body_classes and not spec.organisation_classes:
@@ -340,8 +350,8 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     # An office is an item whose own type is a position class. Whether some
     # ancestor of its type is one says nothing: the type tree takes "business"
     # up to "position", which made every railway and grid operator an office.
-    orgs = {q for q in lanes if classes.ORGANISATION in closure.get(q, set())
-            and not set(own[q]) & classes.POSITION_METACLASSES}
+    positional = {q for q in lanes if position_item(own[q])}
+    orgs = {q for q in lanes if classes.ORGANISATION in closure.get(q, set()) and q not in positional}
     excluded = EXCLUDED | spec.exclude
     for qid in lanes:
         if closure.get(qid, set()) & excluded:
@@ -357,7 +367,8 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
     # A party is a body by its members' seats, as a listed one is by the list.
     bodies = {q for q in lanes if q in orgs or lanes[q] & {"seed", "typed", "municipal_typed", "formed", "statutory", "listed",
                                                            "party", "international"}}
-    keep = [q for q in sorted(lanes) if "excluded" not in lanes[q] and q in bodies and q not in nonbranch]
+    keep = [q for q in sorted(lanes) if "excluded" not in lanes[q] and q in bodies and q not in nonbranch
+            and q not in positional]
     entities = wd.fetch_items(keep)
     # An international body is read in the spec's wikis (`decide.international_wikis`).
     wikis = list(spec.wikis) if spec.international else langs(state)
@@ -368,6 +379,7 @@ def load(cc: str, log: Callable[[str], None] = print) -> dict[str, int]:
         for qid in sorted(lanes):
             entity = entities.get(qid)
             reason = ("excluded" if "excluded" in lanes[qid] else "not_branch" if qid in nonbranch
+                      else "position" if qid in positional
                       else classify(entity, qid in bodies, wikis) if qid in keep else "not_organisation")
             counts[reason or "kept"] = counts.get(reason or "kept", 0) + 1
             if reason == "not_organisation" and "owned" in lanes[qid] and len(lanes[qid]) == 1:

@@ -53,6 +53,9 @@ Sized over the whole run (applied seats, 4,034):
 
 ### 1. Rules: free, no re-ask
 
+Done 2026-10-26 (with the Slovenia sweep; effect sized in `plans/si_sweep.md`).
+The 28 countries are not yet re-planned.
+
 1. **Position items are not bodies.** At load time, gate items whose `P31`
    reaches a position class (`positions.POSITION_METACLASSES`). They are
    residue for peploop. Add a fixture.
