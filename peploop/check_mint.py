@@ -21,6 +21,8 @@ from peploop.offices import Found, Siblings, Spec
 
 STATE = "Q0000001"
 PROVINCE = "Q0000002"
+#: The realm around the state: one of its current QIDs, as the Kingdom of Denmark is Denmark's.
+REALM = "Q0000050"
 BODY = "Q0000003"
 OLD = "Q0000004"
 #: What the closure says reaches `Q4164871`: every archetype's parent.
@@ -184,6 +186,10 @@ def main() -> int:
     print("the jurisdiction:")
     expect(guard(governor(), jurisdiction=entity(PROVINCE, "Bray", p17="Q0000099")),
            [f"jurisdiction-state/{PROVINCE}"], "a subdivision of another state is refused")
+    expect(guard(governor(), jurisdiction=entity(PROVINCE, "Bray", p17=REALM)),
+           [f"jurisdiction-state/{PROVINCE}"],
+           "as is a place naming only the realm: the office would carry the state's P17, and the realm's"
+           " other parts are runs of their own")
     expect(guard(governor(), jurisdiction=None), [f"jurisdiction/{PROVINCE}"],
            "as is one that did not resolve")
 
@@ -485,6 +491,15 @@ def main() -> int:
            False, "but not when the province belongs to another state")
     expect(offices.found_from(scoped, "Governor of Bray", STATE, {}).country_qids, (PROVINCE,),
            "and its P1001 is what it names")
+    realmed = entity("Q73", "President of Aland", p31="Q294414", p17=REALM)
+    expect(offices.found_from(realmed, "President of Aland", STATE, {}).country_match, False,
+           "a hit naming another QID is another state's")
+    expect(offices.found_from(realmed, "President of Aland", STATE, {}, alternates=(REALM,)).country_match, True,
+           "unless it is one of the state's own: the realm's office is the state's, never minted twice")
+    realm_scoped = entity("Q74", "President of Aland", p31="Q294414")
+    realm_scoped["claims"]["P1001"] = entity("x", "x", p17=REALM)["claims"]["P17"]
+    expect(offices.found_from(realm_scoped, "President of Aland", STATE, {}, alternates=(REALM,)).scopes, (STATE,),
+           "and a P1001 naming the realm reads as the state, so it is no other polity's office")
     deprecated = entity("Q72", "President of Aland", p31="Q5", p17=STATE)
     deprecated["claims"]["P31"][0]["rank"] = "deprecated"
     expect(offices.found_from(deprecated, "President of Aland", STATE, {}).types, frozenset(),

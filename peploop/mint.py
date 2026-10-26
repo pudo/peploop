@@ -1693,7 +1693,7 @@ class Context:
         entity = self._claims([qid]).get(qid) or {}
         scope = set(wikidata.claim_qids(entity, "P17", include_deprecated=False))
         scope |= set(wikidata.claim_qids(entity, "P1001", include_deprecated=False))
-        if not scope & ({self.state_qid} | set(self.subdivisions)):
+        if not scope & (positions.state_qids(self.state_qid) | {self.state_qid} | set(self.subdivisions)):
             return f"exists-unscoped/{qid}"
         scopes = wikidata.claim_qids(entity, "P1001", include_deprecated=False)
         links = (offices.links_of(self._claims(scopes))

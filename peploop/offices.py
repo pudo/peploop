@@ -955,19 +955,24 @@ def dissolved(entity: dict[str, Any], today: date | None = None) -> bool:
 
 
 def found_from(entity: dict[str, Any], label: str, state_qid: str,
-               states_of: dict[str, list[str]], links: dict[str, set[str]] | None = None) -> Found:
+               states_of: dict[str, list[str]], links: dict[str, set[str]] | None = None,
+               alternates: Collection[str] = ()) -> Found:
     """Judge one search hit against the label searched for and the state.
 
     `states_of` maps each of the hit's `P1001` targets to that item's own
     `P17`, so an office scoped to a province of the state matches the state
     one hop up. Only one hop: a province's `P17` is the state, and anything
     further away is not this office. `links` maps them to their `links_of`.
+    `alternates` are the state's other current QIDs (the realm around it): a
+    hit naming one is the state's, so an office the Kingdom of Denmark scopes
+    is not minted again for Denmark.
     """
     names = frozenset(_norm(text) for text in _names(entity))
     named = {variant for name in names for variant in _variants(name)}
     p17, p1001 = _values(entity, "P17"), _values(entity, "P1001")
-    country_match = state_qid in p17 or state_qid in p1001 or any(
-        state_qid in states_of.get(qid, ()) for qid in p1001)
+    same = {state_qid, *alternates}
+    country_match = bool(same & set(p17) or same & set(p1001) or any(
+        same & set(states_of.get(qid, ())) for qid in p1001))
     return Found(
         qid=entity.get("id", ""),
         names=names,
@@ -975,7 +980,7 @@ def found_from(entity: dict[str, Any], label: str, state_qid: str,
         matched=frozenset({_norm(label)}) if _variants(label) & named else frozenset(),
         country_match=country_match,
         country_qids=tuple(dict.fromkeys(p17 + p1001)),
-        scopes=tuple(dict.fromkeys(p1001)),
+        scopes=tuple(dict.fromkeys(state_qid if q in same else q for q in p1001)),
         scope_links=frozenset(q for qid in p1001 for q in (links or {}).get(qid, ())),
         types=frozenset(_values(entity, "P31")),
     )
@@ -1019,25 +1024,28 @@ def live_lookup(label: str, lang: str, state_qid: str) -> list[Found]:
 
     Three searches, because each misses what another finds: the entity
     search ranks by label and alias in the language given; `haswbstatement`
-    finds the state's own items whatever language they are labelled in; and
+    finds the state's own items (under each of its current QIDs) whatever
+    language they are labelled in; and
     `inlabel` finds an exact label or alias that the other two rank below the
     people holding it. Every hit is then read in full, so `duplicate_of`
     judges the item and not a search snippet.
     """
     phrase = label.replace('"', " ").strip()
+    same = positions.state_qids(state_qid) | {state_qid}
     qids = [
         *_search_entities(label, lang),
-        *_cirrus(f'haswbstatement:P17={state_qid} "{phrase}"'),
+        *(q for s in sorted(same, key=lambda s: s != state_qid)
+          for q in _cirrus(f'haswbstatement:P17={s} "{phrase}"')),
         *_cirrus(f'inlabel:"{phrase}@{lang}"'),
     ]
     entities = wikidata.fetch_items(dict.fromkeys(qids), props="labels|aliases|claims")
-    scopes = {q for ent in entities.values() for q in _values(ent, "P1001")} - {state_qid}
+    scopes = {q for ent in entities.values() for q in _values(ent, "P1001")} - same
     scoped = wikidata.fetch_items(sorted(scopes), props="claims") if scopes else {}
     states_of = {qid: _values(ent, "P17") for qid, ent in scoped.items()}
     links = links_of(scoped)
     out: dict[str, Found] = {}
     for entity in entities.values():
-        hit = found_from(entity, label, state_qid, states_of, links)
+        hit = found_from(entity, label, state_qid, states_of, links, alternates=same - {state_qid})
         if hit.label_match and not hit.country_qids and is_office_class(hit.qid):
             hit = replace(hit, is_class=True)
         if hit.label_match:
