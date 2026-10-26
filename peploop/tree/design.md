@@ -12,11 +12,11 @@ The parts of a rule that the three lanes share are named in
 
 ## Principles
 
-- **The type hierarchy is polluted and stays polluted.** Mayor is 98% of head
+- **The type hierarchy cannot be trusted alone.** Mayor is 98% of head
   of government's subtree; honorary titles and ranks reach the position
   metaclass. No step trusts a `P279*` walk on its own. A FATF category
-  (`categories.yml`) is a set of class handles, the subtrees known to pollute
-  them (`exclude`), and the bodies its offices sit in. The level (national or
+  (`categories.yml`) is a set of class handles, the subtrees known to stray
+  into them (`exclude`), and the bodies its offices sit in. The level (national or
   subnational) comes from the jurisdiction, never from the class.
 - **Nothing names a country.** A country's languages, predecessor states,
   gazetteer and level words come from data (`country.py`); a country whose
@@ -132,7 +132,7 @@ sweeping agent turns each flag that proves real into a rule in `rules.py` with
 a case in `check_rules.py`, or a strike, then marks the batch `reviewed`;
 `tree sweep table` rewrites the other columns.
 
-Only reviewed places go out, and only with the user. `tree send` (`outbox.py`)
+Only reviewed places go out, and only with the operator. `tree send` (`outbox.py`)
 reconciles the joint send ledger, takes every reviewed place's latest run file, drops what went out
 before, what a reviewer struck and what is already live, and writes the rest
 to `data/peptree/send/pending.qs`; `tree send --submit` sends it as one QS3 batch,

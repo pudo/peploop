@@ -12,7 +12,7 @@ among the values"; presence tests use `p:<prop> ?st`, so normal and deprecated
 ranks count. Re-running any of it means re-running those helpers — the queries
 below are described precisely enough to rebuild.
 
-## 0. Read this first: the corpus is not what you think
+## 0. Read this first: what the corpus is made of
 
 **145,212 items carry `wdt:P31 = Q4164871`** (145,271 at statement level — 59
 items hide the claim behind a non-preferred or deprecated rank). Roughly 90,000 of
@@ -1058,7 +1058,7 @@ through either hook. The known gaps sort three ways.
 
    The census already lists most of these. A body lane adds only the bodies
    the census has not named, chiefly the type-found SOEs and units, which are
-   noise.
+   mostly not PEP bodies.
 3. *The body itself is missing.* The audit offices of jm, tt, bi, do and ht;
    Cuba's Fiscalía; Burundi's parquet; Jamaica's Court of Appeal.
 

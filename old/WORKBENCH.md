@@ -35,7 +35,6 @@ script (`scripts/<xx>_offices.py` / `<xx>_ministers.py`), its record is
 here; it was consolidated away 2026-08-12 because it confused more than it
 recorded.) Briefs remain for campaigns that are a different kind of work:
 
-* `tasks/genders.md` — resolve conflicting P21 values on ~170 PEP items.
 * `tasks/jurisdictions.md` — backfill P1001/P17 on country-less position
   items (currently invisible to OS crawlers).
 * `tasks/birthdates.md` — backfill P569 from Wikipedia infoboxes, per country.

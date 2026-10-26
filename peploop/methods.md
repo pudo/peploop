@@ -103,7 +103,8 @@ lanes". No code reads them.
 - `eras`: spans of states, offices and values (`span_of`, `state_start`,
   `overlaps`).
 - `typegraph`: subclass closures. Use it for every "is this a kind of X" test.
-  The type tree is polluted, so never walk `P279*` bare.
+  The type tree mixes offices with classes of office and with unrelated
+  subtrees, so never walk `P279*` bare.
 - `plan.reference`: the one reference shape (`P143` + `P4656` + `P813`).
 - `route.route`: plans a claim against the live item: a new statement, a
   merge into one that is there, or a skip.
@@ -111,8 +112,8 @@ lanes". No code reads them.
 
 ## Deliberate differences between lanes
 
-- **Acting holders.** pepcorp writes acting heads as seats (the user,
-  2026-10-22). peploop leaves acting tenures out.
+- **Acting holders.** pepcorp writes acting heads as seats. peploop leaves
+  acting tenures out.
 - **Corroboration.** peptree applies a value only when a channel besides the
   model agrees. peploop and pepcorp need a quote and a narrow check.
 - **What is not an office.** peploop's ranking reads `NOT_AN_OFFICE` and

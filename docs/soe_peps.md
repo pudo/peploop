@@ -103,7 +103,7 @@ archetypes already apply.
   1,000 more through subclasses. It misses flagships: Petrobras, Saudi
   Aramco, Sonatrach, Eskom, Petronas, ZESCO and Ethiopian Airlines lack it;
   Gazprom, Rosneft, Pemex, PDVSA, Codelco and Deutsche Bahn have it.
-- The subclass tree is polluted: GDR combines and VEBs, health trusts,
+- The subclass tree reaches well beyond enterprises: GDR combines and VEBs, health trusts,
   pedagogic documentation centres. 142 of the directly typed items are
   dissolved (`P576`).
 - `P127` (owned by) is the stronger signal: 15 of 18 flagships have one. Its
@@ -154,7 +154,7 @@ querying, not precision.
   deprecated, 2 preferred), so privatisation is not recorded on the marker
   today.
 
-The tree's pollution (combines, VEBs, health trusts, central banks under
+What the tree reaches beyond enterprises (combines, VEBs, health trusts, central banks under
 publicly owned company) is a filter's job, not discovery's.
 
 ## Edge cases against the AMLR
@@ -177,8 +177,7 @@ named owner holds under 50 %.
 
 **What counts as an undertaking**
 1. State institutions (museums, theatres, research centres, broadcasters,
-   hospitals, agencies, foundations) are in OpenSanctions' scope by the
-   user's ruling, but not undertakings under (vii).
+   hospitals, agencies, foundations) are in OpenSanctions' scope, but not undertakings under (vii).
 2. Public-law bodies that trade (Landesbanken, KfW, Bayerische Staatsforsten,
    Anstalten des öffentlichen Rechts): undertakings, with control by statute
    rather than shares.

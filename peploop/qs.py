@@ -78,7 +78,7 @@ def line(cols: list[str], summary: str) -> str:
 
 # --- what an edit says about itself ---------------------------------------------------
 
-#: The page every edit summary links: the tools behind the edits are not public.
+#: The page every edit summary links: it explains the edits and links this repository.
 EXPLAINER = "[[User:Pudox/PEP|PEP coverage]]"
 #: Wikidata's labels for the properties a person edit writes.
 PERSON_PROPS = {

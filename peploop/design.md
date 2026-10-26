@@ -179,8 +179,8 @@ its person and an unchanged one does not.
 Rate limits: one `requests.Session` per thread, a token bucket per host --
 every Wikipedia and Wikidata's API share one (~4/s), because Wikimedia limits
 an IP across all its wikis; the query service has its own -- `Retry-After`
-honoured, descriptive User-Agent. Reads are cheap; the limiter exists so a 16-thread run does not get
-the IP throttled.
+honoured, descriptive User-Agent. Reads are cheap; the limiter keeps even a
+16-thread run within Wikimedia's request limits.
 
 ### 3. Prompt
 
@@ -625,7 +625,7 @@ change re-asks. `policy` looks the verdict up by that key and passes only
 ### 7. Send
 
 `send` is the one way peploop edits Wikidata, shared with peptree: a
-QuickStatements 3.0 batch submitted over its API under the user's own
+QuickStatements 3.0 batch submitted over its API under the operator's
 account, recorded in the joint send ledger (`ledger.py`: `wd_batch`,
 `wd_edit`, `wd_strike`, `wd_removal`) *before* the request, so an answer lost
 in flight is found again by the batch's name rather than sent twice. It is a
@@ -634,13 +634,14 @@ rows and writes the lines to `data/peploop/send/<cc>.qs`, counted by route;
 `--submit` sends them, then the approved removals as a batch of their own,
 waits, and settles each row `applied` or `failed` from what is live. Every
 decision before it is unsupervised; the send itself, of every lane, goes out
-in coordination with the user.
+in coordination with the operator.
 
-Nobody on Wikidata knows these tools, so an edit says what it is for and
-never how it was made. Its batch is named by objective (`Politically exposed
+An edit says what it is for, in words an outside editor can follow, and links
+the page that explains how it was made. Its batch is named by objective (`Politically exposed
 persons: person profiles (81)`; peptree's is `positions hierarchy`, mint's
 `missing positions`), made unique by its ledger id. The summary of each line
-links the explainer page `User:Pudox/PEP` (maintained on Wikidata) and names
+links the explainer page `User:Pudox/PEP` (maintained on Wikidata, and
+linking this repository) and names
 the property and the source wikis (`qs.describe`). A line is stamped as it goes out, so one queued under older
 wording goes out under the current one. A removal carries its reason, which is
 therefore written for the public.
@@ -888,8 +889,8 @@ with model `memo`); a re-ask after minting always goes to the model.
 
 ## What is deliberately not here
 
-- No bot account: `send` writes what the policy accepted, and the edits
-  appear under the user's own name. The plan groups the same (person,
+- No bot account yet: until a bot flag is granted, `send` writes what the
+  policy accepted under the operator's account. The plan groups the same (person,
   property, value) attested from two languages by statement and sends one
   statement citing one of them; the day two attestations carry different
   qualifiers, that grouping is what has to notice.

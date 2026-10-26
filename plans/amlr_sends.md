@@ -46,7 +46,7 @@ Run files from WS4–WS6 re-plan whole countries: every send is limited by
    have one from `P6`); IO offices have no person lane (discovery and
    categorize would need the organisation set).
 4. Settled 2026-10-25: EU scope labels en+fr+de, all three required.
-5. Smaller: Q841760's vandalised English label; 161 units whose `P1313` names a
+5. Smaller: Q841760's wrong English label; 161 units whose `P1313` names a
    generic class (removal proposals); Tipperary North/South lack `P576`;
    Munich's Kulturreferat (city departments are government: prompt + re-ask);
    362 unresolved named-body rows (ro, mt) for another `amlr expand` pass;

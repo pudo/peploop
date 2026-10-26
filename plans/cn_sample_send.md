@@ -6,14 +6,12 @@ tags: [peploop, china, sample, send]
 
 # China zh sample send — handoff
 
-Doc copy: https://claude.ai/artifact/CUip6sdSEBXfgroWQeWD5G
-
 ## Brief
 
-1. Two zh.wikipedia sample batches for Arthur's Mass-editing review are ready and **unsent**: 10 new offices (Appendix A), then 52 people, 122 statement lines (Appendix B).
+1. Two zh.wikipedia sample batches for the Mass-editing review are ready and **unsent**: 10 new offices (Appendix A), then 52 people, 122 statement lines (Appendix B).
 2. Offices: `mint --country cn --submit --id 58111 --id 58109 --id 60154 --id 61291 --id 63321 --id 60965 --id 58481 --id 60642 --id 58013 --id 58217`. Batch #135 never reached QS3 (Toolforge outage, 22–23 Oct); its recover has run for 9 rows, and #63321 is still `creating`, which the next submit's recover settles.
 3. People, after the offices land: `send --country cn` plus the `--qid` flags below, then `--submit`. The dry run gives create 102, switch 14, merge 2, termed 4, and 4 rows already on Wikidata; the lines are in `data/peploop/send/cn_sample_people.qs`.
-4. Since the posted review page, the only change in the people batch is Sun Jianguo's added 2018–2023 NPC term. It comes from `be9816f` (an open term closes at the next one; a multi-term statement gets dates), and Arthur flagged that row.
+4. Since the posted review page, the only change in the people batch is Sun Jianguo's added 2018–2023 NPC term. It comes from `be9816f` (an open term closes at the next one; a multi-term statement gets dates), and the reviewer flagged that row.
 5. Afterwards: audit both batches, fill the diff links into `User:Pudox/PEP/zh-sample` (draft: `data/zh_sample_review.wiki`), and reply in the thread. The full China tranches and the verifier note for 91 inferred-end terms are still open decisions.
 
 ## Appendix A — the 10 offices

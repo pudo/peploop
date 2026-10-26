@@ -1,6 +1,6 @@
 # peptree sweep
 
-Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted` (with the user), or `blocked: <why>`; `status` and `notes` are set by the sweeping agent and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
+Every country and territory: non-OECD places in batches of five by region, OECD members in batches of one, smallest first. Status is `pending → run → reviewed → submitted` (with the operator), or `blocked: <why>`; `status` and `notes` are set by the sweep and survive `sweep table`; `batches` are the send-ledger batches its lines went out in: a three-digit chunk number, or a QS3 batch id.
 
 Progress: reviewed 197, run 1, skipped 1, submitted 49
 
@@ -105,14 +105,14 @@ Progress: reviewed 197, run 1, skipped 1, submitted 49
 | pa | Panama | Americas / Central America | 14 | reviewed | 2026-10-07 | 35 | 0 |  | $0.12 | 003 |  |
 | bm | Bermuda | Americas / Northern America | 15 | reviewed | 2026-10-07 | 35 | 0 |  | $0.04 | 004 |  |
 | ca | Canada | Americas / Northern America | 67 | reviewed | 2026-10-11 | 803 | 148 | P1001 39 P17 33 P279 29 P31 47 | $13.09 | 59250 59949 | re-filtered: Catholic sees and Ontario's Leader of the Opposition kept (+29); head_of_government repaired (PM P279); 1 model answer degenerate (Q3238301); strike Q108350406 P1001 (class of mayors), Q109772486 P1001 (bar association), Q5246678 P31 (Dean of the House) |
-| gl | Greenland | Americas / Northern America | 15 | reviewed | 2026-10-07 | 25 | 0 |  | $0.18 | 004 | P17 Greenland: treated as a country (user, 2026-10-05) |
+| gl | Greenland | Americas / Northern America | 15 | reviewed | 2026-10-07 | 25 | 0 |  | $0.18 | 004 | P17 Greenland: treated as a country |
 | pm | Saint Pierre and Miquelon | Americas / Northern America | 15 | reviewed | 2026-10-06 | 3 | 0 |  | $0.00 |  | no offices to repair |
 | us | United States | Americas / Northern America | 71 | reviewed | 2026-10-11 | 4892 | 476 | P1001 142 P17 246 P279 22 P31 66 | $59.80 | 59250 59483 59949 | State of Scott is no predecessor (no item moved); strike P1001 on body man, Senior Executive Service, Diplomats in Residence, NJ bar president, CUNY chancellor; P31 on Priest, party committeemen, defender of the bond (classes) |
 | ar | Argentina | Americas / South America | 15 | reviewed | 2026-10-07 | 261 | 0 |  | $1.28 | 004 035 59949 |  |
 | bo | Bolivia | Americas / South America | 15 | reviewed | 2026-10-07 | 58 | 0 |  | $0.62 | 004 035 |  |
 | br | Brazil | Americas / South America | 16 | reviewed | 2026-10-07 | 5812 | 1 | P31 1 | $22.24 | 005 035 036 59949 | 4271 type/class-swapped mayoralties left alone (inverted); $22 for 46 lines |
 | cl | Chile | Americas / South America | 49 | reviewed | 2026-10-08 | 235 | 32 | P1001 23 P17 5 P279 1 P31 3 | $1.38 | 046 59949 |  |
-| co | Colombia | Americas / South America | 43 | reviewed | 2026-10-08 | 200 | 42 | P1001 11 P17 20 P279 5 P31 6 | $1.68 | 042 59949 | for a human: Q5707799 en label vandalised ('Lisa solo', the 1991 Constituent Assembly); Q110567947 and Q113993307 are one office (Chamber president), merge candidate |
+| co | Colombia | Americas / South America | 43 | reviewed | 2026-10-08 | 200 | 42 | P1001 11 P17 20 P279 5 P31 6 | $1.68 | 042 59949 | for a human: Q5707799 wrong en label ('Lisa solo', the 1991 Constituent Assembly); Q110567947 and Q113993307 are one office (Chamber president), merge candidate |
 | ec | Ecuador | Americas / South America | 16 | reviewed | 2026-10-07 | 64 | 1 | P31 1 | $0.58 | 005 036 |  |
 | fk | Falkland Islands | Americas / South America | 16 | reviewed | 2026-10-06 | 4 | 0 |  | $0.02 |  |  |
 | gf | French Guiana | Americas / South America | 16 | reviewed | 2026-10-06 | 4 | 0 |  | $0.02 |  |  |
@@ -184,7 +184,7 @@ Progress: reviewed 197, run 1, skipped 1, submitted 49
 | bg | Bulgaria | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 429 | 0 |  | $1.86 | 032 035 |  |
 | md | Moldova | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 44 | 0 |  | $0.26 | 032 035 |  |
 | ro | Romania | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 3606 | 2 | P31 2 | $3.44 | 032 035 036 59521 |  |
-| ru | Russia | Europe / Eastern Europe | 26 | skipped: curated by WikiProject EP |  |  |  |  |  |  | 1,778 items to ask (1,195 regional ministers missing P279); left to the WikiProject EP team (user, 2026-10-06) |
+| ru | Russia | Europe / Eastern Europe | 26 | skipped: curated by WikiProject EP |  |  |  |  |  |  | 1,778 items to ask (1,195 regional ministers missing P279); left to the WikiProject EP team |
 | sk | Slovakia | Europe / Eastern Europe | 42 | reviewed | 2026-10-08 | 80 | 7 | P1001 3 P17 1 P279 3 | $0.62 | 041 | PM of Slovakia read as a predecessor office (P17 also Czechoslovakia 1969-92): the state's own scope now wins in load.classify |
 | ua | Ukraine | Europe / Eastern Europe | 26 | reviewed | 2026-10-07 | 234 | 0 |  | $2.07 | 032 |  |
 | dk | Denmark | Europe / Northern Europe | 61 | submitted | 2026-10-08 | 689 | 30 | P1001 16 P17 10 P279 3 P31 1 | $17.36 | 59046 59949 | state is Q35 Denmark (578 offices vs 45 on the Kingdom), the Kingdom Q756617 a realm lane; 9 domestic P17 the model gave the realm skipped (realm_in_p17), recoverable by a re-ask |

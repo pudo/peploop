@@ -307,7 +307,7 @@ are written by default; a spec names its own, `municipal` among them.
    without an item, municipal bodies under no unit of 50,000 or more.
 5. **send** (`outbox.py`): the latest run file through the joint send ledger,
    once per line; `--qid` limits a batch to chosen bodies. `--submit` goes
-   out with the user, like every send.
+   out with the operator, like every send.
 
 ## Layout
 

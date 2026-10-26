@@ -169,12 +169,12 @@ queued), and their `P39` is proposed from their own articles like anyone
 else's. A tranche of the AMLR's unit heads is, per country:
 
 ```
-mint --country <cc> --submit         # with the user
+mint --country <cc> --submit         # with the operator
 tree backlink --eu                   # the units' P1313 onto the new offices
 seed --country <cc> --holders        # prints each office's holder and how it was found
 load-positions --country <cc>        # once, where the country has never run
 fetch, extract, reconcile, propose, verify --country <cc>
-send --country <cc>                  # dry; the send goes with the user
+send --country <cc>                  # dry; the send goes with the operator
 ```
 
 On a country never run before, the first `reconcile` counts the state's
@@ -205,7 +205,7 @@ a `maxlag` wait is a retry, not a bug.
 | `send --submit` | the QS3 batch id and EditGroups link, rows applied and failed (`send --status`); failed lines go again with `--retry` |
 
 Every stage goes straight on to the next, up to the sends: `mint --submit`,
-`send --submit` and `removals approve` go out with the user, after the dry
+`send --submit` and `removals approve` go out with the operator, after the dry
 run's lines are audited. A class the rules do not explain
 becomes a rule with its check, in the run, before the next spend; for `mint`
 that is a rule in `mint.RULES` with a case in `check_mint`, never a ruling on a
@@ -237,7 +237,7 @@ What a doubtful class becomes: a rule, with its case, and a re-run of the
 policy. A row already written is taken back by the same `audit proposal`: it
 strikes the statement, and the strike queues its removal by statement id --
 approved at once when the statement is provably only ours, `proposed` for
-`removals approve` otherwise, with the user -- which the next `send --submit`
+`removals approve` otherwise, with the operator -- which the next `send --submit`
 sends. A large class can still be reverted whole on EditGroups. peploop never
 removes anything nobody approved.
 

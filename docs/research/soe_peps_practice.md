@@ -54,7 +54,7 @@ left out on purpose.
 | Dow Jones [S] | ≥50 % direct central govt; key industry; no subsidiaries | board, supervisory board, senior management | national | — |
 | ComplyAdvantage [V] | none published | senior executives | Class 3 national and regional, Class 4 local | — |
 | LexisNexis [S] | majority or minority | administrative, management, supervisory bodies | — | — |
-| LSEG World-Check [S] | per FATF and EU; "state-owned" and "state-invested" | board, chairs, directors, senior executives | national and others | kept a director listed years after leaving (*Kassel*, undecided) |
+| LSEG World-Check [S] | per FATF and EU; "state-owned" and "state-invested" | board, chairs, directors, senior executives | national and others | — |
 | Trapets [V] | state companies with public-policy goals only | management | national | — |
 | UK HMRC/FCA [V] | >50 % and for profit, or control | the three bodies | national | ≥12 months |
 | World Bank BOS [S] | ≥10 % (data scope) | — | national and sub-national | — |

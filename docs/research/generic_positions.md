@@ -136,10 +136,10 @@ remaining tests:
 
 ## 4. `Q136649946` (type of position)
 
-- 93 items carry it at statement level. The class was created on **2025-10-26 by
-  C960657**.
+- 93 items carry it at statement level. The class was created on **2025-10-26**.
 - Edit summaries since 2025-09 name the first addition for 88 of the 93:
-  - by user: C960657 55, Ha2772a 12, JWikiZ 3, and 13 others with 1–2 each;
+  - by editor: one editor 55, a second 12, a third 3, and 13 others with 1–2
+    each;
   - by month: 2025-10 56, 2025-11 3, then a trickle, with 13 in 2026-09.
 - **It replaced rather than added.** The sampled diffs on `Q486839`, `Q140686` and
   `Q581817` are `wbsetclaim-update` edits that turned `P31 Q4164871` into
