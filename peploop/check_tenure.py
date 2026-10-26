@@ -32,6 +32,10 @@ def main() -> None:
            "an sl infobox's incumbent")
     expect(tenure.says_current("Od leta 2007 je član sveta.", "sl")
            and tenure.says_current("Od 2. septembra 2011 je minister", "sl"), "sl prose: since … is")
+    expect(tenure.says_current("Predsednik uprave je mag. Boris Kupec.", "sl")
+           and tenure.says_current("medtem ko je predsednik nadzornega sveta Milan Perović", "sl")
+           and tenure.says_current("Agencijo vodi direktorica Duška Godina.", "sl"), "an sl body's officers in the present")
+    expect(not tenure.says_current("Predsednik: Jernej Vrtovec", "sl"), "an sl infobox field line says nothing of now")
     expect(not tenure.says_current("Leta 1992 je bil izvoljen v 1. zbor", "sl"),
            "an sl election in the past is not now")
     expect(not tenure.says_current("Incumbent", "xx") and not tenure.reads_current("xx"),
