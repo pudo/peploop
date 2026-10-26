@@ -1,5 +1,11 @@
 # Australia: what the lanes know about it, one section per lane.
 
+# Australia "follows" the United Kingdom of Great Britain and Ireland (P155,
+# 1901) but federated from six colonies: the UK's own offices loaded as
+# Australia's.
+not_predecessor:
+  - {qid: Q174193, name: United Kingdom of Great Britain and Ireland}
+
 seeds:
   # Wikipedia categories seeding the Australia run: one PetScan query per entry.
   #

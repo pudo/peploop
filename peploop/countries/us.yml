@@ -1,0 +1,6 @@
+# United States: what the lanes know about it, one section per lane.
+
+# The State of Scott, a Civil War county's secession claim, names the US as its
+# successor; its one name, "Scott", would make any Scott's office a predecessor's.
+not_predecessor:
+  - {qid: Q7603795, name: State of Scott}

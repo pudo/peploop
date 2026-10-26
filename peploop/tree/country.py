@@ -2,7 +2,7 @@
 
 Nothing here names a country. The languages come from rigour; the predecessor
 states from rigour's historical territories and the `P1365`/`P155` chain
-(either direction); the place gazetteer from `P150` and `P131`; and every word
+(either direction), less what the country file rules out; the place gazetteer from `P150` and `P131`; and every word
 a label is read for (a level of government, a deputy, an ambassador, a party)
 is the label of a Wikidata class in the country's languages. A country whose
 data is thin gets fewer matches, never a wrong rule written for another country.
@@ -15,7 +15,7 @@ from typing import Any
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territories, get_territory
 
-from peploop import eras, memo, typegraph
+from peploop import countries, eras, memo, typegraph
 from peploop.eras import (  # noqa: F401  (re-exported for peptree modules)
     PEP_ERA, PRED_PROPS, SOVEREIGN, SUCC_PROPS, entity_span, pushes, years,
 )
@@ -41,17 +41,6 @@ NOT_A_LEVEL = {FORMER, ELECTORAL, "Q57821", "Q473972"}  # fortification, protect
 TYPE_MIN = 2
 #: City and town: the words every country's city offices use, whatever its own city classes.
 GENERIC_PLACE_TYPES = ("Q515", "Q3957")
-#: A state whose offices name the constituent country, not the realm rigour gives:
-#: Danish positions put Q35 Denmark in P17 578 times and the Kingdom of Denmark 45;
-#: Dutch ones Q55 the Netherlands 5,382 times and the Kingdom 95.
-#: The realm stays a home state (Greenland's offices are its), never a predecessor.
-REALM = {"dk": ("Q35", "Q756617"), "nl": ("Q55", "Q29999")}
-#: A predecessor the country's own item names and whose offices are none of its own:
-#: Australia "follows" the United Kingdom of Great Britain and Ireland (P155, 1901),
-#: but federated from six colonies: the UK's own offices loaded as Australia's.
-#: The State of Scott, a Civil War county's secession claim, names the US as
-#: its successor; its one name, "Scott", would make any Scott's office a predecessor's.
-NOT_PREDECESSOR = {"au": {"Q174193"}, "us": {"Q7603795"}}
 LIST_CLASS = "Q13406463"  # Wikimedia list article: "list of districts of X" is an alias, not a word
 #: Concepts whose names, in the country's languages, are the words a label is read for.
 CONCEPTS = {
@@ -121,7 +110,7 @@ class Country:
     admin_words: list[str] = field(default_factory=list)
     #: False for a dependent territory: its own offices take it in `P1001` and no `P17`.
     is_state: bool = True
-    #: The sovereign realm the state belongs to, where offices also name it (see REALM).
+    #: The sovereign realm the state belongs to, where offices also name it (the country file's `realm`).
     realm: tuple[str, ...] = ()
 
     @property
@@ -372,7 +361,7 @@ def derive_predecessors(cc: str, qid: str) -> tuple[dict[str, str], dict[str, st
         return typegraph.close({q: _qids(e, "P31") for q, e in ents.items()})
 
     preds, provenance = walk_chain(qid, found, parents, entities, _inverse, states)
-    drop = NOT_PREDECESSOR.get(cc, set())
+    drop = countries.not_predecessors(cc)
     return ({q: v for q, v in preds.items() if q not in drop},
             {q: v for q, v in provenance.items() if q not in drop})
 
@@ -575,7 +564,8 @@ def config(cc: str) -> dict[str, Any]:
         territory = get_territory(cc)
         if territory is None or not territory.qid:
             raise KeyError(f"rigour knows no state {cc!r}")
-        qid, *realm = REALM.get(cc, (territory.qid,))
+        qid = countries.state(cc) or territory.qid
+        realm = [r for r in [countries.realm(cc)] if r]
         official = _official(cc)
         item = wd.fetch_items([qid], props="labels")[qid]
         variants = sorted(lg for lg in item.get("labels", {}) if any(lg.startswith(o + "-") for o in official))

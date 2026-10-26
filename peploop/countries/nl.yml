@@ -4,6 +4,11 @@
 # the realm around it. (All current QIDs count as the country either way.)
 state: Q55
 
+# Dutch offices name the constituent country, not the realm: Dutch positions
+# put Q55 the Netherlands in P17 5,382 times and the Kingdom 95. The realm
+# stays a home state, never a predecessor.
+realm: Q29999
+
 corp:
   # The Netherlands. Unitary: twelve provinces. peploop resolves nl to the
   # Kingdom (Q29999), whose subdivisions are the four countries; Dutch items

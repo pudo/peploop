@@ -5,7 +5,11 @@ Each country, and the Union as `eu`, has one hand-written file
 corrected in one place. Facts every lane needs sit at the top:
 
 - `state`: the polity whose subdivisions are the regional tier, where it is
-  not the one rigour gives (a realm or kingdom around the state, or the Union).
+  not the one rigour gives (a realm or kingdom around the state, or the Union);
+- `realm`: the sovereign realm around that state, which offices also name and
+  which stays a home state, never a predecessor;
+- `not_predecessor`: items the predecessor chain reaches whose offices are
+  none of the country's, each `{qid, name}`.
 
 Each lane owns one top-level section:
 
@@ -26,7 +30,7 @@ import yaml
 
 DIR = Path(__file__).resolve().parent / "countries"
 SECTIONS = ("seeds", "census", "corp", "amlr")
-SHARED = ("state",)
+SHARED = ("state", "realm", "not_predecessor")
 
 
 def path(cc: str) -> Path:
@@ -55,6 +59,17 @@ def state(cc: str, file: Path | None = None) -> str | None:
     """The file's `state`, where the country names one."""
     value = _read(cc, file).get("state")
     return str(value) if value else None
+
+
+def realm(cc: str) -> str | None:
+    """The file's `realm`, where the state sits in one."""
+    value = _read(cc, None).get("realm")
+    return str(value) if value else None
+
+
+def not_predecessors(cc: str) -> frozenset[str]:
+    """The QIDs the country's predecessor chain must leave out."""
+    return frozenset(str(e["qid"]) for e in _read(cc, None).get("not_predecessor") or [])
 
 
 def codes(name: str) -> list[str]:
