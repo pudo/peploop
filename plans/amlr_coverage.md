@@ -52,8 +52,8 @@ outside `Q15284`. Groupings come to another **954**: 293 German Landkreise,
   threshold overrides it in the same block), not `P576`, not former, run over
   `country.current_qids`.
 - It lives in `peploop/amlr.py`, which all three lanes read. The `units:`
-  block goes into `peploop/amlr/<cc>.yml` (§6a), the one per-country file the
-  lanes share; pepcorp's spec and the census then refer to levels by name.
+  block goes into the `amlr` section of `peploop/countries/<cc>.yml` (§6a), the
+  one per-country file the lanes share; pepcorp's spec and the census then refer to levels by name.
 - `country.current_qids` is pepcorp's today; the reader may need it moved
   somewhere shared, or a copy of its rule.
 
@@ -281,7 +281,7 @@ correctly, and only ~54 % on exact label + country without review.
 ## 6a. The function list as a living asset (user, 2026-10-24)
 
 The curated sheet becomes a repo asset, one YAML per country under
-`peploop/amlr/<cc>.yml` (plus `eu.yml` for Union and IO functions). It holds:
+`peploop/countries/<cc>.amlr.yml` (plus `eu.amlr.yml` for Union and IO functions). It holds:
 - the original rows, verbatim with their sheet row and the OJ source;
 - the AMLR category of each row;
 - a **growing expansion** of each row into concrete Wikidata items: positions,

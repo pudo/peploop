@@ -91,7 +91,7 @@ def main() -> int:
     import tempfile, pathlib
     with tempfile.TemporaryDirectory() as tmp:
         path = pathlib.Path(tmp) / "zz.yml"
-        path.write_text("- article: List_of_members\n  lang: xx\n- category: Root\n  lang: xx\n")
+        path.write_text("seeds:\n- article: List_of_members\n  lang: xx\n- category: Root\n  lang: xx\n")
         entries = wikipedia.load_seeds(path)
     check("and a seed file names it with `article`",
           [(e.category, e.article) for e in entries] == [("List_of_members", True), ("Root", False)])

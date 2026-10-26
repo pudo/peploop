@@ -86,3 +86,6 @@ git history. Instructions for a single task go into that task's plan.
   build elsewhere"
 - 2026-10-25: "for the requirements, we can keep logging verbatim and then
   work them into principles upon review"
+- 2026-10-26: On country specs: "we now have several country spec YAMLs for
+  slightly different purposes across the tools. What if we consolidated them
+  into one comprehensive resource per country, including one for the EU?"

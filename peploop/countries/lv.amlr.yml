@@ -1,0 +1,590 @@
+# Latvia: listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 1084
+  position: President
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q218014, by: model}
+- row: 1085
+  position: Head of the President’s Chancellery
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1086
+  position: Deputy Head of the President’s Chancellery
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1087
+  position: Speaker of the Latvian Parliament
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: ii_legislature
+  kind: position
+  checked: true
+  expansion:
+  - {position: Q1630529, by: model}
+- row: 1088
+  position: Deputy Speaker of the Latvian Parliament
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 1089
+  position: Secretary of the Latvian Parliament
+  status: Position for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 1090
+  position: Member of the Saeima (Latvian Parliament)
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q21191589, by: model}
+- row: 1091
+  position: Prime Minister
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q369500, by: model}
+- row: 1092
+  position: Deputy Prime Minister
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q16361570, by: model}
+- row: 1093
+  position: Minister
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1094
+  position: Minister with special responsibility
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1095
+  position: Board Member of the Central Bank
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q687709, by: model}
+- row: 1096
+  position: Governor of the Bank of Latvia
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 1097
+  position: Deputy Governor of the Bank of Latvia
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 1098
+  position: Member of the Governing Council of the Bank of Latvia
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q687709, by: model}
+- row: 1099
+  position: General Secretary
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1100
+  position: Head
+  status: Generic category
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1101
+  position: Director
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1102
+  position: General Director
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1103
+  position: Manager
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1104
+  position: President
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1105
+  position: Vice President
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1106
+  position: Executive Director
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1107
+  position: Chair
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1108
+  position: Chief of Staff/
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 1109
+  position: Deputy Head
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1110
+  position: Deputy Director
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1111
+  position: Deputy General Director
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1112
+  position: Deputy Manager
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1113
+  position: Deputy President
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1114
+  position: Deputy Vice President
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1115
+  position: Deputy Executive Director
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1116
+  position: Deputy Chair
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1117
+  position: Deputy Chief of Staff
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1118
+  position: Managing Director
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1119
+  position: Auditor General
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 1120
+  position: Member of Council (Government and Local Government Administration)
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 1121
+  position: Member of the Council of the State Audit Office
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 1122
+  position: Member of the Panel of the State Audit Office’s Audit Department
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 1123
+  position: Head/Chair of Local Government
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1124
+  position: Local Government Executive Director
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1125
+  position: Chair of a Local Government Council
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion:
+  - {level: municipal, office: head, by: model}
+- row: 1126
+  position: Deputy Chair
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1127
+  position: Local Government Executive Director
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1128
+  position: State Secretary
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 1129
+  position: Deputy State Secretary
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 1130
+  position: Head/Director of a Government or Local Government Authority
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1131
+  position: Deputy Head/Director of a Government or Local Government Authority
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1132
+  position: Ambassador at large
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1133
+  position: Ambassador Extraordinary and Plenipotentiary
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1134
+  position: Chargé d’Affaires
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1135
+  position: Interim Chargé d’Affaires
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1136
+  position: General and Specialised Civil Servant
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1137
+  position: Head/Chair of Council
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1138
+  position: Member of the Supervisory Board
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: true
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
+- row: 1139
+  position: Council Member
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1140
+  position: Council or Board Member of a State or Local Government Capital Company
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1141
+  position: President of the Constitutional Court
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1142
+  position: Judge of the Constitutional Court
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1143
+  position: President of the Supreme Court
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1144
+  position: Judge
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1145
+  position: Prosecutor
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1146
+  position: Certified Notary and Registered Bailiff
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1147
+  position: Lieutenant-General/Vice Admiral (navy)
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 1148
+  position: Commander of the Armed Forces
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1149
+  position: Deputy Commander of the Armed Forces
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1150
+  position: Professional Serviceman/woman of the National Armed Forces
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1151
+  position: Head
+  status: Generic category
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1152
+  position: President
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1153
+  position: Chair
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1154
+  position: General Secretary of a Political Party
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: true
+  expansion: []

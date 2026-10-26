@@ -1,0 +1,1364 @@
+# Malta: listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 1512
+  position: The President of the Republic of Malta
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q796593, by: model}
+- row: 1513
+  position: The Prime Minister of the Republic of Malta
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q152814, by: model}
+- row: 1514
+  position: Speaker of the House of Representatives
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: ii_legislature
+  kind: position
+  checked: true
+  expansion:
+  - {position: Q7574273, by: model}
+- row: 1515
+  position: All Ministers
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1516
+  position: All Parliamentary Secretaries
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1517
+  position: Party Leaders
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1518
+  position: Deputy Party Leaders
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1519
+  position: CEO/General Secretary
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1520
+  position: Deputy CEO
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1521
+  position: Assistant General Secretary
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1522
+  position: CFO/Treasurer
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1523
+  position: The Chief Justice
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q5096791, by: model}
+- row: 1524
+  position: All Judges serving in the Courts of the Republic of Malta
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1525
+  position: The Governor of the Central Bank of Malta
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 1526
+  position: Deputy Governor/s of the Central Bank of Malta
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 1527
+  position: Members of the Board of Directors of the Central Bank of Malta
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q74690, by: model}
+- row: 1528
+  position: The Auditor General
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 1529
+  position: The Deputy Auditor General
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 1530
+  position: All Ambassadors
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1531
+  position: All Chargé d’Affaires
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1532
+  position: The Commander of the Armed Forces of Malta
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q60539022, by: model}
+- row: 1533
+  position: Deputy Commander of the Armed Forces of Malta
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1534
+  position: The Principal Permanent Secretary with the Office of the Prime Minister
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1535
+  position: The Attorney General
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1536
+  position: State Advocate
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: body
+  checked: false
+  expansion: []
+- row: 1537
+  position: All Magistrates of the Courts of Malta and Gozo
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1538
+  position: All Permanent Secretaries within Government Ministries
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1539
+  position: The Ombudsman
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: agency
+  kind: position
+  checked: true
+  expansion:
+  - {position: Q141737249, by: model}
+- row: 1540
+  position: All Commissioners within the Office of the Ombudsman
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: agency
+  kind: body_class
+  checked: true
+  expansion:
+  - {tier: national, bodies: institution, by: model}
+- row: 1541
+  position: Deputy Commissioners of Police
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1542
+  position: The Commissioner for Revenue
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1543
+  position: The Director of the Asset Recovery Bureau
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1544
+  position: Chairperson of the Asset Recovery Bureau
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1545
+  position: Deputy Chairperson of the Asset Recovery Bureau
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1546
+  position: The Head of the Malta Security Services
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: agency
+  kind: position
+  checked: true
+  expansion: []
+- row: 1547
+  position: Data Protection Commissioner
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1548
+  position: ''
+  organisation: Airmalta Aviation Services Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1549
+  position: ''
+  organisation: Automated Revenue Management Services Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1550
+  position: ''
+  organisation: Business First Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1551
+  position: ''
+  organisation: Casma Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1552
+  position: ''
+  organisation: Clearflowplus Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1553
+  position: ''
+  organisation: Commonwealth Trade Finance Facility Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1554
+  position: ''
+  organisation: Enemed Co. Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1555
+  position: ''
+  organisation: Energy Service Centre Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1556
+  position: ''
+  organisation: Engineering Resources Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1557
+  position: ''
+  organisation: Film Finance Malta Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1558
+  position: ''
+  organisation: Gozo Channel (Holdings) Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1559
+  position: ''
+  organisation: Gozo Channel Operations Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1560
+  position: ''
+  organisation: Gozo Heliport Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1561
+  position: ''
+  organisation: Heritage Malta Services Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1562
+  position: ''
+  organisation: Housing Maintenance and Embellishment Co Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1563
+  position: ''
+  organisation: Institute of Foreign Direct Investment Studies Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1564
+  position: ''
+  organisation: International Clean Energy Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1565
+  position: ''
+  organisation: International Energy Service Centre Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1566
+  position: ''
+  organisation: IP Holding Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1567
+  position: ''
+  organisation: ITS New Campus Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1568
+  position: ''
+  organisation: KM Holdings Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1569
+  position: ''
+  organisation: Kordin Grain Terminal Co Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1570
+  position: ''
+  organisation: Libyan Arab Maltese Holdings Co Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1571
+  position: ''
+  organisation: Malpro Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1572
+  position: ''
+  organisation: Malta Air Traffic Services Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1573
+  position: ''
+  organisation: Malta Air Travel Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1574
+  position: ''
+  organisation: Malta Digital Hub Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1575
+  position: ''
+  organisation: Malta Electronic Certification Services Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1576
+  position: ''
+  organisation: Malta Government Investments Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1577
+  position: ''
+  organisation: Malta Government Technology Investments Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1578
+  position: ''
+  organisation: Malta Industrial Parks Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1579
+  position: ''
+  organisation: Malta Investment Management Co Ltd (MIMCOL)
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1580
+  position: ''
+  organisation: Malta Life Sciences Centre Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1581
+  position: ''
+  organisation: Malta Marketing Co Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1582
+  position: ''
+  organisation: Malta Stock Exchange Institute Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1583
+  position: ''
+  organisation: Malta Win Cargo Containers Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1584
+  position: ''
+  organisation: Mediterranean Offshore Bunkering Co Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1585
+  position: ''
+  organisation: Melita Transgas Co Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1586
+  position: ''
+  organisation: MPG Energy Services Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1587
+  position: ''
+  organisation: MSE (Holdings) Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1588
+  position: ''
+  organisation: National orchestra Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1589
+  position: ''
+  organisation: Petromal Company Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1590
+  position: ''
+  organisation: Pitkalija Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1591
+  position: ''
+  organisation: Projects Malta Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1592
+  position: ''
+  organisation: Projects Plus Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1593
+  position: ''
+  organisation: Property Management Services Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1594
+  position: ''
+  organisation: Public Broadcasting Services Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q731913, by: model}
+- row: 1595
+  position: ''
+  organisation: Resource Support and Services Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1596
+  position: ''
+  organisation: Safe City Malta Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1597
+  position: ''
+  organisation: Selmun Palace Hotel Company Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1598
+  position: ''
+  organisation: Social Projects Management Ltd (S.P.M)
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1599
+  position: ''
+  organisation: Superintendent of Cultural Heritage
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q123376374, by: model}
+- row: 1600
+  position: ''
+  organisation: Trade Malta Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1601
+  position: ''
+  organisation: Wasteserv Malta Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q108305641, by: model}
+- row: 1602
+  position: ''
+  organisation: WSC International Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1603
+  position: ''
+  organisation: Yachting Malta Ltd
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1604
+  position: ''
+  organisation: Malta Export House Co. Ltd *
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1605
+  position: ''
+  organisation: Kalaxlokk Co Ltd *
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1606
+  position: ''
+  organisation: Malta Shipyards Ltd *
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1607
+  position: ''
+  organisation: Ricasoli Tank Cleaning Co Ltd *
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1608
+  position: ''
+  organisation: Enemalta Plc
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1341101, by: model}
+- row: 1609
+  position: ''
+  organisation: Air Malta Plc
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1610
+  position: ''
+  organisation: Malta Stock Exchange Plc
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1611
+  position: ''
+  organisation: Malita Investments Plc
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1612
+  position: ''
+  organisation: Grand Harbour Regeneration Corporation Plc
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1613
+  position: ''
+  organisation: Water Services Corporation
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q30292610, by: model}
+- row: 1614
+  position: ''
+  organisation: Malta Enterprise Corporation
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q6744661, by: model}
+- row: 1615
+  position: ''
+  organisation: Malta Freeport Corporation
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1616
+  position: ''
+  organisation: 'Public Authority: Bureau of Air Accident Investigation'
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1617
+  position: ''
+  organisation: Malta Development Bank
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1618
+  position: Director-General Commerce, Commerce Department
+  organisation: Commerce Department
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 1619
+  position: Director-General, Civil Aviation
+  organisation: Civil Aviation
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: true
+  expansion: []
+- row: 1620
+  position: Chairperson and CEO and Members
+  organisation: 'Environment and Resources Authority '
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q28920943, by: model}
+- row: 1621
+  position: Chairperson and Members
+  organisation: 'Executive Council of the Planning Authority '
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1622
+  position: Head of department
+  organisation: Marine Safety Investigations
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1623
+  position: Chairperson, CEO, Chief Audit Officer
+  organisation: 'Lands Authority '
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion: []
+- row: 1624
+  position: 'Chairperson, Licensing (Trade) Appeals Board '
+  organisation: 'Licensing (Trade) Appeals Board '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: true
+  expansion: []
+- row: 1625
+  position: Chairperson and Members
+  organisation: 'Licensing Board set up under the Real Estate Agents, Property Brokers and Property Consultants
+    Act '
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 1626
+  position: 'CEO, Malta Digital Innovation Authority (MDIA) '
+  organisation: 'Malta Digital Innovation Authority (MDIA) '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1627
+  position: 'Non-Executive Chairman, Malta Digital Innovation Authority Board (MDIA) '
+  organisation: 'Malta Digital Innovation Authority Board (MDIA) '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1628
+  position: Chairperson and CEO
+  organisation: 'Malta Gaming Authority '
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1629
+  position: 'Executive Chairperson, Chairperson and CEO, Malta Tourism Authority  '
+  organisation: 'Malta Tourism Authority  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1630
+  position: Chairperson, Malta Further and Higher Education Authority
+  organisation: Malta Further and Higher Education Authority
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1631
+  position: Chairperson and CEO
+  organisation: 'Regulator for Energy and Water Services '
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q125850733, by: model}
+- row: 1632
+  position: Chairperson and CEO
+  organisation: Transport Malta
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q30637888, by: model}
+- row: 1633
+  position: Deputy Chief Executive Officer and Chief Operations Officer, Transport Malta
+  organisation: Transport Malta
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q30637888, by: model}
+- row: 1634
+  position: Registrar General, Transport Malta - Shipping and Seamen
+  organisation: Transport Malta - Shipping and Seamen
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1635
+  position: Chief Officer, Transport Malta - Ports and Yachting, and Harbour Master
+  organisation: Transport Malta - Ports and Yachting, and Harbour Master
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1636
+  position: Chief Officer, Transport Malta – Land Transport Directorate
+  organisation: Transport Malta – Land Transport Directorate
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1637
+  position: Chief Officer, Transport Malta – Integrated Transport Strategy Directorate
+  organisation: Transport Malta – Integrated Transport Strategy Directorate
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion: []
+- row: 1638
+  position: Chief Officer, Transport Malta – Strategy & Corporate Services
+  organisation: Transport Malta – Strategy & Corporate Services
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 1639
+  position: Chairperson, Members and Supplementary Members
+  organisation: Planning Commission(s) of the Planning Authority
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1640
+  position: 'Chairperson and Members Environmental and Planning Review Tribunal '
+  organisation: 'The Planning Board of the Planning Authority  '
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1641
+  position: Chairperson, Deputy Chairperson and Members
+  organisation: 'The Planning Board of the Planning Authority  '
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1642
+  position: Chairperson, Chief Executive Officer and Members
+  organisation: 'Authority responsible for regulation and monitoring of the building and construction industry '
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1643
+  position: 'Director-General Customs, Customs Department  '
+  organisation: 'Customs Department  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: true
+  expansion: []
+- row: 1644
+  position: Chairperson & Director
+  organisation: 'Financial Intelligence Analysis Unit  '
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion: []
+- row: 1645
+  position: Registrar
+  organisation: 'Malta Business Registry (MBR)  '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 1646
+  position: 'CEO, Malta Communications Authority  '
+  organisation: 'Malta Communications Authority  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1647
+  position: Board members & Non-Executive Chairperson
+  organisation: 'Malta Communications Authority  '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion: []
+- row: 1648
+  position: 'CEO, Malta Financial Services Authority  '
+  organisation: 'Malta Financial Services Authority  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q4279484, by: model}
+- row: 1649
+  position: Board of Governors & Non-Executive Chairman
+  organisation: 'Malta Financial Services Authority  '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q4279484, by: model}
+- row: 1650
+  position: 'Director-General Contracts, Contracts Department  '
+  organisation: 'Contracts Department  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 1651
+  position: 'Chairperson, Commercial Sanctions Tribunal  '
+  organisation: 'Commercial Sanctions Tribunal  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: position
+  checked: false
+  expansion: []
+- row: 1652
+  position: 'Chairperson, General Contract Committee  '
+  organisation: 'General Contract Committee  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 1653
+  position: 'Chief Executive Officer, Infrastructure Malta  '
+  organisation: 'Infrastructure Malta  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q120926468, by: model}
+- row: 1654
+  position: ''
+  organisation: MITA
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q30284934, by: model}
+- row: 1655
+  position: Regulator
+  organisation: 'Granting of Citizenship for exceptional services '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1656
+  position: 'Non-Executive Chairperson and CEO, Identity Malta Agency  '
+  organisation: 'Identity Malta Agency  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1657
+  position: 'CEO, Komunita’ Malta '
+  organisation: 'Komunita’ Malta '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion: []
+- row: 1658
+  position: 'Chairperson, Komunita’ Malta Board '
+  organisation: 'Komunita’ Malta Board '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1659
+  position: 'Non-executive Chairperson and CEO, Malta Residency Visa Agency  '
+  organisation: 'Malta Residency Visa Agency  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 1660
+  position: 'Executive Chairperson, Arts Council Malta  '
+  organisation: 'Arts Council Malta  '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: position
+  checked: true
+  expansion: []
+- row: 1661
+  position: ''
+  organisation: Housing Authority
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion: []
+- row: 1662
+  position: 'Chief Executive Officer, Malta Enterprise '
+  organisation: 'Malta Enterprise '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q6744661, by: model}
+- row: 1663
+  position: ''
+  organisation: Resource, Recovery and Recycling Agency
+  status: n/a
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []

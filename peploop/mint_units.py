@@ -39,11 +39,10 @@ from pathlib import Path
 from typing import Any, Callable, Sequence
 from urllib.parse import unquote
 
-import yaml
 from psycopg.types.json import Jsonb
 
-from peploop import amlr, db, offices, positions, typegraph, wikidata, wikipedia
-from peploop.mint import CENSUS_DIR, CURRENT_WINDOW_YEARS, PROTECTED_STATUSES
+from peploop import amlr, countries, db, offices, positions, typegraph, wikidata, wikipedia
+from peploop.mint import CURRENT_WINDOW_YEARS, PROTECTED_STATUSES
 from peploop.text import fold
 
 #: A unit typed as a former administrative entity, however recorded, is history.
@@ -224,11 +223,8 @@ class Unit:
 
 def levels(cc: str, path: Path | None = None) -> list[Level]:
     """The country's `per: units` census entries."""
-    path = path or CENSUS_DIR / f"{cc}.yml"
-    if not path.exists():
-        return []
     out = []
-    for entry in yaml.safe_load(path.read_text()) or []:
+    for entry in countries.section(cc, "census", path) or []:
         if entry.get("per") not in ("units", "bodies"):
             continue
         bodies = [Body(qid=str(b["qid"]), title=str(b["title"]), labels=dict(b.get("labels") or {}),

@@ -12,8 +12,8 @@ exposed persons so OpenSanctions can read them back. Three lanes:
   peploop's `mint`. Spec `peploop/tree/design.md`, sweep `peploop/tree/sweep.md`.
 - **pepcorp** (`peploop.cli corp <verb>`): a country's state enterprises and
   institutions, to `P127`/`P749` links, the `P31 Q270791` marker and board
-  seats on the body; creates nothing. Global logic, country data in
-  `peploop/corp/countries/<cc>.yml`. Spec `peploop/corp/design.md`,
+  seats on the body; creates nothing. Global logic, country data in the
+  `corp` section of `peploop/countries/<cc>.yml`. Spec `peploop/corp/design.md`,
   background `docs/soe_peps.md`.
 
 What the lanes' rules share, by family: `peploop/methods.md`.

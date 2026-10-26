@@ -1,0 +1,285 @@
+# Haiti: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Haitian run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml has no Haiti entry, so every entry below is
+  # measured here (2026-10-03) and nothing is inherited. PetScan did not answer
+  # during the measurement, so the counts are the MediaWiki API's own category
+  # walk at the same depth: distinct sitelinked items, then how many of them no
+  # earlier entry reached, then how many of those are human with no P570.
+  #
+  # Haiti is a small corpus on every wiki, and a mostly historical one: the whole
+  # tree below is ~560 items, ~255 of them living. fr.wikipedia is the main wiki
+  # and carries the tiers (presidents, prime ministers, 25 portfolio
+  # subcategories, Senate presidents, ambassadors by post) plus one flat bag,
+  # `Personnalité politique haïtienne`, that holds four of the seven voting
+  # members of the Transitional Presidential Council and nothing else does.
+  # en.wikipedia adds the legislature (both chambers and their presidents, which
+  # fr has as two pages), the BRH governors and the police chiefs. ht.wikipedia
+  # adds ~39 living people through `Politisyen ayisyen` that neither other wiki
+  # categorises (mostly ht-only stubs: deputies, a few ministers); its other trees
+  # (`Prezidan Ayiti`, `Minis ayisyen`, `Premye Minis ayisyen`, `Gouvènman an
+  # Ayiti`) add no one, and `Politik nan Ayiti` adds 21 non-people.
+  #
+  # The era. No elected president since July 2021, and no sitting parliament
+  # since the last third of the Senate lapsed on 10 January 2023. The
+  # Transitional Presidential Council (CPT, Q124846311) held the presidency
+  # collegially from 25 April 2024 to 7 February 2026, when its mandate ended
+  # and executive power passed to the Council of Ministers under Prime Minister
+  # Fils-Aimé (in office since 11 November 2024), confirmed by the "Pacte
+  # national" of 21-22 February 2026 and reshuffled on 2 March 2026. So the
+  # current era is the Fils-Aimé government, the CPT is the executive that ended
+  # eight months ago, and the 1987 constitution's offices (president, both
+  # chambers, the courts) stay the frame. Neither wiki has a per-period category
+  # below a tier (the fr `du XXIe siècle` bag is 7 pages), so the era cannot be
+  # chosen by category: every tier is seeded whole, the scope gate drops the
+  # dead at fetch (about half of every presidential and ministerial category)
+  # and `policy.P39_MAX_ENDED_YEARS` skips the old tenures.
+  #
+  # Left out: fr `Personnalité politique haïtienne du XXe siècle` (22, 5 new, 0
+  # living) and `… assassinée` (12, 7 new, all dead); en `Presidents_of_Haiti`
+  # (61, 0 new), `Prime_ministers_of_Haiti` (30, 0 new),
+  # `Vice_presidents_of_Haiti` (3, none living), `Haitian_judges` (9, 1 new,
+  # dead), `Haitian_bankers` (0 new), `Haitian_lawyers` (32, 1 living new, not a
+  # tier), `Candidates_for_President_of_Haiti` (72, 2 living new, candidacy is no
+  # office), `Haitian_politician_stubs` (95, 2 new, dead); ht `Politik nan
+  # Ayiti` (21 new, all non-human) and the other ht trees (0 new). There is no
+  # category for the CPT's members on any wiki.
+
+  # --- Head of state and government ---
+  - category: Président_d'Haïti                              # 57, 5 living
+    lang: fr
+    depth: 0
+  - category: Premier_ministre_d'Haïti                       # 30, 29 new, 21 living
+    lang: fr
+    depth: 0
+
+  # --- Cabinet: fr's 25 portfolio subcats, en's 18 ---
+  - category: Ministre_haïtien                               # container; 131, 92 new, 39 living new
+    lang: fr
+  - category: Government_ministers_of_Haiti                  # container; 121, 24 new, 13 living new
+    lang: en
+
+  # --- Parliament (lapsed since 2023-01-10): both chambers and their presidents ---
+  - category: Président_du_Sénat_haïtien                     # 9, 5 new, all living
+    lang: fr
+    depth: 0
+  - category: Député_haïtien                                 # 2
+    lang: fr
+    depth: 0
+  - category: Members_of_the_Haitian_Parliament              # Senate + Chamber + presidents; 70, 34 new, 19 living new
+    lang: en
+    depth: 2
+
+  # --- Central bank, police, military ---
+  - category: Governors_of_the_Bank_of_the_Republic_of_Haiti # 3, 1 new
+    lang: en
+    depth: 0
+  - category: Haitian_police_officers                        # with Haitian police chiefs; 4, 2 new
+    lang: en
+  - category: Militaire_haïtien                              # by century + Général haïtien; 23, 11 new, 3 living
+    lang: fr
+  - category: Haitian_military_personnel                     # with military leaders; 55, 29 new, 6 living
+    lang: en
+    depth: 2
+
+  # --- Subnational: mayors of Port-au-Prince and Hinche ---
+  - category: Maire_en_Haïti                                 # by city; 8, 7 new
+    lang: fr
+    depth: 2
+  - category: Mayors_of_places_in_Haiti                      # 11, 2 new
+    lang: en
+
+  # --- Diplomatic service ---
+  - category: Diplomate_haïtien                              # ambassadors by post at d2; 48, 22 new, 6 living
+    lang: fr
+    depth: 2
+  - category: Haitian_diplomats                              # 56, 9 new
+    lang: en
+    depth: 2
+  - category: Ambassadors_of_Haiti                           # 26 posts; 46, 16 new, 5 living
+    lang: en
+
+  # --- Catch-alls: the CPT members are only here ---
+  - category: Personnalité_politique_haïtienne               # flat bag; 159, 77 new, 44 living new
+    lang: fr
+    depth: 0
+  - category: Personnalité_politique_haïtienne_du_XXIe_siècle   # 7, 1 new
+    lang: fr
+    depth: 0
+  - category: Femme_politique_haïtienne                      # with Ministre haïtienne; 49, 21 new, 15 living
+    lang: fr
+  - category: Haitian_politicians_by_party                   # 18 parties; 52, 8 new
+    lang: en
+  - category: 21st-century_Haitian_politicians               # 56, 3 new
+    lang: en
+  - category: 20th-century_Haitian_politicians               # 48, 3 new, 2 living
+    lang: en
+  - category: Haitian_women_in_politics                      # 42, 10 new
+    lang: en
+  - category: Haitian_politicians                            # 24 pages, 9 new
+    lang: en
+    depth: 0
+  - category: Politicians_from_Port-au-Prince                # 39, 8 new, 7 living
+    lang: en
+  - category: Politisyen_ayisyen                             # 247, 54 new, 39 living new
+    lang: ht
+
+census:
+  # Offices the state has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-10-03 live measurement (labels, P31, P17, P576
+  # read in full); nothing below is from memory. No `source` is given: none was
+  # checked live, and a source is what lets a one-seat office pass on a single
+  # current holder, so it is never guessed. No `ht` labels are given: 5 of
+  # the 40 Haitian offices loaded (ambassadorships aside) carry one, against 19
+  # in fr, and a Kreyòl label is not written here unchecked.
+  #
+  # The era. The Transitional Presidential Council (CPT, `Q124846311`: P31
+  # provisional government + political institution, P17 Haiti, P571 2024-04-12,
+  # P576 2026-02-07) held the presidency collegially until 7 February 2026; since
+  # then the Council of Ministers under the Prime Minister (`Q1064589`, holder
+  # Fils-Aimé since 2024-11-11) exercises it. The member seat has one item,
+  # `Q132736192` "Conseiller-Président au sein du Conseil Présidentiel de
+  # Transition": a fr label and no claims at all, one holder (Vertilaire, open
+  # since 2024-04-25), so neither the descent nor a label search on "membre"
+  # reaches it; the reconciler found it through the holder lane. No item exists
+  # for the coordinator, and nobody else holds a CPT P39. Every CPT
+  # tenure ended eight months ago, so the mint stage's "at least one current
+  # holder" floor refuses the member seat however many articles attest it: the
+  # entry is here so the funnel says so, not because it can pass.
+  #
+  # Not here because it is not current: the CPT's president ("coordonnateur"),
+  # a rotating chair of a collegial head of state (Leblanc Fils, Voltaire,
+  # Saint-Cyr), whose shape is `council_chair`.
+  #
+  # Not here because an item exists: President `Q3290543`, Prime Minister
+  # `Q1064589`, the portfolio ministers (`Q113531482`-`Q114736187`, P279
+  # minister, P361 Cabinet `Q18379707`). Twins, each a merge decision: Commerce
+  # `Q114735444` / `Q120907477` (fr only, one 1993 holder), Planning
+  # `Q114736181` / `Q138766267` (P279 is the *ministry* `Q16664629`, a body as a
+  # parent), Youth and Sports `Q114736186` / `Q125721990`.
+  #
+  # Not here for other reasons:
+  # - The Conseil supérieur du pouvoir judiciaire has no item, and its
+  #   president is the Cour de cassation's president ex officio: the seat is
+  #   another office, so it is the court-president entry below and nothing more.
+  # - `Q108558638` "Commissaire du gouvernement" (P31 prosecutor, P17 Haiti,
+  #   dewiki only) is the occupation class, not any one office.
+  # - Mayor of Port-au-Prince: `Q28025362` is the fr/en/ht *list* article's item
+  #   typed P31 position, en label "Mayor of Port-au-Prince", no P17, P1001 or
+  #   P279, two P39 holders (1955, 2020). The holder lane already loads it; a
+  #   `mayor` entry would wait on the municipality resolver anyway.
+  # - The Provisional Electoral Council `Q7252735` and the Office de la
+  #   protection du citoyen `Q99302254` exist as bodies; no seeded tier reaches
+  #   their heads.
+
+  # --- The collegial head of state, 2024-04-25 to 2026-02-07 ---
+  - key: cpt_member
+    class: executive.head_of_state
+    archetype: state_body_member
+    body: Q124846311         # Conseil présidentiel de transition (P576 2026-02-07)
+    labels:
+      fr: membre du Conseil présidentiel de transition
+      en: member of the Transitional Presidential Council of Haiti
+
+  # --- Parliament's presiding officers. Both chambers have sat empty since the
+  # last senators' terms lapsed on 2023-01-10, and the Senate item `Q3510849`
+  # records that day as P576 although the chamber is constitutional and not
+  # abolished. Both presidencies already have items, so these entries can only
+  # end `found` (if an article attests them) or skipped for want of a current
+  # holder; they are listed so the funnel accounts for the tier.
+  - key: senate_president
+    class: legislature.leadership
+    archetype: speaker      # Q113531478 exists: P279 speaker, P2389 Senate, P1001 Haiti, 11 holders to 2023
+    body: Q3510849           # Sénat (Haïti), P31 senate, P361 Parliament Q742110
+    labels:
+      fr: président du Sénat d'Haïti
+      en: President of the Senate of Haiti
+
+  - key: chamber_president
+    class: legislature.leadership
+    archetype: speaker      # Q28810809 exists: P361 the Chamber, P1001 Haiti, no P279, 2 holders to 2018
+    body: Q320287            # Chambre des députés, P31 chamber of deputies, P361 Parliament Q742110
+    labels:
+      fr: président de la Chambre des députés d'Haïti
+      en: President of the Chamber of Deputies of Haiti
+
+  # --- Judiciary ---
+  - key: cassation_president
+    class: judiciary.apex
+    archetype: court_president
+    body: Q3001011           # Cour de cassation d'Haïti, P31 supreme court
+    labels:
+      fr: président de la Cour de cassation d'Haïti
+      en: President of the Court of Cassation of Haiti
+
+  - key: cassation_commissaire
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    body: Q3001011           # the court the parquet sits at; no item for the parquet itself
+    labels:
+      fr: commissaire du gouvernement près la Cour de cassation d'Haïti
+      en: Government Commissioner at the Court of Cassation of Haiti
+
+  # --- Central bank. `Q123054908` "gouverneur de la Banque de la république
+  # d'Haïti" exists with a fr label, no claims at all and one P39 holder (Ronald
+  # Gabriel, 2023-10-09): the descent cannot reach it, so this entry is what lets
+  # mint-verify's live search name it `found`.
+  - key: brh_governor
+    class: economic.central_bank
+    archetype: central_bank_governor
+    body: Q2883379           # Banque de la République d'Haïti, P31 central bank
+    labels:
+      fr: gouverneur de la Banque de la République d'Haïti
+      en: Governor of the Bank of the Republic of Haiti
+
+  # --- Security ---
+  - key: pnh_director_general
+    class: security.police
+    archetype: agency_head
+    body: Q3394179           # Police nationale d'Haïti, P31 national police, P361 Cabinet
+    labels:
+      fr: directeur général de la Police nationale d'Haïti
+      en: Director General of the Haitian National Police
+
+  - key: fadh_commander
+    class: security.defence_command
+    archetype: military_chief_of_staff
+    body: Q4124963           # Forces armées d'Haïti, P31 armed forces; carries P576 1995 though re-established 2017
+    labels:
+      fr: commandant en chef des Forces armées d'Haïti
+      en: Commander-in-Chief of the Armed Forces of Haiti
+
+  # --- Audit and anti-corruption ---
+  - key: cscca_president
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the Cour supérieure des comptes et du contentieux
+    # administratif was found (fr, en and ht label and full-text searches).
+    labels:
+      fr: président de la Cour supérieure des comptes et du contentieux administratif
+      en: President of the Superior Court of Auditors and Administrative Disputes of Haiti
+
+  - key: ulcc_director_general
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    body: Q136308962         # Unité de lutte contre la corruption, P31 government organization, P17 Haiti (htwiki only)
+    labels:
+      fr: directeur général de l'Unité de lutte contre la corruption
+      en: Director General of the Anti-Corruption Unit of Haiti
+
+  # --- The executive's delegate in each of the ten departments (Q790's P150,
+  # none dissolved). One appointed seat per first-level subdivision is the
+  # governor archetype's shape; whether `Q132050` "governor" is the right kind
+  # for a delegate of the central executive (closer to a prefect) is the open
+  # question, and no Haitian sibling settles it. Only an `en` label is given:
+  # French needs du/de l'/de la/des per department and two departments' fr labels
+  # read "département du …", so a filled fr template would be ungrammatical; the
+  # guard then requires categorize's own fr label.
+  - key: departmental_delegate
+    class: subnational.executive
+    archetype: governor
+    per: subdivisions
+    labels:
+      en: Departmental Delegate of {name}

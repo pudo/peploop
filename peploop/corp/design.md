@@ -8,8 +8,8 @@ same profile's last part: who sits in their governing bodies. Its unit is the
 body, an item neither peploop (people) nor peptree (positions) edits. Why the shape is what
 it is, and the measurements behind it, are in `docs/soe_peps.md`.
 
-The logic is global. What differs by country lives in its spec,
-`countries/<cc>.yml` (`country.py`): official holdings lists, the state-only
+The logic is global. What differs by country lives in its spec, the `corp`
+section of `peploop/countries/<cc>.yml` (`country.py`): official holdings lists, the state-only
 legal forms that mark a body, classes the type tree misfiles as government,
 seats beyond the global table, the tiers written, where rigour's main
 QID is a realm around the state, the polity whose subdivisions are the
@@ -62,7 +62,7 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   enterprise is then owned by the polity, an institution gets its seats and
   no link.
 - A body the member state's own list of prominent public functions names
-  (AMLR Art. 43, `peploop/amlr/<cc>.yml`, resolved to its item in a row's
+  (AMLR Art. 43, `peploop/countries/<cc>.amlr.yml`, resolved to its item in a row's
   expansion) is in PEP scope by that list: where only the control gate
   stops it -- control unclear, unstated or unquoted, another tier, an
   enterprise with no state owner named -- its seats are written all the
@@ -171,7 +171,7 @@ business). Ministries, legislatures and courts are peploop's, as positions.
   | deputy chair | `P5052` + `P2868 Q1127270` |
   | member | `P5052` |
 
-  The head is never written: its office is peploop's (`census/eu.yml`).
+  The head is never written: its office is peploop's (the census of `countries/eu.yml`).
   A seat whose person holds an office of the body (scoped to it, or its
   `P2388`) is that office's (`position_office`), and a head who chairs the
   board is left out wherever the body has an office (`head_office`). The
@@ -327,7 +327,6 @@ peploop/corp/
   prompts/decide.md
   prompts/decide_party.md
   prompts/decide_international.md
-  countries/<cc>.yml
   verify.py    the link check against its quote
   prompts/verify_link.md
   persons.py   name folding and fitting, candidate search, a person's page

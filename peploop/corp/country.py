@@ -1,7 +1,8 @@
 """Read a country's spec: what pepcorp knows about one country that code must not.
 
 pepcorp's logic is global. What differs by country lives in
-`countries/<cc>.yml`, so a new country is a new file, not a code change:
+the `corp` section of `peploop/countries/<cc>.yml`, so a new country is a new
+section, not a code change:
 
 - `holdings`: official lists of state holdings, each entry `name`, `qid`
   (null when the holding has no item), `holder`, `source`; an entry from a
@@ -47,14 +48,10 @@ pepcorp's logic is global. What differs by country lives in
 """
 
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
-import yaml
+from peploop import countries, eras, positions
 
-from peploop import eras, positions
-
-DIR = Path(__file__).resolve().parent / "countries"
 #: The tiers written when a spec does not say: the state and its first-level subdivisions.
 DEFAULT_TIERS = ("national", "regional")
 
@@ -98,9 +95,7 @@ class Spec:
 
 def get(cc: str) -> Spec:
     """A country's spec; an empty one (global defaults) when it has no file."""
-    path = DIR / f"{cc}.yml"
-    data = yaml.safe_load(path.read_text()) if path.exists() else {}
-    data = data or {}
+    data = countries.section(cc, "corp") or {}
     return Spec(
         cc=cc,
         holdings=[e for h in data.get("holdings") or [] for e in h.get("entries") or []],

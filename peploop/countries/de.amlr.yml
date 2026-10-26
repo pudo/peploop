@@ -1,0 +1,423 @@
+# Germany: listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 872
+  position: Federal President
+  local: Bundespräsident
+  lang: DEU
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q25223, by: model}
+- row: 873
+  position: Federal Chancellor
+  local: Bundeskanzler
+  lang: DEU
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q4970706, by: model}
+- row: 874
+  position: Federal ministers
+  lang: DEU
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q248352, by: model}
+- row: 875
+  position: Parliamentary state secretary
+  lang: DEU
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q19731005, by: model}
+- row: 876
+  position: Minister of state,
+  lang: DEU
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q2325058, by: model}
+- row: 877
+  position: State secretary
+  lang: DEU
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 878
+  position: Member of the German Bundestag
+  lang: DEU
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q1939555, by: model}
+- row: 879
+  position: Member of the Bundesrat
+  lang: DEU
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q15835370, by: model}
+- row: 880
+  position: Member of the federal board
+  lang: DEU
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body
+  checked: true
+  expansion: []
+- row: 881
+  position: Member of the party board
+  lang: DEU
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 882
+  position: President of the Federal Constitutional Court
+  local: Bundesverfassungsgericht
+  lang: DEU
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 883
+  position: Judge at the Federal Constitutional Court
+  lang: DEU
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 884
+  position: President of the Federal Court of Justice
+  local: Bundesgerichtshof
+  lang: DEU
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 885
+  position: Judge at the Federal Court of Justice
+  lang: DEU
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 886
+  position: President of the Federal Labour Court
+  local: Bundesarbeitsgericht
+  lang: DEU
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 887
+  position: Judge at the Federal Labour Court
+  lang: DEU
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 888
+  position: President of the Federal Administrative Court
+  local: Bundesverwaltungsgericht
+  lang: DEU
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 889
+  position: Judge at the Federal Administrative Court
+  lang: DEU
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 890
+  position: President of the Federal Social Court
+  local: Bundessozialgericht
+  lang: DEU
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 891
+  position: Judge at the Federal Social Court
+  lang: DEU
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 892
+  position: President of the Federal Fiscal Court
+  local: Bundesfinanzhof
+  lang: DEU
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 893
+  position: Judge at the Federal Fiscal Court
+  lang: DEU
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 894
+  position: President of a federal state constitutional court
+  local: Landesverfassungsgerichtshof
+  lang: DEU
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 895
+  position: Judge at a federal state constitutional court
+  lang: DEU
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 896
+  position: President  of the Federal Court of Auditors
+  local: Bundesrechnungshof
+  lang: DEU
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 897
+  position: Vice-president of the Federal Court of Auditors
+  local: Bundesrechnungshof
+  lang: DEU
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 898
+  position: President of the supreme court of auditors of a federal state
+  local: Oberster Rechnungshof
+  lang: DEU
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 899
+  position: Vice-president of the supreme court of auditors of a federal state
+  local: Oberster Rechnungshof
+  lang: DEU
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 900
+  position: Member of the board of the German Federal Bank
+  local: Deutsche Bundesbank
+  lang: DEU
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q162222, by: model}
+- row: 901
+  position: Ambassador
+  lang: DEU
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 902
+  position: Defence attaché
+  lang: DEU
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 903
+  position: Members of the administrative, management and supervisory bodies of those enterprises in which the federal
+    government or the federal state governments have a stake in excess of 50 % and which employ more than 2 000
+    employees (see Section 1(1)(2) of the Employee Participation Act) or have a balance sheet in excess of 3 billion
+    euro.
+  lang: DEU
+  status: To split
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: position
+  checked: false
+  expansion: []
+- row: 904
+  position: Director, Organisation for Joint Armament Cooperation
+  lang: DEU
+  organisation: Organisation for Joint Armament Cooperation
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 905
+  position: President, World Communion of Reformed Churches
+  lang: DEU
+  organisation: World Communion of Reformed Churches
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 906
+  position: General Secretary, World Communion of Reformed Churches
+  lang: DEU
+  organisation: World Communion of Reformed Churches
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 907
+  position: Executive Director, Global Crop Diversity Trust
+  lang: DEU
+  organisation: Global Crop Diversity Trust
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 908
+  position: Chairperson, European Organisation for the Exploitation of Meteorological Satellites
+  lang: DEU
+  organisation: European Organisation for the Exploitation of Meteorological Satellites
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 909
+  position: President, European Patent Office (EPO)
+  lang: DEU
+  organisation: European Patent Office (EPO)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 910
+  position: Vice-President, European Patent Office (EPO)
+  lang: DEU
+  organisation: European Patent Office (EPO)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 911
+  position: Director-General, European Molecular Biology Laboratory
+  lang: DEU
+  organisation: European Molecular Biology Laboratory
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 912
+  position: Director-General, European Southern Observatory
+  lang: DEU
+  organisation: European Southern Observatory
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []

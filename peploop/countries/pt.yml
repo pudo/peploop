@@ -1,0 +1,106 @@
+# Portugal: what the lanes know about it, one section per lane.
+
+census:
+  # The head offices of the EU AMLR levels (Reg. 2024/1624, Art. 2(34)(viii)): every
+  # unit of 50,000 or more (`amlr.units`) that has no head office gets one from
+  # `mint_units`, attested by the unit's own current P6 or its article's infobox.
+  # All 36 existing mayoralties subclass presidente da câmara municipal and are
+  # labelled "Presidente da Câmara Municipal de X"; the forms give the article a
+  # municipality's name takes ("da Póvoa de Varzim", "do Seixal").
+  - key: amlr_municipal_head
+    class: subnational.municipal
+    archetype: mayor
+    per: units
+    of: amlr:municipal
+    lang: pt
+    title: presidente da câmara municipal
+    labels:
+      pt: "Presidente da Câmara Municipal {name}"
+      en: "Mayor of {name}"
+    forms:
+      pt:
+        - ["^(Póvoa|Maia|Moita|Amadora|Figueira|Nazaré|Trofa|Covilhã|Guarda|Lousã|Horta)\\b", "da \\1"]
+        - ["^(Caldas)\\b", "das \\1"]
+        - ["^(Porto|Seixal|Montijo|Barreiro|Funchal|Entroncamento|Cartaxo|Fundão|Bombarral|Crato|Redondo|Sardoal)$", "do \\1"]
+        - ["^(?!(?:da|das|do|dos) )", "de "]
+    parent: Q7241346                 # presidente da câmara municipal
+    sources:
+      "*": https://pt.wikipedia.org/wiki/Presidente_da_câmara_municipal
+
+corp:
+  # Portugal. Unitary: the autonomous regions of the Azores and Madeira are
+  # the regional tier; the 18 districts have no government.
+
+  tiers: [national, regional]
+
+  # Classes the type tree files under government organization or government
+  # agency that are not government bodies here. The municipal executive
+  # (câmara municipal), a later tier: seven are read as state actors, as the
+  # global list keeps municipalities out as places.
+  not_government:
+
+  # Never candidates here, beyond the global exclusions. Measured 2026-10-17
+  # from the state actors' P127/P749 reach and the country's live items.
+  # Chambers of commerce and professional orders administer themselves; the
+  # Santas Casas da Misericórdia are left in (Lisbon's is the state's).
+  exclude:
+    - {qid: Q897399, name: chamber of commerce and industry}  # 24 live, e.g. Q107110423 Associação dos Industriais de Cordoaria e Redes
+    - {qid: Q3355775, name: professional order}  # 1 live, e.g. Q10341343 Ordem dos Psicólogos Portugueses
+  # Individual radio and television channels (RTP itself stays), units inside
+  # a body, district archives, and police forces, whose chiefs are officers.
+  # Measured 2026-10-17 among the kept candidates.
+    - {qid: Q1616075, name: television station}  # 8 kept, e.g. Q2706279 RTP1
+    - {qid: Q14350, name: radio station}  # 7 kept, e.g. Q571818 Antena 1
+    - {qid: Q334453, name: division}  # 2 kept, e.g. Q10388221 CP Urbanos
+    - {qid: Q10296259, name: arquivo distrital}  # 5 kept, e.g. Q56627914 Arquivo Distrital do Porto
+    - {qid: Q732717, name: law enforcement agency}  # 3 kept, e.g. Q17014172 Polícia Judiciária
+
+  # State-only legal forms and types, matched exactly as P31 or P1454.
+  # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+  # statement, then all live items, in brackets. Measured thin: these forms
+  # carry no seat statement yet. Unidade de Saúde Familiar (26, health centres
+  # within ULS) is left out.
+  forms:
+    - {qid: Q10273129, kind: enterprise, name: Entidade pública empresarial}  # 0 (4 live)
+    - {qid: Q10302978, kind: institution, name: Instituto público}  # 0 (2 live)
+    - {qid: Q124748578, kind: institution, name: Unidade Local de Saúde}  # 0 (39 live)
+
+  roles: []
+
+  # Official list of central-government holdings (the Setor Empresarial do
+  # Estado). The lanes already reach CGD, CP, IP, AdP, RTP, Parpública, TAP,
+  # NAV, Lusa and Banco Português de Fomento; the entries are the holdings no
+  # lane reached or the organisation test dropped (the Lisbon and Porto metros
+  # are typed as their networks), resolved 2026-10-17.
+  holdings:
+    - source: "DGTF (Direção-Geral do Tesouro e Finanças), Setor Empresarial do Estado; Parpública, https://www.dgtf.gov.pt/"
+      entries:
+        - name: "Metropolitano de Lisboa"
+          qid: Q746032
+          holder: "Estado (setor empresarial do Estado)"
+          source: https://pt.wikipedia.org/wiki/Metropolitano_de_Lisboa
+        - name: "Metro do Porto"
+          qid: Q29757
+          holder: "Estado (setor empresarial do Estado)"
+          source: https://pt.wikipedia.org/wiki/Metro_do_Porto
+        - name: "Empresa de Desenvolvimento Mineiro"
+          qid: Q30254449
+          holder: "Estado, via Parpública"
+          source: https://pt.wikipedia.org/wiki/Empresa_de_Desenvolvimento_Mineiro
+        - name: "Santa Casa da Misericórdia de Lisboa"
+          qid: Q10367731
+          holder: "Estado (pessoa coletiva de direito privado e utilidade pública administrativa, tutelada pelo Governo)"
+          source: https://pt.wikipedia.org/wiki/Santa_Casa_da_Misericórdia_de_Lisboa
+        - name: "Banco de Portugal"
+          qid: Q378372
+          holder: "Estado"
+          source: https://pt.wikipedia.org/wiki/Banco_de_Portugal
+
+amlr:
+  # Units: classes measured on Wikidata (2026-10-24).
+  units:
+    municipal:
+    - {qid: Q13217644, name: municipality of Portugal}
+    grouping:
+    - {qid: Q27995043, name: intermunicipal community of Portugal}
+    metro: []

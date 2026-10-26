@@ -1,0 +1,646 @@
+# Italy: listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 1013
+  position: President
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q332711, by: model}
+- row: 1014
+  position: Prime Minister
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q796897, by: model}
+- row: 1015
+  position: Minister
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q3858501, by: model}
+- row: 1016
+  position: Deputy minister
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1017
+  position: Secretary of state
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 1018
+  position: Regional council president
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1019
+  position: Regional councillor
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1020
+  position: Mayor of a provincial capital or metropolitan city
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1021
+  position: Mayor of a municipality with a population of at least 15 000 inhabitants and equivalent office in foreign
+    countries
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion:
+  - {level: municipal, office: head, by: model}
+- row: 1022
+  position: Member of parliament
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 1023
+  position: Senator
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q13653224, by: model}
+- row: 1024
+  position: Regional councillor and equivalent office in foreign countries
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 1025
+  position: Member of the central governing bodies of political parties
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1026
+  position: Member of the Constitutional Court
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1027
+  position: Court of Cassation or Court of Auditors
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1028
+  position: Member of the Council of State and other members of the Council of Administrative Justice for the Region
+    of Sicily and equivalent office in foreign countries
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 1029
+  position: Member of the governing bodies of central banks and independent authorities
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: national, bodies: institution, by: model}
+- row: 1030
+  position: Ambassador, chargé d’affaires or equivalent office in foreign countries, high-ranking officers in the
+    armed forces or equivalent office in foreign countries
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 1031
+  position: Member of the administrative, management or supervisory bodies of undertakings controlled directly or
+    indirectly by the Italian State or by a foreign State or predominantly or wholly owned by the Regions, by city
+    councils and by municipalities with a total population of not less than 15 000 inhabitants
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
+- row: 1032
+  position: Chief Executive of a health authority or hospital, university hospital and other bodies of the national
+    health service
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: national, bodies: institution, by: model}
+- row: 1033
+  position: Director
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: unusable
+  checked: true
+  expansion: []
+- row: 1034
+  position: Deputy Director
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: unusable
+  checked: true
+  expansion: []
+- row: 1035
+  position: Member of the Management body or entity carrying out equivalent functions in international organisations
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 1036
+  position: Director, European Space Agency - Frascati Centre; ESA-ESRIN
+  organisation: European Space Agency - Frascati Centre; ESA-ESRIN
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1037
+  position: Regional Representative, United Nations High Commissioner for Refugees UNHCR - Representation for Italy,
+    San Marino and the Holy See
+  organisation: United Nations High Commissioner for Refugees UNHCR - Representation for Italy, San Marino and the
+    Holy See
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1038
+  position: Director-General, Bioversity International - International Plant Genetic Resources Institute
+  organisation: Bioversity International - International Plant Genetic Resources Institute
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1039
+  position: Director, World Bank - Office in Italy
+  organisation: World Bank - Office in Italy
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1040
+  position: Director, United Nations Global Service Centre
+  organisation: United Nations Global Service Centre
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1041
+  position: Director, European Centre for Medium Range Weather Forecasts (ECMWF)
+  organisation: European Centre for Medium Range Weather Forecasts (ECMWF)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1042
+  position: 'Director-General, The Abdus Salam International Centre for Theoretical Physics '
+  organisation: 'The Abdus Salam International Centre for Theoretical Physics '
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1043
+  position: 'Director-General, Unesco '
+  organisation: 'Unesco '
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q28784183, by: model}
+- row: 1044
+  position: Director-General, International Atomic Energy Agency ICTP (Unesco-IAEA)
+  organisation: International Atomic Energy Agency ICTP (Unesco-IAEA)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1045
+  position: Director, International Centre for the Study of the Preservation and Restoration of Cultural Property
+  organisation: International Centre for the Study of the Preservation and Restoration of Cultural Property
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1046
+  position: Director, ICCROM
+  organisation: ICCROM
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1047
+  position: Director, International Centre for Advanced Mediterranean Agronomic Studies
+  organisation: International Centre for Advanced Mediterranean Agronomic Studies
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1048
+  position: Director, Mediterranean Agronomic Institute of Bari CIHEAM/IAMB
+  organisation: Mediterranean Agronomic Institute of Bari CIHEAM/IAMB
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1049
+  position: Director-General, International Centre for Genetic Engineering and Biotechnology ICGEB
+  organisation: International Centre for Genetic Engineering and Biotechnology ICGEB
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1050
+  position: Commander, NATO Defense College
+  organisation: NATO Defense College
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1051
+  position: Director, Commonwealth War Graves Commission -Western Mediterranean Area CWGC
+  organisation: Commonwealth War Graves Commission -Western Mediterranean Area CWGC
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1052
+  position: Secretary-General, Alpine Convention - Permanent Secretariat of the Convention, based in Innsbruck
+  organisation: Alpine Convention - Permanent Secretariat of the Convention, based in Innsbruck
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1053
+  position: Director, UN Department of Economic and Social Affairs - UN/DESA
+  organisation: UN Department of Economic and Social Affairs - UN/DESA
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1054
+  position: President, International Fund for Agricultural Development IFAD
+  organisation: International Fund for Agricultural Development IFAD
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1055
+  position: Vice-President, International Fund for Agricultural Development IFAD
+  organisation: International Fund for Agricultural Development IFAD
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1056
+  position: Director-General, Multinational Force and Observers MFO
+  organisation: Multinational Force and Observers MFO
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1057
+  position: Director, ICRANet -International Centre for Relativistic Astrophysics Network
+  organisation: ICRANet -International Centre for Relativistic Astrophysics Network
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1058
+  position: Secretary-General, Central European Initiative CEI
+  organisation: Central European Initiative CEI
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1059
+  position: Substitute Secretary-General, Central European Initiative CEI
+  organisation: Central European Initiative CEI
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1060
+  position: Deputy Secretary-General, Central European Initiative CEI
+  organisation: Central European Initiative CEI
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1061
+  position: Secretary-General, International Institute for the Unification of Private Law UNIDROIT
+  organisation: International Institute for the Unification of Private Law UNIDROIT
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1062
+  position: Director, UN Interregional Crime and Justice Research Institute UNICRI
+  organisation: UN Interregional Crime and Justice Research Institute UNICRI
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1063
+  position: Secretary-General, Italo-Latin American Institute (Istituto Italo-Latino Americano) IILA
+  organisation: Italo-Latin American Institute (Istituto Italo-Latino Americano) IILA
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1064
+  position: President, European University Institute EUI
+  organisation: European University Institute EUI
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1065
+  position: Director-General, European Molecular Biology Laboratory EMBL
+  organisation: European Molecular Biology Laboratory EMBL
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1066
+  position: Head of Mission, League of Arab States - Mission to Rome
+  organisation: League of Arab States - Mission to Rome
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1067
+  position: Commander, NATO Joint Force Command
+  organisation: NATO Joint Force Command
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1068
+  position: Head of Centre a. i., Organisation for Economic Cooperation and Development - Centre for Local Economic
+    and Employment Development Program (OECD)
+  organisation: Organisation for Economic Cooperation and Development - Centre for Local Economic and Employment
+    Development Program (OECD)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1069
+  position: Director, UN Educational, Scientific and Cultural Organisation - Regional Bureau for Science and Culture
+    in Europe Unesco/BRESCE
+  organisation: UN Educational, Scientific and Cultural Organisation - Regional Bureau for Science and Culture in
+    Europe Unesco/BRESCE
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1070
+  position: Director-General, Food and Agriculture Organisation of the UN FAO
+  organisation: Food and Agriculture Organisation of the UN FAO
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1071
+  position: Deputy Director-General, Food and Agriculture Organisation of the UN FAO
+  organisation: Food and Agriculture Organisation of the UN FAO
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1072
+  position: Director, United Nations Industrial Development Organisation UNIDO
+  organisation: United Nations Industrial Development Organisation UNIDO
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1073
+  position: Director, International Labour Organisation ILO
+  organisation: International Labour Organisation ILO
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1074
+  position: Deputy Director, International Training Centre
+  organisation: International Training Centre
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1075
+  position: Director-General, International Development Law Organisation IDLO
+  organisation: International Development Law Organisation IDLO
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1076
+  position: Head of Mission, International Organisation for Migration IOM
+  organisation: International Organisation for Migration IOM
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1077
+  position: Commander, NATO Support Agency  NSPA
+  organisation: NATO Support Agency  NSPA
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1078
+  position: Executive Director, World Food Programme WFP
+  organisation: World Food Programme WFP
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1079
+  position: Deputy Executive Director, World Food Programme WFP
+  organisation: World Food Programme WFP
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1080
+  position: Director, United Nations System Staff College  UNSSC
+  organisation: United Nations System Staff College  UNSSC
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1081
+  position: (Under-Secretary-General), United Nations Office for Project Services UNOPS
+  organisation: United Nations Office for Project Services UNOPS
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1082
+  position: 'Director, United Nations Children’s Fund Unicef/IRC  -Innocenti Research Centre  '
+  organisation: 'United Nations Children’s Fund Unicef/IRC  -Innocenti Research Centre  '
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 1083
+  position: Director, World Water Assessment Programme WWAP/Unesco – Unesco Secretariat
+  organisation: World Water Assessment Programme WWAP/Unesco – Unesco Secretariat
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []

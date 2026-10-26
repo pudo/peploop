@@ -1,0 +1,107 @@
+# Sweden: what the lanes know about it, one section per lane.
+
+corp:
+  # Sweden. Unitary: 21 län, whose regions are the regional tier.
+
+  tiers: [national, regional]
+
+  # Items standing in the state's place, and government bodies the type tree
+  # misses, read from the controllers the 2026-10-18 answers chose: the
+  # Swedish State as legal person, two ministries, and two regions (the
+  # regional self-government, the tier pepcorp writes).
+  actors:
+    - {qid: Q31930745, kind: state, name: Svenska staten}
+    - {qid: Q1780898, kind: government, name: Klimat- och näringslivsdepartementet}
+    - {qid: Q2612001, kind: government, name: Miljödepartementet}
+    - {qid: Q3233447, kind: government, name: Region Västra Götaland}
+    - {qid: Q374794, kind: government, name: Region Gotland}
+
+  # Classes the type tree files under government organization or government
+  # agency that are not government bodies here. None measured: no misfiled
+  # class among the state actors read 2026-10-17.
+  not_government: []
+
+  # Never candidates here, beyond the global exclusions. Measured 2026-10-17
+  # from the state actors' P127/P749 reach and the country's live items. Open
+  # data portals (220, 59 reached) are no body.
+  exclude:
+    - {qid: Q27031827, name: open data portal}  # 220 live, e.g. Q101096527 Solnas  Öppna Data portal
+    - {qid: Q897399, name: chamber of commerce and industry}  # 3 live, e.g. Q10517084 Handelskammaren i Gävle
+  # Counted among the kept bodies 2026-10-17: a lighthouse is no body.
+    - {qid: Q39715, name: lighthouse}  # 4 kept, e.g. Q1518751 Kullens fyr
+  # A prison is a local office of the Prison and Probation Service: its
+  # governor is no senior official (the full run wrote one).
+    - {qid: Q40357, name: prison}  # 2 kept, e.g. Q1797668 Anstalten Kumla
+
+  # State-only legal forms and types, matched exactly as P31 or P1454.
+  # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+  # statement, then all live items, in brackets. Statlig utredning (state
+  # inquiries, temporary) is left out. Statlig enhet is not under organization
+  # in the type tree; the formed lane keeps it anyway.
+  forms:
+    - {qid: Q68295960, kind: institution, name: Swedish government agency}  # 17 (250 live)
+    - {qid: Q108514063, kind: institution, name: statlig enhet}  # 17 (240 live)
+
+  roles: []
+
+  # Official list of central-government holdings: the companies the state
+  # owns wholly or in part, via sv.wikipedia (Lista över statliga företag i
+  # Sverige, after Regeringskansliet's annual report on state-owned
+  # companies). QIDs from the list's own links, checked live and not
+  # dissolved. An entry without a QID is a holding with no item.
+  holdings:
+    - source: "Förvaltningsstiftelsen för SVT, SR och UR (the public-service broadcasters, owned by a foundation the government sets up; not on the state companies list), https://www.forvaltningsstiftelsen.se/"
+      entries:
+        - {name: "Sveriges Television", qid: Q215363, holder: "Förvaltningsstiftelsen för SVT, SR och UR", source: "https://www.forvaltningsstiftelsen.se/"}
+        - {name: "Sveriges Radio", qid: Q1543058, holder: "Förvaltningsstiftelsen för SVT, SR och UR", source: "https://www.forvaltningsstiftelsen.se/"}
+        - {name: "Sveriges Utbildningsradio", qid: Q3182040, holder: "Förvaltningsstiftelsen för SVT, SR och UR", source: "https://www.forvaltningsstiftelsen.se/"}
+    - source: "Regeringskansliet, Verksamhetsberättelse för bolag med statligt ägande, via sv.wikipedia https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"
+      entries:
+        - {name: "Akademiska Hus", qid: Q10403939, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Almi Företagspartner", qid: Q10397672, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Apotek Produktion & Laboratorier", qid: Q10416116, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Apoteket", qid: Q1785637, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Arlandabanan", qid: Q1047610, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Dramaten", qid: Q1140265, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Eurofima", qid: Q1374986, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745", minority: true}
+        - {name: "Green Cargo", qid: Q1028092, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Göta kanalbolag", qid: Q10512727, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Infranord", qid: Q10535401, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Jernhusen", qid: Q3177392, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "LKAB", qid: Q52579, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Miljömärkning Sverige", qid: Q10659518, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Kungliga Operan", qid: Q254283, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Postnord", qid: Q3181430, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Rise (forskningsinstitut)", qid: Q7315107, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Samhall", qid: Q10660896, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Saminvest", qid: Q29042719, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "SBAB Bank", qid: Q62233, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "SJ", qid: Q8301325, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "SOS Alarm", qid: Q18370893, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Specialfastigheter", qid: Q10674550, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Statens Bostadsomvandling", qid: null, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Sveaskog", qid: Q1389894, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Svedab", qid: null, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Svensk Exportkredit", qid: Q10684798, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Svenska Skeppshypotek", qid: null, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Svenska Spel", qid: Q3924567, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Svevia", qid: Q10686298, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Swedavia", qid: Q1571428, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Sweden House", qid: Q10397475, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Swedfund", qid: Q10686496, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Swedish Space Corporation", qid: Q3270281, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Systembolaget", qid: Q1476113, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Telia Company", qid: Q862303, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745", minority: true}
+        - {name: "Teracom AB", qid: Q7476318, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Vasallen", qid: Q10713262, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Vattenfall (företag)", qid: Q157675, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Visitsweden", qid: Q10716113, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+        - {name: "Voksenåsen", qid: Q4589162, holder: "Svenska staten", source: "https://sv.wikipedia.org/w/index.php?title=Lista_%C3%B6ver_statliga_f%C3%B6retag_i_Sverige&oldid=59139745"}
+
+amlr:
+  # Units: classes measured on Wikidata (2026-10-24).
+  units:
+    municipal:
+    - {qid: Q127448, name: municipality of Sweden}
+    grouping: []
+    metro: []

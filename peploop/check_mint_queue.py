@@ -121,7 +121,7 @@ def check_census(expect: Any) -> None:
     labels = {"Q11": {"en": "Bray", "xx": "Brai"}, "Q12": {"mul": "Ostra"}, "Q13": {}}
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "zz.yml"
-        path.write_text(CENSUS)
+        path.write_text("census:\n" + CENSUS)
         anchors = mint.census("fr", path=path, subdivisions=lambda _s: ["Q11", "Q12", "Q13"],
                               labels_of=lambda qids: {q: labels[q] for q in qids})
         by_key = {a.key: a for a in anchors}
@@ -136,7 +136,7 @@ def check_census(expect: Any) -> None:
         expect(by_key["district_court"].jurisdiction == "Q12",
                "and a single entry to the subdivision it names")
         for bad, message in (("judiciary.apex", "unknown archetype"), ("judiciary.top", "unknown class")):
-            path.write_text(f"- {{key: x, class: {bad}, archetype: "
+            path.write_text(f"census:\n- {{key: x, class: {bad}, archetype: "
                             f"{'nonesuch' if 'archetype' in message else 'governor'}, labels: {{en: X}}}}")
             try:
                 mint.census("fr", path=path)

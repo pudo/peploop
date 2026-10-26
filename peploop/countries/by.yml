@@ -1,0 +1,345 @@
+# Belarus: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Belarusian run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml carries fourteen `country: by` entries, all
+  # English: the office-holders and government containers, the prime ministers,
+  # deputy prime ministers and nine portfolios, every one of them 2-35 people.
+  # The English tree is the thin one here. be.wikipedia is the regular wiki: one
+  # category per portfolio *of the Republic* (`Міністры X Рэспублікі Беларусь`,
+  # so the BSSR and BNR ministers sit in their own siblings), one per convocation
+  # of each chamber (1st-8th), one per oblast and city executive committee, one
+  # per embassy (121), and the apex courts, prosecutors, KGB, Security Council,
+  # National Bank and the All-Belarusian People's Assembly presidium. ru is
+  # flatter: its chambers are single all-convocation bags (`Депутаты Палаты
+  # представителей (Беларусь)` 143, `Члены Совета Республики (Беларусь)` 93) and
+  # `Министры Беларуси` at depth 1 adds 73 people to be's ministers, 69 of them
+  # Soviet commissars; so ru is seeded only where it adds a tier be lacks.
+  #
+  # The current era is the Republic under the 1994 Constitution as rebuilt by
+  # the November 1996 referendum -- the bicameral National Assembly in place of
+  # the Supreme Soviet, the presidential vertical of executive committees -- and
+  # as last amended by the February 2022 referendum, which made the
+  # All-Belarusian People's Assembly a constitutional organ (first convened April
+  # 2024). The single-office categories are the Republic's own and are seeded
+  # whole: the scope gate sets the dead aside at fetch, and the policy skips a
+  # tenure ended long ago. The chambers are seeded by convocation, and only the
+  # 8th (2024-, the first elected under the 2022 text) and the 7th (2019-2024,
+  # its predecessors, which is what lets a seat of many pass the mint floor).
+  # Left out: the 1st-6th convocations (the 6th would add 51 + 23 people whose
+  # seats ended in 2019), the Supreme Soviet and its chairs (pre-1996), the BSSR,
+  # BNR and Litbel trees, the ru all-convocation chamber bags (+40, +31, history),
+  # ru `Министры Беларуси` (+4 net of the commissars), ru `Послы Беларуси` (+4),
+  # ru `Сотрудники Администрации президента` (+1), ru `Члены Совета министров`
+  # (+0), en `Political_office-holders_in_Belarus` (+62: the BDR Rada and the
+  # Supreme Council), and the deputy chairs of the executive committees (+16).
+  # Counts are PetScan's on 2026-10-02 (people with a Wikidata item), each with
+  # its marginal over the entries above it: ~1,560 distinct.
+
+  # --- Head of state and government ---
+  - category: Прэзідэнты_Беларусі                      # 1; d1 = Lukashenko's eponymous category
+    lang: be
+    depth: 0
+  - category: Прэм’ер-міністры_Рэспублікі_Беларусь     # 11
+    lang: be
+    depth: 0
+  - category: Намеснікі_прэм’ер-міністраў_Беларусі     # 56, +49
+    lang: be
+    depth: 0
+
+  # --- Cabinet: 26 portfolios of the Republic (BSSR, BNR, Litbel siblings come in one level only) ---
+  - category: Міністры_Беларусі                        # 224, +202
+    lang: be
+  - category: Старшыні_дзяржаўных_камітэтаў_Беларусі   # KGB, Investigative, border, customs, military industry; 58, +48
+    lang: be
+  - category: Заместители_министров_Беларуси           # 62, +5
+    lang: ru
+  - category: Government_ministers_of_Belarus          # 127, +8
+    lang: en
+
+  # --- Presidential Administration and the Security Council ---
+  - category: Кіраўнікі_Адміністрацыі_Прэзідэнта_Беларусі   # 11, +3
+    lang: be
+    depth: 0
+  - category: Супрацоўнікі_Адміністрацыі_прэзідэнта_Беларусі   # 64, +44
+    lang: be
+    depth: 0
+  - category: Памочнікі_Прэзідэнта_Беларусі            # incl. the seven regional inspectors; 83, +40
+    lang: be
+  - category: Кіраўнікі_справамі_Прэзідэнта_Рэспублікі_Беларусь   # 10, +2
+    lang: be
+    depth: 0
+  - category: Кіраўнікі_справамі_Савета_Міністраў_Рэспублікі_Беларусь   # 1, +1
+    lang: be
+    depth: 0
+  - category: Дзяржаўныя_сакратары_Савета_бяспекі_Рэспублікі_Беларусь   # 11, +3
+    lang: be
+    depth: 0
+  - category: Супрацоўнікі_Савета_бяспекі_Рэспублікі_Беларусь   # 7, +6
+    lang: be
+    depth: 0
+
+  # --- Control bodies, prosecution, central bank, elections ---
+  - category: Генеральныя_пракуроры_Рэспублікі_Беларусь   # 9, +8
+    lang: be
+    depth: 0
+  - category: Кіраўнікі_Нацыянальнага_банка_Беларусі   # 8, +6
+    lang: be
+    depth: 0
+  - category: Старшыні_Камітэта_дзяржаўнага_кантролю_Беларусі   # 8, +0 (kept: the tier)
+    lang: be
+    depth: 0
+  - category: Члены_Цэнтральнай_выбарчай_камісіі_Рэспублікі_Беларусь   # 15, +10
+    lang: be
+    depth: 0
+
+  # --- Apex courts ---
+  - category: Суддзі_Канстытуцыйнага_суда_Рэспублікі_Беларусь   # 24, +20
+    lang: be
+  - category: Суддзі_Вярхоўнага_Суда_Рэспублікі_Беларусь   # 20, +13
+    lang: be
+  - category: Старшыні_Канстытуцыйнага_Суда_Рэспублікі_Беларусь   # 4, +0
+    lang: be
+    depth: 0
+  - category: Старшыні_Вярхоўнага_Суда_Рэспублікі_Беларусь   # 3, +0
+    lang: be
+    depth: 0
+  - category: Судьи_Беларуси                           # 12, +2
+    lang: ru
+
+  # --- All-Belarusian People's Assembly (constitutional organ since 2022) ---
+  - category: Члены_Прэзідыума_Усебеларускага_народнага_сходу   # 12, +6
+    lang: be
+    depth: 0
+
+  # --- National Assembly: the 7th and 8th convocations, and both chambers' chairs ---
+  - category: Дэпутаты_Палаты_Прадстаўнікоў_Нацыянальнага_сходу_Рэспублікі_Беларусь_8-га_склікання   # 110, +103
+    lang: be
+    depth: 0
+  - category: Дэпутаты_Палаты_Прадстаўнікоў_Нацыянальнага_сходу_Рэспублікі_Беларусь_7-га_склікання   # 108, +85
+    lang: be
+    depth: 0
+  - category: Члены_Савета_Рэспублікі_Нацыянальнага_сходу_Рэспублікі_Беларусь_8-га_склікання   # 61, +51
+    lang: be
+    depth: 0
+  - category: Члены_Савета_Рэспублікі_Нацыянальнага_сходу_Рэспублікі_Беларусь_7-га_склікання   # 62, +39
+    lang: be
+    depth: 0
+  - category: Старшыні_Палаты_Прадстаўнікоў_Нацыянальнага_сходу_Рэспублікі_Беларусь   # 5, +3
+    lang: be
+    depth: 0
+  - category: Старшыні_Савета_Рэспублікі_Нацыянальнага_сходу_Рэспублікі_Беларусь   # 7, +2
+    lang: be
+    depth: 0
+
+  # --- Subnational: the presidential vertical (oblast, city and district executive committees) ---
+  - category: Старшыні_абласных_выканаўчых_камітэтаў_Беларусі   # six oblasts, BSSR-era chairs included; 94, +63
+    lang: be
+  - category: Председатели_областных_исполнительных_комитетов_(Беларусь)   # 94, +5
+    lang: ru
+  - category: Старшыні_гарадскіх_выканаўчых_камітэтаў_Беларусі   # 18 cities incl. Minsk (32); 88, +66
+    lang: be
+  - category: Старшыні_раённых_выканаўчых_камітэтаў_Беларусі   # 94 districts; Wikidata has ~100 district-chair items; 217, +143
+    lang: be
+
+  # --- Diplomatic service: 121 posts on be, 32 ambassadorship items on Wikidata ---
+  - category: Паслы_Беларусі                           # 211, +141
+    lang: be
+  - category: Намеснікі_міністра_замежных_спраў_Рэспублікі_Беларусь   # 33, +2
+    lang: be
+    depth: 0
+  - category: Дыпламаты_Беларусі                       # 154, +14
+    lang: be
+    depth: 0
+
+  # --- Military leadership ---
+  - category: Начальнікі_Генеральнага_штаба_Узброеных_Сіл_Рэспублікі_Беларусь   # 10, +5
+    lang: be
+    depth: 0
+  - category: Генералы_Беларусі                        # by rank; 87, +27
+    lang: be
+  - category: Генералы_Беларуси                        # 85, +20
+    lang: ru
+
+  # --- Catch-alls ---
+  - category: 21st-century_Belarusian_politicians      # 135, +20
+    lang: en
+    depth: 0
+  - category: Палітыкі_Беларусі                        # 239, +155 (opposition, BNR, the rest of the bag)
+    lang: be
+    depth: 0
+  - category: Политики_Беларуси                        # 58, +17
+    lang: ru
+    depth: 0
+
+census:
+  # Offices the state has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-10-02 measurement (docs/research/position_items.md §10l),
+  # read live. No `source` is given: none has been checked.
+  #
+  # Belarus is modelled densely, so most institution classes already have their
+  # office and are not listed: the President `Q1049659`, Prime Minister
+  # `Q12379704`, the (first) deputy prime ministers `Q18690166` / `Q18690228`,
+  # 24 ministries (`P361 Q997640`), the Head of the Presidential Administration
+  # `Q13410738`, the Chairman of the Council of the Republic `Q13411096` and its
+  # deputy `Q106566565`, the Prosecutor General `Q6482723`, the KGB chair
+  # `Q4436588`, the Chairman of the Board of the National Bank `Q15708806`, the
+  # Chief of the General Staff `Q21029743`, the State Control Committee chair
+  # `Q109657173`, the Investigative Committee chair `Q105968151`, all six oblast
+  # executive-committee chairs (`P279 Q98556185`) and the Minsk City chair
+  # `Q4462174`, ~120 district-committee chairs (`P279 Q21814449`), and a
+  # Presidium seat of the All-Belarusian People's Assembly `Q126283139`. A judge
+  # of each apex court exists too, the Constitutional Court's (`Q122831383`)
+  # with no `P31` at all.
+  #
+  # Absent and not listed here, for want of an archetype: the Chairman of the
+  # House of Representatives (a speakership; the Council of the Republic's chair
+  # is `P279 Q140686`), and the Chairman of the All-Belarusian People's Assembly
+  # (one holder since 2024, the President).
+
+  - key: constitutional_court_president
+    class: judiciary.apex
+    archetype: court_president
+    body: Q252742            # Канстытуцыйны суд Рэспублікі Беларусь
+    labels:
+      be: Старшыня Канстытуцыйнага Суда Рэспублікі Беларусь
+      ru: Председатель Конституционного Суда Республики Беларусь
+      en: Chairman of the Constitutional Court of the Republic of Belarus
+
+  - key: supreme_court_president
+    class: judiciary.apex
+    archetype: court_president
+    body: Q3001108           # Вярхоўны суд Рэспублікі Беларусь
+    labels:
+      be: Старшыня Вярхоўнага Суда Рэспублікі Беларусь
+      ru: Председатель Верховного Суда Республики Беларусь
+      en: Chairman of the Supreme Court of the Republic of Belarus
+
+  - key: security_council_state_secretary
+    class: oversight.state_councils
+    archetype: agency_head
+    body: Q16326568          # Савет бяспекі Рэспублікі Беларусь (P31 organization)
+    labels:
+      be: Дзяржаўны сакратар Савета бяспекі Рэспублікі Беларусь
+      ru: Государственный секретарь Совета безопасности Республики Беларусь
+      en: State Secretary of the Security Council of Belarus
+
+  - key: election_commission_chair
+    class: oversight.electoral_commission
+    archetype: agency_head
+    body: Q2576708           # Цэнтральная камісія па выбарах (P749 the People's Assembly)
+    labels:
+      be: Старшыня Цэнтральнай камісіі Рэспублікі Беларусь па выбарах і правядзенні рэспубліканскіх рэферэндумаў
+      ru: Председатель Центральной комиссии Республики Беларусь по выборам и проведению республиканских референдумов
+      en: Chairman of the Central Election Commission of Belarus
+
+  # --- State enterprises: apex headships of the largest state-owned groups ---
+
+  - key: belaruskali_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q815266            # Беларуськалій
+    labels:
+      be: Генеральны дырэктар ААТ «Беларуськалій»
+      ru: Генеральный директор ОАО «Беларуськалий»
+      en: Director General of Belaruskali
+
+  - key: belneftekhim_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q3917821           # Белнафтахім (parent of Naftan, Belshina, Grodno Azot, Belaruskali)
+    labels:
+      be: Старшыня канцэрна «Белнафтахім»
+      ru: Председатель концерна «Белнефтехим»
+      en: Chairman of Belneftekhim
+
+  - key: belorusneft_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q4082693           # Беларуснафта
+    labels:
+      be: Генеральны дырэктар ВА «Беларуснафта»
+      ru: Генеральный директор ПО «Белоруснефть»
+      en: Director General of Belorusneft
+
+  - key: naftan_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q3919275           # Нафтан
+    labels:
+      be: Генеральны дырэктар ААТ «Нафтан»
+      ru: Генеральный директор ОАО «Нафтан»
+      en: Director General of Naftan
+
+  - key: mozyr_refinery_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q2459960           # Мазырскі НПЗ
+    labels:
+      be: Генеральны дырэктар ААТ «Мазырскі НПЗ»
+      ru: Генеральный директор ОАО «Мозырский НПЗ»
+      en: Director General of the Mozyr Oil Refinery
+
+  - key: grodno_azot_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q4150056           # Гродна Азот
+    labels:
+      be: Генеральны дырэктар ААТ «Гродна Азот»
+      ru: Генеральный директор ОАО «Гродно Азот»
+      en: Director General of Grodno Azot
+
+  - key: belarusian_potash_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q4082705           # Беларуская калійная кампанія
+    labels:
+      be: Генеральны дырэктар ААТ «Беларуская калійная кампанія»
+      ru: Генеральный директор ОАО «Белорусская калийная компания»
+      en: Director General of the Belarusian Potash Company
+
+  - key: belavia_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q815314            # Белавія (P749 the Council of Ministers)
+    labels:
+      be: Генеральны дырэктар ААТ «Авіякампанія «Белавія»
+      ru: Генеральный директор ОАО «Авиакомпания «Белавиа»
+      en: Director General of Belavia
+
+  - key: railway_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q76987             # Беларуская чыгунка
+    labels:
+      be: Начальнік Беларускай чыгункі
+      ru: Начальник Белорусской железной дороги
+      en: Head of the Belarusian Railway
+
+  - key: beltelecom_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q4082979           # Белтэлеком
+    labels:
+      be: Генеральны дырэктар РУП «Белтэлекам»
+      ru: Генеральный директор РУП «Белтелеком»
+      en: Director General of Beltelecom
+
+  - key: belarusbank_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q1997334           # Беларусбанк
+    labels:
+      be: Старшыня праўлення ААТ «АСБ Беларусбанк»
+      ru: Председатель правления ОАО «АСБ Беларусбанк»
+      en: Chairman of the Board of Belarusbank
+
+  - key: maz_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q1251215           # Мінскі аўтамабільны завод
+    labels:
+      be: Генеральны дырэктар ААТ «МАЗ»
+      ru: Генеральный директор ОАО «МАЗ»
+      en: Director General of the Minsk Automobile Plant

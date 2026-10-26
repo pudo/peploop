@@ -1,0 +1,2252 @@
+# China: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the China run: one PetScan query per entry.
+  #
+  # Measured 2026-10-16 on zh.wikipedia, which carries every tier as a category
+  # per office (the English tree has the national leadership and a few
+  # provinces). Each entry gives the people PetScan returned and its marginal
+  # over the entries above it; the whole seed is ~11,300 distinct people, most
+  # of them former holders, since the per-office categories run back to 1949.
+  #
+  # Scope: the national Party and state leadership, the 20th Central Committee
+  # and its discipline commission, the 14th NPC and CPPCC, the State Council's
+  # ministerial and vice-ministerial officials, the apex courts, the central
+  # bank, ambassadors and the PLA's generals; the 31 mainland provincial units'
+  # leaders, deputy secretaries, vice governors, discipline secretaries, high
+  # court presidents and the congress and CPPCC vice chairs; and in 32 major
+  # cities (the 15 sub-provincial cities and the other 17 provincial capitals;
+  # the four municipalities are provincial units above) the Party secretary
+  # and deputy secretaries, the mayor, and the congress and CPPCC chairs.
+  #
+  # Left out: Hong Kong and Macau (runs of their own), every other prefecture
+  # and everything below it (the per-city 政治人物 categories carry district
+  # secretaries and are not seeded), the per-province 政府官员 trees (department
+  # heads), and the provincial procurators (no category family).
+
+
+  # --- National: leadership, Central Committee, NPC, CPPCC, State Council, courts, bank, diplomacy, army ---
+  - category: 中华人民共和国现任党和国家领导人        # 61, +61
+    lang: zh
+    depth: 0
+  - category: 国家级正职                              # 37, +34
+    lang: zh
+  - category: 国家级副职                              # 42, +32
+    lang: zh
+  - category: 中国共产党第二十届中央政治局            # 17, +3
+    lang: zh
+  - category: 中国共产党第二十届中央委员会委员        # 201, +180
+    lang: zh
+    depth: 0
+  - category: 中国共产党第二十届中央委员会候补委员    # 168, +157
+    lang: zh
+    depth: 0
+  - category: 中国共产党第二十届中央纪律检查委员会    # 54, +54
+    lang: zh
+  - category: 中共中央职能部门负责人                  # 87, +59
+    lang: zh
+    depth: 2
+  - category: 第十四届全国人大常委会组成人员          # 78, +62
+    lang: zh
+  - category: 第十四届全国人大代表                    # 419, +318
+    lang: zh
+  - category: 第十四届全国政协常委会组成人员          # 100, +82
+    lang: zh
+  - category: 第十四届全国政协委员                    # 778, +753
+    lang: zh
+  - category: 国务院组成人员                          # 285, +208
+    lang: zh
+    depth: 2
+  - category: 中华人民共和国国务院系统正部级官员      # 428, +112
+    lang: zh
+    depth: 2
+  - category: 中华人民共和国国务院系统副部级官员      # 1314, +1046
+    lang: zh
+    depth: 2
+  - category: 中华人民共和国最高人民法院法官          # 93, +73
+    lang: zh
+    depth: 2
+  - category: 中华人民共和国最高人民检察院检察官      # 63, +35
+    lang: zh
+    depth: 2
+  - category: 中国人民银行人物                        # 67, +48
+    lang: zh
+  - category: 中華人民共和國駐外大使                  # 1378, +1283
+    lang: zh
+    depth: 2
+  - category: 中国人民解放军各战区司令员              # 19, +5
+    lang: zh
+  - category: 中国人民解放军上将                      # 270, +191
+    lang: zh
+
+  # --- Provincial units: leaders, deputies, discipline, high courts, congress and CPPCC vice chairs ---
+  - category: 中华人民共和国省级行政区正职领导人      # 1125, +785
+    lang: zh
+    depth: 3
+  - category: 省委副书记                              # 776, +222
+    lang: zh
+  - category: 中华人民共和国副省长                    # 1963, +1386
+    lang: zh
+    depth: 2
+  - category: 自治区副主席                            # 101, +66
+    lang: zh
+  - category: 中共省级纪委书记                        # 217, +83
+    lang: zh
+  - category: 高级人民法院院长                        # 199, +164
+    lang: zh
+  - category: 省人大常委会副主任                      # 1474, +925
+    lang: zh
+  - category: 自治区人大常委会副主任                  # 371, +307
+    lang: zh
+  - category: 直辖市人大常委会副主任                  # 207, +178
+    lang: zh
+  - category: 省政协副主席                            # 1906, +1380
+    lang: zh
+  - category: 自治区政协副主席                        # 471, +374
+    lang: zh
+  - category: 直辖市政协副主席                        # 295, +246
+    lang: zh
+
+  # --- Major cities: Party secretary and deputies, mayor, congress and CPPCC chairs ---
+  - category: 中共哈尔滨市委书记                      # 20, +3
+    lang: zh
+  - category: 中华人民共和国哈尔滨市市长              # 22, +7
+    lang: zh
+  - category: 中共哈尔滨市委副书记                    # 14, +3
+    lang: zh
+    depth: 0
+  - category: 哈尔滨市人大常委会主任                  # 4, +1
+    lang: zh
+    depth: 0
+  - category: 哈尔滨市政协主席                        # 3, +2
+    lang: zh
+    depth: 0
+  - category: 中共长春市委书记                        # 16, +2
+    lang: zh
+  - category: 中华人民共和国长春市市长                # 21, +6
+    lang: zh
+  - category: 中共长春市委副书记                      # 12, +2
+    lang: zh
+    depth: 0
+  - category: 长春市人大常委会主任                    # 2, +0
+    lang: zh
+    depth: 0
+  - category: 长春市政协主席                          # 3, +0
+    lang: zh
+    depth: 0
+  - category: 中共沈阳市委书记                        # 16, +2
+    lang: zh
+  - category: 中华人民共和国沈阳市市长                # 21, +6
+    lang: zh
+  - category: 中共沈阳市委副书记                      # 16, +2
+    lang: zh
+    depth: 0
+  - category: 沈阳市人大常委会主任                    # 5, +1
+    lang: zh
+    depth: 0
+  - category: 沈阳市政协主席                          # 4, +1
+    lang: zh
+    depth: 0
+  - category: 中共大连市委书记                        # 17, +4
+    lang: zh
+  - category: 中华人民共和国大连市市长                # 10, +5
+    lang: zh
+  - category: 中共大连市委副书记                      # 4, +1
+    lang: zh
+    depth: 0
+  - category: 大连市人大常委会主任                    # 2, +1
+    lang: zh
+    depth: 0
+  - category: 大连市政协主席                          # 6, +1
+    lang: zh
+    depth: 0
+  - category: 中共南京市委书记                        # 23, +2
+    lang: zh
+  - category: 中华人民共和国南京市市长                # 27, +9
+    lang: zh
+  - category: 中共南京市委副书记                      # 18, +6
+    lang: zh
+    depth: 0
+  - category: 南京市人大常委会主任                    # 5, +0
+    lang: zh
+    depth: 0
+  - category: 南京市政協主席                          # 9, +5
+    lang: zh
+    depth: 0
+  - category: 中共杭州市委书记                        # 20, +4
+    lang: zh
+  - category: 中华人民共和国杭州市市长                # 20, +6
+    lang: zh
+  - category: 中共杭州市委副书记                      # 16, +5
+    lang: zh
+    depth: 0
+  - category: 杭州市人大常委会主任                    # 5, +2
+    lang: zh
+    depth: 0
+  - category: 杭州市政协主席                          # 6, +2
+    lang: zh
+    depth: 0
+  - category: 中共宁波市委书记                        # 16, +3
+    lang: zh
+  - category: 中华人民共和国宁波市市长                # 12, +1
+    lang: zh
+  - category: 中共宁波市委副书记                      # 16, +4
+    lang: zh
+    depth: 0
+  - category: 宁波市人大常委会主任                    # 8, +2
+    lang: zh
+    depth: 0
+  - category: 宁波市政协主席                          # 5, +2
+    lang: zh
+    depth: 0
+  - category: 中共厦门市委书记                        # 16, +3
+    lang: zh
+  - category: 中华人民共和国厦门市市长                # 16, +3
+    lang: zh
+  - category: 中共厦门市委副书记                      # 12, +4
+    lang: zh
+    depth: 0
+  - category: 厦门市人大常委会主任                    # 5, +1
+    lang: zh
+    depth: 0
+  - category: 厦门市政协主席                          # 4, +1
+    lang: zh
+    depth: 0
+  - category: 中共济南市委书记                        # 21, +2
+    lang: zh
+  - category: 中华人民共和国济南市市长                # 18, +4
+    lang: zh
+  - category: 中共济南市委副书记                      # 16, +7
+    lang: zh
+    depth: 0
+  - category: 济南市人大常委会主任                    # 7, +0
+    lang: zh
+    depth: 0
+  - category: 济南市政协主席                          # 6, +0
+    lang: zh
+    depth: 0
+  - category: 中共青岛市委书记                        # 25, +8
+    lang: zh
+  - category: 中华人民共和国青岛市市长                # 23, +8
+    lang: zh
+  - category: 中共青岛市委副书记                      # 19, +11
+    lang: zh
+    depth: 0
+  - category: 青岛市人大常委会主任                    # 7, +0
+    lang: zh
+    depth: 0
+  - category: 青岛市政协主席                          # 12, +4
+    lang: zh
+    depth: 0
+  - category: 中共武汉市委书记                        # 19, +3
+    lang: zh
+  - category: 中华人民共和国武汉市市长                # 20, +6
+    lang: zh
+  - category: 中共武汉市委副书记                      # 22, +5
+    lang: zh
+    depth: 0
+  - category: 武汉市人大常委会主任                    # 7, +0
+    lang: zh
+    depth: 0
+  - category: 武汉市政协主席                          # 5, +2
+    lang: zh
+    depth: 0
+  - category: 中共广州市委书记                        # 22, +1
+    lang: zh
+  - category: 中华人民共和国广州市市长                # 19, +3
+    lang: zh
+  - category: 中共广州市委副书记                      # 16, +4
+    lang: zh
+    depth: 0
+  - category: 广州市人大常委会主任                    # 9, +3
+    lang: zh
+    depth: 0
+  - category: 廣州市政協主席                          # 12, +5
+    lang: zh
+    depth: 0
+  - category: 中共深圳市委书记                        # 15, +2
+    lang: zh
+  - category: 深圳市市长                              # 15, +3
+    lang: zh
+  - category: 中共深圳市委副書記                      # 19, +8
+    lang: zh
+    depth: 0
+  - category: 深圳市人大常委会主任                    # 10, +5
+    lang: zh
+    depth: 0
+  - category: 深圳市政協主席                          # 9, +4
+    lang: zh
+    depth: 0
+  - category: 中共成都市委书记                        # 17, +5
+    lang: zh
+  - category: 中华人民共和国成都市市长                # 15, +6
+    lang: zh
+  - category: 中共成都市委副书记                      # 11, +4
+    lang: zh
+    depth: 0
+  - category: 成都市人大常委会主任                    # 9, +3
+    lang: zh
+    depth: 0
+  - category: 成都市政协主席                          # 5, +3
+    lang: zh
+    depth: 0
+  - category: 中共西安市委书记                        # 22, +3
+    lang: zh
+  - category: 中华人民共和国西安市市长                # 16, +4
+    lang: zh
+  - category: 中共西安市委副书记                      # 14, +7
+    lang: zh
+    depth: 0
+  - category: 西安市人大常委会主任                    # 6, +0
+    lang: zh
+    depth: 0
+  - category: 中共石家庄市委书记                      # 10, +2
+    lang: zh
+  - category: 中华人民共和国石家庄市市长              # 21, +9
+    lang: zh
+  - category: 中共石家庄市委副书记                    # 12, +1
+    lang: zh
+    depth: 0
+  - category: 石家庄市人大常委会主任                  # 2, +2
+    lang: zh
+    depth: 0
+  - category: 中共太原市委书记                        # 25, +6
+    lang: zh
+  - category: 中华人民共和国太原市市长                # 18, +7
+    lang: zh
+  - category: 中共太原市委副书记                      # 9, +0
+    lang: zh
+    depth: 0
+  - category: 中共呼和浩特市委書記                    # 16, +3
+    lang: zh
+  - category: 中华人民共和国呼和浩特市市长            # 4, +0
+    lang: zh
+  - category: 中共呼和浩特市委副书记                  # 11, +4
+    lang: zh
+    depth: 0
+  - category: 中共合肥市委书记                        # 18, +3
+    lang: zh
+  - category: 中华人民共和国合肥市市长                # 13, +4
+    lang: zh
+  - category: 中共合肥市委副书记                      # 13, +5
+    lang: zh
+    depth: 0
+  - category: 合肥市人大常委会主任                    # 6, +0
+    lang: zh
+    depth: 0
+  - category: 合肥市政协主席                          # 2, +1
+    lang: zh
+    depth: 0
+  - category: 中共福州市委书记                        # 17, +1
+    lang: zh
+  - category: 中华人民共和国福州市市长                # 14, +7
+    lang: zh
+  - category: 中共福州市委副书记                      # 9, +2
+    lang: zh
+    depth: 0
+  - category: 福州市人大常委会主任                    # 5, +0
+    lang: zh
+    depth: 0
+  - category: 中共南昌市委书记                        # 14, +1
+    lang: zh
+  - category: 中华人民共和国南昌市市长                # 15, +6
+    lang: zh
+  - category: 中共南昌市委副书记                      # 9, +0
+    lang: zh
+    depth: 0
+  - category: 中共郑州市委书记                        # 15, +1
+    lang: zh
+  - category: 中华人民共和国郑州市市长                # 19, +6
+    lang: zh
+  - category: 中共郑州市委副书记                      # 13, +3
+    lang: zh
+    depth: 0
+  - category: 郑州市人大常委会主任                    # 4, +1
+    lang: zh
+    depth: 0
+  - category: 郑州市政协主席                          # 3, +1
+    lang: zh
+    depth: 0
+  - category: 中共长沙市委书记                        # 16, +4
+    lang: zh
+  - category: 中华人民共和国长沙市市长                # 19, +6
+    lang: zh
+  - category: 中共长沙市委副书记                      # 22, +8
+    lang: zh
+    depth: 0
+  - category: 中共南宁市委书记                        # 21, +4
+    lang: zh
+  - category: 中华人民共和国南宁市市长                # 15, +6
+    lang: zh
+  - category: 中共南宁市委副书记                      # 8, +0
+    lang: zh
+    depth: 0
+  - category: 南宁市人大常委会主任                    # 2, +0
+    lang: zh
+    depth: 0
+  - category: 中共海口市委書記                        # 10, +3
+    lang: zh
+  - category: 中华人民共和国海口市市长                # 7, +1
+    lang: zh
+  - category: 中共海口市委副书记                      # 4, +0
+    lang: zh
+    depth: 0
+  - category: 海口市政协主席                          # 1, +0
+    lang: zh
+    depth: 0
+  - category: 中共贵阳市委书记                        # 11, +1
+    lang: zh
+  - category: 中华人民共和国贵阳市市长                # 12, +2
+    lang: zh
+  - category: 中共贵阳市委副书记                      # 7, +1
+    lang: zh
+    depth: 0
+  - category: 中共昆明市委书记                        # 14, +4
+    lang: zh
+  - category: 中华人民共和国昆明市市长                # 10, +3
+    lang: zh
+  - category: 中共昆明市委副书记                      # 16, +7
+    lang: zh
+    depth: 0
+  - category: 昆明市人大常委会主任                    # 3, +0
+    lang: zh
+    depth: 0
+  - category: 中共拉萨市委书记                        # 15, +2
+    lang: zh
+  - category: 拉萨市市长                              # 12, +5
+    lang: zh
+  - category: 中共拉萨市委副书记                      # 12, +3
+    lang: zh
+    depth: 0
+  - category: 拉萨市人大常委会主任                    # 2, +0
+    lang: zh
+    depth: 0
+  - category: 中共兰州市委书记                        # 13, +1
+    lang: zh
+  - category: 中華人民共和國蘭州市市長                # 8, +4
+    lang: zh
+  - category: 中共兰州市委副书记                      # 9, +2
+    lang: zh
+    depth: 0
+  - category: 兰州市政协主席                          # 1, +1
+    lang: zh
+    depth: 0
+  - category: 中共西宁市委书记                        # 12, +2
+    lang: zh
+  - category: 西宁市人民政府市长                      # 8, +1
+    lang: zh
+    depth: 0
+  - category: 中共西宁市委副书记                      # 4, +1
+    lang: zh
+    depth: 0
+  - category: 西宁市人大常委会主任                    # 3, +1
+    lang: zh
+    depth: 0
+  - category: 西宁市政协主席                          # 1, +0
+    lang: zh
+    depth: 0
+  - category: 中共银川市委书记                        # 13, +3
+    lang: zh
+  - category: 中華人民共和國銀川市市長                # 14, +3
+    lang: zh
+  - category: 中共银川市委副书记                      # 8, +0
+    lang: zh
+    depth: 0
+  - category: 中共乌鲁木齐市委书记                    # 14, +1
+    lang: zh
+  - category: 乌鲁木齐市市长                          # 14, +6
+    lang: zh
+  - category: 中共乌鲁木齐市委副书记                  # 14, +4
+    lang: zh
+    depth: 0
+
+census:
+  # Offices China has whether or not a seeded person's article named them, for
+  # the 31 mainland provincial units and the 32 major cities of seeds/cn.yml.
+  # Every body was measured 2026-10-16 from the zh.wikipedia article of that
+  # name (`page_item`), its zh label read back; nothing below is from memory.
+  #
+  # Not here because an item exists and the load reaches it: all 31 provincial
+  # Party secretaries (each subclasses `Q30067901` or `Q15921367`, 18 of them
+  # without `P1001`), the mayors of the four municipalities, the governors or
+  # chairmen of Heilongjiang, Jilin, Shanxi, Jiangsu, Anhui, Fujian, Shandong,
+  # Henan, Hubei, Guizhou, Shaanxi, Guangxi and Tibet, Hangzhou's Party
+  # secretary, and the mayors of Changchun, Shenyang, Nanjing, Qingdao,
+  # Guangzhou, Shenzhen, Shijiazhuang, Changsha and Haikou.
+  #
+  # The city secretaryships subclass `Q988456` (committee secretary of the
+  # CCP), which the provincial class `Q30067901` subclasses; the archetype's
+  # default, general secretary (`Q6501749`), is a party's leader, not a
+  # committee's. Measured 2026-10-18: `Q988456` reaches `Q836971` and position.
+  #
+  # Twins, a merge decision for the closing report, not written onto: the Party
+  # secretaries of Beijing (`Q17279089` / `Q132717324`), Shanghai (`Q17281246` /
+  # `Q132717321`), Zhejiang (`Q17280145` / `Q132717333`), Liaoning (`Q17279690`
+  # / `Q133154523`) and Jiangxi (`Q46321961` / `Q133155103`).
+  #
+  # Sixteen cities had no item for their municipal Party committee, which
+  # `party_secretary` requires as its body; the committees were created
+  # 2026-10-16 (QS3 batch 60265, `Q141749447`–`Q141749475`) and their
+  # secretaryships are listed below with the others.
+  #
+  # Absent and not listed, for want of a body item: the provincial discipline
+  # commission secretaries (bodies not measured).
+  #
+  # `per: subdivisions` is not used: Q148's P150 also holds Hong Kong, Macau and
+  # eight Ming and Qing provincial commissions (`Q10447355`, `Q10946792`, …),
+  # and the provinces' titles differ by kind (省长, 主席, 市长).
+
+  # --- Provincial units: heads of government with no item ---
+  - key: q21208_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q21208
+    body: Q11141349          # 河北省人民政府
+    labels:
+      zh: 河北省人民政府省长
+      en: Governor of Hebei
+
+  - key: q41079_chairman
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q41079
+    body: Q10894796          # 内蒙古自治区人民政府
+    labels:
+      zh: 内蒙古自治区人民政府主席
+      en: Chairman of Inner Mongolia
+
+  - key: q43934_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q43934
+    body: Q15913205          # 辽宁省人民政府
+    labels:
+      zh: 辽宁省人民政府省长
+      en: Governor of Liaoning
+
+  - key: q16967_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q16967
+    body: Q11148810          # 浙江省人民政府
+    labels:
+      zh: 浙江省人民政府省长
+      en: Governor of Zhejiang
+
+  - key: q57052_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q57052
+    body: Q6765976           # 江西省人民政府
+    labels:
+      zh: 江西省人民政府省长
+      en: Governor of Jiangxi
+
+  - key: q45761_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q45761
+    body: Q15913059          # 湖南省人民政府
+    labels:
+      zh: 湖南省人民政府省长
+      en: Governor of Hunan
+
+  - key: q15175_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q15175
+    body: Q4120334           # 广东省人民政府
+    labels:
+      zh: 广东省人民政府省长
+      en: Governor of Guangdong
+
+  - key: q42200_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q42200
+    body: Q11150069          # 海南省人民政府
+    labels:
+      zh: 海南省人民政府省长
+      en: Governor of Hainan
+
+  - key: q19770_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q19770
+    body: Q10924875          # 四川省人民政府
+    labels:
+      zh: 四川省人民政府省长
+      en: Governor of Sichuan
+
+  - key: q43194_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q43194
+    body: Q10880952          # 云南省人民政府
+    labels:
+      zh: 云南省人民政府省长
+      en: Governor of Yunnan
+
+  - key: q42392_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q42392
+    body: Q15913156          # 甘肃省人民政府
+    labels:
+      zh: 甘肃省人民政府省长
+      en: Governor of Gansu
+
+  - key: q45833_governor
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q45833
+    body: Q15917831          # 青海省人民政府
+    labels:
+      zh: 青海省人民政府省长
+      en: Governor of Qinghai
+
+  - key: q57448_chairman
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q57448
+    body: Q10945857          # 宁夏回族自治区人民政府
+    labels:
+      zh: 宁夏回族自治区人民政府主席
+      en: Chairman of Ningxia
+
+  - key: q34800_chairman
+    class: subnational.executive
+    archetype: governor
+    jurisdiction: Q34800
+    body: Q11083822          # 新疆维吾尔自治区人民政府
+    labels:
+      zh: 新疆维吾尔自治区人民政府主席
+      en: Chairman of Xinjiang
+
+  # --- Provincial units: congress standing committee chairs ---
+  - key: q956_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q956
+    body: Q97195045          # 北京市人民代表大会常务委员会
+    labels:
+      zh: 北京市人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Beijing People's Congress
+
+  - key: q11736_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q11736
+    body: Q10940071          # 天津市人民代表大会常务委员会
+    labels:
+      zh: 天津市人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Tianjin People's Congress
+
+  - key: q21208_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q21208
+    body: Q97300337          # 河北省人民代表大会常务委员会
+    labels:
+      zh: 河北省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Hebei People's Congress
+
+  - key: q46913_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q46913
+    body: Q97188101          # 山西省人民代表大会常务委员会
+    labels:
+      zh: 山西省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Shanxi People's Congress
+
+  - key: q41079_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q41079
+    body: Q97300282          # 内蒙古自治区人民代表大会常务委员会
+    labels:
+      zh: 内蒙古自治区人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Inner Mongolia People's Congress
+
+  - key: q43934_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q43934
+    body: Q97189002          # 辽宁省人民代表大会常务委员会
+    labels:
+      zh: 辽宁省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Liaoning People's Congress
+
+  - key: q45208_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q45208
+    body: Q97301221          # 吉林省人民代表大会常务委员会
+    labels:
+      zh: 吉林省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Jilin People's Congress
+
+  - key: q19206_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q19206
+    body: Q97189438          # 黑龙江省人民代表大会常务委员会
+    labels:
+      zh: 黑龙江省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Heilongjiang People's Congress
+
+  - key: q8686_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q8686
+    body: Q10867822          # 上海市人民代表大会常务委员会
+    labels:
+      zh: 上海市人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Shanghai People's Congress
+
+  - key: q16963_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q16963
+    body: Q11134945          # 江苏省人民代表大会常务委员会
+    labels:
+      zh: 江苏省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Jiangsu People's Congress
+
+  - key: q16967_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q16967
+    body: Q97351963          # 浙江省人民代表大会常务委员会
+    labels:
+      zh: 浙江省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Zhejiang People's Congress
+
+  - key: q40956_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q40956
+    body: Q97187993          # 安徽省人民代表大会常务委员会
+    labels:
+      zh: 安徽省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Anhui People's Congress
+
+  - key: q41705_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q41705
+    body: Q97188776          # 福建省人民代表大会常务委员会
+    labels:
+      zh: 福建省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Fujian People's Congress
+
+  - key: q57052_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q57052
+    body: Q97348645          # 江西省人民代表大会常务委员会
+    labels:
+      zh: 江西省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Jiangxi People's Congress
+
+  - key: q43407_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q43407
+    body: Q97300960          # 山东省人民代表大会常务委员会
+    labels:
+      zh: 山东省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Shandong People's Congress
+
+  - key: q43684_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q43684
+    body: Q97300401          # 河南省人民代表大会常务委员会
+    labels:
+      zh: 河南省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Henan People's Congress
+
+  - key: q46862_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q46862
+    body: Q97190917          # 湖北省人民代表大会常务委员会
+    labels:
+      zh: 湖北省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Hubei People's Congress
+
+  - key: q45761_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q45761
+    body: Q15909671          # 湖南省人民代表大会常务委员会
+    labels:
+      zh: 湖南省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Hunan People's Congress
+
+  - key: q15175_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q15175
+    body: Q11061746          # 广东省人民代表大会常务委员会
+    labels:
+      zh: 广东省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Guangdong People's Congress
+
+  - key: q15176_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q15176
+    body: Q97188149          # 广西壮族自治区人民代表大会常务委员会
+    labels:
+      zh: 广西壮族自治区人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Guangxi People's Congress
+
+  - key: q42200_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q42200
+    body: Q86732514          # 海南省人民代表大会常务委员会
+    labels:
+      zh: 海南省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Hainan People's Congress
+
+  - key: q11725_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q11725
+    body: Q97300366          # 重庆市人民代表大会常务委员会
+    labels:
+      zh: 重庆市人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Chongqing People's Congress
+
+  - key: q19770_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q19770
+    body: Q97179512          # 四川省人民代表大会常务委员会
+    labels:
+      zh: 四川省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Sichuan People's Congress
+
+  - key: q47097_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q47097
+    body: Q97188997          # 贵州省人民代表大会常务委员会
+    labels:
+      zh: 贵州省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Guizhou People's Congress
+
+  - key: q43194_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q43194
+    body: Q97300276          # 云南省人民代表大会常务委员会
+    labels:
+      zh: 云南省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Yunnan People's Congress
+
+  - key: q17269_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q17269
+    body: Q97325027          # 西藏自治区人民代表大会常务委员会
+    labels:
+      zh: 西藏自治区人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Tibet People's Congress
+
+  - key: q47974_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q47974
+    body: Q15902894          # 陕西省人民代表大会常务委员会
+    labels:
+      zh: 陕西省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Shaanxi People's Congress
+
+  - key: q42392_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q42392
+    body: Q97348160          # 甘肃省人民代表大会常务委员会
+    labels:
+      zh: 甘肃省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Gansu People's Congress
+
+  - key: q45833_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q45833
+    body: Q97300369          # 青海省人民代表大会常务委员会
+    labels:
+      zh: 青海省人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Qinghai People's Congress
+
+  - key: q57448_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q57448
+    body: Q97185636          # 宁夏回族自治区人民代表大会常务委员会
+    labels:
+      zh: 宁夏回族自治区人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Ningxia People's Congress
+
+  - key: q34800_congress_chair
+    class: subnational.assemblies
+    archetype: speaker
+    jurisdiction: Q34800
+    body: Q97185952          # 新疆维吾尔自治区人民代表大会常务委员会
+    labels:
+      zh: 新疆维吾尔自治区人民代表大会常务委员会主任
+      en: Chairman of the Standing Committee of the Xinjiang People's Congress
+
+  # --- Provincial units: CPPCC committee chairs ---
+  - key: q956_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q956
+    body: Q15904828          # 中国人民政治协商会议北京市委员会
+    labels:
+      zh: 中国人民政治协商会议北京市委员会主席
+      en: Chairman of the Beijing Committee of the Chinese People's Political Consultative Conference
+
+  - key: q11736_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q11736
+    body: Q10872861          # 中国人民政治协商会议天津市委员会
+    labels:
+      zh: 中国人民政治协商会议天津市委员会主席
+      en: Chairman of the Tianjin Committee of the Chinese People's Political Consultative Conference
+
+  - key: q21208_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q21208
+    body: Q22100797          # 中国人民政治协商会议河北省委员会
+    labels:
+      zh: 中国人民政治协商会议河北省委员会主席
+      en: Chairman of the Hebei Committee of the Chinese People's Political Consultative Conference
+
+  - key: q46913_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q46913
+    body: Q15904046          # 中国人民政治协商会议山西省委员会
+    labels:
+      zh: 中国人民政治协商会议山西省委员会主席
+      en: Chairman of the Shanxi Committee of the Chinese People's Political Consultative Conference
+
+  - key: q41079_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q41079
+    body: Q109418116         # 中国人民政治协商会议内蒙古自治区委员会
+    labels:
+      zh: 中国人民政治协商会议内蒙古自治区委员会主席
+      en: Chairman of the Inner Mongolia Committee of the Chinese People's Political Consultative Conference
+
+  - key: q43934_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q43934
+    body: Q109346163         # 中国人民政治协商会议辽宁省委员会
+    labels:
+      zh: 中国人民政治协商会议辽宁省委员会主席
+      en: Chairman of the Liaoning Committee of the Chinese People's Political Consultative Conference
+
+  - key: q45208_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q45208
+    body: Q109348196         # 中国人民政治协商会议吉林省委员会
+    labels:
+      zh: 中国人民政治协商会议吉林省委员会主席
+      en: Chairman of the Jilin Committee of the Chinese People's Political Consultative Conference
+
+  - key: q19206_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q19206
+    body: Q109346164         # 中国人民政治协商会议黑龙江省委员会
+    labels:
+      zh: 中国人民政治协商会议黑龙江省委员会主席
+      en: Chairman of the Heilongjiang Committee of the Chinese People's Political Consultative Conference
+
+  - key: q8686_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q8686
+    body: Q18517656          # 中国人民政治协商会议上海市委员会
+    labels:
+      zh: 中国人民政治协商会议上海市委员会主席
+      en: Chairman of the Shanghai Committee of the Chinese People's Political Consultative Conference
+
+  - key: q16963_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q16963
+    body: Q89186658          # 中国人民政治协商会议江苏省委员会
+    labels:
+      zh: 中国人民政治协商会议江苏省委员会主席
+      en: Chairman of the Jiangsu Committee of the Chinese People's Political Consultative Conference
+
+  - key: q16967_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q16967
+    body: Q67931543          # 中国人民政治协商会议浙江省委员会
+    labels:
+      zh: 中国人民政治协商会议浙江省委员会主席
+      en: Chairman of the Zhejiang Committee of the Chinese People's Political Consultative Conference
+
+  - key: q40956_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q40956
+    body: Q109343018         # 中国人民政治协商会议安徽省委员会
+    labels:
+      zh: 中国人民政治协商会议安徽省委员会主席
+      en: Chairman of the Anhui Committee of the Chinese People's Political Consultative Conference
+
+  - key: q41705_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q41705
+    body: Q109346166         # 中国人民政治协商会议福建省委员会
+    labels:
+      zh: 中国人民政治协商会议福建省委员会主席
+      en: Chairman of the Fujian Committee of the Chinese People's Political Consultative Conference
+
+  - key: q57052_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q57052
+    body: Q16002390          # 中国人民政治协商会议江西省委员会
+    labels:
+      zh: 中国人民政治协商会议江西省委员会主席
+      en: Chairman of the Jiangxi Committee of the Chinese People's Political Consultative Conference
+
+  - key: q43407_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q43407
+    body: Q97301166          # 中国人民政治协商会议山东省委员会
+    labels:
+      zh: 中国人民政治协商会议山东省委员会主席
+      en: Chairman of the Shandong Committee of the Chinese People's Political Consultative Conference
+
+  - key: q43684_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q43684
+    body: Q97301168          # 中国人民政治协商会议河南省委员会
+    labels:
+      zh: 中国人民政治协商会议河南省委员会主席
+      en: Chairman of the Henan Committee of the Chinese People's Political Consultative Conference
+
+  - key: q46862_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q46862
+    body: Q10872864          # 中国人民政治协商会议湖北省委员会
+    labels:
+      zh: 中国人民政治协商会议湖北省委员会主席
+      en: Chairman of the Hubei Committee of the Chinese People's Political Consultative Conference
+
+  - key: q45761_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q45761
+    body: Q10872865          # 中国人民政治协商会议湖南省委员会
+    labels:
+      zh: 中国人民政治协商会议湖南省委员会主席
+      en: Chairman of the Hunan Committee of the Chinese People's Political Consultative Conference
+
+  - key: q15175_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q15175
+    body: Q109346162         # 中国人民政治协商会议广东省委员会
+    labels:
+      zh: 中国人民政治协商会议广东省委员会主席
+      en: Chairman of the Guangdong Committee of the Chinese People's Political Consultative Conference
+
+  - key: q15176_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q15176
+    body: Q109418117         # 中国人民政治协商会议广西壮族自治区委员会
+    labels:
+      zh: 中国人民政治协商会议广西壮族自治区委员会主席
+      en: Chairman of the Guangxi Committee of the Chinese People's Political Consultative Conference
+
+  - key: q42200_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q42200
+    body: Q86732434          # 中国人民政治协商会议海南省委员会
+    labels:
+      zh: 中国人民政治协商会议海南省委员会主席
+      en: Chairman of the Hainan Committee of the Chinese People's Political Consultative Conference
+
+  - key: q11725_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q11725
+    body: Q109346167         # 中国人民政治协商会议重庆市委员会
+    labels:
+      zh: 中国人民政治协商会议重庆市委员会主席
+      en: Chairman of the Chongqing Committee of the Chinese People's Political Consultative Conference
+
+  - key: q19770_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q19770
+    body: Q30942963          # 中国人民政治协商会议四川省委员会
+    labels:
+      zh: 中国人民政治协商会议四川省委员会主席
+      en: Chairman of the Sichuan Committee of the Chinese People's Political Consultative Conference
+
+  - key: q47097_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q47097
+    body: Q97350281          # 中国人民政治协商会议贵州省委员会
+    labels:
+      zh: 中国人民政治协商会议贵州省委员会主席
+      en: Chairman of the Guizhou Committee of the Chinese People's Political Consultative Conference
+
+  - key: q43194_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q43194
+    body: Q109346165         # 中国人民政治协商会议云南省委员会
+    labels:
+      zh: 中国人民政治协商会议云南省委员会主席
+      en: Chairman of the Yunnan Committee of the Chinese People's Political Consultative Conference
+
+  - key: q17269_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q17269
+    body: Q109418118         # 中国人民政治协商会议西藏自治区委员会
+    labels:
+      zh: 中国人民政治协商会议西藏自治区委员会主席
+      en: Chairman of the Tibet Committee of the Chinese People's Political Consultative Conference
+
+  - key: q47974_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q47974
+    body: Q10872882          # 中国人民政治协商会议陕西省委员会
+    labels:
+      zh: 中国人民政治协商会议陕西省委员会主席
+      en: Chairman of the Shaanxi Committee of the Chinese People's Political Consultative Conference
+
+  - key: q42392_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q42392
+    body: Q97350227          # 中国人民政治协商会议甘肃省委员会
+    labels:
+      zh: 中国人民政治协商会议甘肃省委员会主席
+      en: Chairman of the Gansu Committee of the Chinese People's Political Consultative Conference
+
+  - key: q45833_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q45833
+    body: Q109346161         # 中国人民政治协商会议青海省委员会
+    labels:
+      zh: 中国人民政治协商会议青海省委员会主席
+      en: Chairman of the Qinghai Committee of the Chinese People's Political Consultative Conference
+
+  - key: q57448_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q57448
+    body: Q109346159         # 中国人民政治协商会议宁夏回族自治区委员会
+    labels:
+      zh: 中国人民政治协商会议宁夏回族自治区委员会主席
+      en: Chairman of the Ningxia Committee of the Chinese People's Political Consultative Conference
+
+  - key: q34800_cppcc_chair
+    class: subnational.assemblies
+    archetype: agency_head
+    jurisdiction: Q34800
+    body: Q109418119         # 中国人民政治协商会议新疆维吾尔自治区委员会
+    labels:
+      zh: 中国人民政治协商会议新疆维吾尔自治区委员会主席
+      en: Chairman of the Xinjiang Committee of the Chinese People's Political Consultative Conference
+
+  # --- Provincial units: high court presidents ---
+  - key: q956_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q956
+    body: Q10902292          # 北京市高级人民法院
+    labels:
+      zh: 北京市高级人民法院院长
+      en: President of the Beijing High People's Court
+
+  - key: q11736_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q11736
+    body: Q10940195          # 天津市高级人民法院
+    labels:
+      zh: 天津市高级人民法院院长
+      en: President of the Tianjin High People's Court
+
+  - key: q21208_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q21208
+    body: Q11141372          # 河北省高级人民法院
+    labels:
+      zh: 河北省高级人民法院院长
+      en: President of the Hebei High People's Court
+
+  - key: q46913_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q46913
+    body: Q15938372          # 山西省高级人民法院
+    labels:
+      zh: 山西省高级人民法院院长
+      en: President of the Shanxi High People's Court
+
+  - key: q41079_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q41079
+    body: Q10894808          # 内蒙古自治区高级人民法院
+    labels:
+      zh: 内蒙古自治区高级人民法院院长
+      en: President of the Inner Mongolia High People's Court
+
+  - key: q43934_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q43934
+    body: Q15933192          # 辽宁省高级人民法院
+    labels:
+      zh: 辽宁省高级人民法院院长
+      en: President of the Liaoning High People's Court
+
+  - key: q45208_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q45208
+    body: Q10917261          # 吉林省高级人民法院
+    labels:
+      zh: 吉林省高级人民法院院长
+      en: President of the Jilin High People's Court
+
+  - key: q19206_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q19206
+    body: Q11179804          # 黑龙江省高级人民法院
+    labels:
+      zh: 黑龙江省高级人民法院院长
+      en: President of the Heilongjiang High People's Court
+
+  - key: q8686_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q8686
+    body: Q10867910          # 上海市高级人民法院
+    labels:
+      zh: 上海市高级人民法院院长
+      en: President of the Shanghai High People's Court
+
+  - key: q16963_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q16963
+    body: Q6191718           # 江苏省高级人民法院
+    labels:
+      zh: 江苏省高级人民法院院长
+      en: President of the Jiangsu High People's Court
+
+  - key: q16967_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q16967
+    body: Q11148826          # 浙江省高级人民法院
+    labels:
+      zh: 浙江省高级人民法院院长
+      en: President of the Zhejiang High People's Court
+
+  - key: q40956_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q40956
+    body: Q10946825          # 安徽省高级人民法院
+    labels:
+      zh: 安徽省高级人民法院院长
+      en: President of the Anhui High People's Court
+
+  - key: q41705_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q41705
+    body: Q15927037          # 福建省高级人民法院
+    labels:
+      zh: 福建省高级人民法院院长
+      en: President of the Fujian High People's Court
+
+  - key: q57052_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q57052
+    body: Q11135400          # 江西省高级人民法院
+    labels:
+      zh: 江西省高级人民法院院长
+      en: President of the Jiangxi High People's Court
+
+  - key: q43407_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q43407
+    body: Q11044237          # 山东省高级人民法院
+    labels:
+      zh: 山东省高级人民法院院长
+      en: President of the Shandong High People's Court
+
+  - key: q43684_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q43684
+    body: Q11141691          # 河南省高级人民法院
+    labels:
+      zh: 河南省高级人民法院院长
+      en: President of the Henan High People's Court
+
+  - key: q46862_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q46862
+    body: Q15916960          # 湖北省高级人民法院
+    labels:
+      zh: 湖北省高级人民法院院长
+      en: President of the Hubei High People's Court
+
+  - key: q45761_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q45761
+    body: Q15928251          # 湖南省高级人民法院
+    labels:
+      zh: 湖南省高级人民法院院长
+      en: President of the Hunan High People's Court
+
+  - key: q15175_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q15175
+    body: Q11061770          # 广东省高级人民法院
+    labels:
+      zh: 广东省高级人民法院院长
+      en: President of the Guangdong High People's Court
+
+  - key: q15176_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q15176
+    body: Q11062396          # 广西壮族自治区高级人民法院
+    labels:
+      zh: 广西壮族自治区高级人民法院院长
+      en: President of the Guangxi High People's Court
+
+  - key: q42200_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q42200
+    body: Q11150097          # 海南省高级人民法院
+    labels:
+      zh: 海南省高级人民法院院长
+      en: President of the Hainan High People's Court
+
+  - key: q11725_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q11725
+    body: Q15951057          # 重庆市高级人民法院
+    labels:
+      zh: 重庆市高级人民法院院长
+      en: President of the Chongqing High People's Court
+
+  - key: q19770_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q19770
+    body: Q10924890          # 四川省高级人民法院
+    labels:
+      zh: 四川省高级人民法院院长
+      en: President of the Sichuan High People's Court
+
+  - key: q47097_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q47097
+    body: Q15938458          # 贵州省高级人民法院
+    labels:
+      zh: 贵州省高级人民法院院长
+      en: President of the Guizhou High People's Court
+
+  - key: q43194_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q43194
+    body: Q10880966          # 云南省高级人民法院
+    labels:
+      zh: 云南省高级人民法院院长
+      en: President of the Yunnan High People's Court
+
+  - key: q17269_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q17269
+    body: Q15939692          # 西藏自治区高级人民法院
+    labels:
+      zh: 西藏自治区高级人民法院院长
+      en: President of the Tibet High People's Court
+
+  - key: q47974_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q47974
+    body: Q15917162          # 陕西省高级人民法院
+    labels:
+      zh: 陕西省高级人民法院院长
+      en: President of the Shaanxi High People's Court
+
+  - key: q42392_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q42392
+    body: Q15933848          # 甘肃省高级人民法院
+    labels:
+      zh: 甘肃省高级人民法院院长
+      en: President of the Gansu High People's Court
+
+  - key: q45833_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q45833
+    body: Q15940006          # 青海省高级人民法院
+    labels:
+      zh: 青海省高级人民法院院长
+      en: President of the Qinghai High People's Court
+
+  - key: q57448_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q57448
+    body: Q10945864          # 宁夏回族自治区高级人民法院
+    labels:
+      zh: 宁夏回族自治区高级人民法院院长
+      en: President of the Ningxia High People's Court
+
+  - key: q34800_high_court_president
+    class: judiciary.specialised
+    archetype: court_president
+    jurisdiction: Q34800
+    body: Q11083829          # 新疆维吾尔自治区高级人民法院
+    labels:
+      zh: 新疆维吾尔自治区高级人民法院院长
+      en: President of the Xinjiang High People's Court
+
+  # --- Provincial units: chief procurators ---
+  - key: q956_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q956
+    body: Q109366230         # 北京市人民检察院
+    labels:
+      zh: 北京市人民检察院检察长
+      en: Chief Procurator of the Beijing People's Procuratorate
+
+  - key: q11736_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q11736
+    body: Q109366228         # 天津市人民检察院
+    labels:
+      zh: 天津市人民检察院检察长
+      en: Chief Procurator of the Tianjin People's Procuratorate
+
+  - key: q21208_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q21208
+    body: Q109366229         # 河北省人民检察院
+    labels:
+      zh: 河北省人民检察院检察长
+      en: Chief Procurator of the Hebei People's Procuratorate
+
+  - key: q46913_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q46913
+    body: Q109366231         # 山西省人民检察院
+    labels:
+      zh: 山西省人民检察院检察长
+      en: Chief Procurator of the Shanxi People's Procuratorate
+
+  - key: q41079_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q41079
+    body: Q109366232         # 内蒙古自治区人民检察院
+    labels:
+      zh: 内蒙古自治区人民检察院检察长
+      en: Chief Procurator of the Inner Mongolia People's Procuratorate
+
+  - key: q43934_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q43934
+    body: Q109366248         # 辽宁省人民检察院
+    labels:
+      zh: 辽宁省人民检察院检察长
+      en: Chief Procurator of the Liaoning People's Procuratorate
+
+  - key: q45208_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q45208
+    body: Q97301223          # 吉林省人民检察院
+    labels:
+      zh: 吉林省人民检察院检察长
+      en: Chief Procurator of the Jilin People's Procuratorate
+
+  - key: q19206_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q19206
+    body: Q109366233         # 黑龙江省人民检察院
+    labels:
+      zh: 黑龙江省人民检察院检察长
+      en: Chief Procurator of the Heilongjiang People's Procuratorate
+
+  - key: q8686_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q8686
+    body: Q48899645          # 上海市人民检察院
+    labels:
+      zh: 上海市人民检察院检察长
+      en: Chief Procurator of the Shanghai People's Procuratorate
+
+  - key: q16963_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q16963
+    body: Q109366240         # 江苏省人民检察院
+    labels:
+      zh: 江苏省人民检察院检察长
+      en: Chief Procurator of the Jiangsu People's Procuratorate
+
+  - key: q16967_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q16967
+    body: Q109366238         # 浙江省人民检察院
+    labels:
+      zh: 浙江省人民检察院检察长
+      en: Chief Procurator of the Zhejiang People's Procuratorate
+
+  - key: q40956_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q40956
+    body: Q85878773          # 安徽省人民检察院
+    labels:
+      zh: 安徽省人民检察院检察长
+      en: Chief Procurator of the Anhui People's Procuratorate
+
+  - key: q41705_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q41705
+    body: Q109366250         # 福建省人民检察院
+    labels:
+      zh: 福建省人民检察院检察长
+      en: Chief Procurator of the Fujian People's Procuratorate
+
+  - key: q57052_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q57052
+    body: Q97348640          # 江西省人民检察院
+    labels:
+      zh: 江西省人民检察院检察长
+      en: Chief Procurator of the Jiangxi People's Procuratorate
+
+  - key: q43407_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q43407
+    body: Q97300803          # 山东省人民检察院
+    labels:
+      zh: 山东省人民检察院检察长
+      en: Chief Procurator of the Shandong People's Procuratorate
+
+  - key: q43684_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q43684
+    body: Q109366237         # 河南省人民检察院
+    labels:
+      zh: 河南省人民检察院检察长
+      en: Chief Procurator of the Henan People's Procuratorate
+
+  - key: q46862_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q46862
+    body: Q97184173          # 湖北省人民检察院
+    labels:
+      zh: 湖北省人民检察院检察长
+      en: Chief Procurator of the Hubei People's Procuratorate
+
+  - key: q45761_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q45761
+    body: Q109366235         # 湖南省人民检察院
+    labels:
+      zh: 湖南省人民检察院检察长
+      en: Chief Procurator of the Hunan People's Procuratorate
+
+  - key: q15175_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q15175
+    body: Q109366234         # 广东省人民检察院
+    labels:
+      zh: 广东省人民检察院检察长
+      en: Chief Procurator of the Guangdong People's Procuratorate
+
+  - key: q15176_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q15176
+    body: Q109366241         # 广西壮族自治区人民检察院
+    labels:
+      zh: 广西壮族自治区人民检察院检察长
+      en: Chief Procurator of the Guangxi People's Procuratorate
+
+  - key: q42200_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q42200
+    body: Q97348022          # 海南省人民检察院
+    labels:
+      zh: 海南省人民检察院检察长
+      en: Chief Procurator of the Hainan People's Procuratorate
+
+  - key: q11725_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q11725
+    body: Q109366249         # 重庆市人民检察院
+    labels:
+      zh: 重庆市人民检察院检察长
+      en: Chief Procurator of the Chongqing People's Procuratorate
+
+  - key: q19770_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q19770
+    body: Q85877846          # 四川省人民检察院
+    labels:
+      zh: 四川省人民检察院检察长
+      en: Chief Procurator of the Sichuan People's Procuratorate
+
+  - key: q47097_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q47097
+    body: Q109366244         # 贵州省人民检察院
+    labels:
+      zh: 贵州省人民检察院检察长
+      en: Chief Procurator of the Guizhou People's Procuratorate
+
+  - key: q43194_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q43194
+    body: Q109366245         # 云南省人民检察院
+    labels:
+      zh: 云南省人民检察院检察长
+      en: Chief Procurator of the Yunnan People's Procuratorate
+
+  - key: q17269_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q17269
+    body: Q109366239         # 西藏自治区人民检察院
+    labels:
+      zh: 西藏自治区人民检察院检察长
+      en: Chief Procurator of the Tibet People's Procuratorate
+
+  - key: q47974_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q47974
+    body: Q109366247         # 陕西省人民检察院
+    labels:
+      zh: 陕西省人民检察院检察长
+      en: Chief Procurator of the Shaanxi People's Procuratorate
+
+  - key: q42392_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q42392
+    body: Q97348260          # 甘肃省人民检察院
+    labels:
+      zh: 甘肃省人民检察院检察长
+      en: Chief Procurator of the Gansu People's Procuratorate
+
+  - key: q45833_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q45833
+    body: Q109366246         # 青海省人民检察院
+    labels:
+      zh: 青海省人民检察院检察长
+      en: Chief Procurator of the Qinghai People's Procuratorate
+
+  - key: q57448_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q57448
+    body: Q109366243         # 宁夏回族自治区人民检察院
+    labels:
+      zh: 宁夏回族自治区人民检察院检察长
+      en: Chief Procurator of the Ningxia People's Procuratorate
+
+  - key: q34800_chief_procurator
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    jurisdiction: Q34800
+    body: Q109366242         # 新疆维吾尔自治区人民检察院
+    labels:
+      zh: 新疆维吾尔自治区人民检察院检察长
+      en: Chief Procurator of the Xinjiang People's Procuratorate
+
+  # --- Major cities: Party secretaries ---
+  - key: q16666_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q16666
+    body: Q48895146          # 中国共产党南京市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党南京市委员会书记
+      en: Party Secretary of Nanjing
+
+  - key: q68744_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q68744
+    body: Q122666579         # 中国共产党厦门市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党厦门市委员会书记
+      en: Party Secretary of Xiamen
+
+  - key: q170247_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q170247
+    body: Q122666461         # 中国共产党济南市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党济南市委员会书记
+      en: Party Secretary of Jinan
+
+  - key: q170322_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q170322
+    body: Q30949792          # 中国共产党青岛市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党青岛市委员会书记
+      en: Party Secretary of Qingdao
+
+  - key: q11746_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q11746
+    body: Q85874186          # 中国共产党武汉市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党武汉市委员会书记
+      en: Party Secretary of Wuhan
+
+  - key: q16572_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q16572
+    body: Q10873203          # 中国共产党广州市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党广州市委员会书记
+      en: Party Secretary of Guangzhou
+
+  - key: q15174_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q15174
+    body: Q22098486          # 中国共产党深圳市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党深圳市委员会书记
+      en: Party Secretary of Shenzhen
+
+  - key: q30002_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q30002
+    body: Q122666605         # 中国共产党成都市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党成都市委员会书记
+      en: Party Secretary of Chengdu
+
+  - key: q5826_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q5826
+    body: Q10873265          # 中国共产党西安市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党西安市委员会书记
+      en: Party Secretary of Xi'an
+
+  - key: q72778_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q72778
+    body: Q122666548         # 中国共产党太原市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党太原市委员会书记
+      en: Party Secretary of Taiyuan
+
+  - key: q185684_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q185684
+    body: Q48929152          # 中国共产党合肥市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党合肥市委员会书记
+      en: Party Secretary of Hefei
+
+  - key: q68481_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q68481
+    body: Q109343979         # 中国共产党福州市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党福州市委员会书记
+      en: Party Secretary of Fuzhou
+
+  - key: q174091_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q174091
+    body: Q85874196          # 中国共产党长沙市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党长沙市委员会书记
+      en: Party Secretary of Changsha
+
+  - key: q192271_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q192271
+    body: Q141155777         # 中国共产党贵阳市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党贵阳市委员会书记
+      en: Party Secretary of Guiyang
+
+  - key: q182852_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q182852
+    body: Q122666455         # 中国共产党昆明市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党昆明市委员会书记
+      en: Party Secretary of Kunming
+
+  - key: q42956_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q42956
+    body: Q141749447         # 中国共产党哈尔滨市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党哈尔滨市委员会书记
+      en: Party Secretary of Harbin
+
+  - key: q92161_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q92161
+    body: Q141749448         # 中国共产党长春市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党长春市委员会书记
+      en: Party Secretary of Changchun
+
+  - key: q11720_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q11720
+    body: Q141749449         # 中国共产党沈阳市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党沈阳市委员会书记
+      en: Party Secretary of Shenyang
+
+  - key: q74881_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q74881
+    body: Q141749450         # 中国共产党大连市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党大连市委员会书记
+      en: Party Secretary of Dalian
+
+  - key: q42780_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q42780
+    body: Q141749451         # 中国共产党宁波市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党宁波市委员会书记
+      en: Party Secretary of Ningbo
+
+  - key: q58401_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q58401
+    body: Q141749452         # 中国共产党石家庄市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党石家庄市委员会书记
+      en: Party Secretary of Shijiazhuang
+
+  - key: q535534_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q535534
+    body: Q141749453         # 中国共产党呼和浩特市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党呼和浩特市委员会书记
+      en: Party Secretary of Hohhot
+
+  - key: q171943_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q171943
+    body: Q141749454         # 中国共产党南昌市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党南昌市委员会书记
+      en: Party Secretary of Nanchang
+
+  - key: q30340_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q30340
+    body: Q141749455         # 中国共产党郑州市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党郑州市委员会书记
+      en: Party Secretary of Zhengzhou
+
+  - key: q179608_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q179608
+    body: Q141749465         # 中国共产党南宁市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党南宁市委员会书记
+      en: Party Secretary of Nanning
+
+  - key: q189823_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q189823
+    body: Q141749467         # 中国共产党海口市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党海口市委员会书记
+      en: Party Secretary of Haikou
+
+  - key: q5869_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q5869
+    body: Q141749468         # 中国共产党拉萨市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党拉萨市委员会书记
+      en: Party Secretary of Lhasa
+
+  - key: q183584_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q183584
+    body: Q141749469         # 中国共产党兰州市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党兰州市委员会书记
+      en: Party Secretary of Lanzhou
+
+  - key: q69060_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q69060
+    body: Q141749471         # 中国共产党西宁市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党西宁市委员会书记
+      en: Party Secretary of Xining
+
+  - key: q211243_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q211243
+    body: Q141749474         # 中国共产党银川市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党银川市委员会书记
+      en: Party Secretary of Yinchuan
+
+  - key: q16959_party_secretary
+    class: subnational.executive
+    archetype: party_secretary
+    jurisdiction: Q16959
+    body: Q141749475         # 中国共产党乌鲁木齐市委员会
+    parent: Q988456           # Committee secretary of the Chinese Communist Party
+    labels:
+      zh: 中国共产党乌鲁木齐市委员会书记
+      en: Party Secretary of Ürümqi
+  # --- Major cities: mayors with no item ---
+  - key: q42956_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q42956
+    labels:
+      zh: 哈尔滨市市长
+      en: Mayor of Harbin
+
+  - key: q74881_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q74881
+    body: Q122666538         # 大连市人民政府
+    labels:
+      zh: 大连市市长
+      en: Mayor of Dalian
+
+  - key: q4970_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q4970
+    body: Q11102478          # 杭州市人民政府
+    labels:
+      zh: 杭州市市长
+      en: Mayor of Hangzhou
+
+  - key: q42780_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q42780
+    body: Q30296693          # 宁波市人民政府
+    labels:
+      zh: 宁波市市长
+      en: Mayor of Ningbo
+
+  - key: q68744_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q68744
+    body: Q118482289         # 厦门市人民政府
+    labels:
+      zh: 厦门市市长
+      en: Mayor of Xiamen
+
+  - key: q170247_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q170247
+    body: Q122666459         # 济南市人民政府
+    labels:
+      zh: 济南市市长
+      en: Mayor of Jinan
+
+  - key: q11746_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q11746
+    body: Q17028252          # 武汉市人民政府
+    labels:
+      zh: 武汉市市长
+      en: Mayor of Wuhan
+
+  - key: q30002_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q30002
+    labels:
+      zh: 成都市市长
+      en: Mayor of Chengdu
+
+  - key: q5826_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q5826
+    body: Q122666594         # 西安市人民政府
+    labels:
+      zh: 西安市市长
+      en: Mayor of Xi'an
+
+  - key: q72778_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q72778
+    labels:
+      zh: 太原市市长
+      en: Mayor of Taiyuan
+
+  - key: q535534_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q535534
+    labels:
+      zh: 呼和浩特市市长
+      en: Mayor of Hohhot
+
+  - key: q185684_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q185684
+    body: Q15938901          # 合肥市人民政府
+    labels:
+      zh: 合肥市市长
+      en: Mayor of Hefei
+
+  - key: q68481_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q68481
+    body: Q109344370         # 福州市人民政府
+    labels:
+      zh: 福州市市长
+      en: Mayor of Fuzhou
+
+  - key: q171943_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q171943
+    labels:
+      zh: 南昌市市长
+      en: Mayor of Nanchang
+
+  - key: q30340_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q30340
+    body: Q122666423         # 郑州市人民政府
+    labels:
+      zh: 郑州市市长
+      en: Mayor of Zhengzhou
+
+  - key: q179608_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q179608
+    labels:
+      zh: 南宁市市长
+      en: Mayor of Nanning
+
+  - key: q192271_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q192271
+    body: Q137595165         # 贵阳市人民政府
+    labels:
+      zh: 贵阳市市长
+      en: Mayor of Guiyang
+
+  - key: q182852_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q182852
+    body: Q122666454         # 昆明市人民政府
+    labels:
+      zh: 昆明市市长
+      en: Mayor of Kunming
+
+  - key: q5869_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q5869
+    labels:
+      zh: 拉萨市市长
+      en: Mayor of Lhasa
+
+  - key: q183584_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q183584
+    labels:
+      zh: 兰州市市长
+      en: Mayor of Lanzhou
+
+  - key: q69060_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q69060
+    labels:
+      zh: 西宁市市长
+      en: Mayor of Xining
+
+  - key: q211243_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q211243
+    labels:
+      zh: 银川市市长
+      en: Mayor of Yinchuan
+
+  - key: q16959_mayor
+    class: subnational.municipal
+    archetype: mayor
+    jurisdiction: Q16959
+    body: Q122666442         # 乌鲁木齐市人民政府
+    labels:
+      zh: 乌鲁木齐市市长
+      en: Mayor of Ürümqi

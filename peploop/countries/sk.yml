@@ -1,0 +1,173 @@
+# Slovakia: what the lanes know about it, one section per lane.
+
+census:
+  # The head offices of the EU AMLR levels (Reg. 2024/1624, Art. 2(34)(viii)): every
+  # unit of 50,000 or more (`amlr.units`) that has no head office gets one from
+  # `mint_units`, attested by the unit's own current P6 or its article's infobox.
+  # Both existing head offices subclass mayor of a place in Slovakia.
+  - key: amlr_municipal_head
+    class: subnational.municipal
+    archetype: mayor
+    per: units
+    of: amlr:municipal
+    lang: sk
+    title: primátor
+    labels:
+      sk: "primátor mesta {name}"
+      en: "Mayor of {name}"
+    parent: Q99356308                # mayor of a place in Slovakia
+    sources:
+      "*": https://sk.wikipedia.org/wiki/Primátor_(Slovensko)
+
+corp:
+  # Slovakia. Unitary: eight kraje, self-governing regions.
+
+  tiers: [national, regional]
+
+  # Classes the type tree files under government organization or government
+  # agency that are not government bodies here. None measured: no misfiled
+  # class among the state actors read 2026-10-17.
+  not_government: []
+
+  # Never candidates here, beyond the global exclusions. Measured 2026-10-17
+  # from the state actors' P127/P749 reach and the country's live items. None
+  # measured.
+  exclude:
+    - {qid: Q130268327, name: Komora (s výnimkou profesných komôr)}  # 1 live, e.g. Q118673541 Slovenská obchodná a priemyselná komora
+    - {qid: Q897399, name: chamber of commerce and industry}  # 1 live, e.g. Q1201852 Slovensko-nemecká obchodná a priemyselná komora
+
+  # State-only legal forms and types, matched exactly as P31 or P1454.
+  # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+  # statement, then all live items, in brackets. Štátny podnik is in the
+  # Q270791 tree. Rozpočtová and príspevková organizácia are shared with
+  # regions and municipalities; verejná výskumná inštitúcia is founded by the
+  # Academy.
+  forms: []
+
+  roles: []
+
+  # State holdings: the Ministry of Finance keeps the official register; no
+  # list article resolves QIDs reliably, so entries are the major state
+  # companies and national cultural institutions, QIDs resolved from their
+  # sk.wikipedia articles and checked live 2026-10-17. Minority holdings
+  # (Slovak Telekom, Slovenské elektrárne) and the regional distributors run
+  # by private partners are left out.
+  holdings:
+    - source: "Ministerstvo financií SR, majetkové účasti štátu (https://www.mfsr.sk/); entries from sk.wikipedia articles, checked 2026-10-17"
+      entries:
+        - name: "Slovenská elektrizačná prenosová sústava, a.s."
+          qid: Q12776245
+          holder: "Slovenská republika (Ministerstvo hospodárstva)"
+          source: https://www.wikidata.org/wiki/Q12776245
+        - name: "Slovenský plynárenský priemysel, a.s."
+          qid: Q836281
+          holder: "Slovenská republika (Ministerstvo hospodárstva)"
+          source: https://www.wikidata.org/wiki/Q836281
+        - name: "Eustream, a.s."
+          qid: Q13408692
+          holder: "Slovenský plynárenský priemysel"
+          source: https://www.wikidata.org/wiki/Q13408692
+        - name: "Slovenská pošta, a.s."
+          qid: Q1191849
+          holder: "Slovenská republika (Ministerstvo dopravy)"
+          source: https://www.wikidata.org/wiki/Q1191849
+        - name: "Železničná spoločnosť Slovensko, a.s."
+          qid: Q393557
+          holder: "Slovenská republika (Ministerstvo dopravy)"
+          source: https://www.wikidata.org/wiki/Q393557
+        - name: "Železnice Slovenskej republiky"
+          qid: Q393524
+          holder: "Slovenská republika (Ministerstvo dopravy)"
+          source: https://www.wikidata.org/wiki/Q393524
+        - name: "Železničná spoločnosť Cargo Slovakia, a.s."
+          qid: Q393549
+          holder: "Slovenská republika (Ministerstvo dopravy)"
+          source: https://www.wikidata.org/wiki/Q393549
+        - name: "Letové prevádzkové služby Slovenskej republiky, š. p."
+          qid: Q12770300
+          holder: "Slovenská republika (Ministerstvo dopravy)"
+          source: https://www.wikidata.org/wiki/Q12770300
+        - name: "Slovenská televízia a rozhlas"
+          qid: Q126950940
+          holder: "Slovenská republika (public broadcaster)"
+          source: https://www.wikidata.org/wiki/Q126950940
+        - name: "Tlačová agentúra Slovenskej republiky"
+          qid: Q2437491
+          holder: "Slovenská republika"
+          source: https://www.wikidata.org/wiki/Q2437491
+        - name: "Národná diaľničná spoločnosť, a.s."
+          qid: Q12772718
+          holder: "Slovenská republika (Ministerstvo dopravy)"
+          source: https://www.wikidata.org/wiki/Q12772718
+        - name: "Jadrová a vyraďovacia spoločnosť, a.s."
+          qid: Q14434902
+          holder: "Slovenská republika (Ministerstvo hospodárstva)"
+          source: https://www.wikidata.org/wiki/Q14434902
+        - name: "Tipos, národná lotériová spoločnosť, a.s."
+          qid: Q12777553
+          holder: "Slovenská republika (Ministerstvo financií)"
+          source: https://www.wikidata.org/wiki/Q12777553
+        - name: "LESY Slovenskej republiky, š. p."
+          qid: Q12770292
+          holder: "Slovenská republika (Ministerstvo pôdohospodárstva)"
+          source: https://www.wikidata.org/wiki/Q12770292
+        - name: "Slovenský vodohospodársky podnik, š. p."
+          qid: Q37813811
+          holder: "Slovenská republika (Ministerstvo životného prostredia)"
+          source: https://www.wikidata.org/wiki/Q37813811
+        - name: "Všeobecná zdravotná poisťovňa, a.s."
+          qid: Q12779145
+          holder: "Slovenská republika (Ministerstvo zdravotníctva)"
+          source: https://www.wikidata.org/wiki/Q12779145
+        - name: "Sociálna poisťovňa"
+          qid: Q99976267
+          holder: "Slovenská republika (public-law institution)"
+          source: https://www.wikidata.org/wiki/Q99976267
+        - name: "Agentúra pre riadenie dlhu a likvidity"
+          qid: Q42419868
+          holder: "Slovenská republika (Ministerstvo financií)"
+          source: https://www.wikidata.org/wiki/Q42419868
+        - name: "Slovenské národné divadlo"
+          qid: Q281805
+          holder: "Slovenská republika (Ministerstvo kultúry)"
+          source: https://www.wikidata.org/wiki/Q281805
+        - name: "Slovenská národná galéria"
+          qid: Q1744024
+          holder: "Slovenská republika (Ministerstvo kultúry)"
+          source: https://www.wikidata.org/wiki/Q1744024
+        - name: "Slovenské národné múzeum"
+          qid: Q1093925
+          holder: "Slovenská republika (Ministerstvo kultúry)"
+          source: https://www.wikidata.org/wiki/Q1093925
+        - name: "Slovenská filharmónia"
+          qid: Q1516510
+          holder: "Slovenská republika (Ministerstvo kultúry)"
+          source: https://www.wikidata.org/wiki/Q1516510
+        - name: "Slovenská inovačná a energetická agentúra"
+          qid: Q12776252
+          holder: "Slovenská republika (Ministerstvo hospodárstva)"
+          source: https://www.wikidata.org/wiki/Q12776252
+        - name: "SARIO"
+          qid: Q7388752
+          holder: "Slovenská republika (Ministerstvo hospodárstva)"
+          source: https://www.wikidata.org/wiki/Q7388752
+        - name: "Slovenská správa ciest"
+          qid: Q18104533
+          holder: "Slovenská republika (Ministerstvo dopravy)"
+          source: https://www.wikidata.org/wiki/Q18104533
+        - name: "Slovenský hydrometeorologický ústav"
+          qid: Q2384148
+          holder: "Slovenská republika (Ministerstvo životného prostredia)"
+          source: https://www.wikidata.org/wiki/Q2384148
+        - name: "Slovenská agentúra životného prostredia"
+          qid: Q13539099
+          holder: "Slovenská republika (Ministerstvo životného prostredia)"
+          source: https://www.wikidata.org/wiki/Q13539099
+
+amlr:
+  # Units: classes measured on Wikidata (2026-10-24).
+  units:
+    municipal:
+    - {qid: Q6784672, name: municipality of Slovakia}
+    grouping: []
+    metro: []

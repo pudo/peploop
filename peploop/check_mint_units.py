@@ -14,7 +14,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
-from peploop import mint, mint_units as mu, offices
+from peploop import countries, mint, mint_units as mu, offices
 
 LEVEL = mu.Level(key="lga_mayor", archetype="mayor", institution_class="subnational.municipal",
                  of="Q1", sources={"Q10": "https://example.org/level"})
@@ -128,7 +128,7 @@ def main() -> int:
     print("the census leaves units to this lane:")
     with TemporaryDirectory() as tmp:
         path = Path(tmp) / "zz.yml"
-        path.write_text("- key: lga_mayor\n  class: subnational.municipal\n  archetype: mayor\n"
+        path.write_text("census:\n- key: lga_mayor\n  class: subnational.municipal\n  archetype: mayor\n"
                         "  per: units\n  of: Q1\n  sources: {Q10: https://example.org/level}\n")
         expect(mint.census("zz", path=path), [], "categorize sees no anchor for a level")
         expect([(lv.key, lv.of, lv.sources) for lv in mu.levels("zz", path=path)],
@@ -323,7 +323,7 @@ def check_amlr(expect: Any) -> None:
     print("the census reads an AMLR level:")
     with TemporaryDirectory() as tmp:
         path = Path(tmp) / "zz.yml"
-        path.write_text("- key: amlr_municipal_head\n  class: subnational.municipal\n  archetype: mayor\n"
+        path.write_text("census:\n- key: amlr_municipal_head\n  class: subnational.municipal\n  archetype: mayor\n"
                         "  per: units\n  of: amlr:municipal\n  lang: el\n  title: δήμαρχος\n"
                         "  labels: {el: 'Δήμαρχος {name}'}\n  forms: {el: [['^Δήμος ', '']]}\n"
                         "  parent: Q30185\n  sources: {'*': https://example.org/law}\n")
@@ -417,14 +417,14 @@ def check_bodies(expect: Any) -> None:
     print("the census reads a bodies entry:")
     with TemporaryDirectory() as tmp:
         path = Path(tmp) / "zz.yml"
-        path.write_text("- key: io_head\n  class: executive.leader_office\n  archetype: agency_head\n"
+        path.write_text("census:\n- key: io_head\n  class: executive.leader_office\n  archetype: agency_head\n"
                         "  per: bodies\n  parent: Q1501800\n  bodies:\n"
                         "    - {qid: Q7801, title: Secretary General, holder: P3975, polity: Q7801,"
                         " labels: {en: Secretary General of X}}\n")
         expect(mint.census("zz", path=path), [], "categorize sees no anchor for a body")
         (lv,) = mu.levels("zz", path=path)
         expect((lv.by_body, lv.bodies[0].holder, lv.bodies[0].polity), (True, "P3975", "Q7801"), "the lane reads it")
-    for cc in sorted(p.stem for p in mint.CENSUS_DIR.glob("*.yml")):
+    for cc in countries.codes("census"):
         mint.census(cc, subdivisions=lambda q: [], labels_of=lambda q: {})
         for lv in mu.levels(cc):
             expect(lv.archetype in offices.ARCHETYPES and lv.institution_class in mint.INSTITUTION_CLASSES

@@ -1,0 +1,223 @@
+# Somalia: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Somalia run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml has no Somalia entry, so every entry below
+  # is measured here (PetScan, 2026-10-12) and nothing is inherited. Counts are
+  # distinct sitelinked items reached, then how many no earlier entry reached,
+  # with Somaliland's people (`so-som.yml`) already taken. The whole seed is
+  # ~450 people.
+  #
+  # en.wikipedia is the regular wiki: `Political office-holders in Somalia`
+  # carries a portfolio container of 38 subcats, both chambers of the Federal
+  # Parliament, the presidents and vice-presidents of the federal member states
+  # (Puntland, Jubaland, Galmudug, Hirshabelle, South West), the mayors and the
+  # governors. ar.wikipedia mirrors it (`أصحاب مناصب سياسية في الصومال`, 332, 7
+  # new) and so.wikipedia has no category tree. Many en categories were renamed
+  # from `Somalian …` to `Somali …`: the `Somalian` names are empty redirects.
+  #
+  # Somaliland's tree sits inside Somalia's on en: `so-som.yml` is seeded first,
+  # so its people keep that run's stamp and the containers below reach only
+  # Somalia's.
+  #
+  # The current era is the Federal Government under the 2012 provisional
+  # constitution: the Federal Parliament (House of the People and Upper House)
+  # and the federal member states. The Transitional Federal Parliament
+  # (2004-2012) is inside `policy.P39_MAX_ENDED_YEARS` and its members are
+  # today's politicians, so it is seeded; the Somali National Assembly of
+  # 1960-1969 is not. Presidents are seeded by century, which leaves out the
+  # eponymous `Siad Barre` and `Hassan Sheikh Mohamud` categories.
+  #
+  # Left out: `Members of the Somali National Assembly` (14, 12 new, 1960-69),
+  # `Speakers of the Parliament of Somalia` (the same assembly), `Somali
+  # politicians by party` (107, 10 new: SYL, SRSP and the civil-war fronts),
+  # `Politicians from Mogadishu` (a birthplace, 6 new), `Presidential elections
+  # in Somalia`, `First Lady`; ar's tree (7 new). There is no central-bank,
+  # police or court tier under the office-holders root; each is seeded from its
+  # own category below.
+
+  # --- Head of state and government ---
+  - category: Presidents_of_Somalia                              # 8, 7 new
+    lang: en
+    depth: 0
+  - category: 21st-century_presidents_of_Somalia                 # 8, 7 new
+    lang: en
+    depth: 0
+  - category: 20th-century_presidents_of_Somalia                 # 6, 5 new
+    lang: en
+    depth: 0
+  - category: Prime_ministers_of_Somalia                         # by century; 23, 20 new
+    lang: en
+  - category: Vice_presidents_of_Somalia                         # 8, 4 new
+    lang: en
+    depth: 0
+
+  # --- Cabinet: 38 portfolio subcats (Puntland's ministers among them) ---
+  - category: Government_ministers_of_Somalia                    # 255, 190 new
+    lang: en
+
+  # --- Federal Parliament and its predecessor ---
+  - category: Members_of_People's_House_(Somalia)                # 22, 22 new
+    lang: en
+    depth: 0
+  - category: Members_of_the_Senate_of_Somalia                   # with its speakers; 8, 8 new
+    lang: en
+  - category: Speakers_of_the_Federal_Parliament_of_Somalia      # 4, 2 new
+    lang: en
+    depth: 0
+  - category: Members_of_the_Transitional_Federal_Parliament     # 2004-2012; 44, 44 new
+    lang: en
+    depth: 0
+
+  # --- Central bank, courts, police, military ---
+  - category: Governors_of_Central_Bank_of_Somalia               # 5, 3 new
+    lang: en
+    depth: 0
+  - category: Somali_judges                                      # 4, 3 new
+    lang: en
+  - category: Somali_police_chiefs                               # 10, 3 new
+    lang: en
+    depth: 0
+  - category: Chiefs_of_Defence_Force_(Somalia)                  # 17, 11 new
+    lang: en
+    depth: 0
+  - category: Somali_generals                                    # 33, 12 new
+    lang: en
+    depth: 0
+
+  # --- Diplomatic service ---
+  - category: Ambassadors_of_Somalia                             # 31 posts; 44, 18 new
+    lang: en
+  - category: Somali_diplomats                                   # 33, 7 new
+    lang: en
+    depth: 0
+
+  # --- Subnational: federal member states, governors, mayors ---
+  - category: Presidents_of_states_of_Somalia                    # 6 states; 25, 16 new
+    lang: en
+  - category: Vice_presidents_of_states_of_Somalia               # 6, 2 new
+    lang: en
+  - category: Political_office-holders_in_Puntland               # cabinet, parliament, mayors; 53, 30 new
+    lang: en
+    depth: 2
+  - category: Puntland_politicians                               # 55, 6 new
+    lang: en
+  - category: Khatumo_politicians                                # 9, 2 new
+    lang: en
+  - category: Governors_of_Somalia                               # 2, 1 new
+    lang: en
+    depth: 0
+  - category: Mayors_of_places_in_Somalia                        # Mogadishu, Puntland's towns; 32, 9 new
+    lang: en
+    depth: 2
+
+  # --- Catch-alls ---
+  - category: 21st-century_Somali_politicians                    # 72, 6 new
+    lang: en
+    depth: 0
+  - category: 21st-century_Somali_women_politicians              # 26, 1 new
+    lang: en
+    depth: 0
+  - category: Somali_politicians                                 # flat bag; 72, 60 new
+    lang: en
+    depth: 0
+  - category: Somali_politician_stubs                            # 158, 19 new
+    lang: en
+    depth: 0
+
+census:
+  # Offices Somalia has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-10-12 live measurement (full-text search with
+  # `haswbstatement:P17=Q1045`, then labels, P31, P17, P361, P576 read in full);
+  # nothing below is from memory. No `source` is given: none was checked live.
+  #
+  # Not here because an item exists and the loader reaches it: the President
+  # `Q19364214`, Vice-President `Q29569906`, Prime Minister `Q1335939` and Deputy
+  # `Q111819846`, the portfolio ministers of the `Q107709xxx`/`Q107722xxx`
+  # series, both chambers' members (`Q21328615`, `Q21328640`) and speakers
+  # (`Q109745132`, `Q109745150`), the Governor of the Central Bank
+  # `Q109745158`, the Chief of Defence Force `Q96374894`, the Mayor of
+  # Mogadishu `Q39057061` and Governor of Banadir `Q131758656`, the Presidents
+  # of Puntland `Q61905410` (scoped P17 Puntland, loaded all the same) and
+  # Galmudug `Q123271728`, the Vice-President of Puntland `Q118724740`.
+  #
+  # Jubaland `Q949280` and South West State `Q1136259` are the current member
+  # states' items but carry `P576` 1999 and 2006 from their predecessor
+  # entities; an office on either would read as dissolved, so their presidents
+  # are listed without a body. Somaliland's regions are in `so-som.yml`; Awdal
+  # `Q791667` is in both states' `P150` and is excluded here.
+  #
+  # Absent and not listed: a Constitutional Court (no item, and none measured
+  # live), the Banadir mayor-governor pair (both items exist).
+
+  # --- Federal member states: three presidencies with no item ---
+  - key: hirshabelle_president
+    class: subnational.executive
+    archetype: governor
+    body: Q30322863          # Hirshabelle, P31 federal member state of Somalia, P17 Q1045
+    labels:
+      en: President of Hirshabelle
+
+  - key: jubaland_president
+    class: subnational.executive
+    archetype: governor
+    # No body: Jubaland `Q949280` carries P576 1999.
+    labels:
+      en: President of Jubaland
+
+  - key: south_west_president
+    class: subnational.executive
+    archetype: governor
+    # No body: South West State `Q1136259` carries P576 2006.
+    labels:
+      en: President of South West State of Somalia
+
+  # --- Regions: three governorships exist (Banadir, Lower Shabelle, Bay) ---
+  - key: regional_governor
+    class: subnational.executive
+    archetype: governor
+    per: subdivisions
+    exclude:
+      - Q791667              # Awdal: Somaliland's region (P17 Q1045 and Q34754)
+    labels:
+      en: Governor of {name}
+
+  # --- Apex court: no item for the Supreme Court ---
+  # Searched en, and `haswbstatement:P17=Q1045` with "court": only the Islamic
+  # Courts Union and the Supreme Military Court's chiefs come back.
+  - key: chief_justice
+    class: judiciary.apex
+    archetype: court_president
+    labels:
+      en: Chief Justice of Somalia
+
+  # --- Prosecution and audit ---
+  - key: attorney_general
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    # No body: no item for the Attorney General's office was found.
+    labels:
+      en: Attorney General of Somalia
+
+  - key: auditor_general
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the Office of the Auditor General was found.
+    labels:
+      en: Auditor General of Somalia
+
+  # --- Security ---
+  - key: police_commissioner
+    class: security.police
+    archetype: agency_head
+    body: Q2359890           # Somali Police Force, P31 police, P17 Q1045
+    labels:
+      en: Commissioner of the Somali Police Force
+
+  - key: nisa_director
+    class: security.intelligence
+    archetype: agency_head
+    body: Q17068877          # National Intelligence and Security Agency, P31 intelligence agency, P17 Q1045
+    labels:
+      en: Director-General of the National Intelligence and Security Agency

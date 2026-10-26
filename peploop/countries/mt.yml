@@ -1,0 +1,428 @@
+# Malta: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Malta run: one PetScan query per entry.
+  #
+  # Measured 2026-10-14. Each entry gives the people PetScan returned and its
+  # marginal over the entries above it. The whole seed is ~424 distinct people.
+  #
+  # OpenSanctions' wd_categories.yml has four Malta entries
+  # (`Political_office-holders_in_Malta`, its `Lists_of_...` sibling, the House
+  # of Representatives and `Mayors_of_places_in_Malta`); the office-holders root
+  # is a pure container whose nine children are seeded below one by one, and the
+  # lists category holds list articles, not people. Every other entry is
+  # measured here.
+  #
+  # en.wikipedia carries the tiers: ministers by portfolio, the House with its
+  # speakers and opposition leaders, MEPs by term, the judges, the central bank,
+  # the AFM commanders, the ambassadors by host country, the bishops of Malta and
+  # Gozo. mt.wikipedia's `Politiċi Maltin` is one level of party bags, presidents,
+  # prime ministers and speakers; at depth 2 it adds 38 people en does not
+  # reach, most of them pre-independence, and is seeded for the few current MPs
+  # and mayors en has no category for. No tier has a per-period child except the
+  # MEPs' (all since 2004, so seeded whole) and the prime ministers' (20th/21st
+  # century, both small), so the tiers are seeded whole and the scope gate drops
+  # the dead at fetch.
+  #
+  # No category exists for the parliamentary secretaries, the Attorney General,
+  # State Advocate, Auditor General, Ombudsman, Electoral Commission, the MFSA,
+  # FIAU or Gaming Authority, the state companies or the regional councils; those
+  # are `census/mt.yml`'s. Only 19 of the 68 local council mayors are categorized;
+  # the rest come from the units lane (`lc_mayor` in the census).
+  #
+  # Left out: `Presidents_of_Malta` at depth 1 (+1: first ladies and gentlemen,
+  # elections), `Governors_of_Gozo` (+2; the Order's 18th-century governors),
+  # `Maltese_politicians_by_party` (+3; membership is not office),
+  # `20th-century_Maltese_politicians` (+3), `Maltese_women_in_politics` (+1),
+  # `Maltese_Roman_Catholic_bishops` (+4; Maltese missionaries' sees abroad),
+  # `Maltese_chief_executives` (+3; private companies), `Maltese_diplomats` (+0),
+  # `Maltese_judges_of_international_courts_and_tribunals` (+0),
+  # `21st-century_Maltese_lawyers` (+2), mt `Presidenti_tal-Kamra_tad-Deputati_-_Speakers_(Malta)`
+  # and `Ewroparlamentari_Maltin` (+0 each), the `Counts of Malta` and the Sovereign
+  # Military Order's grand masters under `Heads_of_state_of_Malta`.
+
+  # --- Head of state, government, cabinet ---
+  - category: Presidents_of_Malta                                # 13, +13; depth 0: first ladies, elections below
+    lang: en
+    depth: 0
+  - category: Prime_ministers_of_Malta                           # 15, +14; 20th/21st-century children
+    lang: en
+  - category: Deputy_prime_ministers_of_Malta                    # 13, +6
+    lang: en
+  - category: Government_ministers_of_Malta                      # 91, +64; 28 portfolio children
+    lang: en
+
+  # --- Parliament: House with its speakers and opposition leaders; MEPs ---
+  - category: Members_of_the_House_of_Representatives_of_Malta   # 160, +95
+    lang: en
+  - article: List_of_members_of_the_parliament_of_Malta,_2026–2031  # 82 links; the House elected in 2026
+    lang: en
+  - category: Members_of_the_European_Parliament_for_Malta       # 25, +16; depth 2: by term, by party
+    lang: en
+    depth: 2
+  - category: Maltese_European_commissioners                     # 6, +1
+    lang: en
+    depth: 0
+
+  # --- Judiciary: chief justices, judges by century ---
+  - category: Maltese_judges                                     # 62, +58; depth 2: by century
+    lang: en
+    depth: 2
+
+  # --- Central bank, administration, security ---
+  - category: Governors_of_the_Central_Bank_of_Malta             # 6, +5
+    lang: en
+    depth: 0
+  - category: Maltese_civil_servants                             # 16, +7; EU officials, the current commissioner
+    lang: en
+  - category: Commanders_of_the_Armed_Forces_of_Malta            # 5, +5
+    lang: en
+    depth: 0
+  - category: Maltese_police_officers                            # 4, +2; the commissioners
+    lang: en
+    depth: 0
+
+  # --- Diplomacy ---
+  - category: Ambassadors_of_Malta                               # 14, +10; depth 2: by host, high commissioners
+    lang: en
+    depth: 2
+  - category: Ambaxxaturi_ta'_Malta                              # 5, +2
+    lang: mt
+
+  # --- Church: Malta and Gozo ---
+  - category: Bishops_of_Malta                                   # 35, +35; with the archbishops, auxiliaries
+    lang: en
+  - category: Roman_Catholic_bishops_of_Gozo                     # 9, +7
+    lang: en
+    depth: 0
+
+  # --- Local government ---
+  - category: Mayors_of_places_in_Malta                          # 19, +7; with women mayors
+    lang: en
+
+  # --- Party leaders and catch-alls ---
+  - category: Leaders_of_political_parties_in_Malta              # 29, +12
+    lang: en
+    depth: 0
+  - category: 21st-century_Maltese_politicians                   # 183, +17
+    lang: en
+  - category: Maltese_politician_stubs                           # 89, +10
+    lang: en
+    depth: 0
+  - category: Politiċi_Maltin                                    # 144, +38; depth 2: party bags
+    lang: mt
+    depth: 2
+
+census:
+  # Offices Malta has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-10-14 live measurement (wbsearchentities and
+  # full-text search with `haswbstatement:P17=Q233`, en.wikipedia titles resolved
+  # to their items, then P31, P17, P1001, P361 read in full); nothing below is
+  # from memory. An entry with no body is one where no item for the institution
+  # was found under any of those searches.
+  #
+  # Not here because an item exists and the load reaches it: the President
+  # `Q796593`, Prime Minister `Q152814`, Deputy Prime Minister `Q5261066`, the
+  # portfolio ministers (Minister for Gozo `Q108265813` among them), the House
+  # member `Q19367406` (and its 13th-term child `Q37857097`), the Speaker
+  # `Q7574273`, the Leader of the Opposition `Q6508543`, the Chief Justice
+  # `Q5096791`, the Central Bank governor `Q109689944`, the AFM commander
+  # `Q60539022`, the archbishop `Q105104342`, auxiliary bishop `Q136783024` and
+  # bishop of Gozo `Q105104423`. The Deputy Speaker `Q5261084` and the PM's chief
+  # of staff `Q104843496` exist with no `P17`, which the descent does not reach;
+  # that is a peptree repair, not a creation.
+  #
+  # `Q56279882` "Commissioner of Police" (described as Maltese, `P31` public
+  # office, no `P17`) has one holder, a Nigerian police officer: it is not used
+  # as Malta's office, so the commissionership is listed below; the guard's
+  # duplicate search will see it.
+  #
+  # Not listed: the parliamentary secretaries, which are per portfolio and have
+  # no generic item to anchor on (the person lane mints the ones named); outbound
+  # ambassadors (six items, the person lane); the Security Service, Asset
+  # Recovery Bureau and Community Malta Agency (no body item, and nothing to
+  # measure a holder by).
+  #
+  # The regional presidents and the local council mayors are the sub-national
+  # level. `per: subdivisions` reads Q233's P150, the six regions of 2021
+  # (Gozo, Northern, Southern, Port, Western, Eastern); en.wikipedia's "Regions
+  # of Malta" (a redirect to "Districts of Malta") reads "Each region has a
+  # Regional Council (Maltese: Kunsill Reġjonali), which consists of a Regional
+  # President, a Deputy President, an Executive Secretary and between 10 and 12
+  # members." No regional council has an item.
+  #
+  # `lc_mayor` is the 68 local councils. No council has a mayor item (the six
+  # Maltese mayors on Wikidata hold generic `Q30185`), so every region is below
+  # half and needs the level source: en.wikipedia's "List of mayors of places in
+  # Malta", "List of mayors in every locality of Malta from 1993, when the
+  # election of local councils was introduced." The unit articles name their
+  # mayor in the infobox (`• Mayor: Olaf McKay (PL)`; 14 of 15 sampled matched
+  # `mint_units.head_of`, Iklin's did not). Only 15 of the 68 localities are typed
+  # `Q719592` (local council of Malta), the rest town, village or city, so the
+  # units are the six regions' `P150`, which list exactly the 68.
+
+  # --- Executive: the head of the civil service ---
+  - key: principal_permanent_secretary
+    class: executive.leader_office
+    archetype: agency_head
+    # No body: no item for the Office of the Prime Minister was found.
+    labels:
+      en: Principal Permanent Secretary of Malta
+
+  # --- Judiciary ---
+  - key: superior_courts_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    # No body: `Q6303120` "Judiciary of Malta" has no P31 and is not a court;
+    # the Constitutional Court `Q119988571` sits judges of the superior courts.
+    labels:
+      en: Judge of the Superior Courts of Malta
+
+  - key: magistrate
+    class: judiciary.specialised
+    archetype: judge
+    # No body: no item for the Court of Magistrates was found.
+    labels:
+      en: Magistrate of Malta
+
+  - key: attorney_general
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    # No body: no item for the Office of the Attorney General was found.
+    labels:
+      en: Attorney General of Malta
+
+  - key: state_advocate
+    class: judiciary.prosecution
+    archetype: agency_head
+    # No body: no item for the Office of the State Advocate was found.
+    labels:
+      en: State Advocate of Malta
+
+  # --- Oversight ---
+  - key: auditor_general
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the National Audit Office was found.
+    labels:
+      en: Auditor General of Malta
+
+  - key: ombudsman
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the Office of the Ombudsman was found.
+    labels:
+      en: Parliamentary Ombudsman of Malta
+
+  - key: standards_commissioner
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the office was found.
+    labels:
+      en: Commissioner for Standards in Public Life
+
+  - key: chief_electoral_commissioner
+    class: oversight.electoral_commission
+    archetype: agency_head
+    # No body: no item for the Electoral Commission was found.
+    labels:
+      en: Chief Electoral Commissioner of Malta
+
+  # --- Regulators: financial services, financial intelligence, gaming, companies ---
+  - key: mfsa_chair
+    class: economic.regulators
+    archetype: agency_head
+    body: Q4279484           # Malta Financial Services Authority, P31 organization + financial regulator, P17 Q233
+    labels:
+      en: Chairman of the Malta Financial Services Authority
+
+  - key: fiau_director
+    class: economic.regulators
+    archetype: agency_head
+    body: Q116245274         # Financial Intelligence Analysis Unit, no P31, P17 Q233
+    labels:
+      en: Director of the Financial Intelligence Analysis Unit
+
+  - key: mga_ceo
+    class: economic.regulators
+    archetype: agency_head
+    body: Q55621923          # Malta Gaming Authority, no P31, P17 Q233
+    labels:
+      en: Chief Executive Officer of the Malta Gaming Authority
+
+  - key: business_registrar
+    class: economic.regulators
+    archetype: agency_head
+    body: Q104855942         # Malta Business Registry, P31 government agency, P17 Q233
+    labels:
+      en: Registrar of the Malta Business Registry
+
+  - key: planning_authority_chair
+    class: economic.regulators
+    archetype: agency_head
+    body: Q39487278          # Planning Authority, P31 government agency, P17 Q233
+    labels:
+      en: Executive Chairman of the Planning Authority
+
+  # --- State companies and agencies ---
+  - key: enemalta_chair
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q1341101           # Enemalta, P31 energy company, P17 Q233
+    labels:
+      en: Chairman of Enemalta
+
+  - key: wsc_chair
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q30292610          # Water Services Corporation, P31 business, P17 Q233
+    labels:
+      en: Chairman of the Water Services Corporation
+
+  - key: km_malta_chair
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q123144232         # KM Malta Airlines, P31 airline + flag carrier, P17 Q233, P1365 Air Malta
+    labels:
+      en: Chairman of KM Malta Airlines
+
+  - key: malta_enterprise_ceo
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q6744661           # Malta Enterprise, P31 government agency, P17 Q233
+    labels:
+      en: Chief Executive Officer of Malta Enterprise
+
+  - key: transport_malta_ceo
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q30637888          # Transport Malta, P31 government agency, P17 Q233
+    labels:
+      en: Chief Executive Officer of Transport Malta
+
+  - key: infrastructure_malta_ceo
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q120926468         # Infrastructure Malta, P31 government agency, P17 Q233, P361 Q52844493
+    labels:
+      en: Chief Executive Officer of Infrastructure Malta
+
+  - key: pbs_ceo
+    class: hybrid.state_media
+    archetype: soe_head
+    body: Q731913            # Public Broadcasting Services, P31 public broadcaster, P17 Q233
+    labels:
+      en: Chief Executive Officer of Public Broadcasting Services
+
+  # --- Police ---
+  - key: police_commissioner
+    class: security.police
+    archetype: agency_head
+    body: Q2413538           # Malta Police Force, P31 organization, no P17
+    labels:
+      en: Commissioner of Police of Malta
+
+  # --- Regions: no regional council or presidency item ---
+  - key: regional_president
+    class: subnational.executive
+    archetype: governor
+    per: subdivisions
+    labels:
+      en: Regional President of the {name}
+
+  # --- Local councils: every locality ---
+  - key: lc_mayor
+    class: subnational.municipal
+    archetype: mayor
+    per: units
+    of: P150                 # the regions' P150: the 68 councils, of which 15 are typed Q719592
+    sources:
+      Q2054290: https://en.wikipedia.org/wiki/List_of_mayors_of_places_in_Malta    # Gozo Region
+      Q20199334: https://en.wikipedia.org/wiki/List_of_mayors_of_places_in_Malta   # Northern Region
+      Q20199405: https://en.wikipedia.org/wiki/List_of_mayors_of_places_in_Malta   # Southern Region
+      Q120512566: https://en.wikipedia.org/wiki/List_of_mayors_of_places_in_Malta  # Port Region
+      Q120512576: https://en.wikipedia.org/wiki/List_of_mayors_of_places_in_Malta  # Western Region
+      Q120512582: https://en.wikipedia.org/wiki/List_of_mayors_of_places_in_Malta  # Eastern Region
+
+corp:
+  # Malta. Unitary: five regions and local councils.
+
+  tiers: [national, regional]
+
+  # Classes the type tree files under government organization or government
+  # agency that are not government bodies here. None measured: no misfiled
+  # class among the state actors read 2026-10-17.
+  not_government: []
+
+  # Never candidates here, beyond the global exclusions. Measured 2026-10-17
+  # from the state actors' P127/P749 reach and the country's live items. The
+  # medical association administers itself.
+  exclude:
+    - {qid: Q10729872, name: medical association}  # 1 live, e.g. Q25100610 Medical Association of Malta
+
+  # State-only legal forms and types, matched exactly as P31 or P1454.
+  # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+  # statement, then all live items, in brackets. Measured thin: 24 live items
+  # with a seat statement, no state-only form among them.
+  forms: []
+
+  roles: []
+
+  # Official list of central-government holdings: public sector entities,
+  # resolved 2026-10-17 to items with an article; no lane reached them. Bank of
+  # Valletta (a government stake, not control) is left out. Control is still
+  # read from each article.
+  holdings:
+    - source: "Ministry for Finance, public sector entities; Malta Government Investments, https://finance.gov.mt/; QIDs via en.wikipedia and the bodies' own articles"
+      entries:
+        - name: "Enemalta"
+          qid: Q1341101
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/Enemalta
+        - name: "KM Malta Airlines"
+          qid: Q123144232
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/KM_Malta_Airlines
+        - name: "Central Bank of Malta"
+          qid: Q74690
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/Central_Bank_of_Malta
+        - name: "Malta Financial Services Authority"
+          qid: Q4279484
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/Malta_Financial_Services_Authority
+        - name: "Public Broadcasting Services"
+          qid: Q731913
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/Public_Broadcasting_Services
+        - name: "Heritage Malta"
+          qid: Q3785211
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/Heritage_Malta
+        - name: "Gozo Channel Line"
+          qid: Q1540576
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/Gozo_Channel_Line
+        - name: "Mater Dei Hospital"
+          qid: Q6786508
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/Mater_Dei_Hospital
+        - name: "Malta Philharmonic Orchestra"
+          qid: Q4279483
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/Malta_Philharmonic_Orchestra
+        - name: "Manoel Theatre"
+          qid: Q576800
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/Manoel_Theatre
+        - name: "Malta Gaming Authority"
+          qid: Q55621923
+          holder: "Government of Malta (public sector entity)"
+          source: https://en.wikipedia.org/wiki/Malta_Gaming_Authority
+
+amlr:
+  # Units: classes measured on Wikidata (2026-10-24).
+  units:
+    municipal: []
+    grouping: []
+    metro: []

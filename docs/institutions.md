@@ -2,7 +2,7 @@
 
 The institutions a state's politically exposed people sit in, as ~35 classes:
 what a country is made of, beyond its cabinet. Two things read them.
-`census/<cc>.yml` lists a country's offices by these classes, so the mint stage
+The `census` section of `peploop/countries/<cc>.yml` lists a country's offices by these classes, so the mint stage
 can propose the offices nobody's article named; and mint categorize assigns
 every candidate office one of them (`mint.INSTITUTION_CLASSES` is pinned to
 the headings below by `check_mint_queue`).

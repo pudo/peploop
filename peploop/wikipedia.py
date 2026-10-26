@@ -13,10 +13,9 @@ from pathlib import Path
 from typing import Any, NamedTuple
 from urllib.parse import quote, unquote
 
-import yaml
 from lxml import html as lxml_html
 
-from peploop import db, http
+from peploop import countries, db, http
 
 PETSCAN_URL = "https://petscan.wmcloud.org/"
 REST_HTML = "https://{lang}.wikipedia.org/api/rest_v1/page/html/{title}"
@@ -67,13 +66,13 @@ class SeedEntry(NamedTuple):
 
 
 def load_seeds(path: Path) -> list[SeedEntry]:
-    """Read a seed file as a list of category trees, in file order.
+    """Read a country file's seeds as a list of category trees, in file order.
 
-    The file is a YAML list of entries with `category`, `lang` and an
+    The `seeds` section is a list of entries with `category`, `lang` and an
     optional `depth`, or with `article` and `lang` for a list article. Many narrow categories at shallow depth are preferred
     to one wide category at depth 3, so `depth` defaults to 1.
     """
-    entries = yaml.safe_load(path.read_text())
+    entries = countries.section(path.stem, "seeds", path)
     if not isinstance(entries, list):
         raise TypeError(f"{path}: expected a list of seed entries")
     seeds: list[SeedEntry] = []

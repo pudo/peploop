@@ -24,11 +24,13 @@ SHEET_ROWS = 2759
 def check_files() -> None:
     codes = set(amlr.codes())
     expect(codes == CODES, f"one file for each member state and the Union ({len(codes)})")
-    raw = {cc: yaml.safe_load((amlr.DIR / f"{cc}.yml").read_text()) or {} for cc in codes}
-    expect(all(set(d) <= {"threshold", "units", "functions"} for d in raw.values()), "every file has only known keys")
-    expect(all(set(d.get("units") or {}) <= {*amlr.LEVELS, "exclude"} for d in raw.values()),
+    raw = {cc: yaml.safe_load(amlr.path(cc).read_text()) or {} for cc in codes}
+    expect(all(set(d) <= {"functions"} for d in raw.values()), "every function list has only functions")
+    blocks = {cc: amlr.unit_block(cc) for cc in codes}
+    expect(all(set(b) <= {"threshold", "units"} for b in blocks.values()), "every amlr section has only known keys")
+    expect(all(set(b.get("units") or {}) <= {*amlr.LEVELS, "exclude"} for b in blocks.values()),
            "every units block names only known levels")
-    expect(not raw["eu"].get("units"), "the Union has no units")
+    expect(not blocks["eu"].get("units"), "the Union has no units")
     specs = [amlr.get(cc) for cc in sorted(codes)]
     expect(all(QID.match(q) for s in specs for q in [*s.classes, *s.exclude]),
            "unit classes and exclusions are QIDs")
@@ -40,7 +42,7 @@ def check_files() -> None:
            "every expansion is a position, a body, a level's office or a tier")
     expect(all(f.kind != "unusable" or not f.expansion for f in fns), "an unusable row expands to nothing")
     for cc in sorted(codes):
-        text = (amlr.DIR / f"{cc}.yml").read_text()
+        text = amlr.path(cc).read_text()
         header, data = amlr.read_raw(cc)
         expect(header + amlr.dump(data) == text, f"{cc}: the file is as `save` writes it, so a rewrite changes nothing else")
     rows = [f.row for f in fns]

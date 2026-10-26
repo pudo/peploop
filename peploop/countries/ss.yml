@@ -1,0 +1,184 @@
+# South Sudan: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the South Sudan run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml has no South Sudan entry, so every entry
+  # below is measured here (PetScan, 2026-10-15) and nothing is inherited.
+  # Counts are distinct sitelinked items reached, then how many no earlier entry
+  # reached. The whole seed is ~280 people.
+  #
+  # en.wikipedia is the regular wiki: `Political office-holders in South Sudan`
+  # holds the presidents, vice-presidents, 16 portfolio subcats, both chambers
+  # of the National Legislature, the state governors, county commissioners and
+  # mayors. ar.wikipedia's `أصحاب مناصب سياسية في جنوب السودان` at depth 2
+  # reaches 15 people and none new.
+  #
+  # The trees overlap with Sudan's: `Members of the Southern Sudan Legislative
+  # Assembly` sits under both en roots, and ar nests `رؤساء جنوب السودان` under
+  # `سياسيون سودانيون`. A person keeps the stamp of the first run that seeds
+  # them, so this file is seeded before `sd.yml`.
+  #
+  # The current era is independence (2011) and the 2018 revitalised agreement's
+  # transitional government and reconstituted legislature. The Southern Sudan
+  # Legislative Assembly (2005-2011) is inside `policy.P39_MAX_ENDED_YEARS` and
+  # its members are today's politicians, so it is seeded. No en list article of
+  # the reconstituted assembly's members exists.
+  #
+  # Left out: `Sudan People's Liberation Movement politicians` (106, 27 new over
+  # the tiers: 10 South Sudanese, 9 Sudanese -- SPLM-North -- and 8 with no
+  # P27, John Garang among them), since either run would stamp the other's
+  # people; `Liberal Party (Sudan)`, `Southern Sudan Federal Party` and `Sudan
+  # African National Union` politicians (1950s-60s, shared with Sudan);
+  # `Anglo-Egyptian Sudan judges` under `South Sudanese judges`; `National
+  # Salvation Front (South Sudan) members` (1, 0 new); ar's tree (0 new).
+
+  # --- Head of state ---
+  - category: Presidents_of_South_Sudan                          # 6
+    lang: en
+    depth: 0
+  - category: Vice-presidents_of_South_Sudan                     # 7, 7 new
+    lang: en
+    depth: 0
+
+  # --- Cabinet: 16 portfolio subcats ---
+  - category: Government_ministers_of_South_Sudan                # 88, 83 new
+    lang: en
+
+  # --- National Legislature: Assembly, Council of States; the SSLA before it ---
+  - category: Members_of_the_National_Legislature_(South_Sudan)  # nested container; 42, 17 new
+    lang: en
+    depth: 3
+  - category: Members_of_the_Southern_Sudan_Legislative_Assembly # 2005-2011; 21, 1 new
+    lang: en
+    depth: 0
+
+  # --- Subnational: governors, state assembly, county commissioners, mayors ---
+  - category: South_Sudanese_state_governors                     # 28, 15 new
+    lang: en
+    depth: 0
+  - category: Members_of_the_Lakes_State_Legislative_Assembly    # 6, 6 new
+    lang: en
+    depth: 0
+  - category: County_commissioners_of_South_Sudan                # 12, 11 new
+    lang: en
+    depth: 0
+  - category: Mayors_of_places_in_South_Sudan                    # 3, 3 new
+    lang: en
+    depth: 0
+
+  # --- Central bank, courts, military, diplomatic service ---
+  - category: Governors_of_the_Bank_of_South_Sudan               # 3, 2 new
+    lang: en
+    depth: 0
+  - category: South_Sudanese_judges                              # own pages only; 2, 1 new
+    lang: en
+    depth: 0
+  - category: South_Sudanese_military_personnel                  # 30, 19 new
+    lang: en
+    depth: 0
+  - category: Ambassadors_of_South_Sudan                         # 10, 3 new
+    lang: en
+    depth: 0
+
+  # --- Parties: the post-2011 ones; SPLM left out (see above) ---
+  - category: Sudan_People's_Liberation_Movement-in-Opposition_members  # 12, 2 new
+    lang: en
+    depth: 0
+  - category: South_Sudan_Opposition_Alliance_politicians            # 5, 1 new
+    lang: en
+    depth: 0
+  - category: South_Sudan_Democratic_Movement_members                # 3, 1 new
+    lang: en
+    depth: 0
+  - category: United_Democratic_Front_(South_Sudan)_politicians      # 2, 1 new
+    lang: en
+    depth: 0
+  - category: Communist_Party_of_South_Sudan_politicians             # 1, 1 new
+    lang: en
+    depth: 0
+
+  # --- Catch-alls ---
+  - category: 21st-century_South_Sudanese_politicians            # own pages; 76, 39 new
+    lang: en
+    depth: 0
+  - category: 21st-century_South_Sudanese_women_politicians      # 29, 2 new
+    lang: en
+    depth: 0
+  - category: South_Sudanese_politicians                         # flat bag; 62, 48 new
+    lang: en
+    depth: 0
+  - category: South_Sudanese_politician_stubs                    # 143, 7 new
+    lang: en
+    depth: 0
+
+census:
+  # Offices South Sudan has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-10-15 live measurement (CirrusSearch with
+  # `haswbstatement:P17=Q958`, wbsearchentities, the items read); nothing below
+  # is from memory.
+  #
+  # Not here because an item exists and the load reaches it: the President
+  # `Q19362922` and Vice-Presidents `Q53569601`, the portfolio ministers and
+  # their deputies (`Q1126xxxxx`/`Q1127xxxxx`), both chambers' members
+  # (`Q21328629`, `Q21328604`) and the Speaker `Q112316485`, the governors of
+  # the states and chief administrators of the administrative areas
+  # (`Q1126839xx`-`Q1126849xx`), the Governor of the Bank of South Sudan
+  # `Q112789348`. The Minister of Justice and Constitutional Affairs is also the
+  # Attorney General, so the latter has no entry.
+  #
+  # Absent and not listed: the police, the National Security Service, the
+  # Anti-Corruption Commission and the National Audit Chamber have no items,
+  # and no seeded category names their heads; the auditor and the police chief
+  # are listed without a body all the same, since a minister's article often
+  # names them. County commissioners (79 counties) have no unit items with
+  # holders in their articles.
+
+  # --- Legislature: the upper house's presiding officer ---
+  # `Q112316485` presides over the whole National Legislature; the Council of
+  # States has its own speaker and no item for the seat.
+  - key: council_of_states_speaker
+    class: legislature.leadership
+    archetype: speaker
+    body: Q1454821           # Council of States, P31 upper house, P17 Q958
+    labels:
+      en: Speaker of the Council of States of South Sudan
+      ar: رئيس مجلس الولايات في جنوب السودان
+
+  # --- Judiciary: the Supreme Court ---
+  - key: chief_justice
+    class: judiciary.apex
+    archetype: court_president
+    body: Q7568581           # South Sudan Supreme Court, P31 supreme court, P17 Q958
+    labels:
+      en: Chief Justice of South Sudan
+
+  - key: supreme_court_justice
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q7568581
+    labels:
+      en: Justice of the Supreme Court of South Sudan
+
+  # --- Security: the armed forces, the police ---
+  - key: chief_of_defence_forces
+    class: security.defence_command
+    archetype: military_chief_of_staff
+    body: Q912908            # South Sudan People's Defence Forces, P31 armed forces, P17 Q958
+    labels:
+      en: Chief of Defence Forces of South Sudan
+
+  - key: inspector_general_of_police
+    class: security.police
+    archetype: agency_head
+    # No body: no item for the South Sudan National Police Service was found.
+    labels:
+      en: Inspector General of Police of South Sudan
+
+  # --- Oversight ---
+  - key: auditor_general
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the National Audit Chamber was found.
+    labels:
+      en: Auditor General of South Sudan

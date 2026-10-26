@@ -1,0 +1,148 @@
+# Colombia: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Colombian run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml carries ten `country: co` entries: three en
+  # categories, es `Senadores`, `Diputados`, `Vicepresidencia`, `Políticos de
+  # Colombia`, and two it has retired because their members were born before
+  # 1920 (the presidents, the mayors of Bogotá). Those retirements are
+  # OpenSanctions' reasons; here the scope gate discards the dead at fetch for
+  # free, so both categories are in for their living members.
+  #
+  # es.wikipedia's tree is regular: one parent per tier, a subcategory per
+  # legislative period (Senate 1930–2030, Chamber 1931–2026), per portfolio, per
+  # department, per city. The entries below are the *current era's*: the loop
+  # records who holds office now, so the 21st-century periods rather than the
+  # century categories, the current portfolios rather than the parent whose
+  # depth-2 tree adds thirteen defunct ones, and no constituent assembly of 1991,
+  # no civil-war generals, no `Políticos de Colombia` at depth 3 (2,465 members,
+  # 294 of them not reached below, nearly all history). Counts are PetScan's on
+  # 2026-09-30; the whole tree would be ~2,900 people, this is ~2,300.
+
+  # --- Head of state and government ---
+  - category: Presidentes_de_Colombia                # 109 pages, every president
+    lang: es
+    depth: 0
+  - category: Vicepresidentes_de_Colombia            # 18
+    lang: es
+    depth: 0
+
+  # --- Cabinet: the current portfolios, one entry each ---
+  - category: Ministros_de_Agricultura_y_Desarrollo_Rural_de_Colombia
+    lang: es
+  - category: Ministros_de_Ambiente_y_Desarrollo_Sostenible_de_Colombia
+    lang: es
+  - category: Ministros_de_Ciencia,_Tecnología_e_Innovación_de_Colombia
+    lang: es
+  - category: Ministros_de_Comercio,_Industria_y_Turismo_de_Colombia
+    lang: es
+  - category: Ministros_de_Cultura_de_Colombia
+    lang: es
+  - category: Ministros_de_Defensa_de_Colombia
+    lang: es
+  - category: Ministros_del_Deporte_de_Colombia
+    lang: es
+  - category: Ministros_de_Educación_de_Colombia
+    lang: es
+  - category: Ministros_de_Hacienda_y_Crédito_Público_de_Colombia
+    lang: es
+  - category: Ministros_de_Igualdad_y_Equidad_de_Colombia
+    lang: es
+  - category: Ministros_del_Interior_de_Colombia
+    lang: es
+  - category: Ministros_de_Justicia_de_Colombia
+    lang: es
+  - category: Ministros_de_Minas_y_Energía_de_Colombia
+    lang: es
+  - category: Ministros_de_Relaciones_Exteriores_de_Colombia
+    lang: es
+  - category: Ministros_de_Salud_y_Protección_Social_de_Colombia
+    lang: es
+  - category: Ministros_de_Tecnologías_de_la_Información_y_Comunicaciones_de_Colombia
+    lang: es
+  - category: Ministros_de_Trabajo_de_Colombia
+    lang: es
+  - category: Ministros_de_Transporte_de_Colombia
+    lang: es
+  - category: Ministros_de_Vivienda,_Ciudad_y_Territorio_de_Colombia
+    lang: es
+  # The heads of the administrative departments and agencies rank with ministers.
+  - category: Directores_de_Departamentos_Administrativos_de_Colombia   # 29
+    lang: es
+  - category: Directores_de_Agencias_del_Gobierno_de_Colombia           # 23
+    lang: es
+  - category: Superintendentes_de_Colombia                              # 8
+    lang: es
+  - category: Consejeros_presidenciales_de_Colombia                     # 11
+    lang: es
+
+  # --- Congress: the periods from 1998 on, and the two presidencies ---
+  - category: Senadores_de_Colombia_del_siglo_XXI                       # 8 periods, 351
+    lang: es
+  - category: Miembros_de_la_Cámara_de_Representantes_de_Colombia_en_el_siglo_XXI   # 7 periods
+    lang: es
+  - category: Presidentes_del_Senado_de_Colombia                        # 72
+    lang: es
+    depth: 0
+  - category: Presidentes_de_la_Cámara_de_Representantes_de_Colombia    # 49
+    lang: es
+    depth: 0
+
+  # --- Judiciary and the control bodies (Wikidata has items for almost none) ---
+  - category: Magistrados_de_Colombia          # Constitutional, Supreme, Council of State, CNE; 122
+    lang: es
+  - category: Procuradores_Generales_de_Colombia                        # 25
+    lang: es
+  - category: Contralores_Generales_de_Colombia                         # 12
+    lang: es
+  - category: Defensores_del_Pueblo_de_Colombia                         # 5
+    lang: es
+
+  # --- Central bank ---
+  - category: Gerentes_del_Banco_de_la_República_de_Colombia            # 16
+    lang: es
+
+  # --- Subnational: 32 governorships, mayors by city, councils, assemblies ---
+  - category: Gobernadores_de_Colombia_por_departamento                 # 32 subcats, 603
+    lang: es
+  - category: Alcaldes_de_Colombia                                      # by department, by city; 424
+    lang: es
+    depth: 2
+  - category: Concejales_de_Colombia                                    # 63 subcats, 291
+    lang: es
+  - category: Diputados_de_Colombia                                     # 30 assemblies, 269
+    lang: es
+
+  # --- Diplomatic service: 72 posts, four of which Wikidata has an item for ---
+  - category: Embajadores_de_Colombia                                   # 387
+    lang: es
+  - category: Diplomáticos_de_Colombia                                  # 272
+    lang: es
+
+  # --- Military and police leadership (not Generales_de_Colombia: civil wars) ---
+  - category: Comandantes_de_las_Fuerzas_Militares_de_Colombia          # 20
+    lang: es
+  - category: Comandantes_del_Ejército_Nacional_de_Colombia             # 18
+    lang: es
+  - category: Comandantes_de_la_Fuerza_Aérea_Colombiana                 # 4
+    lang: es
+  - category: Jefes_del_Estado_Mayor_Conjunto_de_las_Fuerzas_Militares_de_Colombia   # 10
+    lang: es
+  - category: Directores_de_la_Policía_Nacional_de_Colombia             # 31
+    lang: es
+
+  # --- Catch-alls: the current century, and the parties ---
+  - category: Políticos_de_Colombia_del_siglo_XXI                       # 744
+    lang: es
+    depth: 2
+  - category: Políticos_de_Colombia_por_partido                         # 45 parties, 516
+    lang: es
+
+  # --- The English tree, one level ---
+  - category: Political_office-holders_in_Colombia                      # 210
+    lang: en
+  - category: Members_of_the_Congress_of_Colombia                       # 234
+    lang: en
+  - category: Government_ministers_of_Colombia                          # 235
+    lang: en

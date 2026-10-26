@@ -17,7 +17,7 @@ from typing import Any
 import click
 
 from peploop import amlr, amlr_expand, amlr_report
-from peploop import costs, db, holders, ledger, llm, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
+from peploop import costs, countries, db, holders, ledger, llm, mint, policy, positions, scope, titles, verify as verifying, wikidata, wikipedia
 from peploop import extract as extraction
 from peploop import mint_write as minting
 from peploop import mint_units
@@ -42,7 +42,6 @@ from peploop import review as reviewing
 
 ITEM_MAX_AGE = "7 days"
 ARTICLE_MAX_AGE = "30 days"
-SEED_DIR = Path(__file__).resolve().parent / "seeds"
 MINT_REPORT_DIR = Path(__file__).resolve().parent.parent / "data" / "mint"
 # How many requests each stage keeps in flight: what every country run has
 # passed, now fixed. Each one stage's own, because what bounds it differs --
@@ -169,7 +168,7 @@ def _select(
 
 
 @cli.command()
-@click.option("--country", required=True, help="Seed peploop/seeds/<country>.yml under this code.")
+@click.option("--country", required=True, help="Seed the seeds of peploop/countries/<country>.yml under this code.")
 @click.option("--qid", multiple=True, help="Queue these people instead of the seed file's categories.")
 @click.option("--lang", default=None, help="With --qid: the wiki their articles are read in first.")
 @click.option("--holders", "of_holders", is_flag=True,
@@ -201,9 +200,9 @@ def seed(country: str, qid: Sequence[str], lang: str | None, of_holders: bool) -
         counts = holders.seed(country, found)
         click.echo(f"{len(found)} offices that exist: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
         return
-    path = SEED_DIR / f"{country}.yml"
-    if not path.exists():
-        raise click.UsageError(f"no seed file at {path}")
+    path = countries.path(country)
+    if countries.section(country, "seeds") is None:
+        raise click.UsageError(f"no seeds in {path}")
     entries = wikipedia.load_seeds(path)
     members_total, new_total, failed = 0, 0, 0
     for entry in entries:

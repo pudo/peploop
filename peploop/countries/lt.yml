@@ -1,0 +1,132 @@
+# Lithuania: what the lanes know about it, one section per lane.
+
+corp:
+  # Lithuania. Unitary: ten apskritys (counties, administrative only since
+  # 2010) and 60 municipalities, which peploop counts first-level.
+
+  tiers: [national, regional]
+
+  # Classes the type tree files under government organization or government
+  # agency that are not government bodies here. None measured: no misfiled
+  # class among the state actors read 2026-10-17.
+  not_government: []
+
+  # Never candidates here, beyond the global exclusions. Measured 2026-10-17
+  # from the state actors' P127/P749 reach and the country's live items. The
+  # notaries' and agricultural chambers administer themselves.
+  exclude:
+    - {qid: Q1757539, name: Notarų rūmai}  # 1 live, e.g. Q2001817 Lietuvos notarų rūmai
+    - {qid: Q59155876, name: Žemės ūkio rūmai}  # 1 live, e.g. Q12663237 Lietuvos Respublikos žemės ūkio rūmai
+    - {qid: Q10729872, name: medical association}  # 1 live, e.g. Q67201777 Lithuanian Medical Association
+
+  # State-only legal forms and types, matched exactly as P31 or P1454.
+  # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+  # statement, then all live items, in brackets. Valstybės įmonė is in the
+  # Q270791 tree. Biudžetinė įstaiga and viešoji įstaiga are left out: shared
+  # with municipalities.
+  forms: []
+
+  roles: []
+
+  # State holdings: the Governance Coordination Centre reports on the
+  # state-owned enterprises; no list article resolves QIDs reliably, so
+  # entries are the major state companies and national cultural
+  # institutions, QIDs resolved from their lt.wikipedia articles or Wikidata
+  # search and checked live 2026-10-17.
+  holdings:
+    - source: "Valdymo koordinavimo centras (Governance Coordination Centre), valstybės valdomos įmonės (https://governance.lt/); entries from lt.wikipedia articles, checked 2026-10-17"
+      entries:
+        - name: "Ignitis grupė, AB"
+          qid: Q583822
+          holder: "Lietuvos Respublika (Finansų ministerija)"
+          source: https://www.wikidata.org/wiki/Q583822
+        - name: "Energijos skirstymo operatorius, AB"
+          qid: Q22691779
+          holder: "Ignitis grupė"
+          source: https://www.wikidata.org/wiki/Q22691779
+        - name: "Lietuvos geležinkeliai, AB (LTG)"
+          qid: Q164914
+          holder: "Lietuvos Respublika (Susisiekimo ministerija)"
+          source: https://www.wikidata.org/wiki/Q164914
+        - name: "LTG Link"
+          qid: Q110111309
+          holder: "Lietuvos geležinkeliai"
+          source: https://www.wikidata.org/wiki/Q110111309
+        - name: "Lietuvos paštas, AB"
+          qid: Q175964
+          holder: "Lietuvos Respublika (Susisiekimo ministerija)"
+          source: https://www.wikidata.org/wiki/Q175964
+        - name: "Via Lietuva"
+          qid: Q131825088
+          holder: "Lietuvos Respublika (Susisiekimo ministerija)"
+          source: https://www.wikidata.org/wiki/Q131825088
+        - name: "Lietuvos oro uostai, AB"
+          qid: Q17577349
+          holder: "Lietuvos Respublika (Susisiekimo ministerija)"
+          source: https://www.wikidata.org/wiki/Q17577349
+        - name: "Amber Grid, AB"
+          qid: Q18421733
+          holder: "EPSO-G"
+          source: https://www.wikidata.org/wiki/Q18421733
+        - name: "Litgrid, AB"
+          qid: Q5217854
+          holder: "EPSO-G"
+          source: https://www.wikidata.org/wiki/Q5217854
+        - name: "KN Energies, AB"
+          qid: Q4042253
+          holder: "Lietuvos Respublika (Energetikos ministerija)"
+          source: https://www.wikidata.org/wiki/Q4042253
+        - name: "Registrų centras"
+          qid: Q15867634
+          holder: "Lietuvos Respublika (Teisingumo ministerija)"
+          source: https://www.wikidata.org/wiki/Q15867634
+        - name: "Lietuvos radijo ir televizijos centras, AB"
+          qid: Q16458954
+          holder: "Lietuvos Respublika (Susisiekimo ministerija)"
+          source: https://www.wikidata.org/wiki/Q16458954
+        - name: "Lietuvos nacionalinis radijas ir televizija"
+          qid: Q1550538
+          holder: "Lietuvos Respublika (public broadcaster)"
+          source: https://www.wikidata.org/wiki/Q1550538
+        - name: "Lietuvos nacionalinis dramos teatras"
+          qid: Q2664657
+          holder: "Lietuvos Respublika (Kultūros ministerija)"
+          source: https://www.wikidata.org/wiki/Q2664657
+        - name: "Lietuvos nacionalinis operos ir baleto teatras"
+          qid: Q4263961
+          holder: "Lietuvos Respublika (Kultūros ministerija)"
+          source: https://www.wikidata.org/wiki/Q4263961
+        - name: "Lietuvos nacionalinis muziejus"
+          qid: Q1790447
+          holder: "Lietuvos Respublika (Kultūros ministerija)"
+          source: https://www.wikidata.org/wiki/Q1790447
+        - name: "Lietuvos nacionalinis dailės muziejus"
+          qid: Q1865041
+          holder: "Lietuvos Respublika (Kultūros ministerija)"
+          source: https://www.wikidata.org/wiki/Q1865041
+        - name: "Lietuvos nacionalinė Martyno Mažvydo biblioteka"
+          qid: Q1635759
+          holder: "Lietuvos Respublika (Kultūros ministerija)"
+          source: https://www.wikidata.org/wiki/Q1635759
+        - name: "Lietuvos nacionalinė filharmonija"
+          qid: Q4314885
+          holder: "Lietuvos Respublika (Kultūros ministerija)"
+          source: https://www.wikidata.org/wiki/Q4314885
+        - name: "Valstybinė ligonių kasa"
+          qid: Q12676463
+          holder: "Lietuvos Respublika (Sveikatos apsaugos ministerija)"
+          source: https://www.wikidata.org/wiki/Q12676463
+        - name: "Sodra"
+          qid: Q16458770
+          holder: "Lietuvos Respublika (Socialinės apsaugos ir darbo ministerija)"
+          source: https://www.wikidata.org/wiki/Q16458770
+
+amlr:
+  # Units: classes measured on Wikidata (2026-10-24).
+  units:
+    municipal:
+    - {qid: Q17166803, name: city municipality of Lithuania}
+    - {qid: Q17301072, name: district municipality of Lithuania}
+    - {qid: Q1363145, name: municipality of Lithuania}
+    grouping: []
+    metro: []

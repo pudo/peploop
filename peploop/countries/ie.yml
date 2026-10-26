@@ -1,0 +1,165 @@
+# Ireland: what the lanes know about it, one section per lane.
+
+corp:
+  # Ireland. Unitary: counties, whose councils are local government (no
+  # regional tier of its own).
+
+  tiers: [national, regional]
+
+  # Government bodies the type tree misses, read from the controllers the
+  # 2026-10-18 answers chose: the Health Service Executive, the statutory
+  # body that runs the public hospitals, is typed business/nonprofit.
+  actors:
+    - {qid: Q5690681, kind: government, name: Health Service Executive}
+
+  # Classes the type tree files under government organization or government
+  # agency that are not government bodies here. None measured: no misfiled
+  # class among the state actors read 2026-10-17.
+  not_government: []
+
+  # Never candidates here, beyond the global exclusions. Measured 2026-10-17
+  # from the state actors' P127/P749 reach and the country's live items.
+  # Garda units are branches of the police (counted among the kept bodies).
+  exclude:
+    - {qid: Q28648855, name: police unit}  # 2 kept, e.g. Q7309171 Garda Armed Support Unit
+
+  # State-only legal forms and types, matched exactly as P31 or P1454.
+  # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+  # statement, then all live items, in brackets. Measured thin: no state-only
+  # legal form. Statutory corporations are a global class; commercial
+  # semi-states are typed state-sponsored bodies, inside the Q270791 tree.
+  forms: []
+
+  roles: []
+
+  # Official list of central-government holdings; entries via en.wikipedia
+  # (State-sponsored bodies of the Republic of Ireland: statutory corporations
+  # and companies with the Government as shareholder). QIDs from the list's
+  # own links, kept only when the item is a live organisation. An entry
+  # without a QID is a holding with no item.
+  holdings:
+    - source: "Department of Public Expenditure, NewERA, commercial semi-state bodies, https://www.gov.ie/en/organisation/new-economy-and-recovery-authority/"
+      entries:
+        - name: "Córas Iompair Éireann (Irish Transport Company)"
+          qid: Q633519
+          holder: "State, statutory corporation"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Electricity Supply Board"
+          qid: Q3050566
+          holder: "State, statutory corporation"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Raidió Teilifís Éireann (Radio and Television of Ireland)"
+          qid: Q329494
+          holder: "State, statutory corporation"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Voluntary Health Insurance Board (Vhi Healthcare)"
+          qid: Q7924301
+          holder: "State, statutory corporation"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Horse Racing Ireland"
+          qid: Q5905522
+          holder: "State, statutory corporation"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Teilifís na Gaeilge"
+          qid: Q7695043
+          holder: "State, statutory corporation"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Bord Bia (Food Board)"
+          qid: Q4944424
+          holder: "State, statutory corporation"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "IDA Ireland (Industrial Development Authority)"
+          qid: Q206620
+          holder: "State, statutory corporation"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Bord na gCon (Irish Greyhound Board)"
+          qid: Q4944438
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Coillte (Commercial Irish Forestry Business)"
+          qid: Q5141484
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Irish National Stud"
+          qid: Q108824
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "An Post (The Post Office)"
+          qid: Q482490
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Ervia"
+          qid: Q4944427
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Bord na Móna plc (The Peat Board)"
+          qid: Q893380
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "EirGrid plc"
+          qid: Q1310503
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "TG4"
+          qid: Q2252456
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Permanent TSB"
+          qid: Q3154461
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Dublin Airport Authority plc"
+          qid: Q1263077
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Shannon Airport Authority"
+          qid: null
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Cork Airport Authority"
+          qid: null
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Dublin Port Company"
+          qid: null
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Port of Cork"
+          qid: null
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Drogheda Port Company"
+          qid: null
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Galway Harbour Company"
+          qid: null
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "New Ross Port Company"
+          qid: null
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Shannon Foynes Port Company"
+          qid: null
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Port of Waterford Company"
+          qid: null
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+        - name: "Wicklow Port Company"
+          qid: null
+          holder: "State, Government shareholding"
+          source: https://en.wikipedia.org/w/index.php?title=State-sponsored_bodies_of_the_Republic_of_Ireland&oldid=1379330234
+
+amlr:
+  # Units: classes measured on Wikidata (2026-10-24).
+  units:
+    municipal:
+    - {qid: Q179872, name: county of Ireland}
+    - {qid: Q13455645, name: administrative city in the Republic of Ireland}
+    grouping: []
+    metro: []
+    exclude:
+    - {qid: Q133315, name: 'Limerick (the city, merged into Limerick City and County)'}

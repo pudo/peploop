@@ -1,0 +1,507 @@
+# Finland: listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 755
+  position: President of the Republic
+  local: tasavalta
+  lang: FIN
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q29558, by: model}
+- row: 756
+  position: Prime Minister as well as of the minister referred to in chapter 5 of the Constitution of Finland
+  lang: FIN
+  status: To split
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: true
+  expansion: []
+- row: 757
+  position: Secretary of state
+  lang: FIN
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 758
+  position: Member of the government of Åland
+  local: Ahvenanmaan maakunnan hallitus
+  lang: FIN
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: viii_local
+  kind: position
+  checked: true
+  expansion: []
+- row: 759
+  position: Governor of Åland.
+  lang: FIN
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: viii_local
+  kind: position
+  checked: true
+  expansion:
+  - {position: Q1796637, by: model}
+- row: 760
+  position: Member of the Finnish Parliament
+  lang: FIN
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q17592486, by: model}
+- row: 761
+  position: Member of the Åland Parliament
+  local: Ahvenanmaan maakuntapäivät
+  lang: FIN
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: viii_local
+  kind: position
+  checked: true
+  expansion:
+  - {position: Q23256979, by: model}
+- row: 762
+  position: A political party within the meaning of Chapter 1, Section 4(11)(c) of the Money Laundering Act refers
+    to a party entered in the register of parties on the basis of Section 2 of Act 10/1969 on Political Parties.
+  local: poliittinen puolue, puolue, puoluerekisteri
+  lang: FIN
+  status: Not obviously unpackable
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 763
+  position: Members of the governing body of a political party consist of the functions of the chairperson and members
+    of the party committee
+  local: johtoelin, poliittinen puolue, puolueen hallitus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 764
+  position: Members of the governing body of a political party also consist of the functions of the deputy of a
+    person referred to in Subsection 2.
+  local: johtoelin, poliittinen puolue
+  lang: FIN
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 765
+  position: The president  of the supreme court
+  local: ylin tuomioistuin
+  lang: FIN
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q19925091, by: model}
+- row: 766
+  position: Justice of the supreme court
+  local: ylin tuomioistuin
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 767
+  position: Military member of the supreme court
+  local: ylin tuomioistuin
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 768
+  position: President of the supreme administrative court
+  local: korkein hallinto-oikeus
+  lang: FIN
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q100796356, by: model}
+- row: 769
+  position: Justice of the supreme administrative court
+  local: korkein hallinto-oikeus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q100796092, by: model}
+- row: 770
+  position: Environmental Expert of the supreme administrative court
+  local: korkein hallinto-oikeus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 771
+  position: Senior Engineering Expert of the supreme administrative court
+  local: korkein hallinto-oikeus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 772
+  position: President of the labour court
+  local: työtuomioistuin
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 773
+  position: Justice of the labour court
+  local: työtuomioistuin
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 774
+  position: Expert member of the labour court
+  local: työtuomioistuin
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 775
+  position: Chief judge who is a member of the insurance court
+  local: vakuutusoikeus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 776
+  position: Junior insurance judge who is a member of the insurance court
+  local: vakuutusoikeus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 777
+  position: Senior physician  who is a member of the insurance court
+  local: vakuutusoikeus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 778
+  position: Physician who is a member of the insurance court
+  local: vakuutusoikeus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 779
+  position: Expert member of the insurance court
+  local: vakuutusoikeus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 780
+  position: Assessors in the labour court and insurance court
+  local: työtuomioistuin, vakuutusoikeus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 781
+  position: The Money Laundering Act of members of a court of auditors
+  local: tilintarkastustuomioistuin
+  lang: FIN
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 782
+  position: The highest decision-making bodies which audit the financial management of the State and are equivalent
+    to the National Audit office consist of the functions of the auditor-general of the National Audit Office of
+    Finland
+  local: ylin päättävä elin, Valtiontalouden tarkastusvirasto
+  lang: FIN
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 783
+  position: Members of the board of directors of the central bank as referred to in Chapter 1, Section 4(11)(f)
+    of the Money Laundering Act
+  local: johtokunta, keskuspankki
+  lang: FIN
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 784
+  position: Members of the board of directors of the Bank of Finland
+  local: johtokunta, Suomen Pankki
+  lang: FIN
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q194060, by: model}
+- row: 785
+  position: Head of mission governing an embassy
+  local: edustusto, suurlähetystö
+  lang: FIN
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 786
+  position: Permanent representation
+  local: pysyvä edustusto
+  lang: FIN
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 787
+  position: Special mission or consulate-general
+  local: erityisedustusto, pääkonsulaatti
+  lang: FIN
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 788
+  position: Chargé d’affaires ad interim acting as deputy ambassador as referred to in Article 19(1) of the Vienna
+    Convention on Diplomatic Relations
+  lang: FIN
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 789
+  position: Chief of defence
+  lang: FIN
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q5097018, by: model}
+- row: 790
+  position: Chief of the military headquarters generals and admirals
+  local: Pääesikunta
+  lang: FIN
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 791
+  position: Members of the administrative
+  local: hallintoelin
+  lang: FIN
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
+- row: 792
+  position: Chairperson and members of the board of directors
+  local: hallitus
+  lang: FIN
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
+- row: 793
+  position: The Managing Director
+  lang: FIN
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
+- row: 794
+  position: The Chairperson of the administrative board of the enterprise
+  local: hallintoneuvosto, yhtiö
+  lang: FIN
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
+- row: 795
+  position: Members of the administrative board of the enterprise
+  local: hallintoneuvosto, yhtiö
+  lang: FIN
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
+- row: 796
+  position: Members of the administrative
+  local: hallintoelin
+  lang: FIN
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
+- row: 797
+  position: Director of the board
+  local: hallitus
+  lang: FIN
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: unusable
+  checked: true
+  expansion: []
+- row: 798
+  position: Deputy director  of the board
+  local: hallitus
+  lang: FIN
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: unusable
+  checked: true
+  expansion: []
+- row: 799
+  position: Secretary-general  of the board
+  local: hallitus
+  lang: FIN
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 800
+  position: Chairperson  of the board
+  local: hallitus
+  lang: FIN
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 801
+  position: Chairperson and members of the board of directors of the international organisation
+  local: hallitus, kansainvälinen yhteisö
+  lang: FIN
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: body_class
+  checked: false
+  expansion: []

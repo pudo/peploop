@@ -1,0 +1,199 @@
+# Cyprus: listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 362
+  position: President of the Republic
+  status: Position for territory
+  category: ''
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q841760, by: model}
+- row: 363
+  position: Minister
+  status: Position prefix for territory
+  category: ''
+  amlr: i_executive
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 364
+  position: Deputy Minister
+  status: Position prefix for territory
+  category: ''
+  amlr: i_executive
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 365
+  position: State Secretary
+  status: Position prefix for territory
+  category: ''
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 366
+  position: Member of the House of Representatives
+  local: Βουλή των Αντιπροσώπων
+  lang: GRC
+  status: Position for territory
+  category: ''
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q19801674, by: model}
+- row: 367
+  position: members of the governing bodies of political parties
+  status: Position prefix for territory
+  category: ''
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 368
+  position: Judge at the Supreme Court
+  local: Ανωτάτο Δικαστήριο
+  lang: GRC
+  status: Position for territory
+  category: ''
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q141737122, by: model}
+- row: 369
+  position: Auditor General
+  status: Position for territory
+  category: ''
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 370
+  position: members of the Board of Directors of the Central Bank of Cyprus
+  local: Κεντρική Τράπεζα της Κύπρου
+  lang: GRC
+  status: Position for territory
+  category: ''
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q74693, by: model}
+- row: 371
+  position: Ambassador
+  status: Position for territory
+  category: ''
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 372
+  position: Chargé d’affaires
+  status: Position for territory
+  category: ''
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 373
+  position: high-ranking officers of the National Guard
+  local: Εθνική Φρουρά
+  lang: GRC
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q245950, by: model}
+- row: 374
+  position: high-ranking officers of the Cyprus Police
+  status: Position prefix for territory
+  category: ''
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5200481, by: model}
+- row: 375
+  position: members of the administrative, management or supervisory bodies of state-owned enterprises, including
+    public sector entities
+  status: Position prefix for territory
+  category: ''
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
+- row: 376
+  position: mayor
+  status: Position prefix for territory
+  category: ''
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion:
+  - {level: municipal, office: head, by: model}
+- row: 377
+  position: Mediterranean Area Director, Commonwealth War Graves Commission
+  organisation: Commonwealth War Graves Commission
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 378
+  position: Special Representative of the Secretary-General in Cyprus and Head of UNFICYP, United Nations Peacekeeping
+    Force in Cyprus (UNFICYP)
+  organisation: United Nations Peacekeeping Force in Cyprus (UNFICYP)
+  status: Position for territory
+  category: ''
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 379
+  position: Commander of the UN Peacekeeping Force in Cyprus, United Nations Peacekeeping Force in Cyprus (UNFICYP)
+  organisation: United Nations Peacekeeping Force in Cyprus (UNFICYP)
+  status: Position for territory
+  category: ''
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 380
+  position: Senior Police Adviser, United Nations Peacekeeping Force in Cyprus (UNFICYP)
+  organisation: United Nations Peacekeeping Force in Cyprus (UNFICYP)
+  status: Position for territory
+  category: ''
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 381
+  position: High Commissioner, United Nations High Commissioner for Refugees (UNHCR)
+  organisation: United Nations High Commissioner for Refugees (UNHCR)
+  status: Position for territory
+  category: ''
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q27832358, by: model}
+- row: 382
+  position: Head of Office, United Nations Development Programme in Cyprus ‘UNDP Cyprus’
+  organisation: United Nations Development Programme in Cyprus ‘UNDP Cyprus’
+  status: Position for territory
+  category: ''
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []

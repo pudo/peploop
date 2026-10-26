@@ -4,9 +4,8 @@ The AMLR (Reg. 2024/1624, Art. 2(34)) makes PEPs of functions the lanes do
 not reach by type alone: heads of municipalities, groupings of municipalities
 and metropolitan regions of 50,000 inhabitants or more, and whatever a member
 state lists under Art. 43 (Commission notice C/2023/724). All three lanes read
-one file per country here, `amlr/<cc>.yml` (`eu.yml` for the Union's own
-functions and the rows no state lists), so the unit set and the function list
-are measured once:
+them from the country's files, so the unit set and the function list are
+measured once. The `amlr` section of `countries/<cc>.yml` is written by hand:
 
 - `threshold`: the population a unit needs, where the state notified a lower
   one than `POPULATION`;
@@ -17,9 +16,11 @@ are measured once:
   first-level subdivision (Landkreis, powiat, EPCI, provincia); first-level
   subdivisions are the regional tier, not a level here. `exclude` lists units
   the classes wrongly take in, each `{qid, name}`: a city item typed like the
-  municipality it lies in, a council area merged away with no end on its item;
-- `functions`: the state's list, one entry per sheet row, the source's text
-  verbatim and ours beside it. See `Function`.
+  municipality it lies in, a council area merged away with no end on its item.
+
+`countries/<cc>.amlr.yml` (`eu` for the Union's own functions and the rows no
+state lists) is generated: its `functions` are the state's list, one entry per
+sheet row, the source's text verbatim and ours beside it. See `Function`.
 
 `expansion` is what grows: the concrete Wikidata items a row stands for, one
 entry each, in one of four shapes:
@@ -43,9 +44,10 @@ from typing import Any
 
 import yaml
 
-from peploop import eras, memo, wikidata
+from peploop import countries, eras, memo, wikidata
 
-DIR = Path(__file__).resolve().parent / "amlr"
+#: The generated function lists, beside the country files.
+SUFFIX = ".amlr.yml"
 #: The AMLR's floor for local units, Art. 2(34)(viii).
 POPULATION = 50_000
 LEVELS = ("municipal", "grouping", "metro")
@@ -112,19 +114,29 @@ class Spec:
 
 
 def codes() -> list[str]:
-    """Every file's code, `eu` included."""
-    return sorted(p.stem for p in DIR.glob("*.yml"))
+    """Every function list's code, `eu` included."""
+    return sorted(p.name.removesuffix(SUFFIX) for p in countries.DIR.glob(f"*{SUFFIX}"))
+
+
+def path(cc: str) -> Path:
+    """A country's generated function list."""
+    return countries.DIR / f"{cc}{SUFFIX}"
+
+
+def unit_block(cc: str) -> dict[str, Any]:
+    """A country's hand-written `amlr` section as written: `units` by level, `exclude`, `threshold`."""
+    return countries.section(cc, "amlr") or {}
 
 
 @lru_cache(maxsize=None)
 def get(cc: str) -> Spec:
-    """A country's asset; an empty one when it has no file."""
-    path = DIR / f"{cc}.yml"
-    data = (yaml.safe_load(path.read_text()) if path.exists() else {}) or {}
-    units = data.get("units") or {}
+    """A country's asset; an empty one when it has neither section nor list."""
+    block = unit_block(cc)
+    units = block.get("units") or {}
+    data = (yaml.safe_load(path(cc).read_text()) if path(cc).exists() else {}) or {}
     return Spec(
         cc=cc,
-        threshold=int(data.get("threshold") or POPULATION),
+        threshold=int(block.get("threshold") or POPULATION),
         classes={str(c["qid"]): level for level in LEVELS for c in units.get(level) or []},
         exclude=frozenset(str(u["qid"]) for u in units.get("exclude") or []),
         functions=[Function(**row) for row in data.get("functions") or []],
@@ -176,7 +188,7 @@ def _blocks(value: Any) -> Any:
 
 def read_raw(cc: str) -> tuple[str, dict[str, Any]]:
     """A file's leading comment and its data as plain YAML, for a writer that must keep both."""
-    text = (DIR / f"{cc}.yml").read_text()
+    text = path(cc).read_text()
     lines = text.split("\n")
     n = next((i for i, line in enumerate(lines) if not line.startswith("#")), len(lines))
     return "".join(f"{line}\n" for line in lines[:n]), yaml.safe_load(text) or {}
@@ -190,7 +202,7 @@ def dump(data: dict[str, Any]) -> str:
 
 def save(cc: str, header: str, data: dict[str, Any]) -> None:
     """Write a file back in the layout it was written in: an unchanged file comes out byte for byte."""
-    (DIR / f"{cc}.yml").write_text(header + dump(data), encoding="utf-8")
+    path(cc).write_text(header + dump(data), encoding="utf-8")
     get.cache_clear()
 
 

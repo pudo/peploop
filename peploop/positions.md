@@ -326,7 +326,7 @@ have somewhere to go.
 
 - **Two sources, one queue.** `mint.unplaced` reads every miss of the
   country's people (not those the scope gate discarded) and pools them by
-  folded title and jurisdiction; `census/<cc>.yml` adds the offices the state
+  folded title and jurisdiction; the country's `census` adds the offices the state
   has whether or not anyone's article named them, expanded per subdivision
   over a live `P150` read where an office exists in each. A census office is
   a prompt for the offices nobody's article names, not a second channel of

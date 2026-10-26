@@ -1,0 +1,5129 @@
+# Romania: listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 2008
+  position: Presidential Administration
+  organisation: President of Romania
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2009
+  position: Prime Minister, Government of Romania
+  organisation: Government of Romania
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q15304810, by: model}
+- row: 2010
+  position: Minister, Ministry of Foreign Affairs
+  organisation: Ministry of Foreign Affairs
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2011
+  position: Assistant Minister
+  organisation: Ministry of Foreign Affairs
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2012
+  position: Minister, Ministry of Internal Affairs
+  organisation: Ministry of Internal Affairs
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2013
+  position: Assistant Minister
+  organisation: Ministry of Internal Affairs
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2014
+  position: 'Minister, Ministry of Agriculture and Rural Development: '
+  organisation: 'Ministry of Agriculture and Rural Development: '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2015
+  position: Assistant Minister
+  organisation: 'Ministry of Agriculture and Rural Development: '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2016
+  position: 'Minister, Ministry of National Defence '
+  organisation: 'Ministry of National Defence '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2017
+  position: Assistant Minister
+  organisation: 'Ministry of National Defence '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2018
+  position: 'Minister, Ministry of Culture '
+  organisation: 'Ministry of Culture '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2019
+  position: Assistant Minister
+  organisation: 'Ministry of Culture '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2020
+  position: 'Minister, Ministry of the Economy, Entrepreneurship and Tourism: '
+  organisation: 'Ministry of the Economy, Entrepreneurship and Tourism: '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2021
+  position: Assistant Minister
+  organisation: 'Ministry of the Economy, Entrepreneurship and Tourism: '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2022
+  position: 'Minister, Ministry of Education: '
+  organisation: 'Ministry of Education: '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q21389881, by: model}
+- row: 2023
+  position: Assistant Minister
+  organisation: 'Ministry of Education: '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2024
+  position: 'Minister, Ministry of Energy '
+  organisation: 'Ministry of Energy '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2025
+  position: Assistant Minister
+  organisation: 'Ministry of Energy '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2026
+  position: 'Innovation and Digitisation, Ministry of Research  '
+  organisation: 'Ministry of Research  '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2027
+  position: 'Minister, Ministry of Finance '
+  organisation: 'Ministry of Finance '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2028
+  position: Assistant Minister
+  organisation: 'Ministry of Finance '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2029
+  position: 'Minister, Ministry of Investments and European Projects '
+  organisation: 'Ministry of Investments and European Projects '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2030
+  position: Assistant Minister
+  organisation: 'Ministry of Investments and European Projects '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2031
+  position: 'Minister, Ministry of Justice  '
+  organisation: 'Ministry of Justice  '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2032
+  position: Assistant Minister
+  organisation: 'Ministry of Justice  '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2033
+  position: 'Minister, Ministry of Development, Public Works and Administration '
+  organisation: 'Ministry of Development, Public Works and Administration '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2034
+  position: ' Assistant Minister'
+  organisation: 'Ministry of Development, Public Works and Administration '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2035
+  position: 'Minister, Ministry of the Environment, Water and Forests '
+  organisation: 'Ministry of the Environment, Water and Forests '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2036
+  position: Assistant Minister
+  organisation: 'Ministry of the Environment, Water and Forests '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2037
+  position: 'Minister, Ministry of Labour and Social Protection  '
+  organisation: 'Ministry of Labour and Social Protection  '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2038
+  position: Assistant Minister
+  organisation: 'Ministry of Labour and Social Protection  '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2039
+  position: 'Minister, Ministry of Health '
+  organisation: 'Ministry of Health '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q20885066, by: model}
+- row: 2040
+  position: Assistant Minister
+  organisation: 'Ministry of Health '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2041
+  position: 'Minister, Ministry of Youth and Sport '
+  organisation: 'Ministry of Youth and Sport '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2042
+  position: Assistant Minister
+  organisation: 'Ministry of Youth and Sport '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2043
+  position: 'Minister, Ministry of Transport, Infrastructure and Communications '
+  organisation: 'Ministry of Transport, Infrastructure and Communications '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2044
+  position: Assistant Minister
+  organisation: 'Ministry of Transport, Infrastructure and Communications '
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 2045
+  position: Deputy
+  organisation: Chamber of Deputies
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q17556530, by: model}
+- row: 2046
+  position: Senator
+  organisation: Senate
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q19938957, by: model}
+- row: 2047
+  position: President, Alliance of Liberals and Democrats Party
+  local: Partidul Alianța Liberalilor și Democraților (ALDE)
+  lang: RUM
+  organisation: Alliance of Liberals and Democrats Party (Partidul Alianța Liberalilor și Democraților) (ALDE)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2048
+  position: Vice-President Liberty, Alliance of Liberals and Democrats Party
+  local: Partidul Alianța Liberalilor și Democraților (ALDE)
+  lang: RUM
+  organisation: Alliance of Liberals and Democrats Party (Partidul Alianța Liberalilor și Democraților) (ALDE)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2049
+  position: President, Unity and Solidarity Party
+  local: Partidul Libertate, Unitate și Solidaritate (PLUS)
+  lang: RUM
+  organisation: 'Unity and Solidarity Party (Partidul Libertate, Unitate și Solidaritate) (PLUS) '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2050
+  position: Executive President, Unity and Solidarity Party
+  local: Partidul Libertate, Unitate și Solidaritate (PLUS)
+  lang: RUM
+  organisation: 'Unity and Solidarity Party (Partidul Libertate, Unitate și Solidaritate) (PLUS) '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2051
+  position: President, Popular Movement Party
+  local: Partidul Mișcarea Populară (PMP)
+  lang: RUM
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2052
+  position: First Vice-President, Popular Movement Party
+  local: Partidul Mișcarea Populară (PMP)
+  lang: RUM
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2053
+  position: Executive President, Popular Movement Party
+  local: Partidul Mișcarea Populară (PMP)
+  lang: RUM
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2054
+  position: Secretary-General, Popular Movement Party
+  local: Partidul Mișcarea Populară (PMP)
+  lang: RUM
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2055
+  position: 'Deputy Secretary-General '
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2056
+  position: Vice-President, Popular Movement Party
+  local: Partidul Mișcarea Populară (PMP)
+  lang: RUM
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2057
+  position: Executive Secretary, Popular Movement Party
+  local: Partidul Mișcarea Populară (PMP)
+  lang: RUM
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2058
+  position: 'Treasurer '
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2059
+  position: County Branch President, Popular Movement Party
+  local: Partidul Mișcarea Populară (PMP)
+  lang: RUM
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2060
+  position: 'Sector Branch President '
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2061
+  position: President of Bucharest Organisation, Popular Movement Party
+  local: Partidul Mișcarea Populară (PMP)
+  lang: RUM
+  organisation: Popular Movement Party (Partidul Mișcarea Populară) (PMP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2062
+  position: President, National Liberal Party
+  local: Partidul Național Liberal (PNL)
+  lang: RUM
+  organisation: National Liberal Party (Partidul Național Liberal) (PNL)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2063
+  position: First Vice-President, National Liberal Party
+  local: Partidul Național Liberal (PNL)
+  lang: RUM
+  organisation: National Liberal Party (Partidul Național Liberal) (PNL)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2064
+  position: Secretary-General, National Liberal Party
+  local: Partidul Național Liberal (PNL)
+  lang: RUM
+  organisation: National Liberal Party (Partidul Național Liberal) (PNL)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2065
+  position: Vice-President, National Liberal Party
+  local: Partidul Național Liberal (PNL)
+  lang: RUM
+  organisation: National Liberal Party (Partidul Național Liberal) (PNL)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2066
+  position: Member with rank of Political Vice-President
+  organisation: National Liberal Party (Partidul Național Liberal) (PNL)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2067
+  position: President, PRO Romania
+  lang: RUM
+  organisation: PRO Romania
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2068
+  position: First Vice-President, PRO Romania
+  lang: RUM
+  organisation: PRO Romania
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2069
+  position: Secretary-General, PRO Romania
+  lang: RUM
+  organisation: PRO Romania
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2070
+  position: Treasurer
+  organisation: PRO Romania
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2071
+  position: President of National Council, Humanist Power Party
+  local: Partidul Puterii Umaniste
+  lang: RUM
+  organisation: Humanist Power Party (Partidul Puterii Umaniste)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2072
+  position: President of Executive Bureau, Humanist Power Party
+  local: Partidul Puterii Umaniste
+  lang: RUM
+  organisation: Humanist Power Party (Partidul Puterii Umaniste)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2073
+  position: Leader of Humanist Forum, Humanist Power Party
+  local: Partidul Puterii Umaniste
+  lang: RUM
+  organisation: Humanist Power Party (Partidul Puterii Umaniste)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2074
+  position: President, Social Democrat Party
+  local: Partidul Social Democrat (PSD)
+  lang: RUM
+  organisation: Social Democrat Party (Partidul Social Democrat) (PSD)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2075
+  position: First Vice-President, Social Democrat Party
+  local: Partidul Social Democrat (PSD)
+  lang: RUM
+  organisation: Social Democrat Party (Partidul Social Democrat) (PSD)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2076
+  position: 'Member of National Political Council '
+  organisation: Social Democrat Party (Partidul Social Democrat) (PSD)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2077
+  position: Member of Permanent Bureau
+  organisation: Social Democrat Party (Partidul Social Democrat) (PSD)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2078
+  position: President, Save Romania Party
+  local: Partidul Uniunea Salvați România (USR)
+  lang: RUM
+  organisation: 'Save Romania Party (Partidul Uniunea Salvați România) (USR) '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2079
+  position: Vice-President, Save Romania Party
+  local: Partidul Uniunea Salvați România (USR)
+  lang: RUM
+  organisation: 'Save Romania Party (Partidul Uniunea Salvați România) (USR) '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2080
+  position: President, Alternative Right Party
+  local: Partidul Alternativa Dreaptă (AD)
+  lang: RUM
+  organisation: 'Alternative Right Party (Partidul Alternativa Dreaptă) (AD) '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2081
+  position: Acting Co-President, Alternative Right Party
+  local: Partidul Alternativa Dreaptă (AD)
+  lang: RUM
+  organisation: 'Alternative Right Party (Partidul Alternativa Dreaptă) (AD) '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2082
+  position: President, Hungarian Civic Party
+  local: Partidul Civic Maghiar (PCM MPP)
+  lang: RUM
+  organisation: 'Hungarian Civic Party (Partidul Civic Maghiar) (PCM MPP) '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2083
+  position: Vice-President, Hungarian Civic Party
+  local: Partidul Civic Maghiar (PCM MPP)
+  lang: RUM
+  organisation: 'Hungarian Civic Party (Partidul Civic Maghiar) (PCM MPP) '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2084
+  position: Executive President, Hungarian Civic Party
+  local: Partidul Civic Maghiar (PCM MPP)
+  lang: RUM
+  organisation: 'Hungarian Civic Party (Partidul Civic Maghiar) (PCM MPP) '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2085
+  position: President of National Governing Council, Hungarian Civic Party
+  local: Partidul Civic Maghiar (PCM MPP)
+  lang: RUM
+  organisation: 'Hungarian Civic Party (Partidul Civic Maghiar) (PCM MPP) '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2086
+  position: Romanian Communist Party – 21st Century (Partidul Comunist Român – Secolul XXI) (PCR XXI)
+  organisation: 'President of Organising Committee '
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2087
+  position: Vice-President of Organising Committee, President of Organising Committee
+  lang: RUM
+  organisation: 'President of Organising Committee '
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2088
+  position: President, Liberal Right Party
+  local: Partidul Dreapta Liberală (DL)
+  lang: RUM
+  organisation: Liberal Right Party (Partidul Dreapta Liberală) (DL)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2089
+  position: President, Romanian Ecologist Party
+  local: Partidul Ecologist din România (PER)
+  lang: RUM
+  organisation: Romanian Ecologist Party (Partidul Ecologist din România) (PER)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2090
+  position: First Vice-President, Romanian Ecologist Party
+  local: Partidul Ecologist din România (PER)
+  lang: RUM
+  organisation: Romanian Ecologist Party (Partidul Ecologist din România) (PER)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2091
+  position: Secretary-General, Romanian Ecologist Party
+  local: Partidul Ecologist din România (PER)
+  lang: RUM
+  organisation: Romanian Ecologist Party (Partidul Ecologist din România) (PER)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2092
+  position: 'Deputy Secretary-General '
+  organisation: Romanian Ecologist Party (Partidul Ecologist din România) (PER)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2093
+  position: Vice-President, Romanian Ecologist Party
+  local: Partidul Ecologist din România (PER)
+  lang: RUM
+  organisation: Romanian Ecologist Party (Partidul Ecologist din România) (PER)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2094
+  position: President, Hungarian People’s Party of Transylvania
+  local: Partidul Popular Maghiar din Transilvania (
+  lang: RUM
+  organisation: Hungarian People’s Party of Transylvania (Partidul Popular Maghiar din Transilvania)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2095
+  position: Vice-President, Hungarian People’s Party of Transylvania
+  local: Partidul Popular Maghiar din Transilvania (
+  lang: RUM
+  organisation: Hungarian People’s Party of Transylvania (Partidul Popular Maghiar din Transilvania)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2096
+  position: President, Monarchist Party
+  local: Partidul Monarhist (PM23)
+  lang: RUM
+  organisation: Monarchist Party (Partidul Monarhist) (PM23)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2097
+  position: Vice-President, Monarchist Party
+  local: Partidul Monarhist (PM23)
+  lang: RUM
+  organisation: Monarchist Party (Partidul Monarhist) (PM23)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2098
+  position: Secretary-General, Monarchist Party
+  local: Partidul Monarhist (PM23)
+  lang: RUM
+  organisation: Monarchist Party (Partidul Monarhist) (PM23)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2099
+  position: Branch President
+  organisation: Monarchist Party (Partidul Monarhist) (PM23)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2100
+  position: Branch Vice-President
+  organisation: Monarchist Party (Partidul Monarhist) (PM23)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2101
+  position: Branch Secretary-General
+  organisation: Romanian Nation Party (Partidul Neamul Românesc) (PNR)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2102
+  position: Treasurer
+  organisation: Romanian Nation Party (Partidul Neamul Românesc) (PNR)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2103
+  position: Secretary-General,, Romanian Nation Party
+  local: Partidul Neamul Românesc (PNR)
+  lang: RUM
+  organisation: Romanian Nation Party (Partidul Neamul Românesc) (PNR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2104
+  position: Executive Secretary, Romanian Nation Party
+  local: Partidul Neamul Românesc (PNR)
+  lang: RUM
+  organisation: Romanian Nation Party (Partidul Neamul Românesc) (PNR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2105
+  position: President of National Women’s Organisation, Romanian Nation Party
+  local: Partidul Neamul Românesc (PNR)
+  lang: RUM
+  organisation: Romanian Nation Party (Partidul Neamul Românesc) (PNR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2106
+  position: President of National Youth Organisation, Romanian Nation Party
+  local: Partidul Neamul Românesc (PNR)
+  lang: RUM
+  organisation: Romanian Nation Party (Partidul Neamul Românesc) (PNR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2107
+  position: Regional Secretary
+  organisation: Romanian Nation Party (Partidul Neamul Românesc) (PNR)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2108
+  position: Vice-President, Romanian Nation Party
+  local: Partidul Neamul Românesc (PNR)
+  lang: RUM
+  organisation: Romanian Nation Party (Partidul Neamul Românesc) (PNR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2109
+  position: First Vice-President, Romanian Nation Party
+  local: Partidul Neamul Românesc (PNR)
+  lang: RUM
+  organisation: Romanian Nation Party (Partidul Neamul Românesc) (PNR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2110
+  position: President, Romanian Nation Party
+  local: Partidul Neamul Românesc (PNR)
+  lang: RUM
+  organisation: Romanian Nation Party (Partidul Neamul Românesc) (PNR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2111
+  position: President, Romanian Nation Party
+  local: PNRo (
+  lang: RUM
+  organisation: Romanian Nation Party (PNRo)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2112
+  position: President, Free People Party
+  local: Partidul Oamenilor Liberi (POL)
+  lang: RUM
+  organisation: Free People Party (Partidul Oamenilor Liberi) (POL)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2113
+  position: President, Greater Romania Party
+  local: Partidul România Mare (PRM)
+  lang: RUM
+  organisation: Greater Romania Party (Partidul România Mare) (PRM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2114
+  position: Vice-President, Greater Romania Party
+  local: Partidul România Mare (PRM)
+  lang: RUM
+  organisation: Greater Romania Party (Partidul România Mare) (PRM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2115
+  position: Secretary-General,, Greater Romania Party
+  local: Partidul România Mare (PRM)
+  lang: RUM
+  organisation: Greater Romania Party (Partidul România Mare) (PRM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2116
+  position: Executive Secretary, Greater Romania Party
+  local: Partidul România Mare (PRM)
+  lang: RUM
+  organisation: Greater Romania Party (Partidul România Mare) (PRM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2117
+  position: Member of Permanent Bureau
+  organisation: Greater Romania Party (Partidul România Mare) (PRM)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2118
+  position: President of Women’s Organisation, Greater Romania Party
+  local: Partidul România Mare (PRM)
+  lang: RUM
+  organisation: Greater Romania Party (Partidul România Mare) (PRM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2119
+  position: President of Youth Organisation, Greater Romania Party
+  local: Partidul România Mare (PRM)
+  lang: RUM
+  organisation: Greater Romania Party (Partidul România Mare) (PRM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2120
+  position: Executive Secretary, Rational Romania Party
+  local: Partidul România Rațională (ЯR)
+  lang: RUM
+  organisation: Rational Romania Party (Partidul România Rațională) (ЯR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2121
+  position: Vice-President,, Rational Romania Party
+  local: Partidul România Rațională (ЯR)
+  lang: RUM
+  organisation: Rational Romania Party (Partidul România Rațională) (ЯR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2122
+  position: President, Rational Romania Party
+  local: Partidul România Rațională (ЯR)
+  lang: RUM
+  organisation: Rational Romania Party (Partidul România Rațională) (ЯR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2123
+  position: President, Green Party
+  local: Partidul Verde (PV)
+  lang: RUM
+  organisation: Green Party (Partidul Verde) (PV)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2124
+  position: Executive President, Green Party
+  local: Partidul Verde (PV)
+  lang: RUM
+  organisation: Green Party (Partidul Verde) (PV)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2125
+  position: First Vice-President, Green Party
+  local: Partidul Verde (PV)
+  lang: RUM
+  organisation: Green Party (Partidul Verde) (PV)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2126
+  position: Secretary-General, Green Party
+  local: Partidul Verde (PV)
+  lang: RUM
+  organisation: Green Party (Partidul Verde) (PV)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2127
+  position: Vice-President, Green Party
+  local: Partidul Verde (PV)
+  lang: RUM
+  organisation: Green Party (Partidul Verde) (PV)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2128
+  position: President, National Union for Democracy, Humanity and Respect
+  local: Uniunea Națională pentru Democrație, Omenie și Respect (UNDOR)
+  lang: RUM
+  organisation: National Union for Democracy, Humanity and Respect (Uniunea Națională pentru Democrație, Omenie
+    și Respect) (UNDOR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2129
+  position: Management Board
+  organisation: National Union for Democracy, Humanity and Respect (Uniunea Națională pentru Democrație, Omenie
+    și Respect) (UNDOR)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2130
+  position: President, National Union for the Progress of Romania
+  local: Uniunea Națională pentru Progresul României (UNPR)
+  lang: RUM
+  organisation: National Union for the Progress of Romania (Uniunea Națională pentru Progresul României) (UNPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2131
+  position: Secretary-General, National Union for the Progress of Romania
+  local: Uniunea Națională pentru Progresul României (UNPR)
+  lang: RUM
+  organisation: National Union for the Progress of Romania (Uniunea Națională pentru Progresul României) (UNPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2132
+  position: Deputy Secretary-General
+  organisation: National Union for the Progress of Romania (Uniunea Națională pentru Progresul României) (UNPR)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2133
+  position: Vice-President of National Council, National Union for the Progress of Romania
+  local: Uniunea Națională pentru Progresul României (UNPR)
+  lang: RUM
+  organisation: National Union for the Progress of Romania (Uniunea Națională pentru Progresul României) (UNPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2134
+  position: Vice-President, National Union for the Progress of Romania
+  local: Uniunea Națională pentru Progresul României (UNPR)
+  lang: RUM
+  organisation: National Union for the Progress of Romania (Uniunea Națională pentru Progresul României) (UNPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2135
+  position: President, Truth and Law Party
+  local: Partidul Adevăr şi Dreptate (PAD)
+  lang: RUM
+  organisation: Truth and Law Party (Partidul Adevăr şi Dreptate) (PAD)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2136
+  position: Vice-President, Truth and Law Party
+  local: Partidul Adevăr şi Dreptate (PAD)
+  lang: RUM
+  organisation: Truth and Law Party (Partidul Adevăr şi Dreptate) (PAD)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2137
+  position: President, National Farmers’ Alliance
+  local: Alianţa Naţională a Agricultorilor (ANA)
+  lang: RUM
+  organisation: National Farmers’ Alliance (Alianţa Naţională a Agricultorilor) (ANA)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2138
+  position: Executive President, National Farmers’ Alliance
+  local: Alianţa Naţională a Agricultorilor (ANA)
+  lang: RUM
+  organisation: National Farmers’ Alliance (Alianţa Naţională a Agricultorilor) (ANA)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2139
+  position: Vice-President, National Farmers’ Alliance
+  local: Alianţa Naţională a Agricultorilor (ANA)
+  lang: RUM
+  organisation: National Farmers’ Alliance (Alianţa Naţională a Agricultorilor) (ANA)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2140
+  position: Secretary-General, National Farmers’ Alliance
+  local: Alianţa Naţională a Agricultorilor (ANA)
+  lang: RUM
+  organisation: National Farmers’ Alliance (Alianţa Naţională a Agricultorilor) (ANA)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2141
+  position: President, Christian Democrat Alliance Party
+  local: Partidul Alianţa Creştin Democrată (ACD)
+  lang: RUM
+  organisation: Christian Democrat Alliance Party (Partidul Alianţa Creştin Democrată) (ACD)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2142
+  position: Founding Member
+  organisation: Christian Democrat Alliance Party (Partidul Alianţa Creştin Democrată) (ACD)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2143
+  position: President, True Romania Christian Alliance Party
+  local: Partidul Alianţa Creştină Adevărată Română (ACAR)
+  lang: RUM
+  organisation: True Romania Christian Alliance Party (Partidul Alianţa Creştină Adevărată Română) (ACAR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2144
+  position: Vice-President, True Romania Christian Alliance Party
+  local: Partidul Alianţa Creştină Adevărată Română (ACAR)
+  lang: RUM
+  organisation: True Romania Christian Alliance Party (Partidul Alianţa Creştină Adevărată Română) (ACAR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2145
+  position: President, Alliance for Transparency and Unity Party
+  local: Partidul Alianța pentru Transparență și Unitate (ATU)
+  lang: RUM
+  organisation: Alliance for Transparency and Unity Party (Partidul Alianța pentru Transparență și Unitate)(ATU)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2146
+  position: Member
+  organisation: Alliance for Transparency and Unity Party (Partidul Alianța pentru Transparență și Unitate)(ATU)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2147
+  position: 'President, AER Party:'
+  lang: RUM
+  organisation: 'AER Party:'
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2148
+  position: 'First Vice-President, AER Party:'
+  lang: RUM
+  organisation: 'AER Party:'
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2149
+  position: 'Secretary-General, AER Party:'
+  lang: RUM
+  organisation: 'AER Party:'
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2150
+  position: President, Party of the Inhabitants of Arad
+  local: Partidul Arădenilor (PA)
+  lang: RUM
+  organisation: Party of the Inhabitants of Arad (Partidul Arădenilor) (PA)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2151
+  position: Chancellor, Banat Party
+  local: Partidul Banatul (PB)
+  lang: RUM
+  organisation: Banat Party (Partidul Banatul) (PB)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2152
+  position: General Coordinator or Vice-Chancellor
+  organisation: Banat Party (Partidul Banatul) (PB)
+  status: Not obviously unpackable
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2153
+  position: President, ‘A Different Constanţa’ Party
+  local: Partidul Constanţa Altfel (CTA)
+  lang: RUM
+  organisation: ‘A Different Constanţa’ Party (Partidul Constanţa Altfel) (CTA)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2154
+  position: Vice-President, ‘A Different Constanţa’ Party
+  local: Partidul Constanţa Altfel (CTA)
+  lang: RUM
+  organisation: ‘A Different Constanţa’ Party (Partidul Constanţa Altfel) (CTA)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2155
+  position: Member of Congress
+  organisation: ‘A Different Constanţa’ Party (Partidul Constanţa Altfel) (CTA)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2156
+  position: Member of Political Committee
+  organisation: ‘A Different Constanţa’ Party (Partidul Constanţa Altfel) (CTA)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2157
+  position: President, Correct Government Party
+  local: Partidul Corectei Guvernări (PCG)
+  lang: RUM
+  organisation: Correct Government Party (Partidul Corectei Guvernări) (PCG)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2158
+  position: Executive President, Correct Government Party
+  local: Partidul Corectei Guvernări (PCG)
+  lang: RUM
+  organisation: Correct Government Party (Partidul Corectei Guvernări) (PCG)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2159
+  position: Member of National Initiative Committee
+  organisation: Correct Government Party (Partidul Corectei Guvernări) (PCG)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2160
+  position: President, Conservative Right Party
+  local: Partidul Dreapta Conservatoare (PCG)
+  lang: RUM
+  organisation: Conservative Right Party (Partidul Dreapta Conservatoare) (PDC)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2161
+  position: President, Party of Ialomitans
+  local: Partidul Ialomițenilor (PI)
+  lang: RUM
+  organisation: Party of Ialomitans (Partidul Ialomițenilor) (PI)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2162
+  position: Vice-President, Party of Ialomitans
+  local: Partidul Ialomițenilor (PI)
+  lang: RUM
+  organisation: Party of Ialomitans (Partidul Ialomițenilor) (PI)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2163
+  position: President, Municipality of Moşniţa Independence Party
+  local: Partidul Independenţii Comunei Moşniţa (ICM)
+  lang: RUM
+  organisation: Municipality of Moşniţa Independence Party (Partidul Independenţii Comunei Moşniţa) (ICM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2164
+  position: First Vice-President, Municipality of Moşniţa Independence Party
+  local: Partidul Independenţii Comunei Moşniţa (ICM)
+  lang: RUM
+  organisation: Municipality of Moşniţa Independence Party (Partidul Independenţii Comunei Moşniţa) (ICM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2165
+  position: Vice-President, Municipality of Moşniţa Independence Party
+  local: Partidul Independenţii Comunei Moşniţa (ICM)
+  lang: RUM
+  organisation: Municipality of Moşniţa Independence Party (Partidul Independenţii Comunei Moşniţa) (ICM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2166
+  position: Secretary-General, Municipality of Moşniţa Independence Party
+  local: Partidul Independenţii Comunei Moşniţa (ICM)
+  lang: RUM
+  organisation: Municipality of Moşniţa Independence Party (Partidul Independenţii Comunei Moşniţa) (ICM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2167
+  position: Treasurer
+  organisation: Municipality of Moşniţa Independence Party (Partidul Independenţii Comunei Moşniţa) (ICM)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2168
+  position: President, Our Otopeni Initiative Party
+  local: Partidul Iniţiativa Otopeniul Nostru (ION)
+  lang: RUM
+  organisation: Our Otopeni Initiative Party (Partidul Iniţiativa Otopeniul Nostru) (ION)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2169
+  position: Vice-President, Our Otopeni Initiative Party
+  local: Partidul Iniţiativa Otopeniul Nostru (ION)
+  lang: RUM
+  organisation: Our Otopeni Initiative Party (Partidul Iniţiativa Otopeniul Nostru) (ION)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2170
+  position: Secretary
+  organisation: Our Otopeni Initiative Party (Partidul Iniţiativa Otopeniul Nostru) (ION)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2171
+  position: Initiative Committee, Our Otopeni Initiative Party
+  local: Partidul Iniţiativa Otopeniul Nostru (ION)
+  lang: RUM
+  organisation: Our Otopeni Initiative Party (Partidul Iniţiativa Otopeniul Nostru) (ION)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2172
+  position: Executive President, Organised League of Righteous Regions ‘L.O.R.D’
+  local: Partidul Liga Organizată a Regiunilor Drepte
+  lang: RUM
+  organisation: Organised League of Righteous Regions (Partidul Liga Organizată a Regiunilor Drepte) ‘L.O.R.D’
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2173
+  position: Honorary President, Organised League of Righteous Regions ‘L.O.R.D’
+  local: Partidul Liga Organizată a Regiunilor Drepte
+  lang: RUM
+  organisation: Organised League of Righteous Regions (Partidul Liga Organizată a Regiunilor Drepte) ‘L.O.R.D’
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2174
+  position: President of Regions, Organised League of Righteous Regions ‘L.O.R.D’
+  local: Partidul Liga Organizată a Regiunilor Drepte
+  lang: RUM
+  organisation: Organised League of Righteous Regions (Partidul Liga Organizată a Regiunilor Drepte) ‘L.O.R.D’
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2175
+  position: President, Party of Macedonian-Aromanians of Romania
+  local: Partidul Makedonarmanilor din România (PMAK)
+  lang: RUM
+  organisation: Party of Macedonian-Aromanians of Romania (Partidul Makedonarmanilor din România) (PMAK)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2176
+  position: Secretary-General, Party of Macedonian-Aromanians of Romania
+  local: Partidul Makedonarmanilor din România (PMAK)
+  lang: RUM
+  organisation: Party of Macedonian-Aromanians of Romania (Partidul Makedonarmanilor din România) (PMAK)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2177
+  position: Vice-President, Party of Macedonian-Aromanians of Romania
+  local: Partidul Makedonarmanilor din România (PMAK)
+  lang: RUM
+  organisation: Party of Macedonian-Aromanians of Romania (Partidul Makedonarmanilor din România) (PMAK)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2178
+  position: Treasurer
+  organisation: Party of Macedonian-Aromanians of Romania (Partidul Makedonarmanilor din România) (PMAK)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2179
+  position: President, ‘Movement for Medgidia’ Party
+  local: Partidul ‘Mișcarea pentru Medgidia’  (MPM)
+  lang: RUM
+  organisation: ‘Movement for Medgidia’ Party (Partidul ‘Mișcarea pentru Medgidia’ ) (MPM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2180
+  position: Vice-President, ‘Movement for Medgidia’ Party
+  local: Partidul ‘Mișcarea pentru Medgidia’  (MPM)
+  lang: RUM
+  organisation: ‘Movement for Medgidia’ Party (Partidul ‘Mișcarea pentru Medgidia’ ) (MPM)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2181
+  position: President, We, Geto-Dacians! Party
+  local: Partidul Noi, Getodacii! (PNGD)
+  lang: RUM
+  organisation: We, Geto-Dacians! Party (Partidul Noi, Getodacii!) (PNGD)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2182
+  position: Vice-President, We, Geto-Dacians! Party
+  local: Partidul Noi, Getodacii! (PNGD)
+  lang: RUM
+  organisation: We, Geto-Dacians! Party (Partidul Noi, Getodacii!) (PNGD)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2183
+  position: President, Phralipe Roma Party
+  local: Partidul Phralipe al Romilor (PPR)
+  lang: RUM
+  organisation: Phralipe Roma Party (Partidul Phralipe al Romilor) (PPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2184
+  position: Executive President, Phralipe Roma Party
+  local: Partidul Phralipe al Romilor (PPR)
+  lang: RUM
+  organisation: Phralipe Roma Party (Partidul Phralipe al Romilor) (PPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2185
+  position: Vice-President, Phralipe Roma Party
+  local: Partidul Phralipe al Romilor (PPR)
+  lang: RUM
+  organisation: Phralipe Roma Party (Partidul Phralipe al Romilor) (PPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2186
+  position: Secretary-General,, Phralipe Roma Party
+  local: Partidul Phralipe al Romilor (PPR)
+  lang: RUM
+  organisation: Phralipe Roma Party (Partidul Phralipe al Romilor) (PPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2187
+  position: President of Regional Offices, Phralipe Roma Party
+  local: Partidul Phralipe al Romilor (PPR)
+  lang: RUM
+  organisation: Phralipe Roma Party (Partidul Phralipe al Romilor) (PPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2188
+  position: President, Romanian Popular Party
+  local: Partidul Popular din România (PPR)
+  lang: RUM
+  organisation: Romanian Popular Party (Partidul Popular din România) (PPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2189
+  position: Vice-President, Romanian Popular Party
+  local: Partidul Popular din România (PPR)
+  lang: RUM
+  organisation: Romanian Popular Party (Partidul Popular din România) (PPR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2190
+  position: President, Prahova in Action Party
+  local: Partidul Prahova în Acţiune (PIA)
+  lang: RUM
+  organisation: Prahova in Action Party (Partidul Prahova în Acţiune) (PIA)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2191
+  position: Executive President, Prahova in Action Party
+  local: Partidul Prahova în Acţiune (PIA)
+  lang: RUM
+  organisation: Prahova in Action Party (Partidul Prahova în Acţiune) (PIA)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2192
+  position: Vice-President, Prahova in Action Party
+  local: Partidul Prahova în Acţiune (PIA)
+  lang: RUM
+  organisation: Prahova in Action Party (Partidul Prahova în Acţiune) (PIA)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2193
+  position: President, RE:START Romania Party
+  local: Partidul RE:START România (PRS)
+  lang: RUM
+  organisation: RE:START Romania Party (Partidul RE:START România) (PRS)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2194
+  position: First Vice-President, RE:START Romania Party
+  local: Partidul RE:START România (PRS)
+  lang: RUM
+  organisation: RE:START Romania Party (Partidul RE:START România) (PRS)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2195
+  position: Vice-President, RE:START Romania Party
+  local: Partidul RE:START România (PRS)
+  lang: RUM
+  organisation: RE:START Romania Party (Partidul RE:START România) (PRS)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2196
+  position: President, Popular Social Party
+  local: Partidul Social Popular (PSP)
+  lang: RUM
+  organisation: Popular Social Party (Partidul Social Popular) (PSP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2197
+  position: Vice-President, Popular Social Party
+  local: Partidul Social Popular (PSP)
+  lang: RUM
+  organisation: Popular Social Party (Partidul Social Popular) (PSP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2198
+  position: President, Future of Făgăraș Party
+  local: Partidul Viitorul Țării Făgărașului (PVTF)
+  lang: RUM
+  organisation: Future of Făgăraș Party (Partidul Viitorul Țării Făgărașului) (PVTF)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2199
+  position: Vice-President, Future of Făgăraș Party
+  local: Partidul Viitorul Țării Făgărașului (PVTF)
+  lang: RUM
+  organisation: Future of Făgăraș Party (Partidul Viitorul Țării Făgărașului) (PVTF)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2200
+  position: Secretary-General, Future of Făgăraș Party
+  local: Partidul Viitorul Țării Făgărașului (PVTF)
+  lang: RUM
+  organisation: Future of Făgăraș Party (Partidul Viitorul Țării Făgărașului) (PVTF)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2201
+  position: President, Slănic Prahova Civic Union
+  local: Uniunea Civică Slănic Prahova (UCSP)
+  lang: RUM
+  organisation: Slănic Prahova Civic Union (Uniunea Civică Slănic Prahova) (UCSP)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2202
+  position: President, Romanian Christian Democrat Union
+  local: Uniunea Creştin Democrată din România (UCDR)
+  lang: RUM
+  organisation: Romanian Christian Democrat Union (Uniunea Creştin Democrată din România) (UCDR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2203
+  position: Member of Regional Council
+  organisation: Romanian Christian Democrat Union (Uniunea Creştin Democrată din România) (UCDR)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2204
+  position: President of Local Organisations,, Romanian Christian Democrat Union
+  local: Uniunea Creştin Democrată din România (UCDR)
+  lang: RUM
+  organisation: Romanian Christian Democrat Union (Uniunea Creştin Democrată din România) (UCDR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2205
+  position: President of County Organisations, Romanian Christian Democrat Union
+  local: Uniunea Creştin Democrată din România (UCDR)
+  lang: RUM
+  organisation: Romanian Christian Democrat Union (Uniunea Creştin Democrată din România) (UCDR)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2206
+  position: President, Party of the Union of Local Forces
+  local: Partidul Uniunea Forţelor Locale
+  lang: RUM
+  organisation: Party of the Union of Local Forces (Partidul Uniunea Forţelor Locale)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2207
+  position: Vice-President, Party of the Union of Local Forces
+  local: Partidul Uniunea Forţelor Locale
+  lang: RUM
+  organisation: Party of the Union of Local Forces (Partidul Uniunea Forţelor Locale)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2208
+  position: Member of National Bureau
+  organisation: Party of the Union of Local Forces (Partidul Uniunea Forţelor Locale)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2209
+  position: President of County Branch, Party of the Union of Local Forces
+  local: Bucharest, Partidul Uniunea Forţelor Locale
+  lang: RUM
+  organisation: Party of the Union of Local Forces (Partidul Uniunea Forţelor Locale)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2210
+  position: Vice-President of County Branch, Party of the Union of Local Forces
+  local: Bucharest, Partidul Uniunea Forţelor Locale
+  lang: RUM
+  organisation: Party of the Union of Local Forces (Partidul Uniunea Forţelor Locale)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2211
+  position: Member of County Branch Bureau (Bucharest)
+  organisation: Party of the Union of Local Forces (Partidul Uniunea Forţelor Locale)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2212
+  position: President of Local Branch, Party of the Union of Local Forces
+  local: Partidul Uniunea Forţelor Locale
+  lang: RUM
+  organisation: Party of the Union of Local Forces (Partidul Uniunea Forţelor Locale)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2213
+  position: Vice-President of Local Branch, Party of the Union of Local Forces
+  local: Partidul Uniunea Forţelor Locale
+  lang: RUM
+  organisation: Party of the Union of Local Forces (Partidul Uniunea Forţelor Locale)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2214
+  position: Member of Local Branch Bureau
+  organisation: Party of the Union of Local Forces (Partidul Uniunea Forţelor Locale)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2215
+  position: President, Independence for Sighișoara Party
+  local: Partidul Uniunea Independentă pentru Sighișoara
+  lang: RUM
+  organisation: Independence for Sighișoara Party (Partidul Uniunea Independentă pentru Sighișoara)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2216
+  position: Executive President, Independence for Sighișoara Party
+  local: Partidul Uniunea Independentă pentru Sighișoara
+  lang: RUM
+  organisation: Independence for Sighișoara Party (Partidul Uniunea Independentă pentru Sighișoara)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2217
+  position: Vice-President, Independence for Sighișoara Party
+  local: Partidul Uniunea Independentă pentru Sighișoara
+  lang: RUM
+  organisation: Independence for Sighișoara Party (Partidul Uniunea Independentă pentru Sighișoara)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2218
+  position: Secretary,
+  organisation: Independence for Sighișoara Party (Partidul Uniunea Independentă pentru Sighișoara)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2219
+  position: Treasurer
+  organisation: Independence for Sighișoara Party (Partidul Uniunea Independentă pentru Sighișoara)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2220
+  position: Executive Board, Independence for Sighișoara Party
+  local: Partidul Uniunea Independentă pentru Sighișoara
+  lang: RUM
+  organisation: Independence for Sighișoara Party (Partidul Uniunea Independentă pentru Sighișoara)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2221
+  position: President, Independence for Tecuci Party
+  local: Partidul Uniunea Independentă pentru Tecuci (PUIT)
+  lang: RUM
+  organisation: Independence for Tecuci Party (Partidul Uniunea Independentă pentru Tecuci) (PUIT)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2222
+  position: Executive Board, Independence for Tecuci Party
+  local: Partidul Uniunea Independentă pentru Tecuci (PUIT)
+  lang: RUM
+  organisation: Independence for Tecuci Party (Partidul Uniunea Independentă pentru Tecuci) (PUIT)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2223
+  position: President, Community of Lipovan Russians in Romania
+  local: Comunitatea Rușilor Lipoveni din România
+  lang: RUM
+  organisation: Community of Lipovan Russians in Romania (Comunitatea Rușilor Lipoveni din România)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2224
+  position: Member of Management Board
+  organisation: Community of Lipovan Russians in Romania (Comunitatea Rușilor Lipoveni din România)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2225
+  position: Deputy
+  organisation: Union of Armenians of Romania (Uniunea Armenilor din România)
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q17556530, by: model}
+- row: 2226
+  position: President, Union of Ukrainians of Romania
+  local: Uniunea Ucrainienilor din România
+  lang: RUM
+  organisation: Union of Ukrainians of Romania (Uniunea Ucrainienilor din România)
+  status: Position for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 2227
+  position: President,, Romanian Constitutional Court
+  lang: RUM
+  organisation: Romanian Constitutional Court
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2228
+  position: Judge of the Constitutional Court, Romanian Constitutional Court
+  lang: RUM
+  organisation: Romanian Constitutional Court
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2229
+  position: 'High Court of Cassation '
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2230
+  position: Justice President
+  lang: RUM
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2231
+  position: Vice-President
+  status: Not obviously unpackable
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2232
+  position: Judge
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 2233
+  position: President, Romanian Court of Auditors
+  lang: RUM
+  organisation: Romanian Court of Auditors
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 2234
+  position: Vice-President, Romanian Court of Auditors
+  lang: RUM
+  organisation: Romanian Court of Auditors
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 2235
+  position: Audit Adviser
+  organisation: Romanian Court of Auditors
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 2236
+  position: President of Audit Authority, Romanian Court of Auditors – Audit Authority
+  lang: RUM
+  organisation: Romanian Court of Auditors – Audit Authority
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 2237
+  position: Vice-President of Audit Authority, Romanian Court of Auditors – Audit Authority
+  lang: RUM
+  organisation: Romanian Court of Auditors – Audit Authority
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 2238
+  position: 'President of Management Board and Governor, National Bank of Romania '
+  lang: RUM
+  organisation: 'National Bank of Romania '
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q967861, by: model}
+- row: 2239
+  position: 'Vice-President of Management Board and First Vice-Governor, National Bank of Romania '
+  lang: RUM
+  organisation: 'National Bank of Romania '
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 2240
+  position: Member of Management Board and Vice-Governor
+  organisation: 'National Bank of Romania '
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q967861, by: model}
+- row: 2241
+  position: Member of Management Board
+  organisation: 'National Bank of Romania '
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q967861, by: model}
+- row: 2242
+  position: Ambassador
+  organisation: Ministry of Foreign Affairs
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 2243
+  position: Chargé d’affaires, Ministry of Foreign Affairs
+  lang: RUM
+  organisation: Ministry of Foreign Affairs
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2244
+  position: Officer with rank of General
+  organisation: Ministry of National Defence
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 2245
+  position: 'Director-General, Autonomous Corporation – Official Gazette  (Chamber of Deputies):'
+  local: (Regia Autonomă Monitorul Oficial)
+  lang: RUM
+  organisation: 'Autonomous Corporation – Official Gazette (Regia Autonomă Monitorul Oficial) (Chamber of Deputies):'
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: position
+  checked: false
+  expansion: []
+- row: 2246
+  position: Member of the Management Board
+  organisation: 'Autonomous Corporation – Official Gazette (Regia Autonomă Monitorul Oficial) (Chamber of Deputies):'
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: position
+  checked: false
+  expansion: []
+- row: 2247
+  position: Director-General, National ‘Romanian Agri-Food Trade Fund’ Company  (MADR (Ministry of Agriculture and
+    Rural Development))
+  local: (SN ‘Casa Română de Comerț Agroalimentar UNIREA SA’ )
+  lang: RUM
+  organisation: National ‘Romanian Agri-Food Trade Fund’ Company (SN ‘Casa Română de Comerț Agroalimentar UNIREA
+    SA’ ) (MADR (Ministry of Agriculture and Rural Development))
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141483563, by: model}
+- row: 2248
+  position: Director, National ‘Romanian Agri-Food Trade Fund’ Company  (MADR (Ministry of Agriculture and Rural
+    Development))
+  local: (SN ‘Casa Română de Comerț Agroalimentar UNIREA SA’ )
+  lang: RUM
+  organisation: National ‘Romanian Agri-Food Trade Fund’ Company (SN ‘Casa Română de Comerț Agroalimentar UNIREA
+    SA’ ) (MADR (Ministry of Agriculture and Rural Development))
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141483563, by: model}
+- row: 2249
+  position: Member of the Management Board
+  organisation: National ‘Romanian Agri-Food Trade Fund’ Company (SN ‘Casa Română de Comerț Agroalimentar UNIREA
+    SA’ ) (MADR (Ministry of Agriculture and Rural Development))
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141483563, by: model}
+- row: 2250
+  position: Director-General, Sericarom SA Bucharest (State Domains Agency) (MADR)
+  lang: RUM
+  organisation: Sericarom SA Bucharest (State Domains Agency) (MADR)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2251
+  position: Member of the Management Board
+  organisation: Sericarom SA Bucharest (State Domains Agency) (MADR)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2252
+  position: 'Director-General, Agroprodcom Odorheiu Secuiesc SA, Harghita County (State Domains Agency) (MADR):'
+  lang: RUM
+  organisation: 'Agroprodcom Odorheiu Secuiesc SA, Harghita County (State Domains Agency) (MADR):'
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2253
+  position: Member of the Management Board
+  organisation: 'Agroprodcom Odorheiu Secuiesc SA, Harghita County (State Domains Agency) (MADR):'
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2254
+  position: Director-General, Agroprodcom Lăzarea SA, Harghita County (State Domains Agency) (MADR)
+  lang: RUM
+  organisation: Agroprodcom Lăzarea SA, Harghita County (State Domains Agency) (MADR)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2255
+  position: Member of the Management Board
+  organisation: Agroprodcom Lăzarea SA, Harghita County (State Domains Agency) (MADR)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2256
+  position: Director-General, National ‘Land Improvement’ Company (Societatea Națională ‘Îmbunătățiri Funciare’
+    ) SA Bucharest (State Domains Agency) (MADR)
+  lang: RUM
+  organisation: National ‘Land Improvement’ Company (Societatea Națională ‘Îmbunătățiri Funciare’ ) SA Bucharest
+    (State Domains Agency) (MADR)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18547995, by: model}
+- row: 2257
+  position: Branch Director
+  organisation: National ‘Land Improvement’ Company (Societatea Națională ‘Îmbunătățiri Funciare’ ) SA Bucharest
+    (State Domains Agency) (MADR)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18547995, by: model}
+- row: 2258
+  position: Chair of the Management Board, National Company ‘ROMTEHNICA’ S.A. (MAPN (Ministry of National Defence))
+  lang: RUM
+  organisation: National Company ‘ROMTEHNICA’ S.A. (MAPN (Ministry of National Defence))
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12739560, by: model}
+- row: 2259
+  position: Director-General, National Company ‘ROMTEHNICA’ S.A. (MAPN (Ministry of National Defence))
+  lang: RUM
+  organisation: National Company ‘ROMTEHNICA’ S.A. (MAPN (Ministry of National Defence))
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12739560, by: model}
+- row: 2260
+  position: Member of the Management Board
+  organisation: National Company ‘ROMTEHNICA’ S.A. (MAPN (Ministry of National Defence))
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12739560, by: model}
+- row: 2261
+  position: Chair of the Management Board, RO-ARMYSECURITY S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
+  lang: RUM
+  organisation: RO-ARMYSECURITY S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2262
+  position: Director-General, RO-ARMYSECURITY S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
+  lang: RUM
+  organisation: RO-ARMYSECURITY S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2263
+  position: Member of the Management Board
+  organisation: RO-ARMYSECURITY S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2264
+  position: Chair of the Management Board, RO-ARMYCATERING S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
+  lang: RUM
+  organisation: RO-ARMYCATERING S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2265
+  position: Director-General, RO-ARMYCATERING S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
+  lang: RUM
+  organisation: RO-ARMYCATERING S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2266
+  position: Member of the Management Board
+  organisation: RO-ARMYCATERING S.A. (subsidiary of CN ROMTEHNICA SA) (MAPN)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2267
+  position: Member of the Management Board
+  organisation: Oil Terminal S.A. (MEEMA)(Ministry of the Economy, Energy and the Business Environment)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2268
+  position: Director-General, Oil Terminal S.A. (MEEMA)(Ministry of the Economy, Energy and the Business Environment)
+  lang: RUM
+  organisation: Oil Terminal S.A. (MEEMA)(Ministry of the Economy, Energy and the Business Environment)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2269
+  position: Member of the Management Board
+  organisation: Conpet S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18539212, by: model}
+- row: 2270
+  position: Director-General, Conpet S.A. (MEEMA)
+  lang: RUM
+  organisation: Conpet S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18539212, by: model}
+- row: 2271
+  position: ' Member of the Management Board'
+  organisation: National Natural Gas Company (Societatea Națională de Gaze Naturale) Romgaz S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q2757144, by: model}
+- row: 2272
+  position: Director-General, National Natural Gas Company - Romgaz S.A. (MEEMA)
+  local: (Societatea Națională de Gaze Naturale
+  lang: RUM
+  organisation: National Natural Gas Company (Societatea Națională de Gaze Naturale) Romgaz S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q2757144, by: model}
+- row: 2273
+  position: Member of the Management Board
+  organisation: Electrocentrale Grup S.A (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141478186, by: model}
+- row: 2274
+  position: Director-General, Electrocentrale Grup S.A (MEEMA)
+  lang: RUM
+  organisation: Electrocentrale Grup S.A (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141478186, by: model}
+- row: 2275
+  position: Member of Supervisory Board
+  organisation: Oltenia Energy Complex Company (Societatea Complexul Energetic Oltenia) S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18539158, by: model}
+- row: 2276
+  position: Member of Directorate
+  organisation: Oltenia Energy Complex Company (Societatea Complexul Energetic Oltenia) S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18539158, by: model}
+- row: 2277
+  position: Member of the Management Board
+  organisation: Midia Thermoelectric Plant Company (Societatea Uzina Termoelectrică Midia) S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2278
+  position: Director-General, Midia Thermoelectric Plant Company (MEEMA)
+  local: Societatea Uzina Termoelectrică Midia) S.A.
+  lang: RUM
+  organisation: Midia Thermoelectric Plant Company (Societatea Uzina Termoelectrică Midia) S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2279
+  position: Member of Supervisory Board
+  organisation: Hyderoelectric Plant Electricity Production Company (Societatea de Producere a Energiei Electrice
+    în Hidrocentrale) ‘Hidroelectrica’ S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5752917, by: model}
+- row: 2280
+  position: Member of Directorate
+  organisation: Hyderoelectric Plant Electricity Production Company (Societatea de Producere a Energiei Electrice
+    în Hidrocentrale) ‘Hidroelectrica’ S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5752917, by: model}
+- row: 2281
+  position: Member of the Management Board
+  organisation: 'National ‘Nuclear Electric’ Company (‘ Nuclearelectrica ’) S.A. '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q7068211, by: model}
+- row: 2282
+  position: Director-General, National ‘Nuclear Electric’ Company ‘ (Nuclearelectrica ’) S.A.
+  local: ‘ Nuclearelectrica ’) S.A.
+  lang: RUM
+  organisation: 'National ‘Nuclear Electric’ Company (‘ Nuclearelectrica ’) S.A. '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q7068211, by: model}
+- row: 2283
+  position: Member of Supervisory Board
+  organisation: Energy Share-Holding Administration Company (Societatea de Administrare a Participaţiilor în Energie)
+    S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141478221, by: model}
+- row: 2284
+  position: Member of Directorate
+  organisation: Energy Share-Holding Administration Company (Societatea de Administrare a Participaţiilor în Energie)
+    S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141478221, by: model}
+- row: 2285
+  position: Member of the Management Board
+  organisation: Romanian National Uranium Company (Compania Națională a Uraniului S.A.) (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12724464, by: model}
+- row: 2286
+  position: Director-General, Romanian National Uranium Company (MEEMA)
+  local: Compania Națională a Uraniului S.A.)
+  lang: RUM
+  organisation: Romanian National Uranium Company (Compania Națională a Uraniului S.A.) (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12724464, by: model}
+- row: 2287
+  position: Member of the Management Board
+  organisation: Institute of Scientific Research and Technological Engineering – Lignite Mine Design (Societatea
+    Institutul de Cercetare Ştiinţifică şi Inginerie Tehnologică Proiectare Mine pe Lignit S.A.) (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2288
+  position: Director-General, Institute of Scientific Research and Technological Engineering – Lignite Mine Design
+    (MEEMA)
+  local: Societatea Institutul de Cercetare Ştiinţifică şi Inginerie Tehnologică Proiectare Mine pe Lignit S.A.)
+  lang: RUM
+  organisation: Institute of Scientific Research and Technological Engineering – Lignite Mine Design (Societatea
+    Institutul de Cercetare Ştiinţifică şi Inginerie Tehnologică Proiectare Mine pe Lignit S.A.) (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2289
+  position: Member of the Management Board
+  organisation: National Jiu Valley Mine Closure Company (Societatea Naţională Închideri de Mine Valea Jiului) S.A.
+    (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2290
+  position: Director-General, National Jiu Valley Mine Closure Company (MEEMA)
+  local: Societatea Naţională Închideri de Mine Valea Jiului) S.A.
+  lang: RUM
+  organisation: National Jiu Valley Mine Closure Company (Societatea Naţională Închideri de Mine Valea Jiului) S.A.
+    (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2291
+  position: Member of the Management Board
+  organisation: Autonomous Corporation Technologies for Nuclear Energy (Regia Autonomă Tehnologii pentru Energia
+    Nucleară) – RATEN (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2292
+  position: Director-General, Autonomous Corporation Technologies for Nuclear Energy (MEEMA)
+  local: Regia Autonomă Tehnologii pentru Energia Nucleară) – RATEN
+  lang: RUM
+  organisation: Autonomous Corporation Technologies for Nuclear Energy (Regia Autonomă Tehnologii pentru Energia
+    Nucleară) – RATEN (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2293
+  position: Member of the Management Board
+  organisation: National Mineral Water Company (Societatea Națională a Apelor Minerale S.A.) (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18547994, by: model}
+- row: 2294
+  position: Director-General, National Mineral Water Company (MEEMA)
+  local: Societatea Națională a Apelor Minerale S.A.)
+  lang: RUM
+  organisation: National Mineral Water Company (Societatea Națională a Apelor Minerale S.A.) (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18547994, by: model}
+- row: 2295
+  position: Member of the Management Board
+  organisation: National Salt Company (Societatea Națională a Sării) (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12740352, by: model}
+- row: 2296
+  position: Director-General, National Salt Company (MEEMA)
+  local: Societatea Națională a Sării)
+  lang: RUM
+  organisation: National Salt Company (Societatea Națională a Sării) (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12740352, by: model}
+- row: 2297
+  position: Member of the Management Board
+  organisation: National Copper, Gold and Iron Company (Compania Națională a Cuprului, Aurului și Fierului) ‘MINVEST’
+    S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12735637, by: model}
+- row: 2298
+  position: Director-General, National Copper, Gold and Iron Company (MEEMA)
+  local: Compania Națională a Cuprului, Aurului și Fierului) ‘MINVEST’ S.A.
+  lang: RUM
+  organisation: National Copper, Gold and Iron Company (Compania Națională a Cuprului, Aurului și Fierului) ‘MINVEST’
+    S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12735637, by: model}
+- row: 2299
+  position: Member of the Management Board
+  organisation: Băița S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2300
+  position: Director-General, Băița S.A. (MEEMA)
+  lang: RUM
+  organisation: Băița S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2301
+  position: Member of the Management Board
+  organisation: Cupru Min S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5194585, by: model}
+- row: 2302
+  position: Director-General, Cupru Min S.A. (MEEMA)
+  lang: RUM
+  organisation: Cupru Min S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5194585, by: model}
+- row: 2303
+  position: Member of the Management Board
+  organisation: Conversmin S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18539265, by: model}
+- row: 2304
+  position: Director-General, Conversmin S.A. (MEEMA)
+  lang: RUM
+  organisation: Conversmin S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18539265, by: model}
+- row: 2305
+  position: Member of the Management Board,
+  organisation: Măgurele Radioactive Mineral Company (Societatea Radioactiv Mineral Măgurele) S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12738956, by: model}
+- row: 2306
+  position: Director-General, Măgurele Radioactive Mineral Company  S.A. (MEEMA)
+  local: (Societatea Radioactiv Mineral Măgurele)
+  lang: RUM
+  organisation: Măgurele Radioactive Mineral Company (Societatea Radioactiv Mineral Măgurele) S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12738956, by: model}
+- row: 2307
+  position: Member of the Management Board
+  organisation: Minvest Roșia Montană S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2308
+  position: Director-General, Minvest Roșia Montană S.A. (MEEMA)
+  lang: RUM
+  organisation: Minvest Roșia Montană S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2309
+  position: Member of the Management Board
+  organisation: Romarm S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12739531, by: model}
+- row: 2310
+  position: Director-General, Romarm S.A. (MEEMA)
+  lang: RUM
+  organisation: Romarm S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12739531, by: model}
+- row: 2311
+  position: Member of the Management Board
+  organisation: Dragomirești Special Products Plant Company (Societatea Uzina de Produse Speciale Dragomirești S.A.)
+    – branch of CN ROMARM S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2312
+  position: Director-General, Dragomirești Special Products Plant Company  – branch of CN ROMARM S.A. (MEEMA)
+  local: (Societatea Uzina de Produse Speciale Dragomirești S.A.)
+  lang: RUM
+  organisation: Dragomirești Special Products Plant Company (Societatea Uzina de Produse Speciale Dragomirești S.A.)
+    – branch of CN ROMARM S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2313
+  position: Member of the Management Board
+  organisation: Carfil S.A. – branch of CN ROMARM S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2314
+  position: Director-General, Carfil S.A. – branch of CN ROMARM S.A. (MEEMA)
+  lang: RUM
+  organisation: Carfil S.A. – branch of CN ROMARM S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2315
+  position: Member of the Management Board
+  organisation: Tohan S.A. – branch of CN ROMARM S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2316
+  position: Director-General, Tohan S.A. – branch of CN ROMARM S.A. (MEEMA)
+  lang: RUM
+  organisation: Tohan S.A. – branch of CN ROMARM S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2317
+  position: Member of the Management Board
+  organisation: Metrom S.A. – branch of CN ROMARM S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2318
+  position: Director-General, Metrom S.A. – branch of CN ROMARM S.A. (MEEMA)
+  lang: RUM
+  organisation: Metrom S.A. – branch of CN ROMARM S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2319
+  position: Member of the Management Board
+  organisation: Bucharest Mechanical Plant Company (Societatea Uzina Mecanică București S.A.) – branch of CN ROMARM
+    S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12742917, by: model}
+- row: 2320
+  position: Director-General, Bucharest Mechanical Plant Company (MEEMA)
+  local: Societatea Uzina Mecanică București S.A.) – branch of CN ROMARM S.A.
+  organisation: Bucharest Mechanical Plant Company (Societatea Uzina Mecanică București S.A.) – branch of CN ROMARM
+    S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2321
+  position: Member of the Management Board
+  organisation: Sadu Mechanical Plant Company (Societatea Uzina Mecanică Sadu S.A.) – branch of CN ROMARM S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12742925, by: model}
+- row: 2322
+  position: Director-General, Sadu Mechanical Plant Company (MEEMA)
+  local: Societatea Uzina Mecanică Sadu S.A.) – branch of CN ROMARM S.A.
+  organisation: Sadu Mechanical Plant Company (Societatea Uzina Mecanică Sadu S.A.) – branch of CN ROMARM S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2323
+  position: Member of the Management Board
+  organisation: Plopeni Mechanical Plant Company (Societatea Uzina Mecanică Plopeni S.A.) – branch of CN ROMARM
+    S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12742914, by: model}
+- row: 2324
+  position: Director-General, Plopeni Mechanical Plant Company (MEEMA)
+  local: Societatea Uzina Mecanică Plopeni S.A.) – branch of CN ROMARM S.A.
+  organisation: Plopeni Mechanical Plant Company (Societatea Uzina Mecanică Plopeni S.A.) – branch of CN ROMARM
+    S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2325
+  position: Member of the Management Board
+  organisation: Cugir Mechanical Plant Company (Societatea Uzina Mecanică Cugir S.A.) – branch of CN ROMARM S.A.
+    (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12742921, by: model}
+- row: 2326
+  position: Director-General, Cugir Mechanical Plant Company (MEEMA)
+  local: Societatea Uzina Mecanică Cugir S.A.) – branch of CN ROMARM S.A.
+  organisation: Cugir Mechanical Plant Company (Societatea Uzina Mecanică Cugir S.A.) – branch of CN ROMARM S.A.
+    (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2327
+  position: Member of the Management Board
+  organisation: Mija Mechanical Plant Company (Societatea Uzina Mecanică Mija S.A.) – branch of CN ROMARM S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12742923, by: model}
+- row: 2328
+  position: Director-General, Mija Mechanical Plant Company (MEEMA)
+  local: Societatea Uzina Mecanică Mija S.A.) – branch of CN ROMARM S.A.
+  organisation: Mija Mechanical Plant Company (Societatea Uzina Mecanică Mija S.A.) – branch of CN ROMARM S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2329
+  position: Member of the Management Board
+  organisation: Gunpowder Factory Company (Societatea Fabrica de Pulberi S.A.) Făgăraș – branch of CN ROMARM S.A.
+    (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18540069, by: model}
+- row: 2330
+  position: Director-General, Gunpowder Factory Company (MEEMA)
+  local: Societatea Fabrica de Pulberi S.A.) Făgăraș – branch of CN ROMARM S.A.
+  organisation: Gunpowder Factory Company (Societatea Fabrica de Pulberi S.A.) Făgăraș – branch of CN ROMARM S.A.
+    (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2331
+  position: Member of the Management Board
+  organisation: Cugir Arms Factory Company (Societatea Fabrica de Arme Cugir S.A.) – branch of CN ROMARM S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12742921, by: model}
+- row: 2332
+  position: Director-General, Cugir Arms Factory Company (MEEMA)
+  local: Societatea Fabrica de Arme Cugir S.A.) – branch of CN ROMARM S.A.
+  organisation: Cugir Arms Factory Company (Societatea Fabrica de Arme Cugir S.A.) – branch of CN ROMARM S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2333
+  position: Member of the Management Board
+  organisation: Pirochim Victoria S.A. – branch of CN ROMARM S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2334
+  position: Director-General, Pirochim Victoria S.A. – branch of CN ROMARM S.A. (MEEMA)
+  lang: RUM
+  organisation: Pirochim Victoria S.A. – branch of CN ROMARM S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2335
+  position: Member of the Management Board
+  organisation: Ploiești Electromechancial Company (Societatea Electromecanica Ploiești) S.A. – branch of CN ROMARM
+    S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12727473, by: model}
+- row: 2336
+  position: Director-General, Ploiești Electromechancial Company  S.A. – branch of CN ROMARM S.A. (MEEMA)
+  local: (Societatea Electromecanica Ploiești)
+  lang: RUM
+  organisation: Ploiești Electromechancial Company (Societatea Electromecanica Ploiești) S.A. – branch of CN ROMARM
+    S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12727473, by: model}
+- row: 2337
+  position: Member of the Management Board
+  organisation: Arsenal Reșița S.A. – branch of CN ROMARM S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2338
+  position: Director-General, Arsenal Reșița S.A. – branch of CN ROMARM S.A. (MEEMA)
+  lang: RUM
+  organisation: Arsenal Reșița S.A. – branch of CN ROMARM S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2339
+  position: Member of the Management Board
+  organisation: Moreni Automechanical Plant Company (Societatea Uzina Automecanica Moreni S.A.) – branch of CN ROMARM
+    S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18543713, by: model}
+- row: 2340
+  position: Director-General, Moreni Automechanical Plant Company  – branch of CN ROMARM S.A. (MEEMA)
+  local: (Societatea Uzina Automecanica Moreni S.A.)
+  lang: RUM
+  organisation: Moreni Automechanical Plant Company (Societatea Uzina Automecanica Moreni S.A.) – branch of CN ROMARM
+    S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18543713, by: model}
+- row: 2341
+  position: Member of the Management Board
+  organisation: Avioane Craiova S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q2324155, by: model}
+- row: 2342
+  position: Director-General, Avioane Craiova S.A. (MEEMA)
+  lang: RUM
+  organisation: Avioane Craiova S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q2324155, by: model}
+- row: 2343
+  position: Member of the Management Board
+  organisation: IAR S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q292773, by: model}
+- row: 2344
+  position: Director-General, IAR S.A. (MEEMA)
+  lang: RUM
+  organisation: IAR S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q292773, by: model}
+- row: 2345
+  position: Member of the Management Board
+  organisation: IOR S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5967868, by: model}
+- row: 2346
+  position: Director-General, IOR S.A. (MEEMA)
+  lang: RUM
+  organisation: IOR S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5967868, by: model}
+- row: 2347
+  position: Member of the Management Board
+  organisation: Romaero S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q387165, by: model}
+- row: 2348
+  position: Director-General, Romaero S.A. (MEEMA)
+  lang: RUM
+  organisation: Romaero S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q387165, by: model}
+- row: 2349
+  position: Member of the Management Board
+  organisation: Mangalia Shipyard Company (Societatea Șantierul Naval Mangalia) S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2350
+  position: Director-General, Mangalia Shipyard Company (MEEMA)
+  local: Societatea Șantierul Naval Mangalia) S.A.
+  organisation: Mangalia Shipyard Company (Societatea Șantierul Naval Mangalia) S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2351
+  position: Member of the Management Board
+  organisation: Orăștie Mechanical Plant Company (Societatea Uzina Mecanică Orăștie) S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2352
+  position: Director-General, Orăștie Mechanical Plant Company (MEEMA)
+  local: Societatea Uzina Mecanică Orăștie) S.A.
+  organisation: Orăștie Mechanical Plant Company (Societatea Uzina Mecanică Orăștie) S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2353
+  position: Member of the Management Board
+  organisation: Romanian National Lottery Company (Compania Națională Loteria Română S.A.) (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12734464, by: model}
+- row: 2354
+  position: Director-General, Romanian National Lottery Company (MEEMA)
+  local: Compania Națională Loteria Română S.A.)
+  organisation: Romanian National Lottery Company (Compania Națională Loteria Română S.A.) (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12734464, by: model}
+- row: 2355
+  position: Member of the Management Board
+  organisation: National Company for the Control of Boilers, Lifting Equipment and Pressurised Vessels (Compania
+    Națională pentru Controlul Cazanelor, Instalațiilor de Ridicat și Recipientelor sub Presiune) ‘CNCIR’ S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141355307, by: model}
+- row: 2356
+  position: Director-General, National Company for the Control of Boilers, Lifting Equipment and Pressurised Vessels
+    (MEEMA)
+  local: Compania Națională pentru Controlul Cazanelor, Instalațiilor de Ridicat și Recipientelor sub Presiune)
+    ‘CNCIR’ S.A.
+  organisation: National Company for the Control of Boilers, Lifting Equipment and Pressurised Vessels (Compania
+    Națională pentru Controlul Cazanelor, Instalațiilor de Ridicat și Recipientelor sub Presiune) ‘CNCIR’ S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141355307, by: model}
+- row: 2357
+  position: Member of the Management Board
+  organisation: 2 Mai Shipyard Company (Societatea Șantierul 2 Mai) S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2358
+  position: Director-General, 2 Mai Shipyard Company (MEEMA)
+  local: Societatea Șantierul 2 Mai) S.A.
+  organisation: 2 Mai Shipyard Company (Societatea Șantierul 2 Mai) S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2359
+  position: Member of the Management Board
+  organisation: Iprochim S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2360
+  position: Director-General, Iprochim S.A. (MEEMA)
+  lang: RUM
+  organisation: Iprochim S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2361
+  position: Member of the Management Board
+  organisation: Plafar National Company S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2362
+  position: Director-General, Plafar National Company S.A. (MEEMA)
+  lang: RUM
+  organisation: Plafar National Company S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2363
+  position: Member of the Management Board
+  organisation: Institute for Metallurgical Research (Institutul de Cercetări Metalurgice) S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12730499, by: model}
+- row: 2364
+  position: Director-General, Institute for Metallurgical Research S.A. (MEEMA)
+  local: (Institutul de Cercetări Metalurgice)
+  lang: RUM
+  organisation: Institute for Metallurgical Research (Institutul de Cercetări Metalurgice) S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12730499, by: model}
+- row: 2365
+  position: Member of the Management Board
+  organisation: Eurotest S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12727905, by: model}
+- row: 2366
+  position: Director-General, Eurotest S.A. (MEEMA)
+  lang: RUM
+  organisation: Eurotest S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12727905, by: model}
+- row: 2367
+  position: Member of the Management Board
+  organisation: Sanevit 2003 S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2368
+  position: Director-General, Sanevit 2003 S.A. (MEEMA)
+  lang: RUM
+  organisation: Sanevit 2003 S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2369
+  position: Member of the Management Board
+  organisation: Mamaia S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2370
+  position: Director-General, Mamaia S.A. (MEEMA)
+  lang: RUM
+  organisation: Mamaia S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2371
+  position: Member of the Management Board
+  organisation: Neptun-Olimp S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2372
+  position: Director-General, Neptun-Olimp S.A. (MEEMA)
+  lang: RUM
+  organisation: Neptun-Olimp S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2373
+  position: Member of the Management Board
+  organisation: Germisara S.A. (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2374
+  position: Director-General, Germisara S.A. (MEEMA)
+  lang: RUM
+  organisation: Germisara S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2375
+  position: Member of the Management Board
+  organisation: National Tourism Education Centre Company (Societatea Centrul Național de Învățământ Turistic) S.A.
+    (MEEMA)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2376
+  position: Director-General, National Tourism Education Centre Company S.A. (MEEMA)
+  local: (Societatea Centrul Național de Învățământ Turistic)
+  lang: RUM
+  organisation: National Tourism Education Centre Company (Societatea Centrul Național de Învățământ Turistic) S.A.
+    (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2377
+  position: Director-General, Hunedoara Energy Complex Company S.A. (MEEMA)
+  local: (Societatea Complexul Energetic Hunedoara)
+  lang: RUM
+  organisation: Hunedoara Energy Complex Company (Societatea Complexul Energetic Hunedoara) S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2378
+  position: Director-General, Carmen Silva 2000 S.A. (MEEMA)
+  lang: RUM
+  organisation: Carmen Silva 2000 S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2379
+  position: Director-General, Ciucaș S.A. (MEEMA)
+  lang: RUM
+  organisation: Ciucaș S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2380
+  position: Director-General, Anca Irina S.A. (MEEMA)
+  lang: RUM
+  organisation: Anca Irina S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2381
+  position: Director-General, Predeal S.A. (MEEMA)
+  lang: RUM
+  organisation: Predeal S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2382
+  position: Director-General, Litoral S.A. (MEEMA)
+  lang: RUM
+  organisation: Litoral S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2383
+  position: Director-General, National Precious and Non-Ferrous Metals Company  ‘REMIN’ S.A. (MEEMA)
+  local: (Compania Națională a Metalelor Prețioase și Neferoase)
+  lang: RUM
+  organisation: National Precious and Non-Ferrous Metals Company (Compania Națională a Metalelor Prețioase și Neferoase)
+    ‘REMIN’ S.A. (MEEMA)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q24035724, by: model}
+- row: 2384
+  position: Administrator
+  organisation: National ‘National Printing Office’ Company (Compania Națională ‘Imprimeria Naţională“ S.A.) (MFP
+    (Ministry of Public Finance)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12730359, by: model}
+- row: 2385
+  position: Director-General, National ‘National Printing Office’ Company  (MFP (Ministry of Public Finance)
+  local: (Compania Națională ‘Imprimeria Naţională“ S.A.)
+  lang: RUM
+  organisation: National ‘National Printing Office’ Company (Compania Națională ‘Imprimeria Naţională“ S.A.) (MFP
+    (Ministry of Public Finance)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12730359, by: model}
+- row: 2386
+  position: Executive Director of Financial Directorate, National ‘National Printing Office’ Company  (MFP (Ministry
+    of Public Finance)
+  local: (Compania Națională ‘Imprimeria Naţională“ S.A.)
+  lang: RUM
+  organisation: National ‘National Printing Office’ Company (Compania Națională ‘Imprimeria Naţională“ S.A.) (MFP
+    (Ministry of Public Finance)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12730359, by: model}
+- row: 2387
+  position: Director of Technical Directorate, National ‘National Printing Office’ Company (MFP (Ministry of Public
+    Finance)
+  local: (Compania Națională ‘Imprimeria Naţională“ S.A.)
+  lang: RUM
+  organisation: National ‘National Printing Office’ Company (Compania Națională ‘Imprimeria Naţională“ S.A.) (MFP
+    (Ministry of Public Finance)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12730359, by: model}
+- row: 2388
+  position: Director of Development Directorate, National ‘National Printing Office’ Company (Compania Națională
+    ‘Imprimeria Naţională“ S.A.) (MFP (Ministry of Public Finance)
+  local: (Compania Națională ‘Imprimeria Naţională“ S.A.)
+  lang: RUM
+  organisation: National ‘National Printing Office’ Company (Compania Națională ‘Imprimeria Naţională“ S.A.) (MFP
+    (Ministry of Public Finance)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12730359, by: model}
+- row: 2389
+  position: Member of the Board of Directors
+  organisation: CEC BANK – S.A. (MFP)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1023306, by: model}
+- row: 2390
+  position: Member of the Management Board
+  organisation: CEC BANK – S.A. (MFP)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1023306, by: model}
+- row: 2391
+  position: President of the Management Board (MB member), Romanian Export-Import Bank Eximbank – S.A. (MFP)
+  local: (Banca de Export – Import a României)
+  lang: RUM
+  organisation: Romanian Export-Import Bank (Banca de Export – Import a României) Eximbank – S.A. (MFP)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5421544, by: model}
+- row: 2392
+  position: Executive President (MB member), Romanian Export-Import Bank (Banca de Export – Import a României) Eximbank
+    – S.A. (MFP)
+  lang: RUM
+  organisation: Romanian Export-Import Bank (Banca de Export – Import a României) Eximbank – S.A. (MFP)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5421544, by: model}
+- row: 2393
+  position: Executive Vice-President (MB Member), Romanian Export-Import Bank (Banca de Export – Import a României)
+    Eximbank – S.A. (MFP)
+  lang: RUM
+  organisation: Romanian Export-Import Bank (Banca de Export – Import a României) Eximbank – S.A. (MFP)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5421544, by: model}
+- row: 2394
+  position: Non-Executive Member (MB Member)
+  organisation: Romanian Export-Import Bank (Banca de Export – Import a României) Eximbank – S.A. (MFP)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5421544, by: model}
+- row: 2395
+  position: Member of Directorate
+  organisation: Romanian Counter-Guarantee Fund (Fondul Român de Contragarantare) S.A. (MFP)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q140800272, by: model}
+- row: 2396
+  position: Member of Supervisory Board
+  organisation: Romanian Counter-Guarantee Fund (Fondul Român de Contragarantare) S.A. (MFP)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q140800272, by: model}
+- row: 2397
+  position: 'Chair of the Management Board, National Credit Guarantee Fund for Small and Medium-sized Enterprises  –
+    IFN (MFP):'
+  local: (Fondul Naţional de Garantare a Creditelor Pentru Întreprinderile Mici şi Mijlocii) – F.N.G.C.I.M.M. S.A.
+  lang: RUM
+  organisation: 'National Credit Guarantee Fund for Small and Medium-sized Enterprises (Fondul Naţional de Garantare
+    a Creditelor Pentru Întreprinderile Mici şi Mijlocii) – F.N.G.C.I.M.M. S.A. – IFN (MFP):'
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2398
+  position: Member of the Management Board
+  organisation: 'National Credit Guarantee Fund for Small and Medium-sized Enterprises (Fondul Naţional de Garantare
+    a Creditelor Pentru Întreprinderile Mici şi Mijlocii) – F.N.G.C.I.M.M. S.A. – IFN (MFP):'
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2399
+  position: 'Director-General,, National Credit Guarantee Fund for Small and Medium-sized Enterprises  – IFN (MFP):'
+  local: (Fondul Naţional de Garantare a Creditelor Pentru Întreprinderile Mici şi Mijlocii) – F.N.G.C.I.M.M. S.A.
+  lang: RUM
+  organisation: 'National Credit Guarantee Fund for Small and Medium-sized Enterprises (Fondul Naţional de Garantare
+    a Creditelor Pentru Întreprinderile Mici şi Mijlocii) – F.N.G.C.I.M.M. S.A. – IFN (MFP):'
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: position
+  checked: true
+  expansion: []
+- row: 2400
+  position: Deputy Director-General
+  organisation: 'National Credit Guarantee Fund for Small and Medium-sized Enterprises (Fondul Naţional de Garantare
+    a Creditelor Pentru Întreprinderile Mici şi Mijlocii) – F.N.G.C.I.M.M. S.A. – IFN (MFP):'
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 2401
+  position: Director-General, National Investment Company  S.A. (MLPDA (Ministry of Public Works, Development and
+    Administration))
+  local: (Compania Națională de Investiții ‘C.N.I. ’ )
+  lang: RUM
+  organisation: National Investment Company (Compania Națională de Investiții ‘C.N.I. ’ ) S.A. (MLPDA (Ministry
+    of Public Works, Development and Administration))
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18539150, by: model}
+- row: 2402
+  position: Member of the Management Board
+  organisation: National Investment Company (Compania Națională de Investiții ‘C.N.I. ’ ) S.A. (MLPDA (Ministry
+    of Public Works, Development and Administration))
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18539150, by: model}
+- row: 2403
+  position: Director-General, ‘ Animafilm ’ Cinematographic Studio – S.A. (Ministry of Culture)
+  lang: RUM
+  organisation: ‘ Animafilm ’ Cinematographic Studio – S.A. (Ministry of Culture)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q4764729, by: model}
+- row: 2404
+  position: Member of the Management Board
+  organisation: ‘ Animafilm ’ Cinematographic Studio – S.A. (Ministry of Culture)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q4764729, by: model}
+- row: 2405
+  position: Director-General, C.N. Unifarm S.A. (MS (Ministry of Health)
+  lang: RUM
+  organisation: C.N. Unifarm S.A. (MS (Ministry of Health)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2406
+  position: Member of the Management Board
+  organisation: C.N. Unifarm S.A. (MS (Ministry of Health)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2407
+  position: Director-General, Antibiotice S.A. Iași (MS)
+  lang: RUM
+  organisation: Antibiotice S.A. Iași (MS)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q574884, by: model}
+- row: 2408
+  position: Member of the Management Board
+  organisation: Antibiotice S.A. Iași (MS)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q574884, by: model}
+- row: 2409
+  position: General
+  organisation: National Railway Company (Compania Națională Căi Ferate) – ‘CFR’ S.A. (MTIC (Ministry of Transport,
+    Infrastructure and Communications))
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q118791749, by: model}
+- row: 2410
+  position: Member of the Management Board
+  organisation: National Railway Company (Compania Națională Căi Ferate) – ‘CFR’ S.A. (MTIC (Ministry of Transport,
+    Infrastructure and Communications))
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q118791749, by: model}
+- row: 2411
+  position: Director-General, National Rail Freight Company (MTIC)
+  local: Societatea Națională de Transport Feroviar de Marfă) ‘CFR – Marfă’ S.A.
+  lang: RUM
+  organisation: National Rail Freight Company (Societatea Națională de Transport Feroviar de Marfă) ‘CFR – Marfă’
+    S.A. (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q13630969, by: model}
+- row: 2412
+  position: Member of the Management Board
+  organisation: National Rail Freight Company (Societatea Națională de Transport Feroviar de Marfă) ‘CFR – Marfă’
+    S.A. (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q13630969, by: model}
+- row: 2413
+  position: Director-General, National Passenger Railways Company (MTIC)
+  local: Societatea Națională de Transport Feroviar de Călători) ‘ CFR – Călători ’ S.A.
+  lang: RUM
+  organisation: National Passenger Railways Company (Societatea Națională de Transport Feroviar de Călători) ‘ CFR
+    – Călători ’ S.A. (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q856252, by: model}
+- row: 2414
+  position: Member of the Management Board
+  organisation: National Passenger Railways Company (Societatea Națională de Transport Feroviar de Călători) ‘ CFR
+    – Călători ’ S.A. (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q856252, by: model}
+- row: 2415
+  position: Director-General, Rail Assets Administration Company (MTIC)
+  local: Societatea de Administrare Active Feroviare ”S.A.A.F.’) S.A.
+  lang: RUM
+  organisation: Rail Assets Administration Company (Societatea de Administrare Active Feroviare ”S.A.A.F.’) S.A.
+    (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q60802417, by: model}
+- row: 2416
+  position: Member of the Management Board
+  organisation: Rail Assets Administration Company (Societatea de Administrare Active Feroviare ”S.A.A.F.’) S.A.
+    (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q60802417, by: model}
+- row: 2417
+  position: Director-General, Tourism Railway Company (MTIC)
+  local: Societatea Feroviară de Turism) ‘S.F.T. – C.F.R.’ S.A.
+  lang: RUM
+  organisation: Tourism Railway Company (Societatea Feroviară de Turism) ‘S.F.T. – C.F.R.’ S.A. (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2418
+  position: Member of the Management Board
+  organisation: Tourism Railway Company (Societatea Feroviară de Turism) ‘S.F.T. – C.F.R.’ S.A. (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2419
+  position: Director-General, Bucharest Metro Transport Company (MTIC)
+  local: Societatea de Transport cu Metroul București) ‘Metrorex’ S.A.
+  lang: RUM
+  organisation: Bucharest Metro Transport Company (Societatea de Transport cu Metroul București) ‘Metrorex’ S.A.
+    (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1091725, by: model}
+- row: 2420
+  position: Member of the Management Board
+  organisation: Bucharest Metro Transport Company (Societatea de Transport cu Metroul București) ‘Metrorex’ S.A.
+    (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1091725, by: model}
+- row: 2421
+  position: Director-General,, National ‘Bucharest Airport’ Company
+  local: Compania Națională ‘Aeroporturi București’ ) S.A.
+  lang: RUM
+  organisation: National ‘Bucharest Airport’ Company (Compania Națională ‘Aeroporturi București’ ) S.A.
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12724458, by: model}
+- row: 2422
+  position: Member of the Management Board
+  organisation: National ‘Bucharest Airport’ Company (Compania Națională ‘Aeroporturi București’ ) S.A.
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12724458, by: model}
+- row: 2423
+  position: Director-General, National ‘Mihail Kogălniceanu – Constanța International Airport’ Company (MTIC)
+  local: Societatea Națională ‘Aeroportul Internațional Mihail Kogălniceanu – Constanța’ ) – S.A.
+  lang: RUM
+  organisation: 'National ‘Mihail Kogălniceanu – Constanța International Airport’ Company (Societatea Națională
+    ‘Aeroportul Internațional Mihail Kogălniceanu – Constanța’ ) – S.A. (MTIC):'
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2424
+  position: Member of the Management Board
+  organisation: 'National ‘Mihail Kogălniceanu – Constanța International Airport’ Company (Societatea Națională
+    ‘Aeroportul Internațional Mihail Kogălniceanu – Constanța’ ) – S.A. (MTIC):'
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2425
+  position: Director-General, National ‘Timișoara-Traian Vuia International Airport’ Company (MTIC)
+  local: Societatea Națională ‘Aeroportul Internațional Timișoara-Traian Vuia’ ) – S.A.
+  lang: RUM
+  organisation: National ‘Timișoara-Traian Vuia International Airport’ Company (Societatea Națională ‘Aeroportul
+    Internațional Timișoara-Traian Vuia’ ) – S.A. (MTIC
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2426
+  position: Member of the Management Board
+  organisation: National ‘Timișoara-Traian Vuia International Airport’ Company (Societatea Națională ‘Aeroportul
+    Internațional Timișoara-Traian Vuia’ ) – S.A. (MTIC
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1417736, by: model}
+- row: 2427
+  position: Director-General, National Romanian Air Transport Company (MTIC)
+  local: Societatea ‘Compania Națională de Transporturi Aeriene Române TAROM’ ) S.A.
+  lang: RUM
+  organisation: National Romanian Air Transport Company (Societatea ‘Compania Națională de Transporturi Aeriene
+    Române TAROM’ ) S.A. (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q240656, by: model}
+- row: 2428
+  position: Member of the Management Board
+  organisation: National Romanian Air Transport Company (Societatea ‘Compania Națională de Transporturi Aeriene
+    Române TAROM’ ) S.A. (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2429
+  position: Director-General, National ‘Sea Ports Administration’ Company (MTIC)
+  local: Compania Națională ‘Administrația Porturilor Maritime’ ) S.A. Constanța
+  lang: RUM
+  organisation: National ‘Sea Ports Administration’ Company (Compania Națională ‘Administrația Porturilor Maritime’
+    ) S.A. Constanța (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18537265, by: model}
+- row: 2430
+  position: Member of the Management Board
+  organisation: National ‘Sea Ports Administration’ Company (Compania Națională ‘Administrația Porturilor Maritime’
+    ) S.A. Constanța (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18537265, by: model}
+- row: 2431
+  position: Director-General, National ‘Navigable Canals Administration’ Company (MTIC)
+  local: Compania Națională ‘Administrația Canalelor Navigabile’ ) S.A.
+  lang: RUM
+  organisation: 'National ‘Navigable Canals Administration’ Company (Compania Națională ‘Administrația Canalelor
+    Navigabile’ ) S.A. (MTIC):'
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18537262, by: model}
+- row: 2432
+  position: Member of the Management Board
+  organisation: 'National ‘Navigable Canals Administration’ Company (Compania Națională ‘Administrația Canalelor
+    Navigabile’ ) S.A. (MTIC):'
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q18537262, by: model}
+- row: 2433
+  position: Director-General, National Naval Radiocommunications Company
+  local: Compania Națională de Radiocomunicații Navale) ‘Radionav’ S.A.
+  lang: RUM
+  organisation: 'National Naval Radiocommunications Company (Compania Națională de Radiocomunicații Navale) ‘Radionav’
+    S.A. '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141475367, by: model}
+- row: 2434
+  position: Member of the Management Board
+  organisation: 'National Naval Radiocommunications Company (Compania Națională de Radiocomunicații Navale) ‘Radionav’
+    S.A. '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141475367, by: model}
+- row: 2435
+  position: Director-General, National ‘Danube Sea Ports Administration’ Company
+  local: Compania Națională ‘Administrația Porturilor Dunării Maritime’ ) S.A.
+  lang: RUM
+  organisation: National ‘Danube Sea Ports Administration’ Company (Compania Națională ‘Administrația Porturilor
+    Dunării Maritime’ ) S.A.
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12719979, by: model}
+- row: 2436
+  position: Member of the Management Board
+  organisation: National ‘Danube Sea Ports Administration’ Company (Compania Națională ‘Administrația Porturilor
+    Dunării Maritime’ ) S.A.
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12719979, by: model}
+- row: 2437
+  position: Director-General, National ‘Danube River Ports Administration’ Company
+  local: Compania Națională ‘Administrația Porturilor Dunării Fluviale’ ) S.A.
+  lang: RUM
+  organisation: National ‘Danube River Ports Administration’ Company (Compania Națională ‘Administrația Porturilor
+    Dunării Fluviale’ ) S.A.
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12719782, by: model}
+- row: 2438
+  position: Member of the Management Board
+  organisation: National ‘Danube River Ports Administration’ Company (Compania Națională ‘Administrația Porturilor
+    Dunării Fluviale’ ) S.A.
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12719782, by: model}
+- row: 2439
+  position: Director-General,, National Road Infrastructure Administration Company (MTIC)
+  local: Compania Națională de Administrare a Infrastructurii Rutiere) S.A.
+  lang: RUM
+  organisation: National Road Infrastructure Administration Company (Compania Națională de Administrare a Infrastructurii
+    Rutiere) S.A. (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12724468, by: model}
+- row: 2440
+  position: Member of the Management Board
+  organisation: National Road Infrastructure Administration Company (Compania Națională de Administrare a Infrastructurii
+    Rutiere) S.A. (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12724468, by: model}
+- row: 2441
+  position: Director-General, National Road Investment Company (MTIC)
+  local: Compania Națională de Investiții Rutiere) S.A.
+  lang: RUM
+  organisation: National Road Investment Company (Compania Națională de Investiții Rutiere) S.A. (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141475479, by: model}
+- row: 2442
+  position: Member of the Management Board
+  organisation: National Road Investment Company (Compania Națională de Investiții Rutiere) S.A. (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q141475479, by: model}
+- row: 2443
+  position: Director-General, ‘CFR Telecommunications’ Company (MTIC)
+  local: Societatea ‘Telecomunicații C.F.R.’ ) S.A.
+  lang: RUM
+  organisation: ‘CFR Telecommunications’ Company (Societatea ‘Telecomunicații C.F.R.’ ) S.A. (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2444
+  position: Member of the Management Board
+  organisation: ‘CFR Telecommunications’ Company (Societatea ‘Telecomunicații C.F.R.’ ) S.A. (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2445
+  position: Director-General, ‘Palat CFR Operation and Maintenance Group’ Company (MTIC)
+  local: Societatea ‘Grup Exploatare și Întreținere Palat CFR’ S.A.)
+  lang: RUM
+  organisation: ‘Palat CFR Operation and Maintenance Group’ Company (Societatea ‘Grup Exploatare și Întreținere
+    Palat CFR’ S.A.) (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2446
+  position: Member of the Management Board
+  organisation: ‘Palat CFR Operation and Maintenance Group’ Company (Societatea ‘Grup Exploatare și Întreținere
+    Palat CFR’ S.A.) (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2447
+  position: Director-General, National ‘Romanian Postal Services’ Company (MTIC)
+  local: Națională ‘Poșta Română’ S.A.)
+  lang: RUM
+  organisation: National ‘Romanian Postal Services’ Company (Națională ‘Poșta Română’ S.A.) (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q283175, by: model}
+- row: 2448
+  position: Member of the Management Board
+  organisation: National ‘Romanian Postal Services’ Company (Națională ‘Poșta Română’ S.A.) (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q283175, by: model}
+- row: 2449
+  position: Director-General, National Radiocommunications Company (MTIC)
+  local: Societatea Națională de Radiocomunicații) S.A.
+  lang: RUM
+  organisation: National Radiocommunications Company (Societatea Națională de Radiocomunicații) S.A. (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12741031, by: model}
+- row: 2450
+  position: Member of the Management Board
+  organisation: National Radiocommunications Company (Societatea Națională de Radiocomunicații) S.A. (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12741031, by: model}
+- row: 2451
+  position: Director-General, Autonomous Corporation ‘Bega Navigable Canal Administration’ (MTIC)
+  local: Regia Autonomă ‘Administrația Canalului Navigabil Bega’ ) Timiș
+  lang: RUM
+  organisation: Autonomous Corporation ‘Bega Navigable Canal Administration’ (Regia Autonomă ‘Administrația Canalului
+    Navigabil Bega’ ) Timiș (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2452
+  position: Member of the Management Board
+  organisation: Autonomous Corporation ‘Bega Navigable Canal Administration’ (Regia Autonomă ‘Administrația Canalului
+    Navigabil Bega’ ) Timiș (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2453
+  position: Director-General, Autonomous Corporation ‘Romanian Auto Register’ (MTIC)
+  local: Regia Autonomă ‘Registru Auto Român’)
+  lang: RUM
+  organisation: Autonomous Corporation ‘Romanian Auto Register’ (Regia Autonomă ‘Registru Auto Român’) (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2454
+  position: Member of the Management Board
+  organisation: Autonomous Corporation ‘Romanian Auto Register’ (Regia Autonomă ‘Registru Auto Român’) (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2455
+  position: Director-General, Autonomous Corporation ‘Lower Danube River Administration’ (MTIC)
+  local: Regia Autonomă ‘Administrația Fluvială a Dunării de Jos’ )
+  lang: RUM
+  organisation: Autonomous Corporation ‘Lower Danube River Administration’ (Regia Autonomă ‘Administrația Fluvială
+    a Dunării de Jos’ ) (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2456
+  position: Member of the Management Board
+  organisation: Autonomous Corporation ‘Lower Danube River Administration’ (Regia Autonomă ‘Administrația Fluvială
+    a Dunării de Jos’ ) (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12719977, by: model}
+- row: 2457
+  position: Director-General, Autonomous Corporation ‘Romanian Civil Aeronautical Authority’ (MTIC)
+  local: Regia Autonomă ‘Autoritatea Aeronautică Civilă Română’ )
+  lang: RUM
+  organisation: Autonomous Corporation ‘Romanian Civil Aeronautical Authority’ (Regia Autonomă ‘Autoritatea Aeronautică
+    Civilă Română’ ) (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2458
+  position: Member of the Management Board
+  organisation: Autonomous Corporation ‘Romanian Civil Aeronautical Authority’ (Regia Autonomă ‘Autoritatea Aeronautică
+    Civilă Română’ ) (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q15634501, by: model}
+- row: 2459
+  position: Director-General, Autonomous Corporation ‘Romanian Air Traffic Services Administration’ (MTIC)
+  local: Regia Autonomă ‘Administrația Română a Serviciilor de Trafic Aerian’ ) ROMAT
+  lang: RUM
+  organisation: 'Autonomous Corporation ‘Romanian Air Traffic Services Administration’ (Regia Autonomă ‘Administrația
+    Română a Serviciilor de Trafic Aerian’ ) ROMAT (MTIC):'
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2460
+  position: Director-General,, Romanian National Railway Company (MTIC)
+  local: Societatea Națională a Căilor Ferate Române) S.N.C.F.R.-R.A.
+  lang: RUM
+  organisation: Romanian National Railway Company (Societatea Națională a Căilor Ferate Române) S.N.C.F.R.-R.A.
+    (MTIC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2461
+  position: Member of the Management Board
+  organisation: Romanian National Railway Company (Societatea Națională a Căilor Ferate Române) S.N.C.F.R.-R.A.
+    (MTIC)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2462
+  position: President of the Management Board – Director-General, Autonomous Corporation – Administration of State
+    Protocol (SGG)
+  lang: RUM
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2463
+  position: Member of the Management Board
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2464
+  position: Executive Director, Autonomous Corporation – Administration of State Protocol (SGG)
+  lang: RUM
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2465
+  position: Branch Director
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2466
+  position: Financial Director, Autonomous Corporation – Administration of State Protocol (SGG)
+  lang: RUM
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2467
+  position: Commercial Director,, Autonomous Corporation – Administration of State Protocol (SGG)
+  lang: RUM
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2468
+  position: Technical Director
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: position
+  checked: true
+  expansion: []
+- row: 2469
+  position: Legal Director,, Autonomous Corporation – Administration of State Protocol (SGG)
+  lang: RUM
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2470
+  position: Administrative Logistics Director,, Autonomous Corporation – Administration of State Protocol (SGG)
+  lang: RUM
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2471
+  position: Chief Accountant, Autonomous Corporation – Administration of State Protocol (SGG)
+  lang: RUM
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2472
+  position: Head of Legal Office, Autonomous Corporation – Administration of State Protocol (SGG)
+  lang: RUM
+  organisation: Autonomous Corporation – Administration of State Protocol (SGG)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 2473
+  position: President of the Supervisory Board, National Electricity Transmission Company
+  local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
+  lang: RUM
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2474
+  position: Member of the Supervisory Board
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2475
+  position: President of the Directorate – Executive Director-General, National Electricity Transmission Company
+  local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
+  lang: RUM
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2476
+  position: Member of the Directorate
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2477
+  position: Director UNO-DEN/Unit, National Electricity Transmission Company
+  local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
+  lang: RUM
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2478
+  position: Director of DEN Directorate, National Electricity Transmission Company
+  local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
+  lang: RUM
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2479
+  position: Director of Unit, National Electricity Transmission Company
+  local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
+  lang: RUM
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2480
+  position: Director of Directorate, National Electricity Transmission Company
+  local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
+  lang: RUM
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2481
+  position: Deputy Director of Directorate
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2482
+  position: Manager (department)
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2483
+  position: Chief Inspector, National Electricity Transmission Company
+  local: Compania Nationala de Transport al Energiei Electrice) ‘Transelectrica’ S.A.
+  lang: RUM
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2484
+  position: UTT Manager
+  organisation: 'National Electricity Transmission Company (Compania Nationala de Transport al Energiei Electrice)
+    ‘Transelectrica’ S.A. '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q750324, by: model}
+- row: 2485
+  position: Director-General, National Natural Gas Transport Company
+  local: 'Societatea Națională de Transport Gaze Naturale) Transgaz S.A. Mediaș (SGG):'
+  lang: RUM
+  organisation: 'National Natural Gas Transport Company (Societatea Națională de Transport Gaze Naturale) Transgaz
+    S.A. Mediaș (SGG): '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q734282, by: model}
+- row: 2486
+  position: Financial Director, National Natural Gas Transport Company
+  local: 'Societatea Națională de Transport Gaze Naturale) Transgaz S.A. Mediaș (SGG):'
+  lang: RUM
+  organisation: 'National Natural Gas Transport Company (Societatea Națională de Transport Gaze Naturale) Transgaz
+    S.A. Mediaș (SGG): '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q734282, by: model}
+- row: 2487
+  position: Member of the Management Board
+  organisation: 'National Natural Gas Transport Company (Societatea Națională de Transport Gaze Naturale) Transgaz
+    S.A. Mediaș (SGG): '
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q734282, by: model}
+- row: 2488
+  position: Country manager (RO&HU), World Bank
+  organisation: World Bank
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2489
+  position: Sr. Country Officer
+  organisation: International Finance Corporation (World Bank)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2490
+  position: Representative of UNHCR in Romania
+  organisation: UN High Commissioner for Refugees (UNHCR)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2491
+  position: Protection Officer in UNHCR Representation in Romania
+  organisation: UN High Commissioner for Refugees (UNHCR)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2492
+  position: Director-General, South-East European Law Enforcement Centre
+  organisation: South-East European Law Enforcement Centre
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 2493
+  position: Deputy Director
+  organisation: South-East European Law Enforcement Centre
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []

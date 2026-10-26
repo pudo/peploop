@@ -1,0 +1,283 @@
+# Malaysia: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Malaysia run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml names three Malaysia entries
+  # (`Government_ministers_of_Malaysia`, `Federal_political_office-holders_in_Malaysia`,
+  # `Political_office-holders_in_Malaysia`); the tiers below are those containers
+  # opened up and measured. Counts are people with a Wikidata item, walked through
+  # the MediaWiki category API on 2026-10-06 because PetScan was not answering
+  # (so institutions are still in, and fetch's Q5 check removes them); each with
+  # its marginal over the entries above it. The whole seed is ~2,600 distinct
+  # people.
+  #
+  # en.wikipedia carries the regular tree: one container per tier, the ministers
+  # by portfolio, the Dewan Rakyat per term, the 13 state assemblies, the state
+  # executive councils and chief ministers, the rulers and governors, and 50
+  # ambassadorship subcats. ms.wikipedia adds what en has no category for -- the
+  # political and parliamentary secretaries and the chairmen of federal agencies
+  # (+161 under the federal container, +110 under the state one) -- while its
+  # per-term parliament categories add 14 people over en's and are left out.
+  #
+  # The current era is chosen two ways. The Dewan Rakyat is seeded by term from
+  # the 12th Parliament (2008) on: earlier terms are per-period categories of
+  # the past. Every other tier has no per-period child and is seeded whole, the
+  # scope gate dropping the dead at fetch and `policy.P39_MAX_ENDED_YEARS`
+  # skipping the tenures that ended long ago. That includes the rulers
+  # (`Monarchs_of_Malaysia`, 122, mostly dead sultans and the Rajas of Singapore):
+  # a ruler is head of a state and the current nine are PEPs; the royal houses
+  # beyond the rulers are a kinship lane and not seeded.
+  #
+  # Left out: `Malaysian_MPs_1959–1964` to `2004–2008` (history),
+  # `Malaysian_politicians_by_party` (45 parties; party membership is not
+  # office), `Politicians_from_*` (birthplace), `Mothers_of_Malaysian_monarchs`,
+  # `Malaysian_royal_consorts` beyond the queens, `British_Malaya_judges` and
+  # `British_Borneo_judges` (colonial), `20th-century_Malaysian_judges` (36, the
+  # chief justices and the Court of Appeal already reach the living apex), and
+  # `Malaysian_police_officers` beyond the chiefs (rank and file).
+
+  # --- Head of state and government ---
+  - category: Monarchs_of_Malaysia                          # 122, +122; the nine rulers' houses
+    lang: en
+  - category: Queens_consort_of_Malaysia                    # 17, +17
+    lang: en
+    depth: 0
+  - category: Prime_ministers_of_Malaysia                   # 10, +10; d1 is eponymous children
+    lang: en
+    depth: 0
+  - category: Deputy_prime_ministers_of_Malaysia            # 15, +7
+    lang: en
+    depth: 0
+
+  # --- Cabinet and the federal executive ---
+  - category: Government_ministers_of_Malaysia              # 244, +227; portfolios at d1
+    lang: en
+  - category: Leaders_of_the_opposition_(Malaysia)          # 13, +7
+    lang: en
+    depth: 0
+  - category: Chief_secretaries_to_the_Government_of_Malaysia   # 14, +14
+    lang: en
+    depth: 0
+  - category: Pemegang_jawatan_politik_persekutuan_di_Malaysia  # 403, +161: political and parliamentary secretaries, agency chairmen
+    lang: ms
+    depth: 2
+
+  # --- Parliament ---
+  - category: Malaysian_MPs_2022–                           # 222, +187
+    lang: en
+    depth: 0
+  - category: Malaysian_MPs_2018–2022                       # 219, +81
+    lang: en
+    depth: 0
+  - category: Malaysian_MPs_2013–2018                       # 212, +76
+    lang: en
+    depth: 0
+  - category: Malaysian_MPs_2008–2013                       # 223, +73
+    lang: en
+    depth: 0
+  - category: Member_of_the_Dewan_Rakyat_stubs              # 208, +32
+    lang: en
+    depth: 0
+  - category: Speakers_of_the_Dewan_Rakyat                  # 12, +6
+    lang: en
+    depth: 0
+  - category: Members_of_the_Dewan_Negara                   # 232, +135; presidents and women at d1
+    lang: en
+
+  # --- States ---
+  - category: Chief_ministers_of_Malaysian_states           # 111, +53; one subcat per state
+    lang: en
+  - category: State_executive_councillors_in_Malaysia       # 389, +236; one subcat per state
+    lang: en
+  - category: Deputy_chief_ministers_of_Sarawak             # 6, +2
+    lang: en
+    depth: 0
+  - category: Members_of_the_Legislative_Assembly_of_Malaysia   # 1151, +628; 13 assemblies and their speakers
+    lang: en
+    depth: 2
+  - category: Pemegang_jawatan_politik_negeri_di_Malaysia   # 438, +110
+    lang: ms
+    depth: 2
+  - category: Yang_di-Pertua_Negeri_of_Malacca              # 8, +2
+    lang: en
+    depth: 0
+  - category: Yang_di-Pertua_Negeri_of_Penang               # 7, +3
+    lang: en
+    depth: 0
+  - category: Yang_di-Pertua_Negeri_of_Sabah                # 11, +5
+    lang: en
+    depth: 0
+  - category: Yang_di-Pertua_Negeri_of_Sarawak              # 8, +4
+    lang: en
+    depth: 0
+  - category: Mayors_of_places_in_Malaysia                  # 19, +18; Kuala Lumpur, Miri
+    lang: en
+
+  # --- Judiciary ---
+  - category: Chief_justices_of_Malaysia                    # 35, +31
+    lang: en
+  - category: Presidents_of_the_Court_of_Appeal_of_Malaysia # 6, +2
+    lang: en
+    depth: 0
+  - category: 21st-century_Malaysian_judges                 # 27, +12
+    lang: en
+    depth: 0
+
+  # --- Central bank, security ---
+  - category: Governors_of_the_Central_Bank_of_Malaysia     # 10, +10
+    lang: en
+    depth: 0
+  - category: Malaysian_police_chiefs                       # 16, +16
+    lang: en
+    depth: 0
+  - category: Malaysian_Army_personnel                      # 49, +44
+    lang: en
+  - category: Royal_Malaysian_Air_Force_personnel           # 22, +12
+    lang: en
+  - category: Royal_Malaysian_Navy_personnel                # 14, +12
+    lang: en
+    depth: 0
+
+  # --- Diplomats ---
+  - category: Ambassadors_of_Malaysia                       # 120, +87; high commissioners at d2
+    lang: en
+    depth: 2
+  - category: Malaysian_diplomats                           # 27, +1
+    lang: en
+
+  # --- Parties and SOEs ---
+  - category: Leaders_of_political_parties_in_Malaysia      # 60, +7
+    lang: en
+  - category: Malaysian_chief_executives                    # 30, +26
+    lang: en
+    depth: 0
+
+  # --- Catch-alls ---
+  - category: 21st-century_Malaysian_politicians            # 560, +50
+    lang: en
+    depth: 0
+  - category: Malaysian_politician_stubs                    # 463, +54
+    lang: en
+    depth: 0
+
+census:
+  # Offices Malaysia has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-10-06 live measurement (wbsearchentities in en and
+  # ms, then the items read in full); nothing below is from memory. No `source`
+  # is given: none was checked live.
+  #
+  # Not here because an item exists and the descent loads it: the Yang
+  # di-Pertuan Agong `Q174156` and his deputy `Q109766854`, the Raja Permaisuri
+  # Agong `Q1136316`, the rulers of Perak, Kelantan, Pahang, Terengganu, Johor
+  # and Selangor (`Q2649311` and siblings), the King of Perlis `Q28379750`, the
+  # Yamtuan Besar `Q1572849`, the governors of Sabah `Q71309109` and Sarawak
+  # `Q4205657`, every Menteri Besar and Chief Minister (Selangor's is
+  # `Q6589950`, labelled "Menteris Besar"), the Premier of Sarawak `Q6566938`,
+  # the Chief Secretary `Q5096922`, the Governor of the Central Bank
+  # `Q23938077`, the Inspector-General of Police `Q56428167`, the Chief of
+  # Defence Forces `Q20462450` and the three service chiefs, the Attorney
+  # General `Q4818645`, the Auditor General `Q7362924`, the Chief Justice
+  # `Q7362926`, the President of the Court of Appeal `Q60748996`, both Chief
+  # Judges (`Q139374186`, `Q60544005`), the Election Commission's chairman
+  # `Q61113497`, both chambers' members (`Q21290861`, `Q21328606`) and
+  # presiding officers, the Mayor of Kuala Lumpur `Q12685557`, and the deputy
+  # ministers (the `Q110133xxx` series, P279 deputy minister since peptree's
+  # 2026-10-05 repair).
+  #
+  # In the census although an item exists, because the descent cannot reach it:
+  # listing it lets mint-verify's live search surface it. The Yang di-Pertua
+  # Negeri of Malacca `Q123398319` carries only P31; the Sultan of Kedah
+  # `Q12517320` is scoped P17/P1001 to the historic Sultanate of Kedah.
+  #
+  # Absent and not listed, for want of an archetype: the parliamentary and
+  # political secretaries. The per-ministry parliamentary secretaryships exist as
+  # a `Q110133xxx` series with a Malay label, P17 Malaysia and no P31 (e.g.
+  # `Q110133477`), which is a peptree repair, not a mint.
+
+  # --- Head of state: rulers and governors not reachable ---
+  - key: sultan_of_kedah
+    class: executive.head_of_state
+    archetype: governor
+    body: Q188947            # Kedah (exists: Q12517320, scoped to the historic sultanate)
+    labels:
+      en: Sultan of Kedah
+      ms: Sultan Kedah
+
+  - key: governor_of_malacca
+    class: subnational.executive
+    archetype: governor
+    body: Q185221            # Malacca (exists: Q123398319, P31 only)
+    labels:
+      en: Yang di-Pertua Negeri of Malacca
+      ms: Yang di-Pertua Negeri Melaka
+
+  - key: governor_of_penang
+    class: subnational.executive
+    archetype: governor
+    body: Q188096            # Penang; no item found in en or ms
+    labels:
+      en: Yang di-Pertua Negeri of Penang
+      ms: Yang di-Pertua Negeri Pulau Pinang
+
+  # --- Judiciary ---
+  - key: federal_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q5440171           # Federal Court of Malaysia, highest court of appeals
+    labels:
+      en: Judge of the Federal Court of Malaysia
+      ms: Hakim Mahkamah Persekutuan Malaysia
+
+  - key: court_of_appeal_judge
+    class: judiciary.apex
+    archetype: judge
+    body: Q5178325           # Court of Appeal of Malaysia
+    labels:
+      en: Judge of the Court of Appeal of Malaysia
+      ms: Hakim Mahkamah Rayuan Malaysia
+
+  # --- Oversight ---
+  - key: macc_chief_commissioner
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    body: Q6741935           # Malaysian Anti-Corruption Commission
+    labels:
+      en: Chief Commissioner of the Malaysian Anti-Corruption Commission
+      ms: Ketua Pesuruhjaya Suruhanjaya Pencegahan Rasuah Malaysia
+
+  # --- Sovereign wealth and SOEs ---
+  - key: khazanah_managing_director
+    class: economic.sovereign_wealth
+    archetype: soe_head
+    body: Q4382207           # Khazanah Nasional, sovereign wealth fund
+    labels:
+      en: Managing Director of Khazanah Nasional
+
+  - key: petronas_president
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q221692            # Petronas, state-owned oil and gas company
+    labels:
+      en: President and Chief Executive Officer of Petronas
+
+  - key: pnb_chairman
+    class: economic.sovereign_wealth
+    archetype: soe_head
+    body: Q4206786           # Permodalan Nasional Berhad
+    labels:
+      en: Chairman of Permodalan Nasional Berhad
+
+  - key: felda_chairman
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q112020            # Federal Land Development Authority, government agency
+    labels:
+      en: Chairman of the Federal Land Development Authority
+
+  - key: tnb_chairman
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q1584297           # Tenaga Nasional, electricity company
+    labels:
+      en: Chairman of Tenaga Nasional

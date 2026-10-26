@@ -64,7 +64,7 @@ the cache and upserts its proposals.
 
 ### 1. Seed
 
-Input: a YAML file of categories for one country, `peploop/seeds/<cc>.yml`, each
+Input: the categories for one country, the `seeds` section of `peploop/countries/<cc>.yml`, each
 entry `category`, `lang`, and an optional `depth` (default 1). Entries are taken from
 OpenSanctions' `wd_categories.yml`, whose dozens of categories per country
 transfer by keeping `category`, renaming `language` to `lang` and dropping
@@ -915,8 +915,9 @@ peploop/
   generic_positions.csv    the measured generic office classes both tools never target
   fixtures/                the silver test set the bench scores against
   bench/                   the retrieval and second-turn benches over that set
-  seeds/<cc>.yml           the categories a country's run is seeded from
-  census/<cc>.yml          the offices a state has whether or not anyone named them
+  countries.py             reads a country's file, one section per lane
+  countries/<cc>.yml       a country's (or eu's) seeds, census, corp spec and AMLR units
+  countries/<cc>.amlr.yml  the AMLR function list, generated from the Commission's sheet
   prompts/extract.md
   prompts/reconcile.md
   prompts/verify.md

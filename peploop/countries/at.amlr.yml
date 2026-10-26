@@ -1,0 +1,348 @@
+# Austria: listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 2
+  position: Federal President
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q475658, by: model}
+- row: 3
+  position: Federal Chancellor
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q1006398, by: model}
+- row: 4
+  position: Member of the Federal Government
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 5
+  position: Members of the provincial governments
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 6
+  position: Member of the Lower House (Nationalrat) of the Austrian parliament
+  status: Position for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q17535155, by: model}
+- row: 7
+  position: Member of the Upper House (Bundesrat) of the Austrian parliament
+  status: Position for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion: []
+- row: 8
+  position: Members of the Governing Bodies of Political Parties represented in the Nationalrat
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 9
+  position: Judge of the Supreme Court
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q37737345, by: model}
+- row: 10
+  position: Judge of the Constitutional Court
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q32858800, by: model}
+- row: 11
+  position: Judge of the Supreme Administrative Court
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q33140476, by: model}
+- row: 12
+  position: President of the Federal Court of Auditors
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 13
+  position: Directors of the Provincial Courts of Auditors
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 14
+  position: Member of the Board of Directors of the National Bank of Austria
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q670723, by: model}
+- row: 15
+  position: Military Personnel above the rank of Lieutenant General
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 16
+  position: Federal Government - Applies in particular to undertakings in which the Federal Government holds at
+    least 50 % of the ordinary share capital, principal capital or equity capital, or which the Federal Government
+    operates alone or which the Federal Government effectively controls through financial or other economic or organisational
+    measures"
+  status: Not obviously unpackable
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 17
+  position: Board of Directors or the Management of Enterprises in which a province owns 50 % or more of its ordinary
+    share capital, principal capital or equity capital, or which a province operates alone or which a province effectively
+    controls through financial or other economic or organisational measures, provided that the total annual turnover
+    of such an enterprise exceeds EUR 1 000 000. Total annual turnover is determined on the basis of the annual
+    revenue from the most recent annual accounts;"
+  status: Not obviously unpackable
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body_class
+  checked: false
+  expansion:
+  - {tier: regional, bodies: enterprise, by: model}
+- row: 18
+  position: Director-General, UNOV - United Nations Office in Vienna
+  organisation: UNOV - United Nations Office in Vienna
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 19
+  position: Deputy Director-General, UNOV - United Nations Office in Vienna
+  organisation: UNOV - United Nations Office in Vienna
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 20
+  position: Executive Director, UNODC - United Nations Office on Drugs and Crime
+  organisation: UNODC - United Nations Office on Drugs and Crime
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 21
+  position: Deputy Executive Director, UNODC - United Nations Office on Drugs and Crime
+  organisation: UNODC - United Nations Office on Drugs and Crime
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 22
+  position: Director-General, UNIDO - United Nations Industrial Development Organization
+  organisation: UNIDO - United Nations Industrial Development Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 23
+  position: Deputy Director-General, UNIDO - United Nations Industrial Development Organization
+  organisation: UNIDO - United Nations Industrial Development Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 24
+  position: Director-General, IAEA - International Atomic Energy Agency
+  organisation: IAEA - International Atomic Energy Agency
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q65782205, by: model}
+- row: 25
+  position: Deputy Director General, IAEA - International Atomic Energy Agency
+  organisation: IAEA - International Atomic Energy Agency
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 26
+  position: Director-General, OFID - OPEC Fund for International Development
+  organisation: OFID - OPEC Fund for International Development
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 27
+  position: Deputy Director-General, OFID - OPEC Fund for International Development
+  organisation: OFID - OPEC Fund for International Development
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 28
+  position: Secretary General, OPEC - Organization of the Petroleum Exporting Countries
+  organisation: OPEC - Organization of the Petroleum Exporting Countries
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q6596647, by: model}
+- row: 29
+  position: Secretary General, OSCE - Organization for Security and Cooperation in Europe
+  organisation: OSCE - Organization for Security and Cooperation in Europe
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q110934652, by: model}
+- row: 30
+  position: Deputy Secretary General, OSCE - Organization for Security and Cooperation in Europe
+  organisation: OSCE - Organization for Security and Cooperation in Europe
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 31
+  position: Head of Secretariat, WA - Wassenaar Arrangement on Export Controls for Conventional Arms and Dual-Use
+    Goods and Technologies, Secretariat
+  organisation: WA - Wassenaar Arrangement on Export Controls for Conventional Arms and Dual-Use Goods and Technologies,
+    Secretariat
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 32
+  position: Secretary General, KAICIID - King Abdullah International Centre for Interreligious and Intercultural
+    Dialogue
+  organisation: KAICIID - King Abdullah International Centre for Interreligious and Intercultural Dialogue
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 33
+  position: Deputy Secretary General, KAICIID - King Abdullah International Centre for Interreligious and Intercultural
+    Dialogue
+  organisation: KAICIID - King Abdullah International Centre for Interreligious and Intercultural Dialogue
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 34
+  position: Secretary General, ICMPD - International Centre for Migration Policy Development
+  organisation: ICMPD - International Centre for Migration Policy Development
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 35
+  position: Deputy Secretary General, ICMPD - International Centre for Migration Policy Development
+  organisation: ICMPD - International Centre for Migration Policy Development
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 36
+  position: Executive Secretary, CTBTO - Preparatory Commission for the Comprehensive Nuclear-Test-Ban Treaty Organization
+  organisation: CTBTO - Preparatory Commission for the Comprehensive Nuclear-Test-Ban Treaty Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 37
+  position: Secretary General, PSAC - Permanent Secretariat of the Alpine Convention
+  organisation: PSAC - Permanent Secretariat of the Alpine Convention
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 38
+  position: Dean, IACA - International Anti-Corruption Academy
+  organisation: IACA - International Anti-Corruption Academy
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []

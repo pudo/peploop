@@ -532,7 +532,8 @@ def prepare(cc: str, data: dict[str, Any], log: Callable[[str], None]) -> list[W
     langs = langs_of(cc)
     territory = get_territory(cc) if cc != "eu" else None
     country = territory.name if territory else "European Union"
-    levels = {lv: [c["name"] for c in (data.get("units") or {}).get(lv) or []] for lv in amlr.LEVELS}
+    units = amlr.unit_block(cc).get("units") or {}
+    levels = {lv: [c["name"] for c in units.get(lv) or []] for lv in amlr.LEVELS}
     work = [Work(cc, r, CLASS_PROMPT, class_message(r, country, levels)) for r in rows if r["kind"] == "body_class"]
     matched = [r for r in rows if r["kind"] != "body_class"]
     if not matched:
@@ -642,7 +643,7 @@ def expand(codes: list[str], log: Callable[[str], None] = print, rounds: int = 2
         retry = False
         for cc, ws in work.items():
             header, data = files[cc]
-            levels = {lv for lv in amlr.LEVELS if (data.get("units") or {}).get(lv)}
+            levels = {lv for lv in amlr.LEVELS if (amlr.unit_block(cc).get("units") or {}).get(lv)}
             kinds_before = {id(w): w.row["kind"] for w in ws}
             outcomes = {}
             path = OUT / f"{cc}-expand-{date.today().isoformat()}.jsonl"

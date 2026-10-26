@@ -1,0 +1,594 @@
+# Greece: listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 913
+  position: President of the Republic
+  lang: GRC
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q3409203, by: model}
+- row: 914
+  position: Prime Minister
+  lang: GRC
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q4377230, by: model}
+- row: 915
+  position: Deputy prime ministers
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q3394691, by: model}
+- row: 916
+  position: Ministers
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 917
+  position: Deputy Minister
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q23636253, by: model}
+- row: 918
+  position: State Secretarie
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 919
+  position: General and Special secretaries
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 920
+  position: Members of the Hellenic Parliament
+  local: Ελληνικό Κοινοβούλιο
+  lang: GRC
+  status: Position prefix for territory
+  category: members of parliament or of similar legislative bodies;
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q18915989, by: model}
+- row: 921
+  position: Head and financial of the political parties represented in the Hellenic Parliament or in the European
+    Parliament;
+  lang: GRC
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 922
+  position: Officers of the political parties represented in the Hellenic Parliament or in the European Parliament;
+  lang: GRC
+  status: Position prefix for territory
+  category: members of the governing bodies of political parties;
+  amlr: iii_party
+  kind: position
+  checked: false
+  expansion: []
+- row: 923
+  position: Governors of regions
+  lang: GRC
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 924
+  position: Deputy Governors of regions
+  lang: GRC
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 925
+  position: Mayors of regions
+  lang: GRC
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 926
+  position: Deputy mayors of regions
+  lang: GRC
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: viii_local
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 927
+  position: Judges and public prosecutors of the Supreme Court
+  local: Άρειος Πάγος
+  lang: GRC
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 928
+  position: The Public Prosecutor’s Office at the Supreme Court
+  local: Εισαγγελία του Αρείου Πάγου
+  lang: GRC
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 929
+  position: The Council of State
+  local: Συμβούλιο της Επικρατείας
+  lang: GRC
+  status: Position prefix for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 930
+  position: The judiciary of the armed forces and of the Supreme Special Court
+  local: Ανώτατο Ειδικό Δικαστήριο
+  lang: GRC
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 931
+  position: Judges of the Hellenic Court of Audit
+  local: Ελεγκτικό Συνέδριο
+  lang: GRC
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 932
+  position: Hellenic Court of Audit’s General State Commission
+  local: Επιτροπεία της Επικρατείας του Ελεγκτικού Συνεδρίου;
+  lang: GRC
+  status: Position prefix for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 933
+  position: The Governor
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 934
+  position: Deputy Director
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 935
+  position: Managing Director
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 936
+  position: Members of the boards of the Bank of Greece
+  local: Τράπεζα της Ελλάδος
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: v_audit_cb
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q806700, by: model}
+- row: 937
+  position: Ambassadors
+  lang: GRC
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 938
+  position: Chargés d’affaires and consuls
+  lang: GRC
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 939
+  position: Senior officers of the armed forces
+  lang: GRC
+  status: Position prefix for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 940
+  position: Presidents
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q3409203, by: model}
+- row: 941
+  position: Vice-presidents
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 942
+  position: Managing Directors
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 943
+  position: Executive Secretaries
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 944
+  position: Chief Executives
+  lang: GRC
+  status: Position prefix for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 945
+  position: Administrative or other boards or committees, including their alternates, of all types of undertakings
+    that belong to the public sector as defined in Article 14 of Law 4270/2014, or that are supervised by it or
+    fall under its management, administrative or supervisory control;
+  lang: GRC
+  status: Not obviously unpackable
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: vii_soe
+  kind: body_class
+  checked: true
+  expansion:
+  - {tier: national, bodies: enterprise, by: model}
+- row: 946
+  position: Members of boards of directors
+  lang: GRC
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 947
+  position: Directors
+  lang: GRC
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: body_class
+  checked: true
+  expansion: []
+- row: 948
+  position: Deputy directors and persons holding an equivalent post in international organisations.
+  lang: GRC
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 949
+  position: The Members of its Board of Directors, who are responsible for the general operation of the bank (one
+    Director and one Alternate Director appointed by each of BSTB’s eleven Member States – Articles 25 and 26 of
+    the international treaty of BSTB’s Establishing Agreement, ratified by the Hellenic Republic),
+  lang: GRC
+  organisation: Black sea trade and development bank
+  status: Not obviously unpackable
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 950
+  position: The President of BSTDB - Black sea trade and development bank
+  lang: GRC
+  organisation: Black sea trade and development bank
+  notes: ', who as chief executive of the bank conducts, under the direction of the Board of Directors, the current
+    business of the Bank (Article 29 of the Establishing Agreement'
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 951
+  position: The members of Management (Article 30 of the Establishing Agreement), i.e. the four Vice Presidencies
+    – Banking, Finance, Operations and Secretary General’s Divisions’ Heads, who are appointed by the Board of Directors
+    and report to the President.
+  lang: GRC
+  organisation: Black sea trade and development bank
+  status: Not obviously unpackable
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 952
+  position: Board of Governors
+  lang: GRC
+  organisation: European Bank For Reconstruction And Development (EBRD)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 953
+  position: Board of Directors
+  lang: GRC
+  organisation: European Bank For Reconstruction And Development (EBRD)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 954
+  position: Executive Committee Member, European Bank For Reconstruction And Development (EBRD)
+  lang: GRC
+  organisation: European Bank For Reconstruction And Development (EBRD)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 955
+  position: Senior Leadership Group
+  lang: GRC
+  organisation: European Bank For Reconstruction And Development (EBRD)
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 956
+  position: Chief Accountability Officer, European Bank For Reconstruction And Development (EBRD)
+  lang: GRC
+  organisation: European Bank For Reconstruction And Development (EBRD)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 957
+  position: Executive Committee Member, International Monetary Fund
+  lang: GRC
+  organisation: International Monetary Fund ((According to the ‘Note Verbale’, dated 11.3.2020, of the Office of
+    the International Monetary Fund in Greece, the suspension of the latter was foreseen to be completed by 31.12.2020))
+  notes: ((According to the ‘Note Verbale’, dated 11.3.2020, of the Office of the International Monetary Fund in
+    Greece, the suspension of the latter was foreseen to be completed by 31.12.2020))
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 958
+  position: The Chairman of the Committee, European Public Law Organization
+  lang: GRC
+  organisation: European Public Law Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 959
+  position: The Director-General for Management., European Public Law Organization
+  lang: GRC
+  organisation: European Public Law Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 960
+  position: Director-General, International Organisation For Migration (IOM)
+  lang: GRC
+  organisation: International Organisation For Migration (IOM)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 961
+  position: Deputy Director-General, International Organisation For Migration (IOM)
+  lang: GRC
+  organisation: International Organisation For Migration (IOM)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 962
+  position: Regional Director
+  lang: GRC
+  organisation: World Health Organization
+  status: Position prefix for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 963
+  position: Executive Council, World Health Organization
+  lang: GRC
+  organisation: World Health Organization
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 964
+  position: Coordinator of relevant international organisation, United Nations Environment Programme, Coordinating
+    Unit For The Mediterranean Action Plan (UNEP/MAP)
+  lang: GRC
+  organisation: United Nations Environment Programme, Coordinating Unit For The Mediterranean Action Plan (UNEP/MAP)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 965
+  position: High Commissioner, United Nations High Commissioner For Refugees (UNHCR)
+  lang: GRC
+  organisation: United Nations High Commissioner For Refugees (UNHCR)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q27832358, by: model}
+- row: 966
+  position: Deputy High Commissioner, United Nations High Commissioner For Refugees (UNHCR)
+  lang: GRC
+  organisation: United Nations High Commissioner For Refugees (UNHCR)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 967
+  position: Assistant High Commissioner, United Nations High Commissioner For Refugees (UNHCR)
+  lang: GRC
+  organisation: United Nations High Commissioner For Refugees (UNHCR)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 968
+  position: Chef de Cabinet, United Nations High Commissioner For Refugees (UNHCR)
+  lang: GRC
+  organisation: United Nations High Commissioner For Refugees (UNHCR)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 969
+  position: Executive Director, United Nations Children’s Fund (Unicef)
+  lang: GRC
+  organisation: United Nations Children’s Fund (Unicef)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q67199671, by: model}
+- row: 970
+  position: Deputy Executive Director, United Nations Children’s Fund (Unicef)
+  lang: GRC
+  organisation: United Nations Children’s Fund (Unicef)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 971
+  position: Director, Regional Director, United Nations Children’s Fund (Unicef)
+  lang: GRC
+  organisation: United Nations Children’s Fund (Unicef)
+  status: Position for territory
+  category: directors, deputy directors and members of the board or equivalent function of an international organisation.
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []

@@ -20,19 +20,17 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Callable, Collection, Iterable, Literal, Optional, Protocol, Sequence
 
-import yaml
 from anthropic.lib._parse._transform import transform_schema
 from psycopg.types.json import Jsonb
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory
 
-from peploop import classes, db, llm, offices, policy, positions, reconcile, scope, tenure, typegraph, wikidata
+from peploop import classes, countries, db, llm, offices, policy, positions, reconcile, scope, tenure, typegraph, wikidata
 from peploop import text as text_
 from peploop import verify as person_verify
 from peploop.verdict import CONFIDENCES
 from peploop.offices import ARCHETYPES, distinct_holders
 
-CENSUS_DIR = Path(__file__).resolve().parent / "census"
 
 #: A tenure with a start and no end counts as running for this long. Most
 #: articles never write the end of a term nobody announced, so an open tenure
@@ -336,8 +334,8 @@ def census(
     """Load the offices a country's census says must exist.
 
     Reach for this to find the missing offices nobody's article named: the
-    reconcile misses only show what the seeded people held. The file is
-    `census/<cc>.yml`, a list of entries with `key`, `class` (one of
+    reconcile misses only show what the seeded people held. The census is
+    the `census` section of `countries/<cc>.yml`, a list of entries with `key`, `class` (one of
     `INSTITUTION_CLASSES`), `archetype` (one of `offices.ARCHETYPES`),
     `labels` by language, and optionally `body`, `parent`, `source`, `jurisdiction` (the
     subdivision a single entry's office governs, where its body names none)
@@ -346,13 +344,10 @@ def census(
     subdivision's label in that language (or `en`, then `mul`; `{Name}` capitalises
     it); an optional
     `exclude: [QID, …]` drops the subdivisions that office does not exist in,
-    such as a capital district governed by a mayor. An absent file is an empty
+    such as a capital district governed by a mayor. An absent section is an empty
     census.
     """
-    path = path or CENSUS_DIR / f"{cc}.yml"
-    if not path.exists():
-        return []
-    entries = yaml.safe_load(path.read_text()) or []
+    entries = countries.section(cc, "census", path) or []
     out: list[Anchor] = []
     for entry in entries:
         klass, archetype = entry["class"], entry["archetype"]

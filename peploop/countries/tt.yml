@@ -1,0 +1,222 @@
+# Trinidad and Tobago: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Trinidad and Tobago run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml has no Trinidad and Tobago entry, so every
+  # entry below is measured here and nothing is inherited. Counts are people
+  # with a Wikidata item typed Q5, walked through the MediaWiki category API on
+  # 2026-10-03 because PetScan was not answering; each with its marginal over
+  # the entries above it. The whole seed is ~340 distinct people.
+  #
+  # en.wikipedia is the country's own wiki and the only one with a tree: one
+  # container per tier (`Political office-holders in Trinidad and Tobago`, 13
+  # subcats), a portfolio container for the ministers, both chambers with their
+  # presiding officers, the chief justices, the central-bank governors, the
+  # mayors, and 25 ambassadorship subcats.
+  #
+  # The current era is the republic under the 1976 constitution: the President
+  # replaced the Governor-General (the presidency item `Q2522739` carries P571
+  # 1976-09-24), the first Republican Parliament sat that year, and every office
+  # the loop records -- the presidency, the two chambers' presiding officers, the
+  # Tobago House of Assembly (1980) -- dates from it or later. The Prime Minister
+  # and the chambers predate it (1962) but are the same offices. No category has
+  # a per-period or per-century child below the tier, so the era cannot be chosen
+  # by category: the tiers are seeded whole, the scope gate drops the dead at
+  # fetch, and `policy.P39_MAX_ENDED_YEARS` skips the tenures that ended long ago.
+  # What is left out is what the 1976 constitution ended: `Members of the
+  # Legislative Council` (24, 3 new, 1 living: colonial), `Governors of Trinidad
+  # and Tobago` and `Governors-general` (colonial and pre-1976), `Members of the
+  # Federal Parliament of the West Indies Federation` (19, 14 new, none living),
+  # `Solicitors general` (3, 2 new, none living), `Carib Queens`, and
+  # `20th-century Trinidad and Tobago politicians` (47, 10 new, 11 living).
+  # Also out: `Trinidad and Tobago businesspeople` (28, 15 new: not office
+  # holders), `judges of international courts and tribunals` (6, 4 new: not the
+  # state's offices), `city councillors` (1, dead), `civil servants` (3, 3 new,
+  # 1 living), `lawyers` (9, 1 new) and `Attorneys general of British Trinidad
+  # and Tobago` (the colonial subcategory, hence depth 0 on the AGs).
+
+  # --- Head of state and government ---
+  - category: Presidents_of_Trinidad_and_Tobago                 # 7, 3 living; d1 is the elections
+    lang: en
+    depth: 0
+  - category: Prime_ministers_of_Trinidad_and_Tobago            # 8, 7 new; d1 is Patrick Manning's eponymous category
+    lang: en
+    depth: 0
+
+  # --- Cabinet: 13 portfolio subcats, the PMs and the women ministers ---
+  - category: Government_ministers_of_Trinidad_and_Tobago       # 131, 122 new, 109 living
+    lang: en
+  - category: Attorneys_general_of_Trinidad_and_Tobago          # 14, 7 new; d1 is the colonial AGs
+    lang: en
+    depth: 0
+
+  # --- Parliament: both chambers with their presiding officers ---
+  - category: Members_of_the_House_of_Representatives_(Trinidad_and_Tobago)   # with Speakers and PMs; 156, 57 new
+    lang: en
+  - category: Members_of_the_Senate_(Trinidad_and_Tobago)       # with Presidents of the Senate; 125, 59 new
+    lang: en
+
+  # --- Tobago: the Assembly (its Chief Secretary and Presiding Officer have no category) ---
+  - category: Members_of_the_Tobago_House_of_Assembly           # 5, 2 new
+    lang: en
+    depth: 0
+
+  # --- Judiciary ---
+  - category: Chief_justices_of_Trinidad_and_Tobago             # 19, 19 new, 4 living
+    lang: en
+    depth: 0
+
+  # --- Central bank ---
+  - category: Governors_of_the_Central_Bank_of_Trinidad_and_Tobago   # 3, 2 new
+    lang: en
+    depth: 0
+
+  # --- Local government: Port of Spain and the women mayors ---
+  - category: Mayors_of_places_in_Trinidad_and_Tobago           # 11, 3 new
+    lang: en
+
+  # --- Security: the Defence Force and the Police Service ---
+  - category: Trinidad_and_Tobago_military_personnel            # with the Coast Guard; 8, 5 new
+    lang: en
+  - category: Trinidad_and_Tobago_police_officers               # 9, 6 new
+    lang: en
+    depth: 0
+  - category: Trinidad_and_Tobago_Police_Service                # 10, 1 new
+    lang: en
+
+  # --- Diplomatic service ---
+  - category: Ambassadors_of_Trinidad_and_Tobago                # 25 posts, high commissioners at d2; 20, 7 new
+    lang: en
+    depth: 2
+  - category: Trinidad_and_Tobago_diplomats                     # 17, 2 new (UN representatives: 7, 0 new)
+    lang: en
+
+  # --- Parties ---
+  - category: Leaders_of_political_parties_in_Trinidad_and_Tobago    # 6, 1 new
+    lang: en
+    depth: 0
+  - category: Trinidad_and_Tobago_politicians_by_party          # 17 parties; 237, 14 new (PNM 108, UNC 72)
+    lang: en
+
+  # --- Catch-alls ---
+  - category: 21st-century_Trinidad_and_Tobago_politicians      # 186, 7 new
+    lang: en
+  - category: Trinidad_and_Tobago_women_in_politics             # 105, 9 new
+    lang: en
+  - category: Trinidad_and_Tobago_politician_stubs              # 158, 3 new
+    lang: en
+    depth: 0
+
+census:
+  # Offices the state has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-10-03 live measurement (labels, P31, P17 read in
+  # full); nothing below is from memory. No `source` is given: none was checked
+  # live, and a source is what lets a one-seat office pass on a single current
+  # holder, so it is never guessed.
+  #
+  # Not here because an item exists and the descent loads it: the President
+  # `Q2522739` (P571 1976-09-24), the Prime Minister `Q30101326`, the portfolio
+  # ministers (the `Q107861xxx` series of the 2015-2025 cabinet and a
+  # `Q115xxxxxx`/`Q116xxxxxx` series of older names, all P361 the cabinet
+  # `Q107861112`), the Attorney General `Q21070653`, the Speaker `Q109538297`
+  # (P2389 the House `Q2145199`), the President of the Senate `Q7241367` (P2389
+  # the Senate `Q3510869`; its en description wrongly reads "Wikimedia list
+  # article"), the Leader of the Opposition `Q6508570`, the Chief Justice
+  # `Q5096805`, the Director of Public Prosecutions `Q58887924`, the Governor of
+  # the Central Bank `Q109538419`.
+  #
+  # In the census although an item exists, because the item carries no P17 or
+  # P1001 and the descent cannot reach it: listing it lets mint-verify's live
+  # search surface it. The Chief Secretary of Tobago `Q85751924` and the
+  # Presiding Officer of the Tobago House of Assembly `Q85794414` have no claims
+  # at all and no holder; the Chief of Defence Staff `Q106040759` has only P31.
+  #
+  # Tobago is not a first-level subdivision: Q754's P150 lists the 14
+  # municipal corporations of Trinidad (Port of Spain, San Fernando, Chaguanas,
+  # Arima, Point Fortin and nine regional corporations) and not Tobago
+  # `Q185111`, which is typed island + administrative territorial entity with no
+  # P131. The Tobago House of Assembly `Q7811539` carries P1001 Q185111. So no
+  # Tobago office can be scoped to a region the guard knows, and neither
+  # archetype that names a level fits the Chief Secretary.
+  #
+  # Absent and not listed, for want of an item or an archetype:
+  # - the Auditor General and the Integrity Commission chair are listed below
+  #   without a body: no item exists for the Auditor General's Department or
+  #   the Integrity Commission, so the guard will refuse them a description;
+  # - the chairs of the nine regional corporations: no archetype (they are not
+  #   governors, and `Q132050` would type them so);
+  # - Heritage Petroleum, Paria Fuel Trading and Guaracara Refining, Petrotrin's
+  #   2018 successors: no item for any (Petrotrin `Q3377647` has P576 2018);
+  # - the Heritage and Stabilization Fund `Q135092667` (P31 sovereign wealth fund):
+  #   its board chair is no constitutional appointment the seeds reach.
+
+  - key: tha_chief_secretary
+    class: subnational.executive
+    archetype: agency_head
+    body: Q7811539           # Tobago House of Assembly, P31 legislative house, P1001 Tobago (exists: Q85751924, claimless)
+    labels:
+      en: Chief Secretary of Tobago
+
+  - key: tha_presiding_officer
+    class: subnational.assemblies
+    archetype: speaker
+    body: Q7811539           # Tobago House of Assembly (exists: Q85794414, claimless)
+    labels:
+      en: Presiding Officer of the Tobago House of Assembly
+
+  - key: chief_of_defence_staff
+    class: security.defence_command
+    archetype: military_chief_of_staff
+    body: Q761495            # Trinidad and Tobago Defence Force, P31 armed forces (exists: Q106040759, P31 only)
+    labels:
+      en: Chief of Defence Staff of the Trinidad and Tobago Defence Force
+
+  - key: commissioner_of_police
+    class: security.police
+    archetype: agency_head
+    body: Q7842422           # Trinidad and Tobago Police Service, no P31, P17 Q754
+    labels:
+      en: Commissioner of Police of Trinidad and Tobago
+
+  - key: auditor_general
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the Auditor General's Department was found.
+    labels:
+      en: Auditor General of Trinidad and Tobago
+
+  - key: integrity_commission_chair
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the Integrity Commission was found.
+    labels:
+      en: Chairman of the Integrity Commission of Trinidad and Tobago
+
+  - key: ngc_president
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q6972856           # National Gas Company of Trinidad and Tobago, P31 business, P17 Q754
+    labels:
+      en: President of the National Gas Company of Trinidad and Tobago
+
+  # Mayors of the two cities and three boroughs. They are first-level
+  # subdivisions here (P150), so `per: subdivisions` reaches them; the nine
+  # regional corporations are excluded, being headed by a chairman. Port of
+  # Spain `Q116177277` and San Fernando `Q115659580` already have an item.
+  - key: mayor
+    class: subnational.municipal
+    archetype: mayor
+    per: subdivisions
+    exclude:
+      - Q2679127             # Couva-Tabaquite-Talparo
+      - Q2679107             # Diego Martin Regional Corporation
+      - Q2056273             # Penal-Debe Regional Corporation
+      - Q2228167             # Princes Town
+      - Q2487249             # Mayaro-Rio Claro
+      - Q979608              # San Juan–Laventille
+      - Q290292              # Sangre Grande Regional Corporation
+      - Q2679119             # Siparia Regional Corporation
+      - Q1899163             # Tunapuna–Piarco
+    labels:
+      en: Mayor of {name}

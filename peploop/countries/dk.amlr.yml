@@ -1,0 +1,2277 @@
+# Denmark: listed public functions under the EU AMLR (Reg. 2024/1624).
+# Functions: the member state's list of prominent public functions (Art. 43), published by
+# the Commission as notice C/2023/724 (OJ C), one entry per row of the curated sheet
+# https://docs.google.com/spreadsheets/d/e/2PACX-1vScJoESeSlsPlFcHSqIQMO9kK6JRV7ahVNc_WdiLuCV-CzBZh-tZU00_-MgXekD6t7vSNjjDZBI9eNI/pub?gid=0&single=true&output=csv
+# `checked: false`: `amlr` and `kind` are a keyword classifier's first pass, unreviewed.
+functions:
+- row: 470
+  position: Prime Minister
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q795477, by: model}
+- row: 471
+  position: Minister for Foreign Affairs
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 472
+  position: Minister for Justice
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 473
+  position: Minister for Finance
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 474
+  position: Minister for Transport and Equal Opportunities
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 475
+  position: Minister for Social Affairs and the Elderly
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 476
+  position: Minister for Development Cooperation and Nordic Cooperation
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 477
+  position: Minister for Employment
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q11781520, by: model}
+- row: 478
+  position: Minister for Immigration and Integration
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 479
+  position: Minister for Higher Education and Science
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q12312037, by: model}
+- row: 480
+  position: Minister for Climate, Energy and Utilities
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 481
+  position: Minister for Defence
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 482
+  position: Minister for Children and Education
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 483
+  position: Minister for Culture and Ecclesiastical Affairs
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 484
+  position: Minister for Transport
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 485
+  position: Minister for the Interior and Housing
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 486
+  position: Minister for Health
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q5690600, by: model}
+- row: 487
+  position: Minister for the Environment
+  lang: DNK
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q1311756, by: model}
+- row: 488
+  position: Minister for Food, Agriculture and Fisheries
+  lang: DNK
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q24300568, by: model}
+- row: 489
+  position: Minister for Taxation
+  lang: DNK
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 490
+  position: Minister for Industry, Business and Financial Affairs
+  lang: DNK
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q107677343, by: model}
+- row: 491
+  position: Permanent Secretary, Ministry of Defence
+  local: Forsvarsministeriet
+  lang: DNK
+  organisation: 'Ministry of Defence [Forsvarsministeriet] '
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 492
+  position: Permanent Secretary, Prime Minister’s Office
+  local: Statsministeriet
+  lang: DNK
+  organisation: Prime Minister’s Office [Statsministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q131426921, by: model}
+- row: 493
+  position: Permanent Secretary, Ministry of Taxation
+  local: Skatteministeriet
+  lang: DNK
+  organisation: Ministry of Taxation [Skatteministeriet
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 494
+  position: Permanent Secretary, Ministry of Climate, Energy and Utilities
+  local: Klima-, Energi og Forsyningsministeriet
+  lang: DNK
+  organisation: Ministry of Climate, Energy and Utilities [Klima-, Energi og Forsyningsministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 495
+  position: Permanent Secretary, Ministry of Ecclesiastical Affairs
+  local: Kirkeministeriet
+  lang: DNK
+  organisation: Ministry of Ecclesiastical Affairs [Kirkeministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 496
+  position: Permanent Secretary, Ministry of Industry, Business and Financial Affairs
+  local: Erhvervsministeriet
+  lang: DNK
+  organisation: Ministry of Industry, Business and Financial Affairs [Erhvervsministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 497
+  position: Permanent Secretary, Ministry of Social Affairs and the Interior
+  local: Social- og Indenrigsministeriet
+  lang: DNK
+  organisation: Ministry of Social Affairs and the Interior [Social- og Indenrigsministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 498
+  position: Permanent Secretary, Ministry of Children and Education
+  local: Børn – og Undervisningsministeriet
+  lang: DNK
+  organisation: Ministry of Children and Education [Børn – og Undervisningsministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 499
+  position: Permanent Secretary, Ministry of Transport and Housing
+  local: Transport- og Boligministeriet
+  lang: DNK
+  organisation: Ministry of Transport and Housing [Transport- og Boligministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 500
+  position: Permanent Secretary, Ministry of Immigration and Integration
+  local: Udlændinge- og Integrationsministeriet
+  lang: DNK
+  organisation: Ministry of Immigration and Integration [Udlændinge- og Integrationsministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 501
+  position: Permanent Secretary, Ministry of Employment
+  local: Beskæftigelsesministeriet
+  lang: DNK
+  organisation: Ministry of Employment [Beskæftigelsesministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 502
+  position: Permanent Secretary, Ministry of Justice
+  local: Justitsministeriet
+  lang: DNK
+  organisation: Ministry of Justice [Justitsministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 503
+  position: Permanent Secretary, Ministry of Foreign Affairs
+  local: Udenrigsministeriet
+  lang: DNK
+  organisation: Ministry of Foreign Affairs [Udenrigsministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q133329542, by: model}
+- row: 504
+  position: Permanent Secretary, Ministry of Higher Education and Science
+  local: Uddannelses- og Forskningsministeriet
+  lang: DNK
+  organisation: Ministry of Higher Education and Science [Uddannelses- og Forskningsministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 505
+  position: Permanent Secretary, Ministry of Finance
+  local: Finansministeriet
+  lang: DNK
+  organisation: Ministry of Finance [Finansministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 506
+  position: Permanent Secretary, Ministry of Culture
+  local: Kulturministeriet
+  lang: DNK
+  organisation: Ministry of Culture [Kulturministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 507
+  position: Permanent Secretary, Ministry of Environment and Food
+  local: Miljø- og Fødevareministeriet
+  lang: DNK
+  organisation: Ministry of Environment and Food [Miljø- og Fødevareministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 508
+  position: Permanent Secretary, Ministry of Health and the Elderly
+  local: Sundheds- og Ældreministeriet
+  lang: DNK
+  organisation: Ministry of Health and the Elderly [Sundheds- og Ældreministeriet]
+  status: Position for territory
+  category: heads of State, heads of government, ministers and deputy or assistant ministers;
+  amlr: i_executive
+  kind: position
+  checked: false
+  expansion: []
+- row: 509
+  position: Auditor General
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: false
+  expansion: []
+- row: 510
+  position: Member of the Danish Parliament
+  local: Folketinget
+  lang: DNK
+  status: Position for territory
+  category: ''
+  amlr: ii_legislature
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q12311817, by: model}
+- row: 511
+  position: Members of the governing body of a political party (Section 2(1)(8)(c)
+  status: Position prefix for territory
+  category: ''
+  amlr: iii_party
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 512
+  position: President of the Supreme Court
+  local: Højesteret
+  lang: DNK
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion:
+  - {position: Q141641430, by: model}
+- row: 513
+  position: Supreme Court Judge
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 514
+  position: Judge of the European Court of Human Rights
+  status: Position for territory
+  category: members of supreme courts, of constitutional courts or of other high-level judicial bodies, the decisions
+    of which are not subject to further appeal, except in exceptional circumstances;
+  amlr: iv_courts
+  kind: position
+  checked: false
+  expansion: []
+- row: 515
+  position: Governor of the Danish central bank, by royal appointment
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: position
+  checked: true
+  expansion: []
+- row: 516
+  position: Governor of the Danish central bank
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 517
+  position: Member of the Public Accounts Committee
+  local: Statsrevisorerne
+  lang: DNK
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 518
+  position: Vice-Chair of the Public Accounts Committee
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 519
+  position: Chair of the Public Accounts Committee
+  status: Position for territory
+  category: members of courts of auditors or of the boards of central banks;
+  amlr: v_audit_cb
+  kind: body
+  checked: false
+  expansion: []
+- row: 520
+  position: Ambassador (deputy)
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: true
+  expansion: []
+- row: 521
+  position: Ambassador
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 522
+  position: Climate Ambassador
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 523
+  position: Ambassador at large
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 524
+  position: Chargé d’affaires
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 525
+  position: Migration Ambassador
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 526
+  position: Commodore, Commander of the Armed Forces Maintenance Service
+  local: Forsvarets Vedligeholdelsestjeneste
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 527
+  position: Major General, Chief of Joint Operations
+  local: Operationsstaben
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 528
+  position: Major General, Commander of Joint Arctic Command
+  local: Artisk Kommando
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 529
+  position: Major General, Commander of Air Command
+  local: Flyverkommandoen
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 530
+  position: Major General, Commander of Special Operations Command
+  local: Specialoperationskommandoen
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 531
+  position: Major General, Director of the New Fighter Jet Programme
+  local: Nyt Kampfly Program
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 532
+  position: Major General, Commander of Army Command
+  local: Hærkommandoen
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 533
+  position: Major General, Chief of Plans and Capabilities
+  local: Udviklings- og Planlægningsstaben
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 534
+  position: Rear Admiral, Commander of Navy Command
+  local: Søværnskommandoen
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 535
+  position: Major General, Chief of Multinational Division North
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: true
+  expansion: []
+- row: 536
+  position: Rear Admiral, Commander of the Royal Danish Defence College
+  local: Forsvarsakademiet
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 537
+  position: Brigadier General, Commander of the Executive Office at Defence Command
+  local: Forsvarskommandoen
+  lang: DNK
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1772632, by: model}
+- row: 538
+  position: Major General, Danish Military Representative to NATO and the EU (DAMIREP)
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 539
+  position: Major General, Deputy Commander at the headquarters of Multinational Corps Northeast, Szczecin
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: body
+  checked: false
+  expansion: []
+- row: 540
+  position: Rear Admiral, Defence Attaché in Washington
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: unusable
+  checked: false
+  expansion: []
+- row: 541
+  position: Lieutenant General, outgoing Commander of NATO Mission Iraq (NMI)
+  status: Position for territory
+  category: ambassadors, chargés d'affaires and high-ranking officers in the armed forces;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: false
+  expansion: []
+- row: 542
+  position: 'Board member, Bornholmstrafikken Holding A/S '
+  lang: DNK
+  organisation: 'Bornholmstrafikken Holding A/S '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 543
+  position: Management
+  organisation: 'Bornholmstrafikken Holding A/S '
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 544
+  position: Board member, DR
+  lang: DNK
+  organisation: 'DR '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 545
+  position: 'Director-General, DR '
+  lang: DNK
+  organisation: 'DR '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 546
+  position: Board member, Danish Green Investment Fund
+  local: Danmarks Grønne Investeringsfond
+  lang: DNK
+  organisation: Danish Green Investment Fund [Danmarks Grønne Investeringsfond]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q114215226, by: model}
+- row: 547
+  position: Board member, DanPilot
+  lang: DNK
+  organisation: DanPilot
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q12307097, by: model}
+- row: 548
+  position: Management
+  organisation: DanPilot
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q12307097, by: model}
+- row: 549
+  position: Board member, Dansk Jagtforsikring A/S
+  lang: DNK
+  organisation: Dansk Jagtforsikring A/S
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 550
+  position: Management
+  organisation: Dansk Jagtforsikring A/S
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 551
+  position: Board member, Danske Spil A/S
+  lang: DNK
+  organisation: Danske Spil A/S
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q3430548, by: model}
+- row: 552
+  position: 'Chair of the Board, Danske Spil A/S, '
+  lang: DNK
+  organisation: 'Danske Spil A/S, '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q3430548, by: model}
+- row: 553
+  position: Management
+  organisation: Danske Spil A/S
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q3430548, by: model}
+- row: 554
+  position: 'Chair of the Board, DSB '
+  lang: DNK
+  organisation: 'DSB '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 555
+  position: 'Chief Executive Officer, DSB '
+  lang: DNK
+  organisation: 'DSB '
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 556
+  position: Management
+  organisation: 'DSB '
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 557
+  position: Board member, EKF Danmarks Eksportkredit
+  organisation: EKF Danmarks Eksportkredit
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 558
+  position: Management
+  organisation: EKF Danmarks Eksportkredit
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 559
+  position: Board member, Eksport Kredit Finansiering A/S
+  lang: DNK
+  organisation: Eksport Kredit Finansiering A/S
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 560
+  position: Management
+  organisation: Eksport Kredit Finansiering A/S
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 561
+  position: Board member, Energinet
+  lang: DNK
+  organisation: Energinet
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1341529, by: model}
+- row: 562
+  position: Management
+  organisation: Energinet
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1341529, by: model}
+- row: 563
+  position: Board member, Finansiel Stabilitet
+  organisation: Finansiel Stabilitet
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q12311337, by: model}
+- row: 564
+  position: Management
+  organisation: Finansiel Stabilitet
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q12311337, by: model}
+- row: 565
+  position: Board member, Fjordforbindelsen Frederikssund
+  organisation: Fjordforbindelsen Frederikssund
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 566
+  position: Member of the Board, IFU
+  organisation: IFU
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 567
+  position: Vice-Chair, IFU
+  organisation: IFU
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 568
+  position: Management
+  organisation: IFU
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 569
+  position: Board member, Naviair
+  organisation: Naviair
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q1783727, by: model}
+- row: 570
+  position: Management
+  organisation: Naviair
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q1783727, by: model}
+- row: 571
+  position: Board member, Nordsøenheden
+  organisation: Nordsøenheden
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 572
+  position: Management
+  organisation: Nordsøenheden
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 573
+  position: Member of the Board, PostNord
+  organisation: PostNord
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q3181430, by: model}
+- row: 574
+  position: Director, PostNord
+  organisation: PostNord
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q3181430, by: model}
+- row: 575
+  position: Board member, Statens Ejendomssalg A/S
+  organisation: Statens Ejendomssalg A/S
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 576
+  position: Management
+  organisation: Statens Ejendomssalg A/S
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 577
+  position: Member of the Board, Statens og Kommunernes Indkøbsservice A/S
+  organisation: Statens og Kommunernes Indkøbsservice A/S
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 578
+  position: Management
+  organisation: Statens og Kommunernes Indkøbsservice A/S
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 579
+  position: Board member, Sund og Bælt Holding A/S
+  organisation: Sund og Bælt Holding A/S
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 580
+  position: Management
+  organisation: Sund og Bælt Holding A/S
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 581
+  position: Board member, TV2\Danmark A/S
+  organisation: TV2\Danmark A/S
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 582
+  position: Chair of the Board, TV2\Danmark A/S
+  organisation: TV2\Danmark A/S
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 583
+  position: Management
+  organisation: TV2\Danmark A/S
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 584
+  position: Board member, Vækstfonden
+  organisation: Vækstfonden
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion: []
+- row: 585
+  position: Chair of the Board, Vækstfonden
+  organisation: Vækstfonden
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion: []
+- row: 586
+  position: Management
+  organisation: Vækstfonden
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion: []
+- row: 587
+  position: Board member, Ørsted A/S
+  organisation: Ørsted A/S
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1241260, by: model}
+- row: 588
+  position: Management
+  organisation: Ørsted A/S
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1241260, by: model}
+- row: 589
+  position: Board member, Evida Holding A/S
+  organisation: Evida Holding A/S
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 590
+  position: Chair of the Board, Evida Holding A/S
+  organisation: Evida Holding A/S
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 591
+  position: Management
+  organisation: Evida Holding A/S
+  status: Generic category
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion: []
+- row: 592
+  position: Director, Danish Agency for Labour Market and Recruitment
+  local: Styrelsen for Arbejdsmarked og Rekruttering
+  lang: DNK
+  organisation: Danish Agency for Labour Market and Recruitment [Styrelsen for Arbejdsmarked og Rekruttering]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q11958565, by: model}
+- row: 593
+  position: Director, Danish Working Environment Authority
+  local: Arbejdstilsynet
+  lang: DNK
+  organisation: Danish Working Environment Authority [Arbejdstilsynet]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12302069, by: model}
+- row: 594
+  position: Director, National Research Centre for the Working Environment
+  local: Det Nationale Forskningscenter for Arbejdsmiljø
+  lang: DNK
+  organisation: National Research Centre for the Working Environment [Det Nationale Forskningscenter for Arbejdsmiljø]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12308385, by: model}
+- row: 595
+  position: Chair of the Board, Ministry of Social Affairs and the Interior, Benchmarking Unit
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 596
+  position: Board member, Ministry of Social Affairs and the Interior, Benchmarking Unit
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 597
+  position: Director, National Board of Social Services
+  local: Socialstyrelsen,
+  lang: DNK
+  organisation: National Board of Social Services [Socialstyrelsen],
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12000034, by: model}
+- row: 598
+  position: Director, Agency of Family Law
+  local: Familieretshuset
+  lang: DNK
+  organisation: Agency of Family Law [Familieretshuset]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q98081321, by: model}
+- row: 599
+  position: National Statistician, Statistics Denmark
+  local: Danmarks Statistik
+  lang: DNK
+  organisation: Statistics Denmark [Danmarks Statistik]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1164337, by: model}
+- row: 600
+  position: Director, Social Appeals Board
+  local: Ankestyrelsen
+  lang: DNK
+  organisation: Social Appeals Board [Ankestyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q11958155, by: model}
+- row: 601
+  position: Director, Danish Centre for Social Science Research (VIVE),
+  lang: DNK
+  organisation: Danish Centre for Social Science Research (VIVE),
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 602
+  position: Director, Danish Meteorological Institute
+  local: Danmarks Meteorologiske Institut
+  lang: DNK
+  organisation: Danish Meteorological Institute [Danmarks Meteorologiske Institut]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1164325, by: model}
+- row: 603
+  position: Chief Executive Officer, Geological Survey of Denmark and Greenland
+  local: De Nationale Geologiske Undersøgelser for Danmark og Grønland
+  lang: DNK
+  organisation: Geological Survey of Denmark and Greenland [De Nationale Geologiske Undersøgelser for Danmark og
+    Grønland]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q4993674, by: model}
+- row: 604
+  position: Director, Danish Energy Agency
+  local: Energistyrelsen
+  lang: DNK
+  organisation: Danish Energy Agency [Energistyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q5219714, by: model}
+- row: 605
+  position: Director, Danish Utility Regulator
+  local: Forsyningstilsynet
+  lang: DNK
+  organisation: Danish Utility Regulator [Forsyningstilsynet]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q11967468, by: model}
+- row: 606
+  position: Director, Danish Geodata Agency
+  local: Geodatastyrelsen
+  lang: DNK
+  organisation: Danish Geodata Agency [Geodatastyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q6573171, by: model}
+- row: 607
+  position: Director, Agency for Data Supply and Efficiency
+  local: Styrelsen for dataforsyning og effektivisering
+  lang: DNK
+  organisation: Agency for Data Supply and Efficiency [Styrelsen for dataforsyning og effektivisering]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q29788118, by: model}
+- row: 608
+  position: Director, Danish Business Authority
+  local: Erhvervsstyrelsen
+  lang: DNK
+  organisation: Danish Business Authority [Erhvervsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12310258, by: model}
+- row: 609
+  position: Board member, Danish Financial Supervisory Authority
+  local: Finanstilsynet
+  lang: DNK
+  organisation: Danish Financial Supervisory Authority [Finanstilsynet]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q3437062, by: model}
+- row: 610
+  position: Chair of the Board, Danish Financial Supervisory Authority
+  local: Finanstilsynet
+  lang: DNK
+  organisation: Danish Financial Supervisory Authority
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q3437062, by: model}
+- row: 611
+  position: Director, Danish Financial Supervisory Authority
+  lang: DNK
+  organisation: Danish Financial Supervisory Authority
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q3437062, by: model}
+- row: 612
+  position: Director, Danish Competition and Consumer Authority
+  local: Konkurrence- og Forbrugerstyrelsen
+  lang: DNK
+  organisation: Danish Competition and Consumer Authority [Konkurrence- og Forbrugerstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12322641, by: model}
+- row: 613
+  position: Member
+  organisation: Danish Competition Council [Konkurrencerådet]
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 614
+  position: Chair, Danish Competition Council
+  local: Konkurrencerådet
+  lang: DNK
+  organisation: Danish Competition Council
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q22086023, by: model}
+- row: 615
+  position: Director, Danish Appeals Boards Authority
+  local: Nævnenes Hus
+  lang: DNK
+  organisation: Danish Appeals Boards Authority [Nævnenes Hus]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q97209453, by: model}
+- row: 616
+  position: Director, Danish Patent and Trademark Office
+  local: Patent- og Varemærkestyrelsen
+  lang: DNK
+  organisation: Danish Patent and Trademark Office [Patent- og Varemærkestyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q10621665, by: model}
+- row: 617
+  position: Director, Danish Safety Technology Authority
+  local: Sikkerhedsstyrelsen
+  lang: DNK
+  organisation: Danish Safety Technology Authority [Sikkerhedsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5251649, by: model}
+- row: 618
+  position: Director, Danish Maritime Authority
+  local: Søfartsstyrelsen
+  lang: DNK
+  organisation: Danish Maritime Authority [Søfartsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q4587946, by: model}
+- row: 619
+  position: Director, Agency for Public Finance and Management
+  local: Økonomistyrelsen
+  lang: DNK
+  organisation: Agency for Public Finance and Management [Økonomistyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q12327402, by: model}
+- row: 620
+  position: Director, Agency for Digital Government
+  local: Digitaliseringsstyrelsen
+  lang: DNK
+  organisation: Agency for Digital Government [Digitaliseringsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q11965674, by: model}
+- row: 621
+  position: Director, Agency for Governmental Administration
+  local: Statens Administration
+  lang: DNK
+  organisation: Agency for Governmental Administration [Statens Administration]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12336889, by: model}
+- row: 622
+  position: Director, Agency for Governmental IT Services
+  local: Statens IT
+  lang: DNK
+  organisation: Agency for Governmental IT Services [Statens IT]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12336899, by: model}
+- row: 623
+  position: Chief of Defence
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 624
+  position: Defence Staff, Chief
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vi_diplomat_military
+  kind: position
+  checked: true
+  expansion:
+  - {position: Q137734613, by: model}
+- row: 625
+  position: Commander of the Home Guard
+  local: Hjemmeværnskommandoen
+  lang: DNK
+  organisation: Danish Home Guard Command [Hjemmeværnskommandoen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5888434, by: model}
+- row: 626
+  position: Commissioner of the Home Guard
+  lang: DNK
+  organisation: Danish Home Guard Command
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q5888434, by: model}
+- row: 627
+  position: Director, Danish Emergency Management Agency
+  local: Beredskabsstyrelsen
+  lang: DNK
+  organisation: Danish Emergency Management Agency [Beredskabsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q3375899, by: model}
+- row: 628
+  position: Chief, Danish Defence Intelligence Service
+  local: Forsvarets Efterretningstjeneste
+  lang: DNK
+  organisation: Danish Defence Intelligence Service [Forsvarets Efterretningstjeneste]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q3077736, by: model}
+- row: 629
+  position: Chief (acting), Danish Defence Intelligence Service
+  lang: DNK
+  organisation: Danish Defence Intelligence Service
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q3077736, by: model}
+- row: 630
+  position: Director, Ministry of Defence Acquisition and Logistics Organisation
+  local: Forsvarsministeriets Materiel- og Indkøbsstyrelse
+  lang: DNK
+  organisation: Ministry of Defence Acquisition and Logistics Organisation [Forsvarsministeriets Materiel- og Indkøbsstyrelse]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 631
+  position: Director, Ministry of Defence Personnel Agency
+  local: Forsvarsministeriets Personalestyrelse
+  lang: DNK
+  organisation: Ministry of Defence Personnel Agency [Forsvarsministeriets Personalestyrelse]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 632
+  position: Director, Ministry of Defence Estate Agency
+  local: Forsvarsministeriets Ejendomsstyrelse
+  lang: DNK
+  organisation: Ministry of Defence Estate Agency [Forsvarsministeriets Ejendomsstyrelse]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 633
+  position: Director, Danish Defence Accounting Agency
+  local: Forsvarsministeriets Regnskabsstyrelse
+  lang: DNK
+  organisation: Danish Defence Accounting Agency [Forsvarsministeriets Regnskabsstyrelse]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 634
+  position: Director, Civil Affairs Agency
+  local: Civilstyrelsen
+  lang: DNK
+  organisation: Civil Affairs Agency [Civilstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q11963861, by: model}
+- row: 635
+  position: Member of the Board, Danish Court Administration
+  local: Domstolsstyrelsen
+  lang: DNK
+  organisation: Danish Court Administration [Domstolsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 636
+  position: Chair of the Board, Danish Court Administration
+  lang: DNK
+  organisation: Danish Court Administration
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 637
+  position: Vice-Chair of the Board, Danish Court Administration
+  lang: DNK
+  organisation: Danish Court Administration
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 638
+  position: Director, Danish Court Administration
+  lang: DNK
+  organisation: Danish Court Administration
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 639
+  position: Director, Danish Data Protection Agency
+  local: Datatilsynet
+  lang: DNK
+  organisation: Danish Data Protection Agency [Datatilsynet]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1172291, by: model}
+- row: 640
+  position: Chief of Police, Danish National Police
+  local: Rigspolitiet
+  lang: DNK
+  organisation: Danish National Police [Rigspolitiet]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q3756751, by: model}
+- row: 641
+  position: Director, Danish Critical Supply Agency
+  local: Styrelsen for Forsyningssikkerhed
+  lang: DNK
+  organisation: Danish Critical Supply Agency [Styrelsen for Forsyningssikkerhed]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 642
+  position: Director of Public Prosecutions, Director of Public Prosecutions
+  local: Rigsadvokaten
+  lang: DNK
+  organisation: Director of Public Prosecutions [Rigsadvokaten]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: position
+  checked: false
+  expansion: []
+- row: 643
+  position: Director, Danish Prison and Probation Service
+  local: Direktoratet for Kriminalforsorgen
+  lang: DNK
+  organisation: Danish Prison and Probation Service [Direktoratet for Kriminalforsorgen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 644
+  position: Danish National Archives
+  local: Rigsarkivet
+  lang: DNK
+  organisation: Danish National Archives [Rigsarkivet]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q2860552, by: model}
+- row: 645
+  position: Director, Agency for Culture and Palaces
+  local: Slots- og Kulturstyrelsen
+  lang: DNK
+  organisation: Agency for Culture and Palaces [Slots- og Kulturstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q22697223, by: model}
+- row: 646
+  position: Director, Environmental Protection Agency
+  local: Miljøstyrelsen
+  lang: DNK
+  organisation: Environmental Protection Agency [Miljøstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12327237, by: model}
+- row: 647
+  position: Director, Danish Veterinary and Food Administration
+  local: Fødevarestyrelsen
+  lang: DNK
+  organisation: Danish Veterinary and Food Administration [Fødevarestyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12313325, by: model}
+- row: 648
+  position: Director, Danish Agricultural Agency
+  local: Landbrugsstyrelsen
+  lang: DNK
+  organisation: Danish Agricultural Agency [Landbrugsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 649
+  position: Director, Danish Nature Agency
+  local: Naturstyrelsen,
+  lang: DNK
+  organisation: Danish Nature Agency [Naturstyrelsen],
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q763243, by: model}
+- row: 650
+  position: Director, Danish Fisheries Agency
+  local: Fiskeristyrelsen
+  lang: DNK
+  organisation: Danish Fisheries Agency [Fiskeristyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q54107769, by: model}
+- row: 651
+  position: Director, Danish Tax Agency
+  local: Skattestyrelsen
+  lang: DNK
+  organisation: Danish Tax Agency [Skattestyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q55455586, by: model}
+- row: 652
+  position: Director, Danish Gambling Authority
+  local: Spillemyndigheden
+  lang: DNK
+  organisation: Danish Gambling Authority [Spillemyndigheden]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12336662, by: model}
+- row: 653
+  position: Director, IT and Development Agency
+  local: Udvikling og Forenklingsstyrelsen
+  lang: DNK
+  organisation: IT and Development Agency [Udvikling og Forenklingsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q55455588, by: model}
+- row: 654
+  position: Director, Tax Appeals Agency
+  local: Skatteankestyrelsen,
+  lang: DNK
+  organisation: Tax Appeals Agency [Skatteankestyrelsen],
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q111634802, by: model}
+- row: 655
+  position: Director, Administration and Services Agency
+  local: Administrations- og Servicestyrelsen
+  lang: DNK
+  organisation: Administration and Services Agency [Administrations- og Servicestyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q55455591, by: model}
+- row: 656
+  position: Director, Danish Customs Agency
+  local: Toldstyrelsen
+  lang: DNK
+  organisation: Danish Customs Agency [Toldstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q55452495, by: model}
+- row: 657
+  position: Director, Employee and Competence Agency
+  local: Medarbejder- og Kompetencestyrelsen
+  lang: DNK
+  organisation: Employee and Competence Agency [Medarbejder- og Kompetencestyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q107433749, by: model}
+- row: 658
+  position: Director, Danish Motor Vehicle Agency
+  local: Motorstyrelsen
+  lang: DNK
+  organisation: Danish Motor Vehicle Agency [Motorstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q55455581, by: model}
+- row: 659
+  position: Director (acting), Danish Debt Collection Agency
+  local: Gældstyrelsen
+  lang: DNK
+  organisation: Danish Debt Collection Agency [Gældstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 660
+  position: Director (previously Agency for Public Finance and Management), Danish Property Assessment Agency
+  local: Vurderingsstyrelsen
+  lang: DNK
+  organisation: Danish Property Assessment Agency [Vurderingsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q55455578, by: model}
+- row: 661
+  position: Director, Danish Health Authority
+  local: Sundhedsstyrelsen
+  lang: DNK
+  organisation: Danish Health Authority [Sundhedsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q4583472, by: model}
+- row: 662
+  position: Director, Danish Medicines Agency
+  local: Lægemiddelstyrelsen
+  lang: DNK
+  organisation: Danish Medicines Agency [Lægemiddelstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q3378090, by: model}
+- row: 663
+  position: Director, Danish Patient Safety Authority
+  local: Styrelsen for Patientsikkerhed
+  lang: DNK
+  organisation: Danish Patient Safety Authority [Styrelsen for Patientsikkerhed]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q21421334, by: model}
+- row: 664
+  position: Director, Danish Agency for Patient Complaints
+  local: Styrelsen for Patientklager
+  lang: DNK
+  organisation: Danish Agency for Patient Complaints [Styrelsen for Patientklager]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q50252455, by: model}
+- row: 665
+  position: Director, Danish Health Data Authority
+  local: Sundhedsdatastyrelsen
+  lang: DNK
+  organisation: Danish Health Data Authority [Sundhedsdatastyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q21817183, by: model}
+- row: 666
+  position: Chief Executive Officer, Statens Serum Institut
+  lang: DNK
+  organisation: Statens Serum Institut
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q3378353, by: model}
+- row: 667
+  position: Director, Danish Transport, Building and Housing Authority
+  local: Trafik-, Bygge- og Boligstyrelsen
+  lang: DNK
+  organisation: Danish Transport, Building and Housing Authority [Trafik-, Bygge- og Boligstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: true
+  expansion: []
+- row: 668
+  position: Chief Executive Officer, Banedanmark
+  lang: DNK
+  organisation: Banedanmark
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: body
+  checked: true
+  expansion:
+  - {body: Q806420, by: model}
+- row: 669
+  position: Director of Roads, Danish Road Directorate
+  local: Vejdirektoratet
+  lang: DNK
+  organisation: Danish Road Directorate [Vejdirektoratet]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q1630101, by: model}
+- row: 670
+  position: Director, Danish Building and Property Agency
+  local: Bygningsstyrelsen
+  lang: DNK
+  organisation: Danish Building and Property Agency [Bygningsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q124312813, by: model}
+- row: 671
+  position: Director, Danish Road Traffic Authority
+  local: Færdselsstyrelsen
+  lang: DNK
+  organisation: Danish Road Traffic Authority [Færdselsstyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12313298, by: model}
+- row: 672
+  position: Director, Danish Agency for Science and Higher Education
+  local: 'Styrelsen for Forskning og Uddannelse, '
+  lang: DNK
+  organisation: Danish Agency for Science and Higher Education [Styrelsen for Forskning og Uddannelse] and Danish
+    Agency for Institutions and Educational Grants [Styrelsen for Institutioner og Uddannelsesstøtte]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 673
+  position: Director, Danish Agency for Institutions and Educational Grants
+  local: Styrelsen for Institutioner og Uddannelsesstøtte
+  lang: DNK
+  status: Position for territory
+  category: ''
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q50037710, by: model}
+- row: 674
+  position: Director, Danish Immigration Service
+  local: Udlændingestyrelsen
+  lang: DNK
+  organisation: Danish Immigration Service [Udlændingestyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q4573196, by: model}
+- row: 675
+  position: Director, Danish Agency for International Recruitment and Integration
+  local: Styrelsen for International Rekruttering og Integration, SIRI
+  lang: DNK
+  organisation: Danish Agency for International Recruitment and Integration [Styrelsen for International Rekruttering
+    og Integration, SIRI]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 676
+  position: Director, Danish Return Agency
+  local: Hjemrejsestyrelsen
+  lang: DNK
+  organisation: Danish Return Agency [Hjemrejsestyrelsen]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q98553935, by: model}
+- row: 677
+  position: Director, National Agency for Education and Quality
+  local: Styrelsen for Undervisning og Kvalitet
+  lang: DNK
+  organisation: National Agency for Education and Quality [Styrelsen for Undervisning og Kvalitet]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q11982588, by: model}
+- row: 678
+  position: Director, National Agency for IT and Learning
+  local: Styrelsen for IT og Læring
+  lang: DNK
+  organisation: National Agency for IT and Learning [Styrelsen for IT og Læring]
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion:
+  - {body: Q12008198, by: model}
+- row: 679
+  position: Director of the board or equivalent function of an international organisation (Section 2(1)(8)(h))
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 680
+  position: Deputy Director of the board or equivalent function of an international organisation (Section 2(1)(8)(h))
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 681
+  position: Member of the board or equivalent function of an international organisation (Section 2(1)(8)(h))
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body_class
+  checked: false
+  expansion: []
+- row: 682
+  position: Member of the Board, Nordic Investment Bank (NIB)
+  organisation: Nordic Investment Bank (NIB)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 683
+  position: 'Member '
+  organisation: The Board of Nordic Innovation
+  status: Position prefix for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: position
+  checked: true
+  expansion: []
+- row: 684
+  position: Chair, Consultative Shipping Group
+  organisation: Consultative Shipping Group
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: vii_soe
+  kind: position
+  checked: false
+  expansion: []
+- row: 685
+  position: Member of the Board, The Nordic Environment Finance Corporation (NEFCO)
+  organisation: The Nordic Environment Finance Corporation (NEFCO)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 686
+  position: Member of the Executive Council of the IOTA – Intra-European Organisation of Tax Administrations
+  organisation: The IOTA – Intra-European Organisation of Tax Administrations
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 687
+  position: Chair of the Board, WHO International Agency for Research on Cancer (IARC)
+  organisation: WHO International Agency for Research on Cancer (IARC)
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 688
+  position: Member of the WHO Regional Committee for Europe (Standing Committee of the Regional Committee, SCRC)
+  organisation: WHO Regional Committee for Europe (Standing Committee of the Regional Committee, SCRC) since September
+    2017
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 689
+  position: Member of the Board, Nordforsk
+  organisation: Nordforsk
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: agency
+  kind: body
+  checked: false
+  expansion: []
+- row: 690
+  position: Chair of the Board of the European Centre for Minority Issues
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []
+- row: 691
+  position: Member of the Board of the European Centre for Minority Issues
+  status: Position for territory
+  category: members of the administrative, management or supervisory bodies of State-owned enterprises;
+  amlr: ix_io
+  kind: position
+  checked: false
+  expansion: []

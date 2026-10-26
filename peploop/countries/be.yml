@@ -1,0 +1,110 @@
+# Belgium: what the lanes know about it, one section per lane.
+
+corp:
+  # Belgium. Federal: three regions and three communities, all first-level
+  # polities here.
+
+  tiers: [national, regional]
+
+  # Items standing in the state's place or government bodies the type tree
+  # misses, read from the controllers 2026-10-18 answers chose: the Belgian
+  # State as legal person (P31 state, no P17 match as actor) and the Flemish
+  # administration.
+  actors:
+    - {qid: Q4382980, kind: state, name: Belgische Staat}
+    - {qid: Q14959780, kind: government, name: Vlaamse overheid}
+
+  # Classes the type tree files under government organization or government
+  # agency that are not government bodies here. EU institutions in Brussels
+  # carry Belgium as country, so the tree makes them Belgian government bodies
+  # and their delegations, working parties and agencies follow by link.
+  not_government:
+    - {qid: Q4936585, name: body of the European Union}  # 5 live, e.g. Q205203 Comité européen des régions
+    - {qid: Q748720, name: institution de l'Union européenne}  # 2 live, e.g. Q8896 Council of the European Union
+    - {qid: Q131376155, name: Directorate-General of the European Commission}  # 28 live, e.g. Q1378040 Direction générale de la protection civile et des 
+    - {qid: Q112861866, name: corporate body of the European Union}  # 5 live, e.g. Q50035848 Joint Research Center in Geel
+    - {qid: Q2826637, name: agence exécutive de l'Union européenne}  # 6 live, e.g. Q106818821 European Climate, Infrastructure and Environment E
+    - {qid: Q107671432, name: service department of the European Commission}  # 4 live, e.g. Q107681535 Office for Infrastructure and Logistics in Brussel
+    - {qid: Q112828372, name: common foreign and security policy agency of the European Union}  # 2 live, e.g. Q1134173 Agence européenne de défense
+    - {qid: Q130417640, name: Delegation of the European Union}  # 0 live, e.g. Q107419905 EU delegation, reached
+    - {qid: Q2132839, name: Council Working Party}  # 0 live, e.g. Q115517130 Council working party, reached
+    - {qid: Q139623234, name: committee of the Council of the European Union}  # 3 live, e.g. Q1934935 Comité militaire de l'Union européenne
+
+  # Never candidates here, beyond the global exclusions. Measured 2026-10-17
+  # from the state actors' P127/P749 reach and the country's live items. The
+  # EU's own bodies (never Belgian), the health-insurance mutualities and the
+  # professional orders and chambers, which administer themselves.
+  exclude:
+    - {qid: Q4936585, name: body of the European Union}  # 5 live, e.g. Q205203 Comité européen des régions
+    - {qid: Q748720, name: institution de l'Union européenne}  # 2 live, e.g. Q8896 Council of the European Union
+    - {qid: Q131376155, name: Directorate-General of the European Commission}  # 28 live, e.g. Q1378040 Direction générale de la protection civile et des 
+    - {qid: Q112861866, name: corporate body of the European Union}  # 5 live, e.g. Q50035848 Joint Research Center in Geel
+    - {qid: Q2826637, name: agence exécutive de l'Union européenne}  # 6 live, e.g. Q106818821 European Climate, Infrastructure and Environment E
+    - {qid: Q107671432, name: service department of the European Commission}  # 4 live, e.g. Q107681535 Office for Infrastructure and Logistics in Brussel
+    - {qid: Q112828372, name: common foreign and security policy agency of the European Union}  # 2 live, e.g. Q1134173 Agence européenne de défense
+    - {qid: Q130417640, name: Delegation of the European Union}  # 0 live, e.g. Q107419905 EU delegation, reached
+    - {qid: Q2132839, name: Council Working Party}  # 0 live, e.g. Q115517130 Council working party, reached
+    - {qid: Q139623234, name: committee of the Council of the European Union}  # 3 live, e.g. Q1934935 Comité militaire de l'Union européenne
+    - {qid: Q2835959, name: Ziekenfonds}  # 18 live, e.g. Q5046566 Landsbond van Liberale Mutualiteiten
+    - {qid: Q116170554, name: professional corporations - orders}  # 4 live, e.g. Q118667598 Order of Architects
+    - {qid: Q897399, name: chamber of commerce and industry}  # 6 live, e.g. Q3060587 Eurochambres
+  # Counted among the kept bodies 2026-10-17. Channels are no body: the
+  # broadcaster that runs them is (VRT, RTBF stay in). Police units are
+  # branches of the police; intercommunales and intermunicipal services are
+  # the municipal tier, not written; advisory councils only advise.
+    - {qid: Q14350, name: radio station}  # 19 kept, e.g. Q1135464 Radio 1
+    - {qid: Q1616075, name: television station}  # 11 kept, e.g. Q1739889 Ketnet
+    - {qid: Q28648855, name: police unit}  # 9 kept, e.g. Q2442290 Speciale Interventie Eskadron
+    - {qid: Q15750017, name: intercommunale}  # 18 kept, e.g. Q3153693 Intradel
+    - {qid: Q107378948, name: Intergemeentelijke Onroerend Erfgoed Dienst}  # 3 kept, e.g. Q2325248 IGEMO
+    - {qid: Q4686866, name: advisory board}  # 11 kept, e.g. Q2064015 Vlaamse Onderwijsraad
+  # Programmatory federal public services are ministries like the FOD/SPF
+  # (their heads are peploop's); the full run wrote P127 Belgium on one.
+    - {qid: Q21004446, name: Programmatorische Federale Overheidsdienst}  # 3 kept, e.g. Q105502204 POD Maatschappelijke Integratie
+
+  # State-only legal forms and types, matched exactly as P31 or P1454.
+  # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+  # statement, then all live items, in brackets. Federal public services
+  # (FOD/SPF) are ministries and left out; Öffentliche Einrichtung (public
+  # institution) is left out: it carries church factories, Jewish communities
+  # and colleges.
+  forms:
+    - {qid: Q112404937, kind: institution, name: Andere federale dienst}  # 7 (35 live)
+    - {qid: Q107894406, kind: institution, name: Overheid van het Vlaamse Gewest en van de Vlaamse Gemeenschap}  # 5 (18 live)
+    - {qid: Q117197499, kind: enterprise, name: naamloze vennootschap van publiek recht}  # 5 (11 live)
+    - {qid: Q112164986, kind: institution, name: Vlaams agentschap}  # 4 (18 live)
+    - {qid: Q2288140, kind: institution, name: Federale Wetenschappelijke Instelling}  # 3 (13 live)
+    - {qid: Q107637441, kind: institution, name: Openbare Instelling van Sociale Zekerheid}  # 2 (11 live)
+
+  roles: []
+
+  # Official lists of central-government holdings: the federal holding
+  # company's portfolio as holding and as the government's mandatary, via
+  # nl.wikipedia (FPIM; its investment-company stakes, minority by purpose,
+  # and BNP Paribas are left out, the Square congress building too), and the
+  # public enterprises of the law of 21 March 1991. QIDs checked live.
+  holdings:
+    - source: "SFPIM/FPIM portfolio via nl.wikipedia, and the law of 21 March 1991 on public enterprises"
+      entries:
+        - {name: "Federale Participatie- en Investeringsmaatschappij (FPIM/SFPI)", qid: Q2534888, holder: "Belgische Staat (100 %)", source: "https://nl.wikipedia.org/w/index.php?title=Federale_Participatie-_en_Investeringsmaatschappij&oldid=71227118"}
+        - {name: "bpost", qid: Q740553, holder: "Belgische Staat, via FPIM (holding)", source: "https://nl.wikipedia.org/w/index.php?title=Federale_Participatie-_en_Investeringsmaatschappij&oldid=71227118"}
+        - {name: "Brussels Airport Company", qid: Q28474786, holder: "Belgische Staat, via FPIM (holding)", source: "https://nl.wikipedia.org/w/index.php?title=Federale_Participatie-_en_Investeringsmaatschappij&oldid=71227118"}
+        - {name: "Itsme", qid: Q93601920, holder: "Belgische Staat, via FPIM (holding)", source: "https://nl.wikipedia.org/w/index.php?title=Federale_Participatie-_en_Investeringsmaatschappij&oldid=71227118"}
+        - {name: "Nationale Loterij", qid: Q2229168, holder: "Belgische Staat, via FPIM (holding)", source: "https://nl.wikipedia.org/w/index.php?title=Federale_Participatie-_en_Investeringsmaatschappij&oldid=71227118"}
+        - {name: "Brussels Airlines (SN Airholding)", qid: Q153571, holder: "Belgische Staat, via FPIM (holding)", source: "https://nl.wikipedia.org/w/index.php?title=Federale_Participatie-_en_Investeringsmaatschappij&oldid=71227118"}
+        - {name: "A.S.T.R.I.D.", qid: Q13427268, holder: "Belgische Staat, via FPIM (mandate of the government)", source: "https://nl.wikipedia.org/w/index.php?title=Federale_Participatie-_en_Investeringsmaatschappij&oldid=71227118"}
+        - {name: "Belfius", qid: Q1956014, holder: "Belgische Staat, via FPIM (mandate of the government)", source: "https://nl.wikipedia.org/w/index.php?title=Federale_Participatie-_en_Investeringsmaatschappij&oldid=71227118"}
+        - {name: "Dexia", qid: Q313966, holder: "Belgische Staat, via FPIM (mandate of the government)", source: "https://nl.wikipedia.org/w/index.php?title=Federale_Participatie-_en_Investeringsmaatschappij&oldid=71227118"}
+        - {name: "Proximus", qid: Q566857, holder: "Belgische Staat, overheidsbedrijf under the law of 21 March 1991", source: "https://www.ejustice.just.fgov.be/eli/wet/1991/03/21/1991021000/justel"}
+        - {name: "NMBS/SNCB", qid: Q524255, holder: "Belgische Staat, overheidsbedrijf under the law of 21 March 1991", source: "https://www.ejustice.just.fgov.be/eli/wet/1991/03/21/1991021000/justel"}
+        - {name: "Infrabel", qid: Q536120, holder: "Belgische Staat, overheidsbedrijf under the law of 21 March 1991", source: "https://www.ejustice.just.fgov.be/eli/wet/1991/03/21/1991021000/justel"}
+        - {name: "skeyes", qid: Q1880376, holder: "Belgische Staat, overheidsbedrijf under the law of 21 March 1991", source: "https://www.ejustice.just.fgov.be/eli/wet/1991/03/21/1991021000/justel"}
+
+amlr:
+  # Units: classes measured on Wikidata (2026-10-24).
+  units:
+    municipal:
+    - {qid: Q493522, name: municipality of Belgium}
+    grouping:
+    - {qid: Q83116, name: province of Belgium}
+    metro: []

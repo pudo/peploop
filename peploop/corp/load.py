@@ -23,7 +23,7 @@ never found.
 - `seed`: an official list of holdings (the spec's `holdings`) names it;
   this is what finds a body neither Wikidata nor Wikipedia records as state;
 - `listed`: the member state's own list of prominent public functions
-  (AMLR Art. 43, `peploop/amlr/<cc>.yml`) names it, resolved to its item in
+  (AMLR Art. 43, `peploop/countries/<cc>.amlr.yml`) names it, resolved to its item in
   a row's expansion. The list puts its seats in PEP scope; it says nothing
   about who owns it.
 

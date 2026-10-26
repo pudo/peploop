@@ -92,7 +92,7 @@ Each needs an archetype in `offices.py` with its shape measured first
 
 ## 3a. The Union's bodies and the organisations seated in it (`eu`)
 
-Built 2026-10-25, dry run only: `census/eu.yml` lists 86 bodies' heads
+Built 2026-10-25, dry run only: the census of `countries/eu.yml` lists 86 bodies' heads
 (`per: bodies`), 56 guarded, nothing created. Left:
 
 1. **Creation, with the user.** Two tranches by `mint --country eu --submit
@@ -112,7 +112,7 @@ Built 2026-10-25, dry run only: `census/eu.yml` lists 86 bodies' heads
 4. **Residue:** 9 skipped for a French or German label their body lacks;
    3 for a title the verifier would shape as director; 13 bodies whose
    infobox names nobody current (acting heads at Europol, ECCC; none at
-   EIT, CTBTO, EUMETSAT). The AMLR asset's Union rows (`amlr/eu.yml`) are
+   EIT, CTBTO, EUMETSAT). The AMLR asset's Union rows (`countries/eu.amlr.yml`) are
    not expanded to these bodies yet.
 5. **Interim calls:** labels are written by hand from the body's own
    French and German names, never invented where it has none; the

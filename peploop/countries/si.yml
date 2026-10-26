@@ -1,0 +1,317 @@
+# Slovenia: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Slovenian run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml carries exactly one `country: si` entry
+  # (`Political_office-holders_in_Slovenia`, en), which is a tree of ten subcats
+  # and no pages of its own. The rest is sl.wikipedia's own structure, which is
+  # unusually regular: one parent category per institution tier, each holding a
+  # subcategory per portfolio, per term or per municipality. Depth 1 therefore
+  # reaches a whole tier from its parent, and the counts below are what the
+  # category sizes measured on 2026-09-22.
+  #
+  # Wide on purpose: the ministerial list is not the PEP landscape. The state
+  # secretaries, the National Council, the mayors and the ambassadors are each a
+  # tier the eleven campaigns before this one never reached.
+
+  # --- Head of state, and the collective presidency that preceded it ---
+  - category: Predsedniki_Republike_Slovenije        # 11 + 4 subcats
+    lang: sl
+  - category: Predsedniki_Predsedstva_Slovenije      # 6
+    lang: sl
+
+  # --- Government: the prime minister, the ministers, the deputy tier ---
+  - category: Predsedniki_vlade_Slovenije            # 16 + 6 subcats
+    lang: sl
+  # The parent of 34 portfolio categories (finance, defence, interior, ...), so
+  # one entry at depth 1 is the whole cabinet history rather than 34 lines.
+  - category: Ministri_vlade_Slovenije               # 28 + 34 subcats
+    lang: sl
+  - category: Ministri_brez_resorja_Republike_Slovenije   # 16
+    lang: sl
+  # The same shape one tier down: 30 subcategories, one per ministry. A Slovenian
+  # state secretary is a deputy minister, which is squarely inside the FATF
+  # definition and outside every roster a campaign has ever parsed.
+  - category: Državni_sekretarji_Republike_Slovenije  # 7 + 30 subcats
+    lang: sl
+
+  # --- National Assembly: ten convocations, plus the chamber's presidency ---
+  - category: Poslanci_1._državnega_zbora_Republike_Slovenije    # 104
+    lang: sl
+  - category: Poslanci_2._državnega_zbora_Republike_Slovenije    # 101
+    lang: sl
+  - category: Poslanci_3._državnega_zbora_Republike_Slovenije    # 98
+    lang: sl
+  - category: Poslanci_4._državnega_zbora_Republike_Slovenije    # 101
+    lang: sl
+  - category: Poslanci_5._državnega_zbora_Republike_Slovenije    # 102
+    lang: sl
+  - category: Poslanci_6._državnega_zbora_Republike_Slovenije    # 97
+    lang: sl
+  - category: Poslanci_7._državnega_zbora_Republike_Slovenije    # 56
+    lang: sl
+  - category: Poslanci_8._državnega_zbora_Republike_Slovenije    # 62
+    lang: sl
+  - category: Poslanci_9._državnega_zbora_Republike_Slovenije    # 63
+    lang: sl
+  - category: Poslanci_10._državnega_zbora_Republike_Slovenije   # 65
+    lang: sl
+  - category: Predsedniki_Državnega_zbora_Republike_Slovenije    # 18
+    lang: sl
+  # The transitional assembly between the 1990 election and the 1992 constitution.
+  - category: Poslanci_Skupščine_Republike_Slovenije_(1990–1992)  # 25
+    lang: sl
+
+  # --- National Council: six terms, held under one parent ---
+  - category: Člani_Državnega_sveta_Republike_Slovenije_po_mandatih   # 7 subcats, 179
+    lang: sl
+  - category: Slovenski_državni_svetniki             # 8 + 2 subcats
+    lang: sl
+  - category: Predsedniki_Državnega_sveta_Republike_Slovenije    # 9
+    lang: sl
+
+  # --- Judiciary: the apex courts, and their socialist-era predecessors ---
+  - category: Sodniki_Ustavnega_sodišča_Republike_Slovenije      # 33
+    lang: sl
+  - category: Sodniki_Vrhovnega_sodišča_Republike_Slovenije      # 5
+    lang: sl
+  - category: Predsedniki_Vrhovnega_sodišča_Republike_Slovenije  # 4
+    lang: sl
+  - category: Sodniki_Ustavnega_sodišča_Socialistične_republike_Slovenije   # 5
+    lang: sl
+  - category: Sodniki_Vrhovnega_sodišča_Socialistične_republike_Slovenije   # 3
+    lang: sl
+
+  # --- Central bank ---
+  - category: Guvernerji_Banke_Slovenije             # 5
+    lang: sl
+
+  # --- Diplomatic service ---
+  - category: Slovenski_diplomati                    # 107 + 5 subcats
+    lang: sl
+  - category: Slovenski_veleposlaniki                # 62 + 2 subcats
+    lang: sl
+
+  # --- Slovenia's seats in the European institutions ---
+  - category: Evroposlanci_iz_Slovenije              # 2 + 6 subcats, 50
+    lang: sl
+  - category: Slovenski_evropski_komisarji           # 5
+    lang: sl
+
+  # --- Party leadership ---
+  - category: Predsedniki_političnih_strank_v_Sloveniji   # 7 subcats
+    lang: sl
+
+  # --- Subnational: 101 municipal mayoralties under one parent ---
+  - category: Župani_občin_v_Sloveniji               # 101 subcats
+    lang: sl
+  - category: Slovenski_župani                       # 14 + 1 subcat
+    lang: sl
+
+  # --- The Yugoslav-era republic, whose office holders the item layer still ---
+  # --- records and whose people are often the same as the 1990s cohort. ---
+  - category: Predsedniki_Skupščine_Socialistične_republike_Slovenije    # 7
+    lang: sl
+  - category: Predsedniki_Izvršnega_sveta_Skupščine_Socialistične_republike_Slovenije  # 7
+    lang: sl
+  - category: Poslanci_Skupščine_Socialistične_republike_Slovenije       # 3
+    lang: sl
+
+  # --- The catch-all, and the one category OpenSanctions already tracks. ---
+  # The Czech pilot commented its equivalent out to judge the prompt on a set
+  # that was almost all PEP; this run is scoped wide on purpose, and the tail it
+  # admits is what the review sample is for.
+  - category: Slovenski_politiki                     # 1,778 + 61 subcats
+    lang: sl
+  - category: Political_office-holders_in_Slovenia    # 10 subcats
+    lang: en
+
+census:
+  # The head offices of the EU AMLR levels (Reg. 2024/1624, Art. 2(34)(viii)): every
+  # unit of 50,000 or more (`amlr.units`) that has no head office gets one from
+  # `mint_units`, attested by the unit's own current P6 or its article's infobox.
+  # The one existing head office (Ljubljana) subclasses mayor.
+  - key: amlr_municipal_head
+    class: subnational.municipal
+    archetype: mayor
+    per: units
+    of: amlr:municipal
+    lang: sl
+    title: župan
+    labels:
+      sl: "župan {name}"             # "Mestna občina Kranj" → "župan Mestne občine Kranj"
+      en: "Mayor of {name}"
+    forms:
+      sl: [["^Mestna občina ", "Mestne občine "]]
+      en: [["^City Municipality of ", ""], ["^Municipality of ", ""], [" City Municipality$", ""]]
+    parent: Q30185                   # mayor
+    sources:
+      "*": https://sl.wikipedia.org/wiki/Občina
+
+corp:
+  # Slovenia. Unitary: 212 municipalities, the only subdivisions, which
+  # peploop counts first-level.
+
+  tiers: [national, regional]
+
+  # Classes the type tree files under government organization or government
+  # agency that are not government bodies here. None measured: no misfiled
+  # class among the state actors read 2026-10-17.
+  not_government: []
+
+  # Never candidates here, beyond the global exclusions. Measured 2026-10-17
+  # from the state actors' P127/P749 reach and the country's live items. None
+  # measured.
+  exclude:
+    - {qid: Q897399, name: chamber of commerce and industry}  # 2 live, e.g. Q1201858 German-Slovenian Chamber of Industry and Commerce
+
+  # State-only legal forms and types, matched exactly as P31 or P1454.
+  # Measured 2026-10-17: live items (P17 = the country, no P576) with any seat
+  # statement, then all live items, in brackets. Measured thin: 64 live items
+  # with a seat statement. Javni zavod is shared with municipalities.
+  forms: []
+
+  roles: []
+
+  # State holdings: SDH manages the state's capital assets; no list article
+  # resolves QIDs reliably, so entries are the major state companies and
+  # national cultural institutions, QIDs resolved from their sl.wikipedia
+  # articles or Wikidata search and checked live 2026-10-17. NLB (a minority
+  # holding) is left out.
+  holdings:
+    - source: "SDH (Slovenski državni holding), upravljanje kapitalskih naložb RS (https://www.sdh.si/); entries from sl.wikipedia articles, checked 2026-10-17"
+      entries:
+        - name: "Slovenski državni holding d.d."
+          qid: Q19936974
+          holder: "Republika Slovenija"
+          source: https://www.wikidata.org/wiki/Q19936974
+        - name: "Kapitalska družba d.d."
+          qid: Q20524126
+          holder: "Slovenski državni holding"
+          source: https://www.wikidata.org/wiki/Q20524126
+        - name: "Telekom Slovenije d.d."
+          qid: Q1335433
+          holder: "Republika Slovenija, SDH and KAD"
+          source: https://www.wikidata.org/wiki/Q1335433
+        - name: "Zavarovalnica Triglav d.d."
+          qid: Q166873
+          holder: "SDH and ZPIZ"
+          source: https://www.wikidata.org/wiki/Q166873
+        - name: "Pošta Slovenije d.o.o."
+          qid: Q6522631
+          holder: "Republika Slovenija (SDH)"
+          source: https://www.wikidata.org/wiki/Q6522631
+        - name: "Slovenske železnice d.o.o."
+          qid: Q766616
+          holder: "Republika Slovenija (SDH)"
+          source: https://www.wikidata.org/wiki/Q766616
+        - name: "DARS d.d."
+          qid: Q5142728
+          holder: "Republika Slovenija (SDH)"
+          source: https://www.wikidata.org/wiki/Q5142728
+        - name: "ELES d.o.o."
+          qid: Q5358777
+          holder: "Republika Slovenija"
+          source: https://www.wikidata.org/wiki/Q5358777
+        - name: "GEN energija d.o.o."
+          qid: Q20521509
+          holder: "Republika Slovenija"
+          source: https://www.wikidata.org/wiki/Q20521509
+        - name: "Holding Slovenske elektrarne d.o.o."
+          qid: Q5879754
+          holder: "Republika Slovenija"
+          source: https://www.wikidata.org/wiki/Q5879754
+        - name: "Nuklearna elektrarna Krško d.o.o."
+          qid: Q474478
+          holder: "GEN energija (with HEP)"
+          source: https://www.wikidata.org/wiki/Q474478
+        - name: "Luka Koper d.d."
+          qid: Q478048
+          holder: "Republika Slovenija (SDH)"
+          source: https://www.wikidata.org/wiki/Q478048
+        - name: "Radiotelevizija Slovenija"
+          qid: Q960061
+          holder: "Republika Slovenija (public broadcaster)"
+          source: https://www.wikidata.org/wiki/Q960061
+        - name: "Slovenska tiskovna agencija"
+          qid: Q7541831
+          holder: "Republika Slovenija"
+          source: https://www.wikidata.org/wiki/Q7541831
+        - name: "SID banka d.d."
+          qid: Q20570498
+          holder: "Republika Slovenija"
+          source: https://www.wikidata.org/wiki/Q20570498
+        - name: "Elektro Ljubljana d.d."
+          qid: Q30294660
+          holder: "Republika Slovenija (SDH)"
+          source: https://www.wikidata.org/wiki/Q30294660
+        - name: "Elektro Maribor d.d."
+          qid: Q12788287
+          holder: "Republika Slovenija (SDH)"
+          source: https://www.wikidata.org/wiki/Q12788287
+        - name: "Elektro Celje d.d."
+          qid: Q48688594
+          holder: "Republika Slovenija (SDH)"
+          source: https://www.wikidata.org/wiki/Q48688594
+        - name: "Elektro Gorenjska d.d."
+          qid: Q48688595
+          holder: "Republika Slovenija (SDH)"
+          source: https://www.wikidata.org/wiki/Q48688595
+        - name: "Elektro Primorska d.d."
+          qid: Q49420946
+          holder: "Republika Slovenija (SDH)"
+          source: https://www.wikidata.org/wiki/Q49420946
+        - name: "Dravske elektrarne Maribor d.o.o."
+          qid: Q20523891
+          holder: "Holding Slovenske elektrarne"
+          source: https://www.wikidata.org/wiki/Q20523891
+        - name: "Termoelektrarna Šoštanj d.o.o."
+          qid: Q19389753
+          holder: "Holding Slovenske elektrarne"
+          source: https://www.wikidata.org/wiki/Q19389753
+        - name: "Premogovnik Velenje d.o.o."
+          qid: Q12799436
+          holder: "Holding Slovenske elektrarne"
+          source: https://www.wikidata.org/wiki/Q12799436
+        - name: "Slovensko narodno gledališče Drama Ljubljana"
+          qid: Q21034517
+          holder: "Republika Slovenija (Ministrstvo za kulturo)"
+          source: https://www.wikidata.org/wiki/Q21034517
+        - name: "Slovensko narodno gledališče Opera in balet Ljubljana"
+          qid: Q7541707
+          holder: "Republika Slovenija (Ministrstvo za kulturo)"
+          source: https://www.wikidata.org/wiki/Q7541707
+        - name: "Narodna galerija Slovenije"
+          qid: Q1953536
+          holder: "Republika Slovenija (Ministrstvo za kulturo)"
+          source: https://www.wikidata.org/wiki/Q1953536
+        - name: "Narodni muzej Slovenije"
+          qid: Q2033282
+          holder: "Republika Slovenija (Ministrstvo za kulturo)"
+          source: https://www.wikidata.org/wiki/Q2033282
+        - name: "Narodna in univerzitetna knjižnica"
+          qid: Q1520466
+          holder: "Republika Slovenija (Ministrstvo za kulturo)"
+          source: https://www.wikidata.org/wiki/Q1520466
+        - name: "Slovenska filharmonija"
+          qid: Q836874
+          holder: "Republika Slovenija (Ministrstvo za kulturo)"
+          source: https://www.wikidata.org/wiki/Q836874
+        - name: "Cankarjev dom"
+          qid: Q5032503
+          holder: "Republika Slovenija (Ministrstvo za kulturo)"
+          source: https://www.wikidata.org/wiki/Q5032503
+        - name: "Zavod za zdravstveno zavarovanje Slovenije"
+          qid: Q16250847
+          holder: "Republika Slovenija (public institute)"
+          source: https://www.wikidata.org/wiki/Q16250847
+
+amlr:
+  # Units: classes measured on Wikidata (2026-10-24).
+  units:
+    municipal:
+    - {qid: Q6960199, name: city municipality of Slovenia}
+    - {qid: Q328584, name: municipality of Slovenia}
+    grouping: []
+    metro: []

@@ -14,7 +14,7 @@ the past*.
 This is the procedure, with the measurements that come before it and the
 checkpoints inside it. `design.md` says what each stage is; `positions.md` says
 how the office resolver works. A session starting a country reads this and
-`seeds/<cc>.yml` of the last country run, and nothing else.
+`seeds` section of the last country run, and nothing else.
 
 ## 1. Before seeding: three measurements
 
@@ -58,7 +58,7 @@ things the run needs to know before it starts: **which tiers have no item at
 all** (Colombia: no magistrate of any apex court, four outbound
 ambassadorships against 72 categories -- those mentions will end in the
 creation queue the mint stage works, which is not a failure, and a tier with
-no item is also a `census/<cc>.yml` entry), and **which offices have two
+no item is also a `census` entry), and **which offices have two
 items competing for one era** (Colombia: the presidency of each chamber, one
 ministry). Two items for one era is a merge decision and a human gate; the
 run does not write onto the unused twin, and the holder signal is what keeps
@@ -89,15 +89,16 @@ people to 2,600 already reached by tier, nearly all history, and was left out.
 
 ## 2. The seed file
 
-`seeds/<cc>.yml`: `category`, `lang`, optional `depth` (default 1) per entry,
-or `article` and `lang` for a list article, a chamber with no category yet. A
+The `seeds` section of `countries/<cc>.yml`: `category`, `lang`, optional
+`depth` (default 1) per entry, or `article` and `lang` for a list article, a
+chamber with no category yet. A
 territory OpenSanctions codes apart (`so-som`, `cy-trnc`) is a run of its own,
 seeded before the state whose tree nests it. OpenSanctions'
 `wd_categories.yml` (`country: <cc>` entries) is the starting list and never the whole of it: it names the tiers
 OpenSanctions has a spec for, and its retirements are OpenSanctions' reasons
 (a category whose members are born before 1920 is retired *there*; here the
 scope gate handles that at fetch). The tiers to cover are the ones in
-`docs/institutions.md`; the shape is `seeds/si.yml`'s: a comment block
+`docs/institutions.md`; the shape is `countries/si.yml`'s seeds: a comment block
 saying where the entries came from and what was left out, then the entries by
 tier, **every one commented with its measured size**, depth 1 except pure
 containers, `depth: 0` where the only subcategory is an eponymous one. Where
@@ -112,7 +113,7 @@ From the repository root, key sourced (`set -a && source .envrc && set +a`),
 interpreter `.venv/bin/python -m peploop.cli`.
 
 ```
-seed --country <cc>                  # the categories of seeds/<cc>.yml
+seed --country <cc>                  # the categories of countries/<cc>.yml's seeds
 load-positions --country <cc>        # every discovery lane; network only, beside fetch
 fetch --country <cc>                 # items, the scope gate, then every sitelinked article
 extract --country <cc>               # one request per person, Sonnet
@@ -143,7 +144,7 @@ the ledger asks only the failures.
 
 The mint stage sits between `reconcile` and `propose` because its input is the
 reconciler's refusals and its output is items those refusals can now land on.
-Write `census/<cc>.yml` before `mint`: the offices the country has whether or
+Write the `census` section of `countries/<cc>.yml` before `mint`: the offices the country has whether or
 not a seeded article named them, by institution class of
 `docs/institutions.md`, each with its body QID measured live
 (`docs/research/position_items.md` §10), never from memory. An entry prompts

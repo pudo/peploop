@@ -1,0 +1,75 @@
+# Switzerland: what the lanes know about it, one section per lane.
+
+corp:
+  # Switzerland. Federal: 26 cantons, whose holdings and bodies (cantonal
+  # banks, cantonal hospitals, cantonal utilities) are the regional tier;
+  # communes are municipal and not written.
+
+  tiers: [national, regional]
+
+  # The parliament, as the body that elects and oversees statutory bodies
+  # (named as controller in the 2026-10-18 answers).
+  actors:
+    - {qid: Q684719, kind: government, name: Federal Assembly of Switzerland}
+
+  # Classes the type tree files under government organization or government
+  # agency that are not government bodies here. Read from the state actors
+  # 2026-10-17: a collegiate chapter (Q18019059 Kollegiatstift St. Michael) is
+  # a religious community. (Intergovernmental organisations, which Geneva's
+  # carry Switzerland as country, are excluded globally.)
+  not_government:
+    - {qid: Q2742167, name: religious community}  # 1 state actor, Q18019059 Kollegiatstift St. Michael
+
+  # Never candidates here, beyond the global exclusions. Counted among the
+  # kept bodies 2026-10-17. Parliamentary committees are the legislature's (peploop's); radio channels
+  # are no body (the broadcaster is); a Gymnasium's rector is no senior
+  # official.
+  exclude:
+    - {qid: Q2986700, name: parliamentary committee}  # 1 kept, Q111568242 Aussenpolitische Kommissionen
+    - {qid: Q14350, name: radio station}  # 2 kept, e.g. Q1648398 Radio Swiss Jazz
+    - {qid: Q55043, name: gymnasium}  # 2 kept, e.g. Q689852 Gymnasium Alpenstrasse
+
+  # State-only legal forms and types, matched exactly as P31 or P1454.
+  # Measured 2026-10-17: live items with P17 Switzerland, with any seat
+  # statement in brackets. Left out: cantonal authority (Q113032545, 189 live:
+  # mostly cantonal departments, governments, parliaments and courts, which
+  # are peploop's), government agency of Switzerland (Q113025511, 67 live:
+  # federal offices and extra-parliamentary commissions, reached by the owned
+  # and parented lanes) and the generic public-law institution (Q570208, 8
+  # live: fare networks).
+  forms:
+    - {qid: Q89651843, kind: institution, name: Anstalt des öffentlichen Rechts (Schweiz)}  # P1454, 48 live (7): SBB, FINMA, Swissmedic, Suva, cantonal banks and hospitals, utilities
+    - {qid: Q665634, kind: enterprise, name: Kantonalbank}  # P31, 25 live: every cantonal bank
+    - {qid: Q1005418, kind: institution, name: Bundesamt (Schweiz)}  # P31, 34 live
+
+  roles: []
+
+  # The Confederation's own portfolio: the 22 units the Federal Council steers
+  # under its corporate governance (Art. 8 para. 5 RVOG), as the Federal
+  # Finance Administration lists them. Cantonal holdings: the cantonal banks
+  # come in through their form; no cantonal list yet.
+  holdings:
+    - source: "Eidgenössische Finanzverwaltung, Unternehmen und Anstalten des Bundes, https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"
+      entries:
+        - {name: "Die Schweizerische Post", qid: Q614803, holder: "Bund (UVEK), spezialgesetzliche AG, 100 %", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Swisscom", qid: Q644324, holder: "Bund (UVEK), spezialgesetzliche AG, 51 %", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Schweizerische Bundesbahnen SBB", qid: Q83835, holder: "Bund (UVEK), spezialgesetzliche AG, 100 %", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Skyguide", qid: Q356574, holder: "Bund (UVEK), AG, 99,95 %", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "RUAG MRO Holding AG", qid: Q116330184, holder: "Bund (VBS), AG, 100 %", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "RUAG International Holding AG", qid: Q667060, holder: "Bund (VBS), AG, 100 % (the item is the former RUAG Holding, its legal predecessor)", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "ETH-Bereich", qid: Q664875, holder: "Bund (WBF), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "ETH-Rat", qid: Q3515551, holder: "Bund (WBF), strategic body of the ETH-Bereich", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Schweizerische Exportrisikoversicherung SERV", qid: Q2256449, holder: "Bund (WBF), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Schweizerisches Nationalmuseum SNM", qid: Q2256718, holder: "Bund (EDI), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Schweizerisches Heilmittelinstitut Swissmedic", qid: Q681332, holder: "Bund (EDI), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Pro Helvetia", qid: Q672162, holder: "Bund (EDI), öffentlich-rechtliche Stiftung", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Eidgenössisches Institut für Geistiges Eigentum IGE", qid: Q685539, holder: "Bund (EJPD), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Eidgenössische Revisionsaufsichtsbehörde", qid: null, holder: "Bund (EJPD), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Eidgenössisches Institut für Metrologie METAS", qid: Q1005465, holder: "Bund (EJPD), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Schweizerisches Institut für Rechtsvergleichung SIR", qid: Q679390, holder: "Bund (EJPD), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Eidgenössische Finanzmarktaufsicht FINMA", qid: Q681362, holder: "Bund (EFD), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Swiss Investment Fund for Emerging Markets SIFEM", qid: Q128810214, holder: "Bund (WBF), AG, 100 %", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Eidgenössische Hochschule für Berufsbildung EHB", qid: Q1302632, holder: "Bund (WBF), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Innosuisse", qid: Q30296532, holder: "Bund (WBF), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Eidgenössisches Nuklearsicherheitsinspektorat ENSI", qid: Q1302638, holder: "Bund (UVEK), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}
+        - {name: "Schweizerische Trassenvergabestelle", qid: Q131675274, holder: "Bund (UVEK), öffentlich-rechtliche Anstalt", source: "https://www.efv.admin.ch/de/unternehmen-anstalten-bundes"}

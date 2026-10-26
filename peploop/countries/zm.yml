@@ -1,0 +1,245 @@
+# Zambia: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Zambia run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml has no Zambia entry, so every entry below
+  # is measured here (PetScan, 2026-10-16) and nothing is inherited. Counts are
+  # distinct sitelinked items reached, then how many no earlier entry reached;
+  # a list article's count is its links, people among them. The whole seed is
+  # ~700 candidates.
+  #
+  # en.wikipedia is the regular wiki: `Political office-holders in Zambia`
+  # holds the presidents, vice-presidents, 30 portfolio subcats (provincial
+  # ministers among them), the National Assembly and the mayors.
+  #
+  # The current era is the August 2026 general election: the National
+  # Assembly's 2026-2031 list article and Hichilema's second cabinet reach the
+  # newcomers, the 2021-2026 list and first cabinet the members just ended.
+  # The National Assembly category is one flat bag back to 1964; the scope gate
+  # takes its history at fetch.
+  #
+  # Left out: `Governors of Northern Rhodesia` and `Members of the Legislative
+  # Council of Northern Rhodesia` (colonial); `United Federal Party`, `UNIP`
+  # and the small parties' categories (0-2 new each, history);
+  # `Forum for Democracy and Development`, `Independent politicians`,
+  # `Heritage Party`, `21st-century women politicians` and `Zambian
+  # politicians` (0 new).
+
+  # --- Head of state and government ---
+  - category: Presidents_of_Zambia                               # 8
+    lang: en
+    depth: 0
+  - category: Vice-presidents_of_Zambia                          # 14, 11 new
+    lang: en
+    depth: 0
+  - category: Prime_ministers_of_Zambia                          # 1964-1991; 7, 5 new
+    lang: en
+    depth: 0
+
+  # --- Cabinet: the two Hichilema cabinets, then 30 portfolio subcats ---
+  - article: Second_cabinet_of_Hakainde_Hichilema                # 43 links, 41 new
+    lang: en
+  - article: First_Hichilema_Cabinet                             # 90 links, 56 new
+    lang: en
+  - category: Government_ministers_of_Zambia                     # 139, 96 new; provincial ministers inside
+    lang: en
+
+  # --- National Assembly ---
+  - article: List_of_members_of_the_National_Assembly_of_Zambia_(2026–2031)  # 355 links, 305 new
+    lang: en
+  - article: List_of_members_of_the_National_Assembly_of_Zambia_(2021–2026)  # 323 links, 63 new
+    lang: en
+  - category: Members_of_the_National_Assembly_of_Zambia         # flat, to 1964; 216, 58 new
+    lang: en
+    depth: 0
+  - category: Speakers_of_the_National_Assembly_of_Zambia        # 6, 3 new
+    lang: en
+    depth: 0
+
+  # --- Courts, central bank, military, diplomatic service, local ---
+  - category: Chief_justices_of_Zambia                           # 6, 1 new
+    lang: en
+    depth: 0
+  - category: 21st-century_Zambian_judges                        # 5, 3 new
+    lang: en
+    depth: 0
+  - category: Governors_of_the_Bank_of_Zambia                    # 4, 1 new
+    lang: en
+    depth: 0
+  - category: Zambian_generals                                   # 11, 11 new
+    lang: en
+    depth: 0
+  - category: Ambassadors_of_Zambia                              # per receiver, high commissioners nested; 30, 14 new
+    lang: en
+    depth: 2
+  - category: Mayors_of_places_in_Zambia                         # 7, 2 new
+    lang: en
+
+  # --- Parties: the ones in the 2021 and 2026 Assemblies ---
+  - category: Patriotic_Front_(Zambia)_politicians               # 82, 4 new
+    lang: en
+    depth: 0
+  - category: United_Party_for_National_Development_politicians  # 70, 4 new
+    lang: en
+    depth: 0
+  - category: Movement_for_Multi-Party_Democracy_politicians     # 63, 2 new
+    lang: en
+    depth: 0
+
+  # --- Catch-alls ---
+  - category: 21st-century_Zambian_politicians                   # 70, 10 new
+    lang: en
+    depth: 0
+  - category: Zambian_politician_stubs                           # 83, 6 new
+    lang: en
+    depth: 0
+
+  # --- Wide: the rest of the government tree and the office-holding professions ---
+  # Measured 2026-10-16 against everything above. `Government of Zambia` at depth
+  # 3 adds 289 more, of which `Foreign relations of Zambia` (150) is mostly
+  # foreign ambassadors to Zambia and is left out; its other branches are here.
+  - category: Zambian_politicians                                # whole tree; 320, 39 new
+    lang: en
+    depth: 3
+  - category: Local_government_in_Zambia                         # councils, mayors, chiefs; 153, 94 new
+    lang: en
+    depth: 2
+  - category: Law_of_Zambia                                      # courts, judges, AGs, DPPs; 67, 40 new
+    lang: en
+    depth: 2
+  - category: Law_enforcement_in_Zambia                          # police, DEC, ACC; 13, 11 new
+    lang: en
+    depth: 2
+  - category: Zambian_civil_servants                             # 47, 6 new
+    lang: en
+    depth: 2
+  - category: Zambian_lawyers                                    # 29, 13 new
+    lang: en
+  - category: Zambian_businesspeople                             # SOE and bank heads among them; 62, 26 new
+    lang: en
+    depth: 2
+  - category: Zambian_economists                                 # 16, 5 new
+    lang: en
+  - category: Zambian_activists                                  # 36, 16 new
+    lang: en
+  - category: Zambian_journalists                                # state media heads among them; 17, 13 new
+    lang: en
+  - category: Zambian_military_personnel                         # 19, 2 new
+    lang: en
+    depth: 2
+
+  # --- Church: bishops are in scope ---
+  - category: Roman_Catholic_bishops_in_Zambia                   # 30, 30 new
+    lang: en
+    depth: 2
+  - category: Anglican_bishops_in_Zambia                         # 13, 12 new
+    lang: en
+
+census:
+  # Offices Zambia has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-10-16 live measurement (wbsearchentities, the
+  # items read); nothing below is from memory.
+  #
+  # Not here because an item exists and the load reaches it: the President
+  # `Q18985034`, Vice-President `Q19040410`, the portfolio ministers
+  # (`Q453963xx`, `Q1099356xx`), the Speaker `Q6597956`, the Chief Justice
+  # `Q110761815`, the Attorney General `Q109936142`, the Governor of the Bank
+  # of Zambia `Q109936196`, and the commanders of the Defence Force, Army, Air
+  # Force and National Service.
+  #
+  # Absent and not listed: the Anti-Corruption Commission, the Drug
+  # Enforcement Commission, the Auditor-General's office, the DPP and the
+  # Electoral Commission have no items. The Supreme Court item `Q110761827`
+  # carries `P17` India; it is still the court's only item.
+  #
+  # The provinces are headed by a provincial minister, appointed by the
+  # President from the National Assembly: a `per: subdivisions` entry over the
+  # ten provinces, none of which has a head office.
+
+  # --- Sub-national: the provincial ministers ---
+  - key: provincial_minister
+    class: subnational.executive
+    archetype: governor
+    per: subdivisions
+    source: https://en.wikipedia.org/wiki/Provincial_minister_(Zambia)
+    labels:
+      en: Provincial Minister of {name}
+
+  # --- Judiciary: Supreme and Constitutional Courts ---
+  - key: supreme_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q110761827         # Supreme Court of Zambia, P31 supreme court
+    labels:
+      en: Judge of the Supreme Court of Zambia
+
+  - key: constitutional_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q131598277         # Constitutional Court of Zambia (no P31 yet)
+    labels:
+      en: Judge of the Constitutional Court of Zambia
+
+  - key: constitutional_court_president
+    class: judiciary.apex
+    archetype: court_president
+    body: Q131598277
+    labels:
+      en: President of the Constitutional Court of Zambia
+
+  # --- Security: the police ---
+  - key: inspector_general_of_police
+    class: security.police
+    archetype: agency_head
+    body: Q55638195          # Zambia Police Service
+    labels:
+      en: Inspector-General of Police of Zambia
+
+  # --- Oversight, prosecution ---
+  - key: auditor_general
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the Office of the Auditor General was found.
+    labels:
+      en: Auditor General of Zambia
+
+  - key: director_of_public_prosecutions
+    class: judiciary.prosecution
+    archetype: prosecutor_general
+    # No body: no item for the National Prosecution Authority was found.
+    labels:
+      en: Director of Public Prosecutions of Zambia
+
+  - key: anti_corruption_commission_dg
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the Anti-Corruption Commission was found.
+    labels:
+      en: Director-General of the Anti-Corruption Commission of Zambia
+
+  # --- State-owned enterprises ---
+  - key: zesco_md
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q8063035           # ZESCO, P31 state-owned enterprise, P17 Q953
+    labels:
+      en: Managing Director of ZESCO
+
+  - key: zccm_ih_ceo
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q145494            # ZCCM Investments Holdings, P17 Q953
+    labels:
+      en: Chief Executive Officer of ZCCM Investments Holdings
+
+corp:
+  # Zambia. A validation country: English articles, sparse coverage, a
+  # unitary state. Empty on purpose: it tests the global defaults alone.
+
+  tiers: [national, regional]
+  forms: []
+  not_government: []
+  exclude: []
+  roles: []
+  holdings: []

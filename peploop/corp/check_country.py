@@ -6,6 +6,7 @@
 import re
 import sys
 
+from peploop import countries
 from peploop.corp import country
 from peploop.checks import expect
 
@@ -16,7 +17,7 @@ TIERS = {"national", "regional", "municipal", "international"}
 
 
 def main() -> int:
-    specs = sorted(p.stem for p in country.DIR.glob("*.yml"))
+    specs = countries.codes("corp")
     expect(bool(specs), f"{len(specs)} country specs found")
     for cc in specs:
         spec = country.get(cc)

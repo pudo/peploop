@@ -1,0 +1,182 @@
+# Congo-Brazzaville: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Republic of the Congo run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml has no Congo entry, so every entry below is
+  # measured here (PetScan, 2026-10-12) and nothing is inherited. Counts are
+  # distinct sitelinked items reached, then how many no earlier entry reached.
+  #
+  # Congo is a small corpus: the whole tree below is ~350 people. fr.wikipedia is
+  # the main wiki and carries the tiers under `Personnalité politique congolaise
+  # (RC)` -- "(RC)" is what separates it from the DRC's "(RDC)" tree -- with a
+  # `Ministre de la république du Congo` container of 35 portfolio subcats (134
+  # of the first 157 people), both chambers' members and presidents, the mayors
+  # of Brazzaville and Pointe-Noire, ambassadors by post and the generals.
+  # en.wikipedia adds the parliament by chamber, the vice-presidents and the
+  # Pan-African Parliament members (66 new under `Political office-holders`).
+  # en titles "Republic of the Congo (Léopoldville)" for the DRC of 1960-64:
+  # every en entry was read for it, and none below carries it.
+  #
+  # The current era is the 2015 constitution: Sassou Nguesso re-elected on 15
+  # March 2026, Makosso reappointed Prime Minister and his second government (41
+  # members, with a restored vice-prime ministership) named by decree on 24 April
+  # 2026; the National Assembly elected in July 2022 sits until 2027. Neither
+  # wiki has a per-legislature or per-period category below a tier (the fr `du
+  # XXIe siècle` bag is 14 pages), so the era cannot be chosen by category: every
+  # tier is seeded whole, the scope gate drops the dead at fetch and
+  # `policy.P39_MAX_ENDED_YEARS` skips the old tenures.
+  #
+  # Wikidata already holds 581 Assembly-member statements (`Q21295980`), against
+  # ~80 deputies with an article: this run reaches the articled ones only.
+  #
+  # Left out: fr `Personnalité politique congolaise (RC) du XXe siècle` (17, 2
+  # new), `Membre du Conseil de la République représentant le Moyen-Congo` (6, 4
+  # new, French Fourth Republic seats), `Première dame` (a spouse, no office),
+  # `Personnalité politique congolaise assassinée (RC)` and `Putschiste`
+  # (dead); en `Republic_of_the_Congo_politicians_by_party` (106, 6 new),
+  # `20th-century_Republic_of_the_Congo_politicians`. There is no judge,
+  # magistrate, central-bank (the BEAC is regional) or prefect category on
+  # either wiki; `Magistrat congolais (RC)` is empty.
+
+  # --- Head of state and government ---
+  - category: Président_de_la_république_du_Congo                # 7
+    lang: fr
+    depth: 0
+  - category: Premier_ministre_de_la_république_du_Congo         # 21, 16 new
+    lang: fr
+    depth: 0
+
+  # --- Cabinet: fr's 35 portfolio subcats, ministres d'État, secrétaires d'État ---
+  - category: Ministre_de_la_république_du_Congo                 # container; 145, 134 new
+    lang: fr
+
+  # --- Parliament: both chambers with their presidents ---
+  - category: Parlementaire_en_république_du_Congo               # Député, Sénateur; 82, 36 new
+    lang: fr
+  - category: Président_de_l'Assemblée_nationale_de_la_république_du_Congo   # 4, 0 new
+    lang: fr
+    depth: 0
+  - category: Président_du_Sénat_de_la_république_du_Congo       # 3 pages, none sitelinked to an item PetScan returns
+    lang: fr
+    depth: 0
+
+  # --- Subnational: Brazzaville and Pointe-Noire ---
+  - category: Maire_en_république_du_Congo                       # 18, 3 new
+    lang: fr
+
+  # --- Diplomatic service ---
+  - category: Diplomate_congolais_(RC)                           # ambassadors by post at d2; 38, 12 new
+    lang: fr
+    depth: 2
+
+  # --- Military: the generals are the only way to the general staff ---
+  - category: Militaire_congolais_(RC)                           # Général, Amiral, by century; 33, 18 new
+    lang: fr
+
+  # --- Party and catch-alls ---
+  - category: Personnalité_du_Parti_congolais_du_travail          # ruling party; 20, 3 new
+    lang: fr
+    depth: 0
+  - category: Femme_politique_congolaise_(RC)                    # with Ministre congolaise; 25, 6 new
+    lang: fr
+  - category: Personnalité_politique_congolaise_(RC)_du_XXIe_siècle   # 14, 6 new
+    lang: fr
+    depth: 0
+  - category: Personnalité_politique_congolaise_(RC)             # flat bag; 67, 21 new
+    lang: fr
+    depth: 0
+
+  # --- en: parliament by chamber, vice-presidents, Pan-African Parliament ---
+  - category: Political_office-holders_in_the_Republic_of_the_Congo   # 160, 66 new
+    lang: en
+    depth: 2
+  - category: Ambassadors_of_the_Republic_of_the_Congo           # 31 posts; 26, 4 new
+    lang: en
+  - category: 21st-century_Republic_of_the_Congo_politicians     # 41, 2 new
+    lang: en
+  - category: Republic_of_the_Congo_women_in_politics            # 30, 3 new
+    lang: en
+  - category: Republic_of_the_Congo_politicians                  # 25 pages, 12 new
+    lang: en
+    depth: 0
+
+census:
+  # Offices the state has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-10-12 live measurement (labels, P31, P17, P361 read
+  # in full); nothing below is from memory. No `source` is given: none was
+  # checked live, and a source is what lets a one-seat office pass on a single
+  # current holder, so it is never guessed.
+  #
+  # Not here because an item exists: the President `Q10353660`, the
+  # Vice-President `Q49001219`, the Prime Minister `Q30101451`, the Foreign
+  # Minister `Q18204385`, the portfolio ministers of the `Q112320644`..`Q112320732`
+  # batch, the Vice-Prime Minister `Q112320732`, the membership seats of the
+  # Assembly `Q21295980` (and its alternates `Q112567889`) and of the Senate
+  # `Q21295131`, and the mayor of Brazzaville `Q62515409` (repaired from `P31`
+  # rank to an office on 2026-10-12, QS3 59246/59247).
+  #
+  # Era-split ministry items, not twins: Defence `Q112320665` (1999-2005) and
+  # National Defence `Q112320695` (2005-), Territorial Administration
+  # `Q112320718` (1997-2002) and `Q112320719` (2002-2016), Industry `Q112320684`
+  # and Industrial Development `Q112320681`, Trade `Q112320722` and Commerce
+  # `Q112320660` -- each older one holds the 1999-2002 government's name.
+  #
+  # Absent and not listed: the mayor of Pointe-Noire (no item -- `Q64826327` is
+  # Pointe-Noire in Guadeloupe -- but a single municipality takes no census
+  # jurisdiction; categorize reaches it from the mayors' articles), departmental
+  # prefects (no category on either wiki names one), the central bank governor
+  # (the BEAC is regional, not the state's).
+
+  # --- Parliament: no presidency item for either chamber ---
+  - key: assembly_president
+    class: legislature.leadership
+    archetype: speaker
+    body: Q1969587           # Assemblée nationale, P31 lower house, P17 Q971, P361 Parliament Q4345421
+    labels:
+      fr: président de l'Assemblée nationale de la république du Congo
+      en: President of the National Assembly of the Republic of the Congo
+
+  - key: senate_president
+    class: legislature.leadership
+    archetype: speaker
+    body: Q3510840           # Sénat, P31 upper house, P17 Q971, P361 Parliament Q4345421
+    labels:
+      fr: président du Sénat de la république du Congo
+      en: President of the Senate of the Republic of the Congo
+
+  # --- Apex courts: no item for either court ---
+  # Searched fr and en, and `haswbstatement:P17=Q971` with "Cour"; the
+  # Constitutional Court that search returns, `Q3000938`, is the DRC's.
+  - key: constitutional_court_president
+    class: judiciary.apex
+    archetype: court_president
+    labels:
+      fr: président de la Cour constitutionnelle de la république du Congo
+      en: President of the Constitutional Court of the Republic of the Congo
+
+  - key: supreme_court_president
+    class: judiciary.apex
+    archetype: court_president
+    labels:
+      fr: président de la Cour suprême de la république du Congo
+      en: President of the Supreme Court of the Republic of the Congo
+
+  # --- Audit ---
+  - key: court_of_accounts_president
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the Cour des comptes et de discipline budgétaire was
+    # found (searched fr and en, and `haswbstatement:P17=Q971` with "comptes").
+    labels:
+      fr: président de la Cour des comptes et de discipline budgétaire
+      en: President of the Court of Audit and Budgetary Discipline of the Republic of the Congo
+
+  # --- Defence ---
+  - key: chief_of_general_staff
+    class: security.defence_command
+    archetype: military_chief_of_staff
+    body: Q458231            # Armed Forces of the Republic of the Congo, P31 armed forces, P17 Q971 (no General Staff item)
+    labels:
+      fr: chef d'état-major général des Forces armées congolaises
+      en: Chief of the General Staff of the Congolese Armed Forces

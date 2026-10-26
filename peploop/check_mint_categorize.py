@@ -196,7 +196,7 @@ CENSUS = """
 def check_census_exclude(expect: Any) -> None:
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "zz.yml"
-        path.write_text(CENSUS)
+        path.write_text("census:\n" + CENSUS)
         anchors = mint.census("fr", path=path, subdivisions=lambda _s: ["Q11", "Q12", "Q13"],
                               labels_of=lambda qids: {q: {"en": q} for q in qids})
         expect({a.key for a in anchors} == {"governor/Q11", "governor/Q13"},

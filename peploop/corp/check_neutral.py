@@ -2,9 +2,9 @@
 
 Everything pepcorp knows about one country comes from data: its state and
 subdivisions from Wikidata, its languages from rigour, its holdings lists,
-legal forms, misfiled classes and extra seats from `countries/<cc>.yml`. The
-board vocabulary is translated by the model into a fixed set of roles, so no
-country's titles belong in the code. This greps the tokens of every country
+legal forms, misfiled classes and extra seats from the `corp` sections of
+`countries/<cc>.yml`. The board vocabulary is translated by the model into a
+fixed set of roles, so no country's titles belong in the code. This greps the tokens of every country
 run so far, and every QID a country spec names as a form or a misfiled
 class, out of `peploop/corp/*.py` and `peploop/corp/prompts/*.md`; the checks
 use invented QIDs.
@@ -16,7 +16,7 @@ import re
 import sys
 from pathlib import Path
 
-import yaml
+from peploop import countries
 
 ROOT = Path(__file__).resolve().parent
 TOKENS = (
@@ -28,10 +28,10 @@ QIDS = ("Q183",)
 #: Every form, misfiled class, party branch class, municipal class and scope's body class a country spec
 #: names: spec data, never code. Classes of organisations of states are no one scope's: the global
 #: `actors.NOT_GOVERNMENT` names one.
-SPEC_QIDS = tuple(sorted({q for path in (Path(__file__).resolve().parent / "countries").glob("*.yml")
+SPEC_QIDS = tuple(sorted({q for cc in countries.codes("corp")
                           for key in ("forms", "not_government", "exclude", "party_branch_classes", "municipal_classes",
                                       "body_classes")
-                          for q in [str(e["qid"]) for e in (yaml.safe_load(path.read_text()) or {}).get(key) or []]}))
+                          for q in [str(e["qid"]) for e in countries.section(cc, "corp").get(key) or []]}))
 QID_RE = re.compile(r"\b(" + "|".join(QIDS + SPEC_QIDS) + r")\b")
 SELF = Path(__file__).name
 
