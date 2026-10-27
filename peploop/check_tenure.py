@@ -38,6 +38,10 @@ def main() -> None:
     expect(not tenure.says_current("Predsednik: Jernej Vrtovec", "sl"), "an sl infobox field line says nothing of now")
     expect(not tenure.says_current("Leta 1992 je bil izvoljen v 1. zbor", "sl"),
            "an sl election in the past is not now")
+    expect(tenure.says_current("Durata mandato: 27 giugno 2014 – in carica", "it", infobox_only=True)
+           and tenure.says_current("è attualmente consigliere", "it"), "Italian: in carica, attualmente")
+    expect(not tenure.says_current("nel 2013 viene eletto consigliere regionale", "it"),
+           "an Italian election in the past is not now")
     expect(not tenure.says_current("Incumbent", "xx") and not tenure.reads_current("xx"),
            "a language without markers says nothing")
     expect(tenure.names_end_event("Er wurde 2023 verhaftet."), "an arrest is an event, not an end")

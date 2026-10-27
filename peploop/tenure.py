@@ -44,6 +44,7 @@ INFOBOX = {
     "pt": re.compile(r"\bem exercício\b|\ba[c]?tualidade\b|(?:[–-]|\d{4})\s*presente\b", re.I),
     "zh": re.compile(r"[现現]任|就任日期"),
     "sl": re.compile(r"trenutn[ia] nosil|začetek delovanja", re.I),
+    "it": re.compile(r"\bin carica\b", re.I),
 }
 #: The same, per language whose articles were measured: Greek infoboxes
 #: write "Εν ενεργεία", Turkish ones "Görevde" and "Makama geliş" (assumed
@@ -57,6 +58,9 @@ INFOBOX = {
 #: vedno" (still), read off 377 open tenures' quotes; "je bil" is the past.
 #: A body's article names its officers the same way: "Predsednik uprave je
 #: Uroš Blažica", "je predsednik nadzornega sveta", "Agencijo vodi" (leads).
+#: Italian infoboxes write "In carica" (and "27 giugno 2014 – in carica"),
+#: prose "attualmente" and "tuttora" (still); read off 15 open tenures'
+#: quotes, where every prose one ("nel 2013 viene eletto") had ended.
 CURRENT = {
     "en": CURRENT_EN,
     "el": re.compile(r"εν ενεργεία|σήμερα|διατελεί|υπηρετεί", re.I),
@@ -70,6 +74,7 @@ CURRENT = {
                      r"\b(?:uprave|sveta|direktor\w*|predsedni\w*|vodja|sekretar\w*|tajnik\w*)\s+je\s+"
                      r"(?:(?:mag|dr)\.\s+)?(?-i:[A-ZČŠŽ])|"
                      r"\bje\s+(?:tudi\s+)?(?:predsedni|direktor|generaln|vodja|tajnik|sekretar)", re.I),
+    "it": re.compile(r"\bin carica\b|\battualmente\b|\btuttora\b|\bè (?:l'|il |la )?attuale\b", re.I),
 }
 #: An end read from an event rather than from the tenure ending, by language (stems):
 #: an arrest, a charge or an investigation ends nothing by itself.
