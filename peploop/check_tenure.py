@@ -42,6 +42,9 @@ def main() -> None:
            and tenure.says_current("è attualmente consigliere", "it"), "Italian: in carica, attualmente")
     expect(not tenure.says_current("nel 2013 viene eletto consigliere regionale", "it"),
            "an Italian election in the past is not now")
+    expect(tenure.says_current("Attwalment huwa Imħallef", "mt")
+           and not tenure.says_current("Nhar is-16 ta' Lulju 2014, huwa nħatar Imħallef", "mt"),
+           "mt: attwalment is now, an appointment is not")
     expect(not tenure.says_current("Incumbent", "xx") and not tenure.reads_current("xx"),
            "a language without markers says nothing")
     expect(tenure.names_end_event("Er wurde 2023 verhaftet."), "an arrest is an event, not an end")

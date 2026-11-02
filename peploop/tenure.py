@@ -61,6 +61,9 @@ INFOBOX = {
 #: Italian infoboxes write "In carica" (and "27 giugno 2014 – in carica"),
 #: prose "attualmente" and "tuttora" (still); read off 15 open tenures'
 #: quotes, where every prose one ("nel 2013 viene eletto") had ended.
+#: mt prose says "attwalment", "preżentement" (currently), "sal-lum" (to
+#: this day), "għadu" (still); the 8 old open mt quotes all said "kien
+#: elett" or "nħatar" (was elected, was appointed), and all had ended.
 CURRENT = {
     "en": CURRENT_EN,
     "el": re.compile(r"εν ενεργεία|σήμερα|διατελεί|υπηρετεί", re.I),
@@ -75,6 +78,7 @@ CURRENT = {
                      r"(?:(?:mag|dr)\.\s+)?(?-i:[A-ZČŠŽ])|"
                      r"\bje\s+(?:tudi\s+)?(?:predsedni|direktor|generaln|vodja|tajnik|sekretar)", re.I),
     "it": re.compile(r"\bin carica\b|\battualmente\b|\btuttora\b|\bè (?:l'|il |la )?attuale\b", re.I),
+    "mt": re.compile(r"\battwalment\b|\bpreżentement\b|\bsal-lum\b|\bgħadu\b", re.I),
 }
 #: An end read from an event rather than from the tenure ending, by language (stems):
 #: an arrest, a charge or an investigation ends nothing by itself.
