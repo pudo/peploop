@@ -430,6 +430,7 @@ that still applies:
 | Angola | 10-16 – 10-17 | 110 statements (100 rows applied: 55 P39), 0 taken back; 4 offices minted | QS3 60342, 60341 (mint) |
 | Namibia | 10-16 – 10-17 | 353 statements (330 rows applied: 204 P39), 3 taken back before the send; 15 offices minted | QS3 60349 60351, 60347 (mint) |
 | China (zh sample) | 10-23 | 121 edits for 117 rows on 52 people, a review sample for the Mass-editing proposal; 10 offices minted | QS3 61360, 61352 (mint; 135 never reached QS3) |
+| Slovenia (second, all three lanes) | 10-26 – 11-02 | 95 peploop lines (56 before the mint: 26 new, 30 ends added; 39 on the minted offices); 16 offices minted (apex courts, 10 mayors, 2 party presidents); 19 party-chair seats; 1 peptree line; 45 of our 09-29 statements taken back, removals held | QS3 63283 63331, 63296 (mint), 63284 (pepcorp); peptree 63281 |
 
 ### Rules each run added
 
@@ -482,3 +483,14 @@ Each audit took rows back by hand; the class behind them became a rule.
   (held back 30 Angolan open tenures); a title opening on a verb or dating its
   holder is no alias. The Supreme Court of Zambia's item carried `P17` India;
   its value was switched to Zambia in place (QS3 60418).
+- **Slovenia (second):** the first country re-run under every October
+  refactor, in all three lanes. pepcorp dates a seat only from its quote,
+  ends a former head at the next and drops items typed an office;
+  `open_unattested` reads Slovenian and Italian (one 2013 Friuli councillor
+  reached the dry run open). Re-deciding the 528 P39s the old API writer sent
+  flagged 43 open tenures and 2 historical tenures put on today's office; their
+  removals are `proposed` (outside the ledger, not provably ours) and held.
+  A 110-request verify batch sat unprocessed for 10 hours; `--live` answered
+  it in minutes for $2.09. Residue: the Maribor and Koper mayoralties, minted
+  with no attesting mention; a body's bare infobox line ("Predsednik: …") is
+  not read as current, leaving 43 party seats.
