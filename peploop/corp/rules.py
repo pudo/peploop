@@ -284,7 +284,8 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
     """The type and link rows of a body that passed its gates.
 
     The marker goes on an enterprise only: a museum or a broadcaster is no
-    state-owned enterprise, and its links are what find it. A statutory body
+    state-owned enterprise, and its links are what find it; nor is a
+    statutory body the model called an enterprise. A statutory body
     (a public broadcaster, a central bank, a regulator) gets its class when
     its item has none. One `P127` or `P749` per public body the answer names
     over it, each with its quote. `state` is every body that counts as the
@@ -307,6 +308,10 @@ def control_rows(req: dict[str, Any], entity: dict[str, Any], chain: list[str] |
     if answer["kind"] == "enterprise":
         marker = MUNICIPAL if municipal else MARKER
         rule = "marked" if marks & (frozenset({MUNICIPAL}) if municipal else MARKED) else None
+        if rule is None and STATUTORY.get(answer.get("statutory") or ""):
+            # A central bank run as a company is still the state's by statute,
+            # not its business: its class says what it is.
+            rule = "statutory_body"
         if rule is None and (req.get("qid", ""), "P31", marker) in refused:
             # The control quote does not say the state controls it (a share figure).
             rule = "marker_unverified"

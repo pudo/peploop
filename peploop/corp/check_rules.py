@@ -367,6 +367,11 @@ def policy() -> None:
            "a public broadcaster without its class gets it")
     rows = rules.control_rows(tv, ent(P31=["Q900500"]), None, state, {"Q900500": {"Q900500", "Q1126006"}})
     expect([r["_rule"] for r in rows if r["property"] == "P31"] == ["typed"], "an item already typed is left alone")
+    bank = {**base, "answer": {**answer(kind="enterprise"), "statutory": "central_bank"}}
+    rows = rules.control_rows(bank, ent(), None, state, {})
+    expect([(r["value"]["id"], r["_rule"]) for r in rows if r["property"] == "P31"]
+           == [("Q270791", "statutory_body"), ("Q66344", None)],
+           "a central bank called an enterprise gets its class, not the marker")
     bare = {**base, "answer": {**answer(kind="institution", verdict="unstated", owners=(), quote=None), "statutory": "regulator"}}
     bare["answer"]["control"]["article"] = None
     expect([r["_rule"] for r in rules.control_rows(bare, ent(), None, state, {}) if r["property"] == "P31"]
