@@ -431,6 +431,8 @@ that still applies:
 | Namibia | 10-16 – 10-17 | 353 statements (330 rows applied: 204 P39), 3 taken back before the send; 15 offices minted | QS3 60349 60351, 60347 (mint) |
 | China (zh sample) | 10-23 | 121 edits for 117 rows on 52 people, a review sample for the Mass-editing proposal; 10 offices minted | QS3 61360, 61352 (mint; 135 never reached QS3) |
 | Slovenia (second, all three lanes) | 10-26 – 11-02 | 95 peploop lines (56 before the mint: 26 new, 30 ends added; 39 on the minted offices); 16 offices minted (apex courts, 10 mayors, 2 party presidents); 19 party-chair seats; 1 peptree line; 45 of our 09-29 statements taken back, removals held | QS3 63283 63331, 63296 (mint), 63284 (pepcorp); peptree 63281 |
+| Malta (second, all three lanes) | 11-02 – 11-04 | 29 peploop lines (23 new, 5 ends added, 1 birth date refined); 6 offices minted (1 minister, 5 local-council mayors); 14 pepcorp lines; 2 peptree lines; nothing taken back | QS3 63811, 63805 (mint), 64000 (pepcorp); peptree 63803 |
+| Cyprus (second, all three lanes) | 11-02 – 11-04 | 7 peploop lines (6 new, 1 end added); 13 pepcorp lines; nothing taken back | QS3 63812, 64001 (pepcorp) |
 
 ### Rules each run added
 
@@ -494,3 +496,13 @@ Each audit took rows back by hand; the class behind them became a rule.
   it in minutes for $2.09. Residue: the Maribor and Koper mayoralties, minted
   with no attesting mention; a body's bare infobox line ("Predsednik: …") is
   not read as current, leaving 43 party seats.
+- **Malta and Cyprus (second):** run like Slovenia's second, with nothing
+  taken back by the user's call. `open_unattested` reads Maltese (a judge
+  "since 2014", quoted only in Maltese, was never judged); a central bank, a
+  public broadcaster or a regulator the model calls an enterprise gets its
+  own class, never the state-owned-enterprise marker (`statutory_body`: the
+  Central Bank of Malta). An English stub's "since 2016" kept a Court of
+  Auditors member open six years after his successor; taken out by hand, no
+  rule yet. Re-deciding the earlier P39s flagged 4 open tenures (mt 2, cy 2)
+  and 1 sibling spelling, left standing. Residue: the 5 minted mayoralties
+  have no attesting mention yet.
