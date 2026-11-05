@@ -254,11 +254,14 @@ removes anything nobody approved.
   article, offices no article attests, units without an item). That line, not
   a memory, is the record; the run is then done.
 
-## 7. A second run, all three lanes
+## 7. The sweep, all three lanes
 
-The default sweep of a country already run, after the code has moved on:
-peptree, peploop and pepcorp re-run to their dry runs unattended, every line
-is read, and the sends go out with the operator. Model calls go `--live`
+How a country is run, the first time or again after the code has moved on:
+peptree, peploop and pepcorp run to their dry runs unattended, every line
+is read, and the sends go out with the operator. A first run writes the
+seed file and census (§1-2) before it; otherwise the steps are the same:
+`fetch --refresh` takes the queued people too, and `report applied` has
+nothing to say until something went out. Model calls go `--live`
 with a `--budget` per stage: a Message Batch of a country's size once sat
 unprocessed for ten hours. Extract and reconcile are the spend: Malta's 272
 people cost $8.61 and $9.67, Slovenia's 1,248 $16.57 and $16.73; every
@@ -267,8 +270,8 @@ other stage, all three lanes together, a few dollars.
 ```
 tree place <cc>                      # then tree audit / tree strike, the place marked reviewed
 seed --country <cc>                  # new category members only
-load-positions --country <cc>        # beside: fetch --country <cc> (the new people)
-fetch --country <cc> --refresh       # everyone again, the scope gate included
+load-positions --country <cc>        # beside the fetch
+fetch --country <cc> --refresh       # everyone the run seeded, new or not, the scope gate included
 extract --country <cc>               # the ledger re-asks what changed: a prompt edit re-keys all
 reconcile --country <cc>
 mint --country <cc>                  # dry; census and RULES as in §3

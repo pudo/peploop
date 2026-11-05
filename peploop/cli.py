@@ -239,13 +239,14 @@ def seed(country: str, qid: Sequence[str], lang: str | None, of_holders: bool) -
 @cli.command()
 @click.option("--qid", multiple=True, help="Process these people, ignoring the item age.")
 @click.option("--refresh", is_flag=True,
-              help="With --country: every person of the run, ignoring the item age, for a second run.")
+              help="With --country: every person the run seeded, new or not, ignoring the item age.")
 @country_option
 def fetch(qid: Sequence[str], country: str | None, refresh: bool) -> None:
     """Fetch the item and every Wikipedia article of queued people.
 
-    `--refresh` starts a country's second run: everyone it seeded is read
-    again, so the later stages see today's items and articles.
+    `--refresh` is the sweep's fetch: everyone the run seeded is read, the
+    new people and again those read before, so the later stages see today's
+    items and articles.
     """
     statuses = REFRESHABLE if refresh else ("queued",)
     qids = _select(qid, statuses, country)
