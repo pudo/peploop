@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
@@ -814,18 +814,36 @@ def open_unattested(case: Case) -> Disposition | None:
         return None
     if not tenure.open_too_long(case.last_start(), case.today or date.today()):
         return None
-    # A minor wiki's quote in a language not read here is set aside beside a
-    # home or English one: it translates the article that is read.
-    allowed = _allowed_langs(case)
-    sources = [s for s in case.sources if tenure.reads_current(s.get("lang"))
-               or (s.get("lang") or "en") in allowed]
-    if not sources or not all(tenure.reads_current(s.get("lang")) for s in sources):
+    sources = _open_sources(case)
+    if not sources or unread_languages(case):
         return None
     position = case.position or {}
     infobox_only = bool(position.get("diplomatic") or set(position.get("kind_qids") or ()) & LOCAL_KINDS)
     if any(tenure.says_current(s.get("quote"), s.get("lang"), infobox_only) for s in sources):
         return None
     return _skip("open_unattested")
+
+
+def _open_sources(case: Case) -> list[dict[str, Any]]:
+    """The quotes `open_unattested` reads for a row."""
+    # A minor wiki's quote in a language not read here is set aside beside a
+    # home or English one: it translates the article that is read.
+    allowed = _allowed_langs(case)
+    return [s for s in case.sources if tenure.reads_current(s.get("lang"))
+            or (s.get("lang") or "en") in allowed]
+
+
+def unread_languages(case: Case) -> set[str]:
+    """The languages that keep `open_unattested` from judging an open tenure past a term.
+
+    A language without listed markers lets a stale tenure through unread;
+    one that shows here wants its markers measured before `verify` spends.
+    """
+    if case.property != "P39" or case.tenure("P582") is not None:
+        return set()
+    if not tenure.open_too_long(case.last_start(), case.today or date.today()):
+        return set()
+    return {s.get("lang") or "en" for s in _open_sources(case) if not tenure.reads_current(s.get("lang"))}
 
 
 def overlaps_holder(case: Case) -> Disposition | None:
@@ -1291,13 +1309,17 @@ def person_cases(
     dissolved: dict[str, list[dict[str, Any]]] | None = None,
     governments: dict[str, dict[str, Any]] | None = None,
     state_spans: dict[str, list[int | None]] | None = None,
+    sent: bool = False,
 ) -> list[tuple[int, Case]]:
     """Build a case for every proposal of one person the policy may decide.
 
     A row a human ruled on is theirs and is left out; so is a row that has
     gone out. Everything else is re-decided from scratch every time, which is
-    what makes a rule change one command rather than a migration.
+    what makes a rule change one command rather than a migration. `sent`
+    builds the cases of the rows that went out instead, to ask what today's
+    rules would say of them; nothing reads its decisions back.
     """
+    statuses, decider = _statuses(sent), ("%" if sent else DECIDER + "%")
     conn = db.conn()
     with conn.cursor(row_factory=dict_row) as cur:
         person = cur.execute(
@@ -1319,7 +1341,7 @@ def person_cases(
             " WHERE p.person_qid = %s AND p.status = ANY(%s)"
             " AND (p.decided_by IS NULL OR p.decided_by LIKE %s)"
             " ORDER BY p.id",
-            (qid, list(DECIDABLE), DECIDER + "%"),
+            (qid, statuses, decider),
         ).fetchall()
     offices = _position_rows(
         [row["value"].get("id") for row in rows if row["property"] == "P39"]
@@ -1548,6 +1570,8 @@ class Funnel:
     entered: Counter[str] = field(default_factory=Counter)
     #: office QID -> rows that reached the verifier or were accepted.
     offices: Counter[str] = field(default_factory=Counter)
+    #: language -> rows that went on with an open tenure no rule could read.
+    unread: Counter[str] = field(default_factory=Counter)
 
     def add(self, case: Case, disposition: Disposition) -> None:
         group = case.property
@@ -1555,28 +1579,34 @@ class Funnel:
         self.decided[(group, disposition.rule)] += 1
         if case.property == "P39" and disposition.status in (PENDING, ACCEPTED):
             self.offices[case.value.get("id", "?")] += 1
+            self.unread.update(unread_languages(case))
 
 
-def offices_of(qids: Sequence[str]) -> list[str]:
+def _statuses(sent: bool) -> list[str]:
+    """The proposal statuses a pass reads: the decidable ones, or those that went out."""
+    return ["applied"] if sent else list(DECIDABLE)
+
+
+def offices_of(qids: Sequence[str], sent: bool = False) -> list[str]:
     """The offices the P39 proposals of these people name."""
     if not qids:
         return []
     rows = db.conn().execute(
         "SELECT DISTINCT value->>'id' FROM proposal WHERE person_qid = ANY(%s)"
         " AND property = 'P39' AND status = ANY(%s)",
-        (list(qids), list(DECIDABLE)),
+        (list(qids), _statuses(sent)),
     )
     return [row[0] for row in rows if row[0]]
 
 
-def citizenships_of(qids: Sequence[str]) -> list[str]:
+def citizenships_of(qids: Sequence[str], sent: bool = False) -> list[str]:
     """The states the P27 proposals of these people name."""
     if not qids:
         return []
     rows = db.conn().execute(
         "SELECT DISTINCT value->>'id' FROM proposal WHERE person_qid = ANY(%s)"
         " AND property = 'P27' AND status = ANY(%s)",
-        (list(qids), list(DECIDABLE)),
+        (list(qids), _statuses(sent)),
     )
     return [row[0] for row in rows if row[0]]
 
@@ -1623,7 +1653,26 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     are read live once per run, for `open_superseded`; and the states the
     citizenships name are dated, for `citizenship_before_state`.
     """
-    offices = offices_of(qids)
+    funnel = Funnel()
+    for proposal_id, case, disposition in _decided(qids, today, sent=False):
+        funnel.add(case, disposition)
+        if write:
+            record(proposal_id, disposition)
+    return funnel
+
+
+def redecide_sent(qids: Sequence[str], today: date | None = None) -> list[tuple[int, Case, Disposition]]:
+    """Decide these people's sent proposals as today's rules would, writing nothing.
+
+    A second run's audit: a rule added since a statement went out may say it
+    should not have, and whether to take it back is the operator's call.
+    """
+    return list(_decided(qids, today, sent=True))
+
+
+def _decided(qids: Sequence[str], today: date | None, sent: bool) -> Iterator[tuple[int, Case, Disposition]]:
+    """Read what the rules need for these people once, then decide their rows one by one."""
+    offices = offices_of(qids, sent)
     unfilled = positions.unfilled_polity_inception(offices)
     if unfilled:
         positions.fill_polity_inception(unfilled)
@@ -1636,15 +1685,10 @@ def run(qids: Sequence[str], write: bool, today: date | None = None) -> Funnel:
     spells = office_spells(offices)
     dissolved = positions.dissolutions(offices)
     governments = government_since(states_of(qids))
-    state_spans = eras.span_of(citizenships_of(qids))
-    funnel = Funnel()
+    state_spans = eras.span_of(citizenships_of(qids, sent))
     for qid in qids:
-        for proposal_id, case in person_cases(qid, today, spells, dissolved, governments, state_spans):
-            disposition = decide(case)
-            funnel.add(case, disposition)
-            if write:
-                record(proposal_id, disposition)
-    return funnel
+        for proposal_id, case in person_cases(qid, today, spells, dissolved, governments, state_spans, sent):
+            yield proposal_id, case, decide(case)
 
 
 def _rule_order(rule: str) -> tuple[int, str]:
@@ -1672,6 +1716,9 @@ def report_lines(funnel: Funnel, labels: dict[str, str | None] | None = None) ->
         for qid, count in funnel.offices.most_common(15):
             name = (labels or {}).get(qid) or ""
             lines.append(f"  {count:6d}  {qid} {name}")
+    if funnel.unread:
+        lines.append("open tenures past a term going on unread, by quote language (no present-tense markers):")
+        lines.extend(f"  {count:6d}  {lang}" for lang, count in funnel.unread.most_common())
     return lines
 
 

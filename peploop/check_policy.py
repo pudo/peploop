@@ -306,6 +306,13 @@ def main() -> int:
     check("but a minor wiki's unread quote beside an English one does not",
           policy.decide(case(qualifiers=translated, lang="en", seed_lang="en")),
           policy.SKIPPED, "open_unattested")
+    unread = policy.Funnel()
+    unread.add(case(qualifiers={**opened, "_sources": [{"lang": "aa", "quote": "nommé en 2008"}]}),
+               policy.Disposition(policy.PENDING, "unverified"))
+    unread.add(case(qualifiers=translated, lang="en", seed_lang="en"), policy.Disposition(policy.PENDING, "unverified"))
+    ok = unread.unread == {"aa": 1}
+    failures += 0 if ok else 1
+    print(f"  {'ok  ' if ok else 'FAIL'} the funnel counts the unread language that went on, not the one set aside")
     beaten = {**opened, "_sources": [{"lang": "en", "quote": "He won the seat in 2008, beating incumbent Jo Bloggs"}]}
     begun = {**opened, "_sources": [{"lang": "en", "quote": "In 2008 he commenced serving as the Division 2 councillor"}]}
     check("nor is the day he commenced serving",

@@ -24,7 +24,8 @@ Open work: `plans/peploop_next.md`, `plans/peptree_next.md`,
 
 ## Sweeps run unattended; sends go with the user
 
-A country sweep runs every stage to its dry run without checking in -- model
+A country sweep (the default one: `peploop/countries.md` §7) runs every
+stage to its dry run without checking in -- model
 spend, audits, rule fixes, local commits -- replacing the global pacing rules
 here. Every write to Wikidata (`--submit`, `removals approve`, `wb`) is sent
 in coordination with the user, even inside an unattended sweep: the sweep

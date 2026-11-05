@@ -51,6 +51,11 @@ EXTRACT_THREADS = 4
 RECONCILE_THREADS = 8
 VERIFY_THREADS = 4
 
+#: Whom `fetch --refresh` reads again: everyone a run seeded but the items
+#: that are no person. The scope gate runs again too, so an out-of-scope
+#: person whose item gained a recent office comes back.
+REFRESHABLE = ("queued", "fetched", "extracted", "proposed", "out_of_scope", "failed")
+
 #: Whose refusals `reconcile`'s retrieval re-ask covers: `all`, or `stranded`
 #: -- people with no `P39` on the item and every mention unplaced, whom a
 #: placement helps most. An environment switch rather than a flag, because it
@@ -233,14 +238,21 @@ def seed(country: str, qid: Sequence[str], lang: str | None, of_holders: bool) -
 
 @cli.command()
 @click.option("--qid", multiple=True, help="Process these people, ignoring the item age.")
+@click.option("--refresh", is_flag=True,
+              help="With --country: every person of the run, ignoring the item age, for a second run.")
 @country_option
-def fetch(qid: Sequence[str], country: str | None) -> None:
-    """Fetch the item and every Wikipedia article of queued people."""
-    qids = _select(qid, ("queued",), country)
+def fetch(qid: Sequence[str], country: str | None, refresh: bool) -> None:
+    """Fetch the item and every Wikipedia article of queued people.
+
+    `--refresh` starts a country's second run: everyone it seeded is read
+    again, so the later stages see today's items and articles.
+    """
+    statuses = REFRESHABLE if refresh else ("queued",)
+    qids = _select(qid, statuses, country)
     if not qids:
         click.echo("nothing queued")
         return
-    force = bool(qid)
+    force = bool(qid) or refresh
     with ThreadPoolExecutor(max_workers=FETCH_THREADS) as pool:
         chunks = [qids[i : i + 50] for i in range(0, len(qids), 50)]
         entities: dict[str, dict[str, Any]] = {}
@@ -977,6 +989,28 @@ def _report_proposals(country: str) -> None:
         click.echo(f"  {status:12s} {count}")
 
 
+def _report_applied(country: str) -> None:
+    """What today's rules make of the run's sent P39s, writing nothing: a tally, then each one a rule would not write."""
+    people = [row[0] for row in db.conn().execute(
+        "SELECT DISTINCT p.person_qid FROM proposal p JOIN person pe ON pe.qid = p.person_qid"
+        " WHERE pe.country = %s AND p.status = 'applied' AND p.property = 'P39' ORDER BY 1",
+        (country,),
+    )]
+    decided = [row for row in policy.redecide_sent(people) if row[1].property == "P39"]
+    if not decided:
+        click.echo("nothing sent")
+        return
+    for rule, count in Counter(d.rule for _, _, d in decided).most_common():
+        click.echo(f"  {count:6d}  {rule}")
+    for proposal_id, case, disposition in sorted(decided, key=lambda row: row[2].rule):
+        if disposition.status != policy.SKIPPED:
+            continue
+        label = (case.position or {}).get("label") or ""
+        quote = (case.quote or "").replace("\n", " ")[:140]
+        click.echo(f"{disposition.rule} | {proposal_id} | {case.entity.get('id')} | "
+                   f"{case.value.get('id')} {label} | {quote}")
+
+
 def _report_funnel(country: str) -> None:
     """What the rules would decide now, per property and rule, writing nothing."""
     for line in _funnel(_select((), ("proposed",), country), write=False):
@@ -994,6 +1028,7 @@ REPORT_SECTIONS = {
     "proposals": _report_proposals,
     "funnel": _report_funnel,
     "mint": _report_mint,
+    "applied": _report_applied,
 }
 
 
@@ -1005,7 +1040,8 @@ def report(sections: Sequence[str], country: str) -> None:
 
     One command for every checkpoint of the runbook: people and tokens after
     extract, positions after the load, proposals and the policy's funnel
-    before verify spends, the mint funnel after its verify.
+    before verify spends, the mint funnel after its verify, and on a second
+    run what today's rules make of what went out before.
     """
     for name in sections or REPORT_SECTIONS:
         click.echo(f"## {name}")

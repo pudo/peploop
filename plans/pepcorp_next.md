@@ -98,6 +98,11 @@ Where the German funnel loses statements, besides unlinked people (§2):
   person items).
 - **History.** 625 German seats ended more than 20 years ago and are left out
   by the PEP cutoff; for Wikidata they are correct facts. A policy question.
+- **A body's bare infobox line.** "Predsednik: Jernej Vrtovec" carries no
+  present-tense word, so `undated_unattested` drops it, in English as in
+  Slovenian: 43 Slovenian party seats (2026-10-26), most parties' current
+  leaders. Whether an organisation infobox's officer field counts as
+  current is a call for the user.
 - **People without items.** About 40 % of unlinked seats have no human item.
   Creating them is ruled out today; Wikidata's structural-need notability
   might cover board members of notable bodies, a question for the community

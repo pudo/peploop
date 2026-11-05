@@ -138,6 +138,9 @@ def main() -> int:
         cases = [pid for pid, _case in policy.person_cases(PERSON)]
         expect(doubted not in cases and cases,
                "the policy no longer selects the audited row")
+        sent = [pid for pid, _case in policy.person_cases(PERSON, sent=True)]
+        expect(written not in cases and sent == [written],
+               "nor the applied one, which only a re-decision of what was sent reads")
 
         print("re-propose, a row the plan closed:")
         born = {"time": "+1960-03-01T00:00:00Z", "precision": 11, "timezone": 0, "before": 0,

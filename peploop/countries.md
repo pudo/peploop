@@ -152,8 +152,9 @@ categorize and is no evidence (`design.md` has the bar); one nobody's article
 attests is skipped. A `per: units` entry is the way below national level: it
 makes the head's office for every unit whose own article names a holder
 (councillor seats only when asked). `mint --submit` creates what the last dry
-run guarded, nothing else; then `load-positions` and `reconcile` place the
-mentions refused before those items existed. Every `mint` run, dry or not,
+run guarded, nothing else, and feeds each item it made the same way: the
+mentions refused before it existed are re-asked and their people
+re-proposed, so `verify` and a fresh `send` dry run are what follow. Every `mint` run, dry or not,
 feeds the rows verify decided `found` -- re-asking their mentions and
 re-proposing their people -- so read the dry run's `found` rows as closely as
 its guarded ones, and fix every class you find before the next dry run: after
@@ -200,7 +201,7 @@ a `maxlag` wait is a retry, not a bug.
 | `reconcile` | verdicts by kind; the creation queue (`resolution` rows with a null `qid`) by office title; where the incumbents' offices landed |
 | `mint` (dry) | candidates per institution class and the groups no office took (`office_unassigned`); `data/mint/<cc>.md` (`report mint`): the funnel by rule, then every `guarded` row with the lines that would create it and every `found` row with the item it names |
 | `mint --submit` | created, found at the re-check, failed; the feed line (attestations `retrieved`, reopened verdicts by kind); a re-run creates nothing |
-| `propose` | the funnel it ends with, per property, rule by rule (`report funnel` reprints it) |
+| `propose` | the funnel it ends with, per property, rule by rule (`report funnel` reprints it); its last lines count the open tenures going on in a quote language without present-tense markers -- each such language gets `tenure.CURRENT` (and `INFOBOX`) words, measured on its own open quotes, with a `check_tenure` case, before `verify` |
 | `verify` | verdicts by kind and the funnel it ends with; every refusal class read by the observer; doubtful `supported` rows listed |
 | `send` (dry) | routes (create, merge, switch, and what closes without a line: `exists`, `termed`, `ambiguous-statement`, …), lines, rows deferred |
 | `send --submit` | the QS3 batch id and EditGroups link, rows applied and failed (`send --status`); failed lines go again with `--retry` |
@@ -252,3 +253,48 @@ removes anything nobody approved.
   that became rules, and the residue it could not reach (people without an
   article, offices no article attests, units without an item). That line, not
   a memory, is the record; the run is then done.
+
+## 7. A second run, all three lanes
+
+The default sweep of a country already run, after the code has moved on:
+peptree, peploop and pepcorp re-run to their dry runs unattended, every line
+is read, and the sends go out with the operator. Model calls go `--live`
+with a `--budget` per stage: a Message Batch of a country's size once sat
+unprocessed for ten hours. Extract and reconcile are the spend: Malta's 272
+people cost $8.61 and $9.67, Slovenia's 1,248 $16.57 and $16.73; every
+other stage, all three lanes together, a few dollars.
+
+```
+tree place <cc>                      # then tree audit / tree strike, the place marked reviewed
+seed --country <cc>                  # new category members only
+load-positions --country <cc>        # beside: fetch --country <cc> (the new people)
+fetch --country <cc> --refresh       # everyone again, the scope gate included
+extract --country <cc>               # the ledger re-asks what changed: a prompt edit re-keys all
+reconcile --country <cc>
+mint --country <cc>                  # dry; census and RULES as in §3
+propose --country <cc>               # the unread-language checkpoint of §4
+verify --country <cc>
+send --country <cc>                  # dry; read every line
+corp run <cc>                        # then read data/pepcorp/<cc>/<cc>-<date>.md
+report applied --country <cc>        # what today's rules make of what went out before
+```
+
+`report applied` re-decides the run's sent `P39`s and lists each one a rule
+would no longer write. Whether to take them back (`audit proposal`, §5) is
+the operator's call per sweep; the default is to list them in the closing
+report. A wrong line found in the dry run is a rule with its case and a
+re-run of the stage, as in §4; one with no rule yet is taken out with
+`audit proposal` and named as an open class.
+
+The sends, in this order, each on the operator's go:
+
+1. `tree send --batch <n> --submit`, `n` being the country's batch in
+   `tree/sweep.md`.
+2. `mint --country <cc> --submit`, then `verify` and a `send` dry run; the
+   lines it adds are read before the next step.
+3. `send --country <cc> --submit`.
+4. `corp send <cc> --submit`.
+
+A submit sends the tool's approved removals too, of every country: read
+`send --status` (or `tree`/`corp send --status`) first. The run closes as in
+§6, with its `history.md` line, and the push goes with the operator.

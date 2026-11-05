@@ -69,6 +69,14 @@ Found by Zambia's audit (2026-10-16), not yet a rule:
   Assembly stayed open after the 8th's March 2025 cohort (two taken back by
   hand). A new term's cohort after the start should be enough.
 
+Found by the Malta and Cyprus re-run (2026-11-04), not yet a rule:
+
+- an English stub's "since 2016" keeps a fixed-term seat open long after
+  its successor: a European Court of Auditors member open six years after
+  his country's next member took the seat (taken out by hand). A
+  fixed-term seat (an international court or audit body, a judgeship)
+  might need an infobox's word, as ambassadorships and councils do.
+
 ## 3. Mint lanes not yet covered
 
 - **Empty offices, "if well-justified"** (requirements, 2026-10-12). The user
