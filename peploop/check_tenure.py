@@ -45,6 +45,13 @@ def main() -> None:
     expect(tenure.says_current("Attwalment huwa Imħallef", "mt")
            and not tenure.says_current("Nhar is-16 ta' Lulju 2014, huwa nħatar Imħallef", "mt"),
            "mt: attwalment is now, an appointment is not")
+    expect(tenure.says_current("В настоящее время — аким Линдо", "ru")
+           and not tenure.says_current("Депутат Сената от Линдо с 13 августа 2020", "ru")
+           and not tenure.says_current("родился в Энске (ныне Линдо)", "ru"),
+           "ru: at present is now; since, and a renamed place's ныне, are not")
+    expect(tenure.says_current("Қазіргі уақытта - Линдо облысының әкімі", "kk")
+           and not tenure.says_current("2020 жылдан бастап Сенат депутаты", "kk"),
+           "kk: at present is now; since is not")
     expect(not tenure.says_current("Incumbent", "xx") and not tenure.reads_current("xx"),
            "a language without markers says nothing")
     expect(tenure.names_end_event("Er wurde 2023 verhaftet."), "an arrest is an event, not an end")

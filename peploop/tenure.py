@@ -64,6 +64,11 @@ INFOBOX = {
 #: mt prose says "attwalment", "preżentement" (currently), "sal-lum" (to
 #: this day), "għadu" (still); the 8 old open mt quotes all said "kien
 #: elett" or "nħatar" (was elected, was appointed), and all had ended.
+#: ru and kk say "в настоящее время" / "қазіргі уақытта" (at present); their
+#: "since" ("с 13 августа 2020", "2020 жылдан бастап", "жылдан бері") was read
+#: off 70 open quotes on current akims and on Senate seats dissolved in 2026
+#: alike, so it is no marker. "ныне" and a bare "қазіргі" gloss a renamed
+#: place ("родился в Энске (ныне Линдо)") and are left out.
 CURRENT = {
     "en": CURRENT_EN,
     "el": re.compile(r"εν ενεργεία|σήμερα|διατελεί|υπηρετεί", re.I),
@@ -79,6 +84,9 @@ CURRENT = {
                      r"\bje\s+(?:tudi\s+)?(?:predsedni|direktor|generaln|vodja|tajnik|sekretar)", re.I),
     "it": re.compile(r"\bin carica\b|\battualmente\b|\btuttora\b|\bè (?:l'|il |la )?attuale\b", re.I),
     "mt": re.compile(r"\battwalment\b|\bpreżentement\b|\bsal-lum\b|\bgħadu\b", re.I),
+    "ru": re.compile(r"\bв настоящее время\b|\bпо настоящее время\b|\bпо н\.\s?в\.|\bдо сих пор\b|"
+                     r"\bпо сей день\b|\bдействующ\w*\b", re.I),
+    "kk": re.compile(r"қазіргі уақытта|\bқазір\b|осы күнге дейін|бүгінге дейін", re.I),
 }
 #: An end read from an event rather than from the tenure ending, by language (stems):
 #: an arrest, a charge or an investigation ends nothing by itself.

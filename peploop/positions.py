@@ -876,9 +876,12 @@ HOLDERS_COUNTRY_QUERY = """SELECT ?pos (COUNT(DISTINCT ?h) AS ?n) WHERE {
 } GROUP BY ?pos"""
 
 #: Items whose `P31` is this one: the item is a metaclass, a kind of office
-#: rather than an office.
+#: rather than an office. Not a seat of the item's own body (`P361`): a
+#: deputy chairmanship filed as an instance of its chamber's member seat says
+#: the member item is that body's seat, not a kind of office.
 INSTANCE_QUERY = """SELECT ?pos (COUNT(DISTINCT ?x) AS ?n) WHERE {
-  VALUES ?pos { %(values)s } OPTIONAL { ?x wdt:P31 ?pos }
+  VALUES ?pos { %(values)s }
+  OPTIONAL { ?x wdt:P31 ?pos FILTER NOT EXISTS { ?x wdt:P361 ?b . ?pos wdt:P361 ?b } }
 } GROUP BY ?pos"""
 
 #: Items whose `P279` is this one. A real office has zero children or a

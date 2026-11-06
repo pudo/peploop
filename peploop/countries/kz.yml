@@ -1,0 +1,296 @@
+# Kazakhstan: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Kazakh run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml carries one `country: kz` entry,
+  # `Political_office-holders_in_Kazakhstan` (en), which adds 6 people at depth 2
+  # over the tiers below. ru.wikipedia is the regular wiki: a category per
+  # portfolio, per Mäjilis convocation, per oblast and city akimate, per apex
+  # court, per agency. kk.wikipedia is flatter and adds the vice-ministers; en adds
+  # little beyond the Kurultai.
+  #
+  # The current era is the constitution approved on 2026-03-15 and in force from
+  # 2026-07-01: the unicameral Kurultai (1st convocation elected 2026-08-23)
+  # replaced the Mäjilis and the Senate. Seeded: the Kurultai, the last Mäjilis
+  # (VIII, 2023-2026) and the Senate's one all-convocation bag, since the old
+  # chambers' members held office months ago. `Министры_Казахстана` at depth 1
+  # takes in the Kazakh SSR commissars (150); the scope gate sets the dead aside.
+  # Left out: Mäjilis I-VII (VII +67, ended 2023), the ambassadors
+  # (`Послы_Казахстана` +122: mint defers every ambassadorship and Wikidata has 2
+  # outbound posts, so the run would pay for people it cannot place), district
+  # akims (+22), `Государственные_деятели_Казахстана` (+52) and
+  # `Политики_Казахстана` (+142), mostly history, and the generals' rank
+  # categories. Counts are PetScan's on 2026-11-05 (people with a Wikidata item),
+  # each with its marginal over the entries above it: ~1,120 distinct.
+
+  # --- Head of state and government ---
+  - category: Президенты_Казахстана                    # 2; d1 = the two presidencies' eponymous trees
+    lang: ru
+    depth: 0
+  - category: Вице-президенты_Казахстана               # 2, +2
+    lang: ru
+    depth: 0
+  - category: Премьер-министры_Казахстана              # 19, +18
+    lang: ru
+    depth: 0
+  - category: Заместители_премьер-министра_Казахстана  # 56, +51
+    lang: ru
+    depth: 0
+
+  # --- Cabinet and vice-ministers ---
+  - category: Министры_Казахстана                      # 393, +333 (incl. the Kazakh SSR sibling)
+    lang: ru
+  - category: Заместители_министров_Казахстана         # 23, +15
+    lang: ru
+  - category: Қазақстан_вице-министрлері               # 50, +36
+    lang: kk
+    depth: 0
+  - category: Government_ministers_of_Kazakhstan       # 192, +5
+    lang: en
+
+  # --- Government Office, Presidential Administration ---
+  - category: Руководители_Аппарата_Правительства_Казахстана   # 8, +6
+    lang: ru
+    depth: 0
+  - category: Сотрудники_администрации_президента_Казахстана   # 39, +13
+    lang: ru
+  - category: Советники_президента_Казахстана          # 28, +9
+    lang: ru
+    depth: 0
+  - category: Қазақстан_Президентінің_Іс_басқарушылары # 8, +3
+    lang: kk
+    depth: 0
+
+  # --- Agencies, audit, elections, ombudsman, prosecution ---
+  - category: Председатели_Агентств_Республики_Казахстан   # 14, +5
+    lang: ru
+  - category: Председатели_Счетного_комитета_по_контролю_за_исполнением_республиканского_бюджета_Республики_Казахстан   # 7, +4
+    lang: ru
+    depth: 0
+  - category: Председатели_Центральной_избирательной_комиссии_Казахстана   # 7, +3
+    lang: ru
+    depth: 0
+  - category: Омбудсмены_Казахстана                    # 3, +3
+    lang: ru
+    depth: 0
+  - category: Генеральные_прокуроры_Казахстана         # 11, +7
+    lang: ru
+    depth: 0
+
+  # --- Apex courts, military command ---
+  - category: Судьи_Верховного_Суда_Казахстана         # 31, +21
+    lang: ru
+  - category: Судьи_Конституционного_суда_Казахстана   # 15, +8
+    lang: ru
+  - category: Начальники_Генерального_штаба_Вооружённых_сил_Республики_Казахстан   # 11, +7
+    lang: ru
+    depth: 0
+
+  # --- Kurultai (2026-) ---
+  - category: Депутаты_Курултая_Казахстана_I_созыва    # 56, +51
+    lang: ru
+    depth: 0
+  - category: Members_of_the_Kurultai                  # 23, +11
+    lang: en
+  - category: Қазақстан_Құрылтайының_депутаттары       # 25, +1
+    lang: kk
+
+  # --- Parliament (1995-2026): the last Mäjilis, the Senate, both chambers' chairs ---
+  - category: Депутаты_Мажилиса_Парламента_Казахстана_VIII_созыва   # 102, +72
+    lang: ru
+    depth: 0
+  - category: Депутаты_Сената_Парламента_Казахстана    # 193, +158 (one all-convocation bag)
+    lang: ru
+  - category: Председатели_палат_Парламента_Республики_Казахстан   # 15, +3
+    lang: ru
+
+  # --- Akims: oblasts and cities ---
+  - category: Акимы_областей                           # 139, +59
+    lang: ru
+  - category: Акимы_городов_Казахстана                 # 270, +197
+    lang: ru
+
+  # --- Parties ---
+  - category: Председатели_партий_Казахстана           # 22, +9
+    lang: ru
+    depth: 0
+  - category: Political_office-holders_in_Kazakhstan   # 229, +6
+    lang: en
+    depth: 2
+
+census:
+  # Offices Kazakhstan has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-11-05 live measurement (wbsearchentities, items
+  # read); nothing below is from memory.
+  #
+  # Not here because an item exists and the load reaches it: the President
+  # `Q5256775`, Prime Minister `Q2416315`, the (first) deputy prime ministers
+  # `Q96377974` / `Q97358527`, ~30 ministries (`Q1077525xx`, `Q1277887xx`), the
+  # Head of the Presidential Administration `Q109497247`, the State Counsellor
+  # `Q19521638`, the Security Council secretary `Q108363284`, the KNB chairman
+  # `Q109497278`, the Prosecutor General `Q109497304`, the National Bank governor
+  # `Q109497334`, the Chief of the General Staff `Q60544014`, the Kurultai's member
+  # `Q141159337`, chairman `Q140473689` and deputy chairman `Q141159567`, and the
+  # Mäjilis's and Senate's member and chair items. Akim items exist for Astana,
+  # Almaty and about a dozen regions; the per-subdivision entry finds them.
+  # Kyzylorda Region has two akim items (`Q115693303`, 2 holders; `Q115603335`, 1).
+  #
+  # Absent and not listed: the Anti-Corruption Agency, the financial-market
+  # regulator (ARDFM) and the Competition Agency have no items. Vice-ministers
+  # come from the mentions (`deputy_minister`), not from here.
+  #
+  # The akim entry expands over 17 regions and the 3 cities of republican
+  # significance: `P150` lacks the three 2022 regions (Abai, Jetisu, Ulytau),
+  # which come in by their type. Baikonur (leased to Russia) is excluded.
+
+  # --- Sub-national: the akims ---
+  - key: akim
+    class: subnational.executive
+    archetype: governor
+    per: subdivisions
+    exclude:
+      - Q165413              # Baikonur: leased to Russia, a head of administration, no akim
+    labels:
+      en: Akim of {name}
+
+  # --- Judiciary: Supreme and Constitutional Courts ---
+  - key: supreme_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q4109099           # Supreme Court of Kazakhstan
+    labels:
+      ru: Судья Верховного суда Республики Казахстан
+      en: Judge of the Supreme Court of Kazakhstan
+  - key: supreme_court_president
+    class: judiciary.apex
+    archetype: court_president
+    body: Q4109099
+    labels:
+      ru: Председатель Верховного суда Республики Казахстан
+      en: Chairman of the Supreme Court of Kazakhstan
+  - key: constitutional_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q4231510           # Constitutional Court of the Republic of Kazakhstan
+    labels:
+      ru: Судья Конституционного суда Республики Казахстан
+      en: Judge of the Constitutional Court of Kazakhstan
+  - key: constitutional_court_president
+    class: judiciary.apex
+    archetype: court_president
+    body: Q4231510
+    labels:
+      ru: Председатель Конституционного суда Республики Казахстан
+      en: Chairman of the Constitutional Court of Kazakhstan
+
+  # --- Oversight ---
+  - key: election_commission_chair
+    class: oversight.electoral_commission
+    archetype: agency_head
+    body: Q25451582          # Central Election Commission of Kazakhstan
+    parent: Q140686          # chairperson: a chairman, not a director
+    labels:
+      ru: Председатель Центральной избирательной комиссии Республики Казахстан
+      en: Chairman of the Central Election Commission of Kazakhstan
+  - key: supreme_audit_chamber_chair
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    body: Q127933733         # Supreme Audit Chamber (successor of the Accounts Committee)
+    labels:
+      ru: Председатель Высшей аудиторской палаты Республики Казахстан
+      en: Chairman of the Supreme Audit Chamber of Kazakhstan
+  - key: financial_monitoring_chair
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    body: Q119296195         # Financial Monitoring Agency
+    labels:
+      ru: Председатель Агентства Республики Казахстан по финансовому мониторингу
+      en: Chairman of the Financial Monitoring Agency of Kazakhstan
+  - key: strategic_planning_chair
+    class: oversight.state_councils
+    archetype: agency_head
+    body: Q140754065         # Agency for Strategic Planning and Reforms
+    labels:
+      ru: Председатель Агентства по стратегическому планированию и реформам Республики Казахстан
+      en: Chairman of the Agency for Strategic Planning and Reforms of Kazakhstan
+  - key: anti_corruption_chair
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the Anti-Corruption Agency was found.
+    labels:
+      ru: Председатель Агентства Республики Казахстан по противодействию коррупции
+      en: Chairman of the Anti-Corruption Agency of Kazakhstan
+  - key: human_rights_commissioner
+    class: oversight.constitutional_body
+    archetype: agency_head
+    labels:
+      ru: Уполномоченный по правам человека в Республике Казахстан
+      en: Commissioner for Human Rights of Kazakhstan
+
+  # --- State enterprises: the sovereign fund and its largest groups ---
+  - key: samruk_kazyna_head
+    class: economic.sovereign_wealth
+    archetype: soe_head
+    body: Q4407014           # Samruk-Kazyna
+    labels:
+      ru: Председатель правления АО «Самрук-Казына»
+      en: Chairman of the Management Board of Samruk-Kazyna
+  - key: kazmunaygas_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q1417227           # KazMunayGas
+    labels:
+      ru: Председатель правления АО НК «КазМунайГаз»
+      en: Chairman of the Management Board of KazMunayGas
+  - key: kazatomprom_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q1590386           # Kazatomprom
+    labels:
+      ru: Председатель правления АО НАК «Казатомпром»
+      en: Chairman of the Management Board of Kazatomprom
+  - key: ktz_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q1069105           # Kazakhstan Temir Zholy
+    labels:
+      ru: Председатель правления АО НК «Қазақстан темір жолы»
+      en: Chairman of the Management Board of Kazakhstan Temir Zholy
+
+corp:
+  # Kazakhstan. Unitary: 17 regions and 3 cities of republican significance.
+  # The quasi-public sector sits under two holdings, Samruk-Kazyna and Baiterek;
+  # the National Bank and the regulators are statutory bodies, not enterprises.
+
+  tiers: [national, regional]
+  not_government: []
+  exclude: []
+
+  # State-only legal forms (РГП, ГКП) not measured yet: none listed.
+  forms: []
+
+  roles: []
+
+  # Samruk-Kazyna holds the state's major companies; QIDs from wbsearchentities,
+  # read live 2026-11-05. Baiterek's item (`Q137551671`) is unlabelled and was
+  # not read, so it is left out.
+  holdings:
+    - source: "Samruk-Kazyna portfolio (https://www.sk.kz/); entries' QIDs checked 2026-11-05"
+      entries:
+        - name: "АО «Самрук-Казына»"
+          qid: Q4407014
+          holder: "Республика Казахстан"
+          source: https://www.wikidata.org/wiki/Q4407014
+        - name: "АО НК «КазМунайГаз»"
+          qid: Q1417227
+          holder: "Самрук-Казына"
+          source: https://www.wikidata.org/wiki/Q1417227
+        - name: "АО НАК «Казатомпром»"
+          qid: Q1590386
+          holder: "Самрук-Казына"
+          source: https://www.wikidata.org/wiki/Q1590386
+        - name: "АО НК «Қазақстан темір жолы»"
+          qid: Q1069105
+          holder: "Самрук-Казына"
+          source: https://www.wikidata.org/wiki/Q1069105

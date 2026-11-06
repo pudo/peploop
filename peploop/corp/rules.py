@@ -624,12 +624,15 @@ def successors(seats: list[dict[str, Any]], lead: str) -> dict[int, int]:
 
     An interim or a predecessor the article leaves open was followed by the
     head after them; that start is the end the article implies, as peploop's
-    `propose.close_at_next` closes a person's open spell at their next.
+    `propose.close_at_next` closes a person's open spell at their next. Not a
+    seat whose end the article gave and its quote does not carry: a co-chair
+    who left in 2005 is not ended at the next chair's 2011 start.
     """
     starts = [(i, s["start"].ljust(10, "0")) for i, s in enumerate(seats) if s["role"] == lead and s["start"]]
     out = {}
     for i, s in enumerate(seats):
-        if s["role"] != lead or s["current"] or s["end"] or not s["start"]:
+        if (s["role"] != lead or s["current"] or s["end"] or not s["start"]
+                or "end" in s.get("_dropped", ())):
             continue
         own = s["start"].ljust(10, "0")
         later = [(j, st) for j, st in starts if st[:4] > own[:4] and seats[j]["name"] != s["name"]]

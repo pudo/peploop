@@ -433,6 +433,7 @@ that still applies:
 | Slovenia (second, all three lanes) | 10-26 – 11-02 | 95 peploop lines (56 before the mint: 26 new, 30 ends added; 39 on the minted offices); 16 offices minted (apex courts, 10 mayors, 2 party presidents); 19 party-chair seats; 1 peptree line; 45 of our 09-29 statements taken back, removals held | QS3 63283 63331, 63296 (mint), 63284 (pepcorp); peptree 63281 |
 | Malta (second, all three lanes) | 11-02 – 11-04 | 29 peploop lines (23 new, 5 ends added, 1 birth date refined); 6 offices minted (1 minister, 5 local-council mayors); 14 pepcorp lines; 2 peptree lines; nothing taken back | QS3 63811, 63805 (mint), 64000 (pepcorp); peptree 63803 |
 | Cyprus (second, all three lanes) | 11-02 – 11-04 | 7 peploop lines (6 new, 1 end added); 13 pepcorp lines; nothing taken back | QS3 63812, 64001 (pepcorp) |
+| Kazakhstan (first, all three lanes) | 11-05 – 11-06 | dry runs, not yet sent: 833 peploop lines for 609 people (311 P39, 477 P27, 42 dates, 4 genders), 9 offices guarded (6 akimates, CEC chair, strategic-planning agency, human-rights commission); 81 pepcorp lines; no peptree line; $160 of model spend | — |
 
 ### Rules each run added
 
@@ -506,3 +507,22 @@ Each audit took rows back by hand; the class behind them became a rule.
   rule yet. Re-deciding the earlier P39s flagged 4 open tenures (mt 2, cy 2)
   and 1 sibling spelling, left standing. Residue: the 5 minted mayoralties
   have no attesting mention yet.
+
+- **Kazakhstan:** seeded for the July 2026 constitution: the unicameral
+  Kurultai, and the dissolved Mäjilis and Senate as just-ended seats.
+  `open_unattested` reads Russian and Kazakh by "в настоящее время" / "қазіргі
+  уақытта" only: their "since" stood on current akims and on dissolved Senate
+  seats alike (34 stale open seats held back). An instance filed under a seat
+  of its own body (a deputy chairmanship `P31` the member seat) no longer
+  makes the seat a class (`INSTANCE_QUERY`; 20 Kurultai seats unblocked, the
+  Sejm's item too). A title numbering its holder ("10-әкімі", "4-й аким") is
+  no alias. pepcorp no longer closes a seat at the next head's start when the
+  article gave an end its quote lacks (an Ak Zhol co-chair, dead in 2006,
+  had been ended in 2011). Spend ran 4.6x the per-person estimate: each office
+  is named in en, ru and kk, and every spelling is its own resolve. Editing a
+  census entry re-keys mint's categorize whole (~$5). Residue: 32 Kurultai
+  seats answered `medium` while the seat looked abstract (no re-ask path);
+  the Supreme Court and Constitutional Court judges and the Supreme Audit
+  Chamber chair, refused by mint's verify; ~122 ambassadors not seeded (mint
+  defers ambassadorships); a Kazakh gender quote with no gendered word (no
+  rule yet); duplicate person items `Q110557338`/`Q137287653`.

@@ -300,6 +300,13 @@ def seats_rows() -> None:
            and rows[0]["_closed_by"] == "Erika Muster",
            "an acting head left open is written, ended where the next head began")
     expect(rows[1]["_rule"] is None and "P582" not in rows[1]["qualifiers"], "the next head is written open")
+    unquoted_end = {**base, "answer": answer(seats=[
+        seat(name="Max Probe", body="executive", role="head", start="2024-07", end="2025-03", current=False,
+             quote=interim_q),
+        seat(name="Erika Muster", body="executive", role="head", start="2025-10", current=True, quote=next_q)])}
+    rows = rules.seat_rows(unquoted_end, humans, TODAY, None, ent())
+    expect(rows[0].get("_closed_by") is None and rows[0]["qualifiers"].get("P582") != time_value("2025-10"),
+           "an end the quote does not carry is not replaced by the next head's start")
     wrong = {**base, "answer": answer(seats=[
         seat(name="Erika Muster", body="executive", role="head", start="2024-07-22", current=True, quote=next_q)])}
     rows = rules.seat_rows(wrong, humans, TODAY, None, ent())

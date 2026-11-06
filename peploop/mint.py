@@ -2036,13 +2036,17 @@ VERB_LED = re.compile(r"^(?:led|leads|headed|heads|chaired|chairs|served|serves|
 #: A title that says when its holder held it describes the holder, not the
 #: office: "former minister", Hausa "Gwamna na yanzu" (the current governor).
 TENSE_WORDS = re.compile(r"\b(?:current|incumbent|former|na yanzu|atual|actual|actuel|actuelle|ancien|antigo)\b")
+#: So does one that numbers its holder: "8th minister", "4-й аким",
+#: "облысының 10-әкімі" (the region's tenth akim), "3 және 6- әкімі".
+ORDINAL = re.compile(r"\b\d+(?:st|nd|rd|th)\b|\b\d+\s*-\s*\w")
 
 
 def lifted(folded: str, lang: str, labels: dict[str, str], state: set[str]) -> bool:
     """Whether a folded title is not a name for the office but a fragment of one.
 
     Either a title declined as a sentence declines it (`INSTRUMENTAL`),
-    opening on its verb (`VERB_LED`) or dating its holder (`TENSE_WORDS`), or a
+    opening on its verb (`VERB_LED`), dating or numbering its holder
+    (`TENSE_WORDS`, `ORDINAL`), or a
     label cut short of more than the state's name ("Président de l'Assemblée"
     drops "nationale"), which names the seat of every body of its kind. A label
     less only the state ("Minister of Health") is how the state's own articles
@@ -2052,7 +2056,7 @@ def lifted(folded: str, lang: str, labels: dict[str, str], state: set[str]) -> b
         return True
     if lang == "en" and VERB_LED.match(folded):
         return True
-    if TENSE_WORDS.search(folded):
+    if TENSE_WORDS.search(folded) or ORDINAL.search(folded):
         return True
     for text in labels.values():
         label = _fold(text)
