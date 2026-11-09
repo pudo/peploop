@@ -52,6 +52,15 @@ def main() -> None:
     expect(send.validate_removals(["q42$12774df1-9bd0-49a0-998e-c1271e593a3b".join(["-STATEMENT\t", ""])]) == [],
            "an old lowercase GUID is well-formed")
     expect(qs.validate([line]) != [], "an add batch still refuses a removal")
+    merged = {"Q1": "Q7"}
+    expect(send.retarget("+Q1\tP27\tQ1\tS143\tQ328 /* a */", merged) == "+Q7\tP27\tQ1\tS143\tQ328 /* a */",
+           "a line on a merged item follows it, and only its subject moves")
+    expect(send.retarget("Q1\tP39\tQ5\tP582\t+2024-01-01T00:00:00Z/11 /* a */", merged).startswith("Q7\tP39\tQ5"),
+           "so does a merge line")
+    expect(send.retarget("SWITCH_VALUE\tQ1\tP17\tQ1\tQ9 /* a */", merged) == "SWITCH_VALUE\tQ7\tP17\tQ1\tQ9 /* a */",
+           "and a switch, by its item column")
+    expect(send.retarget("+Q11\tP27\tQ1 /* a */", merged) == "+Q11\tP27\tQ1 /* a */",
+           "a line on another item is unchanged, whatever its value")
     rows = [{"guid": f"Q1${g}", "qid": "Q1", "value": "Q3"} for g in ("a", "b", "c")]
     ents = {"Q1": {"claims": {"P279": [claim("Q1$a", "Q3"), claim("Q1$c", "Q9")]}}}
     sorted_ = send.preflight(rows, ents)

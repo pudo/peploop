@@ -89,6 +89,49 @@ def validate_removals(lines: list[str]) -> list[str]:
 
 # --- the batch -----------------------------------------------------------------------
 
+def subject(line: str) -> str:
+    """The item a statement line edits."""
+    cols = qs.columns(line)
+    return cols[1] if cols[0] == qs.SWITCH else cols[0].lstrip("+")
+
+
+def retarget(line: str, merged: dict[str, str]) -> str:
+    """Move a line onto the item its subject was merged into; any other line is unchanged.
+
+    A line written against an item someone merged before the send would land on
+    a redirect, which QS3 refuses.
+    """
+    old = subject(line)
+    new = merged.get(old)
+    if new is None:
+        return line
+    head, sep, rest = line.partition(old)
+    return f"{head}{new}{rest}" if sep else line
+
+
+def merged_into(lines: list[str]) -> dict[str, str]:
+    """Each subject of these lines that is a redirect now → the item it redirects to (read live)."""
+    subjects = sorted({s for s in map(subject, lines) if re.fullmatch(r"Q\d+", s)})
+    if not subjects:
+        return {}
+    ents = fetch_items(subjects, props="info")
+    return {q: e["id"] for q, e in ents.items() if e.get("id", q) != q}
+
+
+def follow_merges(lines: list[str], log: Log) -> list[str]:
+    """The lines as they should go out, each on the item its subject lives on now.
+
+    Ledger keys stay as written: the planner reads them back to know a row is out.
+    """
+    merged = merged_into(lines)
+    if not merged:
+        return lines
+    moved = Counter(subject(line) for line in lines if subject(line) in merged)
+    for old, n in sorted(moved.items()):
+        log(f"{old} merged into {merged[old]}; {n} lines follow it")
+    return [retarget(line, merged) for line in lines]
+
+
 def landed(sent: dict[str, str], live: set[str]) -> dict[str, str]:
     """New status per sent key: live → landed."""
     return {k: "landed" for k, status in sent.items() if status == "sent" and k in live}
@@ -137,6 +180,9 @@ def send(tool: str, op: str, rows: list[tuple[str, str, str, list[int]]], is_liv
     out with the summary it should carry now (`qs.stamp`), whenever it was written.
     """
     rows = [(cc, k, qs.stamp(tool, line), refs) for cc, k, line, refs in rows]
+    if op == "add":
+        lines = follow_merges([line for _, _, line, _ in rows], log)
+        rows = [(cc, k, line, refs) for (cc, k, _, refs), line in zip(rows, lines)]
     batch_id, name = _open(tool, op)
     ledger.record_edits(batch_id, op, rows)
     if on_recorded is not None:
@@ -212,6 +258,8 @@ def retry(tool: str, op: str, is_live: IsLive, log: Log,
     log(f"{len(failed)} failed edits: {len(live)} live already, {len(todo)} to send again")
     if not todo:
         return None
+    if op == "add":
+        todo = list(zip([k for k, _ in todo], follow_merges([line for _, line in todo], log)))
     batch_id, name = _open(tool, op)
     ledger.move_edits(batch_id, op, [k for k, _ in todo])
     if on_recorded is not None:
