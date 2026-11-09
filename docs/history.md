@@ -433,7 +433,7 @@ that still applies:
 | Slovenia (second, all three lanes) | 10-26 – 11-02 | 95 peploop lines (56 before the mint: 26 new, 30 ends added; 39 on the minted offices); 16 offices minted (apex courts, 10 mayors, 2 party presidents); 19 party-chair seats; 1 peptree line; 45 of our 09-29 statements taken back, removals held | QS3 63283 63331, 63296 (mint), 63284 (pepcorp); peptree 63281 |
 | Malta (second, all three lanes) | 11-02 – 11-04 | 29 peploop lines (23 new, 5 ends added, 1 birth date refined); 6 offices minted (1 minister, 5 local-council mayors); 14 pepcorp lines; 2 peptree lines; nothing taken back | QS3 63811, 63805 (mint), 64000 (pepcorp); peptree 63803 |
 | Cyprus (second, all three lanes) | 11-02 – 11-04 | 7 peploop lines (6 new, 1 end added); 13 pepcorp lines; nothing taken back | QS3 63812, 64001 (pepcorp) |
-| Kazakhstan (first, all three lanes) | 11-05 – 11-06 | dry runs, not yet sent: 833 peploop lines for 609 people (311 P39, 477 P27, 42 dates, 4 genders), 9 offices guarded (6 akimates, CEC chair, strategic-planning agency, human-rights commission); 81 pepcorp lines; no peptree line; $160 of model spend | — |
+| Kazakhstan (first, all three lanes) | 11-05 – 11-09 | 9 offices minted (6 akimates, CEC chair, strategic-planning agency, human-rights commission); 874 peploop lines for 620 people (362 P39, 477 P27, 42 dates, 4 genders), 871 landed, 3 refused on merged items; 81 pepcorp lines; no peptree line; $171 of model spend | 65045, 66481, 66492 |
 
 ### Rules each run added
 
@@ -525,4 +525,10 @@ Each audit took rows back by hand; the class behind them became a rule.
   the Supreme Court and Constitutional Court judges and the Supreme Audit
   Chamber chair, refused by mint's verify; ~122 ambassadors not seeded (mint
   defers ambassadorships); a Kazakh gender quote with no gendered word (no
-  rule yet); duplicate person items `Q110557338`/`Q137287653`.
+  rule yet). After mint created its items, the retrieval re-ask found 957
+  refusals whose shortlist gained one of them ($8.35, 14 placed, a deputy
+  akim on the akim's seat among them, refused by verify). A person merged
+  between fetch and send keeps its rows on the redirect, which QS refuses
+  (3 lines: Kuantyrov's `P27` and current minister `P39`, and Janasova's
+  `P27`); an audit taken to stop a duplicate person cannot be undone after
+  the merge.
