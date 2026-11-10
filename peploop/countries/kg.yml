@@ -1,0 +1,214 @@
+# Kyrgyzstan: what the lanes know about it, one section per lane.
+
+seeds:
+  # Wikipedia categories seeding the Kyrgyz run: one PetScan query per entry.
+  #
+  # OpenSanctions' wd_categories.yml carries one `country: kg` entry,
+  # `Political_office-holders_in_Kyrgyzstan` (en), which adds 7 people at depth 2
+  # over the tiers below. ru.wikipedia is the regular wiki, under the name
+  # `Кыргызстан` (`…_Киргизии` categories are empty): a category per portfolio,
+  # the presidents, prime ministers, vice-premiers, one all-convocation bag of
+  # Jogorku Kenesh deputies, the Supreme Court chairs, Bishkek's mayors and the
+  # ambassadors per host state. ky.wikipedia has the deputies per convocation and
+  # little else; en adds the ministers its own tree files.
+  #
+  # The current era is the 2021 constitution (presidential; the Cabinet of
+  # Ministers' chairman is also head of the Presidential Administration) and the
+  # Jogorku Kenesh's 8th convocation, elected 2025-11-30 after the 7th dissolved
+  # itself. The deputies' category is one bag; the 8th convocation's list article
+  # adds those not yet filed. No category exists for the regional plenipotentiary
+  # representatives (governors): the census lists them.
+  # Left out: the ambassadors (`Послы_Кыргызстана` +21: Wikidata has no outbound
+  # post and mint defers ambassadorships), `Политики_Кыргызстана` (+33, mostly the
+  # Kirghiz SSR and presidential candidates), the generals' ranks (+2), the local
+  # kenesh deputies, and the 6th and 7th convocations' lists (+8, ended).
+  # Counts are PetScan's on 2026-11-10 (people with a Wikidata item), each with
+  # its marginal over the entries above it: ~440 distinct.
+
+  # --- Head of state and government ---
+  - category: Президенты_Кыргызстана                   # 7; d1 = eponymous trees
+    lang: ru
+    depth: 0
+  - category: Вице-президенты_Кыргызстана              # 3, +3
+    lang: ru
+    depth: 0
+  - category: Премьер-министры_Кыргызстана             # 31, +24
+    lang: ru
+    depth: 0
+  - category: Вице-премьер-министры_Кыргызстана        # 12, +8
+    lang: ru
+    depth: 0
+
+  # --- Cabinet ---
+  - category: Министры_Кыргызстана                     # 160, +137 (incl. the Kirghiz SSR commissars)
+    lang: ru
+  - category: Government_ministers_of_Kyrgyzstan       # 84, +17
+    lang: en
+
+  # --- Jogorku Kenesh ---
+  - category: Депутаты_Жогорку_Кенеша                  # 192, +153 (one all-convocation bag, the speakers)
+    lang: ru
+  - article: Список_депутатов_Жогорку_Кенеша_Кыргызской_Республики_VIII_созыва   # 42 links, +6
+    lang: ru
+  - category: Кыргыз_Республикасынын_Жогорку_Кеңешинин_депутаттары   # 24, +5
+    lang: ky
+  - category: Kyrgyzstani_legislators                  # 52, +14
+    lang: en
+
+  # --- Courts, prosecution, ombudsman, central bank, military ---
+  - category: Председатели_Верховного_суда_Кыргызстана # 17, +15
+    lang: ru
+    depth: 0
+  - category: Судьи_Конституционного_суда_Кыргызстана  # 2, +1
+    lang: ru
+    depth: 0
+  - category: Прокуроры_Кыргызстана                    # 4, +3
+    lang: ru
+  - category: Омбудсмены_Кыргызстана                   # 2, +1
+    lang: ru
+    depth: 0
+  - category: Председатели_Национального_банка_Кыргызстана   # 3, +0 (kept: the tier)
+    lang: ru
+    depth: 0
+  - category: Начальники_Генерального_штаба_Вооружённых_сил_Кыргызстана   # 7, +3
+    lang: ru
+    depth: 0
+
+  # --- Cities ---
+  - category: Мэры_городов_Кыргызстана                 # 16, +4
+    lang: ru
+  - category: Mayors_of_places_in_Kyrgyzstan           # 14, +3
+    lang: en
+    depth: 2
+
+  - category: Political_office-holders_in_Kyrgyzstan   # 138, +7
+    lang: en
+    depth: 2
+
+census:
+  # Offices Kyrgyzstan has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-11-10 live measurement (wbsearchentities, items
+  # read); nothing below is from memory.
+  #
+  # Not here because an item exists and the load reaches it: the President
+  # `Q853036`, Vice President `Q7925055`, the Prime Minister `Q2333371`
+  # (its ru label is the Cabinet chairman's, the office since 2021), the Deputy
+  # and First Deputy Chairmen `Q29561881` / `Q112762996`, ~20 ministries
+  # (`Q11008xxxx`), the Speaker `Q4436204`, the deputy
+  # `Q21091853`, the National Bank governor `Q110086321`, the GKNB chairman
+  # `Q110086186`, the Prosecutor General `Q110086305`, the Chief of the General
+  # Staff `Q110086440`, the State Secretary `Q116442927`, the mayors of Bishkek
+  # `Q16679013` and Osh `Q134436561`.
+  #
+  # `Q65149880` "Губернатор Ошской области" exists bare (no P31, P17, P1001):
+  # the load cannot reach it, so mint's dry run must find it, not mint a twin.
+  #
+  # Absent and not listed: the CEC, the Accounts Chamber and the Presidential
+  # Administration have no items. Vice-ministers come from the mentions.
+  #
+  # The governor entry expands over the 7 regions: Bishkek and Osh are cities of
+  # republican significance with mayors, and `Q33225425` is a cebwiki duplicate
+  # of Osh.
+
+  # --- Sub-national: the regions' plenipotentiary representatives ---
+  - key: polpred
+    class: subnational.executive
+    archetype: governor
+    per: subdivisions
+    exclude:
+      - Q9361                # Bishkek: a mayor
+      - Q47282               # Osh: a mayor
+      - Q33225425            # "Osh City", a cebwiki duplicate of Q47282
+    labels:
+      en: Plenipotentiary Representative of the President of Kyrgyzstan in {name}
+
+  # --- Judiciary: Supreme and Constitutional Courts ---
+  - key: supreme_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q106498794         # Supreme Court of Kyrgyzstan
+    labels:
+      ru: Судья Верховного суда Кыргызской Республики
+      en: Judge of the Supreme Court of Kyrgyzstan
+  - key: supreme_court_president
+    class: judiciary.apex
+    archetype: court_president
+    body: Q106498794
+    labels:
+      ru: Председатель Верховного суда Кыргызской Республики
+      en: Chairman of the Supreme Court of Kyrgyzstan
+  - key: constitutional_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q5164291           # Constitutional Court of Kyrgyzstan
+    labels:
+      ru: Судья Конституционного суда Кыргызской Республики
+      en: Judge of the Constitutional Court of Kyrgyzstan
+  - key: constitutional_court_president
+    class: judiciary.apex
+    archetype: court_president
+    body: Q5164291
+    labels:
+      ru: Председатель Конституционного суда Кыргызской Республики
+      en: Chairman of the Constitutional Court of Kyrgyzstan
+
+  # --- Oversight ---
+  - key: election_commission_chair
+    class: oversight.electoral_commission
+    archetype: agency_head
+    parent: Q140686          # chairperson: a chairman, not a director
+    # No body: no item for the Central Commission for Elections and Referenda.
+    labels:
+      ru: Председатель Центральной комиссии по выборам и проведению референдумов Кыргызской Республики
+      en: Chairman of the Central Election Commission of Kyrgyzstan
+  - key: accounts_chamber_chair
+    class: oversight.audit_anticorruption
+    archetype: agency_head
+    # No body: no item for the Accounts Chamber.
+    labels:
+      ru: Председатель Счётной палаты Кыргызской Республики
+      en: Chairman of the Accounts Chamber of Kyrgyzstan
+  - key: ombudsman
+    class: oversight.constitutional_body
+    archetype: agency_head
+    # `Q4334558` (ruwiki "Омбудсмен (Киргизия)") is untyped, so it is not the body.
+    labels:
+      ru: Омбудсмен (Акыйкатчы) Кыргызской Республики
+      en: Ombudsman (Akyikatchy) of Kyrgyzstan
+
+  # --- State enterprises with an item ---
+  - key: kyrgyzaltyn_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q25579369          # Kyrgyzaltyn
+    labels:
+      ru: Председатель правления ОАО «Кыргызалтын»
+      en: Chairman of the Management Board of Kyrgyzaltyn
+  - key: kyrgyz_railways_head
+    class: economic.soe_leadership
+    archetype: soe_head
+    body: Q247851            # Kyrgyz Railways
+    labels:
+      ru: Генеральный директор ГП НК «Кыргыз темир жолу»
+      en: Director General of Kyrgyz Railways
+
+corp:
+  # Kyrgyzstan. Unitary: 7 regions and 2 cities of republican significance.
+  # State companies sit with the Cabinet and the State Property Management Fund;
+  # the National Bank is a statutory body, not an enterprise. Few of them have an
+  # item: Kyrgyzaltyn `Q25579369`, Kyrgyz Railways `Q247851`, Kyrgyz Post
+  # `Q4250906`, Aiyl Bank `Q97253555`, RSK Bank `Q13503033` (measured
+  # 2026-11-10); Kyrgyzneftegaz, Kyrgyztelecom, the National Energy Holding,
+  # Electric Stations and Kumtor Gold Company have none.
+
+  tiers: [national, regional]
+  not_government: []
+  exclude: []
+
+  # State-only legal forms (ГП, МП) not measured yet: none listed.
+  forms: []
+
+  roles: []
+
+  # No official holdings list read yet; a wiki page or a query is no list.
+  holdings: []
