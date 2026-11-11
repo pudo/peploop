@@ -611,7 +611,7 @@ def check_settled(expect: Any) -> None:
 #: it: a verdict from before it is read back by no later run. So did moving a
 #: label worded otherwise, on the item that is the seat under every name, from
 #: `renamed` to `same-office`.
-PROMPT_DIGEST = "c3009556429bfdf44c36de5b70d634b48b0d86e32ad1b978539a8f8505849ef0"
+PROMPT_DIGEST = "4bff3ce9b6610d249e653955960ed01a01baee9fda2399e98703d1be431ca624"
 RENDER_VERSION = 3
 #: 3 moved the article into a cached block ahead of the office; a verdict
 #: under 2 still answers the question.

@@ -111,3 +111,6 @@ git history. Instructions for a single task go into that task's plan.
   into one comprehensive resource per country, including one for the EU?"
 - 2026-11-04: "since this is now public, we need to be a bit mindful of tone
   in how we refer to and discuss aboiut the wikidata community"
+- 2026-11-11: On reconciling: a match and a refusal both rest on the
+  records; an imagined political ambiguity between positions is no reason to
+  refuse.
