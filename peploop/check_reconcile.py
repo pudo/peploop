@@ -608,8 +608,10 @@ def check_settled(expect: Any) -> None:
 #: The ledger key a verdict is stored under. Leaving the generic classes out of
 #: the shortlist changed what the model is shown, not how it is asked, so
 #: neither moved. Naming a candidate's narrower polity (`governs:`) did move
-#: it: a verdict from before it is read back by no later run.
-PROMPT_DIGEST = "8a8ad4da606250fca295bdda077bf74784afad4f7538633baa864a2e8292dd7d"
+#: it: a verdict from before it is read back by no later run. So did moving a
+#: label worded otherwise, on the item that is the seat under every name, from
+#: `renamed` to `same-office`.
+PROMPT_DIGEST = "c3009556429bfdf44c36de5b70d634b48b0d86e32ad1b978539a8f8505849ef0"
 RENDER_VERSION = 3
 #: 3 moved the article into a cached block ahead of the office; a verdict
 #: under 2 still answers the question.

@@ -141,11 +141,22 @@ One JSON object.
 
 - **`same-office`** — the item *is* the office the evidence names. This
   includes a `generic-by-convention` item used with its scoping qualifier,
-  which is how that state's community writes this office.
-- **`renamed`** — the same seat under a different name. A government renames a
-  portfolio and Wikidata mints a new item for each name; the succession
-  properties, an overlapping existence span, or a body that did not change are
-  what tell a rename from a different office. Say which in `reason`.
+  which is how that state's community writes this office. It includes an item
+  whose label words the title differently: another translation ("Governor"
+  for "Chairman" of a central bank), the fuller or shorter form, or an older
+  or newer name of the seat when the item is the seat under every name it has
+  had (its span covers the tenure, and no candidate is the seat under the
+  name the article uses). A label that differs from the title is no reason
+  to lower the confidence.
+- **`renamed`** — the item is the seat's predecessor or successor under
+  another name, a different item from the one the tenure belongs on: a
+  government renamed the portfolio and Wikidata minted an item per name, or a
+  body was replaced by another. The succession properties, an existence span
+  that does not cover the tenure, or a changed body are what tell it. Say
+  which in `reason`. The test is the item, never the label: if the tenure
+  belongs on this very item, the answer is `same-office`, however differently
+  its label is worded or translated. "Probably the same seat under another
+  translation" is `same-office`, not `renamed`.
 
 **Refusals.** Each one names a different way the shortlist tried to mislead, and
 each one is worth recording separately, because a creation queue reads them.
