@@ -342,5 +342,6 @@ history line are written. Next: the `renamed` rule.
   - Turgunbaev's National Bank tenure: the first mention stays
     renamed/medium.
   - Japarov's PM end: now wrong-office/medium.
+- **Sent:** QS3 67165, 3/3.
 - **Other 23 countries:** not re-proposed. Those runs may belong to other
   sessions, and their sends need the user.
