@@ -188,3 +188,131 @@ Then §6:
    peploop ledger): Маткеримов, Акаев and Айдарова. Акаев is Mayor of Osh
    from 2026-02-18 (`Q134436561`), which the run should pick up. The other
    open seats are older convocations (V, VI, undated) and are residue.
+
+## Run (2026-11-11): every stage to its dry run
+
+Model spend about **$41**, against an estimate of $50–70:
+
+| stage | spend |
+|---|---|
+| tree | $0.76 |
+| extract | $13.33 |
+| reconcile | $17.35 |
+| mint | $4.22 |
+| verify | $5.26 |
+| corp | $0.33 |
+
+Logs are `data/logs/kg-*.log`.
+
+| stage | result |
+|---|---|
+| tree place kg | 1 line pending, 1 struck (`P1001` on the General Staff, a body) |
+| seed / load / fetch | 410 people, 130 positions, 289 fetched (116 out of scope, 8 not human) |
+| extract | 289 people, nothing left unasked |
+| reconcile | 2,128 mentions, 899 matched (876 same-office, 23 renamed) |
+| mint (dry) | 1 item to create; 19 found; 194 not current; 141 with no archetype |
+| propose / verify | 286 people decided; 339 asked |
+| send (dry) | 239 lines, 171 people |
+| corp run kg | 9 lines on 4 bodies |
+| report applied | nothing sent yet |
+
+### Checkpoints
+
+- **reconcile**
+  - "Председатель Кабинета министров" and its translations land on `Q2333371`.
+  - The deputy chairmen go to `Q29561881`, and the first deputy to `Q112762996`.
+  - Every mention of the Presidential Administration's head or deputy head
+    resolves to `none`, never to the PM.
+  - No polpred or governor mention lands on a Russian item. The Osh governor
+    resolves to `Q65149880`; the other regions resolve to `none`.
+- **mint**
+  - All seven polpred entries are `not-current`: no current governor has an
+    article. That leaves them as residue.
+  - The other census anchors (both court presidents, Constitutional Court
+    judge, Accounts Chamber, ombudsman, Kyrgyzaltyn, Kyrgyz Railways) are also
+    `not-current`, and the CEC is unattested.
+  - Only the Supreme Court judge is minted: 3 holders, 1 current.
+- **propose**
+  - All 8th-convocation open seats start on **2025-12-17**, except two at
+    year precision, "2025".
+  - Салымбеков's seat, open since 2024-09, is his VII-and-VIII continuation,
+    the same way the four re-elected seats were kept open.
+  - Акаев takes the Osh mayoralty from 2026-02-18, and Токторбаев's mayoralty
+    closes the same day.
+  - Speaker: Маматалиев from 2026-02-12, and Шакиев closes on that date. That
+    settles the speaker question from the plan.
+  - The 51 VII-convocation open seats fall to `open_unattested`: right, since
+    that convocation ended on 2025-12-17. None of them is from a ky article,
+    so `tenure.CURRENT` needs no ky.
+- **Rule fix, `79bd5f0`.** Two Ministers of Education were open:
+  - Иманалиев, whose ky infobox gives "2023" and no end;
+  - Кендирбаева, from 2023-10-06.
+
+  News shows Иманалиев held the post 2023-03-06 to 2023-09-07. The new rule
+  `open_superseded/unordered` skips a year-wide open start on a one-holder
+  seat when another holder's dated open start falls inside it. It fired once.
+
+## Send proposal
+
+1. **`tree send --batch 18 --submit`: 1 line.**
+   - `Q110751928` "Ambassador of Kyrgyzstan to Bulgaria" gets `P31` `Q294414`.
+   - **Flag:** this is an ambassador item. It types an existing post and
+     creates nothing, but you left ambassadors out. Strike it, or send it.
+2. **`mint --country kg --submit`: 1 item, "Judge of the Supreme Court of
+   Kyrgyzstan".**
+   - Terms: en, ky, ru.
+   - Statements: `P31` `Q294414`, `P279` `Q117826617`, `P1001` `Q813`,
+     `P361` `Q106498794`.
+   - Then run `verify` and a fresh `send` dry run.
+3. **`send --country kg --submit`: 239 lines for 171 people, in one tranche.**
+
+   | kind | property | lines |
+   |---|---|---|
+   | new statement | `P39` | 119 (24 open) |
+   | new statement | `P27` | 96 (95 Kyrgyzstan; 1 Belarus, Usenov's ky article) |
+   | new statement | `P569` | 6 |
+   | new statement | `P21` | 2 |
+   | merge | `P39` | 10 (7 are inferred `P582` with no reference) |
+   | merge | `P569` | 2 |
+   | switch | `P569` | 4 (year to day) |
+
+   **Flag:** 4 lines go on existing ambassador posts, to Russia (`Q105139129`)
+   and Tajikistan (`Q105159245`), for people in scope for other offices. I
+   propose sending them, since they create nothing. The alternative is to
+   strike them, in keeping with "leave out ambassadors".
+4. **`corp send kg --submit`: 9 lines.**
+   - `P127` `Q813` on the National Bank, Kyrgyz Post and KTRK.
+   - `P31` public broadcaster on KTRK.
+   - `P1037` for 3 former National Bank chairs and 1 former KTRK head.
+   - `P488` with `P582` 2014 for Babanov at Respublika.
+   - No official holdings list was found, so `holdings` stays empty.
+
+## Not proposed: for your decision
+
+- **`renamed` resolutions are never written** (`policy.P39_KINDS`, a global
+  rule). In Kyrgyzstan this loses three closures on items that are the same
+  seat:
+  - Akylbek Japarov's PM end, 2024-12-16. His statement is still open, which
+    also stops the cabinet rule from working here (two open PMs).
+  - The current National Bank chair, Baketaev, from 2026-03.
+  - Turgunbaev's National Bank end.
+
+  Widening the rule changes every country, so it waits for you.
+- **VII-convocation deputies who did not return (about 45)** could get a
+  closed seat, with the convocation's end as `P582`. That needs a rule
+  closing a chamber's tenures at a known convocation end. It is an expansion
+  candidate, not done.
+- **Residue:**
+  - the polpred tier and the other census anchors with no current holder in
+    an article;
+  - the VII-and-older open seats with no end date;
+  - 13 corp seats whose person has no item.
+- **`check_neutral`:** 2 hits in `peploop/prompts/extract.md:250` ("Almaty,
+  Kazakh SSR"). That line predates both sweeps, and the Kazakh tokens now
+  catch it.
+
+## After the sends (§6)
+
+- Add Kyrgyzstan's tokens to `check_neutral.TOKENS`.
+- Write the `docs/history.md` line.
+- Push `0e1cd16`, `503d741`, `79bd5f0` and this report.
