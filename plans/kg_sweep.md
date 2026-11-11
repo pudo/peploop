@@ -316,3 +316,15 @@ Logs are `data/logs/kg-*.log`.
 - Add Kyrgyzstan's tokens to `check_neutral.TOKENS`.
 - Write the `docs/history.md` line.
 - Push `0e1cd16`, `503d741`, `79bd5f0` and this report.
+
+## Sent (2026-11-11)
+
+| send | QS3 batch | result |
+|---|---|---|
+| peptree, batch 18 | 67085 | 1/1 |
+| mint | 67086 | `Q142115524`, 8/8 |
+| peploop | 67157 | 241/241: 239 rows applied, including 2 judge tenures on the new item |
+| pepcorp | 67158 | 9/9 |
+
+Nothing was refused, and no removals were pending. The tokens and the
+history line are written. Next: the `renamed` rule.

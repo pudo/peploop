@@ -434,6 +434,7 @@ that still applies:
 | Malta (second, all three lanes) | 11-02 – 11-04 | 29 peploop lines (23 new, 5 ends added, 1 birth date refined); 6 offices minted (1 minister, 5 local-council mayors); 14 pepcorp lines; 2 peptree lines; nothing taken back | QS3 63811, 63805 (mint), 64000 (pepcorp); peptree 63803 |
 | Cyprus (second, all three lanes) | 11-02 – 11-04 | 7 peploop lines (6 new, 1 end added); 13 pepcorp lines; nothing taken back | QS3 63812, 64001 (pepcorp) |
 | Kazakhstan (first, all three lanes) | 11-05 – 11-09 | 9 offices minted (6 akimates, CEC chair, strategic-planning agency, human-rights commission); 874 peploop lines for 620 people (362 P39, 477 P27, 42 dates, 4 genders), 871 landed, 3 refused on merged items; 81 pepcorp lines; no peptree line; $171 of model spend | 65045, 66481, 66492 |
+| Kyrgyzstan (first, all three lanes) | 11-10 – 11-11 | 1 office minted (Supreme Court judge); 241 peploop lines for 172 people (121 P39 new and 10 completed, 96 P27, 12 birth dates, 2 genders), all landed; 9 pepcorp lines; 1 peptree line; before the run, the Osh governor item typed and 3 seats of the dissolved 7th convocation closed; $41 of model spend | 67157, 67086 (mint), 67158 (pepcorp); peptree 67085; 67002 67004 (before) |
 
 ### Rules each run added
 
@@ -532,3 +533,19 @@ Each audit took rows back by hand; the class behind them became a rule.
   (3 lines: Kuantyrov's `P27` and current minister `P39`, and Janasova's
   `P27`); an audit taken to stop a duplicate person cannot be undone after
   the merge.
+
+- **Kyrgyzstan:** seeded for the 2021 constitution and the Jogorku Kenesh's 8th
+  convocation. ru.wikipedia names the categories `…_Кыргызстана`; the `…_Киргизии`
+  ones are empty. The 7th convocation sat until the 8th was sworn in
+  (2025-12-17), not until its dissolution vote; its 51 open seats with no
+  present-tense marker were held back. Holders of a single seat with open
+  tenures that cannot be ordered against each other (a ky "2023" beside a
+  dated successor) are now skipped (`open_superseded/unordered`). A
+  `renamed` verdict is never written, which here kept Japarov's PM end and
+  the current National Bank chair out: the verdict mixes one item carrying
+  every name with a true predecessor body. No ky quote fell to
+  `open_unattested`, so ky has no present-tense marker. Residue: the seven
+  regional plenipotentiaries and the other census offices, with no current
+  holder in an article; about 45 VII deputies not returned, whose seats
+  could close at the convocation's end; 34 ambassadorships deferred; no
+  official holdings list found.
