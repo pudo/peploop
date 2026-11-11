@@ -1102,6 +1102,15 @@ def _later(one: dict[str, Any], other: dict[str, Any]) -> bool:
     return mine is not None and theirs is not None and theirs > mine
 
 
+def _within(one: dict[str, Any], other: dict[str, Any]) -> bool:
+    """Whether time `one` is finer than `other` and falls inside it: "2023-10-06" in "2023"."""
+    if one.get("precision", 0) <= other.get("precision", 0):
+        return False
+    first, last = _bound(other, 0), _bound(other, 1)
+    mine = _bound(one, 0)
+    return None not in (first, last, mine) and first <= mine <= last
+
+
 def cabinet_seat(position: dict[str, Any]) -> bool:
     """Whether an office is a minister's seat, which a new government fills anew.
 
@@ -1163,6 +1172,12 @@ def open_superseded(case: Case) -> Disposition | None:
     if kind == "single":
         if any(spell.person != me and _later(start, spell.span["P580"]) for spell in live):
             return _skip("open_superseded/single")
+        # "2023" against another holder's open "2023-10-06": the dates cannot
+        # be ordered, but one seat has one holder, and the precise one is the
+        # article that kept up.
+        if any(spell.person != me and "P582" not in spell.span
+               and _within(spell.span["P580"], start) for spell in live):
+            return _skip("open_superseded/unordered")
         return None
     if kind != "chamber":
         return None

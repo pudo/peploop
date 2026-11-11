@@ -758,6 +758,18 @@ def main() -> int:
           policy.decide(case(entity=me, office_spells=[spell("Q202", "2021-01-01", live=True)],
                              qualifiers=open_from("2018-03-01"))),
           policy.SKIPPED, "open_superseded/single")
+    check("a year's open start is not current beside another holder's open start, to the day, in that year",
+          policy.decide(case(entity=me, office_spells=[spell("Q203", "2023-10-06")],
+                             qualifiers=open_from("2023"))),
+          policy.SKIPPED, "open_superseded/unordered")
+    check("while the precise one is kept",
+          policy.decide(case(entity=me, office_spells=[spell("Q203", "2023")],
+                             qualifiers=open_from("2023-10-06"))),
+          policy.PENDING, "unverified")
+    check("and a closed spell in that year is no successor",
+          policy.decide(case(entity=me, office_spells=[spell("Q203", "2023-03-06", "2023-09-07")],
+                             qualifiers=open_from("2023"))),
+          policy.PENDING, "unverified")
     check("the person's own later term is no successor: `propose` has closed this one at it",
           policy.decide(case(entity=me, office_spells=[spell("Q0000009", "2021-01-01")],
                              qualifiers=open_from("2018-03-01"))),
@@ -766,10 +778,10 @@ def main() -> int:
           policy.decide(case(entity=me, office_spells=[spell("Q202", "2021-01-01", live=False)],
                              qualifiers=open_from("2018-03-01"))),
           policy.PENDING, "unverified")
-    check("a start in the same year at year precision is not a later one",
+    check("a start in the same year at year precision is not a later one, only an unordered one",
           policy.decide(case(entity=me, office_spells=[spell("Q202", "2025-05-03")],
                              qualifiers=open_from("2025"))),
-          policy.PENDING, "unverified")
+          policy.SKIPPED, "open_superseded/unordered")
     check("the holder's own later spell is not a successor",
           policy.decide(case(entity=me, office_spells=[spell("Q0000009", "2021-01-01")],
                              qualifiers=open_from("2018-03-01"))),
