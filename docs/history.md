@@ -549,3 +549,15 @@ Each audit took rows back by hand; the class behind them became a rule.
   holder in an article; about 45 VII deputies not returned, whose seats
   could close at the convocation's end; 34 ambassadorships deferred; no
   official holdings list found.
+
+- **`renamed` split (11-11):** the reconciler answered `renamed` for a sibling
+  item minted per name and for the one item a seat keeps across wordings
+  alike, and the policy writes neither (510 rows skipped over 24 runs, 429 of
+  them `medium`). The prompt now keeps `renamed` for the predecessor's or
+  successor's item; re-asking the 894 newest `renamed` mentions ($9.81) moved
+  190 to `same-office/high`, about 15 of them a predecessor office on an old
+  tenure (Japan's pre-2001 parliamentary vice-ministers and Environment
+  Agency, a Chinese and a Slovenian ministry before their renames). The model
+  still hedges on some translations (2 of 4 "Chairman" against a
+  "Governor" label), and propose takes a tenure's first mention's verdict, so
+  a second mention's match does not rescue it.

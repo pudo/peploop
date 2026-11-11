@@ -328,3 +328,19 @@ Logs are `data/logs/kg-*.log`.
 
 Nothing was refused, and no removals were pending. The tokens and the
 history line are written. Next: the `renamed` rule.
+
+## `renamed` re-ask (2026-11-11)
+
+- **Prompt:** changed in `4e227d2`.
+- **Re-ask:** all 894 newest `renamed` mentions, for $9.81. The script is in
+  the scratchpad (`reask_renamed.py`).
+- **Kyrgyzstan:** 3 new lines, dry run:
+  - Baketaev, current National Bank chair, from 2026-03-18;
+  - Turgunbaev, Minister of Natural Resources, 2023–24;
+  - Isabekov, agriculture, 2006-05 to 2007-01.
+- **Still out:**
+  - Turgunbaev's National Bank tenure: the first mention stays
+    renamed/medium.
+  - Japarov's PM end: now wrong-office/medium.
+- **Other 23 countries:** not re-proposed. Those runs may belong to other
+  sessions, and their sends need the user.
