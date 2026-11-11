@@ -171,13 +171,20 @@ Then §6:
 - Write the `history.md` line.
 - Propose the push.
 
-## Decisions for the user (before or during the run)
+## Decisions taken (2026-11-11)
 
-1. **Ambassadors.** They are left out, as for Kazakhstan. Seeding them would
-   cost +21 people who can't be placed until ambassadorships are minted.
-2. **`Q65149880`, the bare Osh governor item.** The default is to let peptree
-   or mint find it and use it. The alternative is to type it by hand (`P31`
-   `Q4164871`, `P1001` `Q231987`), which would be a write outside the lanes.
-3. **7th-convocation seats left open on Wikidata.** No item marks the
-   convocation's end, so they show up as residue in the report. Whether to
-   date them is a separate decision, not part of this run.
+1. **Ambassadors:** left out.
+2. **`Q65149880`, the Osh Region governor**, was fixed before the run:
+   `P31` position, `P279` governor `Q132050`, `P17` `Q813`, `P1001` Osh Region,
+   and `P1313` on Osh Region pointing back to it. All cite the ru article
+   (QS3 67002, peptree ledger). Its en label is still missing: the add path
+   writes no terms on an item that isn't ours.
+3. **7th-convocation exits are closed.** The 7th convocation kept its powers
+   until the 8th was sworn in on **2025-12-17**, not on the 2025-09-24/25
+   self-dissolution vote. Of the 7 open seats on `Q21091853` from that
+   convocation, 4 holders sit in the 8th: Джумабеков, Сурабалдиева, Алимжанова
+   and Рысбаев (who is in the VIII list but unlinked). The other 3 got `P582`
+   2025-12-17, cited to economist.kg's report of the swearing-in (QS3 67004,
+   peploop ledger): Маткеримов, Акаев and Айдарова. Акаев is Mayor of Osh
+   from 2026-02-18 (`Q134436561`), which the run should pick up. The other
+   open seats are older convocations (V, VI, undated) and are residue.
