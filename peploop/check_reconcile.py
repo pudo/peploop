@@ -616,9 +616,10 @@ def check_settled(expect: Any) -> None:
 #: neither moved. Naming a candidate's narrower polity (`governs:`) did move
 #: it: a verdict from before it is read back by no later run. So did moving a
 #: label worded otherwise, on the item that is the seat under every name, from
-#: `renamed` to `same-office`. So did asking a refusal for evidence, and
-#: documenting a candidate's other names.
-PROMPT_DIGEST = "e395fd19f7669c6cafc741614fba03223382abc21b890d85665077c0c3d87c68"
+#: `renamed` to `same-office`. So did asking a refusal for evidence, the
+#: rules reworked to stand without contradiction, and documenting a
+#: candidate's other names.
+PROMPT_DIGEST = "11cd6e6c34366d750e16bdc4a40618ca4559a8f0166a89375c9fbaa91a348afa"
 RENDER_VERSION = 4
 #: 4 shows an item's other names; a verdict given without them answers no more.
 ANSWERING_RENDERS = (4,)

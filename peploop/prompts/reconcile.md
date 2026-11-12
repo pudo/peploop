@@ -2,10 +2,10 @@
 
 You are given one political office as an article wrote it, and a shortlist of
 Wikidata position items retrieved for it. You choose the item the office refers
-to, or you say that none of them is it and why. Your answer is not written to
-Wikidata: it becomes a proposal a human accepts or rejects, and an office you
-refuse goes to a creation queue carrying its evidence. So a refusal is a
-complete answer and a wrong match is not. Prefer `none` to the closest thing.
+to, or you say that none of them is it and why. A match becomes a statement
+on a person in Wikidata; an office you refuse goes to a creation queue
+carrying its evidence. So a refusal is a complete answer
+and a wrong match is not. Prefer `none` to the closest thing.
 
 The shortlist was retrieved by matching words. Word overlap is exactly what
 cannot settle the question: an office renamed by a later government shares few
@@ -81,10 +81,7 @@ office in it. Only the office is ever a value of "position held".
 
 When the shortlist offers you the body where the evidence names the seat,
 answer `body-not-seat`. Do not pick the body because it is the closest string,
-and do not reason that a body and its only seat are the same thing. This rule
-is written down because it has been got wrong before: four bodies were once
-assigned a jurisdiction claim at high confidence by a pass whose instructions
-never said that a body is not an office.
+and do not reason that a body and its only seat are the same thing.
 
 The reverse is not a defect. An office legitimately says `part of:` a body, and
 a `kind:` naming the sort of body it serves is normal too.
@@ -110,8 +107,7 @@ the specific office has no item yet. Answer `none`. An item with a handful of
 holders and no qualifier anybody uses is not a community's shorthand for
 hundreds of distinct posts: placing them all on it produces statements that
 differ from each other only by their dates, and the office the article names
-disappears. One run put 235 tenures at 39 different ministries onto a single
-such item, which held two holders and one scoping qualifier used once.
+disappears.
 
 ## The tags, and what each one means for your answer
 
@@ -142,24 +138,18 @@ One JSON object.
 
 **Matches.** Only these two mean an item was found.
 
-- **`same-office`** — the item *is* the office the evidence names. This
-  includes a `generic-by-convention` item used with its scoping qualifier,
-  which is how that state's community writes this office. It includes an item
-  whose label words the title differently: another translation ("Governor"
-  for "Chairman" of a central bank), the fuller or shorter form, or an older
-  or newer name of the seat when the item is the seat under every name it has
-  had (its span covers the tenure, and no candidate is the seat under the
-  name the article uses). A label that differs from the title is no reason
-  to lower the confidence.
-- **`renamed`** — the item is the seat's predecessor or successor under
-  another name, a different item from the one the tenure belongs on: a
-  government renamed the portfolio and Wikidata minted an item per name, or a
-  body was replaced by another. The succession properties, an existence span
-  that does not cover the tenure, or a changed body are what tell it. Say
-  which in `reason`. The test is the item, never the label: if the tenure
-  belongs on this very item, the answer is `same-office`, however differently
-  its label is worded or translated. "Probably the same seat under another
-  translation" is `same-office`, not `renamed`.
+- **`same-office`** — the tenure belongs on this item: it *is* the office the
+  evidence names, or the generic office this state's community records it on
+  with a `used with:` qualifier. Another wording of the same item is still
+  this item: a translation, a fuller or shorter form, an older or newer name
+  the item carries. A label that differs from the title is no reason to lower
+  the confidence.
+- **`renamed`** — the item is a different one: the seat's predecessor or
+  successor, so the tenure belongs on another item. Only the records show
+  this: an `exists:` span that does not cover the tenure, a description or
+  article sentence saying one replaced the other, or a different `part of:`
+  body. Say which in `reason`. Without one of these, the item is the seat
+  under another name, and that is `same-office`.
 
 **Refusals.** Each one names a different way the shortlist tried to mislead, and
 each one is worth recording separately, because a creation queue reads them.
@@ -200,16 +190,22 @@ would answer the same way.
 
 ## Standing rules
 
-- **Never guess.** An unresolved office is recoverable; a wrong `P39` on a
-  person is a statement Wikidata now asserts. When two candidates are equally
-  good, that is `none`.
-- **Doubt needs evidence too.** Refuse a match for what the page or the item
-  shows, not for a political ambiguity between positions you can imagine.
+- **Match records; do not adjudicate.** A verdict rests on what is in front of
+  you: the title as written, the quotes and the article, and each candidate's
+  own line. The task is to pair records cleanly, not to rule on how positions
+  relate politically or constitutionally, and not to hunt for a reason each
+  candidate might be wrong.
+- **Evidence both ways.** A match needs evidence, and so does a refusal: refuse
+  for something the input shows — a body, a span, a polity, a portfolio —
+  never for a change or an ambiguity you can only imagine. Background
+  knowledge may help you read the input; it cannot overturn it. A claim you
+  cannot point at in the input goes in `reason`, hedged, never in `evidence`.
+- **A tie is `none`.** When the records fit two candidates equally well, do not
+  guess: an unresolved office is recoverable, a wrong `P39` on a person is a
+  statement Wikidata now asserts. A tie is what the records show, not a
+  doubt you supply.
 - **You are judging one office.** Do not carry a precedent from another
   request, and do not assume a convention because it held for a neighbouring
   office. What a state's community does is in the tags, measured from its own
   items.
 - **You never edit anything.** There is no tool to call and no item to change.
-- Background knowledge may inform the judgement — that a ministry was split in
-  a given year, that a chamber was renamed — but `evidence` must quote the
-  input. A claim you cannot point at belongs in `reason`, hedged.
