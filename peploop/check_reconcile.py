@@ -174,6 +174,7 @@ REQUIRED_PHRASES = (
     "uncounted",                  # an uncounted holder count is not zero
     "matched",                    # a match is an explanation, not evidence
     "Prefer `none`",              # a refusal is a complete answer
+    "**also**",                   # an item's other names are its own
 )
 
 
@@ -201,6 +202,11 @@ def check_rendering(expect: Any) -> None:
     expect(governor.line() == "Q0000090 | Governor of Northvale | (no description) | part of: Cabinet"
                               " | governs: Northvale State | holders: 2",
            "an office's narrower polity is named after its body")
+    premier = reconcile.Candidate(qid="Q0000092", label="Prime Minister of Northvale",
+                                  names=["Chairman of the Council of Ministers"], holders=9)
+    expect(premier.line() == "Q0000092 | Prime Minister of Northvale"
+                             " | also: Chairman of the Council of Ministers | (no description) | holders: 9",
+           "an item's other names follow its label")
     labels = {"Q0000091": "Northvale State"}
     expect(reconcile._governs({"jurisdiction_qid": "Q0000091", "country_qid": None}, "Q0000001", labels)
            == "Northvale State", "a polity narrower than the state is named")
@@ -610,12 +616,12 @@ def check_settled(expect: Any) -> None:
 #: neither moved. Naming a candidate's narrower polity (`governs:`) did move
 #: it: a verdict from before it is read back by no later run. So did moving a
 #: label worded otherwise, on the item that is the seat under every name, from
-#: `renamed` to `same-office`.
-PROMPT_DIGEST = "4bff3ce9b6610d249e653955960ed01a01baee9fda2399e98703d1be431ca624"
-RENDER_VERSION = 3
-#: 3 moved the article into a cached block ahead of the office; a verdict
-#: under 2 still answers the question.
-ANSWERING_RENDERS = (3, 2)
+#: `renamed` to `same-office`. So did asking a refusal for evidence, and
+#: documenting a candidate's other names.
+PROMPT_DIGEST = "e395fd19f7669c6cafc741614fba03223382abc21b890d85665077c0c3d87c68"
+RENDER_VERSION = 4
+#: 4 shows an item's other names; a verdict given without them answers no more.
+ANSWERING_RENDERS = (4,)
 
 
 def check_generic(expect: Any) -> None:
@@ -713,7 +719,7 @@ def check_reask(expect: Any) -> None:
         lists = {"gains": ["Q10", "Q12", "Q11"], "same": ["Q11", "Q10"], "placed": ["Q12"]}
         reconcile.retrieve = lambda m, _s: (  # type: ignore[assignment]
             [SimpleNamespace(qid=q) for q in lists[m.title]], "canon10+lex:check")
-        reconcile.candidates_for = lambda hits, _s=None, _h="local": [  # type: ignore[assignment]
+        reconcile.candidates_for = lambda hits, _s=None, _h="local", langs=(): [  # type: ignore[assignment]
             reconcile.Candidate(qid=h.qid) for h in hits]
 
         def fake_reconcile(mention: Any, candidates: Any, model: str = "") -> Any:

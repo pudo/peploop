@@ -34,6 +34,8 @@ from typing import Any, Callable, Literal, Optional, Sequence
 
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict
+from rigour.langs import iso_639_alpha2
+from rigour.territories import get_territory_by_qid
 
 from peploop import db, llm, positions, titles, wikidata
 from peploop.verdict import Confidence
@@ -50,13 +52,16 @@ EFFORT = "medium"
 #: candidate line, the per-office message or the request shape changes
 #: without a prompt edit, because a verdict is keyed by what the model saw
 #: and the prompt hash alone does not cover the rendering.
-RENDER_VERSION = 3
+RENDER_VERSION = 4
 
-#: The renderings whose verdicts still count. 3 moved the article ahead of the
-#: office, as a cached block of its own, so a person's later mentions read it
-#: from the prompt cache; the model is shown the same text in another order,
-#: so a verdict under 2 is still an answer to the question.
-ANSWERING_RENDERS = (3, 2)
+#: The renderings whose verdicts still count. 4 shows an item's other names
+#: (`also:`): a verdict from before it was given without the evidence that
+#: the item is the seat under the article's wording, and answers no more.
+ANSWERING_RENDERS = (4,)
+
+#: How many of an item's other names a candidate line shows. The median item
+#: has six distinct names over all languages, a few have hundreds.
+OTHER_NAMES = 5
 
 #: The longest article that goes into the request whole, in characters. The
 #: median article behind a mention is under 3,000 characters and the longest
@@ -123,6 +128,10 @@ class Candidate:
 
     qid: str
     label: str | None = None
+    #: The item's other labels and aliases in the state's and the article's
+    #: languages: a seat is often labelled in one wording and named by the
+    #: article in another.
+    names: list[str] = field(default_factory=list)
     description: str | None = None
     #: `P279` parents by label: the *kind* of office, which is how a seat is
     #: told from the body it sits in and from an occupation.
@@ -163,6 +172,8 @@ class Candidate:
     def line(self) -> str:
         """One line for the shortlist, in the order the prompt documents."""
         parts = [f"{self.qid} | {self.label or '(no label)'}"]
+        if self.names:
+            parts.append("also: " + "; ".join(self.names))
         parts.append(self.description or "(no description)")
         if self.kinds:
             parts.append("kind: " + ", ".join(self.kinds))
@@ -368,6 +379,33 @@ def _labels(qids: Sequence[str]) -> dict[str, str]:
     return labels
 
 
+def name_langs(state_qid: str | None, lang: str | None) -> list[str]:
+    """The languages a candidate's other names are shown in: English, the article's, the state's."""
+    territory = get_territory_by_qid(state_qid) if state_qid else None
+    codes = (iso_639_alpha2(code) for code in (territory.langs if territory else []))
+    return list(dict.fromkeys(code for code in ("en", lang, *codes) if code))
+
+
+def _other_names(labels: dict[str, str | None], langs: Sequence[str]) -> dict[str, list[str]]:
+    """Each item's labels, then aliases, in `langs`, without its own `labels` entry or repeats."""
+    if not labels or not langs:
+        return {}
+    rows = db.conn().execute(
+        "SELECT qid, text FROM position_name WHERE qid = ANY(%s) AND lang = ANY(%s)"
+        " ORDER BY qid, alias, array_position(%s::text[], lang), text",
+        (list(labels), list(langs), list(langs)),
+    ).fetchall()
+    out: dict[str, list[str]] = {}
+    seen: dict[str, set[str]] = {}
+    for qid, text in rows:
+        folded = seen.setdefault(qid, {(labels.get(qid) or "").casefold()})
+        if text.casefold() in folded or len(out.get(qid, [])) >= OTHER_NAMES:
+            continue
+        folded.add(text.casefold())
+        out.setdefault(qid, []).append(text)
+    return out
+
+
 def _governs(record: dict[str, Any], state_qid: str | None, labels: dict[str, str]) -> str | None:
     """The office's polity by label, or None where it is the state itself."""
     polity = record.get("jurisdiction_qid")
@@ -380,6 +418,7 @@ def candidates_for(
     hits: Sequence[positions.Hit],
     state_qid: str | None = None,
     holder_scope: str = "local",
+    langs: Sequence[str] = (),
 ) -> list[Candidate]:
     """Describe a ranked shortlist from the table, in the ranking's order.
 
@@ -396,6 +435,7 @@ def candidates_for(
     ).fetchall()
     by_qid = {row[0]: dict(zip(DISPLAY_COLUMNS, row[1:])) for row in rows}
     bodies = _labels([q for r in by_qid.values() for q in (r.get("body_qid"), r.get("jurisdiction_qid"))])
+    names = _other_names({q: r.get("label") for q, r in by_qid.items()}, langs)
     out: list[Candidate] = []
     for hit in hits:
         record = by_qid.get(hit.qid, {})
@@ -403,6 +443,7 @@ def candidates_for(
         out.append(Candidate(
             qid=hit.qid,
             label=record.get("label"),
+            names=names.get(hit.qid, []),
             description=record.get("description"),
             kinds=list(record.get("kinds") or []),
             body=bodies.get(body_qid or "", body_qid),
@@ -463,6 +504,7 @@ def replay_shortlist(resolution_id: int) -> tuple[dict[str, Any], list[Candidate
     by_qid = {r[0]: dict(zip(REPLAY_COLUMNS, r[1:])) for r in rows}
     bodies = _labels([q for r in by_qid.values() for q in (r.get("body_qid"), r.get("jurisdiction_qid"))])
     state = record["state_qid"]
+    names = _other_names({q: r.get("label") for q, r in by_qid.items()}, name_langs(state, record["lang"]))
     out = []
     for qid in offered:
         item = by_qid.get(qid, {})
@@ -470,6 +512,7 @@ def replay_shortlist(resolution_id: int) -> tuple[dict[str, Any], list[Candidate
         out.append(Candidate(
             qid=qid,
             label=item.get("label"),
+            names=names.get(qid, []),
             description=item.get("description"),
             kinds=list(item.get("kinds") or []),
             body=bodies.get(body_qid or "", body_qid),
@@ -829,7 +872,8 @@ def prepare_mention(
         mention.article = None if row is None else row[0]
     hits, retrieval = retrieve(mention, state_qid)
     return Asking(extraction_id, mention_idx, mention, state_qid,
-                  list(candidates_for(hits, state_qid)), retrieval, reopened_for, model)
+                  list(candidates_for(hits, state_qid, langs=name_langs(state_qid, mention.lang))),
+                  retrieval, reopened_for, model)
 
 
 def resolve_mention(

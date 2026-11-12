@@ -34,11 +34,14 @@ question.
 **The candidates.** One line each:
 
 ```
-QID | label | description | kind: … | part of: … | governs: … | exists: …–… | holders: … | tags: … | matched: …
+QID | label | also: … | description | kind: … | part of: … | governs: … | exists: …–… | holders: … | tags: … | matched: …
 ```
 
 - **label**, **description** — the item's own, in whatever language it carries
   them. A missing description is common and means nothing.
+- **also** — the item's other labels and aliases, in English, the article's
+  language and the state's. They are names of this same item: a title that
+  matches one of them matches the item.
 - **kind** — the classes the item declares itself a kind of, by label. This is
   where a seat is told from a body, and an office from an occupation.
 - **part of** — the body the office is a seat in. An office having one is
