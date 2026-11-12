@@ -617,9 +617,9 @@ def check_settled(expect: Any) -> None:
 #: it: a verdict from before it is read back by no later run. So did moving a
 #: label worded otherwise, on the item that is the seat under every name, from
 #: `renamed` to `same-office`. So did asking a refusal for evidence, the
-#: rules reworked to stand without contradiction, and documenting a
-#: candidate's other names.
-PROMPT_DIGEST = "11cd6e6c34366d750e16bdc4a40618ca4559a8f0166a89375c9fbaa91a348afa"
+#: rules reworked to stand without contradiction, naming a rank among what a
+#: refusal may rest on, and documenting a candidate's other names.
+PROMPT_DIGEST = "5443c3b2418d93422bd91b534e8d78552759ce5c9fa3eed304f0598faac22420"
 RENDER_VERSION = 4
 #: 4 shows an item's other names; a verdict given without them answers no more.
 ANSWERING_RENDERS = (4,)

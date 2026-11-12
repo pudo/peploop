@@ -196,8 +196,9 @@ would answer the same way.
   relate politically or constitutionally, and not to hunt for a reason each
   candidate might be wrong.
 - **Evidence both ways.** A match needs evidence, and so does a refusal: refuse
-  for something the input shows — a body, a span, a polity, a portfolio —
-  never for a change or an ambiguity you can only imagine. Background
+  for something the input shows — a body, a span, a polity, a portfolio, a
+  rank (a deputy is not the seat it deputises, a first or second deputy not
+  the plain one) — never for a change or an ambiguity you can only imagine. Background
   knowledge may help you read the input; it cannot overturn it. A claim you
   cannot point at in the input goes in `reason`, hedged, never in `evidence`.
 - **A tie is `none`.** When the records fit two candidates equally well, do not
