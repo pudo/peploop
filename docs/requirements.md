@@ -92,6 +92,12 @@ git history. Instructions for a single task go into that task's plan.
 - 2026-10-17: On framing for the community: "the goal here is to enable
   transparency of who holds what political office where, and who is managing
   state funds in positions that control state enterprises"
+- 2026-10-18: On framing for the community: argue consistency, not scale:
+  "the data in Wikidata is often too chaotic to properly analyze, and what I'm
+  trying to do is to make sure that along a couple of core questions (who are
+  the supreme court judges? who is the military leadership? who is the
+  prosecutor? who runs elections?) there is general coverage, based on the
+  model decisions already used."
 - 2026-10-25: On the purpose: "OpenSanctions needs this data, and one of the
   ways we're exploring to build it out is via Wikidata. However this is not a
   corporate push: I've chosen to use the Pudox over the OpenSanctions account
@@ -103,3 +109,5 @@ git history. Instructions for a single task go into that task's plan.
 - 2026-10-26: On country specs: "we now have several country spec YAMLs for
   slightly different purposes across the tools. What if we consolidated them
   into one comprehensive resource per country, including one for the EU?"
+- 2026-11-04: "since this is now public, we need to be a bit mindful of tone
+  in how we refer to and discuss aboiut the wikidata community"

@@ -70,8 +70,8 @@ labels. "Please" stays where we ask volunteers for something.
   the analysis behind it. When a rule turns out wrong or a constraint was
   missing, we re-run the analysis under the fixed rule and know exactly which
   of our statements to withdraw, across all batches; a withdrawn statement is
-  never sent again. Lead with this capability; a specific incident is cited
-  only as evidence that it works, if someone asks.
+  never sent again. Past corrections are described openly when they help
+  explain how this works.
 - **We are reachable.** Questions on `User talk:Pudox` stop the affected work
   until answered.
 
@@ -90,11 +90,16 @@ institutions. Lead with this; every lane serves one of those two questions.
   invisible as public power. The ownership link and the board seat make them
   queryable.
 
+The aim is consistency rather than volume: general coverage along a few core
+questions (who are the supreme court judges, the military leadership, the
+prosecutor, who runs elections), written the way well-curated items already
+model them, so the data can be analysed across countries.
+
 The answers serve journalists, researchers, civil society and anyone checking
 public accountability. OpenSanctions is one reuser: it reads this data back
 to identify politically exposed persons for anti-money-laundering screening,
-and is a company that uses it commercially. Say that once, plainly, after the
-public-interest purpose, so nobody discovers it.
+and is a company that uses it commercially. Say that plainly, alongside the
+public-interest purpose.
 
 ## Living people
 
@@ -112,8 +117,7 @@ exposed person" on Wikidata; that judgement stays downstream.
 - 50-100 test edits per kind, as edit-group links.
 - Acknowledge the roughly 50,000 edits made before the policy existed, and
   offer them for review.
-- Ping Ainali from the proposal. They raised edit summaries (fixed: summaries
-  now link `User:Pudox/PEP`) and redundant `P31 Q294414` statements (410
-  withdrawn), and asked on 15 October for the policy's Step 3; the proposal is
-  the answer, and the ping goes out only once it is posted.
+- From the proposal, once posted, ping the editor who raised edit summaries
+  (fixed: summaries now link `User:Pudox/PEP`) and redundant `P31 Q294414`
+  statements (410 withdrawn), and asked on 15 October for the policy's Step 3.
 - Confirm we check constraint violations after a batch (the policy's Step 4).

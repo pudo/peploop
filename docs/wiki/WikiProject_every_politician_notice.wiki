@@ -1,0 +1,4 @@
+== Mass editing proposal: public office holders from Wikipedia articles ==
+I have posted a proposal at [[Wikidata:Mass editing proposals#Public office holders and state bodies, from Wikipedia articles]]. It covers {{P|39}} and basic biographical statements on politicians, {{P|17}} and {{P|1001}} on position items, and new items for missing positions, all read from Wikipedia articles, one country at a time. The next country is China. How the edits are made is described on [[User:Pudox/PEP]].
+
+Comments from this project would be especially useful on how the positions are modelled. ~~~~
