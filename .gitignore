@@ -5,3 +5,6 @@ __pycache__/
 # Local secrets (ANTHROPIC_API_KEY et al) — never commit
 .envrc
 .env
+
+# Local notes, kept out of the repository
+docs/community.md
