@@ -12,17 +12,15 @@ seeds:
   #
   # The current era: the Seimas elected October 2024, the Paluckas and then
   # Ruginienė governments, the municipal councils and directly elected mayors
-  # of March 2023 (next election March 2027). The local tier is the EU AMLR's:
-  # the mayors of the ten municipalities of 50,000 or more (`amlr.units`), by
-  # their own categories.
-  # Left out: the mayors of the other 50 municipalities (`Lietuvos_merai`
-  # +287), vice-mayors (+28), the municipal politicians (+521), the Court of
+  # of March 2023 (next election March 2027). The local tier is the mayors of
+  # all 60 municipalities, as Lithuania's AMLR list names them.
+  # Left out: vice-mayors (+28), the municipal politicians (+521), the Court of
   # Appeal (+11, not a court of last instance), ordinary prosecutors (+17),
   # generals (+41, ranks), the county governors (+13, abolished 2010), the
   # ambassadors (+108: no outbound post has an item and mint defers
   # ambassadorships), and en `Lithuanian_politicians_by_populated_place` (+72).
   # Counts are PetScan's on 2026-11-25 (people with a Wikidata item), each with
-  # its marginal over the entries above it: 1,527 distinct.
+  # its marginal over the entries above it: 1,752 distinct.
 
   # --- Head of state and government ---
   - category: Lietuvos_prezidentai                     # 12 (subcategories: eras, an eponymous one with 2 pages)
@@ -82,26 +80,8 @@ seeds:
     lang: en
     depth: 2
 
-  # --- Mayors of the AMLR's municipalities (50,000 or more) ---
-  - category: Vilniaus_merai                           # 16, +6
-    lang: lt
-  - category: Vilniaus_rajono_merai                    # 3, +1
-    lang: lt
-  - category: Kauno_miesto_merai                       # 19, +10 (with the interwar burmistrai)
-    lang: lt
-  - category: Kauno_rajono_merai                       # 5, +4
-    lang: lt
-  - category: Klaipėdos_merai                          # 9, +4
-    lang: lt
-  - category: Klaipėdos_rajono_merai                   # 6, +5
-    lang: lt
-  - category: Šiaulių_merai                            # 11, +7
-    lang: lt
-  - category: Panevėžio_merai                          # 10, +7
-    lang: lt
-  - category: Marijampolės_merai                       # 6, +4
-    lang: lt
-  - category: Mažeikių_merai                           # 7, +4
+  # --- Mayors: every municipality, as the AMLR list names them ---
+  - category: Lietuvos_merai                           # 375, +277 (one subcategory per municipality)
     lang: lt
 
 census:
@@ -119,8 +99,8 @@ census:
   # Bank of Lithuania governor `Q109496871`, the Chief of Defence `Q55607326`,
   # the VSD, STT, FNTT and border guard heads, some 30 agency directors, and
   # the mayor (`Q1317377xx`) and council seat (`Q1317550xx`) of every
-  # municipality. The ten AMLR municipalities all have their mayor, so no
-  # `per: units` entry: it would mint nothing.
+  # municipality. Every municipality has its mayor, so no `per: units`
+  # entry: it would mint nothing.
   #
   # Twins: Minister of Economy and Innovation `Q107735812` (24 holders) and
   # `Q140592938` (2, the lt label); the holder signal keeps the reconciler on
