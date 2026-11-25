@@ -197,7 +197,7 @@ Progress: reviewed 197, run 1, skipped 1, submitted 49
 | im | Isle of Man | Europe / Northern Europe | 27 | reviewed | 2026-10-07 | 22 | 0 |  | $0.15 | 033 035 |  |
 | je | Jersey | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 23 | 0 |  | $0.18 |  |  |
 | lv | Latvia | Europe / Northern Europe | 40 | reviewed | 2026-10-07 | 65 | 9 | P1001 4 P17 4 P279 1 | $0.41 | 039 | Q4479445 Constitutional Assembly: a body held in P39; P1001 only |
-| lt | Lithuania | Europe / Northern Europe | 45 | reviewed | 2026-10-08 | 184 | 5 | P1001 3 P17 1 P31 1 | $0.50 | 044 |  |
+| lt | Lithuania | Europe / Northern Europe | 45 | reviewed | 2026-11-25 | 224 | 6 | P1001 3 P17 3 | $1.09 | 044 | strike Q1362218 P1001 (conflates the Police Commissioner General with a German police rank), Q30064875 P31 (a diplomatic rank class) |
 | no | Norway | Europe / Northern Europe | 63 | submitted | 2026-10-08 | 1016 | 75 | P1001 35 P17 28 P279 3 P31 9 | $23.22 | 59046 59083 59521 59949 | large place: 756 held or categorised items asked (user approved ~$30); strike Q50810280 P279 Q3368517 (military generaladvokat is no prosecutor general) |
 | cq | Sark | Europe / Northern Europe | 27 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
 | sj | Svalbard and Jan Mayen | Europe / Northern Europe | 28 | reviewed | 2026-10-06 | 1 | 0 |  | $0.00 |  |  |
