@@ -69,6 +69,10 @@ INFOBOX = {
 #: off 70 open quotes on current akims and on Senate seats dissolved in 2026
 #: alike, so it is no marker. "ныне" and a bare "қазіргі" gloss a renamed
 #: place ("родился в Энске (ныне Линдо)") and are left out.
+#: lt says "šiuo metu" (currently), "iki dabar" (to now) and "eina …
+#: pareigas" (holds the post); its "nuo 2011 m." (since) opened 140 of 193
+#: open quotes, council seats unchanged since several elections, so it is
+#: no marker.
 CURRENT = {
     "en": CURRENT_EN,
     "el": re.compile(r"εν ενεργεία|σήμερα|διατελεί|υπηρετεί", re.I),
@@ -87,6 +91,7 @@ CURRENT = {
     "ru": re.compile(r"\bв настоящее время\b|\bпо настоящее время\b|\bпо н\.\s?в\.|\bдо сих пор\b|"
                      r"\bпо сей день\b|\bдействующ\w*\b", re.I),
     "kk": re.compile(r"қазіргі уақытта|\bқазір\b|осы күнге дейін|бүгінге дейін", re.I),
+    "lt": re.compile(r"\bšiuo metu\b|\bdabar\b|\beina\b[^.;]*\bpareigas\b", re.I),
 }
 #: An end read from an event rather than from the tenure ending, by language (stems):
 #: an arrest, a charge or an investigation ends nothing by itself.
