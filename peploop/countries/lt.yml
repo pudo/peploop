@@ -1,5 +1,247 @@
 # Lithuania: what the lanes know about it, one section per lane.
 
+seeds:
+  # Wikipedia categories seeding the Lithuanian run: one PetScan query per entry.
+  #
+  # lt.wikipedia is the regular wiki: a category per portfolio for ministers
+  # and vice-ministers, the Seimas members, the apex courts' judges, the
+  # prosecutors general, a mayors' category per municipality. en adds the
+  # office-holders its own tree files. OpenSanctions' wd_categories.yml
+  # (`country: lt`) names the same tiers; its Lietuvos_politikai entry is left
+  # out here (+247 at depth 1, mostly the LSSR, candidates and signatories).
+  #
+  # The current era: the Seimas elected October 2024, the Paluckas and then
+  # Ruginienė governments, the municipal councils and directly elected mayors
+  # of March 2023 (next election March 2027). The local tier is the EU AMLR's:
+  # the mayors of the ten municipalities of 50,000 or more (`amlr.units`), by
+  # their own categories.
+  # Left out: the mayors of the other 50 municipalities (`Lietuvos_merai`
+  # +287), vice-mayors (+28), the municipal politicians (+521), the Court of
+  # Appeal (+11, not a court of last instance), ordinary prosecutors (+17),
+  # generals (+41, ranks), the county governors (+13, abolished 2010), the
+  # ambassadors (+108: no outbound post has an item and mint defers
+  # ambassadorships), and en `Lithuanian_politicians_by_populated_place` (+72).
+  # Counts are PetScan's on 2026-11-25 (people with a Wikidata item), each with
+  # its marginal over the entries above it: 1,527 distinct.
+
+  # --- Head of state and government ---
+  - category: Lietuvos_prezidentai                     # 12 (subcategories: eras, an eponymous one with 2 pages)
+    lang: lt
+  - category: Lietuvos_ministrai_pirmininkai           # 19, +17; d1 = eponymous
+    lang: lt
+    depth: 0
+  - category: Lietuvos_vicepremjerai                   # 6, +4
+    lang: lt
+    depth: 0
+
+  # --- Cabinet and vice-ministers ---
+  - category: Lietuvos_ministrai                       # 371, +353 (portfolios; the LSSR's to the scope gate)
+    lang: lt
+  - category: Lietuvos_viceministrai                   # 236, +170
+    lang: lt
+  - category: Valstybės_sekretoriai                    # 2, +1
+    lang: lt
+    depth: 0
+
+  # --- Seimas and the European Parliament ---
+  - category: Seimo_nariai                             # 806, +650 (with the speakers and their deputies)
+    lang: lt
+  - category: Europos_Parlamento_nariai_(Lietuva)      # 42, +7
+    lang: lt
+  - category: ES_komisarai_nuo_Lietuvos                # 4, +0 (kept: the tier)
+    lang: lt
+    depth: 0
+
+  # --- Courts, prosecution, ombudsmen, central bank, military ---
+  - category: LR_Konstitucinio_Teismo_teisėjai         # 30, +24
+    lang: lt
+    depth: 0
+  - category: Lietuvos_Aukščiausiojo_Teismo_teisėjai   # 72, +56
+    lang: lt
+    depth: 0
+  - category: Lietuvos_vyriausiojo_administracinio_teismo_teisėjai   # 25, +18
+    lang: lt
+    depth: 0
+  - category: Lietuvos_generaliniai_prokurorai         # 8, +4
+    lang: lt
+    depth: 0
+  - category: LR_generalinio_prokuroro_pavaduotojai    # 10, +7
+    lang: lt
+    depth: 0
+  - category: Seimo_kontrolieriai                      # 7, +1
+    lang: lt
+    depth: 0
+  - category: Lietuvos_banko_vadovai                   # 10, +4
+    lang: lt
+    depth: 0
+  - category: Lietuvos_kariuomenės_vadai               # 16, +9
+    lang: lt
+    depth: 0
+
+  - category: Political_office-holders_in_Lithuania    # 502, +125
+    lang: en
+    depth: 2
+
+  # --- Mayors of the AMLR's municipalities (50,000 or more) ---
+  - category: Vilniaus_merai                           # 16, +6
+    lang: lt
+  - category: Vilniaus_rajono_merai                    # 3, +1
+    lang: lt
+  - category: Kauno_miesto_merai                       # 19, +10 (with the interwar burmistrai)
+    lang: lt
+  - category: Kauno_rajono_merai                       # 5, +4
+    lang: lt
+  - category: Klaipėdos_merai                          # 9, +4
+    lang: lt
+  - category: Klaipėdos_rajono_merai                   # 6, +5
+    lang: lt
+  - category: Šiaulių_merai                            # 11, +7
+    lang: lt
+  - category: Panevėžio_merai                          # 10, +7
+    lang: lt
+  - category: Marijampolės_merai                       # 6, +4
+    lang: lt
+  - category: Mažeikių_merai                           # 7, +4
+    lang: lt
+
+census:
+  # Offices Lithuania has whether or not a seeded person's article named them.
+  # Bodies are from the 2026-11-25 live measurement (wbsearchentities, items
+  # read); nothing below is from memory.
+  #
+  # Not here because an item exists and the load reaches it: the President
+  # `Q878222`, the Prime Minister `Q845439`, the 14 ministers (`Q1077357xx`
+  # and others), the Seimas member `Q18507240`, its Speaker `Q12663218` and
+  # deputies, the presidents of the Constitutional, Supreme, Supreme
+  # Administrative and Appeal Courts and of the Judicial Council, the
+  # Prosecutor General `Q132068652`, the Auditor General `Q142227203`, the CEC
+  # chair `Q141237423`, the head of the Seimas ombudspersons `Q142223285`, the
+  # Bank of Lithuania governor `Q109496871`, the Chief of Defence `Q55607326`,
+  # the VSD, STT, FNTT and border guard heads, some 30 agency directors, and
+  # the mayor (`Q1317377xx`) and council seat (`Q1317550xx`) of every
+  # municipality. The ten AMLR municipalities all have their mayor, so no
+  # `per: units` entry: it would mint nothing.
+  #
+  # Twins: Minister of Economy and Innovation `Q107735812` (24 holders) and
+  # `Q140592938` (2, the lt label); the holder signal keeps the reconciler on
+  # the first.
+  #
+  # Left out: deputy ministers and the deputy prosecutors general (from the
+  # mentions, `deputy_minister`), the ministries' chancellors and the
+  # municipal administration directors (the AMLR names them; no article
+  # attests most), the Government's chancellor (no body item), the AMLR's
+  # brigade and command heads below the four services.
+
+  # --- Judiciary: the three courts of last instance ---
+  - key: constitutional_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q1474348           # Constitutional Court of Lithuania
+    labels:
+      lt: Lietuvos Respublikos Konstitucinio Teismo teisėjas
+      en: Judge of the Constitutional Court of Lithuania
+  - key: supreme_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q630332            # Supreme Court of Lithuania
+    labels:
+      lt: Lietuvos Aukščiausiojo Teismo teisėjas
+      en: Judge of the Supreme Court of Lithuania
+  - key: supreme_administrative_court_judge
+    class: judiciary.apex
+    archetype: supreme_judge
+    body: Q2011200           # Supreme Administrative Court of Lithuania
+    labels:
+      lt: Lietuvos vyriausiojo administracinio teismo teisėjas
+      en: Judge of the Supreme Administrative Court of Lithuania
+
+  # --- Seimas administration ---
+  - key: seimas_chancellor
+    class: legislature.leadership
+    archetype: agency_head
+    body: Q15303994          # Lietuvos Respublikos Seimo kanceliarija
+    labels:
+      lt: Lietuvos Respublikos Seimo kancleris
+      en: Chancellor of the Seimas of Lithuania
+
+  # --- Central bank ---
+  - key: central_bank_board_member
+    class: economic.central_bank
+    archetype: state_body_member
+    body: Q616849            # Bank of Lithuania
+    labels:
+      lt: Lietuvos banko valdybos narys
+      en: Member of the Board of the Bank of Lithuania
+
+  # --- Regulators ---
+  - key: competition_council_chair
+    class: economic.regulators
+    archetype: agency_head
+    parent: Q140686          # chairperson
+    body: Q21981354          # Konkurencijos taryba
+    labels:
+      lt: Konkurencijos tarybos pirmininkas
+      en: Chairman of the Competition Council of Lithuania
+  - key: energy_regulator_chair
+    class: economic.regulators
+    archetype: agency_head
+    parent: Q140686
+    body: Q125850318         # Valstybinė energetikos reguliavimo taryba
+    labels:
+      lt: Valstybinės energetikos reguliavimo tarybos pirmininkas
+      en: Chairman of the National Energy Regulatory Council of Lithuania
+  - key: communications_regulator_director
+    class: economic.regulators
+    archetype: agency_head
+    body: Q25494062          # Ryšių reguliavimo tarnyba
+    labels:
+      lt: Ryšių reguliavimo tarnybos direktorius
+      en: Director of the Communications Regulatory Authority of Lithuania
+
+  # --- Security: police, military intelligence, the armed services ---
+  - key: police_commissioner_general
+    class: security.police
+    archetype: agency_head
+    body: Q1729128           # Policijos departamentas prie Vidaus reikalų ministerijos
+    labels:
+      lt: Lietuvos policijos generalinis komisaras
+      en: Police Commissioner General of Lithuania
+  - key: aotd_director
+    class: security.intelligence
+    archetype: agency_head
+    body: Q12648904          # Antrasis operatyvinių tarnybų departamentas
+    labels:
+      lt: Antrojo operatyvinių tarnybų departamento direktorius
+      en: Director of the Second Investigation Department of Lithuania
+  - key: land_force_commander
+    class: security.defence_command
+    archetype: military_chief_of_staff
+    body: Q1499997           # Lithuanian Land Force
+    labels:
+      lt: Lietuvos kariuomenės Sausumos pajėgų vadas
+      en: Commander of the Lithuanian Land Force
+  - key: air_force_commander
+    class: security.defence_command
+    archetype: military_chief_of_staff
+    body: Q1091526           # Lithuanian Air Force
+    labels:
+      lt: Lietuvos kariuomenės Karinių oro pajėgų vadas
+      en: Commander of the Lithuanian Air Force
+  - key: naval_force_commander
+    class: security.defence_command
+    archetype: military_chief_of_staff
+    body: Q2711719           # Lithuanian Naval Force
+    labels:
+      lt: Lietuvos kariuomenės Karinių jūrų pajėgų vadas
+      en: Commander of the Lithuanian Naval Force
+  - key: special_operations_commander
+    class: security.defence_command
+    archetype: military_chief_of_staff
+    body: Q257736            # Lithuanian Special Operations Force
+    labels:
+      lt: Lietuvos kariuomenės Specialiųjų operacijų pajėgų vadas
+      en: Commander of the Lithuanian Special Operations Force
+
 corp:
   # Lithuania. Unitary: ten apskritys (counties, administrative only since
   # 2010) and 60 municipalities, which peploop counts first-level.
