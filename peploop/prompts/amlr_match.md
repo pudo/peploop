@@ -10,7 +10,7 @@ and a search returns namesakes, parents and branches.
 The row says what it is looking for:
 
 - `position`: the row names one office, and the item is that office: a
-  position item ("Minister of Finance of Lithuania", "judge of the
+  position item ("Minister of Finance of Lithuania", "judge of the <!-- examples -->
   Constitutional Court of Slovakia", "Secretary General of OPEC"). A plural
   row naming the holders of one office ("Judges at the Constitutional
   Court") names that one office. A row naming several distinct offices

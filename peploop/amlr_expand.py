@@ -64,7 +64,7 @@ SHOWN = 8
 #: Hits read per search; past this a name is a crowd anyway.
 SEARCH_LIMIT = 10
 #: Content words a full-text query keeps: every word must match, so a long
-#: title written out in full ("... of the Republic of Lithuania") finds nothing.
+#: title written out in full ("... of the Republic of X") finds nothing.
 QUERY_WORDS = 6
 #: What a ministry is; a ministry picked for a row that names no ministry is
 #: the parent of the body the row names (seen: ROMTEHNICA -> its ministry).

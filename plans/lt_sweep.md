@@ -173,10 +173,32 @@ In this order, each on the user's go:
 1. `tree send --batch 45 --submit`: 6 lines.
 2. `mint --country lt --submit`: 5 items; then `verify` and a `send` dry run
    for the lines their feed adds.
-3. `send --country lt --submit`: one tranche, 588 lines (427 people).
+3. `send --country lt --submit`: one tranche, 577 lines (after the full audit below).
 4. `corp send lt --submit`: 111 lines.
 
 Open: the Economy and Innovation twin merge; the conflated `Q1362218`; the
 13 vice-ministries; `check_neutral` still flags the AMLR lane's
 `amlr_expand.py:67` and `prompts/amlr_match.md:13` (Lithuania as an example)
 beside the older Kazakh example in `prompts/extract.md`.
+
+## The full audit (every line)
+
+All 583 accepted peploop rows were read against every source quote, and all
+111 pepcorp lines against their report entries. Taken out with `audit
+proposal` (10 rows; 588 → 577 lines): an end date no source gives (#301313,
+#302641), a quote about another office (#302769), a 1990–2007 council seat on
+today's council item (#303585), an end inferred from a later election
+(#302387), a bare death date with no "died" (#302463), and four citizenships
+read from ethnicity ("Tautybė: lietuvis", "lietuvių"), a birthplace, or
+against a stated Russian citizenship (#301744 #301822 #301703 #302711): an
+open class, since lt "tautybė" names ethnicity where the extract prompt reads
+an infobox `Nationality:` as citizenship. Kept after reading all sources: six
+rows whose first quote lacked a date another language gives, and title-only
+mayor quotes whose infobox the verifier read. The pepcorp lines held.
+
+`check_neutral`: the AMLR lane's two Lithuania hits are neutralised (an
+example marker on `amlr_match.md:13`, which re-keys that pass's ledger, and a
+reworded comment); the Kazakh example in `extract.md:250` remains, as it did
+at Kazakhstan's close, since changing it re-keys every country's extraction.
+The peptree sweep row is updated by hand (`tree/sweep.md`, beside the user's
+uncommitted edits there).

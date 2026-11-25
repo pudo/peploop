@@ -435,7 +435,7 @@ that still applies:
 | Cyprus (second, all three lanes) | 11-02 – 11-04 | 7 peploop lines (6 new, 1 end added); 13 pepcorp lines; nothing taken back | QS3 63812, 64001 (pepcorp) |
 | Kazakhstan (first, all three lanes) | 11-05 – 11-09 | 9 offices minted (6 akimates, CEC chair, strategic-planning agency, human-rights commission); 874 peploop lines for 620 people (362 P39, 477 P27, 42 dates, 4 genders), 871 landed, 3 refused on merged items; 81 pepcorp lines; no peptree line; $171 of model spend | 65045, 66481, 66492 |
 | Kyrgyzstan (first, all three lanes) | 11-10 – 11-11 | 1 office minted (Supreme Court judge); 241 peploop lines for 172 people (121 P39 new and 10 completed, 96 P27, 12 birth dates, 2 genders), all landed; 9 pepcorp lines; 1 peptree line; before the run, the Osh governor item typed and 3 seats of the dissolved 7th convocation closed; $41 of model spend | 67157, 67086 (mint), 67158 (pepcorp); peptree 67085; 67002 67004 (before) |
-| Lithuania (first peploop, all three lanes) | 11-25 | to the dry runs, sends proposed: 588 peploop lines for 427 people (450 P39, 78 P27, 28 birth and 3 death dates, 12 genders; 17 of them refine a year-precise date), 5 offices to mint (the three apex courts' judges, the environment vice-minister, the Freedom Party chair), 111 pepcorp lines, 6 peptree lines; $138 of model spend | none yet |
+| Lithuania (first peploop, all three lanes) | 11-25 | to the dry runs, sends proposed: 577 peploop lines after a full audit took 10 rows out (446 P39, 74 P27, birth and death dates, genders; 17 refine a year-precise date), 5 offices to mint (the three apex courts' judges, the environment vice-minister, the Freedom Party chair), 111 pepcorp lines, 6 peptree lines; $138 of model spend | none yet |
 
 ### Rules each run added
 
@@ -564,7 +564,9 @@ Each audit took rows back by hand; the class behind them became a rule.
   back not current or unclear. Twin Minister of Economy and Innovation
   `Q140592938` (2 holders) took 10 mentions: its one row audited out pending a
   merge. A Seimas seat dated from the election, not the first sitting, was
-  audited out: an open class. `Q1362218` conflates the Police Commissioner
+  audited out: an open class, as were four citizenships read from lt
+  "tautybė" (ethnicity), a birthplace or against a stated other citizenship.
+  `Q1362218` conflates the Police Commissioner
   General with a German police rank: no police office minted, its peptree
   line struck. Spend was twice the estimate: extract $0.032 a head, resolve
   7,270 mentions. Residue: the bank board (no convention), the ministries'
