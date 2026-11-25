@@ -35,6 +35,9 @@ section, not a code change:
   50,000 or more are candidates for the municipal tier here (a city's
   utility company, an inter-municipal association), matched exactly as
   `P31`, each `{qid, name}`;
+- `municipal_subdivisions`: true where the first-level subdivisions are the
+  municipalities themselves (a unitary state of municipalities alone): their
+  companies are the municipal tier, never a city-state's at the regional one;
 - `categories`: Wikipedia categories that list the country's municipal
   enterprises, each `{lang, title, depth}` (the title without its
   namespace; `depth` as `wikipedia.walk_category` counts it, 1 by default);
@@ -71,6 +74,7 @@ class Spec:
     parties: frozenset[str] = frozenset()
     party_branch_classes: frozenset[str] = frozenset()
     municipal_classes: frozenset[str] = frozenset()
+    municipal_subdivisions: bool = False
     #: (lang, title, depth) of each municipal enterprise category.
     categories: tuple[tuple[str, str, int], ...] = ()
     body_classes: tuple[str, ...] = ()
@@ -107,6 +111,7 @@ def get(cc: str) -> Spec:
         parties=frozenset(str(q["qid"]) for q in data.get("parties") or []),
         party_branch_classes=frozenset(str(q["qid"]) for q in data.get("party_branch_classes") or []),
         municipal_classes=frozenset(str(q["qid"]) for q in data.get("municipal_classes") or []),
+        municipal_subdivisions=bool(data.get("municipal_subdivisions")),
         categories=tuple((str(c["lang"]), str(c["title"]), int(c.get("depth", 1))) for c in data.get("categories") or []),
         body_classes=tuple(str(q["qid"]) for q in data.get("body_classes") or []),
         organisation_classes=tuple(str(q["qid"]) for q in data.get("organisation_classes") or []),

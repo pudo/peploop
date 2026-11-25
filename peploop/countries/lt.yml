@@ -106,8 +106,10 @@ census:
   # `Q140592938` (2, the lt label); the holder signal keeps the reconciler on
   # the first.
   #
-  # Left out: deputy ministers and the deputy prosecutors general (from the
-  # mentions, `deputy_minister`), the ministries' chancellors and the
+  # Left out: the deputy prosecutors general (from the mentions), the Bank of
+  # Lithuania's board (no convention: 130 central-bank offices are governors;
+  # pepcorp seats it on the bank), the Land Force commander (`Q141306379`
+  # exists, untyped), the ministries' chancellors and the
   # municipal administration directors (the AMLR names them; no article
   # attests most), the Government's chancellor (no body item), the AMLR's
   # brigade and command heads below the four services.
@@ -135,6 +137,107 @@ census:
       lt: Lietuvos vyriausiojo administracinio teismo teisėjas
       en: Judge of the Supreme Administrative Court of Lithuania
 
+  # --- Vice-ministers: one per ministry, as the AMLR list names them; 77
+  # deputy-minister items name their ministry, so the body is the ministry ---
+  - key: vice_minister_environment
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q957060
+    labels:
+      lt: Lietuvos Respublikos aplinkos viceministras
+      en: Vice-Minister of Environment of Lithuania
+  - key: vice_minister_economy_innovation
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q957103
+    labels:
+      lt: Lietuvos Respublikos ekonomikos ir inovacijų viceministras
+      en: Vice-Minister of Economy and Innovation of Lithuania
+  - key: vice_minister_energy
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q956983
+    labels:
+      lt: Lietuvos Respublikos energetikos viceministras
+      en: Vice-Minister of Energy of Lithuania
+  - key: vice_minister_finance
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q957151
+    labels:
+      lt: Lietuvos Respublikos finansų viceministras
+      en: Vice-Minister of Finance of Lithuania
+  - key: vice_minister_defence
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q656588
+    labels:
+      lt: Lietuvos Respublikos krašto apsaugos viceministras
+      en: Vice-Minister of National Defence of Lithuania
+  - key: vice_minister_culture
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q957018
+    labels:
+      lt: Lietuvos Respublikos kultūros viceministras
+      en: Vice-Minister of Culture of Lithuania
+  - key: vice_minister_social_security
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q957008
+    labels:
+      lt: Lietuvos Respublikos socialinės apsaugos ir darbo viceministras
+      en: Vice-Minister of Social Security and Labour of Lithuania
+  - key: vice_minister_transport
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q956975
+    labels:
+      lt: Lietuvos Respublikos susisiekimo viceministras
+      en: Vice-Minister of Transport and Communications of Lithuania
+  - key: vice_minister_health
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q957137
+    labels:
+      lt: Lietuvos Respublikos sveikatos apsaugos viceministras
+      en: Vice-Minister of Health of Lithuania
+  - key: vice_minister_education
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q957126
+    labels:
+      lt: Lietuvos Respublikos švietimo, mokslo ir sporto viceministras
+      en: Vice-Minister of Education, Science and Sport of Lithuania
+  - key: vice_minister_justice
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q956996
+    labels:
+      lt: Lietuvos Respublikos teisingumo viceministras
+      en: Vice-Minister of Justice of Lithuania
+  - key: vice_minister_foreign_affairs
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q1548931
+    labels:
+      lt: Lietuvos Respublikos užsienio reikalų viceministras
+      en: Vice-Minister of Foreign Affairs of Lithuania
+  - key: vice_minister_interior
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q957048
+    labels:
+      lt: Lietuvos Respublikos vidaus reikalų viceministras
+      en: Vice-Minister of the Interior of Lithuania
+  - key: vice_minister_agriculture
+    class: executive.deputy_ministers
+    archetype: deputy_minister
+    body: Q957035
+    labels:
+      lt: Lietuvos Respublikos žemės ūkio viceministras
+      en: Vice-Minister of Agriculture of Lithuania
+
   # --- Seimas administration ---
   - key: seimas_chancellor
     class: legislature.leadership
@@ -143,15 +246,6 @@ census:
     labels:
       lt: Lietuvos Respublikos Seimo kancleris
       en: Chancellor of the Seimas of Lithuania
-
-  # --- Central bank ---
-  - key: central_bank_board_member
-    class: economic.central_bank
-    archetype: state_body_member
-    body: Q616849            # Bank of Lithuania
-    labels:
-      lt: Lietuvos banko valdybos narys
-      en: Member of the Board of the Bank of Lithuania
 
   # --- Regulators ---
   - key: competition_council_chair
@@ -179,13 +273,8 @@ census:
       en: Director of the Communications Regulatory Authority of Lithuania
 
   # --- Security: police, military intelligence, the armed services ---
-  - key: police_commissioner_general
-    class: security.police
-    archetype: agency_head
-    body: Q1729128           # Policijos departamentas prie Vidaus reikalų ministerijos
-    labels:
-      lt: Lietuvos policijos generalinis komisaras
-      en: Police Commissioner General of Lithuania
+  # No police entry: `Q1362218` is the Police Commissioner General (ltwiki,
+  # P2389 the Police Department) conflated with a German police rank (dewiki).
   - key: aotd_director
     class: security.intelligence
     archetype: agency_head
@@ -193,13 +282,6 @@ census:
     labels:
       lt: Antrojo operatyvinių tarnybų departamento direktorius
       en: Director of the Second Investigation Department of Lithuania
-  - key: land_force_commander
-    class: security.defence_command
-    archetype: military_chief_of_staff
-    body: Q1499997           # Lithuanian Land Force
-    labels:
-      lt: Lietuvos kariuomenės Sausumos pajėgų vadas
-      en: Commander of the Lithuanian Land Force
   - key: air_force_commander
     class: security.defence_command
     archetype: military_chief_of_staff
@@ -227,6 +309,10 @@ corp:
   # 2010) and 60 municipalities, which peploop counts first-level.
 
   tiers: [national, regional]
+
+  # The 60 municipalities are the first-level units: their companies are the
+  # municipal tier, which is not written here, not a city-state's.
+  municipal_subdivisions: true
 
   # Classes the type tree files under government organization or government
   # agency that are not government bodies here. None measured: no misfiled

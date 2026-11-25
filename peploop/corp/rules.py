@@ -551,6 +551,11 @@ def name_unit(name: str, names: dict[str, str | None]) -> str | None:
     return None
 
 
+def city_states(subdivisions: frozenset[str], spec: countries.Spec) -> frozenset[str]:
+    """The first-level subdivisions that may be a city-state: none where they are the municipalities."""
+    return frozenset() if spec.municipal_subdivisions else subdivisions
+
+
 def city_state(req: dict[str, Any], named: dict[str, str] | None, subdivisions: frozenset[str],
                municipal: frozenset[str] | set[str] = frozenset()) -> dict[str, Any]:
     """The request with a city-state's company at the regional tier, where the answer calls it municipal.
@@ -872,7 +877,8 @@ def decide(cc: str, answered: list[dict[str, Any]], items: dict[str, dict[str, A
             reads.update(live(sorted({o for e in reads.values() for p in ("P127", "P749") for o in wd.values(e, p)})))
         behind = controller_units(named_now, reads, units)
         admins = {q: u for q in named_now for u in wd.values(reads.get(q) or {}, "P1001") if u in units}
-    answered = [city_state(r, named.get(r["qid"]), subdivisions, units | set(behind)) for r in answered]
+    cities = city_states(subdivisions, spec)
+    answered = [city_state(r, named.get(r["qid"]), cities, units | set(behind)) for r in answered]
     proofs = {r["qid"]: proven(items.get(r["qid"]), spec, r["answer"]["kind"]) for r in answered}
     # The unit each municipal body's control resolves to; an inter-municipal
     # association or a city's holding this run passes lends its own unit to

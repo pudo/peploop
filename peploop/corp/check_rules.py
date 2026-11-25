@@ -716,6 +716,9 @@ def municipal() -> None:
     expect(citystate["answer"]["control"]["level"] == "regional" and muni["answer"]["control"]["level"] == "municipal",
            "a company a city-state controls is at the regional tier")
     expect(rules.city_state(muni, None, frozenset({"Q900001"})) is muni, "a city's company stays municipal")
+    municipalities = country.Spec(cc="xx", municipal_subdivisions=True)
+    expect(rules.city_state(muni, None, rules.city_states(frozenset({"Q900050"}), municipalities)) is muni,
+           "where the first-level subdivisions are the municipalities, none of them is a city-state")
     both = {**base, "offered": ["Q900050", "Q900001"], "answer": answer(level="municipal", owners=((0, "owner"), (1, "owner")))}
     expect(rules.city_state(both, None, frozenset({"Q900001"}), units) is both,
            "a company a city leads with a region beside it stays the city's")
