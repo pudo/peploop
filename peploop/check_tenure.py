@@ -52,9 +52,9 @@ def main() -> None:
     expect(tenure.says_current("Қазіргі уақытта - Линдо облысының әкімі", "kk")
            and not tenure.says_current("2020 жылдан бастап Сенат депутаты", "kk"),
            "kk: at present is now; since is not")
-    expect(tenure.says_current("Nuo 2026 m. eina Seimo narės pareigas.", "lt")
-           and tenure.says_current("nuo 2000 m. iki dabar – Kretingos rajono savivaldybės tarybos narys", "lt")
-           and not tenure.says_current("Nuo 2011 m. Švenčionių rajono savivaldybės tarybos narys.", "lt"),
+    expect(tenure.says_current("Nuo 2026 m. eina Lindo tarybos narės pareigas.", "lt")
+           and tenure.says_current("nuo 2000 m. iki dabar – Lindo rajono savivaldybės tarybos narys", "lt")
+           and not tenure.says_current("Nuo 2011 m. Lindo rajono savivaldybės tarybos narys.", "lt"),
            "lt: holds the post and to now are now; since is not")
     expect(not tenure.says_current("Incumbent", "xx") and not tenure.reads_current("xx"),
            "a language without markers says nothing")

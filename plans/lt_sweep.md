@@ -130,3 +130,53 @@ Then §6: Lithuania's tokens in `check_neutral.TOKENS` (the name stem, `Q37`,
    mint makes ambassadorships.
 4. **The governance.lt list** as an OpenSanctions source: a crawler in
    `opensanctions/datasets`, outside this repository.
+
+## The run (2026-11-25), to the dry runs
+
+**Spend: $137.58**, twice the estimate: extract $40.37 ($0.032 a head, 1,266
+people), resolve $58.84 (7,270 mentions), mint $23.81 (categorize ran twice:
+the census changed), verify $10.50, peptree $1.09, pepcorp $2.13.
+
+**peptree** (batch 45): 8 lines, 2 struck. `Q1362218` P1001 (the item
+conflates the Police Commissioner General, ltwiki, with a German police rank,
+dewiki) and `Q30064875` P31 (a diplomatic rank class). Left: P1001 on three
+agency heads and the border guard commander, P17 on three dioceses' bishops.
+The sweep table row still shows the 2026-10-08 run; `tree sweep table` was not
+re-run because `tree/sweep.md` carries uncommitted edits.
+
+**peploop**: 1,750 seeded, 1,266 in scope. 1,755 P39 rows: 697 ended, 123
+open and unattested, 108 contested, 451 supported. Send dry run: **588 lines
+for 427 people**: 450 P39 (28 open: 11 Seimas seats of the 14th Seimas, 5
+deputy speakers, court and judicial-council presidents, council seats), 78
+P27, 28 birth dates (14 refine a year to a day), 3 death dates, 12 genders;
+11 merges, 1 row closed as `ambiguous-statement`. No mayor line is open: the
+sitting mayors already hold their P39.
+Fixes in the run: lt present-tense markers (`tenure.CURRENT`); the
+vice-ministers by ministry and no bank board, land force or police in the
+census. Audited out: the twin-bound Economy and Innovation row (#302907) and
+a Seimas seat dated from the election (#302132).
+
+**mint**: 5 to create: judges of the Supreme, Supreme Administrative and
+Constitutional Courts, the environment vice-minister, the Freedom Party
+chair. 13 vice-ministers came back not current or unclear; party chairs mostly
+medium. `Q141306379` (Land Force commander) exists untyped.
+
+**pepcorp**: 111 lines on 65 bodies (41 P1037, 28 P3320 party board seats,
+12 P127, 12 P169, 9 P31, 5 P488, 3 P749, 1 P5052). Fixed in the run: the
+city-state rule wrote Kaunas's and Klaipėda's municipal companies as
+state-owned (`municipal_subdivisions`).
+
+## Send proposal
+
+In this order, each on the user's go:
+
+1. `tree send --batch 45 --submit`: 6 lines.
+2. `mint --country lt --submit`: 5 items; then `verify` and a `send` dry run
+   for the lines their feed adds.
+3. `send --country lt --submit`: one tranche, 588 lines (427 people).
+4. `corp send lt --submit`: 111 lines.
+
+Open: the Economy and Innovation twin merge; the conflated `Q1362218`; the
+13 vice-ministries; `check_neutral` still flags the AMLR lane's
+`amlr_expand.py:67` and `prompts/amlr_match.md:13` (Lithuania as an example)
+beside the older Kazakh example in `prompts/extract.md`.
