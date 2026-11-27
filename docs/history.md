@@ -584,3 +584,18 @@ Each audit took rows back by hand; the class behind them became a rule.
   still hedges on some translations (2 of 4 "Chairman" against a
   "Governor" label), and propose takes a tenure's first mention's verdict, so
   a second mention's match does not rescue it.
+- **Rank over wording (11-12 – 11-27):** the candidate line now shows an
+  item's other names in English, the article's and the state's languages, and
+  the reconcile rules were reworked so a refusal, like a match, rests on what
+  the input shows. Re-asking 804 `renamed` and hedged `wrong-office` mentions
+  ($9.43) moved 106 to `same-office/high`, most on an alias carrying the
+  article's title; about 9 of those were a deputy, first or second deputy
+  placed on the plain seat. Naming rank in the prompt and asking the 106 again
+  ($1.26) fixed 3 and flipped 24 others with no relation to the edit: the
+  model is unstable on this boundary, so prompt wording is the wrong lever.
+  `lower_seat` now reads rank in every language against the office's names in
+  the title's script (`seat_marks`, shared with mint): 92 of 50,856 confident
+  matches skip, most a Japanese senior vice-minister on the parliamentary
+  vice-minister's item or a Chinese deputy on the head's seat. Not caught: a
+  "Minister of State" on the minister, a party's state branch on its national
+  leader.
