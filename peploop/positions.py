@@ -1230,16 +1230,18 @@ def holder_spells(qids: Sequence[str]) -> dict[str, list[tuple[str, dict[str, An
     """
     wanted = [qid for qid in dict.fromkeys(qids) if qid]
     seen: dict[str, tuple[str, str, dict[str, Any]]] = {}
-    for chunk in wikidata.values_chunks(wanted, size=BACKFILL_CHUNK):
-        rows = wikidata.sparql(
+    rows = wikidata.bisect(
+        lambda chunk: wikidata.sparql(
             HOLDER_SPELLS_QUERY % {"values": wikidata.values_block(chunk)}, max_age=0
-        )
-        for row in rows:
-            _pos, _person, span = seen.setdefault(row["st"], (row["pos"], row["h"], {}))
-            for prop, time, precision in (("P580", "s", "sp"), ("P582", "e", "ep")):
-                value = _sparql_time(row.get(time), row.get(precision))
-                if value is not None:
-                    span.setdefault(prop, value)
+        ),
+        wanted, size=BACKFILL_CHUNK,
+    )
+    for row in rows:
+        _pos, _person, span = seen.setdefault(row["st"], (row["pos"], row["h"], {}))
+        for prop, time, precision in (("P580", "s", "sp"), ("P582", "e", "ep")):
+            value = _sparql_time(row.get(time), row.get(precision))
+            if value is not None:
+                span.setdefault(prop, value)
     out: dict[str, list[tuple[str, dict[str, Any]]]] = {}
     for pos, person, span in seen.values():
         out.setdefault(pos, []).append((person, span))
