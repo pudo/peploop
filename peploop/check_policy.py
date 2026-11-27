@@ -321,7 +321,7 @@ def main() -> int:
     check("an 'incumbent' he beat is not his own seat held now",
           policy.decide(case(qualifiers=beaten, lang="en", seed_lang="en")),
           policy.SKIPPED, "open_unattested")
-    head = office(names_zh=["中华人民共和国国家监察委员会主任"])
+    head = office(names=["中华人民共和国国家监察委员会主任"])
     titled = lambda title: {"kind": "same-office", "confidence": "high", "qid": OFFICE, "title": title}
     check("a deputy placed on the head's seat is skipped",
           policy.decide(case(resolution=titled("国家监察委员会副主任"), position=head)),
@@ -334,15 +334,45 @@ def main() -> int:
           policy.PENDING, "unverified")
     check("and a deputy on a deputy's seat",
           policy.decide(case(resolution=titled("外交部副部长"),
-                             position=office(names_zh=["中华人民共和国外交部副部长"]))),
+                             position=office(names=["中华人民共和国外交部副部长"]))),
           policy.PENDING, "unverified")
     check("and a member on a seat of members",
           policy.decide(case(resolution=titled("全国政协委员"),
-                             position=office(names_zh=["中国人民政治协商会议全国委员会委员"]))),
+                             position=office(names=["中国人民政治协商会议全国委员会委员"]))),
+          policy.PENDING, "unverified")
+    ranked = lambda title, *names: policy.decide(case(resolution=titled(title), position=office(names=list(names))))
+    check("a deputy minister placed on the minister of an office whose name has a vice president is skipped",
+          ranked("Deputy Minister in the Office of the Vice-President", "Minister - Office of the Vice President"),
+          policy.SKIPPED, "office/lower-seat")
+    check("so is a first vice president on the vice president, in any language",
+          ranked("erster Vizepräsident", "Vice President of Northvale"), policy.SKIPPED, "office/lower-seat")
+    check("and a first deputy chairman, transliterated, on the deputy chairman",
+          ranked("первый заместитель председателя", "заместитель председателя"),
+          policy.SKIPPED, "office/lower-seat")
+    check("and a vice-minister on the minister",
+          ranked("vice-ministre des sports", "Minister of Sport"), policy.SKIPPED, "office/lower-seat")
+    check("and a second vice president on the vice president",
+          ranked("Second Vice President", "Vice President"), policy.SKIPPED, "office/lower-seat")
+    check("a vice president on the vice president passes",
+          ranked("Vice President", "Vice President"), policy.PENDING, "unverified")
+    check("and a first deputy minister on the first deputy minister",
+          ranked("First Deputy Minister of Finance", "First Deputy Minister of Finance"),
+          policy.PENDING, "unverified")
+    check("a premier's title is no first",
+          ranked("vice primera ministra", "Deputy Prime Minister"), policy.PENDING, "unverified")
+    check("nor is an acting minister read, as the community records one on the seat",
+          ranked("acting Minister of Finance", "Minister of Finance"), policy.PENDING, "unverified")
+    check("a legislator called a deputy is no deputy",
+          ranked("Deputy in the National Assembly", "Member of the National Assembly"),
+          policy.PENDING, "unverified")
+    check("an office with no name in the title's script is not judged",
+          ranked("教育部副部长", "Deputy Minister of Education"), policy.PENDING, "unverified")
+    check("nor is a title of several posts",
+          ranked("Chief of the General Staff — First Deputy Minister of Defence", "Chief of the General Staff"),
           policy.PENDING, "unverified")
     check("a title of several posts names more than the one placed",
           policy.decide(case(resolution=titled("第十四屆全國政協常委、全國政協外事委員會副主任"),
-                             position=office(names_zh=["全国政协常务委员"]))),
+                             position=office(names=["全国政协常务委员"]))),
           policy.PENDING, "unverified")
     check("and a mention naming no polity says nothing",
           policy.decide(case(resolution=said("the capital"), polities=polities,

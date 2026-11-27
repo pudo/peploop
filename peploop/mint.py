@@ -25,7 +25,7 @@ from psycopg.types.json import Jsonb
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory
 
-from peploop import classes, countries, db, llm, offices, policy, positions, reconcile, scope, tenure, typegraph, wikidata
+from peploop import classes, countries, db, llm, offices, policy, positions, reconcile, scope, seat_marks, tenure, typegraph, wikidata
 from peploop import text as text_
 from peploop import verify as person_verify
 from peploop.verdict import CONFIDENCES
@@ -1837,27 +1837,6 @@ def _run_labels(cand: Candidate) -> list[str]:
     return [text for (labels,) in rows for text in (labels or {}).values()]
 
 
-#: Words that make a title another seat than the office it was clustered into:
-#: the acting holder, the substitute, the co-judge, the deputy. Such a title
-#: still attests the office's existence, but as an alias it would name a
-#: different seat and let a later search place its holders here. Matched on
-#: folded text, so the East Slavic acting forms ("исполняющий
-#: обязанности", "временный", "тимчасовий", "врио", "и. о.", "выконваючы
-#: абавязкі") and deputy forms ("заместитель", "намеснік", "заступник") are
-#: matched transliterated.
-ACTING = re.compile(
-    r"\b(acting|interim|interino|interina|encargad[oa]|ad hoc|provisional|en funciones"
-    r"|kommissarisch\w*|geschaftsfuhrend\w*|facente funzion\w*|penjabat|pemangku|plt"
-    r"|ispolna\w*|obazannost\w*|vrio|vykonva\w*|abavazk\w*|vremenn\w*|timcasov\w*|tymczasow\w*)\b"
-    r"|\bi\. ?o\."
-)
-DEPUTY = re.compile(
-    r"\b(substitute|suplente|alternate|co[- ]?judge|conjuez|conjueza|deputy|vice|vice-?\w+"
-    r"|stellvertret\w*|vize\w*|adjoint\w*|wakil(?! rakyat)|timbalan"
-    r"|adjunt[oa]|zamestitel\w*|namesnik\w*|zastupnik\w*|yardimci\w*|vekil\w*)\b"
-)
-#: A first deputy is another seat than the deputies of the same ministry.
-FIRST = re.compile(r"\b(first|primer[oa]?|premier|premiere|pervyj|pervaa|persy|persaa)\b")
 #: Archetypes whose seat *is* a deputy's, so a deputy word in a title is the
 #: office's own and only an acting form, or a first deputy where the label
 #: names none (or the reverse), is another seat.
@@ -1865,13 +1844,17 @@ DEPUTY_ARCHETYPES = ("deputy_minister",)
 
 
 def not_the_seat(title: str, labels: dict[str, str], archetype: str | None = None) -> bool:
-    """Whether a folded title names another seat than the labelled office."""
-    if ACTING.search(title):
+    """Whether a folded title names another seat than the labelled office.
+
+    Such a title still attests the office's existence, but as an alias it
+    would name a different seat and let a later search place its holders here.
+    """
+    if seat_marks.ACTING.search(title):
         return True
     if archetype not in DEPUTY_ARCHETYPES:
-        return bool(DEPUTY.search(title))
-    first = any(FIRST.search(_fold(text)) for text in labels.values())
-    return bool(FIRST.search(title)) != first
+        return bool(seat_marks.DEPUTY.search(title))
+    numbered = any(seat_marks.ORDINAL.search(_fold(text)) for text in labels.values())
+    return bool(seat_marks.ORDINAL.search(title)) != numbered
 
 
 #: Marks of another seat that folding would erase, read on the title as
@@ -1907,7 +1890,7 @@ CJK_SEAT_MARKS = {
 #: A label of a Party committee's own post, whose 党委 is the committee
 #: itself: "清华大学党委书记" for 中国共产党清华大学委员会书记.
 CPC_COMMITTEE = re.compile(r"中国共产党|中國共產黨|中共")
-CJK = re.compile(r"[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff\uac00-\ud7af]")
+CJK = seat_marks.CJK
 
 
 def other_seat_marked(title: str, lang: str, labels: dict[str, str]) -> str | None:

@@ -29,7 +29,8 @@ from psycopg.rows import dict_row
 from rigour.langs import iso_639_alpha2
 from rigour.territories import get_territory_by_qid
 
-from peploop import classes, dates, db, eras, memo, positions, prompt, propose, scope, tenure, verify, wikidata
+from peploop import classes, dates, db, eras, memo, positions, prompt, propose, scope, seat_marks, tenure, verify, wikidata
+from peploop import text as text_
 from peploop.verdict import LOW, SUPPORTED
 
 ACCEPTED = "accepted"
@@ -53,12 +54,16 @@ OVERLAP_DAYS = 60
 #: Local seats, re-elected with their council: one whose article stops at a
 #: "currently serves" is as often lost at the next local election.
 LOCAL_KINDS = frozenset({"Q708492", "Q30185"})  # council member, mayor
-#: A Chinese title of one post, read for its rank: a deputy (副) or a member
-#: (委员) placed on the seat its body's head holds. Several posts in one title
-#: ("全国政协常委、外事委员会副主任") name more than the office placed.
-#: The Chinese label languages `lower_seat` reads an office's names in.
+#: The Chinese label languages.
 ZH_LANGS = ("zh", "zh-hans", "zh-hant", "zh-cn", "zh-tw", "zh-hk")
-SEAT_SEPARATORS = re.compile(r"[、，,；;]")
+#: A title of several posts names more than the office placed, and `lower_seat`
+#: leaves it alone: "全国政协常委、外事委员会副主任", "国土交通副大臣兼内閣府副大臣",
+#: "Chief of the General Staff — First Deputy Minister of Defence". A
+#: parenthesis glosses the title in another language ("Vizepräsident
+#: (Vice-Presidente)") and counts its rank twice.
+HAN_SEVERAL = re.compile(r"[、，,；;・／/兼]")
+SEVERAL = re.compile(r"[,;/()]| [—–-] ")
+#: A Chinese member's seat (委员) placed where the office's names name its head.
 SEAT_MEMBER = re.compile(r"委[员員]$")
 SEAT_HEADS = ("主任", "主席", "书记", "書記", "部长", "部長", "院长", "院長",
               "省长", "省長", "市长", "市長", "检察长", "檢察長", "局长", "局長")
@@ -739,27 +744,50 @@ def resolution_weak(case: Case) -> Disposition | None:
 
 
 def lower_seat(case: Case) -> Disposition | None:
-    """A deputy or a member placed on the seat of the body's head.
+    """A deputy, a numbered deputy or a member placed on a seat above it.
 
-    The reconciler took "国家监察委员会副主任" (deputy director) and
-    "国家监察委员会委员" (member) for the director's item, whose English label
-    ("Officer responsible of the National Supervisory Commission") names no
-    rank. Read only on a Chinese title of one post, against the office's
-    Chinese names: a deputy where none of them is one, or a member where they
-    name a head.
+    The reconciler reads a rank in a title as a variant of the seat: a deputy
+    minister went onto the minister, a first vice president onto the vice
+    president, "国家监察委员会副主任" (deputy director) onto the director. The
+    title shows the rank, so it is read against the office's names in the
+    same script: a title with more deputy words than any of them, or a
+    numbered deputy where none is numbered, names a lower seat. An office with
+    no name in the title's script is not judged, nor is a title of several
+    posts. A Chinese title is also read for a member placed where the names
+    name a head. Acting holders are not read: the community records them on
+    the seat.
     """
     if case.property != "P39" or not case.resolution or not case.position:
         return None
     title = (case.resolution.get("title") or "").strip()
-    names = case.position.get("names_zh") or []
-    if not title or not names or SEAT_SEPARATORS.search(title):
+    names = case.position.get("names") or []
+    if not title or not names:
         return None
-    if "副" in title and not any("副" in n for n in names):
-        return _skip("office/lower-seat")
-    if (SEAT_MEMBER.search(title) and not any(SEAT_MEMBER.search(n) for n in names)
-            and any(n.endswith(SEAT_HEADS) for n in names)):
+    if seat_marks.CJK.search(title):
+        if HAN_SEVERAL.search(title):
+            return None
+        han = [n for n in names if seat_marks.CJK.search(n)]
+        if han and _outranked(title, han, seat_marks.DEPUTY_HAN, seat_marks.ORDINAL_HAN):
+            return _skip("office/lower-seat")
+        if (SEAT_MEMBER.search(title) and not any(SEAT_MEMBER.search(n) for n in han)
+                and any(n.endswith(SEAT_HEADS) for n in han)):
+            return _skip("office/lower-seat")
+        return None
+    if SEVERAL.search(title):
+        return None
+    folded = [text_.squash(text_.fold(n)) for n in names if not seat_marks.CJK.search(n)]
+    written = text_.squash(text_.fold(title))
+    if folded and _outranked(written, folded, seat_marks.DEPUTY, seat_marks.ORDINAL):
         return _skip("office/lower-seat")
     return None
+
+
+def _outranked(title: str, names: Sequence[str], deputy: re.Pattern[str], ordinal: re.Pattern[str]) -> bool:
+    """Whether a title is a deputy more times than any name, or a numbered one where no name is."""
+    deputies = len(deputy.findall(title))
+    if deputies > max(len(deputy.findall(n)) for n in names):
+        return True
+    return bool(deputies and ordinal.search(title) and not any(ordinal.search(n) for n in names))
 
 
 def _names_in(text: str, name: str) -> bool:
@@ -1362,10 +1390,9 @@ def person_cases(
         [row["value"].get("id") for row in rows if row["property"] == "P39"]
     )
     generic_held = positions.generic_classes(wikidata.claim_qids(person["entity"], "P39", include_deprecated=False))
-    if any((row["source_lang"] or "").startswith("zh") for row in rows if row["property"] == "P39"):
-        names = memo.names_of(list(offices), ZH_LANGS)
-        for office_qid, office in offices.items():
-            office["names_zh"] = names.get(office_qid) or []
+    names = memo.names_of(list(offices))
+    for office_qid, office in offices.items():
+        office["names"] = names.get(office_qid) or []
     state_qid = _state_qid(person["country"])
     seed_lang = _seed_lang(qid)
     keys = {
